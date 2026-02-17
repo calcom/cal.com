@@ -63,6 +63,15 @@ export function ScheduleListItem({
 
   type AvailabilityItem = (typeof schedule.availability)[number];
 
+   const handleDelete=()=>{
+          if (!isDeletable) {
+                  showToast(t("requires_at_least_one_schedule"), "error");
+                  return;
+              } else {
+                    setIsDeleteDialogOpen(true);
+              }
+   }
+
   return (
     <li key={schedule.id}>
       <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
@@ -146,13 +155,7 @@ export function ScheduleListItem({
                 StartIcon="trash"
                 data-testid="delete-schedule"
                 className="rounded-t-none"
-                onClick={() => {
-                  if (!isDeletable) {
-                    showToast(t("requires_at_least_one_schedule"), "error");
-                  } else {
-                    setIsDeleteDialogOpen(true);
-                  }
-                }}>
+                onClick={handleDelete}>
                 {t("delete")}
               </DropdownItem>
             </DropdownMenuItem>
