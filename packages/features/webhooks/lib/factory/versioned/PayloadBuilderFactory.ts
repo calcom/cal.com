@@ -87,6 +87,7 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   [WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED]: "booking",
   [WebhookTriggerEvents.BOOKING_PAID]: "booking",
   [WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED]: "booking",
+  [WebhookTriggerEvents.BOOKING_LOCATION_UPDATED]: "booking",
 
   // Form events
   [WebhookTriggerEvents.FORM_SUBMITTED]: "form",
@@ -123,7 +124,8 @@ export type BookingTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_REQUESTED
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
   | typeof WebhookTriggerEvents.BOOKING_PAID
-  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
+  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED
+  | typeof WebhookTriggerEvents.BOOKING_LOCATION_UPDATED;
 
 export type PaymentTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED

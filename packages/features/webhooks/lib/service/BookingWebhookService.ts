@@ -7,6 +7,7 @@ import type {
   BookingCancelledDTO,
   BookingRequestedDTO,
   BookingRescheduledDTO,
+  BookingLocationUpdatedDTO,
   BookingPaidDTO,
   BookingPaymentInitiatedDTO,
   BookingNoShowDTO,
@@ -21,6 +22,7 @@ import type {
   BookingCancelledParams,
   BookingRequestedParams,
   BookingRescheduledParams,
+  BookingLocationUpdatedParams,
   BookingPaidParams,
   BookingPaymentInitiatedParams,
   BookingNoShowParams,
@@ -118,6 +120,30 @@ export class BookingWebhookService implements IBookingWebhookService {
       cancelledBy: params.cancelledBy,
       cancellationReason: params.cancellationReason,
       requestReschedule: params.requestReschedule,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitBookingLocationUpdated(params: BookingLocationUpdatedParams): Promise<void> {
+    if (!params.eventType) {
+      throw new Error("eventType is required for booking webhook events");
+    }
+
+    const dto: BookingLocationUpdatedDTO = {
+      triggerEvent: WebhookTriggerEvents.BOOKING_LOCATION_UPDATED,
+      createdAt: new Date().toISOString(),
+      bookingId: params.booking.id,
+      eventTypeId: params.eventType.id,
+      userId: params.booking.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      platformClientId: params.platformClientId,
+      evt: params.evt,
+      eventType: params.eventType,
+      booking: params.booking,
+      oldLocation: params.oldLocation,
+      newLocation: params.newLocation,
     };
 
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);

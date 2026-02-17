@@ -57,6 +57,15 @@ interface CancelledEventPayload extends BaseWebhookPayload {
   requestReschedule?: boolean;
 }
 
+interface RelocateEventPayload extends BaseWebhookPayload {
+  eventTypeId?: number | null;
+  length?: number | null;
+  iCalSequence?: number | null;
+  eventTitle?: string | null;
+  requestReschedule?: boolean;
+  updatedLocation?: string | null;
+}
+
 export class BookingWebhookFactory {
   private getType(params: BaseWebhookPayload) {
     return params.eventSlug || params.title || "";
@@ -129,6 +138,24 @@ export class BookingWebhookFactory {
       cancelledBy: params.cancelledBy,
       cancellationReason: params.cancellationReason,
       status: "CANCELLED" as const,
+      eventTypeId: params.eventTypeId ?? null,
+      length: params.length ?? null,
+      iCalSequence: params.iCalSequence ?? null,
+      eventTitle: params.eventTitle ?? null,
+      requestReschedule: params.requestReschedule ?? false,
+    };
+  }
+
+  public createRelocateEventPayload(params: RelocateEventPayload) {
+    const basePayload = this.createBasePayload({
+      ...params,
+    });
+    const { location, ...basePayloadWithoutLocation } = basePayload;
+
+    return {
+      ...basePayloadWithoutLocation,
+      oldLocation: params.location ?? null,
+      updatedLocation: params.updatedLocation ?? null,
       eventTypeId: params.eventTypeId ?? null,
       length: params.length ?? null,
       iCalSequence: params.iCalSequence ?? null,

@@ -615,6 +615,7 @@
   "booking_paid": "Booking paid",
   "ooo_created": "Out of office created",
   "booking_no_show_updated": "Booking no-show updated",
+  "booking_location_updated": "Booking location updated",
   "delegation_credential_error": "Delegation credential error",
   "event_triggers": "Event triggers",
   "subscriber_url": "Subscriber URL",

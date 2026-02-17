@@ -17,17 +17,28 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import type { Booking, BookingReference } from "@calcom/prisma/client";
+import type { Booking, BookingReference, EventType } from "@calcom/prisma/client";
 import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 import { TRPCError } from "@trpc/server";
 import type { z } from "zod";
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEditLocationInputSchema } from "./editLocation.schema";
 import type { BookingsProcedureContext } from "./util";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
+import dayjs from "@calcom/dayjs";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
+import { PersonAttendeeCommonFields } from "~/server/routers/viewer/bookings/types";
+import type { TFunction } from "i18next";
 
 // #region EditLocation Types and Helpers
 type EditLocationOptions = {
@@ -39,6 +50,7 @@ type EditLocationOptions = {
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
+const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 
 async function updateLocationInConnectedAppForBooking({
   evt,
@@ -271,6 +283,9 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
   const organizationId = booking.user?.profiles?.[0]?.organizationId ?? null;
 
+  const bookingRepository = new BookingRepository(prisma);
+  const bookingToRelocate = await bookingRepository.findByUidIncludeEventTypeAndReferences({ bookingUid: booking.uid });
+
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
     organizer,
@@ -336,6 +351,103 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
     },
     isBookingAuditEnabled,
   });
+
+  try {
+    const [mainAttendee] = booking.attendees;
+    const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
+      const usersToPeopleType = (users: PersonAttendeeCommonFields[], selectedLanguage: TFunction): Person[] => {
+        return users?.map((user) => {
+          return {
+            id: user.id,
+            email: user.email || "",
+            name: user.name || "",
+            username: user?.username || "",
+            language: { translate: selectedLanguage, locale: user.locale || "en" },
+            timeZone: user?.timeZone,
+            phoneNumber: user.phoneNumber,
+          };
+        });
+      };
+
+      const userTranslation = await getTranslation(loggedInUser.locale ?? "en", "common");
+      const [userAsPeopleType] = usersToPeopleType([loggedInUser], userTranslation);
+      const organizer = {
+        ...userAsPeopleType,
+        email: booking.userPrimaryEmail ?? userAsPeopleType.email,
+      };
+      const calEventResponses = getCalEventResponses({
+          booking,
+          bookingFields: booking.eventType?.bookingFields ?? null,
+        });
+    
+      const builder = new CalendarEventBuilder();
+      const webhookFactory = new BookingWebhookFactory();
+      const event: Partial<EventType> = booking?.eventType ?? {};
+      const payload = webhookFactory.createRelocateEventPayload({
+        bookingId: booking.id,
+        title: booking.title,
+        eventSlug: event?.slug ?? null,
+        description: booking.description,
+        customInputs: booking.customInputs,
+        responses: calEventResponses.responses,
+        userFieldsResponses: calEventResponses.userFieldsResponses,
+        startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
+        endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
+        organizer,
+        attendees: usersToPeopleType(
+          // username field doesn't exists on attendee but could be in the future
+          booking.attendees as unknown as PersonAttendeeCommonFields[],
+          tAttendees
+        ),
+        uid: booking.uid,
+        destinationCalendar: booking.destinationCalendar,
+        iCalUID: booking.iCalUID,
+        ...(booking.smsReminderNumber && {
+          smsReminderNumber: booking.smsReminderNumber,
+        }),
+        eventTypeId: booking.eventTypeId,
+        length: booking.eventType?.length ?? null,
+        iCalSequence: builder.calendarEvent.iCalSequence,
+        eventTitle: booking.eventType?.title ?? null,
+        location: booking.location, // old location
+        updatedLocation,
+        cancellationReason: null,
+        cancelledBy: null,
+      });
+      const eventTrigger: WebhookTriggerEvents = "BOOKING_LOCATION_UPDATED";
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: bookingToRelocate.eventType?.teamId ?? null },
+          parentId: bookingToRelocate.eventType?.parentId ?? null,
+    },
+  });
+
+      const triggerForUser = !teamId || (teamId && bookingToRelocate.eventType?.parentId);
+      const userId = triggerForUser ? bookingToRelocate.userId : null;
+      const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+      const subscriberOptions = {
+        userId,
+        eventTypeId: bookingToRelocate.eventTypeId as number,
+        triggerEvent: eventTrigger,
+        teamId: teamId ? [teamId] : null,
+        orgId,
+      };
+      const webhooks = await getWebhooks(subscriberOptions);
+
+      const promises = webhooks.map((webhook) =>
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
+          log.error(
+            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${payload.bookingId}, bookingUid: ${payload.uid}`,
+            safeStringify(e)
+          );
+        })
+      );
+      await Promise.all(promises);
+  } catch (error) {
+    logger.error("Error triggering BOOKING_LOCATION_UPDATED webhook", safeStringify(error));
+  }
 
   return { message: "Location updated" };
 }

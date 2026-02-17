@@ -72,6 +72,22 @@ export interface BookingRejectedDTO extends BaseEventDTO {
   status: string;
 }
 
+export interface BookingLocationUpdatedDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.BOOKING_LOCATION_UPDATED;
+  evt: CalendarEvent;
+  eventType: EventTypeInfo & {
+    id: number;
+  };
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    smsReminderNumber?: string | null;
+  };
+  oldLocation?: string | null;
+  newLocation: string;
+}
+
 export interface BookingRequestedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.BOOKING_REQUESTED;
   evt: CalendarEvent;
@@ -345,6 +361,7 @@ export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
   | BookingRejectedDTO
+  | BookingLocationUpdatedDTO
   | BookingRequestedDTO
   | BookingRescheduledDTO
   | BookingPaidDTO
@@ -592,6 +609,7 @@ export type EventPayloadType = CalendarEvent &
 export type BookingWebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
+  | BookingLocationUpdatedDTO
   | BookingRequestedDTO
   | BookingRescheduledDTO
   | BookingPaidDTO

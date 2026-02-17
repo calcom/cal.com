@@ -4,6 +4,7 @@ import type { WebhookPayload } from "../factory/types";
 import type {
   BookingCancelledParams,
   BookingCreatedParams,
+  BookingLocationUpdatedParams,
   BookingNoShowParams,
   BookingPaidParams,
   BookingPaymentInitiatedParams,
@@ -71,6 +72,7 @@ export interface IBookingEventEmitter {
   emitBookingPaymentInitiated(params: BookingPaymentInitiatedParams): Promise<void>;
   emitBookingCreated(params: BookingCreatedParams): Promise<void>;
   emitBookingCancelled(params: BookingCancelledParams): Promise<void>;
+  emitBookingLocationUpdated(params: BookingLocationUpdatedParams): Promise<void>;
   emitBookingRequested(params: BookingRequestedParams): Promise<void>;
   emitBookingRescheduled(params: BookingRescheduledParams): Promise<void>;
   emitBookingPaid(params: BookingPaidParams): Promise<void>;

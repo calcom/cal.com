@@ -23,6 +23,7 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
     WebhookTriggerEvents.BOOKING_REQUESTED,
     WebhookTriggerEvents.BOOKING_REJECTED,
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+    WebhookTriggerEvents.BOOKING_LOCATION_UPDATED,
   ]),
   bookingUid: z.string(),
   eventTypeId: z.number().optional(),

@@ -204,6 +204,32 @@ export interface BookingRejectedParams {
   isDryRun?: boolean;
 }
 
+export interface BookingLocationUpdatedParams {
+  evt: CalendarEvent;
+  booking: {
+    id: number;
+    eventTypeId: number | null;
+    userId: number | null;
+    smsReminderNumber?: string | null;
+  };
+  eventType: {
+    id: number;
+    title: string;
+    description: string | null;
+    requiresConfirmation: boolean;
+    price: number;
+    currency: string;
+    length: number;
+    teamId?: number | null;
+  };
+  oldLocation?: string | null;
+  newLocation: string;
+  teamId?: number | null;
+  orgId?: number | null;
+  platformClientId?: string;
+  isDryRun?: boolean;
+}
+
 export interface ScheduleMeetingWebhooksParams {
   booking: {
     id: number;
