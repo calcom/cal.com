@@ -198,7 +198,14 @@ export class WebhookTaskConsumer {
         return {
           ...baseDTO,
           triggerEvent,
-          metadata: bookingPayload.metadata ?? {},
+          metadata: {
+            ...(typeof booking.metadata === "object" &&
+            booking.metadata !== null &&
+            !Array.isArray(booking.metadata)
+              ? booking.metadata
+              : {}),
+            ...(bookingPayload.metadata ?? {}),
+          },
         } as WebhookEventDTO;
       default:
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
