@@ -1,7 +1,12 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button as CalButton } from "@calcom/ui/components/button";
+import { TextArea, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
+import { useCallback } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
@@ -9,12 +14,6 @@ import type {
   FieldProps,
   ProviderProps,
 } from "react-awesome-query-builder";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui/components/form")).SelectWithValidation
@@ -28,7 +27,7 @@ export type CommonProps<
     | {
         value: string;
         optionValue: string;
-      }
+      },
 > = {
   placeholder?: string;
   readOnly?: boolean;
@@ -50,17 +49,17 @@ export type SelectLikeComponentProps<
     | {
         value: string;
         optionValue: string;
-      } = string
+      } = string,
 > = {
   options: {
     label: string;
     value: TVal extends (infer P)[]
       ? P
       : TVal extends {
-          value: string;
-        }
-      ? TVal["value"]
-      : TVal;
+            value: string;
+          }
+        ? TVal["value"]
+        : TVal;
   }[];
 } & CommonProps<TVal>;
 
@@ -233,6 +232,158 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
   );
 }
 
+function AddressWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, noLabel, setValue, readOnly, placeholder, customProps, ...remainingProps } = props;
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue(val);
+  };
+  const textValue = value || "";
+  return (
+    <TextField
+      size="sm"
+      containerClassName="w-full mb-2"
+      type="text"
+      value={textValue}
+      noLabel={noLabel}
+      placeholder={placeholder || "Enter address"}
+      disabled={readOnly}
+      onChange={onChange}
+      {...remainingProps}
+      {...customProps}
+    />
+  );
+}
+
+function URLWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, noLabel, setValue, readOnly, placeholder, customProps, ...remainingProps } = props;
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue(val);
+  };
+  const textValue = value || "";
+  return (
+    <TextField
+      size="sm"
+      containerClassName="w-full mb-2"
+      type="url"
+      value={textValue}
+      noLabel={noLabel}
+      placeholder={placeholder || "Enter URL"}
+      disabled={readOnly}
+      onChange={onChange}
+      {...remainingProps}
+      {...customProps}
+    />
+  );
+}
+
+function MultiEmailWidget(props: TextLikeComponentPropsRAQB) {
+  const { value, noLabel, setValue, readOnly, placeholder, customProps, ...remainingProps } = props;
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue(val);
+  };
+  const textValue = value || "";
+  return (
+    <TextField
+      size="sm"
+      containerClassName="w-full mb-2"
+      type="email"
+      value={textValue}
+      noLabel={noLabel}
+      placeholder={placeholder || "Enter email addresses (comma-separated)"}
+      disabled={readOnly}
+      onChange={onChange}
+      {...remainingProps}
+      {...customProps}
+    />
+  );
+}
+
+function CheckboxGroupWidget({
+  listValues,
+  setValue,
+  value,
+  ...remainingProps
+}: SelectLikeComponentPropsRAQB<string[]>) {
+  if (!listValues) {
+    return null;
+  }
+
+  const currentValues = value || [];
+
+  const handleChange = useCallback(
+    (itemValue: string, checked: boolean) => {
+      const newValues = checked
+        ? [...currentValues, itemValue]
+        : currentValues.filter((v) => v !== itemValue);
+      setValue(newValues);
+    },
+    [currentValues, setValue]
+  );
+
+  return (
+    <div className="mb-2 flex flex-col gap-2">
+      {listValues.map((item) => (
+        <label key={item.value} className="text-default flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="text-emphasis border-default dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:checked:bg-brand-default rounded-[4px] border"
+            checked={currentValues.includes(item.value)}
+            disabled={remainingProps.readOnly}
+            onChange={(e) => handleChange(item.value, e.target.checked)}
+          />
+          {item.title}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function RadioGroupWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
+  if (!listValues) {
+    return null;
+  }
+
+  return (
+    <div className="mb-2 flex flex-col gap-2">
+      {listValues.map((item) => (
+        <label key={item.value} className="text-default flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            className="text-emphasis border-default dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:checked:bg-brand-default"
+            checked={value === item.value}
+            disabled={remainingProps.readOnly}
+            onChange={() => setValue(item.value)}
+          />
+          {item.title}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function BooleanWidget({ value, setValue, readOnly }: TextLikeComponentPropsRAQB<string>) {
+  // Store as "true"/"false" strings for compatibility with routing logic
+  const isChecked = value === "true";
+
+  return (
+    <div className="mb-2">
+      <label className="text-default flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="text-emphasis border-default dark:bg-darkgray-100 dark:hover:bg-darkgray-200 dark:checked:bg-brand-default rounded-[4px] border"
+          checked={isChecked}
+          disabled={readOnly}
+          onChange={(e) => setValue(e.target.checked ? "true" : "false")}
+        />
+        {isChecked ? "Yes" : "No"}
+      </label>
+    </div>
+  );
+}
+
 function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   const { t } = useLocale();
   if (type === "delRule" || type == "delGroup") {
@@ -376,6 +527,12 @@ const widgets = {
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  AddressWidget,
+  URLWidget,
+  MultiEmailWidget,
+  CheckboxGroupWidget,
+  RadioGroupWidget,
+  BooleanWidget,
   FieldSelect,
   Button,
   ButtonGroup,

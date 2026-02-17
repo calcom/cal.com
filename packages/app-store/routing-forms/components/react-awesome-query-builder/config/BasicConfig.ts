@@ -1,10 +1,10 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
 import type {
   Conjunction as RAQBConjunction,
-  Widget as RAQBWidget,
-  Type as RAQBType,
-  Settings as RAQBSettings,
   Operator as RAQBOperator,
+  Settings as RAQBSettings,
+  Type as RAQBType,
+  Widget as RAQBWidget,
 } from "react-awesome-query-builder";
 
 export type Conjunction = RAQBConjunction;
@@ -284,6 +284,30 @@ const widgets: WidgetsWithoutFactory = {
     valuePlaceholder: "Select values",
     toJS: (val: any) => val,
   },
+  checkbox: {
+    type: "multiselect",
+    jsType: "array",
+    valueSrc: "value" as const,
+    valueLabel: "Values",
+    valuePlaceholder: "Select values",
+    toJS: (val: any) => val,
+  },
+  radio: {
+    type: "select",
+    jsType: "string",
+    valueSrc: "value" as const,
+    valueLabel: "Value",
+    valuePlaceholder: "Select value",
+    toJS: (val: any) => val,
+  },
+  boolean: {
+    type: "boolean",
+    jsType: "boolean",
+    valueSrc: "value" as const,
+    valueLabel: "Value",
+    valuePlaceholder: "",
+    toJS: (val: any) => val,
+  },
 };
 
 const types: Types = {
@@ -385,6 +409,15 @@ const types: Types = {
     widgets: {
       multiselect: {
         operators: ["multiselect_equals", "multiselect_not_equals", "is_null", "is_not_null"],
+      },
+    },
+  },
+  boolean: {
+    defaultOperator: "equal",
+    mainWidget: "boolean",
+    widgets: {
+      boolean: {
+        operators: ["equal", "not_equal"],
       },
     },
   },
