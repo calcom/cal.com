@@ -446,50 +446,424 @@ describe("BOOKING_REQUESTED Trigger", () => {
     });
   });
 
-  describe("Integration: real PayloadBuilder (legacy shape)", () => {
+  describe("Integration: real PayloadBuilder verifies webhook payload content", () => {
     const realPayloadBuilderFactory = createPayloadBuilderFactory();
 
-    it("metadata.videoCallUrl is absent when task payload has no metadata (documents consumer-path behaviour)", async () => {
-      const payload: BookingWebhookTaskPayload = {
-        operationId: "op-no-metadata",
-        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
-        bookingUid: "booking-uid-123",
-        eventTypeId: 456,
-        userId: 789,
-        timestamp: new Date().toISOString(),
-        // Intentionally no metadata (or metadata: {}) so videoCallUrl is not supplied
-      };
+    const defaultSubscriber = {
+      id: "sub-1",
+      subscriberUrl: "https://example.com/webhook",
+      payloadTemplate: null,
+      appId: null,
+      secret: "secret",
+      time: null,
+      timeUnit: null,
+      eventTriggers: [WebhookTriggerEvents.BOOKING_REQUESTED],
+      version: WebhookVersion.V_2021_10_20,
+    };
 
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-1",
-          subscriberUrl: "https://example.com/webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: "secret",
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.BOOKING_REQUESTED],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
-      const consumerWithRealBuilder = new WebhookTaskConsumer(
+    function buildConsumerWithRealBuilder() {
+      return new WebhookTaskConsumer(
         mockWebhookRepository,
         [mockBookingDataFetcher],
         realPayloadBuilderFactory,
         mockWebhookService,
         mockLogger
       );
+    }
 
-      await consumerWithRealBuilder.processWebhookTask(payload, "task-real-builder");
-
-      expect(mockWebhookService.processWebhooks).toHaveBeenCalled();
-
+    function getDeliveredPayload(): Record<string, unknown> {
       const [, webhookPayload] = vi.mocked(mockWebhookService.processWebhooks).mock.calls[0];
-      const payloadPayload = (webhookPayload as { payload: Record<string, unknown> }).payload;
+      return (webhookPayload as { triggerEvent: string; createdAt: string; payload: Record<string, unknown> }).payload;
+    }
 
-      expect(payloadPayload.metadata?.videoCallUrl).toBeUndefined();
+    function getDeliveredWebhookEnvelope(): { triggerEvent: string; createdAt: string; payload: Record<string, unknown> } {
+      const [, webhookPayload] = vi.mocked(mockWebhookService.processWebhooks).mock.calls[0];
+      return webhookPayload as { triggerEvent: string; createdAt: string; payload: Record<string, unknown> };
+    }
+
+    it("delivers PENDING status and BOOKING_REQUESTED triggerEvent in payload", async () => {
+      const timestamp = "2024-06-15T10:00:00.000Z";
+      const payload: BookingWebhookTaskPayload = {
+        operationId: "op-status-check",
+        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+        bookingUid: "booking-uid-123",
+        eventTypeId: 456,
+        userId: 789,
+        timestamp,
+      };
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(payload, "task-status");
+
+      const envelope = getDeliveredWebhookEnvelope();
+      expect(envelope.triggerEvent).toBe("BOOKING_REQUESTED");
+      expect(envelope.createdAt).toBe(timestamp);
+
+      const p = getDeliveredPayload();
+      expect(p.status).toBe("PENDING");
+    });
+
+    it("includes eventTitle, eventDescription, requiresConfirmation, price, currency, and length from event type", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking({
+          eventType: {
+            id: 456,
+            title: "Consultation Call",
+            description: "30-minute consultation",
+            requiresConfirmation: true,
+            price: 5000,
+            currency: "INR",
+            length: 30,
+          },
+        }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-evt-type",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-evt-type"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.eventTitle).toBe("Consultation Call");
+      expect(p.eventDescription).toBe("30-minute consultation");
+      expect(p.requiresConfirmation).toBe(true);
+      expect(p.price).toBe(5000);
+      expect(p.currency).toBe("INR");
+      expect(p.length).toBe(30);
+    });
+
+    it("includes bookingId, title, location, organizer, and attendees from calendar event", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          title: "My Booking",
+          location: "https://cal.com/video/abc",
+          organizer: {
+            id: 1,
+            email: "host@example.com",
+            name: "Host User",
+            timeZone: "America/New_York",
+            language: { locale: "en" },
+          },
+          attendees: [
+            {
+              email: "guest@example.com",
+              name: "Guest User",
+              timeZone: "Europe/London",
+              language: { locale: "en" },
+            },
+          ],
+        }),
+        booking: createMockBooking({ id: 999 }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-cal-evt",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-cal-evt"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.bookingId).toBe(999);
+      expect(p.title).toBe("My Booking");
+      expect(p.location).toBe("https://cal.com/video/abc");
+      expect(p.organizer).toEqual(
+        expect.objectContaining({
+          email: "host@example.com",
+          name: "Host User",
+          timeZone: "America/New_York",
+        })
+      );
+      expect(p.attendees).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            email: "guest@example.com",
+            name: "Guest User",
+            timeZone: "Europe/London",
+          }),
+        ])
+      );
+    });
+
+    it("normalizes response labels (name → your_name, email → email_address)", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          responses: {
+            name: { value: "Jane Doe", label: "name" },
+            email: { value: "jane@example.com", label: "email" },
+            location: { value: { optionValue: "", value: "https://cal.com/video/test" }, label: "location" },
+          },
+          userFieldsResponses: {},
+        }),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-responses",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-responses"
+      );
+
+      const p = getDeliveredPayload() as Record<string, unknown>;
+      const responses = p.responses as Record<string, { label: string; value: unknown }>;
+
+      expect(responses.name.label).toBe("your_name");
+      expect(responses.name.value).toBe("Jane Doe");
+      expect(responses.email.label).toBe("email_address");
+      expect(responses.email.value).toBe("jane@example.com");
+      expect(responses.location.label).toBe("location");
+    });
+
+    it("metadata is empty object when no metadata provided (no videoCallUrl for pending requests)", async () => {
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-no-metadata",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-no-metadata"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.metadata).toBeDefined();
+      expect((p.metadata as Record<string, unknown>).videoCallUrl).toBeUndefined();
+    });
+
+    it("includes metadata.videoCallUrl when booking has metadata with videoCallUrl", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking({
+          metadata: { videoCallUrl: "https://cal.com/video/abc123" },
+        }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-with-video-metadata",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-with-video-metadata"
+      );
+
+      const p = getDeliveredPayload();
+      expect((p.metadata as Record<string, unknown>).videoCallUrl).toBe("https://cal.com/video/abc123");
+    });
+
+    it("derives attendee firstName and lastName from full name", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          attendees: [
+            {
+              email: "john@example.com",
+              name: "John Doe",
+              timeZone: "UTC",
+              language: { locale: "en" },
+            },
+            {
+              email: "alice@example.com",
+              name: "Alice",
+              timeZone: "UTC",
+              language: { locale: "en" },
+            },
+          ],
+        }),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-attendee-names",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-attendee-names"
+      );
+
+      const p = getDeliveredPayload();
+      const attendees = p.attendees as Array<{ name: string; firstName: string; lastName: string }>;
+      expect(attendees[0]).toMatchObject({ name: "John Doe", firstName: "John", lastName: "Doe" });
+      expect(attendees[1]).toMatchObject({ name: "Alice", firstName: "Alice", lastName: "" });
+    });
+
+    it("uses booking.assignmentReason (legacy array) and does not leak evt.assignmentReason", async () => {
+      const legacyReason = [{ reasonEnum: "ROUND_ROBIN", reasonString: "Round robin" }];
+
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          assignmentReason: { category: "round_robin", details: "from evt" },
+        }),
+        booking: createMockBooking({
+          assignmentReason: legacyReason,
+        }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-assignment-reason",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-assignment-reason"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.assignmentReason).toEqual(legacyReason);
+    });
+
+    it("defaults to price 0, currency usd, length null when event type fields are missing", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking({
+          eventType: {
+            id: 456,
+            title: "Minimal Event",
+            description: null,
+            requiresConfirmation: true,
+            price: undefined,
+            currency: undefined,
+            length: undefined,
+          },
+        }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-defaults",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-defaults"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.price).toBe(0);
+      expect(p.currency).toBe("usd");
+      expect(p.length).toBeNull();
+    });
+
+    it("includes destinationCalendar as null when not set", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({ destinationCalendar: undefined }),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-dest-cal",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-dest-cal"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.destinationCalendar).toBeNull();
+    });
+
+    it("paid event payload has PENDING status and correct event type price/currency", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking({
+          eventType: {
+            id: 456,
+            title: "Paid Consultation",
+            description: "Paid event requiring confirmation",
+            requiresConfirmation: true,
+            price: 10000,
+            currency: "USD",
+            length: 60,
+          },
+        }),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-paid-payload",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-paid",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-paid-payload"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.status).toBe("PENDING");
+      expect(p.eventTitle).toBe("Paid Consultation");
+      expect(p.price).toBe(10000);
+      expect(p.currency).toBe("USD");
+      expect(p.requiresConfirmation).toBe(true);
     });
   });
 });
