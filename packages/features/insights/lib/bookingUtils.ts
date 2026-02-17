@@ -13,7 +13,7 @@ export function extractDateRangeFromColumnFilters(columnFilters?: ColumnFilter[]
         return {
           startDate: dateFilter.data.startDate,
           endDate: dateFilter.data.endDate,
-          dateTarget: filter.id,
+          dateTarget: filter.id as "startTime" | "createdAt",
         };
       }
     }
