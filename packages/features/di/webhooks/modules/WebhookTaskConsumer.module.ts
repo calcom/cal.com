@@ -1,3 +1,5 @@
+import { NOTIFICATION_DI_TOKENS } from "@calcom/features/notifications/di/tokens";
+import type { NotificationDispatcherService } from "@calcom/features/notifications/services/NotificationDispatcherService";
 import type { IWebhookDataFetcher } from "@calcom/features/webhooks/lib/interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type { ILogger } from "@calcom/features/webhooks/lib/interface/infrastructure";
@@ -29,5 +31,14 @@ webhookTaskConsumerModule.bind(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER).toFactory((
   ];
   const logger = resolve(SHARED_TOKENS.LOGGER) as ILogger;
 
-  return new WebhookTaskConsumer(webhookRepository, dataFetchers, logger);
+  let notificationDispatcher: NotificationDispatcherService | undefined;
+  try {
+    notificationDispatcher = resolve(
+      NOTIFICATION_DI_TOKENS.NOTIFICATION_DISPATCHER
+    ) as NotificationDispatcherService;
+  } catch {
+    // NotificationDispatcher not registered yet — graceful fallback
+  }
+
+  return new WebhookTaskConsumer(webhookRepository, dataFetchers, logger, notificationDispatcher);
 });

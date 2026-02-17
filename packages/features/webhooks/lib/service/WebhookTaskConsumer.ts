@@ -1,7 +1,12 @@
+import type { NotificationDispatcherService } from "@calcom/features/notifications/services/NotificationDispatcherService";
+import type { NotificationEvent } from "@calcom/features/notifications/types/NotificationChannel";
+import type { WebhookSubscriber } from "../dto/types";
 import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { WebhookTaskPayload } from "../types/webhookTask";
+
+const NOTIFICATION_CHANNEL_APP_IDS = new Set(["slack"]);
 
 /**
  * Webhook Task Consumer
@@ -26,7 +31,8 @@ export class WebhookTaskConsumer {
   constructor(
     private readonly webhookRepository: IWebhookRepository,
     private readonly dataFetchers: IWebhookDataFetcher[],
-    logger: ILogger
+    logger: ILogger,
+    private readonly notificationDispatcher?: NotificationDispatcherService
   ) {
     this.log = logger.getSubLogger({ prefix: ["[WebhookTaskConsumer]"] });
   }
@@ -103,19 +109,73 @@ export class WebhookTaskConsumer {
     return this.dataFetchers.find((fetcher) => fetcher.canHandle(triggerEvent as never)) || null;
   }
 
-  /**
-   * Build webhook payloads and send to each subscriber.
-   *
-   * TODO: Implement with PayloadBuilders and HTTP client (Phase 1+)
-   */
   private async sendWebhooksToSubscribers(
-    subscribers: unknown[],
+    subscribers: WebhookSubscriber[],
     eventData: Record<string, unknown>,
     payload: WebhookTaskPayload
   ): Promise<void> {
-    this.log.debug("Webhook sending not implemented yet (Phase 0 scaffold)", {
-      subscriberCount: subscribers.length,
+    const notificationSubscribers = subscribers.filter(
+      (s) => s.appId && NOTIFICATION_CHANNEL_APP_IDS.has(s.appId)
+    );
+    const httpSubscribers = subscribers.filter((s) => !s.appId || !NOTIFICATION_CHANNEL_APP_IDS.has(s.appId));
+
+    if (notificationSubscribers.length > 0 && this.notificationDispatcher) {
+      await this.dispatchToNotificationChannels(notificationSubscribers, eventData, payload);
+    }
+
+    if (httpSubscribers.length > 0) {
+      this.log.debug("HTTP webhook delivery not implemented yet (Phase 1+)", {
+        subscriberCount: httpSubscribers.length,
+        triggerEvent: payload.triggerEvent,
+      });
+    }
+  }
+
+  private async dispatchToNotificationChannels(
+    subscribers: WebhookSubscriber[],
+    eventData: Record<string, unknown>,
+    payload: WebhookTaskPayload
+  ): Promise<void> {
+    if (!this.notificationDispatcher) return;
+
+    const event: NotificationEvent = {
       triggerEvent: payload.triggerEvent,
+      payload: eventData,
+      metadata: {
+        userId: "userId" in payload ? (payload.userId as number) : undefined,
+        teamId: "teamId" in payload ? (payload.teamId as number | null) : undefined,
+        bookingId: "bookingId" in payload ? (payload.bookingId as number) : undefined,
+        eventTypeId: "eventTypeId" in payload ? (payload.eventTypeId as number | null) : undefined,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    const configs = subscribers.map((sub) => {
+      let settings: Record<string, unknown> = {};
+      if (sub.payloadTemplate) {
+        try {
+          settings = JSON.parse(sub.payloadTemplate) as Record<string, unknown>;
+        } catch {
+          this.log.warn(`Invalid payloadTemplate JSON for subscriber ${sub.id}`);
+        }
+      }
+
+      return {
+        channelType: sub.appId || "slack",
+        destination: sub.subscriberUrl.replace("internal://slack/", ""),
+        credentialId: 0,
+        settings,
+      };
     });
+
+    const results = await this.notificationDispatcher.dispatch(event, configs);
+    const failures = results.filter((r) => !r.success);
+
+    if (failures.length > 0) {
+      this.log.warn(`${failures.length} notification delivery failure(s)`, {
+        triggerEvent: payload.triggerEvent,
+        failures: failures.map((f) => ({ channelId: f.channelId, error: f.error })),
+      });
+    }
   }
 }

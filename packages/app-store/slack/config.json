@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Slack",
+  "slug": "slack",
+  "type": "slack_messaging",
+  "logo": "icon.svg",
+  "url": "https://slack.com",
+  "variant": "automation",
+  "categories": ["automation", "messaging"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Get real-time booking notifications in your Slack channels. Subscribe to specific Cal.com events and keep your team informed.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "_auth-based-app",
+  "isOAuth": true
+}
