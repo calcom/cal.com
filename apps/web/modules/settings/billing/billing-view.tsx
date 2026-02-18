@@ -108,7 +108,7 @@ const BillingView = () => {
 
   return (
     <>
-      <div className="border-subtle rounded-b-lg border-x border-b px-4 py-8 sm:px-6">
+      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-8 sm:px-6">
         <div className="bg-cal-muted border-muted rounded-xl border p-1">
           <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
             <div className="flex w-full flex-col gap-1">
