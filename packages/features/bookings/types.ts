@@ -69,11 +69,11 @@ export type BookerEvent = Pick<
   | "owner"
   | "restrictionScheduleId"
   | "useBookerTimezone"
-  | "hideOrganizerEmail"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
   enablePerHostLocations?: boolean;
+  hideOrganizerEmail?: boolean;
 } & { profile: BookerEventProfile };
 
 export type EventPrice = { currency: string; price: number; displayAlternateSymbol?: boolean };
