@@ -4163,6 +4163,8 @@
   "webhook_reschedule_uid": "The UID for rescheduling",
   "webhook_cancellation_reason": "Reason for cancellation",
   "webhook_rejection_reason": "Reason for rejection",
+  "webhook_old_location": "Old location after location update.",
+  "webhook_updated_location": "Updated location after location update.",
   "webhook_organizer_name": "Name of the organizer",
   "webhook_organizer_email": "Email of the organizer",
   "webhook_organizer_timezone": "Timezone of the organizer (e.g., 'America/New_York', 'Asia/Kolkata')",

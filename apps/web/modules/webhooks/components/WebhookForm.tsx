@@ -139,6 +139,18 @@ function getWebhookVariables(t: (key: string) => string) {
           type: "String",
           description: t("webhook_rejection_reason"),
         },
+        {
+          name: "oldLocation",
+          variable: "{{oldLocation}}",
+          type: "String",
+          description: t("webhook_old_location"),
+        },
+        {
+          name: "updatedLocation",
+          variable: "{{updatedLocation}}",
+          type: "String",
+          description: t("webhook_updated_location"),
+        },
       ],
     },
     {
