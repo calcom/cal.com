@@ -144,6 +144,18 @@ export const fieldTypesSchemaMap = {
       }
 
       if (typeof response === "string") {
+        try {
+          const parsed = JSON.parse(response);
+          if (parsed && typeof parsed === "object" && ("firstName" in parsed || "lastName" in parsed)) {
+            const firstAndLastNameResponse = {
+              firstName: typeof parsed.firstName === "string" ? parsed.firstName : "",
+              lastName: typeof parsed.lastName === "string" ? parsed.lastName : "",
+            };
+            return preprocessNameFieldDataWithVariant(correctedVariant, firstAndLastNameResponse);
+          }
+        } catch {
+          // fall through and treat as plain fullName string
+        }
         return preprocessNameFieldDataWithVariant(correctedVariant, response);
       }
 
