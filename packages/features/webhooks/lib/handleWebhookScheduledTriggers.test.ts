@@ -81,7 +81,7 @@ describe("handleWebhookScheduledTriggers - X-Cal-Webhook-Version header", () => 
     };
 
     await handleWebhookScheduledTriggers(mockPrisma as unknown as PrismaClient);
-  
+
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, options] = mockFetch.mock.calls[0];
 

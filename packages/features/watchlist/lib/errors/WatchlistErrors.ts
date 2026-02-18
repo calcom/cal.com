@@ -35,14 +35,11 @@ export const WatchlistErrors = {
 
   invalidIp: (message: string) => new WatchlistError(WatchlistErrorCode.INVALID_IP, message),
 
-  validationError: (message: string) =>
-    new WatchlistError(WatchlistErrorCode.VALIDATION_ERROR, message),
+  validationError: (message: string) => new WatchlistError(WatchlistErrorCode.VALIDATION_ERROR, message),
 
-  permissionDenied: (message: string) =>
-    new WatchlistError(WatchlistErrorCode.PERMISSION_DENIED, message),
+  permissionDenied: (message: string) => new WatchlistError(WatchlistErrorCode.PERMISSION_DENIED, message),
 
-  duplicateEntry: (message: string) =>
-    new WatchlistError(WatchlistErrorCode.DUPLICATE_ENTRY, message),
+  duplicateEntry: (message: string) => new WatchlistError(WatchlistErrorCode.DUPLICATE_ENTRY, message),
 
   bulkDeletePartialFailure: (message: string) =>
     new WatchlistError(WatchlistErrorCode.BULK_DELETE_PARTIAL_FAILURE, message),

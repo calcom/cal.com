@@ -9,6 +9,7 @@ import {
   processBookingsForCsv,
   formatCsvRow,
   transformBookingsForCsv,
+  getUtmDataForBooking,
   type BookingWithAttendees,
   type BookingTimeStatusData,
 } from "../csvDataTransformer";
@@ -206,12 +207,11 @@ describe("csvDataTransformer", () => {
     const createBooking = (overrides: Partial<BookingWithAttendees> = {}): BookingWithAttendees => ({
       uid: "test-uid",
       eventTypeId: 1,
-      attendees: [
-        { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-      ],
+      attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
       seatsReferences: [],
       responses: {},
       eventType: { bookingFields: [] },
+      tracking: null,
       ...overrides,
     });
 
@@ -225,10 +225,7 @@ describe("csvDataTransformer", () => {
 
       const result = processBookingAttendees(booking, null, null, false);
 
-      expect(result.attendeeList).toEqual([
-        "John Doe (john@example.com)",
-        "Jane Smith (jane@example.com)",
-      ]);
+      expect(result.attendeeList).toEqual(["John Doe (john@example.com)", "Jane Smith (jane@example.com)"]);
       expect(result.attendeePhoneNumbers).toEqual(["+1234567890", null]);
     });
 
@@ -258,10 +255,7 @@ describe("csvDataTransformer", () => {
 
       const result = processBookingAttendees(booking, null, null, true);
 
-      expect(result.attendeeList).toEqual([
-        "Seat 1 (seat1@example.com)",
-        "Seat 2 (seat2@example.com)",
-      ]);
+      expect(result.attendeeList).toEqual(["Seat 1 (seat1@example.com)", "Seat 2 (seat2@example.com)"]);
       expect(result.noShowGuests).toBe("Seat 2 (seat2@example.com)");
     });
 
@@ -291,9 +285,7 @@ describe("csvDataTransformer", () => {
 
     it("should use system phone as fallback for attendee phone", () => {
       const booking = createBooking({
-        attendees: [
-          { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-        ],
+        attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
         responses: {
           attendeePhoneNumber: "+1234567890",
         },
@@ -306,9 +298,7 @@ describe("csvDataTransformer", () => {
 
     it("should use custom phone field as fallback when system phone not available", () => {
       const booking = createBooking({
-        attendees: [
-          { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-        ],
+        attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
         responses: {
           customPhone: "+9876543210",
         },
@@ -359,12 +349,11 @@ describe("csvDataTransformer", () => {
         {
           uid: "booking-1",
           eventTypeId: 1,
-          attendees: [
-            { name: "A1", email: "a1@test.com", phoneNumber: null, noShow: false },
-          ],
+          attendees: [{ name: "A1", email: "a1@test.com", phoneNumber: null, noShow: false }],
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -377,6 +366,7 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
       ];
 
@@ -397,6 +387,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "company", type: "text", label: "Company" }],
           },
+          tracking: null,
         },
         {
           uid: "booking-2",
@@ -407,6 +398,7 @@ describe("csvDataTransformer", () => {
           eventType: {
             bookingFields: [{ name: "department", type: "text", label: "Department" }],
           },
+          tracking: null,
         },
       ];
 
@@ -438,6 +430,7 @@ describe("csvDataTransformer", () => {
               { name: "customPhone", type: "phone", label: "Contact Phone" },
             ],
           },
+          tracking: null,
         },
         {
           uid: "seated-booking",
@@ -456,6 +449,7 @@ describe("csvDataTransformer", () => {
               { name: "dietaryRestrictions", type: "text", label: "Dietary Restrictions" },
             ],
           },
+          tracking: null,
         },
       ];
 
@@ -470,7 +464,9 @@ describe("csvDataTransformer", () => {
   });
 
   describe("formatCsvRow", () => {
-    const createBookingTimeStatus = (overrides: Partial<BookingTimeStatusData> = {}): BookingTimeStatusData => ({
+    const createBookingTimeStatus = (
+      overrides: Partial<BookingTimeStatusData> = {}
+    ): BookingTimeStatusData => ({
       id: 1,
       uid: "test-uid",
       title: "Test Meeting",
@@ -492,13 +488,7 @@ describe("csvDataTransformer", () => {
     it("should format dates correctly for timezone", () => {
       const bookingTimeStatus = createBookingTimeStatus();
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        null,
-        0,
-        new Set(),
-        "America/New_York"
-      );
+      const result = formatCsvRow(bookingTimeStatus, null, 0, new Set(), "America/New_York");
 
       expect(result.createdAt).toBe("2024-01-15T10:00:00.000Z");
       expect(result.createdAt_date).toBe("2024-01-15");
@@ -515,13 +505,7 @@ describe("csvDataTransformer", () => {
         bookingQuestionResponses: {},
       };
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        processedData,
-        3,
-        new Set(),
-        "UTC"
-      );
+      const result = formatCsvRow(bookingTimeStatus, processedData, 3, new Set(), "UTC");
 
       expect(result.attendee1).toBe("John (john@test.com)");
       expect(result.attendeePhone1).toBe("+111");
@@ -593,21 +577,9 @@ describe("csvDataTransformer", () => {
         },
       };
 
-      const allLabels = new Set([
-        "Company",
-        "Job Title",
-        "Budget",
-        "Meeting Purpose",
-        "Additional Notes",
-      ]);
+      const allLabels = new Set(["Company", "Job Title", "Budget", "Meeting Purpose", "Additional Notes"]);
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        processedData,
-        3,
-        allLabels,
-        "America/Los_Angeles"
-      );
+      const result = formatCsvRow(bookingTimeStatus, processedData, 3, allLabels, "America/Los_Angeles");
 
       expect(result).toMatchSnapshot();
     });
@@ -689,24 +661,39 @@ describe("csvDataTransformer", () => {
               { name: "timeline", type: "text", label: "Timeline" },
             ],
           },
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
         },
         {
           uid: "booking-2",
           eventTypeId: 2,
           attendees: [],
           seatsReferences: [
-            { attendee: { name: "Participant 1", email: "p1@example.com", phoneNumber: null, noShow: false } },
+            {
+              attendee: { name: "Participant 1", email: "p1@example.com", phoneNumber: null, noShow: false },
+            },
             { attendee: { name: "Participant 2", email: "p2@example.com", phoneNumber: null, noShow: true } },
-            { attendee: { name: "Participant 3", email: "p3@example.com", phoneNumber: "+9876543210", noShow: false } },
+            {
+              attendee: {
+                name: "Participant 3",
+                email: "p3@example.com",
+                phoneNumber: "+9876543210",
+                noShow: false,
+              },
+            },
           ],
           responses: {
             emergencyContact: "+5555555555",
           },
           eventType: {
-            bookingFields: [
-              { name: "emergencyContact", type: "phone", label: "Emergency Contact" },
-            ],
+            bookingFields: [{ name: "emergencyContact", type: "phone", label: "Emergency Contact" }],
           },
+          tracking: null,
         },
       ];
 
@@ -753,12 +740,151 @@ describe("csvDataTransformer", () => {
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
+          tracking: null,
         },
       ];
 
       const result = transformBookingsForCsv(csvData, bookings, "UTC");
 
       expect(result).toHaveLength(0);
+    });
+
+    it("should include UTM data in transformed rows", () => {
+      const csvData: BookingTimeStatusData[] = [
+        {
+          id: 1,
+          uid: "booking-with-utm",
+          title: "UTM Test",
+          createdAt: new Date("2024-01-01T00:00:00Z"),
+          timeStatus: "completed",
+          eventTypeId: 1,
+          eventLength: 30,
+          startTime: new Date("2024-01-01T10:00:00Z"),
+          endTime: new Date("2024-01-01T10:30:00Z"),
+          paid: false,
+          userEmail: "test@test.com",
+          userUsername: "test",
+          rating: null,
+          ratingFeedback: null,
+          noShowHost: false,
+        },
+        {
+          id: 2,
+          uid: "booking-no-utm",
+          title: "No UTM",
+          createdAt: new Date("2024-01-02T00:00:00Z"),
+          timeStatus: "completed",
+          eventTypeId: 1,
+          eventLength: 30,
+          startTime: new Date("2024-01-02T10:00:00Z"),
+          endTime: new Date("2024-01-02T10:30:00Z"),
+          paid: false,
+          userEmail: "test@test.com",
+          userUsername: "test",
+          rating: null,
+          ratingFeedback: null,
+          noShowHost: false,
+        },
+      ];
+
+      const bookings: BookingWithAttendees[] = [
+        {
+          uid: "booking-with-utm",
+          eventTypeId: 1,
+          attendees: [{ name: "A", email: "a@test.com", phoneNumber: null, noShow: false }],
+          seatsReferences: [],
+          responses: {},
+          eventType: { bookingFields: [] },
+          tracking: {
+            utm_source: "google",
+            utm_medium: "cpc",
+            utm_campaign: "spring-sale",
+            utm_term: "scheduling",
+            utm_content: "banner-ad",
+          },
+        },
+        {
+          uid: "booking-no-utm",
+          eventTypeId: 1,
+          attendees: [{ name: "B", email: "b@test.com", phoneNumber: null, noShow: false }],
+          seatsReferences: [],
+          responses: {},
+          eventType: { bookingFields: [] },
+          tracking: null,
+        },
+      ];
+
+      const result = transformBookingsForCsv(csvData, bookings, "UTC");
+
+      expect(result[0].utm_source).toBe("google");
+      expect(result[0].utm_medium).toBe("cpc");
+      expect(result[0].utm_campaign).toBe("spring-sale");
+      expect(result[0].utm_term).toBe("scheduling");
+      expect(result[0].utm_content).toBe("banner-ad");
+
+      expect(result[1].utm_source).toBe("");
+      expect(result[1].utm_medium).toBe("");
+      expect(result[1].utm_campaign).toBe("");
+      expect(result[1].utm_term).toBe("");
+      expect(result[1].utm_content).toBe("");
+    });
+  });
+
+  describe("getUtmDataForBooking", () => {
+    it("should return UTM data from booking", () => {
+      const booking: BookingWithAttendees = {
+        uid: "test",
+        eventTypeId: 1,
+        attendees: [],
+        seatsReferences: [],
+        responses: {},
+        eventType: null,
+        tracking: {
+          utm_source: "google",
+          utm_medium: "cpc",
+          utm_campaign: "spring-sale",
+          utm_term: "scheduling",
+          utm_content: "banner-ad",
+        },
+      };
+
+      expect(getUtmDataForBooking(booking)).toEqual({
+        utm_source: "google",
+        utm_medium: "cpc",
+        utm_campaign: "spring-sale",
+        utm_term: "scheduling",
+        utm_content: "banner-ad",
+      });
+    });
+
+    it("should return empty strings for null UTM values", () => {
+      const booking: BookingWithAttendees = {
+        uid: "test",
+        eventTypeId: 1,
+        attendees: [],
+        seatsReferences: [],
+        responses: {},
+        eventType: null,
+        tracking: null,
+      };
+
+      expect(getUtmDataForBooking(booking)).toEqual({
+        utm_source: "",
+        utm_medium: "",
+        utm_campaign: "",
+        utm_term: "",
+        utm_content: "",
+      });
+    });
+
+    it("should return empty strings for undefined booking", () => {
+      expect(getUtmDataForBooking(undefined)).toEqual({
+        utm_source: "",
+        utm_medium: "",
+        utm_campaign: "",
+        utm_term: "",
+        utm_content: "",
+      });
     });
   });
 });

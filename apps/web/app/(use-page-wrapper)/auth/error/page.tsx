@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -42,10 +42,10 @@ const ServerPage = async ({ searchParams }: PageProps) => {
         provider === IdentityProvider.GOOGLE
           ? "Google"
           : provider === IdentityProvider.CAL
-          ? "Email and Password"
-          : provider === IdentityProvider.SAML
-          ? "SAML (like Okta)"
-          : "your original login method";
+            ? "Email and Password"
+            : provider === IdentityProvider.SAML
+              ? "SAML (like Okta)"
+              : "your original login method";
       return t("account_managed_by_identity_provider_error", { provider: providerName });
     } else if (error === "saml-idp-not-authoritative") {
       return t("saml_idp_not_authoritative_error");
@@ -61,7 +61,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
     <AuthContainer>
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <Icon name="x" className="h-6 w-6 text-red-600" />
+          <XIcon className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
