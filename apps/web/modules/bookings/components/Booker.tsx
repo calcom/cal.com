@@ -375,7 +375,7 @@ const BookerComponent = ({
       <div
         className={`fixed left-1/2 ${!isEmbed ? "top-4" : "top-0"} z-50 flex -translate-x-1/2 transform flex-col items-center gap-2`}>
         {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage />}
-        <CrmContactOwnerMessage />
+        <CrmContactOwnerMessage hideOrganizerEmail={event.data?.hideOrganizerEmail} />
       </div>
       <div
         className={classNames(

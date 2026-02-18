@@ -69,6 +69,7 @@ export type BookerEvent = Pick<
   | "owner"
   | "restrictionScheduleId"
   | "useBookerTimezone"
+  | "hideOrganizerEmail"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

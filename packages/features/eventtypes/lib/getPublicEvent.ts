@@ -174,6 +174,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     rescheduleWithSameRoundRobinHost: true,
     restrictionScheduleId: true,
     useBookerTimezone: true,
+    hideOrganizerEmail: true,
     parent: {
       select: {
         team: {
