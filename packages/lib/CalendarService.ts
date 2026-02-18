@@ -220,7 +220,7 @@ const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string =
   const day = String(transition.date()).padStart(2, "0");
   const hour = String(transition.hour()).padStart(2, "0");
   const minute = String(transition.minute()).padStart(2, "0");
-  return `19700${month}${day}T${hour}${minute}00`;
+  return `1970${month}${day}T${hour}${minute}00`;
 };
 
 /**
@@ -281,31 +281,54 @@ const buildVTimezone = (timezone: string, eventStart: string): string => {
     // Fall transition: daylight → standard (Jul→Jan direction)
     const fallTransition = findDSTTransition(timezone, 1970, 6, 11);
 
-    // Southern Hemisphere timezones (Australia, NZ, South America) have
-    // winter in June-August so their "standard" is in summer months
-    const isNorthernHemisphereStyle = standardOffset <= daylightOffset ||
-      (winterMoment.utcOffset() < summerMoment.utcOffset());
+    // Determine which UTC offset is truly "daylight" (higher) vs "standard" (lower).
+    // For Northern Hemisphere zones, summerMoment has the higher offset (e.g. EDT +4 > EST +5 is
+    // wrong, let me think in minutes: EST=-300, EDT=-240 → EDT > EST).
+    // For Southern Hemisphere zones (Australia, NZ, South America), January is summer/daylight
+    // so winterMoment (Jan) actually has the HIGHER UTC offset (e.g. AEDT=+660 > AEST=+600).
+    const winterUtcOffset = winterMoment.utcOffset(); // January offset (minutes)
+    const summerUtcOffset = summerMoment.utcOffset(); // July offset (minutes)
+    // The higher UTC offset corresponds to daylight saving time
+    const trueStandardOffset = winterUtcOffset < summerUtcOffset ? standardOffset : daylightOffset;
+    const trueDaylightOffset = winterUtcOffset < summerUtcOffset ? daylightOffset : standardOffset;
+
+    // springTransition (Jan→Jul) goes FROM winterUtcOffset TO summerUtcOffset.
+    // If summerUtcOffset > winterUtcOffset (NH): spring = clocks-forward = DAYLIGHT start.
+    // If summerUtcOffset < winterUtcOffset (SH): spring = clocks-back = STANDARD start.
+    const springIsDaylight = summerUtcOffset > winterUtcOffset;
 
     if (springTransition) {
       const dtstart = formatTransitionDtstart(springTransition);
       const byday = getBydayRule(springTransition);
       const bymonth = springTransition.month() + 1;
 
-      lines.push(
-        "BEGIN:DAYLIGHT",
-        `TZOFFSETFROM:${isNorthernHemisphereStyle ? standardOffset : daylightOffset}`,
-        `TZOFFSETTO:${isNorthernHemisphereStyle ? daylightOffset : standardOffset}`,
-        "TZNAME:DST",
-        `DTSTART:${dtstart}`,
-        `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
-        "END:DAYLIGHT"
-      );
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      } else {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      }
     } else {
       // Fallback if transition not found — use offset without RRULE
       lines.push(
         "BEGIN:DAYLIGHT",
-        `TZOFFSETFROM:${standardOffset}`,
-        `TZOFFSETTO:${daylightOffset}`,
+        `TZOFFSETFROM:${trueStandardOffset}`,
+        `TZOFFSETTO:${trueDaylightOffset}`,
         "TZNAME:DST",
         "DTSTART:19700101T000000",
         "END:DAYLIGHT"
@@ -317,21 +340,34 @@ const buildVTimezone = (timezone: string, eventStart: string): string => {
       const byday = getBydayRule(fallTransition);
       const bymonth = fallTransition.month() + 1;
 
-      lines.push(
-        "BEGIN:STANDARD",
-        `TZOFFSETFROM:${isNorthernHemisphereStyle ? daylightOffset : standardOffset}`,
-        `TZOFFSETTO:${isNorthernHemisphereStyle ? standardOffset : daylightOffset}`,
-        "TZNAME:ST",
-        `DTSTART:${dtstart}`,
-        `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
-        "END:STANDARD"
-      );
+      // fallTransition (Jul→Jan) is the opposite of springTransition
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      } else {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      }
     } else {
       // Fallback if transition not found
       lines.push(
         "BEGIN:STANDARD",
-        `TZOFFSETFROM:${daylightOffset}`,
-        `TZOFFSETTO:${standardOffset}`,
+        `TZOFFSETFROM:${trueDaylightOffset}`,
+        `TZOFFSETTO:${trueStandardOffset}`,
         "TZNAME:ST",
         "DTSTART:19700101T000000",
         "END:STANDARD"

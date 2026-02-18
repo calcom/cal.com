@@ -384,6 +384,46 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
     expect(vtimezoneBlock).not.toContain("RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU\r\nEND:DAYLIGHT\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0100\r\nTZOFFSETTO:+0000\r\nTZNAME:ST\r\nDTSTART:19701101T020000\r\nRRULE:FREQ=YEARLY;BYMONTH=11");
   });
 
+  it("should produce valid 8-digit DTSTART dates in VTIMEZONE RRULE blocks (not 9-digit)", async () => {
+    // Regression test: formatTransitionDtstart previously produced 9-digit dates like "197000308"
+    // (extra leading zero from `19700${month}`) instead of valid "19700308" (8 digits)
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/New_York",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+    // All DTSTART values in VTIMEZONE must be in YYYYMMDD format (8-digit date, not 9-digit)
+    // Valid: DTSTART:19700308T020000
+    // Invalid: DTSTART:197000308T020000 (9 digits — was the bug)
+    const dtStartMatches = vtimezoneBlock.match(/DTSTART:(\d+)T/g);
+    expect(dtStartMatches).not.toBeNull();
+    for (const match of dtStartMatches ?? []) {
+      const dateStr = match.replace("DTSTART:", "").replace("T", "");
+      expect(dateStr).toHaveLength(8); // YYYYMMDD = 8 chars
+    }
+  });
+
   it("should use correct DST rules for Southern Hemisphere timezone (Australia/Sydney)", async () => {
     // Australia/Sydney: DST starts in October, ends in April (opposite to Northern Hemisphere)
     const service = new TestCalendarService();
@@ -420,6 +460,22 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
     // Should NOT have US-specific transition months (3 for March, 11 for November)
     // Australia transitions in October (10) and April (4)
     expect(vtimezoneBlock).not.toContain("BYMONTH=11;BYDAY=1SU");
+    // DAYLIGHT (DST start) should be in October (month 10), not April (month 4)
+    // STANDARD (DST end) should be in April (month 4), not October
+    const daylightIdx = vtimezoneBlock.indexOf("BEGIN:DAYLIGHT");
+    const standardIdx = vtimezoneBlock.indexOf("BEGIN:STANDARD");
+    const daylightSection = vtimezoneBlock.slice(daylightIdx, vtimezoneBlock.indexOf("END:DAYLIGHT") + 12);
+    const standardSection = vtimezoneBlock.slice(standardIdx, vtimezoneBlock.indexOf("END:STANDARD") + 12);
+    // DST starts in October (BYMONTH=10) in Australia/Sydney
+    expect(daylightSection).toContain("BYMONTH=10");
+    // DST ends in April (BYMONTH=4) in Australia/Sydney
+    expect(standardSection).toContain("BYMONTH=4");
+    // DAYLIGHT: from +1000 (AEST) to +1100 (AEDT)
+    expect(daylightSection).toContain("TZOFFSETFROM:+1000");
+    expect(daylightSection).toContain("TZOFFSETTO:+1100");
+    // STANDARD: from +1100 (AEDT) to +1000 (AEST)
+    expect(standardSection).toContain("TZOFFSETFROM:+1100");
+    expect(standardSection).toContain("TZOFFSETTO:+1000");
   });
 
   it("should apply timezone fix to updateEvent as well", async () => {
