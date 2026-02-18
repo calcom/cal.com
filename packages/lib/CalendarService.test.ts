@@ -344,6 +344,84 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
     expect(iCalString).toContain("BEGIN:STANDARD");
   });
 
+  it("should use actual DST transition dates for Europe/London (not US-specific rules)", async () => {
+    // Europe/London transitions in late March and late October — not US March 2nd Sunday / Nov 1st Sunday
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "Europe/London",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    expect(iCalString).toContain("BEGIN:VTIMEZONE");
+    expect(iCalString).toContain("TZID:Europe/London");
+    // Europe/London transitions in March (BYMONTH=3) and October (BYMONTH=10)
+    // NOT US-style November (BYMONTH=11)
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+    // Should have BYMONTH=3 for spring transition (March in Europe)
+    expect(vtimezoneBlock).toContain("BYMONTH=3");
+    // Should have BYMONTH=10 for fall transition (October in Europe, not November)
+    expect(vtimezoneBlock).toContain("BYMONTH=10");
+    // Should NOT use the US-only 2nd Sunday of March rule for all timezones
+    expect(vtimezoneBlock).not.toContain("RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU\r\nEND:DAYLIGHT\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0100\r\nTZOFFSETTO:+0000\r\nTZNAME:ST\r\nDTSTART:19701101T020000\r\nRRULE:FREQ=YEARLY;BYMONTH=11");
+  });
+
+  it("should use correct DST rules for Southern Hemisphere timezone (Australia/Sydney)", async () => {
+    // Australia/Sydney: DST starts in October, ends in April (opposite to Northern Hemisphere)
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230115T020000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "Australia/Sydney",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    expect(iCalString).toContain("BEGIN:VTIMEZONE");
+    expect(iCalString).toContain("TZID:Australia/Sydney");
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+    // Australia/Sydney has DST: AEST (UTC+10) standard, AEDT (UTC+11) daylight
+    expect(vtimezoneBlock).toContain("BEGIN:DAYLIGHT");
+    expect(vtimezoneBlock).toContain("BEGIN:STANDARD");
+    // Should NOT have US-specific transition months (3 for March, 11 for November)
+    // Australia transitions in October (10) and April (4)
+    expect(vtimezoneBlock).not.toContain("BYMONTH=11;BYDAY=1SU");
+  });
+
   it("should apply timezone fix to updateEvent as well", async () => {
     const service = new TestCalendarService();
     const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;

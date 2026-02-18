@@ -173,21 +173,88 @@ const injectScheduleAgent = (iCalString: string): string => {
 };
 
 /**
+ * Finds the actual DST transition moment for a given year and hemisphere direction
+ * by binary-searching when the UTC offset changes.
+ *
+ * @param timezone - IANA timezone string
+ * @param year - Year to search within
+ * @param fromMonth - Start month (0-based) to begin search
+ * @param toMonth - End month (0-based) to end search
+ * @returns dayjs object at the transition moment (local time)
+ */
+const findDSTTransition = (
+  timezone: string,
+  year: number,
+  fromMonth: number,
+  toMonth: number
+): ReturnType<typeof dayjs> | null => {
+  let low = dayjs.utc(new Date(year, fromMonth, 1)).valueOf();
+  let high = dayjs.utc(new Date(year, toMonth, 1)).valueOf();
+  const lowOffset = dayjs(low).tz(timezone).utcOffset();
+  const highOffset = dayjs(high).tz(timezone).utcOffset();
+
+  if (lowOffset === highOffset) return null;
+
+  // Binary search for the transition point (within 1 minute precision)
+  while (high - low > 60 * 1000) {
+    const mid = Math.floor((low + high) / 2);
+    const midOffset = dayjs(mid).tz(timezone).utcOffset();
+    if (midOffset === lowOffset) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  // Return the transition time in local timezone
+  return dayjs(high).tz(timezone);
+};
+
+/**
+ * Formats a transition moment as an iCal DTSTART value (e.g., 19700308T020000).
+ * Uses year 1970 as the epoch year for RRULE compatibility.
+ */
+const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string => {
+  // Use the actual transition time but in the 1970 epoch year for the RRULE DTSTART
+  const month = String(transition.month() + 1).padStart(2, "0");
+  const day = String(transition.date()).padStart(2, "0");
+  const hour = String(transition.hour()).padStart(2, "0");
+  const minute = String(transition.minute()).padStart(2, "0");
+  return `19700${month}${day}T${hour}${minute}00`;
+};
+
+/**
+ * Generates a BYDAY RRULE value (e.g., "2SU") for the day-of-week pattern
+ * of a given date (nth occurrence of weekday in its month).
+ */
+const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
+  const dayNames = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const dayOfWeek = dayNames[d.day()];
+  const dayOfMonth = d.date();
+  // Determine which occurrence (1st, 2nd, 3rd, 4th, or last=-1)
+  const weekNum = Math.ceil(dayOfMonth / 7);
+  // Check if it could be the last occurrence (within last 7 days of month)
+  const daysInMonth = d.daysInMonth();
+  if (dayOfMonth > daysInMonth - 7) {
+    return `-1${dayOfWeek}`;
+  }
+  return `${weekNum}${dayOfWeek}`;
+};
+
+/**
  * Builds a VTIMEZONE component string for the given IANA timezone identifier.
- * Uses UTC offsets at the event start time (simplified, non-DST-transition version).
+ * Computes actual timezone-specific DST transition rules by binary-searching
+ * the actual transition moments in 1970 (the iCal epoch year).
  *
  * RFC 5545 Section 3.6.5 requires VTIMEZONE when DTSTART uses TZID.
- * We generate a simplified VTIMEZONE with STANDARD and DAYLIGHT components
- * covering the current UTC offset as well as a DAYLIGHT component if the
- * timezone observes DST.
+ * We generate a VTIMEZONE with STANDARD and DAYLIGHT components reflecting
+ * the actual DST transition dates for the given timezone (not US-specific).
  *
- * @param timezone - IANA timezone string (e.g., "America/Chicago")
+ * @param timezone - IANA timezone string (e.g., "America/Chicago", "Europe/London")
  * @param eventStart - ISO string of the event start time
  * @returns VTIMEZONE iCalendar block string (including BEGIN/END)
  */
 const buildVTimezone = (timezone: string, eventStart: string): string => {
-  // Get the UTC offset at the time of the event (e.g., "-05:00" or "+02:00")
-  const eventMoment = dayjs(eventStart).tz(timezone);
   const winterMoment = dayjs(eventStart).tz(timezone).month(0); // January (likely standard time)
   const summerMoment = dayjs(eventStart).tz(timezone).month(6); // July (likely daylight time)
 
@@ -205,33 +272,71 @@ const buildVTimezone = (timezone: string, eventStart: string): string => {
   const daylightOffset = formatOffset(summerMoment);
   const hasDST = standardOffset !== daylightOffset;
 
-  const lines: string[] = [
-    "BEGIN:VTIMEZONE",
-    `TZID:${timezone}`,
-  ];
+  const lines: string[] = ["BEGIN:VTIMEZONE", `TZID:${timezone}`];
 
   if (hasDST) {
-    // DAYLIGHT component (summer time - transitions ~March in Northern Hemisphere)
-    lines.push(
-      "BEGIN:DAYLIGHT",
-      `TZOFFSETFROM:${standardOffset}`,
-      `TZOFFSETTO:${daylightOffset}`,
-      "TZNAME:DST",
-      "DTSTART:19700308T020000",
-      "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU",
-      "END:DAYLIGHT"
-    );
+    // Find the actual DST transition dates for 1970 (used as RRULE epoch)
+    // Spring transition: standard → daylight (Jan→Jul direction)
+    const springTransition = findDSTTransition(timezone, 1970, 0, 6);
+    // Fall transition: daylight → standard (Jul→Jan direction)
+    const fallTransition = findDSTTransition(timezone, 1970, 6, 11);
 
-    // STANDARD component (winter time - transitions ~November in Northern Hemisphere)
-    lines.push(
-      "BEGIN:STANDARD",
-      `TZOFFSETFROM:${daylightOffset}`,
-      `TZOFFSETTO:${standardOffset}`,
-      "TZNAME:ST",
-      "DTSTART:19701101T020000",
-      "RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU",
-      "END:STANDARD"
-    );
+    // Southern Hemisphere timezones (Australia, NZ, South America) have
+    // winter in June-August so their "standard" is in summer months
+    const isNorthernHemisphereStyle = standardOffset <= daylightOffset ||
+      (winterMoment.utcOffset() < summerMoment.utcOffset());
+
+    if (springTransition) {
+      const dtstart = formatTransitionDtstart(springTransition);
+      const byday = getBydayRule(springTransition);
+      const bymonth = springTransition.month() + 1;
+
+      lines.push(
+        "BEGIN:DAYLIGHT",
+        `TZOFFSETFROM:${isNorthernHemisphereStyle ? standardOffset : daylightOffset}`,
+        `TZOFFSETTO:${isNorthernHemisphereStyle ? daylightOffset : standardOffset}`,
+        "TZNAME:DST",
+        `DTSTART:${dtstart}`,
+        `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+        "END:DAYLIGHT"
+      );
+    } else {
+      // Fallback if transition not found — use offset without RRULE
+      lines.push(
+        "BEGIN:DAYLIGHT",
+        `TZOFFSETFROM:${standardOffset}`,
+        `TZOFFSETTO:${daylightOffset}`,
+        "TZNAME:DST",
+        "DTSTART:19700101T000000",
+        "END:DAYLIGHT"
+      );
+    }
+
+    if (fallTransition) {
+      const dtstart = formatTransitionDtstart(fallTransition);
+      const byday = getBydayRule(fallTransition);
+      const bymonth = fallTransition.month() + 1;
+
+      lines.push(
+        "BEGIN:STANDARD",
+        `TZOFFSETFROM:${isNorthernHemisphereStyle ? daylightOffset : standardOffset}`,
+        `TZOFFSETTO:${isNorthernHemisphereStyle ? standardOffset : daylightOffset}`,
+        "TZNAME:ST",
+        `DTSTART:${dtstart}`,
+        `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+        "END:STANDARD"
+      );
+    } else {
+      // Fallback if transition not found
+      lines.push(
+        "BEGIN:STANDARD",
+        `TZOFFSETFROM:${daylightOffset}`,
+        `TZOFFSETTO:${standardOffset}`,
+        "TZNAME:ST",
+        "DTSTART:19700101T000000",
+        "END:STANDARD"
+      );
+    }
   } else {
     // No DST — single STANDARD component
     lines.push(
