@@ -1,11 +1,9 @@
-import React from "react";
-
 import dayjs from "@calcom/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-
 import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
 import type { BorderColor } from "@calcom/features/calendars/weeklyview/types/common";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
+import type React from "react";
 
 type Props = {
   showBorder: boolean;

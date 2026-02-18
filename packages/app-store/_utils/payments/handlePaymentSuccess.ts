@@ -160,8 +160,9 @@ export async function handlePaymentSuccess(params: {
       length: booking.eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,

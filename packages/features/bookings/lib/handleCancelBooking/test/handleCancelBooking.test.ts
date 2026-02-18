@@ -135,6 +135,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "No reason",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -266,6 +267,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "No reason",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -414,6 +416,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Testing round robin cancellation with host as attendee",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -567,6 +570,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Testing EMAIL_HOST workflow sends to secondary host in round robin",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -645,6 +649,7 @@ describe("Cancel Booking", () => {
           cancellationReason: "Testing past booking cancellation",
         },
         impersonatedByUserUuid: null,
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cannot cancel a booking that has already ended");
   });
@@ -714,6 +719,7 @@ describe("Cancel Booking", () => {
           cancelledBy: organizer.email,
         },
         impersonatedByUserUuid: null,
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cancellation reason is required when you are the host");
   });
@@ -826,6 +832,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "No reason",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -953,6 +960,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "No reason",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1071,6 +1079,7 @@ describe("Cancel Booking", () => {
       },
       userId: 999,
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1180,6 +1189,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Organization booking cancellation test",
       },
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -1303,6 +1313,7 @@ describe("Cancel Booking", () => {
       },
       userId: organizer.id,
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1425,6 +1436,7 @@ describe("Cancel Booking", () => {
       },
       userId: organizer.id,
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1547,6 +1559,7 @@ describe("Cancel Booking", () => {
       },
       userId: organizer.id,
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1661,6 +1674,7 @@ describe("Cancel Booking", () => {
       },
       userId: organizer.id,
       impersonatedByUserUuid: null,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);

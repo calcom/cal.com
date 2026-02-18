@@ -83,6 +83,7 @@ async function handler(req: NextApiRequest) {
     bookingData: { id, allRemainingBookings, cancellationReason, cancelledBy },
     userId: req.userId,
     impersonatedByUserUuid: null,
+    actionSource: "API_V1",
   });
 }
 

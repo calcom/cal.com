@@ -281,6 +281,7 @@ export class BookingsController_2024_04_15 {
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
           impersonatedByUserUuid: null,
+          actionSource: "API_V2",
         });
         if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));

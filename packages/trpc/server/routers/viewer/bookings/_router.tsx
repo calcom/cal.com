@@ -1,5 +1,5 @@
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
@@ -126,6 +126,7 @@ export const bookingsRouter = router({
       ctx,
       input,
       impersonatedByUserUuid: ctx.session?.user?.impersonatedBy?.uuid ?? null,
+      actionSource: "WEBAPP",
     });
   }),
   reportWrongAssignment: authedProcedure
