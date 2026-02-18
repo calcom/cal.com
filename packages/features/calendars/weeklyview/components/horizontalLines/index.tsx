@@ -1,10 +1,8 @@
-import { useId } from "react";
-
 import type dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import classNames from "@calcom/ui/classNames";
-
 import type { BorderColor } from "@calcom/features/calendars/weeklyview/types/common";
+import classNames from "@calcom/ui/classNames";
+import { useId } from "react";
 
 export const HorizontalLines = ({
   hours,
