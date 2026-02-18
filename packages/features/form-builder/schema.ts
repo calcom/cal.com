@@ -145,19 +145,15 @@ export const fieldTypesSchemaMap = {
 
       if (typeof response === "string") {
         // Try to parse JSON strings from URL prefill (e.g., name={"firstName":"John","lastName":"Doe"})
+        const nameJsonSchema = z.object({
+          firstName: z.string(),
+          lastName: z.string().optional().default(""),
+        });
+
         try {
-          const parsed = JSON.parse(response);
-          if (
-            typeof parsed === "object" &&
-            parsed !== null &&
-            "firstName" in parsed &&
-            typeof parsed.firstName === "string"
-          ) {
-            const firstAndLastNameResponse = {
-              firstName: parsed.firstName,
-              lastName: typeof parsed.lastName === "string" ? parsed.lastName : "",
-            };
-            return preprocessNameFieldDataWithVariant(correctedVariant, firstAndLastNameResponse);
+          const parsed = nameJsonSchema.safeParse(JSON.parse(response));
+          if (parsed.success) {
+            return preprocessNameFieldDataWithVariant(correctedVariant, parsed.data);
           }
         } catch {
           // Not valid JSON, treat as regular string
