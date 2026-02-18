@@ -54,13 +54,16 @@ const DuplicateDialog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // Fetch user's profile for the personal slug
+  const { data: user } = trpc.viewer.me.get.useQuery();
+
   // Fetch user's teams for the team selector
   const { data: teamsData } = trpc.viewer.teams.list.useQuery(undefined, {
     staleTime: 60_000,
   });
 
   const teamOptions: TeamOption[] = [
-    { label: t("personal"), value: null, slug: pageSlug },
+    { label: t("personal"), value: null, slug: user?.username ?? pageSlug },
     ...(teamsData
       ?.filter((team) => !team.isOrganization)
       .map((team) => ({
@@ -75,7 +78,7 @@ const DuplicateDialog = () => {
     defaultValues: {
       slug: t("event_type_duplicate_copy_text", { slug }),
       ...defaultValues,
-      targetTeamId: null as number | null,
+      targetTeamId: defaultValues.teamId ?? null,
     },
     resolver: zodResolver(EventTypeDuplicateInput),
   });
