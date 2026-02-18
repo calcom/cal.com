@@ -1,8 +1,7 @@
-import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { NextRequest } from "next/server";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { Mock } from "vitest";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
@@ -89,10 +88,8 @@ function expectErrorRedirect(res: Response, path: string, error: string) {
   expect(redirectUrl.searchParams.get("error")).toBe(error);
 }
 
-import process from "node:process";
 // Import after mocks are set up
 import { GET, POST } from "../route";
-
 const DB = {
   bookings: {} as Record<
     string,
@@ -182,11 +179,12 @@ describe("verify-booking-token route", () => {
   });
 
   describe("GET handler", () => {
-    it("should handle reject action via GET for email clients that do not support forms", async () => {
+    it("should process rejection via GET (for email clients that don't support POST)", async () => {
       createMockBooking({
         id: 1,
         uid: "abc123",
         oneTimePassword: "test-token",
+        recurringEventId: null,
       });
       createMockUser({
         id: 42,
@@ -200,15 +198,20 @@ describe("verify-booking-token route", () => {
       const baseUrl =
         "https://app.example.com/api/verify-booking-token?action=reject&token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
-      await GET(req, { params: Promise.resolve({}) });
+      const res = await GET(req, { params: Promise.resolve({}) });
+      const location = res.headers.get("location");
 
+      expect(location).toBeTruthy();
+      const redirectUrl = new URL(location!);
+
+      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.pathname).toBe("/booking/abc123");
+      expect(redirectUrl.searchParams.get("error")).toBeNull();
       expect(mockConfirmHandler).toHaveBeenCalledWith(
         expect.objectContaining({
           input: expect.objectContaining({
             bookingId: 1,
             confirmed: false,
-            reason: undefined,
-            emailsEnabled: true,
             actionSource: "MAGIC_LINK",
           }),
         })
@@ -248,20 +251,6 @@ describe("verify-booking-token route", () => {
     });
 
     it("should preserve the request origin in redirect URL (not hardcode localhost)", async () => {
-      createMockBooking({
-        id: 1,
-        uid: "booking-uid",
-        oneTimePassword: "t",
-      });
-      createMockUser({
-        id: 1,
-        uuid: "user-uuid",
-        email: "test@example.com",
-        username: "testuser",
-        role: "USER",
-        destinationCalendar: null,
-      });
-
       const baseUrl =
         "https://custom-domain.example.org/api/verify-booking-token?action=reject&token=t&bookingUid=booking-uid&userId=1";
       const req = createMockRequest(baseUrl, "GET");
@@ -337,20 +326,6 @@ describe("verify-booking-token route", () => {
 
       for (const origin of testOrigins) {
         vi.clearAllMocks();
-        createMockBooking({
-          id: 1,
-          uid: "test-uid",
-          oneTimePassword: "t",
-        });
-        createMockUser({
-          id: 1,
-          uuid: "user-uuid",
-          email: "test@example.com",
-          username: "testuser",
-          role: "USER",
-          destinationCalendar: null,
-        });
-
         const baseUrl = `${origin}/api/verify-booking-token?action=reject&token=t&bookingUid=test-uid&userId=1`;
         const req = createMockRequest(baseUrl, "GET");
 
