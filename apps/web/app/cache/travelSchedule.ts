@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
+import { prisma } from "@calcom/prisma";
 
 import { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";

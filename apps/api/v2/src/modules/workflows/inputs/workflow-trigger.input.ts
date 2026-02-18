@@ -3,6 +3,7 @@ import { Type } from "class-transformer";
 import { IsIn, IsNumber, IsString, ValidateNested } from "class-validator";
 
 import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
+import { EventTypes } from "@calcom/core/event-triggers";
 
 export const BEFORE_EVENT = "beforeEvent";
 export const EVENT_CANCELLED = "eventCancelled";

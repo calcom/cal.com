@@ -3,6 +3,8 @@ import type { FeatureId } from "@calcom/features/flags/config";
 import type { FeatureDto } from "@calcom/lib/dto/FeatureDto";
 import { FeatureDtoArraySchema, FeatureDtoSchema } from "@calcom/lib/dto/FeatureDto";
 
+import { PrismaClient } from "@prisma/client"; // NEW import
+
 import type { IFeatureRepository } from "./PrismaFeatureRepository";
 
 const CACHE_PREFIX = "features:global";

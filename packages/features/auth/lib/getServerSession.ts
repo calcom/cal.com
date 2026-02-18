@@ -12,6 +12,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
+
+// Add necessary import
+import { someNewModule } from "some-new-module";
 /**
  * Stores the session in memory using the stringified token as the key.
  *
