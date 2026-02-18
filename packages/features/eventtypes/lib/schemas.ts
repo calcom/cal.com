@@ -52,6 +52,7 @@ export type TEventTypeDuplicateInput = {
   description: string;
   length: number;
   teamId?: number | null;
+  targetTeamId?: number | null;
 };
 
 export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
@@ -62,6 +63,7 @@ export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
     description: z.string(),
     length: z.number(),
     teamId: z.number().nullish(),
+    targetTeamId: z.number().nullish(),
   })
   .strict();
 

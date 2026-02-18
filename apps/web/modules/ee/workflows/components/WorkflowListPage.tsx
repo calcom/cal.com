@@ -18,11 +18,13 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { LinkIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { showToast } from "@calcom/ui/components/toast";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DeleteDialog } from "./DeleteDialog";
+import { DuplicateWorkflowDialog } from "./DuplicateWorkflowDialog";
 
 /** @deprecated Use WorkflowListType from ../lib/types instead */
 export type WorkflowType = WorkflowListType;
@@ -34,7 +36,9 @@ export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [workflowToDeleteId, setwWorkflowToDeleteId] = useState(0);
+  const [workflowToDuplicateId, setwWorkflowToDuplicateId] = useState(0);
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const router = useRouter();
 
@@ -48,6 +52,8 @@ export default function WorkflowListPage({ workflows }: Props) {
       utils.viewer.workflows.filteredList.invalidate();
     },
   });
+
+
 
   async function moveWorkflow(index: number, increment: 1 | -1) {
     const types = workflows!;
@@ -229,6 +235,19 @@ export default function WorkflowListPage({ workflows }: Props) {
                               data-testid="edit-button"
                             />
                           </Tooltip>
+                          <Tooltip content={t("duplicate") as string}>
+                            <Button
+                              type="button"
+                              color="secondary"
+                              variant="icon"
+                              StartIcon="copy"
+                              onClick={() => {
+                                setDuplicateDialogOpen(true);
+                                setwWorkflowToDuplicateId(workflow.id);
+                              }}
+                              data-testid="duplicate-button"
+                            />
+                          </Tooltip>
                           <Tooltip content={t("delete") as string}>
                             <Button
                               onClick={() => {
@@ -246,9 +265,6 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </Tooltip>
                         </ButtonGroup>
                       </div>
-                      {(workflow.permissions?.canUpdate ||
-                        workflow.permissions?.canDelete ||
-                        (!workflow.permissions && !workflow.readOnly)) && (
                         <div className="block sm:hidden">
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
@@ -267,6 +283,17 @@ export default function WorkflowListPage({ workflows }: Props) {
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="copy"
+                                  onClick={() => {
+                                    setDuplicateDialogOpen(true);
+                                    setwWorkflowToDuplicateId(workflow.id);
+                                  }}>
+                                  {t("duplicate")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
                               {(workflow.permissions
                                 ? workflow.permissions?.canDelete
                                 : !workflow.readOnly) && (
@@ -286,7 +313,6 @@ export default function WorkflowListPage({ workflows }: Props) {
                             </DropdownMenuContent>
                           </Dropdown>
                         </div>
-                      )}
                     </div>
                   </div>
                 </li>
@@ -300,6 +326,11 @@ export default function WorkflowListPage({ workflows }: Props) {
             additionalFunction={async () => {
               await utils.viewer.workflows.filteredList.invalidate();
             }}
+          />
+          <DuplicateWorkflowDialog
+            isOpenDialog={duplicateDialogOpen}
+            setIsOpenDialog={setDuplicateDialogOpen}
+            workflowId={workflowToDuplicateId}
           />
         </div>
       ) : (

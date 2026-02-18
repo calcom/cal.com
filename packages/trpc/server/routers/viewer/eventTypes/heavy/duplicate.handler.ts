@@ -1,8 +1,10 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
+import { duplicateWorkflow } from "@calcom/features/ee/workflows/lib/duplicateWorkflow";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { Prisma, MembershipRole } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,6 +27,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       slug: newSlug,
       description: newDescription,
       length: newLength,
+      targetTeamId,
     } = input;
     const eventType = await prisma.eventType.findUnique({
       where: {
@@ -80,6 +83,25 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       }
     }
 
+    // If duplicating to a different team, validate user has ADMIN/OWNER role in the target team
+    if (targetTeamId) {
+      const targetMembership = await prisma.membership.findUnique({
+        where: {
+          userId_teamId: {
+            userId: ctx.user.id,
+            teamId: targetTeamId,
+          },
+        },
+      });
+      if (!targetMembership || ![MembershipRole.ADMIN, MembershipRole.OWNER].includes(targetMembership.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You must be an admin or owner of the target team to duplicate event types to it.",
+        });
+      }
+    }
+
+
     const {
       customInputs,
       users,
@@ -110,6 +132,33 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       ...rest
     } = eventType;
 
+    const isExplicitTarget = targetTeamId !== undefined;
+    const destinationTeamId = isExplicitTarget ? targetTeamId : team?.id;
+    const isDuplicatingToTeam = !!destinationTeamId;
+    const shouldResetToCurrentUser = isExplicitTarget;
+
+    let usersInput: Prisma.EventTypeCreateInput["users"];
+    if (shouldResetToCurrentUser) {
+      usersInput = { connect: [{ id: ctx.user.id }] };
+    } else if (users) {
+      usersInput = { connect: users.map((user) => ({ id: user.id })) };
+    }
+
+    let hostsInput: Prisma.EventTypeCreateInput["hosts"];
+    if (shouldResetToCurrentUser) {
+      hostsInput = {
+        createMany: {
+          data: [{ userId: ctx.user.id, isFixed: true }],
+        },
+      };
+    } else if (hosts) {
+      hostsInput = {
+        createMany: {
+          data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
+        },
+      };
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       title: newEventTitle,
@@ -117,15 +166,15 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       description: newDescription,
       length: newLength,
       locations: locations ?? undefined,
-      team: team ? { connect: { id: team.id } } : undefined,
-      users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
-      hosts: hosts
-        ? {
-            createMany: {
-              data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
-            },
-          }
-        : undefined,
+      team: destinationTeamId ? { connect: { id: destinationTeamId } } : undefined,
+      // When duplicating explicitly (changing context), connect the current user; otherwise preserve original users
+      users: usersInput,
+      // When duplicating explicitly, add the current user as a host; otherwise preserve original hosts
+      hosts: hostsInput,
+      // When duplicating to a team, set scheduling type to ROUND_ROBIN by default. If personal, null.
+      schedulingType: isDuplicatingToTeam
+        ? rest.schedulingType ?? SchedulingType.ROUND_ROBIN
+        : null,
       restrictionSchedule: _restrictionScheduleId
         ? {
             connect: {
@@ -145,8 +194,15 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
     };
 
+    // When duplicating to a team, clear personal fields that don't apply
+    if (isDuplicatingToTeam) {
+      data.userId = null;
+    } else if (shouldResetToCurrentUser) {
+      data.userId = ctx.user.id;
+    }
+
     // Validate the secondary email
-    if (secondaryEmailId) {
+    if (secondaryEmailId && !isDuplicatingToTeam) {
       const secondaryEmail = await prisma.secondaryEmail.findUnique({
         where: {
           id: secondaryEmailId,
@@ -203,15 +259,22 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     }
 
     if (workflows.length > 0) {
-      const relationCreateData = workflows.map((workflow) => {
-        return { eventTypeId: newEventType.id, workflowId: workflow.workflowId };
-      });
+      for (const workflowLink of workflows) {
+        const newWorkflow = await duplicateWorkflow({
+          workflowId: workflowLink.workflowId,
+          targetTeamId,
+          currentUserId: ctx.user.id,
+        });
 
-      await prisma.workflowsOnEventTypes.createMany({
-        data: relationCreateData,
-      });
+        await prisma.workflowsOnEventTypes.create({
+          data: {
+            eventTypeId: newEventType.id,
+            workflowId: newWorkflow.id,
+          },
+        });
+      }
     }
-    if (destinationCalendar) {
+    if (destinationCalendar && !isDuplicatingToTeam) {
       await setDestinationCalendarHandler({
         ctx,
         input: {
@@ -225,6 +288,9 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       
       if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
@@ -242,3 +308,4 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error duplicating event type ${error}` });
   }
 };
+

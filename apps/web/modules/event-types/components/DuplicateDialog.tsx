@@ -19,7 +19,8 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Label, TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 
@@ -34,6 +35,12 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
+type TeamOption = {
+  label: string;
+  value: number | null;
+  slug?: string | null;
+};
+
 const DuplicateDialog = () => {
   const utils = trpc.useUtils();
 
@@ -47,11 +54,28 @@ const DuplicateDialog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // Fetch user's teams for the team selector
+  const { data: teamsData } = trpc.viewer.teams.list.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+
+  const teamOptions: TeamOption[] = [
+    { label: t("personal"), value: null, slug: pageSlug },
+    ...(teamsData
+      ?.filter((team) => !team.isOrganization)
+      .map((team) => ({
+        label: team.name,
+        value: team.id,
+        slug: team.slug,
+      })) ?? []),
+  ];
+
   // react hook form
   const form = useForm({
     defaultValues: {
       slug: t("event_type_duplicate_copy_text", { slug }),
       ...defaultValues,
+      targetTeamId: null as number | null,
     },
     resolver: zodResolver(EventTypeDuplicateInput),
   });
@@ -114,6 +138,8 @@ const DuplicateDialog = () => {
     },
   });
 
+  const selectedTargetTeamId = form.watch("targetTeamId");
+
   return (
     <Dialog
       name="duplicate"
@@ -142,7 +168,7 @@ const DuplicateDialog = () => {
               <TextField
                 label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
                 required
-                addOnLeading={<>/{pageSlug}/</>}
+                addOnLeading={<>/{teamOptions.find((opt) => opt.value === selectedTargetTeamId)?.slug || pageSlug || ""}/</>}
                 {...register("slug")}
                 onChange={(e) => {
                   form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
@@ -154,7 +180,7 @@ const DuplicateDialog = () => {
                 required
                 addOnLeading={
                   <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
+                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{teamOptions.find((opt) => opt.value === selectedTargetTeamId)?.slug || pageSlug || ""}/
                   </>
                 }
                 {...register("slug")}
@@ -184,6 +210,23 @@ const DuplicateDialog = () => {
                 addOnSuffix={t("minutes")}
               />
             </div>
+
+            {/* Team selector for "Duplicate to team" */}
+            {teamOptions.length > 1 && (
+              <div>
+                <Label>{t("duplicate_to")}</Label>
+                <Select<TeamOption>
+                  options={teamOptions}
+                  value={teamOptions.find((opt) => opt.value === selectedTargetTeamId) ?? teamOptions[0]}
+                  onChange={(option) => {
+                    if (option) {
+                      form.setValue("targetTeamId", option.value);
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter showDivider className="mt-10">
             <DialogClose />

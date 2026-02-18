@@ -2,6 +2,7 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZActivateEventTypeInputSchema } from "./activateEventType.schema";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZDuplicateWorkflowInputSchema } from "./duplicate.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
@@ -19,6 +20,7 @@ type WorkflowsRouterHandlerCache = {
   list?: typeof import("./list.handler").listHandler;
   get?: typeof import("./get.handler").getHandler;
   create?: typeof import("./create.handler").createHandler;
+  duplicate?: typeof import("./duplicate.handler").duplicateWorkflowHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
   update?: typeof import("./update.handler").updateHandler;
   activateEventType?: typeof import("./activateEventType.handler").activateEventTypeHandler;
@@ -79,6 +81,24 @@ export const workflowsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.create({
+      ctx,
+      input,
+    });
+  }),
+
+  duplicate: authedProcedure.input(ZDuplicateWorkflowInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
+        (mod) => mod.duplicateWorkflowHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.duplicate({
       ctx,
       input,
     });
