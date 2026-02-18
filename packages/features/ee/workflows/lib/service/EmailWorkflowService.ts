@@ -25,9 +25,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { EventStatus } from "ics";
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
 import {
+  isEmailAction,
   getTemplateBodyForAction,
   getTemplateSubjectForAction,
-  isEmailAction,
 } from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
@@ -606,12 +606,14 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
+    const replyTo = evt.hideOrganizerEmail
+      ? customReplyToEmail
+      : customReplyToEmail || evt.organizer.email;
+
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      ...(!evt.hideOrganizerEmail && {
-        replyTo: customReplyToEmail || evt.organizer.email,
-      }),
+      ...(replyTo && { replyTo }),
       attachments,
       sender,
     };

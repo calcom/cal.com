@@ -27,4 +27,3 @@ export async function managedEventReassignment({
 }
 
 export default managedEventReassignment;
-

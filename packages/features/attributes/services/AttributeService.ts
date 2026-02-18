@@ -30,10 +30,11 @@ export class AttributeService {
     userId: number;
     orgId: number;
   }): Promise<Record<string, UserAttribute>> {
-    const attributeOptionsAssignedToUser =
-      await this.deps.attributeToUserRepository.findManyIncludeAttribute({
+    const attributeOptionsAssignedToUser = await this.deps.attributeToUserRepository.findManyIncludeAttribute(
+      {
         member: { userId, teamId: orgId },
-      });
+      }
+    );
 
     const userAttributes: Record<string, UserAttribute> = {};
 
