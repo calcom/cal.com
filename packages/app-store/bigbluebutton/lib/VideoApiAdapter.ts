@@ -43,9 +43,7 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
             : undefined,
         });
 
-        // Build the attendee join URL using the first attendee's name as placeholder.
-        // Actual attendees will join via the attendee password; organizer via moderator PW.
-        // We embed the moderator join URL as the "host" URL in the meeting metadata.
+        // Build the organizer (moderator) join URL.
         const organizerName = event.organizer?.name ?? "Host";
         const hostJoinUrl = getBBBJoinUrl(
           bbbCreds,
@@ -54,14 +52,20 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
           meeting.moderatorPW
         );
 
-        // The attendee join URL is stored in `url` and shared in the booking confirmation.
-        // We store both passwords (attendeePW + moderatorPW) separated by ":" so
-        // the organizer's join link can be generated on the join API endpoint.
-        const attendeeName = event.attendees?.[0]?.name ?? "Attendee";
+        // BBB includes `fullName` in the URL checksum, so a URL generated for one
+        // attendee's name is not reusable by others.  We store the attendeePW and
+        // moderatorPW so that each participant can generate their own signed join URL
+        // at the point of joining (e.g. via a server-side join redirect endpoint).
+        //
+        // The `url` field here serves as the booking-confirmation link.  We use a
+        // generic placeholder name "Attendee" — this URL will route each participant
+        // into the meeting; BBB will prompt them for their name on the client side if
+        // the server is configured to do so, or they can use the per-person join
+        // endpoint to get a properly-named link.
         const attendeeJoinUrl = getBBBJoinUrl(
           bbbCreds,
           meeting.meetingID,
-          attendeeName,
+          "Attendee",
           meeting.attendeePW
         );
 

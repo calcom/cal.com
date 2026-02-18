@@ -16,6 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { teamId } = req.query;
   const userId = req.session.user.id;
 
+  // Validate teamId: Number(undefined) = NaN, Number("abc") = NaN, both must be rejected
+  // with a 400 rather than reaching Prisma as NaN.
+  const teamIdNum = teamId !== undefined ? Number(teamId) : null;
+  if (teamId !== undefined && (isNaN(teamIdNum as number) || !Number.isInteger(teamIdNum))) {
+    return res.status(400).json({ message: "Invalid teamId" });
+  }
+
   // Validate and parse input
   const parseResult = appKeysSchema.safeParse(req.body);
   if (!parseResult.success) {
@@ -36,9 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Find the credential to update
-  const whereClause = teamId
-    ? { type: "bigbluebutton_video", teamId: Number(teamId) }
-    : { type: "bigbluebutton_video", userId };
+  const whereClause =
+    teamIdNum !== null
+      ? { type: "bigbluebutton_video", teamId: teamIdNum }
+      : { type: "bigbluebutton_video", userId };
 
   try {
     await prisma.credential.updateMany({
@@ -47,7 +55,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     return res.status(200).json({ message: "Saved successfully" });
   } catch (error) {
-    console.error("Failed to save BigBlueButton credentials:", error);
+    // Log a sanitized message only — do NOT log the raw error or the `keys` object,
+    // as they can contain the sharedSecret.
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Failed to save BigBlueButton credentials:", message);
     return res.status(500).json({ message: "Failed to save credentials" });
   }
 }

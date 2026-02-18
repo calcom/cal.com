@@ -13,6 +13,10 @@ Add these keys to `apps/web/public/static/locales/en/common.json`:
   "bigbluebutton_shared_secret_placeholder": "Enter your BBB shared secret",
   "bigbluebutton_shared_secret_hint": "Found in /etc/bigbluebutton/bbb-web.properties or via `sudo bbb-conf --secret`",
   "bigbluebutton_checksum_algorithm": "Checksum Algorithm",
+  "bigbluebutton_checksum_sha256": "SHA-256 (recommended)",
+  "bigbluebutton_checksum_sha512": "SHA-512",
+  "bigbluebutton_checksum_sha384": "SHA-384",
+  "bigbluebutton_checksum_sha1": "SHA-1 (legacy)",
   "bigbluebutton_setup_help": "Need help finding your server URL and shared secret? See the <1>BigBlueButton API documentation</1>."
 }
 ```
@@ -28,3 +32,9 @@ languages where the link text appears at a different position in the sentence.
 
 The single-key `Trans` approach allows translators to position the link tag anywhere in the
 translated string without UI code changes.
+
+## Note on checksum algorithm labels
+
+Each algorithm option has its own i18n key (`bigbluebutton_checksum_sha256`, etc.) so
+translators can adapt the labels for their locale (e.g. appending locale-specific
+parenthetical notes or adjusting the legacy/recommended designations).

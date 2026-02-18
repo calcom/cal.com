@@ -1,11 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Restrict to POST: this endpoint creates a credential (state-changing).
+  // Accepting GET would allow CSRF via a cross-site navigation.
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
@@ -43,12 +50,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const redirectPath = returnTo
-      ? String(returnTo)
-      : getInstalledAppPath(
-          { variant: "conferencing", slug: "bigbluebutton" },
-          "setup"
-        );
+    // getSafeRedirectUrl validates the destination is same-origin/relative, preventing open redirect.
+    const defaultPath = getInstalledAppPath(
+      { variant: "conferencing", slug: "bigbluebutton" },
+      "setup"
+    );
+    const redirectPath =
+      returnTo ? (getSafeRedirectUrl(String(returnTo)) ?? defaultPath) : defaultPath;
+
     res.status(200).json({ url: redirectPath });
   } catch (error) {
     if (error instanceof Error) {
@@ -56,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(422).json({ message: "Already installed" });
       }
     }
-    console.error("Error installing BigBlueButton app:", error);
+    console.error("Error installing BigBlueButton app:", error instanceof Error ? error.message : "Unknown error");
     res.status(500).json({ message: "Internal server error" });
   }
 }
