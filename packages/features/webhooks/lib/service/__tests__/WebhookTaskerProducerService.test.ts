@@ -1,7 +1,8 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ITasker } from "../../interface";
+
 import type { ILogger } from "../../interface/infrastructure";
+import type { WebhookTasker } from "../../tasker/WebhookTasker";
 import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
 
 /**
@@ -11,17 +12,14 @@ import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
  */
 describe("WebhookTaskerProducerService", () => {
   let producer: WebhookTaskerProducerService;
-  let mockTasker: ITasker;
+  let mockWebhookTasker: WebhookTasker;
   let mockLogger: ILogger;
 
   beforeEach(() => {
-    // Mock Tasker
-    mockTasker = {
-      create: vi.fn().mockResolvedValue("task-id-123"),
-      cleanup: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue("cancelled-task-id"),
-      cancelWithReference: vi.fn().mockResolvedValue("cancelled-ref-id"),
-    };
+    // Mock WebhookTasker
+    mockWebhookTasker = {
+      deliverWebhook: vi.fn().mockResolvedValue({ taskId: "task-id-123" }),
+    } as unknown as WebhookTasker;
 
     // Mock Logger
     mockLogger = {
@@ -32,7 +30,10 @@ describe("WebhookTaskerProducerService", () => {
       getSubLogger: vi.fn().mockReturnThis(),
     } as unknown as ILogger;
 
-    producer = new WebhookTaskerProducerService(mockTasker, mockLogger);
+    producer = new WebhookTaskerProducerService({
+      webhookTasker: mockWebhookTasker,
+      logger: mockLogger,
+    });
   });
 
   describe("Constructor & Dependencies", () => {
@@ -56,8 +57,7 @@ describe("WebhookTaskerProducerService", () => {
         userId: 789,
       });
 
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
           bookingUid: "booking-123",
@@ -75,8 +75,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "booking-123",
       });
 
-      const callArgs = vi.mocked(mockTasker.create).mock.calls[0];
-      const payload = callArgs[1];
+      const callArgs = vi.mocked(mockWebhookTasker.deliverWebhook).mock.calls[0];
+      const payload = callArgs[0];
 
       expect(payload).toHaveProperty("operationId");
       expect(payload.operationId).toMatch(/^[0-9a-f-]{36}$/); // UUID format
@@ -89,8 +89,8 @@ describe("WebhookTaskerProducerService", () => {
         operationId: "custom-op-id",
       });
 
-      const callArgs = vi.mocked(mockTasker.create).mock.calls[0];
-      const payload = callArgs[1];
+      const callArgs = vi.mocked(mockWebhookTasker.deliverWebhook).mock.calls[0];
+      const payload = callArgs[0];
 
       expect(payload.operationId).toBe("custom-op-id");
     });
@@ -113,6 +113,7 @@ describe("WebhookTaskerProducerService", () => {
         "Webhook delivery task queued",
         expect.objectContaining({
           operationId: expect.any(String),
+          taskId: "task-id-123",
         })
       );
     });
@@ -124,8 +125,7 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "booking-456",
       });
 
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
           bookingUid: "booking-456",
@@ -141,28 +141,28 @@ describe("WebhookTaskerProducerService", () => {
         metadata: { customField: "value" },
       });
 
-      const callArgs = vi.mocked(mockTasker.create).mock.calls[0];
-      const payload = callArgs[1];
+      const callArgs = vi.mocked(mockWebhookTasker.deliverWebhook).mock.calls[0];
+      const payload = callArgs[0];
 
       expect(payload.metadata).toEqual({ customField: "value" });
     });
   });
 
   describe("Error Handling", () => {
-    it("should log and rethrow error if Tasker fails", async () => {
-      const error = new Error("Tasker failed");
-      vi.mocked(mockTasker.create).mockRejectedValueOnce(error);
+    it("should log and rethrow error if WebhookTasker fails", async () => {
+      const error = new Error("WebhookTasker failed");
+      vi.mocked(mockWebhookTasker.deliverWebhook).mockRejectedValueOnce(error);
 
       await expect(
         producer.queueBookingCreatedWebhook({
           bookingUid: "booking-123",
         })
-      ).rejects.toThrow("Tasker failed");
+      ).rejects.toThrow("WebhookTasker failed");
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Failed to queue webhook delivery task",
         expect.objectContaining({
-          error: "Tasker failed",
+          error: "WebhookTasker failed",
         })
       );
     });
@@ -173,8 +173,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingCreatedWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CREATED })
       );
     });
@@ -183,8 +182,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingCancelledWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED })
       );
     });
@@ -193,8 +191,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingRescheduledWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED })
       );
     });
@@ -203,8 +200,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingRequestedWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED })
       );
     });
@@ -213,8 +209,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingRejectedWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED })
       );
     });
@@ -223,8 +218,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingPaymentInitiatedWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED })
       );
     });
@@ -233,8 +227,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingPaidWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAID })
       );
     });
@@ -243,8 +236,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueBookingNoShowUpdatedWebhook({
         bookingUid: "test-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED })
       );
     });
@@ -253,8 +245,7 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueFormSubmittedWebhook({
         formId: "form-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED })
       );
     });
@@ -264,8 +255,7 @@ describe("WebhookTaskerProducerService", () => {
         recordingId: "rec-123",
         bookingUid: "booking-123",
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.RECORDING_READY })
       );
     });
@@ -275,8 +265,7 @@ describe("WebhookTaskerProducerService", () => {
         oooEntryId: 123,
         userId: 456,
       });
-      expect(mockTasker.create).toHaveBeenCalledWith(
-        "webhookDelivery",
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.OOO_CREATED })
       );
     });

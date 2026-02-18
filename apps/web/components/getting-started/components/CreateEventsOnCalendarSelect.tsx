@@ -1,4 +1,4 @@
-import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";

@@ -34,7 +34,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Switch, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { SearchIcon } from "@coss/ui/icons";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -214,9 +214,11 @@ const Item = ({
         </Badge>
       )}
       {showAssignedBadge && (
-        <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-          {t("assigned")}
-        </Badge>
+        <Tooltip content={t("you_are_assigned_to_this_event")}>
+          <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+            {t("assigned")}
+          </Badge>
+        </Tooltip>
       )}
     </div>
   );
@@ -256,9 +258,11 @@ const Item = ({
                 </Badge>
               )}
               {showAssignedBadge && (
-                <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-                  {t("assigned")}
-                </Badge>
+                <Tooltip content={t("you_are_assigned_to_this_event")}>
+                  <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+                    {t("assigned")}
+                  </Badge>
+                </Tooltip>
               )}
             </div>
             <EventTypeDescription
@@ -924,7 +928,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
     <div className="flex items-center gap-4">
       <TextField
         className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
         containerClassName="max-w-64 focus:ring-offset-0!"
         type="search"
         value={searchTerm}

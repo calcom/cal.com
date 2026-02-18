@@ -12,10 +12,7 @@ import { notFound } from "next/navigation";
  */
 const Page = (): JSX.Element => {
   // Gate this page to E2E test mode or dev only
-  if (
-    process.env.NEXT_PUBLIC_IS_E2E !== "1" &&
-    process.env.NODE_ENV !== "development"
-  ) {
+  if (process.env.NEXT_PUBLIC_IS_E2E !== "1" && process.env.NODE_ENV !== "development") {
     notFound();
   }
 

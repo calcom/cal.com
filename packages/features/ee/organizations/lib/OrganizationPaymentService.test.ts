@@ -8,6 +8,7 @@ import type { IOrganizationPermissionService } from "./OrganizationPermissionSer
 
 vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "STRIPE_ORG_PRODUCT_ID");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+vi.stubEnv("STRIPE_ORG_ANNUAL_PRICE_ID", "STRIPE_ORG_ANNUAL_PRICE_ID");
 const defaultOrgOnboarding = {
   id: "onboard-id-1",
   name: "Test Org",
@@ -207,6 +208,50 @@ describe("OrganizationPaymentService", () => {
         billingPeriod: "MONTHLY",
         seats: 10,
       });
+    });
+
+    it("should use annual fixed price when billingPeriod is ANNUALLY and no custom price", async () => {
+      vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
+
+      await service.createPaymentIntent(
+        {
+          bio: "BIO",
+          logo: "LOGO",
+          teams: [],
+        },
+        {
+          ...defaultOrgOnboarding,
+          billingPeriod: "ANNUALLY",
+        }
+      );
+
+      expect(mockBillingService.createSubscriptionCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priceId: "STRIPE_ORG_ANNUAL_PRICE_ID",
+        })
+      );
+    });
+
+    it("should use monthly fixed price when billingPeriod is MONTHLY and no custom price", async () => {
+      vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
+
+      await service.createPaymentIntent(
+        {
+          bio: "BIO",
+          logo: "LOGO",
+          teams: [],
+        },
+        {
+          ...defaultOrgOnboarding,
+          billingPeriod: "MONTHLY",
+        }
+      );
+
+      expect(mockBillingService.createSubscriptionCheckout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priceId: "STRIPE_ORG_MONTHLY_PRICE_ID",
+        })
+      );
     });
 
     describe("admin overrides", () => {

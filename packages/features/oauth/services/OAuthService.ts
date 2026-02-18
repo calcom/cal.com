@@ -175,7 +175,9 @@ export class OAuthService {
 
   private ensureClientIsApproved(client: { status: OAuthClientStatus }): void {
     if (client.status !== OAuthClientStatus.APPROVED) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", { reason: "client_not_approved" });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "unauthorized_client", {
+        reason: "client_not_approved",
+      });
     }
   }
 
@@ -221,7 +223,7 @@ export class OAuthService {
       if (validOAuthErrors.includes(error.message)) {
         return {
           error: error.message,
-          errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+          errorDescription: (error.data?.reason as string | undefined) ?? error.message,
         };
       }
 
@@ -229,17 +231,17 @@ export class OAuthService {
         case ErrorCode.BadRequest:
           return {
             error: "invalid_request",
-            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+            errorDescription: (error.data?.reason as string | undefined) ?? error.message,
           };
         case ErrorCode.Unauthorized:
           return {
             error: "unauthorized_client",
-            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+            errorDescription: (error.data?.reason as string | undefined) ?? error.message,
           };
         default:
           return {
             error: "server_error",
-            errorDescription: (error.data?.cause as string | undefined) ?? error.message,
+            errorDescription: (error.data?.reason as string | undefined) ?? error.message,
           };
       }
     }

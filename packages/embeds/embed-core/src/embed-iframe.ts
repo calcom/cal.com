@@ -33,7 +33,7 @@ import type {
   setNonStylesConfig,
 } from "./types";
 import { useCompatSearchParams } from "./useCompatSearchParams";
-export { useBookerEmbedEvents } from "./embed-iframe/react-hooks";
+export { useBookerEmbedEvents, useSlotsViewOnSmallScreen } from "./embed-iframe/react-hooks";
 
 // We don't import it from Booker/types because the types from this module are published to npm and we can't import packages that aren't published
 type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";

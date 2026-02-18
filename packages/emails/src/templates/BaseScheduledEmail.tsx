@@ -72,8 +72,8 @@ export const BaseScheduledEmail = (
         props.title
           ? props.title
           : props.calEvent.recurringEvent?.count
-          ? "your_event_has_been_scheduled_recurring"
-          : "your_event_has_been_scheduled"
+            ? "your_event_has_been_scheduled_recurring"
+            : "your_event_has_been_scheduled"
       )}
       callToAction={
         props.callToAction === null
@@ -129,6 +129,13 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+      {props.isOrganizer && props.calEvent.assignmentReason && (
+        <Info
+          label={t("assignment_reason")}
+          description={`${t(props.calEvent.assignmentReason.category)}${props.calEvent.assignmentReason.details ? `: ${props.calEvent.assignmentReason.details}` : ""}`}
+          withSpacer
+        />
+      )}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
         <Info

@@ -10,7 +10,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import {
+  ConfirmationDialogContent,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+} from "@calcom/ui/components/dialog";
+
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Label, TextArea } from "@calcom/ui/components/form";
@@ -30,6 +36,9 @@ type OAuthClientDetails = {
   clientSecret?: string;
   isPkceEnabled?: boolean;
   clientType?: string;
+  user?: {
+    email: string;
+  } | null;
 };
 
 const OAuthClientDetailsDialog = ({
@@ -212,7 +221,9 @@ const OAuthClientDetailsDialog = ({
             })}>
             {status ? (
               <div className="flex justify-start items-center">
-                <Badge data-testid="oauth-client-details-status-badge" variant={getStatusBadgeVariant(status).variant}>
+                <Badge
+                  data-testid="oauth-client-details-status-badge"
+                  variant={getStatusBadgeVariant(status).variant}>
                   {t(getStatusBadgeVariant(status).labelKey)}
                 </Badge>
               </div>
@@ -227,8 +238,11 @@ const OAuthClientDetailsDialog = ({
             ) : null}
 
             {status === "REJECTED" && client.rejectionReason ? (
-              <div className="text-sm text-subtle" data-testid="oauth-client-details-rejection-reason-display">
-                <span className="font-medium">{t("oauth_client_rejection_reason")}:</span> {client.rejectionReason}
+              <div
+                className="text-sm text-subtle"
+                data-testid="oauth-client-details-rejection-reason-display">
+                <span className="font-medium">{t("oauth_client_rejection_reason")}:</span>{" "}
+                {client.rejectionReason}
               </div>
             ) : null}
 
@@ -257,6 +271,15 @@ const OAuthClientDetailsDialog = ({
                 </Tooltip>
               </div>
             </div>
+
+            {client.user?.email ? (
+              <div>
+                <div className="mb-1 text-sm text-subtle">{t("owner")}</div>
+                <div className="text-sm text-default" data-testid="oauth-client-details-user-email">
+                  {client.user.email}
+                </div>
+              </div>
+            ) : null}
 
             <OAuthClientFormFields
               form={form}
@@ -302,9 +325,7 @@ const OAuthClientDetailsDialog = ({
               </div>
             ) : null}
 
-            <DialogFooter className="mt-6">
-              {footerActions}
-            </DialogFooter>
+            <DialogFooter className="mt-6">{footerActions}</DialogFooter>
 
             <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
               <ConfirmationDialogContent
@@ -337,9 +358,7 @@ const OAuthClientDetailsDialog = ({
                     }}
                     className={showRejectionReasonError ? "border-error" : undefined}
                   />
-                  {showRejectionReasonError ? (
-                    <p className="text-sm text-error">{t("is_required")}</p>
-                  ) : null}
+                  {showRejectionReasonError ? <p className="text-sm text-error">{t("is_required")}</p> : null}
                 </div>
               </ConfirmationDialogContent>
             </Dialog>
@@ -360,7 +379,7 @@ function getStatusBadgeVariant(status: string) {
     default:
       return { variant: "orange" as const, labelKey: "pending" as const };
   }
-};
+}
 
 export type { OAuthClientDetails };
 export { OAuthClientDetailsDialog };

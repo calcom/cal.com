@@ -1,24 +1,106 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
+import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { filterEventTypesWhereLocationUpdateIsAllowed } from "@calcom/app-store/_utils/getBulkEventTypes";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-import { STEPS } from "~/apps/installation/[[...step]]/constants";
-import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import { STEPS } from "../../../../modules/apps/installation/[[...step]]/constants";
+import type {
+  OnboardingPageProps,
+  TEventTypeGroup,
+  TEventType,
+} from "../../../../modules/apps/installation/[[...step]]/step-view";
 
-const getUser = async (userId: number) => {
+const eventTypeSelect: Prisma.EventTypeSelect = {
+  id: true,
+  description: true,
+  durationLimits: true,
+  metadata: true,
+  length: true,
+  title: true,
+  position: true,
+  recurringEvent: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  team: { select: { slug: true } },
+  schedulingType: true,
+  teamId: true,
+  users: { select: { username: true } },
+  seatsPerTimeSlot: true,
+  slug: true,
+  locations: true,
+  userId: true,
+  destinationCalendar: true,
+  bookingFields: true,
+  calVideoSettings: true,
+  parentId: true,
+};
+
+type EventTypeFromDb = Prisma.EventTypeGetPayload<{
+  select: typeof eventTypeSelect;
+}>;
+
+type MinimalUser = {
+  id: number;
+  username: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+};
+
+type MinimalTeam = {
+  id: number;
+  name: string;
+  logoUrl: string | null;
+  isOrganization: boolean;
+};
+
+type RedirectResult = { redirect: { permanent: boolean; destination: string } };
+
+const mapEventType = (item: EventTypeFromDb): TEventType => {
+  let teamSlug = "";
+  if (item.team) {
+    teamSlug = `team/${item.team.slug}`;
+  }
+  const userSlug = item?.users?.[0]?.username;
+  let urlPart = userSlug;
+  if (teamSlug) {
+    urlPart = teamSlug;
+  }
+
+  return {
+    ...item,
+    URL: `${CAL_URL}/${urlPart}/${item.slug}`,
+    selected: false,
+    locations: item.locations as unknown as LocationObject[],
+    bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
+  };
+};
+
+const getUser = async (
+  userId: number
+): Promise<
+  | (MinimalUser & {
+      teams: {
+        id: number;
+        name: string;
+        logoUrl: string | null;
+        isOrganization: boolean;
+        parent: { id: number; name: string; logoUrl: string | null } | null;
+      }[];
+    })
+  | null
+> => {
   const userRepo = new UserRepository(prisma);
   const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
 
@@ -26,12 +108,21 @@ const getUser = async (userId: number) => {
     return null;
   }
 
-  const teams = userAdminTeams.teams.map(({ team }) => ({
-    ...team,
-    logoUrl: team.parent
-      ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-      : getPlaceholderAvatar(team.logoUrl, team.name),
-  }));
+  const teams = userAdminTeams.teams.map(({ team }) => {
+    const parentLogoUrl = team.parent?.logoUrl;
+    const parentName = team.parent?.name;
+
+    let logoUrl = "";
+    if (team.parent) {
+      logoUrl = getPlaceholderAvatar(parentLogoUrl, parentName);
+    } else {
+      logoUrl = getPlaceholderAvatar(team.logoUrl, team.name);
+    }
+    return {
+      ...team,
+      logoUrl,
+    };
+  });
 
   return {
     ...userAdminTeams,
@@ -39,7 +130,17 @@ const getUser = async (userId: number) => {
   };
 };
 
-const getOrgSubTeams = async (parentId: number) => {
+const getOrgSubTeams = async (
+  parentId: number
+): Promise<
+  {
+    id: number;
+    name: string;
+    logoUrl: string | null;
+    isOrganization: boolean;
+    parent: { id: number; name: string; logoUrl: string | null } | null;
+  }[]
+> => {
   const teams = await prisma.team.findMany({
     where: {
       parentId,
@@ -58,20 +159,99 @@ const getOrgSubTeams = async (parentId: number) => {
       },
     },
   });
-  return teams.map((team) => ({
-    ...team,
-    logoUrl: team.parent
-      ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-      : getPlaceholderAvatar(team.logoUrl, team.name),
-  }));
+  return teams.map((team) => {
+    const parentLogoUrl = team.parent?.logoUrl;
+    const parentName = team.parent?.name;
+    let logoUrl = "";
+    if (team.parent) {
+      logoUrl = getPlaceholderAvatar(parentLogoUrl, parentName);
+    } else {
+      logoUrl = getPlaceholderAvatar(team.logoUrl, team.name);
+    }
+    return {
+      ...team,
+      logoUrl,
+    };
+  });
 };
 
-const getAppBySlug = async (appSlug: string) => {
+const getAppBySlug = async (
+  appSlug: string
+): Promise<{ slug: string; keys: Prisma.JsonValue; enabled: boolean; dirName: string } | null> => {
   const app = await prisma.app.findUnique({
     where: { slug: appSlug, enabled: true },
     select: { slug: true, keys: true, enabled: true, dirName: true },
   });
   return app;
+};
+
+const getTeamEventTypes = async (
+  teamIds: number[],
+  isConferencing: boolean,
+  eventTypeSelect: Prisma.EventTypeSelect
+): Promise<TEventTypeGroup[]> => {
+  const teams = await prisma.team.findMany({
+    where: { id: { in: teamIds }, isOrganization: false },
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      slug: true,
+      isOrganization: true,
+      eventTypes: { select: eventTypeSelect },
+    },
+  });
+  return teams.map((team) => {
+    let filteredEventTypes = team.eventTypes;
+    if (isConferencing) {
+      filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed(team.eventTypes);
+    }
+    return {
+      teamId: team.id,
+      slug: team.slug,
+      name: team.name,
+      isOrganisation: team.isOrganization,
+      image: getPlaceholderAvatar(team.logoUrl, team.name),
+      eventTypes: (filteredEventTypes as unknown as EventTypeFromDb[])
+        .map(mapEventType)
+        .sort((a, b) => (b.position || 0) - (a.position || 0)),
+    };
+  });
+};
+
+const getUserEventTypes = async (
+  userId: number,
+  isConferencing: boolean,
+  eventTypeSelect: Prisma.EventTypeSelect
+): Promise<TEventTypeGroup[]> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      avatarUrl: true,
+      eventTypes: { where: { teamId: null }, select: eventTypeSelect },
+    },
+  });
+
+  if (!user) return [];
+
+  let filteredEventTypes = user.eventTypes;
+  if (isConferencing) {
+    filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed(user.eventTypes);
+  }
+  return [
+    {
+      userId: user.id,
+      slug: user.username,
+      name: user.name,
+      image: getPlaceholderAvatar(user.avatarUrl, user.name),
+      eventTypes: (filteredEventTypes as unknown as EventTypeFromDb[])
+        .map(mapEventType)
+        .sort((a, b) => (b.position || 0) - (a.position || 0)),
+    },
+  ];
 };
 
 const getEventTypes = async ({
@@ -82,220 +262,308 @@ const getEventTypes = async ({
   userId: number;
   teamIds?: number[];
   isConferencing?: boolean;
-}) => {
-  const eventTypeSelect = {
-    id: true,
-    description: true,
-    durationLimits: true,
-    metadata: true,
-    length: true,
-    title: true,
-    position: true,
-    recurringEvent: true,
-    requiresConfirmation: true,
-    canSendCalVideoTranscriptionEmails: true,
-    team: { select: { slug: true } },
-    schedulingType: true,
-    teamId: true,
-    users: { select: { username: true } },
-    seatsPerTimeSlot: true,
-    slug: true,
-    locations: true,
-    userId: true,
-    destinationCalendar: true,
-    bookingFields: true,
-    calVideoSettings: true,
-    parentId: true,
-  } satisfies Prisma.EventTypeSelect;
-
-  let eventTypeGroups: TEventTypeGroup[] | null = [];
-
+}): Promise<TEventTypeGroup[] | null> => {
   if (teamIds && teamIds.length > 0) {
-    const teams = await prisma.team.findMany({
+    return getTeamEventTypes(teamIds, isConferencing, eventTypeSelect);
+  }
+
+  return getUserEventTypes(userId, isConferencing, eventTypeSelect);
+};
+
+const getAppInstallsBySlug = async (
+  appSlug: string,
+  userId: number,
+  teamIds?: number[]
+): Promise<Prisma.CredentialGetPayload<Record<string, never>>[]> => {
+  if (teamIds?.length) {
+    return prisma.credential.findMany({
       where: {
-        id: {
-          in: teamIds,
-        },
-        isOrganization: false,
-      },
-      select: {
-        id: true,
-        name: true,
-        logoUrl: true,
-        slug: true,
-        isOrganization: true,
-        eventTypes: {
-          select: eventTypeSelect,
-        },
+        OR: [
+          { appId: appSlug, userId: userId },
+          { appId: appSlug, teamId: { in: teamIds } },
+        ],
       },
     });
-    eventTypeGroups = teams.map((team) => {
-      const filteredEventTypes = isConferencing
-        ? filterEventTypesWhereLocationUpdateIsAllowed(team.eventTypes)
-        : team.eventTypes;
+  }
 
-      return {
-        teamId: team.id,
-        slug: team.slug,
-        name: team.name,
-        isOrganisation: team.isOrganization,
-        image: getPlaceholderAvatar(team.logoUrl, team.name),
-        eventTypes: filteredEventTypes
-          .map((item) => ({
-            ...item,
-            URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
-            selected: false,
-            locations: item.locations as unknown as LocationObject[],
-            bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
-          }))
-          .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
-      };
+  return prisma.credential.findMany({
+    where: { appId: appSlug, userId: userId },
+  });
+};
+
+const handleAutoInstall = async (
+  user: MinimalUser,
+  appMetadata: import("@calcom/types/App").AppMeta,
+  parsedAppSlug: string
+): Promise<number | null> => {
+  try {
+    const newCredential = await createDefaultInstallation({
+      appType: appMetadata.type,
+      user: { id: user.id },
+      slug: parsedAppSlug,
+      key: {},
+      teamId: undefined,
     });
-  } else {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        avatarUrl: true,
-        eventTypes: {
-          where: {
-            teamId: null,
-          },
-          select: eventTypeSelect,
-        },
-      },
-    });
-
-    if (user) {
-      const filteredEventTypes = isConferencing
-        ? filterEventTypesWhereLocationUpdateIsAllowed(user.eventTypes)
-        : user.eventTypes;
-
-      eventTypeGroups.push({
-        userId: user.id,
-        slug: user.username,
-        name: user.name,
-        image: getPlaceholderAvatar(user.avatarUrl, user.name),
-        eventTypes: filteredEventTypes
-          .map((item) => ({
-            ...item,
-            URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${
-              item.slug
-            }`,
-            selected: false,
-            locations: item.locations as unknown as LocationObject[],
-            bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
-          }))
-          .sort((eventTypeA, eventTypeB) => eventTypeB.position - eventTypeA.position),
+    return newCredential.id;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const existing = await prisma.credential.findFirst({
+        where: { appId: parsedAppSlug, userId: user.id, teamId: null },
+        select: { id: true },
       });
+      return existing?.id ?? null;
+    }
+    return null;
+  }
+};
+
+const getEventTypeGroupsForStep = async (
+  user: MinimalUser,
+  userTeams: MinimalTeam[],
+  parsedTeamIdParam: number | undefined,
+  isOrg: boolean,
+  isConferencing: boolean
+): Promise<TEventTypeGroup[] | null> => {
+  let groups: TEventTypeGroup[] | null = null;
+  if (isOrg) {
+    groups = await getEventTypes({
+      userId: user.id,
+      teamIds: userTeams.map((item) => item.id),
+      isConferencing,
+    });
+  } else if (parsedTeamIdParam) {
+    groups = await getEventTypes({ userId: user.id, teamIds: [parsedTeamIdParam], isConferencing });
+  } else {
+    groups = await getEventTypes({ userId: user.id, isConferencing });
+  }
+
+  if (isConferencing && groups) {
+    const destinationCalendar = await prisma.destinationCalendar.findFirst({
+      where: { userId: user.id, eventTypeId: null },
+    });
+
+    groups.forEach((group) => {
+      group.eventTypes = group.eventTypes.map((eventType) => {
+        if (!eventType.destinationCalendar) {
+          return { ...eventType, destinationCalendar };
+        }
+        return eventType;
+      });
+    });
+  }
+  return groups;
+};
+
+const getInitialStep = (
+  parsedStepParam: string | undefined,
+  hasTeams: boolean,
+  showEventTypesStep: boolean,
+  parsedAppSlug: string,
+  isOAuth: boolean
+): { step: string | undefined; redirect?: RedirectResult } => {
+  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep && !isOAuth) {
+    return {
+      step: parsedStepParam,
+      redirect: {
+        redirect: { permanent: false, destination: `/apps/installation/event-types?slug=${parsedAppSlug}` },
+      },
+    };
+  }
+  let step = parsedStepParam;
+  if (!parsedStepParam) {
+    if (hasTeams) {
+      step = AppOnboardingSteps.ACCOUNTS_STEP;
+    } else {
+      step = isOAuth ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
     }
   }
-  return eventTypeGroups;
+  return { step };
 };
 
-const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: number[]) => {
-  const appInstalls = await prisma.credential.findMany({
-    where: {
-      OR: [
-        {
-          appId: appSlug,
-          userId: userId,
-        },
-        teamIds && Boolean(teamIds.length)
-          ? {
-              appId: appSlug,
-              teamId: { in: teamIds },
-            }
-          : {},
-      ],
-    },
-  });
-  return appInstalls;
-};
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, query, params } = context;
-  let eventTypeGroups: TEventTypeGroup[] | null = null;
-  let isOrg = false;
-  const stepsEnum = z.enum(STEPS);
-  const parsedAppSlug = z.coerce.string().parse(query?.slug);
-  const parsedStepParam = z.coerce.string().parse(params?.step);
-  const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-  const _ = stepsEnum.parse(parsedStepParam);
-  const session = await getServerSession({ req });
-  if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
-  const _locale = await getLocale(context.req);
+const getAppAndMetadata = async (
+  parsedAppSlug: string
+): Promise<{
+  app: { slug: string; keys: Prisma.JsonValue; enabled: boolean; dirName: string } | null;
+  appMetadata: import("@calcom/types/App").AppMeta | null;
+  redirect?: RedirectResult;
+}> => {
   const app = await getAppBySlug(parsedAppSlug);
-  if (!app) return { redirect: { permanent: false, destination: "/apps" } };
+  if (!app)
+    return {
+      app: null,
+      appMetadata: null,
+      redirect: { redirect: { permanent: false, destination: "/apps" } },
+    };
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-  const extendsEventType = appMetadata?.extendsFeature === "EventType";
+  if (!appMetadata)
+    return {
+      app: null,
+      appMetadata: null,
+      redirect: { redirect: { permanent: false, destination: "/apps" } },
+    };
+  return { app, appMetadata };
+};
 
-  const isConferencing = isConferencingApp(appMetadata.categories);
-  const showEventTypesStep = extendsEventType || isConferencing;
-
-  const user = await getUser(session.user.id);
-  if (!user) return { redirect: { permanent: false, destination: "/apps" } };
-
-  let userTeams = user.teams;
-  const hasTeams = Boolean(userTeams.length);
-
+const getCredentialId = (
+  parsedTeamIdParam: number | undefined,
+  appInstalls: Prisma.CredentialGetPayload<Record<string, never>>[],
+  userId: number
+): number | null => {
   if (parsedTeamIdParam) {
-    const currentTeam = userTeams.find((team) => team.id === parsedTeamIdParam);
-    if (!currentTeam?.id) {
-      return { redirect: { permanent: false, destination: "/apps" } };
-    }
+    return appInstalls.find((item) => item.teamId === parsedTeamIdParam)?.id ?? null;
+  }
+  return appInstalls.find((item) => item.userId === userId)?.id ?? null;
+};
+
+const prepareUserTeams = async (
+  user: MinimalUser & { teams: MinimalTeam[] },
+  parsedTeamIdParam: number | undefined
+): Promise<{ userTeams: MinimalTeam[]; isOrg: boolean; redirect?: RedirectResult }> => {
+  let userTeams = user.teams;
+  let isOrg = false;
+  if (parsedTeamIdParam) {
+    const currentTeam = userTeams.find((team: MinimalTeam) => team.id === parsedTeamIdParam);
+    if (!currentTeam?.id)
+      return {
+        userTeams: [],
+        isOrg: false,
+        redirect: { redirect: { permanent: false, destination: "/apps" } },
+      };
     if (currentTeam.isOrganization) {
-      const subTeams = await getOrgSubTeams(parsedTeamIdParam);
-      userTeams = [...userTeams, ...subTeams];
+      userTeams = [...userTeams, ...(await getOrgSubTeams(parsedTeamIdParam))];
       isOrg = true;
     }
   }
+  return { userTeams, isOrg };
+};
 
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
-    if (!showEventTypesStep) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`,
-        },
-      };
-    }
-    if (isOrg) {
-      const teamIds = userTeams.map((item) => item.id);
-      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds, isConferencing });
-    } else if (parsedTeamIdParam) {
-      eventTypeGroups = await getEventTypes({ userId: user.id, teamIds: [parsedTeamIdParam], isConferencing });
-    } else {
-      eventTypeGroups = await getEventTypes({ userId: user.id, isConferencing });
-    }
-    if (isConferencing && eventTypeGroups) {
-      const destinationCalendar = await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: user.id,
-          eventTypeId: null,
-        },
-      });
+const getCredential = async (
+  parsedTeamIdParam: number | undefined,
+  appInstalls: Prisma.CredentialGetPayload<Record<string, never>>[],
+  user: MinimalUser & { teams: MinimalTeam[] },
+  initialStep: string,
+  appMetadata: import("@calcom/types/App").AppMeta,
+  parsedAppSlug: string
+): Promise<{ credentialId: number | null; redirect?: RedirectResult }> => {
+  let credentialId = getCredentialId(parsedTeamIdParam, appInstalls, user.id);
+  if (
+    !credentialId &&
+    !user.teams.length &&
+    initialStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+    !appMetadata.isOAuth
+  ) {
+    credentialId = await handleAutoInstall(user, appMetadata, parsedAppSlug);
+    if (!credentialId)
+      return { credentialId: null, redirect: { redirect: { permanent: false, destination: "/apps" } } };
+  }
+  return { credentialId };
+};
 
-      eventTypeGroups.forEach((group) => {
-        group.eventTypes = group.eventTypes.map((eventType) => {
-          if (!eventType.destinationCalendar) {
-            return { ...eventType, destinationCalendar };
-          }
-          return eventType;
-        });
-      });
-    }
+const getTeamsInstalled = (
+  hasTeams: boolean,
+  userTeams: MinimalTeam[],
+  appInstalls: Prisma.CredentialGetPayload<Record<string, never>>[]
+): import("../../../../modules/apps/installation/[[...step]]/step-view").TTeams => {
+  if (!hasTeams) return [];
+  return userTeams.map((team: MinimalTeam) => ({
+    ...team,
+    alreadyInstalled: appInstalls.some((install) => !!install.teamId && install.teamId === team.id),
+  }));
+};
+
+const getParsedStep = (paramsStep: string | string[] | undefined): string | undefined => {
+  if (Array.isArray(paramsStep)) return paramsStep[0];
+  return paramsStep;
+};
+
+const getInstallationParams = async (
+  context: GetServerSidePropsContext
+): Promise<{
+  parsedAppSlug: string;
+  parsedStepParam: string | undefined;
+  parsedTeamIdParam: number | undefined;
+  sessionId: number | null;
+}> => {
+  const { query, params, req } = context;
+  const parsedAppSlug = z.coerce.string().parse(query?.slug);
+  const parsedStepParam = z.string().optional().parse(getParsedStep(params?.step));
+  const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
+  const session = await getServerSession({ req });
+  const sessionId = (session?.user as { id?: number })?.id ?? null;
+  return { parsedAppSlug, parsedStepParam, parsedTeamIdParam, sessionId };
+};
+
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<OnboardingPageProps>> => {
+  const { parsedAppSlug, parsedStepParam, parsedTeamIdParam, sessionId } =
+    await getInstallationParams(context);
+  if (!sessionId) return { redirect: { permanent: false, destination: "/auth/login" } };
+
+  const { app, appMetadata, redirect: appRedirect } = await getAppAndMetadata(parsedAppSlug);
+  if (appRedirect) return appRedirect;
+
+  const user = await getUser(sessionId);
+  if (!user?.username || !appMetadata) return { redirect: { permanent: false, destination: "/apps" } };
+  const appMetadataFinal = appMetadata;
+
+  const showEventTypesStep =
+    appMetadataFinal.extendsFeature === "EventType" || isConferencingApp(appMetadataFinal.categories);
+  const { userTeams, isOrg, redirect: teamRedirect } = await prepareUserTeams(user, parsedTeamIdParam);
+  if (teamRedirect) return teamRedirect;
+  const { step: initialStep, redirect: stepRedirect } = getInitialStep(
+    parsedStepParam,
+    !!userTeams.length,
+    showEventTypesStep,
+    parsedAppSlug,
+    !!appMetadataFinal.isOAuth
+  );
+  if (stepRedirect) return stepRedirect;
+  if (!initialStep) {
+    return { redirect: { permanent: false, destination: "/apps" } };
+  }
+
+  let initialStepValidated: (typeof STEPS)[number];
+  try {
+    initialStepValidated = z.enum(STEPS).parse(initialStep);
+  } catch {
+    return { redirect: { permanent: false, destination: "/apps" } };
   }
 
   const appInstalls = await getAppInstallsBySlug(
     parsedAppSlug,
     user.id,
-    userTeams.map(({ id }) => id)
+    userTeams.map(({ id }: MinimalTeam) => id)
   );
+  const { credentialId, redirect: credRedirect } = await getCredential(
+    parsedTeamIdParam,
+    appInstalls,
+    user,
+    initialStepValidated,
+    appMetadataFinal,
+    parsedAppSlug
+  );
+  if (credRedirect) return credRedirect;
+
+  let eventTypeGroups = null;
+  if (initialStepValidated === AppOnboardingSteps.EVENT_TYPES_STEP) {
+    if (!showEventTypesStep) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/apps/installed/${appMetadataFinal.categories[0]}?hl=${appMetadataFinal.slug}`,
+        },
+      };
+    }
+    eventTypeGroups = await getEventTypeGroupsForStep(
+      user,
+      userTeams,
+      parsedTeamIdParam,
+      isOrg,
+      isConferencingApp(appMetadataFinal.categories)
+    );
+    if (!credentialId) return { redirect: { permanent: false, destination: "/apps" } };
+  }
 
   const personalAccount = {
     id: user.id,
@@ -303,42 +571,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     avatarUrl: user.avatarUrl,
     alreadyInstalled: appInstalls.some((install) => !install.teamId && install.userId === user.id),
   };
-
-  const teamsWithIsAppInstalled = hasTeams
-    ? userTeams.map((team) => ({
-        ...team,
-        alreadyInstalled: appInstalls.some(
-          (install) => Boolean(install.teamId) && install.teamId === team.id
-        ),
-      }))
-    : [];
-  let credentialId = null;
-  if (parsedTeamIdParam) {
-    credentialId = appInstalls.find((item) => !!item.teamId && item.teamId == parsedTeamIdParam)?.id ?? null;
-  } else {
-    credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
-  }
-  // dont allow app installation without cretendialId
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
-    return { redirect: { permanent: false, destination: "/apps" } };
-  }
+  const teams = getTeamsInstalled(!!user.teams.length, userTeams, appInstalls);
 
   return {
     props: {
       app,
-      appMetadata,
+      appMetadata: appMetadataFinal,
       showEventTypesStep,
-      step: parsedStepParam,
-      teams: teamsWithIsAppInstalled,
+      step: initialStepValidated,
       personalAccount,
+      teams,
       eventTypeGroups,
-      teamId: parsedTeamIdParam ?? null,
       userName: user.username,
-      credentialId,
-      isConferencing,
+      credentialId: credentialId || undefined,
+      isConferencing: isConferencingApp(appMetadataFinal.categories),
       isOrg,
-      // conferencing apps dont support team install
-      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
+      installableOnTeams:
+        !!appMetadataFinal?.concurrentMeetings || !isConferencingApp(appMetadataFinal.categories),
     } as OnboardingPageProps,
   };
 };

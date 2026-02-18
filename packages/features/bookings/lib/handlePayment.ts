@@ -8,7 +8,9 @@ import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
-const isPaymentService = (x: unknown): x is { BuildPaymentService: (credentials: { key: unknown }) => unknown } =>
+const isPaymentService = (
+  x: unknown
+): x is { BuildPaymentService: (credentials: { key: unknown }) => unknown } =>
   !!x && typeof x === "object" && "BuildPaymentService" in x && typeof x.BuildPaymentService === "function";
 
 const handlePayment = async ({
@@ -141,8 +143,8 @@ const handlePayment = async ({
           const selectedValues = Array.isArray(responseValue)
             ? responseValue
             : responseValue
-            ? [responseValue]
-            : [];
+              ? [responseValue]
+              : [];
 
           selectedValues.forEach((value) => {
             const option = typedInput.options?.find((opt) => opt.value === value);

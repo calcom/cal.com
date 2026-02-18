@@ -6,7 +6,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -15,7 +14,6 @@ import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal"
 import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
 import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
@@ -24,15 +22,19 @@ export default function OAuthClientsAdminView() {
   const [createdClient, setCreatedClient] = useState<OAuthClientDetails | null>(null);
   const [selectedClient, setSelectedClient] = useState<OAuthClientDetails | null>(null);
 
-  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "PENDING",
-  });
-  const { data: rejectedClients, isLoading: isRejectedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "REJECTED",
-  });
-  const { data: approvedClients, isLoading: isApprovedClientsLoading } = trpc.viewer.oAuth.listClients.useQuery({
-    status: "APPROVED",
-  });
+  const { data: pendingClients, isLoading: isPendingClientsLoading } = trpc.viewer.oAuth.listClients.useQuery(
+    {
+      status: "PENDING",
+    }
+  );
+  const { data: rejectedClients, isLoading: isRejectedClientsLoading } =
+    trpc.viewer.oAuth.listClients.useQuery({
+      status: "REJECTED",
+    });
+  const { data: approvedClients, isLoading: isApprovedClientsLoading } =
+    trpc.viewer.oAuth.listClients.useQuery({
+      status: "APPROVED",
+    });
 
   const createMutation = trpc.viewer.oAuth.createClient.useMutation({
     onSuccess: async (data) => {
@@ -55,10 +57,7 @@ export default function OAuthClientsAdminView() {
 
   const updateStatusMutation = trpc.viewer.oAuth.updateClient.useMutation({
     onSuccess: async (data) => {
-      showToast(
-        t("oauth_client_status_updated", { name: data.name, status: data.status }),
-        "success"
-      );
+      showToast(t("oauth_client_status_updated", { name: data.name, status: data.status }), "success");
 
       setSelectedClient((prev) => {
         if (!prev) return prev;
@@ -102,67 +101,47 @@ export default function OAuthClientsAdminView() {
   };
 
   const handleReject = (input: { clientId: string; rejectionReason: string }) => {
-    updateStatusMutation.mutate({ clientId: input.clientId, status: "REJECTED", rejectionReason: input.rejectionReason });
+    updateStatusMutation.mutate({
+      clientId: input.clientId,
+      status: "REJECTED",
+      rejectionReason: input.rejectionReason,
+    });
   };
 
   if (isPendingClientsLoading || isRejectedClientsLoading || isApprovedClientsLoading) {
     return <OAuthClientsAdminSkeleton />;
   }
 
-  const newOAuthClientButton = (
-    <NewOAuthClientButton
-      dataTestId="open-admin-oauth-client-create-dialog"
-      onClick={() => setIsCreatingClient(true)}
-    />
-  );
-
-  const hasClients =
-    (pendingClients && pendingClients.length > 0) ||
-    (rejectedClients && rejectedClients.length > 0) ||
-    (approvedClients && approvedClients.length > 0);
-
   return (
-    <SettingsHeader
-      title={t("oauth_clients_admin")}
-      description={t("oauth_clients_admin_description")}
-      CTA={newOAuthClientButton}>
-      {hasClients ? (
-        <div className="space-y-10">
-          <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
-            <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
-            <OAuthClientsList
-              clients={pendingClients ?? []}
-              onSelectClient={(client) => setSelectedClient(client)}
-              showStatus
-            />
-          </div>
-
-          <div className="space-y-3" data-testid="oauth-client-admin-rejected-section">
-            <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
-            <OAuthClientsList
-              clients={rejectedClients ?? []}
-              onSelectClient={(client) => setSelectedClient(client)}
-              showStatus
-            />
-          </div>
-
-          <div className="space-y-3" data-testid="oauth-client-admin-approved-section">
-            <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
-            <OAuthClientsList
-              clients={approvedClients ?? []}
-              onSelectClient={(client) => setSelectedClient(client)}
-              showStatus
-            />
-          </div>
+    <SettingsHeader title={t("oauth_clients_admin")} description={t("oauth_clients_admin_description")}>
+      <div className="space-y-10">
+        <div className="space-y-3" data-testid="oauth-client-admin-pending-section">
+          <h2 className="text-emphasis text-base font-semibold">{t("pending")}</h2>
+          <OAuthClientsList
+            clients={pendingClients ?? []}
+            onSelectClient={(client) => setSelectedClient(client)}
+            showStatus
+          />
         </div>
-      ) : (
-        <EmptyScreen
-          Icon="key"
-          headline={t("no_oauth_clients")}
-          description={t("no_oauth_clients_admin_description")}
-          buttonRaw={newOAuthClientButton}
-        />
-      )}
+
+        <div className="space-y-3" data-testid="oauth-client-admin-rejected-section">
+          <h2 className="text-emphasis text-base font-semibold">{t("rejected")}</h2>
+          <OAuthClientsList
+            clients={rejectedClients ?? []}
+            onSelectClient={(client) => setSelectedClient(client)}
+            showStatus
+          />
+        </div>
+
+        <div className="space-y-3" data-testid="oauth-client-admin-approved-section">
+          <h2 className="text-emphasis text-base font-semibold">{t("approved")}</h2>
+          <OAuthClientsList
+            clients={approvedClients ?? []}
+            onSelectClient={(client) => setSelectedClient(client)}
+            showStatus
+          />
+        </div>
+      </div>
 
       {createdClient ? (
         <OAuthClientPreviewDialog
