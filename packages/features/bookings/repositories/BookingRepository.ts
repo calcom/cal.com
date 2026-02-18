@@ -1856,7 +1856,13 @@ export class BookingRepository implements IBookingRepository {
     updatedResponses,
   }: {
     bookingId: number;
-    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    newAttendees: {
+      name: string;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+      phoneNumber?: string | null;
+    }[];
     updatedResponses: Prisma.InputJsonValue;
   }) {
     return await this.prismaClient.booking.update({
