@@ -386,7 +386,8 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
 
   it("should produce valid 8-digit DTSTART dates in VTIMEZONE RRULE blocks (not 9-digit)", async () => {
     // Regression test: formatTransitionDtstart previously produced 9-digit dates like "197000308"
-    // (extra leading zero from `19700${month}`) instead of valid "19700308" (8 digits)
+    // (extra leading zero from `19700${month}`) instead of valid "20230308" (8 digits).
+    // Now uses the event's actual year (e.g. 2023) for the DTSTART epoch.
     const service = new TestCalendarService();
     const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
 
@@ -414,8 +415,8 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
       iCalString.indexOf("END:VTIMEZONE") + 13
     );
     // All DTSTART values in VTIMEZONE must be in YYYYMMDD format (8-digit date, not 9-digit)
-    // Valid: DTSTART:19700308T020000
-    // Invalid: DTSTART:197000308T020000 (9 digits — was the bug)
+    // Valid: DTSTART:20230308T020000 (event year, 8 digits)
+    // Invalid: DTSTART:197000308T020000 (9 digits — was the original bug)
     const dtStartMatches = vtimezoneBlock.match(/DTSTART:(\d+)T/g);
     expect(dtStartMatches).not.toBeNull();
     for (const match of dtStartMatches ?? []) {
@@ -476,6 +477,54 @@ describe("CalendarService - VTIMEZONE Generation (Bug Fix #3)", () => {
     // STANDARD: from +1100 (AEDT) to +1000 (AEST)
     expect(standardSection).toContain("TZOFFSETFROM:+1100");
     expect(standardSection).toContain("TZOFFSETTO:+1000");
+  });
+
+  it("should use current-year DST rules (not 1970) to handle post-1970 rule changes", async () => {
+    // Regression test for cubic P2: using 1970 transitions can produce outdated BYDAY/BYMONTH
+    // for zones that changed their DST rules after 1970. For example, the US changed its DST
+    // rules in 2007 (Energy Policy Act): clocks now spring forward on the 2nd Sunday in March
+    // (previously 1st Sunday in April). Using 1970 would yield BYMONTH=4;BYDAY=1SU (wrong).
+    // Using 2023 (or any post-2007 year) should yield BYMONTH=3;BYDAY=2SU (correct).
+    const service = new TestCalendarService();
+    // Event in June 2023 (America/New_York) — well within the modern DST rule era
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/New_York",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+
+    // Post-2007 US DST: spring forward on 2nd Sunday in March (BYMONTH=3;BYDAY=2SU)
+    // Pre-2007 rule (from 1970 transitions) would be: BYMONTH=4;BYDAY=1SU — wrong!
+    expect(vtimezoneBlock).toContain("BYMONTH=3");
+    expect(vtimezoneBlock).not.toContain("BYMONTH=4;BYDAY=1SU");
+    // Fall back on 1st Sunday in November (BYMONTH=11;BYDAY=1SU)
+    expect(vtimezoneBlock).toContain("BYMONTH=11");
+    // DTSTART in VTIMEZONE should use the event's year (2023), not 1970
+    const dtStartMatches = vtimezoneBlock.match(/DTSTART:(\d{4})(\d{2})(\d{2})T/g);
+    expect(dtStartMatches).not.toBeNull();
+    for (const match of dtStartMatches ?? []) {
+      const yearStr = match.replace("DTSTART:", "").slice(0, 4);
+      expect(parseInt(yearStr)).toBeGreaterThan(1970); // Should use event year, not 1970
+    }
   });
 
   it("should apply timezone fix to updateEvent as well", async () => {

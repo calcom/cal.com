@@ -211,16 +211,16 @@ const findDSTTransition = (
 };
 
 /**
- * Formats a transition moment as an iCal DTSTART value (e.g., 19700308T020000).
- * Uses year 1970 as the epoch year for RRULE compatibility.
+ * Formats a transition moment as an iCal DTSTART value (e.g., 20260308T020000).
+ * Uses the actual transition year as the DTSTART epoch for the RRULE.
  */
 const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string => {
-  // Use the actual transition time but in the 1970 epoch year for the RRULE DTSTART
+  const year = String(transition.year());
   const month = String(transition.month() + 1).padStart(2, "0");
   const day = String(transition.date()).padStart(2, "0");
   const hour = String(transition.hour()).padStart(2, "0");
   const minute = String(transition.minute()).padStart(2, "0");
-  return `1970${month}${day}T${hour}${minute}00`;
+  return `${year}${month}${day}T${hour}${minute}00`;
 };
 
 /**
@@ -244,7 +244,11 @@ const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
 /**
  * Builds a VTIMEZONE component string for the given IANA timezone identifier.
  * Computes actual timezone-specific DST transition rules by binary-searching
- * the actual transition moments in 1970 (the iCal epoch year).
+ * the actual transition moments in the event's year (not 1970), ensuring
+ * BYDAY/BYMONTH reflects the current DST rules for zones that changed after 1970
+ * (e.g., the US changed from first Sunday in April to second Sunday in March in 2007;
+ * the EU changed from last Sunday in March to last Sunday in March — but many zones
+ * have changed their rules and hardcoding 1970 would use outdated transitions).
  *
  * RFC 5545 Section 3.6.5 requires VTIMEZONE when DTSTART uses TZID.
  * We generate a VTIMEZONE with STANDARD and DAYLIGHT components reflecting
@@ -255,6 +259,8 @@ const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
  * @returns VTIMEZONE iCalendar block string (including BEGIN/END)
  */
 const buildVTimezone = (timezone: string, eventStart: string): string => {
+  // Use the event's actual year to get current DST rules (not 1970 which may be outdated)
+  const eventYear = dayjs(eventStart).tz(timezone).year();
   const winterMoment = dayjs(eventStart).tz(timezone).month(0); // January (likely standard time)
   const summerMoment = dayjs(eventStart).tz(timezone).month(6); // July (likely daylight time)
 
@@ -275,11 +281,13 @@ const buildVTimezone = (timezone: string, eventStart: string): string => {
   const lines: string[] = ["BEGIN:VTIMEZONE", `TZID:${timezone}`];
 
   if (hasDST) {
-    // Find the actual DST transition dates for 1970 (used as RRULE epoch)
+    // Find the actual DST transition dates for the event's year.
+    // Using the event year (not 1970) ensures BYDAY/BYMONTH reflects the current
+    // DST rules — zones like America/* changed rules in 2007, so 1970 would be wrong.
     // Spring transition: standard → daylight (Jan→Jul direction)
-    const springTransition = findDSTTransition(timezone, 1970, 0, 6);
+    const springTransition = findDSTTransition(timezone, eventYear, 0, 6);
     // Fall transition: daylight → standard (Jul→Jan direction)
-    const fallTransition = findDSTTransition(timezone, 1970, 6, 11);
+    const fallTransition = findDSTTransition(timezone, eventYear, 6, 11);
 
     // Determine which UTC offset is truly "daylight" (higher) vs "standard" (lower).
     // For Northern Hemisphere zones, summerMoment has the higher offset (e.g. EDT +4 > EST +5 is
