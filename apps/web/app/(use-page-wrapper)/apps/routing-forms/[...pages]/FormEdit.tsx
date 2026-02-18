@@ -122,12 +122,24 @@ function FormEdit({
     },
   });
 
-  // ── Stable id registry: maps builder field index → original routing field id ──
-  // This ensures that renaming a field (which changes bf.name) does NOT generate
-  // a new UUID and break existing RAQB routing conditions.
-  // We use position-based matching because FormBuilder preserves field order.
-  const fieldIdRegistryRef = useRef<string[]>(
-    (hookForm.getValues("fields") ?? []).map((rf) => rf.id ?? uuidv4())
+  // ── Stable id registry: maps builder field identifier (bf.name) → routing field id ──
+  // Using name (identifier) as key rather than array index ensures IDs are preserved
+  // correctly when fields are reordered or deleted, not just renamed.
+  //
+  // Why name-keyed vs position-keyed:
+  //   - Position-keyed: breaks on reorder/delete (field at index 0 gets a different id
+  //     if the original index-0 field is deleted or moved)
+  //   - Name-keyed: the `name` (identifier) field travels with the field on reorder/delete,
+  //     so the correct routing-field id is always retrieved. If a user explicitly changes
+  //     the identifier, a new UUID is generated (acceptable — the old routing condition
+  //     is already tied to the old identifier string anyway).
+  const fieldIdRegistryRef = useRef<Map<string, string>>(
+    new Map(
+      (hookForm.getValues("fields") ?? []).map((rf) => {
+        const name = rf.identifier ?? getFieldIdentifier(rf.label ?? "").toLowerCase();
+        return [name, rf.id ?? uuidv4()];
+      })
+    )
   );
 
   // ── Watch the shadow form and sync changes → routing form ─────────────────
@@ -136,22 +148,18 @@ function FormEdit({
       const builderFields = values.bookingFields as FormBuilderFields | undefined;
       if (!builderFields) return;
 
-      // Grow or trim the id registry to match the current builder field count
       const registry = fieldIdRegistryRef.current;
-      while (registry.length < builderFields.length) {
-        registry.push(uuidv4());
-      }
-      if (registry.length > builderFields.length) {
-        registry.splice(builderFields.length);
-      }
 
       // Map each builder field to a routing field, preserving the stable id
-      // from the registry (keyed by position, not by name/identifier).
-      // This means rename operations retain the original id instead of
-      // generating a new UUID that would break RAQB routing rules.
-      const updatedRoutingFields = builderFields.map((bf, index) => {
+      // from the registry (keyed by identifier, not by position).
+      const updatedRoutingFields = builderFields.map((bf) => {
         if (!bf) return null;
-        return toRoutingField(bf as FormBuilderField, registry[index]);
+        const name = bf.name;
+        // Look up id by identifier; assign a new UUID for truly new fields.
+        if (!registry.has(name)) {
+          registry.set(name, uuidv4());
+        }
+        return toRoutingField(bf as FormBuilderField, registry.get(name));
       });
 
       hookForm.setValue(
