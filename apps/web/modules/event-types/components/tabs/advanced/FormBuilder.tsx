@@ -773,6 +773,52 @@ function FieldEditDialog({
                       />
                     )}
 
+                    {formFieldType === "date" && (
+                      <>
+                        <div className="mt-6">
+                          <Controller
+                            name="dateFormat"
+                            control={fieldForm.control}
+                            render={({ field: { value, onChange } }) => (
+                              <SelectField
+                                label={t("date_format")}
+                                value={
+                                  value
+                                    ? {
+                                      value,
+                                      label:
+                                        value === "yyyy-MM-dd"
+                                          ? t("default_date_format")
+                                          : value,
+                                    }
+                                    : { value: "yyyy-MM-dd", label: t("default_date_format") }
+                                }
+                                options={[
+                                  { value: "yyyy-MM-dd", label: t("default_date_format") },
+                                  { value: "dd/MM/yyyy", label: "dd/MM/yyyy" },
+                                  { value: "MM/dd/yyyy", label: "MM/dd/yyyy" },
+                                  { value: "dd.MM.yyyy", label: "dd.MM.yyyy" },
+                                ]}
+                                onChange={(option) => onChange(option?.value)}
+                              />
+                            )}
+                          />
+                        </div>
+                        <InputField
+                          {...fieldForm.register("minDate")}
+                          containerClassName="mt-6"
+                          label={t("min_date")}
+                          placeholder={t("min_date_placeholder")}
+                        />
+                        <InputField
+                          {...fieldForm.register("maxDate")}
+                          containerClassName="mt-6"
+                          label={t("max_date")}
+                          placeholder={t("max_date_placeholder")}
+                        />
+                      </>
+                    )}
+
                     <div className="mt-6">
                       <Controller
                         name="required"

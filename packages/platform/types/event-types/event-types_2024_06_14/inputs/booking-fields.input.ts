@@ -21,6 +21,7 @@ const inputBookingFieldTypes = [
   "radio",
   "boolean",
   "url",
+  "date",
 ] as const;
 
 const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
@@ -906,7 +907,8 @@ export type InputBookingField_2024_06_14 =
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14
-  | UrlFieldInput_2024_06_14;
+  | UrlFieldInput_2024_06_14
+  | DateFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -931,6 +933,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
     url: UrlFieldInput_2024_06_14,
+    date: DateFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {
@@ -1010,4 +1013,59 @@ export function ValidateInputBookingFields_2024_06_14(validationOptions?: Valida
       validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
+}
+
+export class DateFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "date", description: "only allowed value for type is `date`" })
+  type!: "date";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please select a date" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "yyyy-MM-dd" })
+  @IsOptional()
+  @DocsProperty()
+  dateFormat?: string;
+
+  @IsString()
+  @DocsProperty({ example: "2024-01-01 or today+7d" })
+  @IsOptional()
+  @DocsProperty()
+  minDate?: string;
+
+  @IsString()
+  @DocsProperty({ example: "2024-12-31 or today+30d" })
+  @IsOptional()
+  @DocsProperty()
+  maxDate?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description: "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description: "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }

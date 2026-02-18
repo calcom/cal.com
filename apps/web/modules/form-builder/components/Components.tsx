@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
+import { DatePicker } from "@calcom/ui/components/form";
+
 import type {
   SelectLikeComponentProps,
   TextLikeComponentProps,
@@ -29,61 +31,68 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  date: (val) => typeof val === "string",
 };
 
 type Component =
   | {
-      propsType: "text";
-      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "text";
+    factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "textList";
-      factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "textList";
+    factory: <TProps extends TextLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "select";
-      factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
-    }
+    propsType: "select";
+    factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "boolean";
-      factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
-    }
+    propsType: "boolean";
+    factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
+  }
   | {
-      propsType: "multiselect";
-      factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
-    }
+    propsType: "multiselect";
+    factory: <TProps extends SelectLikeComponentProps<string[]>>(props: TProps) => JSX.Element;
+  }
   | {
-      // Objective type question with option having a possible input
-      propsType: "objectiveWithInput";
-      factory: <
-        TProps extends SelectLikeComponentProps<{
-          value: string;
-          optionValue: string;
-        }> & {
-          optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
-          value: { value: string; optionValue: string };
-        } & {
-          name?: string;
-          required?: boolean;
-          translatedDefaultLabel?: string;
-        },
-      >(
-        props: TProps
-      ) => JSX.Element;
-    }
+    // Objective type question with option having a possible input
+    propsType: "objectiveWithInput";
+    factory: <
+      TProps extends SelectLikeComponentProps<{
+        value: string;
+        optionValue: string;
+      }> & {
+        optionsInputs: NonNullable<z.infer<typeof fieldSchema>["optionsInputs"]>;
+        value: { value: string; optionValue: string };
+      } & {
+        name?: string;
+        required?: boolean;
+        translatedDefaultLabel?: string;
+      },
+    >(
+      props: TProps
+    ) => JSX.Element;
+  }
   | {
-      propsType: "variants";
-      factory: <
-        TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
-          variant: string | undefined;
-          variants: z.infer<typeof variantsConfigSchema>["variants"];
-          value: Record<string, string> | string | undefined;
-          setValue: (value: string | Record<string, string>) => void;
-        },
-      >(
-        props: TProps
-      ) => JSX.Element;
-    };
+    propsType: "variants";
+    factory: <
+      TProps extends Omit<TextLikeComponentProps, "value" | "setValue"> & {
+        variant: string | undefined;
+        variants: z.infer<typeof variantsConfigSchema>["variants"];
+        value: Record<string, string> | string | undefined;
+        setValue: (value: string | Record<string, string>) => void;
+      },
+    >(
+      props: TProps
+    ) => JSX.Element;
+  }
+  | {
+    propsType: "date";
+    factory: <TProps extends TextLikeComponentProps & { minDate?: string; maxDate?: string }>(
+      props: TProps
+    ) => JSX.Element;
+  };
 
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
@@ -101,6 +110,20 @@ export const Components: Record<FieldType, Component> = {
   number: {
     propsType: propsTypes.number,
     factory: (props) => <Widgets.NumberWidget id={props.name} noLabel={true} {...props} />,
+  },
+  date: {
+    propsType: propsTypes.date,
+    factory: (props) => (
+      <DatePicker
+        date={props.value ? new Date(props.value) : (undefined as unknown as Date)}
+        onDatesChange={(date) => {
+          props.setValue(date ? date.toISOString() : "");
+        }}
+        disabled={props.readOnly}
+        minDate={props.minDate ? new Date(props.minDate) : undefined}
+        maxDate={props.maxDate ? new Date(props.maxDate) : undefined}
+      />
+    ),
   },
   name: {
     propsType: propsTypes.name,
@@ -483,8 +506,8 @@ export const Components: Record<FieldType, Component> = {
                     {options[0].value === "somewhereElse"
                       ? translatedDefaultLabel
                       : getCleanLabel(
-                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                        )}
+                        didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                      )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}

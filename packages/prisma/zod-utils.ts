@@ -680,14 +680,13 @@ export const entries = <O extends Record<string, unknown>>(
 /**
  * Returns a type with all readonly notations removed (traverses recursively on an object)
  */
-type DeepWriteable<T> =
-  T extends Readonly<{
-    -readonly [K in keyof T]: T[K];
-  }>
-    ? {
-        -readonly [K in keyof T]: DeepWriteable<T[K]>;
-      }
-    : T; /* Make it work with readonly types (this is not strictly necessary) */
+type DeepWriteable<T> = T extends Readonly<{
+  -readonly [K in keyof T]: T[K];
+}>
+  ? {
+    -readonly [K in keyof T]: DeepWriteable<T[K]>;
+  }
+  : T; /* Make it work with readonly types (this is not strictly necessary) */
 
 type FromEntries<T> = T extends [infer Keys, unknown][]
   ? { [K in Keys & PropertyKey]: Extract<T[number], [K, unknown]>[1] }
@@ -729,14 +728,14 @@ export const optionToValueSchema = <T extends z.ZodTypeAny>(valueSchema: T) =>
  */
 export const getParserWithGeneric =
   <T extends AnyZodObject>(valueSchema: T) =>
-  <Data>(data: Data) => {
-    type Output = z.infer<T>;
-    type SimpleFormValues = string | number | null | undefined;
-    return valueSchema.parse(data) as {
-      // TODO: Invesitage why this broke on zod 3.22.2 upgrade
-      [key in keyof Data]: Data[key] extends SimpleFormValues ? Data[key] : Output[key];
+    <Data>(data: Data) => {
+      type Output = z.infer<T>;
+      type SimpleFormValues = string | number | null | undefined;
+      return valueSchema.parse(data) as {
+        // TODO: Invesitage why this broke on zod 3.22.2 upgrade
+        [key in keyof Data]: Data[key] extends SimpleFormValues ? Data[key] : Output[key];
+      };
     };
-  };
 export const sendDailyVideoRecordingEmailsSchema = z.object({
   recordingId: z.string(),
   bookingUID: z.string(),
@@ -983,6 +982,7 @@ export const fieldTypeEnum = z.enum([
   "radioInput",
   "boolean",
   "url",
+  "date",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
@@ -1107,6 +1107,9 @@ export const baseFieldSchema = z.object({
   requireEmails: excludeOrRequireEmailSchema.optional(),
   // Price associated with the field which works like addons which users can add to the booking
   price: z.coerce.number().min(0).optional(),
+  dateFormat: z.string().optional(),
+  minDate: z.string().optional(),
+  maxDate: z.string().optional(),
 });
 
 export const variantsConfigSchema = z.object({
