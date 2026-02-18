@@ -311,4 +311,33 @@ describe("useBookings - Instant Booking Query", () => {
       expect(result.current.instantVideoMeetingUrl).toBe("http://localhost:3000/video/test-booking-uid");
     });
   });
+
+  it("should return bookingUid matching the query param set by instant booking", () => {
+    vi.mocked(getQueryParam).mockImplementation((key: string) => {
+      if (key === "bookingUid") return "test-booking-uid";
+      return null;
+    });
+
+    const mockStore = createMockStore(true);
+
+    const { result } = renderHook(
+      () => useBookings({ event: mockEvent, bookingForm: {} as any, metadata: {} }),
+      { wrapper: createTestWrapper(mockStore) }
+    );
+
+    expect(result.current.bookingUid).toBe("test-booking-uid");
+  });
+
+  it("should return empty bookingUid when no query param is set", () => {
+    vi.mocked(getQueryParam).mockReturnValue(null);
+
+    const mockStore = createMockStore(true);
+
+    const { result } = renderHook(
+      () => useBookings({ event: mockEvent, bookingForm: {} as any, metadata: {} }),
+      { wrapper: createTestWrapper(mockStore) }
+    );
+
+    expect(result.current.bookingUid).toBe("");
+  });
 });

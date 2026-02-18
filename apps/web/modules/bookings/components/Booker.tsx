@@ -169,6 +169,7 @@ const BookerComponent = ({
     expiryTime,
     instantVideoMeetingUrl,
     instantConnectCooldownMs,
+    bookingUid,
   } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
@@ -314,7 +315,7 @@ const BookerComponent = ({
         {!isPlatform && (
           <RedirectToInstantMeetingModal
             expiryTime={expiryTime}
-            bookingUid={getQueryParam("bookingUid") || ""}
+            bookingUid={bookingUid}
             instantVideoMeetingUrl={instantVideoMeetingUrl}
             onGoBack={() => {
               onGoBackInstantMeeting();

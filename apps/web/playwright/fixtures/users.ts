@@ -106,6 +106,7 @@ export const createTeamEventType = async (
     seatsPerTimeSlot?: number;
     managedEventUnlockedFields?: Record<string, boolean>;
     assignAllTeamMembers?: boolean;
+    isInstantEvent?: boolean;
   }
 ) => {
   return await prisma.eventType.create({
@@ -151,6 +152,7 @@ export const createTeamEventType = async (
             }
           : undefined,
       assignAllTeamMembers: scenario?.assignAllTeamMembers,
+      isInstantEvent: scenario?.isInstantEvent ?? false,
     },
   });
 };
@@ -344,6 +346,7 @@ export const createUsersFixture = (
         orgRequestedSlug?: string;
         assignAllTeamMembers?: boolean;
         assignAllTeamMembersForSubTeamEvents?: boolean;
+        isInstantEvent?: boolean;
         /**
          * Feature flags to enable for the created team(s) and organization(s).
          * Defaults to DEFAULT_TEAM_FEATURE_FLAGS when hasTeam is true.

@@ -579,5 +579,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     loadingStates,
     instantVideoMeetingUrl,
     instantConnectCooldownMs,
+    bookingUid,
   };
 };

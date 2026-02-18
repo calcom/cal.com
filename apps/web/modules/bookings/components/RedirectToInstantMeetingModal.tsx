@@ -80,7 +80,7 @@ export const RedirectToInstantMeetingModal = ({
 
   return (
     <Dialog open={!!bookingUid && !!expiryTime}>
-      <DialogContent enableOverflow className="py-8">
+      <DialogContent enableOverflow className="py-8" data-testid="instant-meeting-modal">
         <div>
           {hasInstantMeetingTokenExpired ? (
             <div>
