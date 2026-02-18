@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 import { FormBuilder } from "@calcom/web/modules/event-types/components/tabs/advanced/FormBuilder";
 
@@ -20,9 +21,11 @@ type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 const transformToBuilder = (fields: RoutingFormWithResponseCount["fields"]) => {
   return (fields || []).map((f) => {
     // Determine options based on type and type specific props
+    // Preserve legacy format: when id is null, keep it as null (don't convert to label)
     let options = f.options?.map((o) => ({
       label: o.label,
-      value: o.id ?? o.label,
+      // Keep id as null for legacy options, otherwise use the id
+      value: o.id === null ? null : (o.id ?? o.label),
     }));
 
     // Preserve router/routerField properties by spreading them
@@ -46,21 +49,40 @@ const transformToBuilder = (fields: RoutingFormWithResponseCount["fields"]) => {
 };
 
 // Transform helper: FormBuilder -> Routing Form
-const transformToRouting = (fields: ReturnType<typeof transformToBuilder>) => {
-  return fields.map((f: any) => ({
-    ...f,
-    id: f.id || uuidv4(),
-    label: f.label,
-    identifier: f.name, // Map name back to identifier
-    type: f.type,
-    // Fix: Ensure proper type compatibility or casting if needed
-    required: f.required,
-    placeholder: f.placeholder,
-    options: f.options?.map((o: any) => ({
-      label: o.label,
-      id: o.value,
-    })),
-  }));
+// Uses fieldIdMap to maintain stable IDs across transformations
+const transformToRouting = (
+  fields: ReturnType<typeof transformToBuilder>,
+  fieldIdMap: Map<string, string>
+) => {
+  return fields.map((f: any) => {
+    // Preserve existing ID or generate a new one only once
+    let fieldId = f.id;
+    if (!fieldId) {
+      // Check if we already generated an ID for this field based on its name
+      const mapKey = f.name || f.label;
+      if (fieldIdMap.has(mapKey)) {
+        fieldId = fieldIdMap.get(mapKey)!;
+      } else {
+        fieldId = uuidv4();
+        fieldIdMap.set(mapKey, fieldId);
+      }
+    }
+
+    return {
+      ...f,
+      id: fieldId,
+      label: f.label,
+      identifier: f.name, // Map name back to identifier
+      type: f.type,
+      required: f.required,
+      placeholder: f.placeholder,
+      options: f.options?.map((o: any) => ({
+        label: o.label,
+        // Preserve legacy format: if value is null, keep id as null
+        id: o.value === null ? null : o.value,
+      })),
+    };
+  });
 };
 
 const FormEdit = ({
@@ -72,6 +94,11 @@ const FormEdit = ({
   form: inferSSRProps<typeof getServerSideProps>["form"];
   appUrl: string;
 }) => {
+  const { t } = useLocale();
+  
+  // Maintain stable field ID mapping across transformations
+  const fieldIdMapRef = useRef(new Map<string, string>());
+
   // Local form for FormBuilder
   const builderForm = useForm({
     defaultValues: {
@@ -100,7 +127,7 @@ const FormEdit = ({
     const subscription = builderForm.watch((value) => {
       // transform back and update parent
       if (value.fields) {
-        const transformed = transformToRouting(value.fields as any);
+        const transformed = transformToRouting(value.fields as any, fieldIdMapRef.current);
         hookForm.setValue("fields", transformed as any, { shouldDirty: true, shouldValidate: true });
       }
     });
@@ -111,11 +138,11 @@ const FormEdit = ({
     <div className="p-4 w-full">
       <FormProvider {...builderForm}>
          <FormBuilder
-            title="Questions"
-            description="Add questions to your routing form."
-            addFieldLabel="Add a question"
+            title={t("questions")}
+            description={t("add_questions_to_routing_form")}
+            addFieldLabel={t("add_a_booking_question")}
             formProp="fields"
-            dataStore={{ options: {} }} // FormBuilder expects this
+            dataStore={{ options: {} }}
             disabled={false}
             LockedIcon={false}
             shouldConsiderRequired={(field: any) => field.required}

@@ -2515,6 +2515,7 @@
   "booking_questions_title": "Booking questions",
   "booking_questions_description": "Customize the questions asked on the booking page. <0>Learn more</0>",
   "add_a_booking_question": "Add a question",
+  "add_questions_to_routing_form": "Add questions to your routing form.",
   "identifier": "Identifier",
   "no_entries": "No entries",
   "no_entries_description": "Add an email/domain to get started.",
