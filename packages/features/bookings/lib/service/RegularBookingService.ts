@@ -2500,8 +2500,9 @@ async function handler(
 
   const webhookLocation = metadata?.videoCallUrl || evt.location;
 
+  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {
-    ...evt,
+    ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
     bookingId: booking?.id,
     rescheduleId: originalRescheduledBooking?.id || undefined,

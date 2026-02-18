@@ -359,7 +359,6 @@ type RouteActionSelectorProps = {
   onCustomEventTypeSlugChange?: (slug: string) => void;
   eventTypePrefix?: string;
   fieldIdentifiers?: string[];
-  t: (key: string, options?: Record<string, string>) => string;
 };
 
 const RouteActionSelector = ({
@@ -375,8 +374,8 @@ const RouteActionSelector = ({
   onCustomEventTypeSlugChange,
   eventTypePrefix = "",
   fieldIdentifiers = [],
-  t,
 }: RouteActionSelectorProps) => {
+  const { t } = useLocale();
   return (
     <div className={classNames("flex w-full flex-col gap-2 text-sm lg:flex-row", className)}>
       <div className="flex grow items-center gap-2">
@@ -803,7 +802,6 @@ const Route = ({
             onCustomEventTypeSlugChange={setCustomFallbackEventTypeSlug}
             eventTypePrefix={eventTypePrefix}
             fieldIdentifiers={fieldIdentifiers}
-            t={t}
           />
         </div>
         {isOrganization && (
@@ -899,7 +897,6 @@ const Route = ({
                 onCustomEventTypeSlugChange={setCustomEventTypeSlug}
                 eventTypePrefix={eventTypePrefix}
                 fieldIdentifiers={fieldIdentifiers}
-                t={t}
               />
             ) : (
               <div className="bg-default border-subtle my-3 rounded-xl border p-2">
@@ -938,7 +935,6 @@ const Route = ({
                     onCustomEventTypeSlugChange={setCustomEventTypeSlug}
                     eventTypePrefix={eventTypePrefix}
                     fieldIdentifiers={fieldIdentifiers}
-                    t={t}
                   />
                 </div>
                 {attributesQueryBuilder}
