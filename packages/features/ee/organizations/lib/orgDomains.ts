@@ -2,6 +2,7 @@ import type { IncomingMessage } from "node:http";
 
 import { IS_PRODUCTION, WEBSITE_URL, SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
+import { getTldPlus1 } from "@calcom/lib/getTldPlus1";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import type { Prisma } from "@calcom/prisma/client";
@@ -145,8 +146,13 @@ export function subdomainSuffix() {
 }
 
 export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug)
-    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+  if (!slug) {
+    // Use WEBAPP_URL if domains differ (e.g., EU: app.cal.eu vs cal.com)
+    const useWebappUrl =
+      getTldPlus1(new URL(WEBSITE_URL).hostname) !== getTldPlus1(new URL(WEBAPP_URL).hostname);
+    const baseUrl = useWebappUrl ? WEBAPP_URL : WEBSITE_URL;
+    return options.protocol ? baseUrl : baseUrl.replace("https://", "").replace("http://", "");
+  }
 
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""

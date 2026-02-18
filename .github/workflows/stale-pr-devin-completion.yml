@@ -17,11 +17,12 @@ permissions:
 jobs:
   complete-stale-pr:
     name: Trigger Devin to Complete Stale Community PR
-    # For labeled events: only run if 'stale' label was added
+    # For labeled events: only run if 'Stale' or 'devin-finish-pr' label was added
     # For workflow_dispatch: always run (we'll validate the PR in the steps)
     if: >
       github.event_name == 'workflow_dispatch' ||
-      github.event.label.name == 'stale'
+      github.event.label.name == 'Stale' ||
+      github.event.label.name == 'devin-finish-pr'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Get PR details
@@ -201,8 +202,8 @@ jobs:
           6. Run the appropriate checks (lint, type-check, tests) to ensure the PR is ready for review.
           7. Commit your changes with clear commit messages.
           8. Push your changes to the PR branch.
-          9. Post a summary comment on the PR explaining what you completed.
-          10. Remove the 'stale' label from the PR if you've completed the work.
+          9. After successfully pushing, remove the 'Stale' or 'devin-finish-pr' label from the PR (whichever was used to trigger this workflow).
+          10. Post a summary comment on the PR explaining what you completed.
           11. Mark the PR as ready for review if applicable.
 
           Rules and Guidelines:

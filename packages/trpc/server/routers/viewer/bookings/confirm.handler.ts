@@ -2,14 +2,19 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -20,6 +25,8 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
@@ -31,11 +38,7 @@ import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import logger from "@calcom/lib/logger";
+
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -53,6 +56,7 @@ async function fireRejectionEvent({
   actionSource,
   rejectedBookings,
   rejectionReason,
+  isBookingAuditEnabled,
   tracingLogger,
 }: {
   actor: Actor;
@@ -63,6 +67,7 @@ async function fireRejectionEvent({
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
 }): Promise<void> {
   try {
@@ -81,6 +86,7 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        isBookingAuditEnabled,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
@@ -93,6 +99,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -222,6 +229,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    disableCancelling: booking.eventType?.disableCancelling ?? false,
+    disableRescheduling: booking.eventType?.disableRescheduling ?? false,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -232,6 +243,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
+    assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
+      ? {
+          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+          details: booking.assignmentReason[0].reasonString ?? null,
+        }
+      : null,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -356,12 +373,18 @@ const traceContext = {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
     await fireRejectionEvent({
       actor,
       actionSource,
       organizationId: orgId ?? null,
       rejectionReason: rejectionReason ?? null,
       rejectedBookings,
+      isBookingAuditEnabled,
       tracingLogger: log,
     });
 
@@ -383,8 +406,9 @@ const traceContext = {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const webhookData: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,

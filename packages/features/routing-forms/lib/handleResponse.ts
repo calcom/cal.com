@@ -1,20 +1,21 @@
-import { z } from "zod";
-
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
+import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { z } from "zod";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
@@ -29,6 +30,8 @@ const _handleResponse = async ({
   isPreview,
   queueFormResponse,
   fetchCrm,
+  traceService,
+  routingFormTraceService,
 }: {
   response: Record<
     string,
@@ -45,6 +48,8 @@ const _handleResponse = async ({
   isPreview: boolean;
   queueFormResponse?: boolean;
   fetchCrm?: boolean;
+  traceService?: RoutingTraceService;
+  routingFormTraceService?: RoutingFormTraceService;
 }) => {
   try {
     if (!form.fields) {
@@ -104,6 +109,7 @@ const _handleResponse = async ({
     let crmAppSlug: string | null = null;
     let crmRecordId: string | null = null;
     let timeTaken: Record<string, number | null> = {};
+    let checkedFallback = false;
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
         throw new HttpError({
@@ -121,6 +127,7 @@ const _handleResponse = async ({
                     attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
                     identifierKeyedResponse,
                     action: chosenRoute.action,
+                    routingTraceService: traceService,
                   })
                 : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
@@ -129,6 +136,14 @@ const _handleResponse = async ({
             crmRecordId = contactOwnerQuery?.recordId ?? null;
           })(),
           (async () => {
+            // Determine when to use fallbackAttributesQueryValue:
+            // 1. If fallbackAction is EventTypeRedirectUrl → use it (attribute routing applies to event redirect)
+            // 2. If fallbackAction is not set → use it (backwards compatibility)
+            // 3. If fallbackAction is CustomPageMessage or ExternalRedirectUrl → don't use it (attribute routing doesn't apply)
+            const hasFallbackAction = "fallbackAction" in chosenRoute && chosenRoute.fallbackAction;
+            const shouldUseFallbackAttributesQuery =
+              !hasFallbackAction ||
+              chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
             const teamMembersMatchingAttributeLogicWithResult =
               formTeamId && formOrgId
                 ? await findTeamMembersMatchingAttributeLogic(
@@ -138,12 +153,17 @@ const _handleResponse = async ({
                         fields: form.fields || [],
                       },
                       attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                      fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
+                      fallbackAttributesQueryValue: shouldUseFallbackAttributesQuery
+                        ? chosenRoute.fallbackAttributesQueryValue
+                        : undefined,
                       teamId: formTeamId,
                       orgId: formOrgId,
+                      routeName: chosenRoute.name,
+                      routeIsFallback: chosenRoute.isFallback,
                     },
                     {
                       enablePerf: true,
+                      routingFormTraceService,
                     }
                   )
                 : null;
@@ -161,6 +181,7 @@ const _handleResponse = async ({
                 : null;
 
             timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+            checkedFallback = teamMembersMatchingAttributeLogicWithResult?.checkedFallback ?? false;
           })(),
         ]);
 
@@ -212,6 +233,37 @@ const _handleResponse = async ({
         };
       }
     }
+    const getFallbackAction = () => {
+      if (!chosenRoute || !("fallbackAction" in chosenRoute)) {
+        return null;
+      }
+
+      const hasCrmContactOwner = crmContactOwnerEmail !== null;
+      if (hasCrmContactOwner) {
+        return null;
+      }
+
+      if (checkedFallback) {
+        return chosenRoute.fallbackAction;
+      }
+
+      // Handle case where attribute routing was configured but couldn't run (e.g., missing orgId)
+      const attributesQueryValue =
+        "attributesQueryValue" in chosenRoute ? chosenRoute.attributesQueryValue : null;
+      const hasAttributeRoutingConfigured =
+        attributesQueryValue &&
+        typeof attributesQueryValue === "object" &&
+        "children1" in attributesQueryValue &&
+        attributesQueryValue.children1 &&
+        Object.keys(attributesQueryValue.children1 as Record<string, unknown>).length > 0;
+
+      if (hasAttributeRoutingConfigured && teamMemberIdsMatchingAttributeLogic === null) {
+        return chosenRoute.fallbackAction;
+      }
+
+      return null;
+    };
+
     return {
       isPreview: !!isPreview,
       formResponse: dbFormResponse,
@@ -226,7 +278,9 @@ const _handleResponse = async ({
           ? chosenRoute.attributeRoutingConfig
           : null
         : null,
+      checkedFallback,
       timeTaken,
+      fallbackAction: getFallbackAction(),
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

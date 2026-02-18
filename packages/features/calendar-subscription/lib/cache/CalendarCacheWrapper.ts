@@ -93,7 +93,7 @@ export class CalendarCacheWrapper implements Calendar {
       metrics.distribution("calendar.cache.hit.duration_ms", cacheDurationMs);
       metrics.distribution("calendar.cache.hit.events_count", cached.length);
 
-      log.info("Calendar cache fetch completed", {
+      log.debug("Calendar cache fetch completed", {
         cachedCalendarCount: withSync.length,
         cacheFetchDurationMs: cacheDurationMs,
         cachedEventsCount: cached.length,
@@ -120,7 +120,7 @@ export class CalendarCacheWrapper implements Calendar {
       metrics.distribution("calendar.cache.miss.duration_ms", originalDurationMs);
       metrics.distribution("calendar.cache.miss.events_count", original.length);
 
-      log.info("Original calendar fetch completed", {
+      log.debug("Original calendar fetch completed", {
         originalCalendarCount: withoutSync.length,
         originalFetchDurationMs: originalDurationMs,
         originalEventsCount: original.length,
@@ -214,7 +214,7 @@ export class CalendarCacheWrapper implements Calendar {
     return this.deps.originalCalendar.listCalendars(event);
   }
 
-  testDelegationCredentialSetup?(): Promise<boolean> {
-    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
+  testDelegationCredentialSetup?(): Promise<void> {
+    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve();
   }
 }

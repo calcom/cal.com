@@ -56,7 +56,11 @@ export interface EventTypeForConfirmationDto {
   hideCalendarNotes: boolean;
   hideCalendarEventDetails: boolean;
   disableGuests: boolean;
+  disableCancelling: boolean;
+  disableRescheduling: boolean;
   customReplyToEmail: string | null;
+  seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
   metadata: JsonValue;
   locations: JsonValue;
   team: TeamSummaryDto | null;

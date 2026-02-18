@@ -1,12 +1,10 @@
-import { render } from "@testing-library/react";
-import type { RenderOptions } from "@testing-library/react";
-import type React from "react";
-import type { ReactElement } from "react";
-import { vi } from "vitest";
-import type { StoreApi } from "zustand";
-
 import dayjs from "@calcom/dayjs";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { RenderOptions } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import React, { type ReactElement, type ReactNode } from "react";
+import { vi } from "vitest";
+import type { StoreApi } from "zustand";
 
 import { BookerStoreContext } from "../BookerStoreProvider";
 import type { BookerStore } from "../store";
@@ -72,6 +70,8 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     allowUpdatingUrlParams: true,
     verificationCode: null,
     setVerificationCode: vi.fn(),
+    isSlotSelectionModalVisible: false,
+    setIsSlotSelectionModalVisible: vi.fn(),
     ...initialState,
   };
 
@@ -100,7 +100,7 @@ export const renderWithBookerStore = (
 ): ReturnType<typeof render> => {
   const mockStore = createMockStore(options?.mockStore);
 
-  const Wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+  const Wrapper = ({ children }: { children: ReactNode }): ReactElement => (
     <BookerStoreContext.Provider value={mockStore}>{children}</BookerStoreContext.Provider>
   );
 

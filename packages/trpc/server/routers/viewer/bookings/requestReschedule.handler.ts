@@ -6,8 +6,9 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
@@ -46,7 +47,7 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
-  source: ActionSource;
+  source: ValidActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
@@ -315,6 +316,11 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   await Promise.all(promises);
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   await bookingEventHandlerService.onRescheduleRequested({
     bookingUid: bookingToReschedule.uid,
     actor: makeUserActor(user.uuid),
@@ -324,5 +330,6 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
       rescheduleReason: cancellationReason ?? null,
       rescheduledRequestedBy: user.email,
     },
+    isBookingAuditEnabled,
   });
 };

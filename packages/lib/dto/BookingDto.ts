@@ -107,6 +107,7 @@ export interface BookingForConfirmationDto {
   recurringEventId: string | null;
   status: BookingStatusDto;
   smsReminderNumber: string | null;
+  assignmentReason: { reasonEnum: string | null; reasonString: string | null }[];
 }
 
 /**

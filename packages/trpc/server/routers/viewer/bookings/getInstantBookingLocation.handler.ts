@@ -8,10 +8,10 @@ type GetOptions = {
 };
 
 export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
-  const { bookingId } = input;
+  const { bookingUid } = input;
 
   const bookingRepository = getBookingRepository();
-  const booking = await bookingRepository.findAcceptedByIdForInstantBooking({ bookingId });
+  const booking = await bookingRepository.findAcceptedByUidForInstantBooking({ bookingUid });
 
   // Don't leak anything private from the booking
   return {

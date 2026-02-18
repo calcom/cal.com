@@ -134,6 +134,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -264,6 +265,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -411,6 +413,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "Testing round robin cancellation with host as attendee",
       },
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -433,6 +436,146 @@ describe("Cancel Booking", () => {
           timeZone: organizer.timeZone,
         },
       },
+    });
+  });
+
+  test("Should send EMAIL_HOST cancel workflow notification to both primary and secondary hosts in round robin events", async ({
+    emails,
+  }) => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const primaryHost = getOrganizer({
+      name: "Primary Host",
+      email: "primary-host@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const secondaryHost = getOrganizer({
+      name: "Secondary Host",
+      email: "secondary-host@example.com",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "round-robin-email-host-workflow-uid";
+    const idOfBookingToBeCancelled = 2040;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 2,
+            slotInterval: 30,
+            length: 30,
+            schedulingType: "ROUND_ROBIN",
+            teamId: 1,
+            users: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+          },
+        ],
+        workflows: [
+          {
+            id: 1,
+            name: "Cancel Email Host Workflow",
+            teamId: 1,
+            trigger: "EVENT_CANCELLED",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [2],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 2,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+                locale: "en",
+              },
+              {
+                email: secondaryHost.email,
+                timeZone: "Asia/Kolkata",
+                locale: "en",
+              },
+            ],
+          },
+        ],
+        users: [primaryHost, secondaryHost],
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-3`,
+      },
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: {
+        id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_3",
+      },
+    });
+
+    const result = await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: primaryHost.email,
+        cancellationReason: "Testing EMAIL_HOST workflow sends to secondary host in round robin",
+      },
+      actionSource: "WEBAPP",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.bookingId).toBe(idOfBookingToBeCancelled);
+    expect(result.bookingUid).toBe(uidOfBookingToBeCancelled);
+
+    expectWorkflowToBeTriggered({
+      emailsToReceive: [primaryHost.email, secondaryHost.email],
+      emails,
     });
   });
 
@@ -501,6 +644,7 @@ describe("Cancel Booking", () => {
           cancelledBy: organizer.email,
           cancellationReason: "Testing past booking cancellation",
         },
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cannot cancel a booking that has already ended");
   });
@@ -569,6 +713,7 @@ describe("Cancel Booking", () => {
           uid: uidOfBookingToBeCancelled,
           cancelledBy: organizer.email,
         },
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cancellation reason is required when you are the host");
   });
@@ -680,6 +825,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -806,6 +952,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -923,6 +1070,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Attendee cancelled within time threshold",
       },
       userId: 999,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1031,6 +1179,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "Organization booking cancellation test",
       },
+      actionSource: "WEBAPP",
     });
 
     expectBookingCancelledWebhookToHaveBeenFired({
@@ -1153,6 +1302,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Cancelling seated event",
       },
       userId: organizer.id,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1274,6 +1424,7 @@ describe("Cancel Booking", () => {
         allRemainingBookings: true,
       },
       userId: organizer.id,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1395,6 +1546,7 @@ describe("Cancel Booking", () => {
         cancelSubsequentBookings: true,
       },
       userId: organizer.id,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1508,6 +1660,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Testing booking reference cleanup",
       },
       userId: organizer.id,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);

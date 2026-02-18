@@ -1,12 +1,10 @@
 // Import mocked functions
+
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { get as edgeConfigGet } from "@vercel/edge-config";
 import { NextRequest, NextResponse } from "next/server";
 import type { Mock } from "vitest";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
-import { checkPostMethod } from "./proxy";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // We'll test the wrapped proxy as it would be used in production
 import proxy from "./proxy";
 import { config } from "./proxy";
@@ -147,34 +145,6 @@ const callProxy = async (req: NextRequest): Promise<Response> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (await (proxy as any)(req)) as Response;
 };
-
-describe("Middleware - POST requests restriction", () => {
-  const createRequest = (path: string, method: string) => {
-    return new NextRequest(
-      new Request(`${WEBAPP_URL}${path}`, {
-        method,
-      })
-    );
-  };
-
-  it("should allow POST requests to /api routes", async () => {
-    const req1 = createRequest("/api/auth/signup", "POST");
-    const res1 = checkPostMethod(req1);
-    expect(res1).toBeNull();
-  });
-
-  it("should allow GET requests to app routes", async () => {
-    const req = createRequest("/team/xyz", "GET");
-    const res = checkPostMethod(req);
-    expect(res).toBeNull();
-  });
-
-  it("should allow GET requests to /api routes", async () => {
-    const req = createRequest("/api/auth/signup", "GET");
-    const res = checkPostMethod(req);
-    expect(res).toBeNull();
-  });
-});
 
 describe("Middleware Integration Tests", () => {
   beforeEach(() => {
@@ -446,7 +416,6 @@ describe("Middleware Integration Tests", () => {
   });
 
   describe("Multiple Features", () => {
-
     it("should handle embed route with routing forms rewrite", async () => {
       const req = createTestRequest({
         url: `${WEBAPP_URL}/apps/routing_forms/form/embed?ui.color-scheme=light`,
@@ -484,66 +453,38 @@ describe("Middleware Integration Tests", () => {
   });
 });
 
-describe("Middleware Matcher - Comprehensive Coverage", () => {
-  const matcher = config.matcher[0];
-  const pattern = matcher.replace(/^\/|\/$/g, "");
-  const regex = new RegExp(`^/${pattern}`);
+describe("Middleware Matcher Configuration", () => {
+  const matcher: string[] = config.matcher;
 
-  const cases = [
-    // pages & apis
-    { path: "/", expected: true, reason: "Root page" },
-    { path: "/home", expected: true, reason: "Regular page" },
-    { path: "/team/abc", expected: true, reason: "Nested page" },
-    { path: "/api/auth/login", expected: true, reason: "API route" },
-    { path: "/api/bookings", expected: true, reason: "Top-level API" },
-    { path: "/dashboard/settings", expected: true, reason: "Deep nested page" },
-    { path: "/user/john/profile", expected: true, reason: "Multiple nested path" },
-    { path: "/apps/routing_forms/form", expected: true, reason: "App page under /apps" },
-    { path: "/embed?ui.color-scheme=dark", expected: true, reason: "Embed query param" },
-
-    // should be ignored (internal / static / public)
-    { path: "/_next/static/chunks/app.js", expected: false, reason: "Internal static asset" },
-    { path: "/_next/image?url=%2Flogo.png&w=256&q=75", expected: false, reason: "Internal image handler" },
-    { path: "/_next/data/build-id/page.json", expected: false, reason: "Next.js data route" },
-    { path: "/favicon.ico", expected: false, reason: "Favicon asset" },
-    { path: "/robots.txt", expected: false, reason: "Robots file" },
-    { path: "/sitemap.xml", expected: false, reason: "Sitemap file" },
-    { path: "/public/images/logo.png", expected: false, reason: "Public folder asset" },
-    { path: "/public/fonts/inter.woff2", expected: false, reason: "Public folder font" },
-    { path: "/static/js/main.js", expected: false, reason: "Static folder JavaScript" },
-    { path: "/static/css/app.css", expected: false, reason: "Static folder stylesheet" },
-
-    // edge cases
-    { path: "/manifest.json", expected: true, reason: "Manifest is a public page, not ignored" },
-    { path: "/_nextsomething", expected: true, reason: "Looks like _next but not reserved" },
-    { path: "/nextconfig", expected: true, reason: "Normal route with 'next' in name" },
-    { path: "/_NEXT/image", expected: true, reason: "Case-sensitive test (should match)" },
-    { path: "/favicon-abc.ico", expected: true, reason: "Favicon variant should still match" },
-    { path: "/robots-custom.txt", expected: true, reason: "Custom robots file should match" },
-    { path: "/sitemap-other.xml", expected: true, reason: "Custom sitemap file should match" },
-    { path: "/api_", expected: true, reason: "Partial match with api underscore" },
-    { path: "//double-slash", expected: true, reason: "Double slash URL" },
-    { path: "/_next", expected: false, reason: "Bare _next path" },
-  ];
-
-  it("should match only the intended routes", () => {
-    for (const { path, expected, reason } of cases) {
-      const result = regex.test(path);
-      expect(result, `${path} → ${reason}`).toBe(expected);
-    }
+  it("should include all core middleware routes", () => {
+    expect(matcher).toContain("/auth/login");
+    expect(matcher).toContain("/auth/logout");
+    expect(matcher).toContain("/api/auth/signup");
+    expect(matcher).toContain("/apps/installed");
+    expect(matcher).toContain("/availability");
+    expect(matcher).toContain("/login");
+    expect(matcher).toContain("/:path*/embed");
   });
 
-  it("should not accidentally match internal Next.js routes", () => {
-    const internalPaths = ["/_next/static", "/_next/image", "/_next/data"];
-    for (const path of internalPaths) {
-      expect(regex.test(path)).toBe(false);
-    }
+  it("should have no duplicate entries", () => {
+    const uniqueEntries = new Set(matcher);
+    expect(uniqueEntries.size).toBe(matcher.length);
   });
 
-  it("should match all user-facing routes and APIs", () => {
-    const publicPaths = ["/", "/api/user", "/settings", "/dashboard"];
-    for (const path of publicPaths) {
-      expect(regex.test(path)).toBe(true);
-    }
+  it("should not contain any /api/ routes except /api/auth/signup", () => {
+    const apiRoutes = matcher.filter((entry) => entry.startsWith("/api/") && entry !== "/api/auth/signup");
+    expect(apiRoutes).toEqual([]);
+  });
+
+  it("should only contain the expected reduced route set", () => {
+    expect(matcher).toEqual([
+      "/auth/login",
+      "/login",
+      "/apps/installed",
+      "/auth/logout",
+      "/:path*/embed",
+      "/availability",
+      "/api/auth/signup",
+    ]);
   });
 });

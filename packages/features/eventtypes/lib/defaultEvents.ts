@@ -39,8 +39,6 @@ const user: User & { credentials: CredentialPayload[] } = {
   availability: [],
   id: 0,
   uuid: "00000000-0000-0000-0000-000000000000",
-  startTime: 0,
-  endTime: 0,
   allSelectedCalendars: [],
   userLevelSelectedCalendars: [],
   schedules: [],
@@ -156,6 +154,8 @@ const commons = {
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,
+  enablePerHostLocations: false,
+  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {
