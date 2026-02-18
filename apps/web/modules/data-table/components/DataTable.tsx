@@ -21,8 +21,8 @@ import {
   TableRow,
 } from "@calcom/ui/components/table";
 
-import { useColumnSizingVars } from "@calcom/features/data-table/hooks";
-import { useColumnResizing } from "@calcom/features/data-table/hooks/useColumnResizing";
+import { useColumnSizingVars } from "~/data-table/hooks/useColumnSizingVars";
+import { useColumnResizing } from "~/data-table/hooks/useColumnResizing";
 import type { SeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 

@@ -11,7 +11,7 @@ import { EyeOffIcon, PlusIcon } from "@coss/ui/icons";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useDataTable, useFilterableColumns } from "@calcom/features/data-table/hooks";
+import { useDataTable, useFilterableColumns } from "~/data-table/hooks";
 
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
