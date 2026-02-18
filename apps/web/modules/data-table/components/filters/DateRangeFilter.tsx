@@ -16,10 +16,10 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { CheckIcon } from "@coss/ui/icons";
 
-import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
+import { useDataTable, useFilterValue } from "~/data-table/hooks";
 import {
   CUSTOM_PRESET,
   CUSTOM_PRESET_VALUE,
@@ -70,8 +70,8 @@ export const DateRangeFilter = ({
     forceCustomOnly
       ? CUSTOM_PRESET
       : filterValue?.data.preset
-      ? compatiblePresets.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
-      : DEFAULT_PRESET
+        ? (compatiblePresets.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET)
+        : DEFAULT_PRESET
   );
 
   const convertTimestamp = useCallback(
@@ -201,8 +201,8 @@ export const DateRangeFilter = ({
                 range === "past"
                   ? currentDate.subtract(2, "year").toDate()
                   : range === "future"
-                  ? currentDate.toDate()
-                  : null
+                    ? currentDate.toDate()
+                    : null
               }
               maxDate={range === "past" ? currentDate.toDate() : undefined}
               disabled={false}
@@ -236,7 +236,7 @@ export const DateRangeFilter = ({
                     updateDateRangeFromPreset(option.value);
                   }}>
                   <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
-                  {selectedPreset.value === option.value && <Icon name="check" />}
+                  {selectedPreset.value === option.value && <CheckIcon />}
                 </CommandItem>
               ))}
             </CommandList>

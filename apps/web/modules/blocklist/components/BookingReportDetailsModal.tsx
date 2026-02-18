@@ -8,7 +8,7 @@ import { WatchlistType } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ExternalLinkIcon, GlobeIcon, MailIcon } from "@coss/ui/icons";
 
 import type { GroupedBookingReport, BlocklistScope } from "@calcom/features/blocklist/types";
 
@@ -130,7 +130,7 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
                       <Link key={report.id} href={`/booking/${report.booking.uid}`}>
                         <div className="text-subtle hover:text-emphasis flex items-center gap-1 text-sm">
                           {report.booking.title || t("untitled")}
-                          <Icon name="external-link" className="h-3 w-3" />
+                          <ExternalLinkIcon className="h-3 w-3" />
                         </div>
                       </Link>
                     ))}
@@ -157,12 +157,12 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
                       {
                         value: WatchlistType.EMAIL,
                         label: t("block_this_email"),
-                        iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                        iconLeft: <MailIcon className="h-4 w-4" />,
                       },
                       {
                         value: WatchlistType.DOMAIN,
                         label: t("block_all_from_domain"),
-                        iconLeft: <Icon name="globe" className="h-4 w-4" />,
+                        iconLeft: <GlobeIcon className="h-4 w-4" />,
                       },
                     ]}
                   />

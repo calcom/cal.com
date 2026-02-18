@@ -42,7 +42,7 @@ type Dependencies = {
 };
 
 export class TaskRepository {
-  constructor(private readonly deps: Dependencies) { }
+  constructor(private readonly deps: Dependencies) {}
 
   async create(
     type: TaskTypes,

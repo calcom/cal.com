@@ -243,9 +243,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });
@@ -446,9 +444,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });
@@ -688,9 +684,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });

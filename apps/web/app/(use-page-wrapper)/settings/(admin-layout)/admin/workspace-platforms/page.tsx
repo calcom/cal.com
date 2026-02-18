@@ -16,10 +16,7 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader
-      title={t("workspace_platforms")}
-      description={t("workspace_platforms_description")}
-    >
+    <SettingsHeader title={t("workspace_platforms")} description={t("workspace_platforms_description")}>
       <LicenseRequired>
         <WorkspacePlatformsPage />
       </LicenseRequired>

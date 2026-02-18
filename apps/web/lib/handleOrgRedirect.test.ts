@@ -29,7 +29,7 @@ const createTestContext = (overrides?: {
       },
     },
     query: overrides?.query || {},
-  } as unknown as GetServerSidePropsContext);
+  }) as unknown as GetServerSidePropsContext;
 
 const createTestRedirectParams = (overrides?: {
   slugs?: string[];
