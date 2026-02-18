@@ -94,8 +94,8 @@ ${this.t(
   title
     ? title
     : this.calEvent.recurringEvent?.count
-    ? "new_event_scheduled_recurring"
-    : "new_event_scheduled"
+      ? "new_event_scheduled_recurring"
+      : "new_event_scheduled"
 )}
 ${this.t(subtitle)}
 ${extraInfo}
