@@ -36,8 +36,12 @@ type FormBuilderFormValues = {
  *   routing `label`                              → FormBuilder `label`
  *   routing `type`                               → FormBuilder `type`
  *   routing `options[].id`                       → FormBuilder `options[].value`
+ *
+ * @param lockType - when true (form has existing responses), sets `editable:
+ *   "system-but-optional"` so FormBuilder renders the type selector as read-only,
+ *   matching the previous behaviour that disabled type changes on non-empty forms.
  */
-function toFormBuilderField(field: RoutingField): FormBuilderField {
+function toFormBuilderField(field: RoutingField, lockType = false): FormBuilderField {
   const name = field.identifier
     ? field.identifier
     : getFieldIdentifier(field.label ?? "").toLowerCase();
@@ -52,7 +56,9 @@ function toFormBuilderField(field: RoutingField): FormBuilderField {
       label: opt.label,
       value: opt.id ?? opt.label,
     })),
-    editable: "user",
+    // "system-but-optional" keeps the field editable for label/options/required
+    // but locks the type selector — identical to the old `disableTypeChange` behaviour.
+    editable: lockType ? "system-but-optional" : "user",
     sources: [
       {
         label: "User",
@@ -102,6 +108,10 @@ type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
  *     form's `fields` array, converting field schemas as we go.
  *  4. Original routing-form field `id`s are preserved so existing RAQB routing
  *     conditions keep matching.
+ *  5. When the form has existing responses (`form._count.responses > 0`), the
+ *     type of existing fields is locked via `editable: "system-but-optional"` and
+ *     guarded in the watch subscription, restoring the previous `disableTypeChange`
+ *     behaviour and preventing invalidation of stored response data.
  */
 function FormEdit({
   hookForm,
@@ -112,13 +122,17 @@ function FormEdit({
 }) {
   const { t } = useLocale();
 
+  // When the form already has responses, locking type changes prevents
+  // invalidating stored response data (restores previous disableTypeChange behaviour).
+  const hasResponses = (form._count?.responses ?? 0) > 0;
+
   // Latest routing fields (updated reactively)
   const routingFields = hookForm.watch("fields") ?? [];
 
   // ── Shadow form that FormBuilder will directly read / write ──────────────
   const builderForm = useForm<FormBuilderFormValues>({
     defaultValues: {
-      bookingFields: routingFields.map(toFormBuilderField),
+      bookingFields: routingFields.map((f) => toFormBuilderField(f, hasResponses)),
     },
   });
 
@@ -142,6 +156,18 @@ function FormEdit({
     )
   );
 
+  // ── Original type registry: maps field identifier → original type ──────────
+  // Used as a defence-in-depth guard: if hasResponses and a type somehow changed
+  // (e.g. a future FormBuilder version ignores editable), we revert it here.
+  const originalTypeRegistryRef = useRef<Map<string, string>>(
+    new Map(
+      (hookForm.getValues("fields") ?? []).map((rf) => {
+        const name = rf.identifier ?? getFieldIdentifier(rf.label ?? "").toLowerCase();
+        return [name, rf.type ?? "text"];
+      })
+    )
+  );
+
   // ── Watch the shadow form and sync changes → routing form ─────────────────
   useEffect(() => {
     const subscription = builderForm.watch((values) => {
@@ -149,6 +175,7 @@ function FormEdit({
       if (!builderFields) return;
 
       const registry = fieldIdRegistryRef.current;
+      const originalTypes = originalTypeRegistryRef.current;
 
       // Map each builder field to a routing field, preserving the stable id
       // from the registry (keyed by identifier, not by position).
@@ -159,7 +186,18 @@ function FormEdit({
         if (!registry.has(name)) {
           registry.set(name, uuidv4());
         }
-        return toRoutingField(bf as FormBuilderField, registry.get(name));
+
+        // Defence-in-depth: revert type changes for existing fields when the
+        // form already has responses, regardless of FormBuilder's editable prop.
+        let resolvedBf = bf as FormBuilderField;
+        if (hasResponses && originalTypes.has(name)) {
+          const lockedType = originalTypes.get(name) as FormBuilderField["type"];
+          if (resolvedBf.type !== lockedType) {
+            resolvedBf = { ...resolvedBf, type: lockedType };
+          }
+        }
+
+        return toRoutingField(resolvedBf, registry.get(name));
       });
 
       hookForm.setValue(
@@ -170,9 +208,9 @@ function FormEdit({
     });
 
     return () => subscription.unsubscribe();
-    // hookForm is stable; builderForm is stable. No deps needed.
+    // hookForm is stable; builderForm is stable; hasResponses is stable per render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [builderForm, hookForm]);
+  }, [builderForm, hookForm, hasResponses]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
