@@ -11,9 +11,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { teamId, returnTo } = req.query;
-  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
 
-  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
+  // Validate teamId before using it: Number(undefined) = NaN, which Prisma rejects with a 500.
+  // Parse it first and gate all team-scoped logic on the valid numeric result.
+  const teamIdNum = teamId !== undefined ? Number(teamId) : null;
+  if (teamId !== undefined && (isNaN(teamIdNum as number) || !Number.isInteger(teamIdNum))) {
+    return res.status(400).json({ message: "Invalid teamId" });
+  }
+
+  await throwIfNotHaveAdminAccessToTeam({
+    teamId: teamIdNum,
+    userId: req.session.user.id,
+  });
+
+  const installForObject = teamIdNum !== null ? { teamId: teamIdNum } : { userId: req.session.user.id };
   const appType = "bigbluebutton_video";
 
   try {

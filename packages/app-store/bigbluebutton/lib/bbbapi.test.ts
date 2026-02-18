@@ -2,15 +2,17 @@ import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse } from
 
 describe("computeChecksum", () => {
   it("produces expected sha256 checksum for a known input", () => {
-    // From BBB API docs example: sha256("createname=Test&meetingID=abc" + "secret") 
+    // BBB API concatenates: apiName + queryString + sharedSecret, then hashes.
+    // sha256("create" + "name=Test&meetingID=abc" + "secret") = known value below.
+    // Asserting the exact value (not just format) validates the concatenation order and algorithm.
     const result = computeChecksum("create", "name=Test&meetingID=abc", "secret", "sha256");
-    // Verify it's a 64-char hex string (sha256 output)
-    expect(result).toMatch(/^[a-f0-9]{64}$/);
+    expect(result).toBe("984571596005e70a634ce402a8dc01f86ab963c0be3805c4cc136fe9b45abf1e");
   });
 
-  it("produces expected sha1 checksum", () => {
+  it("produces expected sha1 checksum for a known input", () => {
+    // sha1("getMeetings" + "" + "mysecret") = known value below.
     const result = computeChecksum("getMeetings", "", "mysecret", "sha1");
-    expect(result).toMatch(/^[a-f0-9]{40}$/);
+    expect(result).toBe("5786c1a7a0b03d2f06263fe170693487e742f8dd");
   });
 
   it("sha256 and sha1 produce different results", () => {
