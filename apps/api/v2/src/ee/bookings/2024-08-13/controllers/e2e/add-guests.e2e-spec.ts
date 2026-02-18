@@ -9,14 +9,18 @@ import {
   AttendeeScheduledEmail,
   OrganizerAddGuestsEmail,
 } from "@calcom/platform-libraries/emails";
+import { RoleService } from "@calcom/platform-libraries/pbac";
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { Team, User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { FeaturesRepositoryFixture } from "test/fixtures/repository/features.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
@@ -53,6 +57,7 @@ type TestSetup = {
   organizer: TestUser;
   unrelatedUser: TestUser;
   guest: TestUser;
+  orgAdmin: TestUser;
   eventTypeId: number;
   bookingUid: string;
 };
@@ -68,6 +73,8 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let tokensRepositoryFixture: TokensRepositoryFixture;
+  let membershipRepositoryFixture: MembershipRepositoryFixture;
+  let featuresRepositoryFixture: FeaturesRepositoryFixture;
 
   let testSetup: TestSetup;
 
@@ -88,6 +95,8 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
+    membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+    featuresRepositoryFixture = new FeaturesRepositoryFixture(moduleRef);
 
     organization = await teamRepositoryFixture.create({
       name: `user-emails-2024-08-13-organization-${randomString()}`,
@@ -125,12 +134,23 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       },
     });
 
+    const orgAdminUser = await userRepositoryFixture.create({
+      email: `user-emails-2024-08-13-org-admin-${randomString()}@api.com`,
+      platformOAuthClients: {
+        connect: { id: oAuthClient.id },
+      },
+    });
+
     const organizerTokens = await tokensRepositoryFixture.createTokens(organizerUser.id, oAuthClient.id);
     const unrelatedUserTokens = await tokensRepositoryFixture.createTokens(
       unrelatedUserData.id,
       oAuthClient.id
     );
     const guestTokens = await tokensRepositoryFixture.createTokens(guestUser.id, oAuthClient.id);
+    const orgAdminTokens = await tokensRepositoryFixture.createTokens(orgAdminUser.id, oAuthClient.id);
+
+    await membershipRepositoryFixture.addUserToOrg(organizerUser, organization, MembershipRole.MEMBER, true);
+    await membershipRepositoryFixture.addUserToOrg(orgAdminUser, organization, MembershipRole.ADMIN, true);
 
     const schedule: CreateScheduleInput_2024_04_15 = {
       name: `user-add-guests-2024-08-13-schedule-${randomString()}`,
@@ -163,6 +183,11 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         user: guestUser,
         accessToken: guestTokens.accessToken,
         refreshToken: guestTokens.refreshToken,
+      },
+      orgAdmin: {
+        user: orgAdminUser,
+        accessToken: orgAdminTokens.accessToken,
+        refreshToken: orgAdminTokens.refreshToken,
       },
       eventTypeId: eventType.id,
       bookingUid: "",
@@ -330,6 +355,25 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       });
     });
 
+    describe("Authorization - org admin", () => {
+      it("should allow org admin to add guests to a booking owned by a member of their org", async () => {
+        const addGuestsBody = {
+          guests: [{ email: "org-admin.guest1@example.com" }],
+        };
+
+        const addGuestsResponse = await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addGuestsBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.orgAdmin.accessToken}`)
+          .expect(200);
+
+        const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
+
+        verifyAddGuestsResponse(addGuestsResponseBody, ["org-admin.guest1@example.com"], true);
+      });
+    });
+
     describe("Validation", () => {
       it("should return 400 when attempting to add duplicate guest email", async () => {
         const addGuestsBody = {
@@ -461,12 +505,207 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     });
   });
 
+  describe("POST /v2/bookings/:bookingUid/guests - PBAC Authorization", () => {
+    type PbacSetup = {
+      organizerUser: User;
+      orgAdminWithPermission: TestUser;
+      orgAdminWithoutPermission: TestUser;
+      bookingUid: string;
+    };
+
+    let pbacSetup: PbacSetup;
+    let pbacOrganization: Team;
+
+    beforeAll(async () => {
+      pbacOrganization = await teamRepositoryFixture.create({
+        name: `pbac-add-guests-org-${randomString()}`,
+      });
+
+      // Enable PBAC only for this org's team — tri-state TeamFeatures semantics mean
+      // the existing `organization` used in other describe blocks is not affected.
+      await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
+      await featuresRepositoryFixture.setTeamFeatureState({
+        teamId: pbacOrganization.id,
+        featureId: "pbac",
+        state: "enabled",
+      });
+
+      const oAuthClient = await createOAuthClient(pbacOrganization.id, true);
+
+      const pbacOrganizerUser = await userRepositoryFixture.create({
+        email: `pbac-add-guests-organizer-${randomString()}@api.com`,
+        platformOAuthClients: { connect: { id: oAuthClient.id } },
+      });
+
+      await membershipRepositoryFixture.addUserToOrg(
+        pbacOrganizerUser,
+        pbacOrganization,
+        MembershipRole.MEMBER,
+        true
+      );
+
+      const orgAdminWithPermUser = await userRepositoryFixture.create({
+        email: `pbac-add-guests-admin-with-perm-${randomString()}@api.com`,
+        platformOAuthClients: { connect: { id: oAuthClient.id } },
+      });
+      const orgAdminWithPermTokens = await tokensRepositoryFixture.createTokens(
+        orgAdminWithPermUser.id,
+        oAuthClient.id
+      );
+      const membershipWithPerm = await membershipRepositoryFixture.addUserToOrg(
+        orgAdminWithPermUser,
+        pbacOrganization,
+        MembershipRole.ADMIN,
+        true
+      );
+
+      const orgAdminWithoutPermUser = await userRepositoryFixture.create({
+        email: `pbac-add-guests-admin-without-perm-${randomString()}@api.com`,
+        platformOAuthClients: { connect: { id: oAuthClient.id } },
+      });
+      const orgAdminWithoutPermTokens = await tokensRepositoryFixture.createTokens(
+        orgAdminWithoutPermUser.id,
+        oAuthClient.id
+      );
+      const membershipWithoutPerm = await membershipRepositoryFixture.addUserToOrg(
+        orgAdminWithoutPermUser,
+        pbacOrganization,
+        MembershipRole.ADMIN,
+        true
+      );
+
+      const roleService = new RoleService();
+
+      // booking.update depends on booking.read per the permission registry
+      const bookingUpdateRole = await roleService.createRole({
+        name: `pbac-booking-update-role-${randomString()}`,
+        teamId: pbacOrganization.id,
+        permissions: ["booking.read", "booking.update"],
+        type: "CUSTOM",
+      });
+      await roleService.assignRoleToMember(bookingUpdateRole.id, membershipWithPerm.id);
+
+      // This admin has a custom role that only allows reading — booking.update is absent,
+      // so PBAC will deny access even though the membership role is ADMIN.
+      const readOnlyRole = await roleService.createRole({
+        name: `pbac-booking-read-only-role-${randomString()}`,
+        teamId: pbacOrganization.id,
+        permissions: ["booking.read"],
+        type: "CUSTOM",
+      });
+      await roleService.assignRoleToMember(readOnlyRole.id, membershipWithoutPerm.id);
+
+      const schedule: CreateScheduleInput_2024_04_15 = {
+        name: `pbac-add-guests-schedule-${randomString()}`,
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      };
+      await schedulesService.createUserSchedule(pbacOrganizerUser.id, schedule);
+
+      const eventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `pbac-add-guests-event-type-${randomString()}`,
+          slug: `pbac-add-guests-event-type-${randomString()}`,
+          length: 60,
+        },
+        pbacOrganizerUser.id
+      );
+
+      const createBookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 11, 10, 0, 0)).toISOString(),
+        eventTypeId: eventType.id,
+        attendee: {
+          name: "PBAC Test Attendee",
+          email: "pbac.test.attendee@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/pbac-test",
+        bookingFieldsResponses: {
+          customField: "pbacValue",
+        },
+        metadata: { userId: "300" },
+      };
+
+      const createBookingResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createBookingResponseBody: CreateBookingOutput_2024_08_13 = createBookingResponse.body;
+
+      if (!responseDataIsBooking(createBookingResponseBody.data)) {
+        throw new Error(
+          "Invalid response data - expected booking but received array of possibly recurring bookings"
+        );
+      }
+
+      pbacSetup = {
+        organizerUser: pbacOrganizerUser,
+        orgAdminWithPermission: {
+          user: orgAdminWithPermUser,
+          accessToken: orgAdminWithPermTokens.accessToken,
+          refreshToken: orgAdminWithPermTokens.refreshToken,
+        },
+        orgAdminWithoutPermission: {
+          user: orgAdminWithoutPermUser,
+          accessToken: orgAdminWithoutPermTokens.accessToken,
+          refreshToken: orgAdminWithoutPermTokens.refreshToken,
+        },
+        bookingUid: createBookingResponseBody.data.uid,
+      };
+    });
+
+    it("should allow org admin whose custom role has booking.update to add guests", async () => {
+      const addGuestsBody = {
+        guests: [{ email: "pbac-allowed.guest@example.com" }],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${pbacSetup.bookingUid}/guests`)
+        .send(addGuestsBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${pbacSetup.orgAdminWithPermission.accessToken}`)
+        .expect(200);
+
+      const responseBody: AddGuestsOutput_2024_08_13 = response.body;
+      verifyAddGuestsResponse(responseBody, ["pbac-allowed.guest@example.com"], true);
+    });
+
+    it("should return 403 for org admin whose custom role lacks booking.update even though their membership role is ADMIN", async () => {
+      const addGuestsBody = {
+        guests: [{ email: "pbac-denied.guest@example.com" }],
+      };
+
+      await request(app.getHttpServer())
+        .post(`/v2/bookings/${pbacSetup.bookingUid}/guests`)
+        .send(addGuestsBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${pbacSetup.orgAdminWithoutPermission.accessToken}`)
+        .expect(403);
+    });
+
+    afterAll(async () => {
+      await userRepositoryFixture.deleteByEmail(pbacSetup.organizerUser.email);
+      await userRepositoryFixture.deleteByEmail(pbacSetup.orgAdminWithPermission.user.email);
+      await userRepositoryFixture.deleteByEmail(pbacSetup.orgAdminWithoutPermission.user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(
+        pbacSetup.organizerUser.id,
+        pbacSetup.organizerUser.email
+      );
+      await featuresRepositoryFixture.deleteTeamFeature(pbacOrganization.id, "pbac");
+      await teamRepositoryFixture.delete(pbacOrganization.id);
+    });
+  });
+
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
 
     await userRepositoryFixture.deleteByEmail(testSetup.organizer.user.email);
     await userRepositoryFixture.deleteByEmail(testSetup.unrelatedUser.user.email);
     await userRepositoryFixture.deleteByEmail(testSetup.guest.user.email);
+    await userRepositoryFixture.deleteByEmail(testSetup.orgAdmin.user.email);
 
     await bookingsRepositoryFixture.deleteAllBookings(
       testSetup.organizer.user.id,
