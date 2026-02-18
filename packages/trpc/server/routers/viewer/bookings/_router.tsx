@@ -121,6 +121,7 @@ export const bookingsRouter = router({
     return reportBookingHandler({
       ctx,
       input,
+      actionSource: "WEBAPP",
     });
   }),
   reportWrongAssignment: authedProcedure
