@@ -1,11 +1,10 @@
-import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
 import { formatTime } from "@calcom/lib/dayjs";
@@ -29,36 +28,34 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
-
-import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
 import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { useBookingDetailsSheetStore } from "../../modules/bookings/store/bookingDetailsSheetStore";
 import type { BookingAttendee } from "../../modules/bookings/types";
+import { WrongAssignmentDialog } from "../dialog/WrongAssignmentDialog";
 import { AcceptBookingButton } from "./AcceptBookingButton";
-import { RejectBookingButton } from "./RejectBookingButton";
 import { BookingActionsDropdown } from "./actions/BookingActionsDropdown";
 import {
-  useBookingActionsStoreContext,
   BookingActionsStoreProvider,
+  useBookingActionsStoreContext,
 } from "./actions/BookingActionsStoreProvider";
 import {
-  shouldShowPendingActions,
-  shouldShowRecurringCancelAction,
-  shouldShowIndividualReportButton,
   type BookingActionContext,
   getReportAction,
   isActionDisabled,
+  shouldShowIndividualReportButton,
+  shouldShowPendingActions,
+  shouldShowRecurringCancelAction,
 } from "./actions/bookingActions";
+import { RejectBookingButton } from "./RejectBookingButton";
 import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -207,6 +204,12 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   const cardCharged = booking?.payment[0]?.success;
 
+  // Check if the logged-in user is the host/owner of the booking
+  const isHost =
+    booking.user?.id != null &&
+    booking.loggedInUser.userId != null &&
+    booking.loggedInUser.userId === booking.user.id;
+
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;
   };
@@ -233,6 +236,7 @@ function BookingListItem(booking: BookingItemProps) {
       (typeof booking.location === "string" && booking.location.trim() === ""),
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
     isAttendee,
+    isHost,
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
@@ -552,7 +556,9 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
+          booking.assignmentReasonSortedByCreatedAt.length > 0
+            ? () => setIsOpenRoutingTraceSheet(true)
+            : undefined
         }
       />
       {isBookingFromRoutingForm && (
@@ -613,7 +619,9 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReasonSortedByCreatedAt.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
+          assignmentReason={
+            booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]
+          }
           onClick={onAssignmentReasonClick}
         />
       )}

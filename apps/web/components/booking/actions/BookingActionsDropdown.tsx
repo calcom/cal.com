@@ -195,7 +195,11 @@ export function BookingActionsDropdown({
   const isAttendee = !!userSeat;
 
   // Check if the logged-in user is the host/owner of the booking
-  const isHost = booking.loggedInUser.userId === booking.user?.id;
+  // This includes: booking owner, event type hosts, event type owner
+  const isHost =
+    booking.user?.id != null &&
+    booking.loggedInUser.userId != null &&
+    booking.loggedInUser.userId === booking.user.id;
 
   const isCalVideoLocation =
     !booking.location ||
@@ -250,6 +254,7 @@ export function BookingActionsDropdown({
     isCalVideoLocation,
     showPendingPayment,
     isAttendee,
+    isHost,
     cardCharged,
     attendeeList,
     getSeatReferenceUid,

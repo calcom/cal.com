@@ -208,15 +208,32 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  // Determine if the canceling user is a host (owner, event type host, or org admin)
+  let isCancellationUserHost = false;
+  if (userId) {
+    if (bookingToDelete.userId === userId) {
+      isCancellationUserHost = true;
+    } else if (bookingToDelete.eventType?.hosts?.some((host) => host.user.id === userId)) {
+      isCancellationUserHost = true;
+    } else if (bookingToDelete.eventType?.owner?.id === userId) {
+      isCancellationUserHost = true;
+    } else if (
+      await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(userId, bookingToDelete.userId)
+    ) {
+      isCancellationUserHost = true;
+    }
+  } else if (cancelledBy && bookingToDelete.user.email === cancelledBy) {
+    // Also check if cancelledBy email matches the booking owner
+    isCancellationUserHost = true;
+  }
+
+  // Only the host can cancel the booking even when the cancellation is disabled for the event
+  if (!isCancellationUserHost && bookingToDelete.eventType?.disableCancelling) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
     });
   }
-
-  const isCancellationUserHost =
-    bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
   if (
     !platformClientId &&

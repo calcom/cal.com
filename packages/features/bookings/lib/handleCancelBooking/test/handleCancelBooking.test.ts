@@ -950,6 +950,166 @@ describe("Cancel Booking", () => {
     expect(result.success).toBe(true);
   });
 
+  test("Should allow hosts to cancel bookings when disableCancelling is enabled", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "disable-cancelling-host-test";
+    const idOfBookingToBeCancelled = 8090;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: true,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-disable-cancel`,
+      },
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: {
+        id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_DISABLE_CANCEL",
+      },
+    });
+
+    const result = await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Host cancelling despite disableCancelling",
+      },
+      userId: organizer.id,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.bookingId).toBe(idOfBookingToBeCancelled);
+  });
+
+  test("Should not allow guests to cancel bookings when disableCancelling is enabled", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "disable-cancelling-guest-test";
+    const idOfBookingToBeCancelled = 8091;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: true,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: booker.email,
+          cancellationReason: "Guest trying to cancel",
+        },
+        userId: 999, // Not the host
+      })
+    ).rejects.toThrow("This event type does not allow cancellations");
+  });
+
   test("Should charge cancellation fee when attendee cancels within time threshold", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
