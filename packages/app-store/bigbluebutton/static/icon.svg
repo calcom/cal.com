@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- BigBlueButton logo representation -->
+  <rect width="100" height="100" rx="20" fill="#1565C0"/>
+  <circle cx="50" cy="40" r="18" fill="white"/>
+  <path d="M28 72 Q50 58 72 72" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Camera icon on the circle -->
+  <rect x="38" y="33" width="24" height="14" rx="3" fill="#1565C0"/>
+  <polygon points="62,36 72,33 72,47 62,44" fill="#1565C0"/>
+</svg>
