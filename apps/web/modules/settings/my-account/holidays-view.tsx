@@ -279,8 +279,8 @@ export function HolidaysView() {
 
   return (
     <SettingsHeader
-      title={t("out_of_office")}
-      description={t("out_of_office_description")}
+      title={t("holidays")}
+      description={t("holidays_description")}
       borderInShellHeader={true}
       CTA={<HolidaysCTA />}>
       <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
