@@ -2,7 +2,7 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
@@ -48,7 +48,7 @@ async function fireBookingAcceptedEvent({
 }: {
   actor: Actor;
   organizationId: number | null;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   acceptedBookings: {
     uid: string;
     oldStatus: BookingStatus;
@@ -133,7 +133,7 @@ export async function handleConfirmation(args: {
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   actor: Actor;
 }) {
   const {
