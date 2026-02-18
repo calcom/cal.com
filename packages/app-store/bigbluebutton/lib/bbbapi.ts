@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { promises as dnsPromises } from "dns";
+import * as https from "https";
 
 // ─── SSRF Protection ──────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ export function assertSafeResolvedIp(ip: string): void {
   // ── IPv4 loopback / private / link-local ──────────────────────────────────
   const privateIPv4Ranges = [
     /^127\./, // 127.0.0.0/8  — loopback
+    /^0\./, // 0.0.0.0/8    — "this" network (unroutable, SSRF risk)
     /^10\./, // 10.0.0.0/8   — RFC 1918
     /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12 — RFC 1918
     /^192\.168\./, // 192.168.0.0/16 — RFC 1918
@@ -39,6 +41,14 @@ export function assertSafeResolvedIp(ip: string): void {
 
   // ── ULA (fc00::/7) — fc** and fd** ───────────────────────────────────────
   if (/^f[cd][0-9a-f]{2}:/i.test(normalized)) {
+    throw new Error("Private/internal network URLs are not allowed");
+  }
+
+  // ── IPv6 link-local (fe80::/10) ───────────────────────────────────────────
+  // fe80:: through febf:: are link-local addresses and must never be routable
+  // on the public internet — an SSRF that reaches a link-local address can
+  // access host-local services (e.g. cloud metadata APIs on some providers).
+  if (/^fe[89ab][0-9a-f]:/i.test(normalized)) {
     throw new Error("Private/internal network URLs are not allowed");
   }
 
@@ -316,7 +326,7 @@ export function parseXmlResponse(xml: string): Record<string, string> {
 }
 
 /**
- * Fetches `url` with SSRF protection.
+ * Fetches `url` with SSRF protection using Node.js `https.request`.
  *
  * SSRF defence strategy (three layers):
  * 1. Static check (`validateExternalUrl`): rejects bad scheme, literal private
@@ -324,30 +334,66 @@ export function parseXmlResponse(xml: string): Record<string, string> {
  * 2. DNS pre-resolution (`resolveAndValidateAddresses`): resolves ALL A/AAAA
  *    records for the hostname (not just one per family) and validates each one.
  *    Returns the first validated safe IP address.
- * 3. Pinned fetch: the actual HTTP request is made to the pre-validated IP
- *    address directly (not to the hostname), with the original hostname in the
- *    `Host` header so TLS SNI and virtual-host routing continue to work.
+ * 3. Pinned request: the actual HTTPS connection is made to the pre-validated
+ *    IP address (`host` option), while `servername` is set to the original
+ *    hostname so TLS SNI and certificate validation use the correct domain name.
  *    This closes the DNS-rebinding window: even if an attacker flips DNS to a
- *    private IP after the validation step, the fetch goes to the pinned IP.
+ *    private IP after our validation, the socket connects to the pinned IP.
+ *
+ * Why `https.request` instead of `fetch`:
+ *   Node.js `fetch` (undici) ignores the `Host` header override for TLS SNI —
+ *   the SNI extension is always derived from the URL's hostname, not the header.
+ *   When the URL hostname is replaced by a raw IP for DNS-pinning, SNI sends the
+ *   IP string, which does not match the BBB server's TLS certificate (issued for
+ *   the domain name).  `https.request` exposes the `servername` option which
+ *   explicitly controls TLS SNI independently of the connection target — this is
+ *   the only Node.js API that supports DNS-pinned + SNI-correct HTTPS requests.
  *
  * @param rawUrl   The URL to fetch (original hostname form).
- * @param options  Optional RequestInit passed to `fetch`.
  */
-async function safeFetch(rawUrl: string, options?: RequestInit): Promise<Response> {
+async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number; statusText: string; text: () => Promise<string> }> {
   validateExternalUrl(rawUrl);
   const pinnedIp = await resolveAndValidateAddresses(rawUrl);
 
-  // Extract the original hostname for the Host header (TLS SNI / virtual hosting).
   const parsed = new URL(rawUrl);
   const originalHostname = parsed.hostname;
+  const port = parsed.port ? parseInt(parsed.port, 10) : 443;
+  const path = parsed.pathname + parsed.search;
 
-  // Rewrite the URL to use the pinned IP directly.
-  const pinnedUrl = buildPinnedUrl(rawUrl, pinnedIp);
-
-  const headers = new Headers(options?.headers);
-  headers.set("Host", originalHostname);
-
-  return fetch(pinnedUrl, { ...options, headers });
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        // Connect to the pre-validated IP — not the hostname — to pin the socket
+        // and prevent the OS from re-resolving (and potentially swapping) the address.
+        host: pinnedIp,
+        port,
+        path,
+        method: "GET",
+        // servername controls TLS SNI independently of `host`.
+        // The BBB server presents a certificate for its domain name; SNI must
+        // send that domain name so the server selects the correct certificate.
+        servername: originalHostname,
+        // Set the Host header so the BBB server's virtual-host routing picks the
+        // correct vhost (same reason as servername, but at HTTP layer).
+        headers: { Host: originalHostname },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf-8");
+          resolve({
+            ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
+            status: res.statusCode ?? 0,
+            statusText: res.statusMessage ?? "",
+            text: () => Promise.resolve(body),
+          });
+        });
+      }
+    );
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 /**

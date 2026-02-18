@@ -13,6 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  // `req.session` is populated by the app-store route dispatcher in
+  // `apps/web/pages/api/integrations/[...args].ts` before this handler is
+  // invoked (via `req.session = await getServerSession({ req })`).
+  // The guard below handles the case where session is null (unauthenticated).
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }

@@ -300,6 +300,38 @@ describe("assertSafeResolvedIp", () => {
   it("accepts a public IPv6 address", () => {
     expect(() => assertSafeResolvedIp("2001:4860:4860::8888")).not.toThrow();
   });
+
+  // ── 0.0.0.0/8 — "this network" (unroutable) ─────────────────────────────
+  it("rejects 0.0.0.0 (unroutable 'this network' — 0.0.0.0/8)", () => {
+    expect(() => assertSafeResolvedIp("0.0.0.0")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects 0.255.255.255 (still within 0.0.0.0/8)", () => {
+    expect(() => assertSafeResolvedIp("0.255.255.255")).toThrow(/Private|internal/i);
+  });
+
+  // ── fe80::/10 — IPv6 link-local ──────────────────────────────────────────
+  it("rejects fe80::1 (IPv6 link-local fe80::/10)", () => {
+    expect(() => assertSafeResolvedIp("fe80::1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects fe80::dead:beef (IPv6 link-local)", () => {
+    expect(() => assertSafeResolvedIp("fe80::dead:beef")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects febf::1 (still within fe80::/10 — upper bound)", () => {
+    expect(() => assertSafeResolvedIp("febf::1")).toThrow(/Private|internal/i);
+  });
+
+  it("does NOT match fec0::1 (outside fe80::/10 — not link-local)", () => {
+    // fec0:: is the start of the deprecated Site-Local range (fec0::/10).
+    // It is outside the fe80::/10 link-local range tested here.
+    // Note: site-local is deprecated by RFC 3879; fec0::/10 is not currently
+    // caught by any existing check in assertSafeResolvedIp (it is not ULA).
+    // This test documents the current behaviour — a future hardening pass could
+    // add a site-local block if desired.
+    expect(() => assertSafeResolvedIp("fec0::1")).not.toThrow();
+  });
 });
 
 // ─── resolveAndValidateAddresses — DNS rebinding + all-records protection ────

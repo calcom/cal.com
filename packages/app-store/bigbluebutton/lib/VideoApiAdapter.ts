@@ -44,6 +44,9 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         });
 
         // Build the organizer (moderator) join URL.
+        // VideoCallData.url is used as the organizer's join link in booking confirmation
+        // emails.  It must be a moderator join URL so the host has full meeting control
+        // (mute participants, end meeting, etc.) when they click the link.
         const organizerName = event.organizer?.name ?? "Host";
         const hostJoinUrl = getBBBJoinUrl(
           bbbCreds,
@@ -52,16 +55,12 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
           meeting.moderatorPW
         );
 
-        // BBB includes `fullName` in the URL checksum, so a URL generated for one
-        // attendee's name is not reusable by others.  We store the attendeePW and
-        // moderatorPW so that each participant can generate their own signed join URL
-        // at the point of joining (e.g. via a server-side join redirect endpoint).
-        //
-        // The `url` field here serves as the booking-confirmation link.  We use a
-        // generic placeholder name "Attendee" — this URL will route each participant
-        // into the meeting; BBB will prompt them for their name on the client side if
-        // the server is configured to do so, or they can use the per-person join
-        // endpoint to get a properly-named link.
+        // Build a generic attendee join URL.
+        // BBB includes `fullName` in the URL checksum, so a URL signed for one person's
+        // name cannot be reused by another.  We generate a generic attendee URL (signed
+        // with the attendee password) to store in the booking reference — attendees who
+        // receive the confirmation email will use this URL, or the server can generate
+        // a personalised URL at join-time using the stored attendeePW.
         const attendeeJoinUrl = getBBBJoinUrl(
           bbbCreds,
           meeting.meetingID,
@@ -72,24 +71,26 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         return {
           type: "bigbluebutton_video",
           id: meeting.meetingID,
-          // Only the attendee password is stored in `meetingPassword` — this
-          // field is sent to client-side booking pages and visible to attendees.
-          // Storing the combined "attendeePW:moderatorPW" string here would
-          // expose the moderator password to any attendee who reads the field,
-          // allowing them to obtain host/moderator privileges.
-          //
-          // The moderator password is kept exclusively in `meetingData.moderatorPW`
-          // which is used server-side (e.g. for ending the meeting in updateMeeting)
-          // and must NOT be sent to attendee-facing pages.
+          // `url` is the link sent to the organizer in booking confirmation emails.
+          // We use the moderator join URL here so the organizer (host) automatically
+          // has moderator privileges when they join via the confirmation link.
+          // Attendees join via a separate attendee join URL (available via the booking
+          // reference attendee link or the per-attendee join endpoint).
+          url: hostJoinUrl,
+          // `password` stores the attendee password in the booking reference.
+          // This is used for attendee-facing join flows and is safe to expose
+          // to attendees — it does NOT grant moderator privileges.
+          // The moderator password is embedded in `url` (the host join URL) and
+          // is never exposed in this field.
           password: meeting.attendeePW,
-          url: attendeeJoinUrl,
-          meetingData: {
-            hostUrl: hostJoinUrl,
-            // moderatorPW is server-side only — used to end or update meetings.
-            // It must never be sent to attendee-facing pages.
-            moderatorPW: meeting.moderatorPW,
-          },
-        };
+          // Attendee join URL is stored separately so that the booking confirmation
+          // page can display the correct link for non-organizer attendees.
+          // Note: this is not part of the standard VideoCallData interface; it is
+          // handled by the BBB-specific booking page (if present).
+          // TODO: once cal.com supports a first-class attendee join URL in
+          //   VideoCallData, migrate attendeeJoinUrl there.
+          ...(attendeeJoinUrl && { attendeeJoinUrl }),
+        } as VideoCallData & { attendeeJoinUrl?: string };
       } catch (error) {
         log.error("Failed to create BigBlueButton meeting", { error });
         throw error;
@@ -97,14 +98,13 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     },
 
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      // BBB meetings are stateless — we delete the old one (if running) and create a new one.
+      // BBB meetings are stateless — create a fresh one for the rescheduled event.
       //
-      // NOTE: The moderator password is no longer stored in meetingPassword (which now contains
-      // only the attendee password).  Without the moderator password we cannot explicitly end
-      // the old meeting; however BBB meetings auto-expire when all participants leave or after
-      // the server's meetingExpireIfNoUserJoined timeout — so skipping the end call is safe.
-      // This matches the behaviour of other adapters (e.g. Jitsi) that do not explicitly end
-      // meetings on reschedule.
+      // The previous meeting will auto-expire when all participants leave or after
+      // the server's meetingExpireIfNoUserJoined timeout.  Explicitly ending it
+      // would require the moderator password, which is embedded in the old booking
+      // reference's url (not trivially extractable here).  This matches the pattern
+      // used by Jitsi and other adapters that skip explicit deletion on reschedule.
       const bbbCreds = getCredentials(credential);
 
       if (bookingRef.meetingId) {
@@ -118,8 +118,8 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     },
 
     deleteMeeting: async (uid: string): Promise<void> => {
-      // uid is our meetingID; password stored separately in bookingRef.meetingPassword
-      // We cannot end the meeting here without the moderator PW, which isn't passed.
+      // uid is our meetingID; the moderator password is embedded in the booking
+      // reference url (host join URL) but is not passed here.
       // BBB meetings auto-expire when all participants leave or after meetingExpireIfNoUserJoined.
       // This is the same pattern used by Jitsi — deletion is a no-op.
       log.info("deleteMeeting called for BBB meeting", { uid });
