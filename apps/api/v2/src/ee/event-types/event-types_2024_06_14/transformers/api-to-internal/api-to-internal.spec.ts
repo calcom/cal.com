@@ -22,7 +22,6 @@ import type {
   SeatOptionsDisabledSchema,
   SeatOptionsTransformedSchema,
 } from "@calcom/platform-types";
-
 import {
   type CustomField,
   type SystemField,
@@ -685,6 +684,32 @@ describe("transformIntervalLimitsApiToInternal", () => {
       PER_MONTH: 22,
       PER_YEAR: 33,
     };
+    const result = transformIntervalLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
+  it("should handle bookingLimitsCount with disabled: false and valid counts", () => {
+    const input: BookingLimitsCount_2024_06_14 = {
+      day: 5,
+      disabled: false,
+    };
+
+    const expectedOutput = {
+      PER_DAY: 5,
+    };
+    const result = transformIntervalLimitsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+    expect(result).not.toHaveProperty("undefined");
+  });
+
+  it("should handle bookingLimitsCount with disabled: true", () => {
+    const input: BookingLimitsCount_2024_06_14 = {
+      disabled: true,
+    };
+
+    const expectedOutput = {};
     const result = transformIntervalLimitsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
