@@ -1,16 +1,14 @@
 "use client";
 
+import type { BlocklistScope, GroupedBookingReport } from "@calcom/features/blocklist/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { WatchlistType } from "@calcom/prisma/enums";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { DataTableSelectionBar, DataTableWrapper } from "@calcom/web/modules/data-table/components";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-
-import { DataTableSelectionBar, DataTableWrapper } from "@calcom/web/modules/data-table/components";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WatchlistType } from "@calcom/prisma/enums";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
-import type { GroupedBookingReport, BlocklistScope } from "@calcom/features/blocklist/types";
 import { BookingReportDetailsModal } from "./BookingReportDetailsModal";
 import { usePendingReportsColumns } from "./PendingReportsColumns";
 
@@ -96,7 +94,7 @@ export function PendingReportsTable<T extends GroupedBookingReport>({
         paginationMode="standard"
         EmptyView={
           <EmptyScreen
-            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" />}
+            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" alt="" />}
             headline={t("no_pending_reports")}
             className="bg-muted mb-16"
             iconWrapperClassName="bg-default"

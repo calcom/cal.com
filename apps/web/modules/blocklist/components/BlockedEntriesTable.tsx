@@ -1,18 +1,16 @@
 "use client";
 
-import type { RowSelectionState } from "@tanstack/react-table";
-import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
-import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
-
-import { DataTableSelectionBar, DataTableWrapper } from "@calcom/web/modules/data-table/components";
+import type { BlocklistEntry, BlocklistPermissions, BlocklistScope } from "@calcom/features/blocklist/types";
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
-import type { BlocklistEntry, BlocklistPermissions, BlocklistScope } from "@calcom/features/blocklist/types";
+import { DataTableSelectionBar, DataTableWrapper } from "@calcom/web/modules/data-table/components";
+import type { RowSelectionState } from "@tanstack/react-table";
+import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { useBlockedEntriesColumns } from "./BlockedEntriesColumns";
 import { BlocklistEntryDetailsSheet } from "./BlocklistEntryDetailsSheet";
 
@@ -144,7 +142,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
         paginationMode="standard"
         EmptyView={
           <EmptyScreen
-            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" />}
+            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" alt="" />}
             headline={
               searchTerm
                 ? t("no_result_found_for", { searchTerm })
