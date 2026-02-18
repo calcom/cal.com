@@ -73,7 +73,8 @@ describe("SlackAbuseAlerter", () => {
     expect(fieldTexts.some((t: string) => t.includes("85/100"))).toBe(true);
 
     const signalsBlock = blocks.find(
-      (b: { type: string; text?: { text: string } }) => b.type === "section" && b.text?.text?.includes("Signals")
+      (b: { type: string; text?: { text: string } }) =>
+        b.type === "section" && b.text?.text?.includes("Signals")
     );
     expect(signalsBlock.text.text).toContain("redirect_malicious");
     expect(signalsBlock.text.text).toContain("high_booking_velocity");

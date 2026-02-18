@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ABUSE_FLAG_TYPES, ABUSE_SIGNAL_TYPES } from "./constants";
+import { ABUSE_FLAG_TYPES, ABUSE_LOCKED_REASONS, ABUSE_SIGNAL_TYPES } from "./constants";
 
 export const abuseMetadataSchema = z.object({
   // Only signup-time flag types — REDIRECT_DOMAIN is a WatchlistType for scoring, not a flag
@@ -21,4 +21,7 @@ export const abuseMetadataSchema = z.object({
       at: z.string().datetime(),
     })
   ),
+  lastAnalyzedAt: z.string().datetime().nullable(),
+  lockedAt: z.string().datetime().optional(),
+  lockedReason: z.enum(ABUSE_LOCKED_REASONS).optional(),
 });

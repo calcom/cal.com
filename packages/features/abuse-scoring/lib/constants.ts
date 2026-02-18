@@ -49,4 +49,7 @@ export const SIGNUP_FLAG_CAP = 20;
 /** Bookings/hour threshold for Gate 3 velocity check (unflagged accounts) */
 export const VELOCITY_GATE_THRESHOLD = 20;
 
+/** Max recent bookings loaded per user during scoring */
+export const SCORING_BOOKINGS_LIMIT = 200;
+
 export const ABUSE_MONITORING_WINDOW_DAYS = 7;

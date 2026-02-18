@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { UserForScoringDto } from "../dto/scoring.dto";
 import { ABUSE_WEIGHTS, SIGNUP_FLAG_CAP } from "../lib/constants";
@@ -120,7 +120,13 @@ describe("calculateScore", () => {
   it("detects spam keywords in EventType titles", () => {
     const user = buildUser({
       eventTypes: [
-        { id: 1, userId: 1, title: "Free Bitcoin Airdrop", successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+        {
+          id: 1,
+          userId: 1,
+          title: "Free Bitcoin Airdrop",
+          successRedirectUrl: null,
+          forwardParamsSuccessRedirect: null,
+        },
       ],
     });
     const keywords = ["bitcoin", "airdrop"];
