@@ -17,6 +17,7 @@ export default defineConfig({
 
   // Directories containing your tasks
   dirs: [
+    "./abuse-scoring/lib/tasker/trigger",
     "./bookings/lib/tasker/trigger/notifications",
     "./calendars/lib/tasker/trigger",
     "./ee/billing/service/proration/tasker/trigger",
