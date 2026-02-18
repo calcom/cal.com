@@ -10,6 +10,7 @@ import { Button } from "@coss/ui/components/button";
 import { Card, CardPanel } from "@coss/ui/components/card";
 import {
   Dialog,
+  DialogClose,
   DialogHeader,
   DialogPanel,
   DialogPopup,
@@ -68,7 +69,13 @@ function PlanColumn({
           className="mt-4 w-full"
           variant={primaryButton ? "default" : "outline"}
           onClick={onCtaClick}
-          render={<Link href={buttonHref} target={buttonTarget} rel={buttonTarget === "_blank" ? "noopener noreferrer" : undefined} />}>
+          render={
+            <Link
+              href={buttonHref}
+              target={buttonTarget}
+              rel={buttonTarget === "_blank" ? "noopener noreferrer" : undefined}
+            />
+          }>
           <Icon name="circle-arrow-up" />
           <span>{buttonText}</span>
         </Button>
@@ -145,9 +152,15 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
       <DialogTrigger render={children as React.ReactElement} />
       <DialogPopup className="max-w-3xl" showCloseButton={false} bottomStickOnMobile={false}>
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="sm:hidden">{t("upgrade_dialog_title_short")}</DialogTitle>
-            <DialogTitle className="hidden sm:block">{t("upgrade_dialog_title")}</DialogTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center justify-between max-sm:w-full">
+              <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
+              <DialogClose
+                className="sm:hidden"
+                render={<Button size="icon" variant="ghost" />}>
+                <Icon name="x" />
+              </DialogClose>
+            </div>
             <ToggleGroup
               value={[billingPeriod]}
               onValueChange={(value): void => {
