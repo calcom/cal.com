@@ -60,7 +60,7 @@ function PlanColumn({
       <CardPanel className="px-0">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-sm text-emphasis">{name}</h3>
-          {badge && <Badge variant="outline">{badge}</Badge>}
+          {badge && <Badge variant="outline" className="rounded-lg py-0.5 px-2 h-fit!">{badge}</Badge>}
         </div>
         <p className="font-cal mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
         <p className="mt-2 leading-none font-medium text-sm text-subtle h-4">{priceSubtext}</p>
@@ -225,6 +225,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
 
             <PlanColumn
               name={t("organization")}
+              badge={t("upgrade_badge_free_trial")}
               price={orgPrice}
               priceSubtext={t("upgrade_price_per_month_user")}
               description={t("upgrade_plan_org_tagline")}
@@ -265,14 +266,14 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
           <Card className="bg-muted mt-4 py-3 px-4 flex-row justify-between items-center">
             {target === "team" && (
               <div>
-                <p className="font-medium text-sm text-black">{t("individual")}</p>
-                <p className="font-cal mt-1 font-semibold text-black text-2xl leading-none">{t("free")}</p>
+                <p className="font-medium text-sm text-emphasis">{t("individual")}</p>
+                <p className="font-cal mt-1 font-semibold text-emphasis text-2xl leading-none">{t("free")}</p>
               </div>
             )}
             {target === "organization" && (
               <div>
-                <p className="font-medium text-sm text-black">{t("team")}</p>
-                <p className="font-cal mt-1 font-semibold text-black text-2xl leading-none">
+                <p className="font-medium text-sm text-emphasis">{t("team")}</p>
+                <p className="font-cal mt-1 font-semibold text-emphasis text-2xl leading-none">
                   {currentTeamPrice}
                 </p>
               </div>
