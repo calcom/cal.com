@@ -1,5 +1,3 @@
-/* eslint-disable playwright/no-conditional-in-test */
-
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import { describe, expect } from "vitest";
@@ -13,6 +11,22 @@ const CUSTOM_URL_VALIDATION_ERROR_MSG = "url_validation_error";
 const CUSTOM_EMAIL_EXCLUDED_ERROR_MSG = "exclude_emails_match_found_error_message";
 const CUSTOM_EMAIL_REQUIRED_ERROR_MSG = "require_emails_no_match_found_error_message";
 const ZOD_REQUIRED_FIELD_ERROR_MSG = "Required";
+
+function expectResponsesToBe(
+  parsedResponses: z.SafeParseReturnType<typeof getBookingResponsesSchema, unknown>,
+  expected: unknown
+) {
+  expect(parsedResponses.success).toBe(true);
+  expect(parsedResponses.data).toEqual(expected);
+}
+
+function expectParsingToFail(
+  parsedResponses: z.SafeParseReturnType<typeof getBookingResponsesSchema, unknown>,
+  issue: unknown
+) {
+  expect(parsedResponses.success).toBe(false);
+  expect(parsedResponses.error?.issues[0]).toEqual(issue);
+}
 
 describe("getBookingResponsesSchema", () => {
   test(`should parse booking responses`, async ({}) => {
@@ -112,10 +126,8 @@ describe("getBookingResponsesSchema", () => {
         email: "john@example.com",
       });
 
-      expect(parsedResponsesWithJustEmail.success).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
-      expect(parsedResponsesWithJustEmail.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponsesWithJustEmail,
         expect.objectContaining({
           message: "Invalid input",
           path: ["name"],
@@ -151,13 +163,8 @@ describe("getBookingResponsesSchema", () => {
         },
         email: "john@example.com",
       });
-      expect(parsedResponses.success).toBe(true);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      // preprocessing normalizes name to always include lastName (empty string if not provided)
-      expect(parsedResponses.data).toEqual({
+
+      expectResponsesToBe(parsedResponses, {
         name: {
           firstName: "John",
           lastName: "",
@@ -193,12 +200,8 @@ describe("getBookingResponsesSchema", () => {
         name: "",
       });
 
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{name}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
@@ -237,10 +240,8 @@ describe("getBookingResponsesSchema", () => {
         },
       });
 
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{name}Invalid string`,
@@ -319,12 +320,8 @@ describe("getBookingResponsesSchema", () => {
           email: "john@example.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-        expect(parsedResponses.data).toEqual(
+        expectResponsesToBe(
+          parsedResponses,
           expect.objectContaining({
             name: "John Doe",
             email: "john@example.com",
@@ -360,12 +357,8 @@ describe("getBookingResponsesSchema", () => {
           email: "john@example.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-        expect(parsedResponses.data).toEqual(
+        expectResponsesToBe(
+          parsedResponses,
           expect.objectContaining({
             name: "John Doe",
             email: "john@example.com",
@@ -400,12 +393,8 @@ describe("getBookingResponsesSchema", () => {
           email: "john@example.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-        expect(parsedResponses.data).toEqual(
+        expectResponsesToBe(
+          parsedResponses,
           expect.objectContaining({
             name: {
               firstName: "John",
@@ -443,12 +432,8 @@ describe("getBookingResponsesSchema", () => {
           email: "john@example.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-        expect(parsedResponses.data).toEqual(
+        expectResponsesToBe(
+          parsedResponses,
           expect.objectContaining({
             name: {
               firstName: "John",
@@ -486,10 +471,8 @@ describe("getBookingResponsesSchema", () => {
       const parsedResponsesWithJustName = await schema.safeParseAsync({
         name: "John",
       });
-      expect(parsedResponsesWithJustName.success).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-expect-error
-      expect(parsedResponsesWithJustName.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponsesWithJustName,
         expect.objectContaining({
           path: ["email"],
           message: ZOD_REQUIRED_FIELD_ERROR_MSG,
@@ -522,10 +505,8 @@ describe("getBookingResponsesSchema", () => {
         name: "John",
         email: "john",
       });
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           // We don't get zod default email address validation error because `bookingResponses` schema defines email as z.string() only
           // So, the error comes from superRefine in getBookingResponsesSchema. We should change this to zod email validation error
@@ -590,12 +571,8 @@ describe("getBookingResponsesSchema", () => {
           name: "test",
           email: "harry@gmail.com",
         });
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
@@ -628,13 +605,7 @@ describe("getBookingResponsesSchema", () => {
           email: "harry@workmail.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.data).toEqual({
+        expectResponsesToBe(parsedResponses, {
           name: "test",
           email: "harry@workmail.com",
         });
@@ -668,13 +639,7 @@ describe("getBookingResponsesSchema", () => {
           email: "user@test.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.data).toEqual({
+        expectResponsesToBe(parsedResponses, {
           name: "test",
           email: "user@test.com",
         });
@@ -706,13 +671,8 @@ describe("getBookingResponsesSchema", () => {
           email: "user@test.co",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
@@ -747,13 +707,7 @@ describe("getBookingResponsesSchema", () => {
           email: "blocked.com@allowed.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.data).toEqual({
+        expectResponsesToBe(parsedResponses, {
           name: "test",
           email: "blocked.com@allowed.com",
         });
@@ -785,13 +739,8 @@ describe("getBookingResponsesSchema", () => {
           email: "anik@cal.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
@@ -825,13 +774,8 @@ describe("getBookingResponsesSchema", () => {
           email: "anik@gmail.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
@@ -865,13 +809,8 @@ describe("getBookingResponsesSchema", () => {
           email: "test@gmail.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_EXCLUDED_ERROR_MSG}`,
@@ -905,13 +844,8 @@ describe("getBookingResponsesSchema", () => {
           email: "test@test.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
@@ -944,13 +878,7 @@ describe("getBookingResponsesSchema", () => {
           email: "test@gmail.com",
         });
 
-        expect(parsedResponses.success).toBe(true);
-
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.data).toEqual({
+        expectResponsesToBe(parsedResponses, {
           name: "test",
           email: "test@gmail.com",
         });
@@ -984,13 +912,8 @@ describe("getBookingResponsesSchema", () => {
           email: "user@test.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
@@ -1024,13 +947,7 @@ describe("getBookingResponsesSchema", () => {
           email: "user@test.co",
         });
 
-        expect(parsedResponses.success).toBe(true);
-
-        if (!parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.data).toEqual({
+        expectResponsesToBe(parsedResponses, {
           name: "test",
           email: "user@test.co",
         });
@@ -1063,13 +980,8 @@ describe("getBookingResponsesSchema", () => {
           email: "required.com@other.com",
         });
 
-        expect(parsedResponses.success).toBe(false);
-
-        if (parsedResponses.success) {
-          throw new Error("Should not reach here");
-        }
-
-        expect(parsedResponses.error.issues[0]).toEqual(
+        expectParsingToFail(
+          parsedResponses,
           expect.objectContaining({
             code: "custom",
             message: `{email}${CUSTOM_EMAIL_REQUIRED_ERROR_MSG}`,
@@ -1106,11 +1018,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testPhone: "1234567890",
       });
-      expect(parsedResponses.success).toBe(false);
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{testPhone}${CUSTOM_PHONE_VALIDATION_ERROR_MSG}`,
@@ -1143,11 +1052,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testPhone: "+919999999999",
       });
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testPhone: "+919999999999",
@@ -1181,11 +1086,7 @@ describe("getBookingResponsesSchema", () => {
         // Space can come due to libraries considering + to be space
         testPhone: " 919999999999",
       });
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testPhone: "+919999999999",
@@ -1197,11 +1098,7 @@ describe("getBookingResponsesSchema", () => {
         // Space can come due to libraries considering + to be space
         testPhone: "     919999999999",
       });
-      expect(parsedResponses2.success).toBe(true);
-      if (!parsedResponses2.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses2.data).toEqual({
+      expectResponsesToBe(parsedResponses2, {
         email: "test@test.com",
         name: "test",
         testPhone: "+919999999999",
@@ -1234,12 +1131,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testPhone: "",
       });
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{testPhone}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
@@ -1272,12 +1165,8 @@ describe("getBookingResponsesSchema", () => {
         email: "test@test.com",
         name: "test",
       });
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{testPhone}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
@@ -1312,11 +1201,8 @@ describe("getBookingResponsesSchema", () => {
       name: "test",
       invalidField: "1234567890",
     });
-    expect(parsedResponses.success).toBe(false);
-    if (parsedResponses.success) {
-      throw new Error("Should not reach here");
-    }
-    expect(parsedResponses.error.issues[0]).toEqual(
+    expectParsingToFail(
+      parsedResponses,
       expect.objectContaining({
         code: "custom",
         message: `Can't parse unknown booking field type: unknown-field-type`,
@@ -1351,12 +1237,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testEmailsList: ["first@example.com"],
       });
-      expect(parsedResponses.success).toBe(true);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testEmailsList: ["first@example.com"],
@@ -1389,12 +1270,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testEmailsList: ["first@example.com", "invalid@example"],
       });
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{testEmailsList}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
@@ -1428,11 +1305,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testEmailsList: "first@example.com",
       });
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testEmailsList: ["first@example.com"],
@@ -1467,12 +1340,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testMultiselect: ["option1", "option-2"],
       });
-      expect(parsedResponses.success).toBe(true);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testMultiselect: ["option1", "option-2"],
@@ -1504,12 +1372,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testMultiselect: "option1",
       });
-      expect(parsedResponses.success).toBe(true);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         testMultiselect: ["option1"],
@@ -1541,14 +1404,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         testMultiselect: [1, 2],
       });
-      expect(parsedResponses.success).toBe(false);
-
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{testMultiselect}Invalid array of strings`,
@@ -1592,11 +1449,8 @@ describe("getBookingResponsesSchema", () => {
           optionValue: " 9999999999",
         }),
       });
-      expect(parsedResponses.success).toBe(false);
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{radioInput}${CUSTOM_PHONE_VALIDATION_ERROR_MSG}`,
@@ -1639,11 +1493,7 @@ describe("getBookingResponsesSchema", () => {
           optionValue: " 919999999999",
         }),
       });
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         radioInput: {
@@ -1682,11 +1532,7 @@ describe("getBookingResponsesSchema", () => {
         url: "www.example.com",
       });
       // Expect success because our logic now handles missing protocol
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         url: "www.example.com",
@@ -1719,11 +1565,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         url: "http:/nope",
       });
-      expect(parsedResponses.success).toBe(false);
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{url}${CUSTOM_URL_VALIDATION_ERROR_MSG}`,
@@ -1757,11 +1600,7 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         url: "https://8x8.vc/company",
       });
-      expect(parsedResponses.success).toBe(true);
-      if (!parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.data).toEqual({
+      expectResponsesToBe(parsedResponses, {
         email: "test@test.com",
         name: "test",
         url: "https://8x8.vc/company",
@@ -1794,12 +1633,8 @@ describe("getBookingResponsesSchema", () => {
         name: "test",
         url: "",
       });
-      expect(parsedResponses.success).toBe(false);
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (parsedResponses.success) {
-        throw new Error("Should not reach here");
-      }
-      expect(parsedResponses.error.issues[0]).toEqual(
+      expectParsingToFail(
+        parsedResponses,
         expect.objectContaining({
           code: "custom",
           message: `{url}${CUSTOM_REQUIRED_FIELD_ERROR_MSG}`,
@@ -2528,14 +2363,12 @@ describe("getBookingResponsesPartialSchema - Prefill validation", () => {
       optionalEmail: "not-a-valid-email",
     });
 
-    expect(parsedResponses.success).toBe(false);
-    if (!parsedResponses.success) {
-      expect(parsedResponses.error.issues[0]).toEqual(
-        expect.objectContaining({
-          message: `{optionalEmail}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
-        })
-      );
-    }
+    expectParsingToFail(
+      parsedResponses,
+      expect.objectContaining({
+        message: `{optionalEmail}${CUSTOM_EMAIL_VALIDATION_ERROR_MSG}`,
+      })
+    );
   });
 
   test(`optional email field should pass if left empty`, async () => {
