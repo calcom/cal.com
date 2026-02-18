@@ -1,6 +1,7 @@
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingService";
 import { StubTeamBillingService } from "./StubTeamBillingService";
 import { TeamBillingService } from "./TeamBillingService";
@@ -11,6 +12,7 @@ export interface ITeamBillingServiceFactoryDeps {
   teamBillingDataRepository: ITeamBillingDataRepository;
   billingRepositoryFactory: (isOrganization: boolean) => IBillingRepository;
   isTeamBillingEnabled: boolean;
+  seatBillingStrategyFactory: SeatBillingStrategyFactory;
 }
 
 export class TeamBillingServiceFactory {
@@ -31,6 +33,7 @@ export class TeamBillingServiceFactory {
       billingProviderService: this.deps.billingProviderService,
       teamBillingDataRepository: this.deps.teamBillingDataRepository,
       billingRepository,
+      seatBillingStrategyFactory: this.deps.seatBillingStrategyFactory,
     });
   }
 

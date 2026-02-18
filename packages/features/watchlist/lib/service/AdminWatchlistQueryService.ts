@@ -30,6 +30,7 @@ export interface ListBookingReportsInput {
   searchTerm?: string;
   filters?: ListBookingReportsFilters;
   systemFilters?: SystemBookingReportsFilters;
+  sortBy?: "createdAt" | "reportCount";
 }
 
 type Deps = {
@@ -115,12 +116,13 @@ export class AdminWatchlistQueryService {
   }
 
   async listBookingReports(input: ListBookingReportsInput) {
-    const result = await this.deps.bookingReportRepo.findAllReportedBookings({
+    const result = await this.deps.bookingReportRepo.findGroupedReportedBookings({
       skip: input.offset,
       take: input.limit,
       searchTerm: input.searchTerm,
       filters: input.filters,
       systemFilters: input.systemFilters,
+      sortBy: input.sortBy,
     });
 
     return result;

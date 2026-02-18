@@ -1,6 +1,5 @@
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { Resource, CustomAction } from "../domain/types/permission-registry";
+import { CustomAction, Resource } from "../domain/types/permission-registry";
 import { getSpecificPermissions } from "./resource-permissions";
 
 export interface MemberPermissions {
@@ -9,10 +8,11 @@ export interface MemberPermissions {
   canChangeMemberRole: boolean;
   canRemove: boolean;
   canImpersonate: boolean;
+  canResetPassword?: boolean;
   canEditAttributesForUser?: boolean;
   canViewAttributes?: boolean;
 }
-  
+
 interface TeamWithMembership {
   id: number;
   isPrivate: boolean;

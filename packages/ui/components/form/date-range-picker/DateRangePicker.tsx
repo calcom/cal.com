@@ -1,11 +1,9 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import * as Popover from "@radix-ui/react-popover";
 import { format, isBefore, isSameDay } from "date-fns";
-import { useState, useMemo, type HTMLAttributes } from "react";
-
-import classNames from "@calcom/ui/classNames";
-
+import { type HTMLAttributes, useMemo, useState } from "react";
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
 import { calculateNewDateRange } from "./dateRangeLogic";
@@ -17,6 +15,9 @@ type DatePickerWithRangeProps = {
   minDate?: Date | null;
   maxDate?: Date;
   withoutPopover?: boolean;
+  popoverModal?: boolean;
+  popoverOpen?: boolean;
+  onPopoverOpenChange?: (open: boolean) => void;
   "data-testid"?: string;
   strictlyBottom?: boolean;
   allowPastDates?: boolean;
@@ -30,6 +31,9 @@ export function DatePickerWithRange({
   onDatesChange,
   disabled,
   withoutPopover,
+  popoverModal = true,
+  popoverOpen,
+  onPopoverOpenChange,
   "data-testid": testId,
   strictlyBottom,
   allowPastDates = false,
@@ -56,7 +60,7 @@ export function DatePickerWithRange({
     setHoveredDate(undefined);
   }
 
-  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
+  const fromDate = allowPastDates && minDate === null ? undefined : (minDate ?? new Date());
 
   const hoverRangeModifier = useMemo(() => {
     if (!dates.startDate || dates.endDate || !hoveredDate) {
@@ -97,7 +101,7 @@ export function DatePickerWithRange({
   return (
     <div className={classNames("grid gap-2", className)}>
       {/* modal prop required for iOS compatibility when nested inside Dialog modals */}
-      <Popover.Root modal>
+      <Popover.Root modal={popoverModal} open={popoverOpen} onOpenChange={onPopoverOpenChange}>
         <Popover.Trigger asChild>
           <Button
             data-testid="date-range"

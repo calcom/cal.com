@@ -21,7 +21,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -42,7 +42,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { getTimeShiftFlags, getFirstShiftFlags } from "@calcom/lib/timeShift";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { AssignmentReasonEnum, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+
+import assignmentReasonBadgeTitleMap from "@calcom/web/lib/booking/assignmentReasonBadgeTitleMap";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
@@ -52,9 +54,17 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import {
+  CalendarIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ExternalLinkIcon,
+  XIcon,
+} from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -201,6 +211,7 @@ export default function Success(props: PageProps) {
   const defaultRating = validateRating(rating);
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [isRoutingTraceSheetOpen, setIsRoutingTraceSheetOpen] = useState(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -472,7 +483,7 @@ export default function Success(props: PageProps) {
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
-            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            <ChevronLeftIcon className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -532,12 +543,12 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
-                          <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
                         {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          <CalendarIcon className="text-emphasis h-5 w-5" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        {isCancelled && <XIcon className="h-5 w-5 text-red-600 dark:text-red-200" />}
                       </div>
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
@@ -764,6 +775,36 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {canViewHiddenData &&
+                          bookingInfo.assignmentReason &&
+                          bookingInfo.assignmentReason.length > 0 &&
+                          bookingInfo.assignmentReason[0].reasonEnum && (
+                            <>
+                              <div className="mt-9 font-medium">{t("assignment_reason")}</div>
+                              <div className="col-span-2 mb-2 mt-9">
+                                <Badge
+                                  variant="gray"
+                                  className="mb-2 cursor-pointer hover:opacity-80"
+                                  onClick={() => setIsRoutingTraceSheetOpen(true)}>
+                                  {t(
+                                    assignmentReasonBadgeTitleMap(
+                                      bookingInfo.assignmentReason[0].reasonEnum as AssignmentReasonEnum
+                                    )
+                                  )}
+                                </Badge>
+                                {bookingInfo.assignmentReason[0].reasonString && (
+                                  <p className="text-muted wrap-break-word text-sm">
+                                    {bookingInfo.assignmentReason[0].reasonString}
+                                  </p>
+                                )}
+                                <RoutingTraceSheet
+                                  isOpen={isRoutingTraceSheetOpen}
+                                  setIsOpen={setIsRoutingTraceSheetOpen}
+                                  bookingUid={bookingInfo.uid}
+                                />
+                              </div>
+                            </>
+                          )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {
@@ -1138,7 +1179,7 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
           <Link href={`/booking/${rescheduledToUid}`}>
             <div className="flex items-center gap-1">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <ExternalLinkIcon className="h-4 w-4" />
             </div>
           </Link>
         </span>
@@ -1164,7 +1205,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <Icon name="external-link" className="text-default inline h-4 w-4" />
+      <ExternalLinkIcon className="text-default inline h-4 w-4" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>

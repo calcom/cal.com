@@ -134,7 +134,8 @@ describe("Feature Opt-In PBAC Procedures", () => {
       permissions.forEach(({ permission, operation }) => {
         it(`should use ${permission} for ${operation} operations`, async () => {
           createTeamPbacProcedure(permission);
-          const middleware = mockAuthedProcedure.use.mock.calls[mockAuthedProcedure.use.mock.calls.length - 1][0];
+          const middleware =
+            mockAuthedProcedure.use.mock.calls[mockAuthedProcedure.use.mock.calls.length - 1][0];
 
           mockCheckPermission.mockResolvedValue(true);
 
@@ -298,7 +299,8 @@ describe("Feature Opt-In PBAC Procedures", () => {
       permissions.forEach(({ permission, operation }) => {
         it(`should use ${permission} for ${operation} operations`, async () => {
           createOrgPbacProcedure(permission);
-          const middleware = mockAuthedProcedure.use.mock.calls[mockAuthedProcedure.use.mock.calls.length - 1][0];
+          const middleware =
+            mockAuthedProcedure.use.mock.calls[mockAuthedProcedure.use.mock.calls.length - 1][0];
 
           const mockCtx = {
             user: {

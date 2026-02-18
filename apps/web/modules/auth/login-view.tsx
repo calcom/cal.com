@@ -9,9 +9,9 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
+import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { LastUsed, useLastUsed } from "@calcom/features/auth/lib/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
@@ -40,7 +40,7 @@ interface LoginValues {
 }
 
 const GoogleIcon = () => (
-  <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
+  <img className="mr-2 w-4 h-4 text-subtle" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -93,8 +93,12 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
+  const signupUrl = callbackUrl
+    ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
+    : `${WEBSITE_URL}/signup`;
+
   const LoginFooter = (
-    <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+    <Link href={signupUrl} className="font-medium text-brand-500">
       {t("dont_have_an_account")}
     </Link>
   );
@@ -187,8 +191,8 @@ export default function Login({
               ? TwoFactorFooter
               : ExternalTotpFooter
             : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false"
-            ? LoginFooter
-            : null
+              ? LoginFooter
+              : null
         }>
         <FormProvider {...methods}>
           {!twoFactorRequired && (
@@ -197,7 +201,7 @@ export default function Login({
                 {isGoogleLoginEnabled && (
                   <Button
                     color="primary"
-                    className="w-full justify-center"
+                    className="justify-center w-full"
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     CustomStartIcon={<GoogleIcon />}
@@ -223,12 +227,12 @@ export default function Login({
               </div>
               {(isGoogleLoginEnabled || displaySSOLogin) && (
                 <div className="my-8">
-                  <div className="relative flex items-center">
-                    <div className="border-subtle grow border-t" />
-                    <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
+                  <div className="flex relative items-center">
+                    <div className="border-t border-subtle grow" />
+                    <span className="mx-2 text-sm font-normal leading-none text-subtle shrink">
                       {t("or").toLocaleLowerCase()}
                     </span>
-                    <div className="border-subtle grow border-t" />
+                    <div className="border-t border-subtle grow" />
                   </div>
                 </div>
               )}
@@ -240,7 +244,10 @@ export default function Login({
               <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
             </div>
             <div className="stack-y-6">
-              <div className={classNames("stack-y-6", { hidden: twoFactorRequired })}>
+              <div
+                className={classNames("stack-y-6", {
+                  hidden: twoFactorRequired,
+                })}>
                 <EmailField
                   id="email"
                   label={t("email_address")}
@@ -262,7 +269,7 @@ export default function Login({
                     <Link
                       href="/auth/forgot-password"
                       tabIndex={-1}
-                      className="text-default text-sm font-medium">
+                      className="text-sm font-medium text-default">
                       {t("forgot")}
                     </Link>
                   </div>
@@ -276,7 +283,7 @@ export default function Login({
                 type="submit"
                 color="secondary"
                 disabled={formState.isSubmitting}
-                className="w-full justify-center">
+                className="justify-center w-full">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                 {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-gray-600" />}
               </Button>
