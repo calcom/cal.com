@@ -7,16 +7,19 @@
  *  - ID registry: reordering/renaming does not reassign IDs; new fields get new IDs
  *  - Type lock: when hasResponses, existing fields get editable:"system-but-optional"
  *    and the type-revert guard applies
+ *
+ * These tests import the real production implementations from formEditUtils.ts so
+ * that tests always stay in sync with the production code.
  */
 
 import { v4 as uuidv4 } from "uuid";
 
-// ─── Inline the adapter functions under test ──────────────────────────────────
-// We cannot import them directly because the module is a React component file
-// with browser-only imports (useLocale, FormBuilder, etc.).  Instead we
-// duplicate the pure utility functions here so they can run in a Node test env.
-// If these functions are ever extracted to a separate utils file, the tests can
-// import from there directly.
+// The production adapter functions — imported directly so tests cannot diverge.
+// formEditUtils.ts only has Node-compatible imports (no browser/React dependencies).
+import { toFormBuilderField, toRoutingField } from "./formEditUtils";
+import type { RoutingField, FormBuilderField } from "./formEditUtils";
+
+// ─── Local narrow types for test fixtures ─────────────────────────────────────
 
 type RoutingFieldBase = {
   id: string;
@@ -34,83 +37,9 @@ type RouterRoutingField = RoutingFieldBase & {
   routerField?: RoutingFieldBase;
 };
 
-type RoutingField = RoutingFieldBase | RouterRoutingField;
-
-type FormBuilderField = {
-  name: string;
-  label: string;
-  type: string;
-  required?: boolean;
-  placeholder?: string;
-  options?: { label: string; value: string }[];
-  editable?: string;
-  sources?: { label: string; type: string; id: string; fieldRequired: boolean }[];
-};
-
-function getFieldIdentifier(label: string): string {
-  return label.toLowerCase().replace(/\s+/g, "_");
-}
-
-function toFormBuilderField(field: RoutingField, lockType = false): FormBuilderField {
-  const name = field.identifier
-    ? field.identifier
-    : getFieldIdentifier(field.label ?? "").toLowerCase();
-
-  return {
-    name,
-    label: field.label ?? "",
-    type: (field.type ?? "text") as FormBuilderField["type"],
-    required: field.required ?? false,
-    placeholder: field.placeholder ?? "",
-    options: field.options?.map((opt) => ({
-      label: opt.label,
-      value: opt.id ?? opt.label,
-    })),
-    editable: lockType ? "system-but-optional" : "user",
-    sources: [
-      {
-        label: "User",
-        type: "user" as const,
-        id: "user",
-        fieldRequired: field.required ?? false,
-      },
-    ],
-  };
-}
-
-function toRoutingField(
-  builderField: FormBuilderField,
-  originalId?: string,
-  originalRoutingField?: RoutingField
-): RoutingField {
-  const bf = builderField;
-
-  const base: RoutingFieldBase = {
-    id: originalId ?? uuidv4(),
-    label: bf.label ?? bf.name,
-    identifier: bf.name,
-    type: bf.type,
-    required: bf.required ?? false,
-    placeholder: bf.placeholder ?? "",
-    options: bf.options?.map((opt) => ({ label: opt.label, id: opt.value })),
-  };
-
-  if (originalRoutingField && "routerId" in originalRoutingField) {
-    const routerField = originalRoutingField as RouterRoutingField;
-    return {
-      ...base,
-      routerId: routerField.routerId,
-      ...(routerField.router !== undefined && { router: routerField.router }),
-      ...(routerField.routerField !== undefined && { routerField: routerField.routerField }),
-    } as RoutingField;
-  }
-
-  return base;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeRoutingField(overrides: Partial<RoutingFieldBase> = {}): RoutingFieldBase {
+function makeRoutingField(overrides: Partial<RoutingFieldBase> = {}): RoutingField {
   return {
     id: uuidv4(),
     label: "Full Name",
@@ -119,10 +48,10 @@ function makeRoutingField(overrides: Partial<RoutingFieldBase> = {}): RoutingFie
     required: false,
     placeholder: "",
     ...overrides,
-  };
+  } as RoutingField;
 }
 
-function makeRouterRoutingField(overrides: Partial<RouterRoutingField> = {}): RouterRoutingField {
+function makeRouterRoutingField(overrides: Partial<RouterRoutingField> = {}): RoutingField {
   return {
     id: uuidv4(),
     label: "Department",
@@ -139,7 +68,7 @@ function makeRouterRoutingField(overrides: Partial<RouterRoutingField> = {}): Ro
       type: "select",
     },
     ...overrides,
-  };
+  } as RoutingField;
 }
 
 // ─── toFormBuilderField tests ─────────────────────────────────────────────────
@@ -195,7 +124,7 @@ describe("toFormBuilderField", () => {
   });
 
   it("handles router fields — type comes from routerField.type (or field.type)", () => {
-    const routerField = makeRouterRoutingField({ type: "select" });
+    const routerField = makeRouterRoutingField({ type: "select" } as any);
     const bf = toFormBuilderField(routerField);
     expect(bf.type).toBe("select");
   });
@@ -206,19 +135,19 @@ describe("toFormBuilderField", () => {
 describe("toRoutingField", () => {
   it("uses provided originalId, not a new UUID", () => {
     const stableId = uuidv4();
-    const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" };
+    const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
     const rf = toRoutingField(bf, stableId) as RoutingFieldBase;
     expect(rf.id).toBe(stableId);
   });
 
   it("generates a UUID when originalId is not provided", () => {
-    const bf: FormBuilderField = { name: "email", label: "Email", type: "email" };
+    const bf: FormBuilderField = { name: "email", label: "Email", type: "email" } as FormBuilderField;
     const rf = toRoutingField(bf) as RoutingFieldBase;
     expect(rf.id).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it("preserves required from builder field", () => {
-    const bf: FormBuilderField = { name: "phone", label: "Phone", type: "phone", required: true };
+    const bf: FormBuilderField = { name: "phone", label: "Phone", type: "phone", required: true } as FormBuilderField;
     const rf = toRoutingField(bf) as RoutingFieldBase;
     expect(rf.required).toBe(true);
   });
@@ -232,7 +161,7 @@ describe("toRoutingField", () => {
         { label: "Eng", value: "opt-1" },
         { label: "Mkt", value: "opt-2" },
       ],
-    };
+    } as FormBuilderField;
     const rf = toRoutingField(bf) as RoutingFieldBase;
     expect(rf.options).toEqual([
       { label: "Eng", id: "opt-1" },
@@ -241,45 +170,45 @@ describe("toRoutingField", () => {
   });
 
   it("sets identifier from builder field name", () => {
-    const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" };
+    const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
     const rf = toRoutingField(bf) as RoutingFieldBase;
     expect(rf.identifier).toBe("full_name");
   });
 
   describe("router field metadata preservation", () => {
     it("preserves routerId from original routing field", () => {
-      const original = makeRouterRoutingField({ routerId: "router-123" });
-      const bf: FormBuilderField = { name: "department", label: "Department", type: "select" };
-      const rf = toRoutingField(bf, original.id, original) as RouterRoutingField;
+      const original = makeRouterRoutingField({ routerId: "router-123" } as any);
+      const bf: FormBuilderField = { name: "department", label: "Department", type: "select" } as FormBuilderField;
+      const rf = toRoutingField(bf, (original as RoutingFieldBase).id, original) as RouterRoutingField;
       expect(rf.routerId).toBe("router-123");
     });
 
     it("preserves router metadata from original routing field", () => {
       const original = makeRouterRoutingField();
-      const bf: FormBuilderField = { name: "department", label: "Department", type: "select" };
-      const rf = toRoutingField(bf, original.id, original) as RouterRoutingField;
-      expect(rf.router).toEqual(original.router);
-      expect(rf.routerField).toEqual(original.routerField);
+      const bf: FormBuilderField = { name: "department", label: "Department", type: "select" } as FormBuilderField;
+      const rf = toRoutingField(bf, (original as RoutingFieldBase).id, original) as RouterRoutingField;
+      expect(rf.router).toEqual((original as RouterRoutingField).router);
+      expect(rf.routerField).toEqual((original as RouterRoutingField).routerField);
     });
 
     it("does NOT add router properties for non-router fields", () => {
       const original = makeRoutingField();
-      const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" };
-      const rf = toRoutingField(bf, original.id, original) as RouterRoutingField;
+      const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
+      const rf = toRoutingField(bf, (original as RoutingFieldBase).id, original) as RouterRoutingField;
       expect((rf as any).routerId).toBeUndefined();
       expect((rf as any).router).toBeUndefined();
     });
 
     it("preserves routerId even when router/routerField are absent", () => {
-      const original: RouterRoutingField = {
+      const original: RoutingField = {
         id: uuidv4(),
         label: "Dept",
         identifier: "dept",
         type: "select",
         routerId: "router-abc",
-      };
-      const bf: FormBuilderField = { name: "dept", label: "Dept", type: "select" };
-      const rf = toRoutingField(bf, original.id, original) as RouterRoutingField;
+      } as RoutingField;
+      const bf: FormBuilderField = { name: "dept", label: "Dept", type: "select" } as FormBuilderField;
+      const rf = toRoutingField(bf, (original as RoutingFieldBase).id, original) as RouterRoutingField;
       expect(rf.routerId).toBe("router-abc");
       expect((rf as any).router).toBeUndefined();
     });
@@ -295,15 +224,15 @@ describe("ID registry behaviour", () => {
     const fieldB = makeRoutingField({ label: "Field B", identifier: "field_b", id: "id-b" });
 
     const registry = new Map([
-      ["field_a", fieldA.id],
-      ["field_b", fieldB.id],
+      ["field_a", (fieldA as RoutingFieldBase).id],
+      ["field_b", (fieldB as RoutingFieldBase).id],
     ]);
 
     // After reorder: field_b comes first, field_a second.
     // The registry key is the identifier, so IDs don't shift with position.
     const reorderedFields: FormBuilderField[] = [
-      { name: "field_b", label: "Field B", type: "text" },
-      { name: "field_a", label: "Field A", type: "text" },
+      { name: "field_b", label: "Field B", type: "text" } as FormBuilderField,
+      { name: "field_a", label: "Field A", type: "text" } as FormBuilderField,
     ];
 
     const result = reorderedFields.map((bf) => {
@@ -321,15 +250,15 @@ describe("ID registry behaviour", () => {
     const fieldC = makeRoutingField({ label: "Field C", identifier: "field_c", id: "id-c" });
 
     const registry = new Map([
-      ["field_a", fieldA.id],
-      ["field_b", fieldB.id],
-      ["field_c", fieldC.id],
+      ["field_a", (fieldA as RoutingFieldBase).id],
+      ["field_b", (fieldB as RoutingFieldBase).id],
+      ["field_c", (fieldC as RoutingFieldBase).id],
     ]);
 
     // Field B is deleted; remaining fields should keep their IDs
     const remaining: FormBuilderField[] = [
-      { name: "field_a", label: "Field A", type: "text" },
-      { name: "field_c", label: "Field C", type: "text" },
+      { name: "field_a", label: "Field A", type: "text" } as FormBuilderField,
+      { name: "field_c", label: "Field C", type: "text" } as FormBuilderField,
     ];
 
     const result = remaining.map((bf) => {
@@ -344,7 +273,7 @@ describe("ID registry behaviour", () => {
   it("assigns a new UUID for a genuinely new field (identifier not in registry)", () => {
     const registry = new Map([["existing_field", "id-existing"]]);
 
-    const newField: FormBuilderField = { name: "new_field", label: "New Field", type: "text" };
+    const newField: FormBuilderField = { name: "new_field", label: "New Field", type: "text" } as FormBuilderField;
 
     if (!registry.has(newField.name)) {
       registry.set(newField.name, uuidv4());
@@ -361,7 +290,7 @@ describe("ID registry behaviour", () => {
     // This is acceptable: the old RAQB condition was keyed to the old identifier.
     const registry = new Map([["old_name", "id-old"]]);
 
-    const renamedField: FormBuilderField = { name: "new_name", label: "New Name", type: "text" };
+    const renamedField: FormBuilderField = { name: "new_name", label: "New Name", type: "text" } as FormBuilderField;
 
     if (!registry.has(renamedField.name)) {
       registry.set(renamedField.name, uuidv4());
@@ -398,13 +327,13 @@ describe("Type lock when hasResponses", () => {
     const originalType = "text";
     const originalTypes = new Map([["full_name", originalType]]);
 
-    const mutatedBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" };
+    const mutatedBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" } as FormBuilderField;
 
     // Guard: revert the type to the original
     let resolvedBf = mutatedBf;
     const hasResponses = true;
     if (hasResponses && originalTypes.has(mutatedBf.name)) {
-      const lockedType = originalTypes.get(mutatedBf.name) as string;
+      const lockedType = originalTypes.get(mutatedBf.name) as FormBuilderField["type"];
       if (resolvedBf.type !== lockedType) {
         resolvedBf = { ...resolvedBf, type: lockedType };
       }
@@ -417,12 +346,12 @@ describe("Type lock when hasResponses", () => {
   it("type-revert guard: does not affect new fields not in original registry", () => {
     const originalTypes = new Map([["existing_field", "text"]]);
 
-    const newField: FormBuilderField = { name: "brand_new", label: "Brand New", type: "select" };
+    const newField: FormBuilderField = { name: "brand_new", label: "Brand New", type: "select" } as FormBuilderField;
 
     let resolvedBf = newField;
     const hasResponses = true;
     if (hasResponses && originalTypes.has(newField.name)) {
-      const lockedType = originalTypes.get(newField.name) as string;
+      const lockedType = originalTypes.get(newField.name) as FormBuilderField["type"];
       if (resolvedBf.type !== lockedType) {
         resolvedBf = { ...resolvedBf, type: lockedType };
       }
@@ -435,12 +364,12 @@ describe("Type lock when hasResponses", () => {
   it("type-revert guard: preserves type when it matches original (no unnecessary mutation)", () => {
     const originalTypes = new Map([["full_name", "text"]]);
 
-    const sameBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" };
+    const sameBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
 
     let resolvedBf = sameBf;
     const hasResponses = true;
     if (hasResponses && originalTypes.has(sameBf.name)) {
-      const lockedType = originalTypes.get(sameBf.name) as string;
+      const lockedType = originalTypes.get(sameBf.name) as FormBuilderField["type"];
       if (resolvedBf.type !== lockedType) {
         resolvedBf = { ...resolvedBf, type: lockedType };
       }
