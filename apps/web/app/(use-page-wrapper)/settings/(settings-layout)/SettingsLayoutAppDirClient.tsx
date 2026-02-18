@@ -155,7 +155,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         {
           name: "admin_api",
-          href: "/settings/organizations/admin-api",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
+          isExternalLink: true,
           trackingMetadata: { section: "developer", page: "admin_api" },
         },
         // TODO: Add profile level for embeds
