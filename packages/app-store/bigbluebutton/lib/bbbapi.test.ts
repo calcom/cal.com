@@ -1,4 +1,4 @@
-import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse } from "./bbbapi";
+import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl } from "./bbbapi";
 
 describe("computeChecksum", () => {
   it("produces expected sha256 checksum for a known input", () => {
@@ -112,5 +112,117 @@ describe("parseXmlResponse", () => {
     expect(result.meetingID).toBe("my-meeting-id");
     expect(result.attendeePW).toBe("attendee-pw");
     expect(result.moderatorPW).toBe("moderator-pw");
+  });
+
+  it("parses tags with attributes (e.g. <meetings type='array'>)", () => {
+    // P2 fix: regex previously failed for tags with attributes because the
+    // back-reference \\1 had to match the full opening tag string including attrs.
+    const xml = `
+      <response>
+        <returncode>SUCCESS</returncode>
+        <meetings type="array">
+          <meeting>test-meeting</meeting>
+        </meetings>
+        <messageKey type="info">noMeetings</messageKey>
+      </response>
+    `;
+    const result = parseXmlResponse(xml);
+    expect(result.returncode).toBe("SUCCESS");
+    // Tags with attributes should now be parsed correctly by tag name
+    expect(result.messageKey).toBe("noMeetings");
+  });
+
+  it("parses nested simple tags within attributed parent (picks up leaf text nodes)", () => {
+    const xml = `
+      <response type="json">
+        <returncode>SUCCESS</returncode>
+        <version lang="en">2.0</version>
+      </response>
+    `;
+    const result = parseXmlResponse(xml);
+    expect(result.returncode).toBe("SUCCESS");
+    expect(result.version).toBe("2.0");
+  });
+});
+
+describe("validateExternalUrl", () => {
+  it("accepts a valid public HTTPS URL", () => {
+    expect(() => validateExternalUrl("https://bbb.example.com")).not.toThrow();
+  });
+
+  it("rejects HTTP (non-HTTPS) URLs", () => {
+    expect(() => validateExternalUrl("http://bbb.example.com")).toThrow(/Only HTTPS/);
+  });
+
+  it("rejects localhost", () => {
+    expect(() => validateExternalUrl("https://localhost/bbb")).toThrow(/[Ll]oopback|localhost/);
+  });
+
+  it("rejects IPv4 loopback (127.x.x.x)", () => {
+    expect(() => validateExternalUrl("https://127.0.0.1/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 private IPv4 10.x.x.x", () => {
+    expect(() => validateExternalUrl("https://10.0.0.1/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 private IPv4 172.16.x.x", () => {
+    expect(() => validateExternalUrl("https://172.16.0.1/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 private IPv4 192.168.x.x", () => {
+    expect(() => validateExternalUrl("https://192.168.1.1/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects link-local 169.254.x.x (AWS IMDS)", () => {
+    expect(() => validateExternalUrl("https://169.254.169.254/latest/meta-data/")).toThrow(
+      /Private|internal|metadata/i
+    );
+  });
+
+  it("rejects cloud metadata endpoint by hostname", () => {
+    expect(() => validateExternalUrl("https://metadata.google.internal/")).toThrow(
+      /metadata|not allowed/i
+    );
+  });
+
+  it("rejects IPv6 loopback ::1", () => {
+    expect(() => validateExternalUrl("https://[::1]/bbb")).toThrow(/[Ll]oopback|localhost/);
+  });
+
+  it("rejects ULA IPv6 fc00::/7 (fc prefix)", () => {
+    expect(() => validateExternalUrl("https://[fc00::1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects ULA IPv6 fc00::/7 (fd prefix)", () => {
+    expect(() => validateExternalUrl("https://[fd12:3456::1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("P2 fix — rejects IPv4-mapped IPv6 ::ffff:127.0.0.1 (dotted-decimal form)", () => {
+    // Previously bypassed the check because ::ffff:127.0.0.1 is not matched
+    // by the bare IPv4 regex (which checks hostnames, not IPv4-mapped IPv6).
+    expect(() => validateExternalUrl("https://[::ffff:127.0.0.1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("P2 fix — rejects IPv4-mapped IPv6 ::ffff:10.0.0.1", () => {
+    expect(() => validateExternalUrl("https://[::ffff:10.0.0.1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("P2 fix — rejects IPv4-mapped IPv6 ::ffff:192.168.1.1", () => {
+    expect(() => validateExternalUrl("https://[::ffff:192.168.1.1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("P2 fix — rejects IPv4-mapped IPv6 in hex form ::ffff:7f00:1 (127.0.0.1)", () => {
+    // ::ffff:7f00:0001 → 0x7f=127, 0x00=0, 0x00=0, 0x01=1 → 127.0.0.1
+    expect(() => validateExternalUrl("https://[::ffff:7f00:1]/bbb")).toThrow(/Private|internal/i);
+  });
+
+  it("P2 fix — allows public IPv4-mapped IPv6 ::ffff:1.1.1.1 (Cloudflare DNS)", () => {
+    // 1.1.1.1 is a public IP — should not be blocked
+    expect(() => validateExternalUrl("https://[::ffff:1.1.1.1]/bbb")).not.toThrow();
+  });
+
+  it("rejects malformed URL", () => {
+    expect(() => validateExternalUrl("not-a-url")).toThrow(/Invalid URL|Only HTTPS/i);
   });
 });

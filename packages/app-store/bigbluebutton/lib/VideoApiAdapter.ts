@@ -7,7 +7,7 @@ import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import { appKeysSchema } from "../zod";
-import { createBBBMeeting, endBBBMeeting, getBBBJoinUrl } from "./bbbapi";
+import { createBBBMeeting, getBBBJoinUrl } from "./bbbapi";
 import type { BBBCredentials } from "./bbbapi";
 
 const log = logger.getSubLogger({ prefix: ["app-store/bigbluebutton/lib/VideoApiAdapter"] });
@@ -72,12 +72,22 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         return {
           type: "bigbluebutton_video",
           id: meeting.meetingID,
-          // password stores "attendeePW:moderatorPW" for use in the join API endpoint
-          password: `${meeting.attendeePW}:${meeting.moderatorPW}`,
+          // Only the attendee password is stored in `meetingPassword` — this
+          // field is sent to client-side booking pages and visible to attendees.
+          // Storing the combined "attendeePW:moderatorPW" string here would
+          // expose the moderator password to any attendee who reads the field,
+          // allowing them to obtain host/moderator privileges.
+          //
+          // The moderator password is kept exclusively in `meetingData.moderatorPW`
+          // which is used server-side (e.g. for ending the meeting in updateMeeting)
+          // and must NOT be sent to attendee-facing pages.
+          password: meeting.attendeePW,
           url: attendeeJoinUrl,
-          // Organizer link stored in meetingData for the confirmation email
           meetingData: {
             hostUrl: hostJoinUrl,
+            // moderatorPW is server-side only — used to end or update meetings.
+            // It must never be sent to attendee-facing pages.
+            moderatorPW: meeting.moderatorPW,
           },
         };
       } catch (error) {
@@ -88,21 +98,19 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
 
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       // BBB meetings are stateless — we delete the old one (if running) and create a new one.
+      //
+      // NOTE: The moderator password is no longer stored in meetingPassword (which now contains
+      // only the attendee password).  Without the moderator password we cannot explicitly end
+      // the old meeting; however BBB meetings auto-expire when all participants leave or after
+      // the server's meetingExpireIfNoUserJoined timeout — so skipping the end call is safe.
+      // This matches the behaviour of other adapters (e.g. Jitsi) that do not explicitly end
+      // meetings on reschedule.
       const bbbCreds = getCredentials(credential);
 
-      if (bookingRef.meetingId && bookingRef.meetingPassword) {
-        const [, moderatorPW] = (bookingRef.meetingPassword ?? ":").split(":");
-        try {
-          if (moderatorPW) {
-            await endBBBMeeting(bbbCreds, bookingRef.meetingId, moderatorPW);
-          }
-        } catch (err) {
-          // Meeting may have already ended — log but don't fail the update
-          log.warn("Could not end existing BBB meeting during update (may already be ended)", {
-            meetingID: bookingRef.meetingId,
-            err,
-          });
-        }
+      if (bookingRef.meetingId) {
+        log.info("Skipping explicit end of old BBB meeting on reschedule (auto-expire handles cleanup)", {
+          meetingID: bookingRef.meetingId,
+        });
       }
 
       // Create a fresh meeting for the rescheduled event

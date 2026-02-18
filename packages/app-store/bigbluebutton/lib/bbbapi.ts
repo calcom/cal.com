@@ -53,6 +53,41 @@ export function validateExternalUrl(rawUrl: string): void {
     throw new Error("Private/internal network URLs are not allowed");
   }
 
+  // Reject IPv4-mapped IPv6 addresses (e.g. ::ffff:127.0.0.1 or ::ffff:7f00:1).
+  // These are syntactic sugar for IPv4 addresses and bypass naive IPv4-only checks.
+  // RFC 4291 §2.5.5.2 defines the mapping as ::ffff:<IPv4 address>.
+  const ipv4MappedMatch =
+    /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i.exec(ipv6Bare) ??
+    // Hex form: ::ffff:7f00:0001 → 127.0.0.1
+    /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(ipv6Bare);
+  if (ipv4MappedMatch) {
+    // Extract the embedded dotted-decimal address (first capture group) or
+    // convert hex segments to dotted-decimal (second regex match form).
+    let embeddedIp: string;
+    if (ipv4MappedMatch[0].includes(".")) {
+      // Dotted-decimal form: ::ffff:127.0.0.1
+      embeddedIp = ipv4MappedMatch[1];
+    } else {
+      // Hex form: ::ffff:7f00:1 → split high/low 16-bit words into 4 octets
+      const high = parseInt(ipv4MappedMatch[1], 16);
+      const low = parseInt(ipv4MappedMatch[2], 16);
+      embeddedIp = `${(high >> 8) & 0xff}.${high & 0xff}.${(low >> 8) & 0xff}.${low & 0xff}`;
+    }
+    // Re-run private-IPv4 check on the embedded address
+    const privateRanges = [
+      /^127\./,
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+      /^192\.168\./,
+      /^169\.254\./,
+    ];
+    for (const range of privateRanges) {
+      if (range.test(embeddedIp)) {
+        throw new Error("Private/internal network URLs are not allowed");
+      }
+    }
+  }
+
   // Reject private IPv4 ranges via regex (avoids DNS — hostname-only check)
   const privateRanges = [
     /^127\./, // 127.0.0.0/8  — loopback
@@ -158,10 +193,23 @@ export function buildBBBUrl(
 /**
  * Parses the XML response from BBB API into a plain object.
  * BBB always returns XML; we do a minimal parse without a heavy library.
+ *
+ * Previous regex `/<([^/>\s][^>]*)>([^<]*)<\/\1>/g` failed for tags with
+ * attributes (e.g. `<meetings type="array">...</meetings>`) because the
+ * capture group matched the full opening tag string including attributes,
+ * but the back-reference `\1` in the closing tag had to match exactly that
+ * same string — which never included attributes — causing the match to fail.
+ *
+ * Fix: capture only the tag *name* (no attributes) in group 1, match the
+ * full opening tag (with optional attributes) separately, then use `\1` to
+ * match the closing tag by name only.
  */
 export function parseXmlResponse(xml: string): Record<string, string> {
   const result: Record<string, string> = {};
-  const tagRe = /<([^/>\s][^>]*)>([^<]*)<\/\1>/g;
+  // Group 1: tag name (no spaces/attributes)
+  // The opening tag may include attributes: <tagName ...> or just <tagName>
+  // The closing tag is matched by tag name only: </tagName>
+  const tagRe = /<([a-zA-Z][a-zA-Z0-9_-]*)(?:\s[^>]*)?>([^<]*)<\/\1>/g;
   let match: RegExpExecArray | null;
   while ((match = tagRe.exec(xml)) !== null) {
     result[match[1]] = match[2].trim();
