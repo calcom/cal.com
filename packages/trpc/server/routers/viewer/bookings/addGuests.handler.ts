@@ -4,10 +4,10 @@ import dayjs from "@calcom/dayjs";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -19,13 +19,14 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
+export type TUser = Pick<
+  NonNullable<TrpcSessionUser>,
+  "id" | "email" | "organizationId" | "uuid"
+> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -37,8 +38,10 @@ type AddGuestsOptions = {
   actionSource: ActionSource;
 };
 
-type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
-type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
+export type Booking = NonNullable<
+  Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>
+>;
+export type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export const addGuestsHandler = async ({
   ctx,
@@ -76,7 +79,9 @@ export const addGuestsHandler = async ({
   );
 
   // Capture new attendee emails after update for audit logging
-  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
+  const newAttendeeEmails = bookingAttendees.attendees.map(
+    (attendee) => attendee.email
+  );
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -92,7 +97,10 @@ export const addGuestsHandler = async ({
   const featuresRepository = getFeaturesRepository();
   const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    ? await featuresRepository.checkIfTeamHasFeature(
+        organizationId,
+        "booking-audit"
+      )
     : false;
 
   await bookingEventHandlerService.onAttendeeAdded({
@@ -109,9 +117,11 @@ export const addGuestsHandler = async ({
   return { message: "Guests added" };
 };
 
-async function getBooking(bookingId: number) {
+export async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
-  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(
+    bookingId
+  );
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
@@ -120,9 +130,14 @@ async function getBooking(bookingId: number) {
   return booking;
 }
 
-async function validateUserPermissions(booking: Booking, user: TUser): Promise<void> {
+export async function validateUserPermissions(
+  booking: Booking,
+  user: TUser
+): Promise<void> {
   const isOrganizer = booking.userId === user.id;
-  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
+  const isAttendee = !!booking.attendees.find(
+    (attendee) => attendee.email === user.email
+  );
 
   let hasBookingUpdatePermission = false;
   if (booking.eventType?.teamId) {
@@ -136,16 +151,21 @@ async function validateUserPermissions(booking: Booking, user: TUser): Promise<v
   }
 
   if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "you_do_not_have_permission",
+    });
   }
 }
 
-function validateGuestsFieldEnabled(booking: Booking): void {
+export function validateGuestsFieldEnabled(booking: Booking): void {
   const parsedBookingFields = booking?.eventType?.bookingFields
     ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
     : [];
 
-  const guestsBookingField = parsedBookingFields.find((field) => field.name === "guests");
+  const guestsBookingField = parsedBookingFields.find(
+    (field) => field.name === "guests"
+  );
   if (guestsBookingField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -154,7 +174,7 @@ function validateGuestsFieldEnabled(booking: Booking): void {
   }
 }
 
-async function getOrganizerData(userId: number | null) {
+export async function getOrganizerData(userId: number | null) {
   if (!userId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
   }
@@ -186,24 +206,36 @@ function deduplicateGuestEmails(guests: string[]): string[] {
 
 function getBlacklistedEmails(): string[] {
   return process.env.BLACKLISTED_GUEST_EMAILS
-    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) =>
+        email.toLowerCase()
+      )
     : [];
 }
 
-async function getEmailVerificationRequirements(guestEmails: string[]): Promise<Map<string, boolean>> {
+async function getEmailVerificationRequirements(
+  guestEmails: string[]
+): Promise<Map<string, boolean>> {
   const userRepo = new UserRepository(prisma);
-  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
+  const guestUsers =
+    await userRepo.findManyByEmailsWithEmailVerificationSettings({
+      emails: guestEmails,
+    });
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {
-    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
-    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+    const matchedBase = extractBaseEmail(
+      user.matchedEmail ?? user.email
+    ).toLowerCase();
+    emailToRequiresVerification.set(
+      matchedBase,
+      user.requiresBookerEmailVerification === true
+    );
   }
 
   return emailToRequiresVerification;
 }
 
-async function sanitizeAndFilterGuests(
+export async function sanitizeAndFilterGuests(
   guests: Array<{
     email: string;
     name?: string;
@@ -224,8 +256,12 @@ async function sanitizeAndFilterGuests(
   const guestEmails = guests.map((guest) => guest.email);
   const deduplicatedGuests = deduplicateGuestEmails(guestEmails);
   const blacklistedGuestEmails = getBlacklistedEmails();
-  const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
-  const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
+  const guestEmailsLowerCase = deduplicatedGuests.map((email) =>
+    extractBaseEmail(email).toLowerCase()
+  );
+  const emailToRequiresVerification = await getEmailVerificationRequirements(
+    guestEmailsLowerCase
+  );
 
   // Create a map of email to guest object for easy lookup
   const emailToGuestMap = new Map(
@@ -236,7 +272,8 @@ async function sanitizeAndFilterGuests(
     const baseGuestEmail = extractBaseEmail(email).toLowerCase();
     return (
       !booking.attendees.some(
-        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
+        (attendee) =>
+          extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
       ) &&
       !blacklistedGuestEmails.includes(baseGuestEmail) &&
       !emailToRequiresVerification.get(baseGuestEmail)
@@ -244,7 +281,10 @@ async function sanitizeAndFilterGuests(
   });
 
   if (uniqueGuestEmails.length === 0) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "emails_must_be_unique_valid",
+    });
   }
 
   // Return the full guest objects for unique emails
@@ -253,9 +293,14 @@ async function sanitizeAndFilterGuests(
     .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
 }
 
-async function updateBookingAttendees(
+export async function updateBookingAttendees(
   bookingId: number,
-  newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
+  newAttendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+  }[],
   uniqueGuestEmails: string[],
   booking: Booking
 ) {
@@ -272,7 +317,7 @@ async function updateBookingAttendees(
   });
 }
 
-async function prepareAttendeesList(attendees: Booking["attendees"]) {
+export async function prepareAttendeesList(attendees: Booking["attendees"]) {
   const attendeesListPromises = attendees.map(async (attendee) => {
     return {
       name: attendee.name,
@@ -288,13 +333,15 @@ async function prepareAttendeesList(attendees: Booking["attendees"]) {
   return await Promise.all(attendeesListPromises);
 }
 
-async function buildCalendarEvent(
+export async function buildCalendarEvent(
   booking: Booking,
   organizer: OrganizerData,
   attendeesList: Awaited<ReturnType<typeof prepareAttendeesList>>
 ): Promise<CalendarEvent> {
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
-  const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
+  const videoCallReference = booking.references.find((reference) =>
+    reference.type.includes("_video")
+  );
 
   const evt: CalendarEvent = {
     title: booking.title || "",
@@ -317,8 +364,8 @@ async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-        ? [booking?.user?.destinationCalendar]
-        : [],
+      ? [booking?.user?.destinationCalendar]
+      : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
@@ -337,12 +384,20 @@ async function buildCalendarEvent(
   return evt;
 }
 
-async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promise<void> {
+export async function updateCalendarEvent(
+  booking: Booking,
+  evt: CalendarEvent
+): Promise<void> {
   if (!booking.user) {
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Booking user not found" });
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Booking user not found",
+    });
   }
 
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(
+    booking.user
+  );
 
   const eventManager = new EventManager({
     ...booking.user,
@@ -352,7 +407,7 @@ async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promis
   await eventManager.updateCalendarAttendees(evt, booking);
 }
 
-async function sendGuestNotifications(
+export async function sendGuestNotifications(
   evt: CalendarEvent,
   booking: Booking,
   uniqueGuests: string[]
@@ -364,7 +419,9 @@ async function sendGuestNotifications(
   await emailsAndSmsHandler.handleAddGuests({
     evt,
     eventType: {
-      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(
+        booking?.eventType?.metadata
+      ),
       schedulingType: booking.eventType?.schedulingType || null,
     },
     newGuests: uniqueGuests,

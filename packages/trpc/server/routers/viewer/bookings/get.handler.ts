@@ -631,9 +631,8 @@ export async function getBookings({
               .selectFrom("AssignmentReason")
               .selectAll()
               .whereRef("AssignmentReason.bookingId", "=", "Booking.id")
-              .orderBy("AssignmentReason.createdAt", "desc")
-              .limit(1)
-          ).as("assignmentReason"),
+              .orderBy("AssignmentReason.createdAt", "asc")
+          ).as("assignmentReasonSortedByCreatedAt"),
           jsonObjectFrom(
             eb
               .selectFrom("BookingReport")

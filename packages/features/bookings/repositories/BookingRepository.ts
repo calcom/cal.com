@@ -1820,7 +1820,13 @@ export class BookingRepository implements IBookingRepository {
     updatedResponses,
   }: {
     bookingId: number;
-    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    newAttendees: {
+      name: string;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+      phoneNumber?: string | null;
+    }[];
     updatedResponses: Prisma.InputJsonValue;
   }) {
     return await this.prismaClient.booking.update({
@@ -2125,54 +2131,6 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async findByUidIncludeEventTypeAndTeamAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        uid: bookingUid,
-      },
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        attendees: {
-          select: {
-            email: true,
-            name: true,
-          },
-        },
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            teamId: true,
-          },
-        },
-        assignmentReason: {
-          select: {
-            reasonString: true,
-            reasonEnum: true,
-          },
-        },
-        routedFromRoutingFormReponse: {
-          select: {
-            formId: true,
-          },
-        },
-      },
-    });
-  }
-
   async updateRecordedStatus({
     bookingUid,
     isRecorded,
@@ -2183,6 +2141,60 @@ export class BookingRepository implements IBookingRepository {
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },
+    });
+  }
+
+  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        assignmentReason: {
+          select: {
+            reasonString: true,
+          },
+          take: 1,
+          orderBy: {
+            createdAt: "asc" as const,
+          },
+        },
+        routedFromRoutingFormReponse: {
+          select: {
+            formId: true,
+          },
+        },
+      },
     });
   }
 }

@@ -4,7 +4,7 @@ import type { App } from "@calcom/types/App";
 import type { IntegrationCalendar } from "@calcom/types/Calendar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "@coss/ui/icons";
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 import type { OptionProps, SingleValueProps } from "react-select";
@@ -87,7 +87,7 @@ export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
     <components.Option {...props}>
       <div className="flex">
         <span className="mr-auto">{label}</span>
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
+        {props.isSelected && <CheckIcon className="ml-2 h-4 w-4" />}
       </div>
     </components.Option>
   );
