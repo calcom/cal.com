@@ -3,6 +3,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetTeamsBookingsInput_2024_08_13 } from "@/modules/teams/bookings/inputs/get-teams-bookings.input";
@@ -26,6 +27,7 @@ export class TeamsBookingsController {
   @Get("/")
   @ApiOperation({ summary: "Get team bookings" })
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_BOOKING_READ"])
   @HttpCode(HttpStatus.OK)
   async getAllTeamBookings(
     @Query() queryParams: GetTeamsBookingsInput_2024_08_13,

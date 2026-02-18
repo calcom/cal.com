@@ -2,6 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateInviteOutputDto } from "@/modules/teams/invite/outputs/invite.output";
@@ -31,6 +32,7 @@ export class TeamsInviteController {
   @Post("/invite")
   @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Create team invite link" })
+  @OAuthPermissions(["TEAM_MEMBERSHIP_WRITE"])
   @HttpCode(HttpStatus.OK)
   async createInvite(
     @Param("teamId", ParseIntPipe) teamId: number

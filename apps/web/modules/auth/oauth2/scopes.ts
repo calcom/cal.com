@@ -1,6 +1,21 @@
 import { parseScopeParam } from "@calcom/features/oauth/constants";
 
-const SCOPE_RESOURCE_PREFIXES = ["PROFILE", "EVENT_TYPE", "BOOKING", "SCHEDULE", "APPS"] as const;
+const SCOPE_RESOURCE_PREFIXES = [
+  "PROFILE",
+  "EVENT_TYPE",
+  "BOOKING",
+  "SCHEDULE",
+  "APPS",
+  "TEAM_PROFILE",
+  "TEAM_EVENT_TYPE",
+  "TEAM_BOOKING",
+  "TEAM_SCHEDULE",
+  "TEAM_MEMBERSHIP",
+  "ORG_PROFILE",
+  "ORG_EVENT_TYPE",
+  "ORG_BOOKING",
+  "ORG_SCHEDULE",
+] as const;
 
 export function resolveScopesForTokens(
   scopeParam: string | null | undefined,

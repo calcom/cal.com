@@ -49,6 +49,42 @@ Scopes control which API endpoints the OAuth token can access. The following sco
   Some endpoints like `POST /v2/bookings` (create), `POST /v2/bookings/:bookingUid/cancel` (cancel), and `POST /v2/bookings/:bookingUid/reschedule` (reschedule) are public endpoints that do not require any scope.
 </Note>
 
+### Team Scopes
+
+Team scopes control access to team-level resources. These are used for endpoints under `/v2/teams/:teamId/...` and `/v2/organizations/:orgId/teams/:teamId/...`.
+
+| Scope | Description | Endpoints |
+|-------|-------------|-----------|
+| `TEAM_EVENT_TYPE_READ` | View team event types | `GET /v2/teams/:teamId/event-types`, <br/> `GET /v2/teams/:teamId/event-types/:eventTypeId`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/event-types`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId` |
+| `TEAM_EVENT_TYPE_WRITE` | Create, edit, and delete team event types | `POST /v2/teams/:teamId/event-types`, <br/> `PATCH /v2/teams/:teamId/event-types/:eventTypeId`, <br/> `DELETE /v2/teams/:teamId/event-types/:eventTypeId`, <br/> `POST /v2/teams/:teamId/event-types/:eventTypeId/create-phone-call`, <br/> `POST /v2/organizations/:orgId/teams/:teamId/event-types`, <br/> `PATCH /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId`, <br/> `DELETE /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId`, <br/> `POST /v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/create-phone-call` |
+| `TEAM_BOOKING_READ` | View team bookings | `GET /v2/teams/:teamId/bookings`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/bookings`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/bookings/:bookingUid/references` |
+| `TEAM_BOOKING_WRITE` | Create, edit, and delete team bookings | No endpoints currently use this scope |
+| `TEAM_SCHEDULE_READ` | View team schedules | `GET /v2/teams/:teamId/schedules`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/schedules`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/users/:userId/schedules` |
+| `TEAM_SCHEDULE_WRITE` | Create, edit, and delete team schedules | No endpoints currently use this scope |
+| `TEAM_PROFILE_READ` | View team profiles | `GET /v2/teams`, <br/> `GET /v2/teams/:teamId`, <br/> `GET /v2/organizations/:orgId/teams/:teamId` |
+| `TEAM_PROFILE_WRITE` | Create, edit, and delete teams | `POST /v2/teams`, <br/> `PATCH /v2/teams/:teamId`, <br/> `DELETE /v2/teams/:teamId` |
+| `TEAM_MEMBERSHIP_READ` | View team memberships | `GET /v2/teams/:teamId/memberships`, <br/> `GET /v2/teams/:teamId/memberships/:membershipId`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/memberships`, <br/> `GET /v2/organizations/:orgId/teams/:teamId/memberships/:membershipId` |
+| `TEAM_MEMBERSHIP_WRITE` | Create, edit, and delete team memberships | `POST /v2/teams/:teamId/memberships`, <br/> `PATCH /v2/teams/:teamId/memberships/:membershipId`, <br/> `DELETE /v2/teams/:teamId/memberships/:membershipId`, <br/> `POST /v2/teams/:teamId/invite`, <br/> `POST /v2/organizations/:orgId/teams/:teamId/memberships`, <br/> `PATCH /v2/organizations/:orgId/teams/:teamId/memberships/:membershipId`, <br/> `DELETE /v2/organizations/:orgId/teams/:teamId/memberships/:membershipId`, <br/> `POST /v2/organizations/:orgId/teams/:teamId/invite` |
+
+### Organization Scopes
+
+Organization scopes control access to organization-wide resources. These are used for endpoints under `/v2/organizations/:orgId/...` that do not target a specific team.
+
+<Note>
+  An `ORG_` scope automatically grants the corresponding `TEAM_` scope. For example, a token with `ORG_PROFILE_READ` can also access endpoints that require `TEAM_PROFILE_READ`.
+</Note>
+
+| Scope | Description | Endpoints |
+|-------|-------------|-----------|
+| `ORG_EVENT_TYPE_READ` | View all event types across the organization | `GET /v2/organizations/:orgId/teams/event-types` |
+| `ORG_EVENT_TYPE_WRITE` | Create, edit, and delete event types across the organization | No endpoints currently use this scope |
+| `ORG_BOOKING_READ` | View all bookings across the organization | `GET /v2/organizations/:orgId/bookings` |
+| `ORG_BOOKING_WRITE` | Create, edit, and delete bookings across the organization | No endpoints currently use this scope |
+| `ORG_SCHEDULE_READ` | View schedules across the organization | `GET /v2/organizations/:orgId/schedules`, <br/> `GET /v2/organizations/:orgId/users/:userId/schedules`, <br/> `GET /v2/organizations/:orgId/users/:userId/schedules/:scheduleId` |
+| `ORG_SCHEDULE_WRITE` | Create, edit, and delete schedules across the organization | `POST /v2/organizations/:orgId/users/:userId/schedules`, <br/> `PATCH /v2/organizations/:orgId/users/:userId/schedules/:scheduleId`, <br/> `DELETE /v2/organizations/:orgId/users/:userId/schedules/:scheduleId` |
+| `ORG_PROFILE_READ` | View organization teams | `GET /v2/organizations/:orgId/teams`, <br/> `GET /v2/organizations/:orgId/teams/me` |
+| `ORG_PROFILE_WRITE` | Create, edit, and delete organization teams | `POST /v2/organizations/:orgId/teams`, <br/> `PATCH /v2/organizations/:orgId/teams/:teamId`, <br/> `DELETE /v2/organizations/:orgId/teams/:teamId` |
+
 ## 2. Authorize
 
 To initiate the OAuth flow, direct users to the following authorization URL:

@@ -1,3 +1,29 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CreateScheduleInput_2024_06_11,
+  CreateScheduleOutput_2024_06_11,
+  DeleteScheduleOutput_2024_06_11,
+  GetScheduleOutput_2024_06_11,
+  GetSchedulesOutput_2024_06_11,
+  SkipTakePagination,
+  UpdateScheduleInput_2024_06_11,
+  UpdateScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -7,6 +33,7 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
@@ -14,33 +41,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Param,
-  ParseIntPipe,
-  Body,
-  Patch,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Query,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CreateScheduleInput_2024_06_11,
-  CreateScheduleOutput_2024_06_11,
-  DeleteScheduleOutput_2024_06_11,
-  GetScheduleOutput_2024_06_11,
-  GetSchedulesOutput_2024_06_11,
-  UpdateScheduleInput_2024_06_11,
-  UpdateScheduleOutput_2024_06_11,
-} from "@calcom/platform-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId",
@@ -58,6 +58,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_READ"])
   @Get("/schedules")
   @DocsTags("Orgs / Schedules")
   @ApiOperation({ summary: "Get all schedules" })
@@ -77,6 +78,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
   @DocsTags("Orgs / Users / Schedules")
@@ -95,6 +97,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_READ"])
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
   @DocsTags("Orgs / Users / Schedules")
@@ -113,6 +116,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_READ"])
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
   @DocsTags("Orgs / Users / Schedules")
@@ -130,6 +134,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
   @DocsTags("Orgs / Users / Schedules")
@@ -149,6 +154,7 @@ export class OrganizationsSchedulesController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)

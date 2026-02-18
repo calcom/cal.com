@@ -8,6 +8,7 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
@@ -36,6 +37,7 @@ export class TeamsController {
 
   @Post()
   @ApiOperation({ summary: "Create a team" })
+  @OAuthPermissions(["TEAM_PROFILE_WRITE"])
   async createTeam(
     @Body() body: CreateTeamInput,
     @GetUser() user: UserWithProfile
@@ -63,6 +65,7 @@ export class TeamsController {
   @ApiOperation({ summary: "Get a team" })
   @UseGuards(RolesGuard)
   @Roles("TEAM_MEMBER")
+  @OAuthPermissions(["TEAM_PROFILE_READ"])
   async getTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<GetTeamOutput> {
     const team = await this.teamsRepository.getById(teamId);
     return {
@@ -73,6 +76,7 @@ export class TeamsController {
 
   @Get("/")
   @ApiOperation({ summary: "Get teams" })
+  @OAuthPermissions(["TEAM_PROFILE_READ"])
   async getTeams(@GetUser("id") userId: number): Promise<GetTeamsOutput> {
     const teams = await this.teamsService.getUserTeams(userId);
     return {
@@ -85,6 +89,7 @@ export class TeamsController {
   @ApiOperation({ summary: "Update a team" })
   @UseGuards(RolesGuard)
   @Roles("TEAM_OWNER")
+  @OAuthPermissions(["TEAM_PROFILE_WRITE"])
   async updateTeam(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() body: UpdateOrgTeamDto
@@ -101,6 +106,7 @@ export class TeamsController {
   @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
   @Roles("TEAM_OWNER")
+  @OAuthPermissions(["TEAM_PROFILE_WRITE"])
   async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<OrgTeamOutputResponseDto> {
     const team = await this.teamsRepository.delete(teamId);
     return {

@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
@@ -25,6 +26,7 @@ export class TeamsSchedulesController {
   @ApiOperation({
     summary: "Get all team member schedules",
   })
+  @OAuthPermissions(["TEAM_SCHEDULE_READ"])
   async getTeamSchedules(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: SkipTakePagination

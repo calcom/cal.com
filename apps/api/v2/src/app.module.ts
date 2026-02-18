@@ -17,7 +17,7 @@ import { UrlencodedBodyMiddleware } from "@/middleware/body/urlencoded.body.midd
 import { ResponseInterceptor } from "@/middleware/request-ids/request-id.interceptor";
 import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middleware";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { ThirdPartyPermissionsGuard } from "@/modules/auth/guards/third-party-permissions/third-party-permissions.guard";
+import { OAuthPermissionsGuard } from "@/modules/auth/guards/oauth-permissions/oauth-permissions.guard";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -86,7 +86,7 @@ import { VercelWebhookController } from "@/vercel-webhook.controller";
     },
     {
       provide: APP_GUARD,
-      useClass: ThirdPartyPermissionsGuard,
+      useClass: OAuthPermissionsGuard,
     },
   ],
 })

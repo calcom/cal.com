@@ -20,6 +20,7 @@ import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
@@ -49,6 +50,7 @@ export class TeamsMembershipsController {
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a membership" })
+  @OAuthPermissions(["TEAM_MEMBERSHIP_WRITE"])
   async createTeamMembership(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Body() body: CreateTeamMembershipInput
@@ -63,6 +65,7 @@ export class TeamsMembershipsController {
   @Get("/:membershipId")
   @ApiOperation({ summary: "Get a membership" })
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_MEMBERSHIP_READ"])
   @HttpCode(HttpStatus.OK)
   async getTeamMembership(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -82,6 +85,7 @@ export class TeamsMembershipsController {
     description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
   })
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_MEMBERSHIP_READ"])
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -105,6 +109,7 @@ export class TeamsMembershipsController {
   @Roles("TEAM_ADMIN")
   @Patch("/:membershipId")
   @ApiOperation({ summary: "Update membership" })
+  @OAuthPermissions(["TEAM_MEMBERSHIP_WRITE"])
   async updateTeamMembership(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
@@ -136,6 +141,7 @@ export class TeamsMembershipsController {
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete a membership" })
+  @OAuthPermissions(["TEAM_MEMBERSHIP_WRITE"])
   async deleteTeamMembership(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number

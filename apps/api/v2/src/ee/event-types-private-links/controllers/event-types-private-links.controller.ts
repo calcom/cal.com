@@ -1,6 +1,7 @@
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { EventTypeOwnershipGuard } from "@/modules/event-types/guards/event-type-ownership.guard";
@@ -29,6 +30,7 @@ export class EventTypesPrivateLinksController {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Create a private link for an event type" })
@@ -47,6 +49,7 @@ export class EventTypesPrivateLinksController {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all private links for an event type" })
@@ -63,6 +66,7 @@ export class EventTypesPrivateLinksController {
 
   @Patch("/:linkId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Update a private link for an event type" })
@@ -82,6 +86,7 @@ export class EventTypesPrivateLinksController {
 
   @Delete("/:linkId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Delete a private link for an event type" })

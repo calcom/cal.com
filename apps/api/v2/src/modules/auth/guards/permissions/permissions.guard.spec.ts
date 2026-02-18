@@ -143,7 +143,7 @@ describe("PermissionsGuard", () => {
       );
     });
 
-    describe("delegates 3rd party access token validation to ThirdPartyPermissionsGuard", () => {
+    describe("delegates 3rd party access token validation to OAuthPermissionsGuard", () => {
       it("should return true for 3rd party access token with legacy scopes for backward compatibility", async () => {
         const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
         jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
@@ -166,7 +166,7 @@ describe("PermissionsGuard", () => {
         await expect(guard.canActivate(mockContext)).resolves.toBe(true);
       });
   
-      it("should return true for 3rd party access token and delegate to ThirdPartyPermissionsGuard", async () => {
+      it("should return true for 3rd party access token and delegate to OAuthPermissionsGuard", async () => {
         const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
         jest.spyOn(reflector, "get").mockReturnValue([SCHEDULE_WRITE]);
         jest.spyOn(guard, "getDecodedThirdPartyAccessToken").mockReturnValue({

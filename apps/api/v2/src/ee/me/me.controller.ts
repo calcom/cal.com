@@ -5,6 +5,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -31,6 +32,7 @@ export class MeController {
 
   @Get("/")
   @Permissions([PROFILE_READ])
+  @OAuthPermissions(["PROFILE_READ"])
   @ApiOperation({ summary: "Get my profile" })
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
     const organization = this.usersService.getUserMainProfile(user)?.organization;
@@ -54,6 +56,7 @@ export class MeController {
 
   @Patch("/")
   @Permissions([PROFILE_WRITE])
+  @OAuthPermissions(["PROFILE_WRITE"])
   @ApiOperation({
     summary: "Update my profile",
     description:

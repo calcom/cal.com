@@ -67,6 +67,7 @@ import {
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -133,6 +134,7 @@ export class BookingsController_2024_04_15 {
   @Get("/")
   @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @ApiQuery({ name: "filters[status]", enum: Status_2024_04_15, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
@@ -302,6 +304,7 @@ export class BookingsController_2024_04_15 {
 
   @Post("/:bookingUid/mark-no-show")
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
     @GetUser() user: UserWithProfile,
