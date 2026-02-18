@@ -109,19 +109,21 @@ export function validateExternalUrl(rawUrl: string): void {
 }
 
 /**
- * Resolves the hostname of `rawUrl` via DNS and validates every returned
- * address against `assertSafeResolvedIp`.
+ * Resolves ALL addresses for the hostname of `rawUrl` via DNS and validates
+ * every one against `assertSafeResolvedIp`.
  *
- * This is the DNS-rebinding defence: even if a hostname passes the initial
- * static check (it currently resolves to a public IP), an attacker with
- * control over the DNS record could flip it to a private IP between the
- * static check and the actual `fetch()` call.  By resolving explicitly here
- * and pinning our fetch to the validated IP, we close that window.
+ * Uses `resolve4`/`resolve6` (which return all records for a name) rather than
+ * `lookup` (which returns only one record per family).  Checking every address
+ * prevents an attacker from serving a mix of public + private IPs and having the
+ * single-record check land on the public one.
+ *
+ * Returns the first validated safe IP address (IPv4 preferred) for use when
+ * pinning the subsequent fetch to avoid DNS rebinding.
  *
  * @throws {Error} if any resolved address is in a blocked range, if DNS
  *   lookup fails, or if the URL cannot be parsed.
  */
-export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
+export async function resolveAndValidateAddresses(rawUrl: string): Promise<string> {
   let parsed: URL;
   try {
     parsed = new URL(rawUrl);
@@ -141,26 +143,62 @@ export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
 
   if (isIpLiteral) {
     assertSafeResolvedIp(hostname);
-    return;
+    return hostname;
   }
 
-  // Resolve the hostname.  `lookup` returns a single address per family.
-  // We check both IPv4 (family 4) and IPv6 (family 6) to be thorough.
-  const lookupResults = await Promise.all([
-    dnsPromises.lookup(hostname, { family: 4 }).catch(() => null),
-    dnsPromises.lookup(hostname, { family: 6 }).catch(() => null),
+  // Resolve ALL addresses for the hostname using resolve4/resolve6 so that
+  // every record is checked — not just one per family (as lookup() returns).
+  // An attacker who controls DNS could return a mix of public + private IPs;
+  // checking only one record would let a private IP slip through.
+  const [ipv4Addresses, ipv6Addresses] = await Promise.all([
+    dnsPromises.resolve4(hostname).catch((): string[] => []),
+    dnsPromises.resolve6(hostname).catch((): string[] => []),
   ]);
 
-  let atLeastOneResolved = false;
-  for (const result of lookupResults) {
-    if (result === null) continue; // family not available
-    atLeastOneResolved = true;
-    assertSafeResolvedIp(result.address);
-  }
-
-  if (!atLeastOneResolved) {
+  const allAddresses = [...ipv4Addresses, ...ipv6Addresses];
+  if (allAddresses.length === 0) {
     throw new Error(`DNS resolution failed for hostname: ${hostname}`);
   }
+
+  // Validate every resolved address — reject if any is in a private range.
+  for (const ip of allAddresses) {
+    assertSafeResolvedIp(ip);
+  }
+
+  // Return the first validated address (IPv4 preferred for wider compatibility).
+  // The caller pins the fetch to this IP to prevent DNS rebinding.
+  return ipv4Addresses.length > 0 ? ipv4Addresses[0] : ipv6Addresses[0];
+}
+
+/**
+ * @deprecated Use `resolveAndValidateAddresses` instead, which returns a pinned
+ * IP for DNS-rebinding-safe fetch and checks ALL DNS records.
+ */
+export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
+  await resolveAndValidateAddresses(rawUrl);
+}
+
+/**
+ * Builds a URL that targets a specific IP address rather than the hostname,
+ * replacing the host component while preserving path, query string, and port.
+ *
+ * This is used to pin the HTTP fetch to the IP we validated via DNS, preventing
+ * the OS from re-resolving the hostname at request time (DNS rebinding attack).
+ *
+ * The original `Host` header must be set to the original hostname so that TLS
+ * SNI and virtual-hosting on the BBB server continue to work correctly.
+ *
+ * @param rawUrl    The original URL (e.g. "https://bbb.example.com/api/create?...")
+ * @param pinnedIp  The pre-validated IP to use as the host (e.g. "1.2.3.4")
+ * @returns         The rewritten URL with host replaced by pinnedIp
+ */
+export function buildPinnedUrl(rawUrl: string, pinnedIp: string): string {
+  const parsed = new URL(rawUrl);
+  // IPv6 addresses must be wrapped in brackets in URLs.
+  const hostPart = pinnedIp.includes(":") ? `[${pinnedIp}]` : pinnedIp;
+  const portPart = parsed.port ? `:${parsed.port}` : "";
+  parsed.host = `${hostPart}${portPart}`;
+  return parsed.toString();
 }
 
 export type ChecksumAlgorithm = "sha1" | "sha256" | "sha384" | "sha512";
@@ -278,6 +316,41 @@ export function parseXmlResponse(xml: string): Record<string, string> {
 }
 
 /**
+ * Fetches `url` with SSRF protection.
+ *
+ * SSRF defence strategy (three layers):
+ * 1. Static check (`validateExternalUrl`): rejects bad scheme, literal private
+ *    IPs, localhost, cloud-metadata hostnames — fast and synchronous.
+ * 2. DNS pre-resolution (`resolveAndValidateAddresses`): resolves ALL A/AAAA
+ *    records for the hostname (not just one per family) and validates each one.
+ *    Returns the first validated safe IP address.
+ * 3. Pinned fetch: the actual HTTP request is made to the pre-validated IP
+ *    address directly (not to the hostname), with the original hostname in the
+ *    `Host` header so TLS SNI and virtual-host routing continue to work.
+ *    This closes the DNS-rebinding window: even if an attacker flips DNS to a
+ *    private IP after the validation step, the fetch goes to the pinned IP.
+ *
+ * @param rawUrl   The URL to fetch (original hostname form).
+ * @param options  Optional RequestInit passed to `fetch`.
+ */
+async function safeFetch(rawUrl: string, options?: RequestInit): Promise<Response> {
+  validateExternalUrl(rawUrl);
+  const pinnedIp = await resolveAndValidateAddresses(rawUrl);
+
+  // Extract the original hostname for the Host header (TLS SNI / virtual hosting).
+  const parsed = new URL(rawUrl);
+  const originalHostname = parsed.hostname;
+
+  // Rewrite the URL to use the pinned IP directly.
+  const pinnedUrl = buildPinnedUrl(rawUrl, pinnedIp);
+
+  const headers = new Headers(options?.headers);
+  headers.set("Host", originalHostname);
+
+  return fetch(pinnedUrl, { ...options, headers });
+}
+
+/**
  * Calls a BBB API endpoint and returns the parsed response.
  * Throws if the returncode is not "SUCCESS".
  */
@@ -286,16 +359,9 @@ export async function callBBBApi(
   apiName: string,
   params: Record<string, string | number | boolean | undefined>
 ): Promise<Record<string, string>> {
-  // SSRF protection — two-layer defence:
-  // 1. Static check: scheme, literal-IP ranges, localhost, cloud-metadata hostnames.
-  // 2. DNS resolution check: resolves the hostname and validates every returned
-  //    address.  This closes the DNS-rebinding window: even if a hostname passes
-  //    the static check today, an attacker who controls DNS could flip the record
-  //    to a private IP between the static check and the actual fetch.
-  validateExternalUrl(credentials.serverUrl);
-  await validateResolvedAddresses(credentials.serverUrl);
   const url = buildBBBUrl(credentials, apiName, params);
-  const response = await fetch(url);
+  // safeFetch validates + resolves + pins the IP to close the DNS-rebinding window.
+  const response = await safeFetch(url);
   if (!response.ok) {
     throw new Error(`BBB API request failed: HTTP ${response.status} ${response.statusText}`);
   }
@@ -315,12 +381,9 @@ export async function callBBBApi(
 export async function validateBBBServer(
   credentials: BBBCredentials
 ): Promise<{ version: string; apiVersion: string }> {
-  // SSRF protection — two-layer defence (same as callBBBApi):
-  // static URL check + DNS-resolved-address check to prevent DNS rebinding.
-  validateExternalUrl(credentials.serverUrl);
-  await validateResolvedAddresses(credentials.serverUrl);
   const baseUrl = credentials.serverUrl.replace(/\/+$/, "");
-  const response = await fetch(`${baseUrl}/api`);
+  // safeFetch provides full SSRF protection (static check + all-records DNS + pinned IP).
+  const response = await safeFetch(`${baseUrl}/api`);
   if (!response.ok) {
     throw new Error(`Cannot reach BBB server: HTTP ${response.status}`);
   }

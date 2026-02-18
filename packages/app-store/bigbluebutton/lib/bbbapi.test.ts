@@ -1,4 +1,4 @@
-import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl, assertSafeResolvedIp, validateResolvedAddresses } from "./bbbapi";
+import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl, assertSafeResolvedIp, validateResolvedAddresses, resolveAndValidateAddresses, buildPinnedUrl } from "./bbbapi";
 
 describe("computeChecksum", () => {
   it("produces expected sha256 checksum for a known input", () => {
@@ -302,11 +302,11 @@ describe("assertSafeResolvedIp", () => {
   });
 });
 
-// ─── validateResolvedAddresses — DNS rebinding protection ────────────────────
-// Tests use jest.spyOn on dns.promises.lookup to simulate DNS responses
-// without making real network calls.
+// ─── resolveAndValidateAddresses — DNS rebinding + all-records protection ────
+// Tests use jest.spyOn on dns.promises.resolve4/resolve6 to simulate DNS
+// responses without making real network calls.
 
-describe("validateResolvedAddresses", () => {
+describe("resolveAndValidateAddresses", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const dns = require("dns");
 
@@ -314,69 +314,144 @@ describe("validateResolvedAddresses", () => {
     jest.restoreAllMocks();
   });
 
-  it("P1 fix — rejects a hostname that DNS resolves to a private IPv4 (DNS rebinding scenario)", async () => {
-    // Simulate a domain that resolves to 10.0.0.1 (RFC-1918).
-    // validateExternalUrl("https://attacker.example.com") would pass (not a literal IP),
-    // but validateResolvedAddresses catches it at DNS-resolution time.
-    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
-      if (opts.family === 4) return Promise.resolve({ address: "10.0.0.1", family: 4 });
-      return Promise.reject(new Error("ENOTFOUND"));
-    });
+  it("P2 fix — rejects a hostname when ANY resolved address is private (multi-record mix)", async () => {
+    // An attacker can return one public IP and one private IP.  Previously,
+    // `lookup` returned only one address per family — so only the public IP
+    // was checked and the private one slipped through.
+    // Now we use `resolve4`/`resolve6` and check ALL records.
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["93.184.216.34", "10.0.0.1"]); // public + private mix
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
-    await expect(validateResolvedAddresses("https://attacker.example.com")).rejects.toThrow(
+    await expect(resolveAndValidateAddresses("https://attacker.example.com")).rejects.toThrow(
       /Private|internal/i
     );
   });
 
-  it("P1 fix — rejects a hostname that DNS resolves to 127.0.0.1 (localhost rebinding)", async () => {
-    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
-      if (opts.family === 4) return Promise.resolve({ address: "127.0.0.1", family: 4 });
-      return Promise.reject(new Error("ENOTFOUND"));
-    });
+  it("P1 fix — rejects a hostname that DNS resolves to a private IPv4", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["10.0.0.1"]);
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
-    await expect(validateResolvedAddresses("https://evil.test")).rejects.toThrow(
+    await expect(resolveAndValidateAddresses("https://attacker.example.com")).rejects.toThrow(
+      /Private|internal/i
+    );
+  });
+
+  it("P1 fix — rejects a hostname that DNS resolves to 127.0.0.1", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["127.0.0.1"]);
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+
+    await expect(resolveAndValidateAddresses("https://evil.test")).rejects.toThrow(
       /Private|internal/i
     );
   });
 
   it("P1 fix — rejects a hostname that DNS resolves to IPv6 loopback ::1", async () => {
-    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
-      if (opts.family === 6) return Promise.resolve({ address: "::1", family: 6 });
-      return Promise.reject(new Error("ENOTFOUND"));
-    });
+    jest.spyOn(dns.promises, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+    jest.spyOn(dns.promises, "resolve6").mockResolvedValue(["::1"]);
 
-    await expect(validateResolvedAddresses("https://evil6.test")).rejects.toThrow(
+    await expect(resolveAndValidateAddresses("https://evil6.test")).rejects.toThrow(
       /[Ll]oopback|localhost/
     );
   });
 
-  it("passes for a hostname that DNS resolves to a public IPv4", async () => {
-    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
-      if (opts.family === 4) return Promise.resolve({ address: "93.184.216.34", family: 4 });
-      return Promise.reject(new Error("ENOTFOUND"));
-    });
+  it("passes and returns the validated IPv4 for a hostname resolving to a public IP", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["93.184.216.34"]);
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
-    await expect(validateResolvedAddresses("https://example.com/bbb")).resolves.toBeUndefined();
+    const result = await resolveAndValidateAddresses("https://example.com/bbb");
+    expect(result).toBe("93.184.216.34");
   });
 
   it("passes for a literal public IPv4 in the URL (no DNS needed)", async () => {
     // No DNS lookup should happen for a literal IP
-    const spy = jest.spyOn(dns.promises, "lookup");
-    await expect(validateResolvedAddresses("https://93.184.216.34/bbb")).resolves.toBeUndefined();
-    expect(spy).not.toHaveBeenCalled();
+    const spy4 = jest.spyOn(dns.promises, "resolve4");
+    const spy6 = jest.spyOn(dns.promises, "resolve6");
+    const result = await resolveAndValidateAddresses("https://93.184.216.34/bbb");
+    expect(result).toBe("93.184.216.34");
+    expect(spy4).not.toHaveBeenCalled();
+    expect(spy6).not.toHaveBeenCalled();
   });
 
   it("rejects a literal private IPv4 in the URL (no DNS needed)", async () => {
-    await expect(validateResolvedAddresses("https://192.168.1.1/bbb")).rejects.toThrow(
+    await expect(resolveAndValidateAddresses("https://192.168.1.1/bbb")).rejects.toThrow(
       /Private|internal/i
     );
   });
 
-  it("throws when DNS lookup fails for all address families", async () => {
-    jest.spyOn(dns.promises, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
+  it("throws when DNS resolution fails for all families", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockRejectedValue(new Error("ENOTFOUND"));
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
 
-    await expect(validateResolvedAddresses("https://nonexistent.invalid")).rejects.toThrow(
+    await expect(resolveAndValidateAddresses("https://nonexistent.invalid")).rejects.toThrow(
       /DNS resolution failed/i
     );
+  });
+
+  it("IPv4 preferred over IPv6 in the returned pinned IP", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["93.184.216.34"]);
+    jest.spyOn(dns.promises, "resolve6").mockResolvedValue(["2606:2800:220:1:248:1893:25c8:1946"]);
+
+    const result = await resolveAndValidateAddresses("https://example.com");
+    expect(result).toBe("93.184.216.34"); // IPv4 preferred
+  });
+});
+
+// ─── validateResolvedAddresses — backwards-compat wrapper ────────────────────
+
+describe("validateResolvedAddresses (compat wrapper)", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const dns = require("dns");
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("delegates to resolveAndValidateAddresses and resolves void for safe URLs", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["93.184.216.34"]);
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+
+    await expect(validateResolvedAddresses("https://example.com/bbb")).resolves.toBeUndefined();
+  });
+
+  it("delegates to resolveAndValidateAddresses and rejects for private IPs", async () => {
+    jest.spyOn(dns.promises, "resolve4").mockResolvedValue(["10.0.0.1"]);
+    jest.spyOn(dns.promises, "resolve6").mockRejectedValue(new Error("ENOTFOUND"));
+
+    await expect(validateResolvedAddresses("https://evil.example.com")).rejects.toThrow(
+      /Private|internal/i
+    );
+  });
+});
+
+// ─── buildPinnedUrl — DNS-rebinding-safe URL rewriting ───────────────────────
+
+describe("buildPinnedUrl", () => {
+  it("replaces hostname with IPv4 address", () => {
+    const pinned = buildPinnedUrl("https://bbb.example.com/api/getMeetings?meetingID=abc", "1.2.3.4");
+    expect(pinned).toContain("1.2.3.4");
+    expect(pinned).not.toContain("bbb.example.com");
+    expect(pinned).toContain("/api/getMeetings");
+    expect(pinned).toContain("meetingID=abc");
+  });
+
+  it("wraps IPv6 address in brackets", () => {
+    const pinned = buildPinnedUrl("https://bbb.example.com/api/create", "2001:db8::1");
+    expect(pinned).toContain("[2001:db8::1]");
+    expect(pinned).not.toContain("bbb.example.com");
+  });
+
+  it("preserves port when original URL has one", () => {
+    const pinned = buildPinnedUrl("https://bbb.example.com:8443/api", "1.2.3.4");
+    expect(pinned).toContain("1.2.3.4:8443");
+  });
+
+  it("preserves path and query string", () => {
+    const pinned = buildPinnedUrl(
+      "https://bbb.example.com/bigbluebutton/api/join?meetingID=test&password=pw&checksum=abc123",
+      "5.6.7.8"
+    );
+    expect(pinned).toContain("/bigbluebutton/api/join");
+    expect(pinned).toContain("meetingID=test");
+    expect(pinned).toContain("checksum=abc123");
   });
 });
