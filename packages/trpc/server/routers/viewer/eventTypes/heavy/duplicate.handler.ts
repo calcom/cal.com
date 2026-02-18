@@ -225,6 +225,9 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
         throw new TRPCError({
