@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -106,15 +107,25 @@ export default function BigBlueButtonSetup() {
           </div>
         </Form>
 
+        {/* Single Trans key prevents word-order issues for non-English locales.
+            The <1>…</1> placeholder in the translation maps to the <a> element,
+            allowing translators to position the link anywhere in their sentence. */}
         <p className="text-subtle mt-4 text-xs">
-          {t("bigbluebutton_setup_help")}{" "}
-          <a
-            href="https://docs.bigbluebutton.org/development/api"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-emphasis underline">
-            {t("bigbluebutton_api_docs")}
-          </a>
+          <Trans
+            i18nKey="bigbluebutton_setup_help"
+            t={t}
+            components={[
+              // index 0 unused (Trans starts component refs at 1 for non-text children)
+              <span key="0" />,
+              <a
+                key="1"
+                href="https://docs.bigbluebutton.org/development/api"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emphasis underline"
+              />,
+            ]}
+          />
         </p>
       </div>
     </div>

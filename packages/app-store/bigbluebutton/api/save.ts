@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
 import { appKeysSchema } from "../zod";
@@ -21,6 +23,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const teamIdNum = teamId !== undefined ? Number(teamId) : null;
   if (teamId !== undefined && (isNaN(teamIdNum as number) || !Number.isInteger(teamIdNum))) {
     return res.status(400).json({ message: "Invalid teamId" });
+  }
+
+  // Authorization: only team admins may update team-scoped BBB credentials (prevents IDOR).
+  try {
+    await throwIfNotHaveAdminAccessToTeam({ teamId: teamIdNum, userId });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    throw error;
   }
 
   // Validate and parse input
