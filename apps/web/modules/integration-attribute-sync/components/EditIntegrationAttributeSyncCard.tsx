@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
@@ -6,6 +8,7 @@ import type {
   IntegrationAttributeSync,
   ISyncFormData,
 } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import ApplyAttributeSyncDialog from "./ApplyAttributeSyncDialog";
 import IntegrationAttributeSyncCard from "./IntegrationAttributeSyncCard";
 import type { IIntegrationAttributeSyncCardProps } from "./IntegrationAttributeSyncCard";
 
@@ -19,6 +22,7 @@ type IEditIntegrationAttributeSyncCardProps = Pick<
 const EditIntegrationAttributeSyncCard = (props: IEditIntegrationAttributeSyncCardProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const [showApplyDialog, setShowApplyDialog] = useState(false);
   const updateMutation = trpc.viewer.attributeSync.updateAttributeSync.useMutation({
     onSuccess: () => {
       utils.viewer.attributeSync.getAllAttributeSyncs.invalidate();
@@ -47,13 +51,25 @@ const EditIntegrationAttributeSyncCard = (props: IEditIntegrationAttributeSyncCa
     deleteMutation.mutate({ id: props.sync.id });
   };
 
+  const handleApply = () => {
+    setShowApplyDialog(true);
+  };
+
   return (
-    <IntegrationAttributeSyncCard
-      {...props}
-      onSubmit={onSubmit}
-      onDelete={onDelete}
-      isSubmitting={updateMutation.isPending}
-    />
+    <>
+      <IntegrationAttributeSyncCard
+        {...props}
+        onSubmit={onSubmit}
+        onDelete={onDelete}
+        onApply={handleApply}
+        isSubmitting={updateMutation.isPending}
+      />
+      <ApplyAttributeSyncDialog
+        syncId={props.sync.id}
+        open={showApplyDialog}
+        onOpenChange={setShowApplyDialog}
+      />
+    </>
   );
 };
 

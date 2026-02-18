@@ -38,6 +38,7 @@ export interface IIntegrationAttributeSyncCardProps {
   isSubmitting: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  onApply?: () => void;
 }
 
 const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps) => {
@@ -51,6 +52,7 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
     onSubmit,
     onCancel,
     onDelete,
+    onApply,
     isSubmitting,
   } = props;
 
@@ -253,6 +255,11 @@ const IntegrationAttributeSyncCard = (props: IIntegrationAttributeSyncCardProps)
                 {isCreateMode && onCancel && (
                   <Button type="button" color="secondary" onClick={onCancel}>
                     {t("cancel")}
+                  </Button>
+                )}
+                {!isCreateMode && onApply && (
+                  <Button type="button" color="secondary" onClick={onApply}>
+                    {t("attribute_sync_apply")}
                   </Button>
                 )}
                 <Button type="submit" loading={isPending} disabled={!form.formState.isDirty}>

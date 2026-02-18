@@ -1,7 +1,9 @@
 import { router } from "../../../trpc";
+import { applySyncSchema } from "./applySync.schema";
 import { createAttributeSyncSchema } from "./createAttributeSync.schema";
 import { deleteAttributeSyncSchema } from "./deleteAttributeSync.schema";
 import { getAllAttributeSyncsSchema } from "./getAllAttributeSyncs.schema";
+import { previewApplySyncSchema } from "./previewApplySync.schema";
 import { updateAttributeSyncSchema } from "./updateAttributeSync.schema";
 import { createAttributePbacProcedure } from "./util";
 
@@ -31,6 +33,20 @@ export const attributeSyncRouter = router({
     .input(deleteAttributeSyncSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./deleteAttributeSync.handler");
+      return handler(opts);
+    }),
+
+  previewApplySync: createAttributePbacProcedure("organization.attributes.read")
+    .input(previewApplySyncSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./previewApplySync.handler");
+      return handler(opts);
+    }),
+
+  applySync: createAttributePbacProcedure("organization.attributes.update")
+    .input(applySyncSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./applySync.handler");
       return handler(opts);
     }),
 });

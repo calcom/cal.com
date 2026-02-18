@@ -13,4 +13,6 @@ export const INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   ATTRIBUTE_OPTION_REPOSITORY: Symbol("AttributeOptionRepository"),
   ATTRIBUTE_OPTION_REPOSITORY_MODULE: Symbol("AttributeOptionRepositoryModule"),
+  ATTRIBUTE_SYNC_APPLY_SERVICE: Symbol("AttributeSyncApplyService"),
+  ATTRIBUTE_SYNC_APPLY_SERVICE_MODULE: Symbol("AttributeSyncApplyServiceModule"),
 };
