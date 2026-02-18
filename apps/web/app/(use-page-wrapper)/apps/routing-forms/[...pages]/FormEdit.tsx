@@ -190,7 +190,14 @@ export default function FormEditPage({
         {...props}
         appUrl={appUrl}
         permissions={permissions}
-        Page={({ hookForm, form }) => <FormEdit hookForm={hookForm} form={form} />}
+        Page={({ hookForm, form }) => (
+          // key={form.id} ensures that when the user navigates from one form to another,
+          // React unmounts the old FormEdit instance and mounts a fresh one.  Without this,
+          // useForm(), useRef() registries, and the builderForm.watch() subscription all
+          // retain state from the previous form, which causes stale fields to appear and
+          // routing-field IDs to be assigned from the wrong registry.
+          <FormEdit key={form.id} hookForm={hookForm} form={form} />
+        )}
       />
     </>
   );
