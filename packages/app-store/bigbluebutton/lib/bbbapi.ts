@@ -1,11 +1,76 @@
 import { createHash } from "crypto";
+import { promises as dnsPromises } from "dns";
 
 // ─── SSRF Protection ──────────────────────────────────────────────────────────
 
 /**
- * Validates that a URL is safe to fetch as an external server URL.
- * Rejects non-https schemes, private/loopback IP ranges, localhost, and
- * cloud-metadata endpoints (AWS/GCP/Azure) to prevent SSRF attacks.
+ * Checks whether a resolved IP address (IPv4 or IPv6) belongs to a private,
+ * loopback, link-local, ULA, or cloud-metadata range.
+ *
+ * This function is called both for literal IP addresses in the URL and for the
+ * addresses returned by DNS resolution.  Centralising the check here ensures
+ * the same rules apply in both paths, preventing bypasses via IPv4-mapped IPv6
+ * or other encoding tricks.
+ *
+ * @param ip  Bare IP string — no brackets (e.g. "127.0.0.1" or "::1").
+ * @throws {Error} if the IP is in a blocked range.
+ */
+export function assertSafeResolvedIp(ip: string): void {
+  const normalized = ip.toLowerCase();
+
+  // ── IPv4 loopback / private / link-local ──────────────────────────────────
+  const privateIPv4Ranges = [
+    /^127\./, // 127.0.0.0/8  — loopback
+    /^10\./, // 10.0.0.0/8   — RFC 1918
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12 — RFC 1918
+    /^192\.168\./, // 192.168.0.0/16 — RFC 1918
+    /^169\.254\./, // 169.254.0.0/16 — link-local / APIPA / AWS IMDS
+  ];
+  for (const range of privateIPv4Ranges) {
+    if (range.test(normalized)) {
+      throw new Error("Private/internal network URLs are not allowed");
+    }
+  }
+
+  // ── IPv6 loopback ─────────────────────────────────────────────────────────
+  if (normalized === "::1" || normalized === "0:0:0:0:0:0:0:1") {
+    throw new Error("Loopback/localhost URLs are not allowed");
+  }
+
+  // ── ULA (fc00::/7) — fc** and fd** ───────────────────────────────────────
+  if (/^f[cd][0-9a-f]{2}:/i.test(normalized)) {
+    throw new Error("Private/internal network URLs are not allowed");
+  }
+
+  // ── IPv4-mapped IPv6: ::ffff:<IPv4> or ::ffff:<hex>:<hex> ────────────────
+  // RFC 4291 §2.5.5.2 — these are syntactic aliases for IPv4 addresses and
+  // must be unwrapped before applying the IPv4 range checks, otherwise a
+  // private IPv4 address like ::ffff:127.0.0.1 slips through.
+  const dotDecimalMatch = /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i.exec(normalized);
+  const hexMatch = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(normalized);
+  if (dotDecimalMatch ?? hexMatch) {
+    let embeddedIp: string;
+    if (dotDecimalMatch) {
+      embeddedIp = dotDecimalMatch[1];
+    } else {
+      // hexMatch is non-null here because dotDecimalMatch was null
+      const m = hexMatch!;
+      const high = parseInt(m[1], 16);
+      const low = parseInt(m[2], 16);
+      embeddedIp = `${(high >> 8) & 0xff}.${high & 0xff}.${(low >> 8) & 0xff}.${low & 0xff}`;
+    }
+    // Recurse with the unwrapped IPv4 address so all IPv4 checks apply.
+    assertSafeResolvedIp(embeddedIp);
+  }
+}
+
+/**
+ * Validates the *static* properties of a URL (scheme, literal-IP hostname,
+ * known cloud-metadata hostnames, localhost).  This is a fast, synchronous
+ * check that runs before DNS resolution.
+ *
+ * It does NOT resolve hostnames — call `validateResolvedAddresses()` after
+ * DNS lookup to guard against DNS rebinding.
  *
  * @throws {Error} with a descriptive message if the URL is unsafe.
  */
@@ -38,68 +103,63 @@ export function validateExternalUrl(rawUrl: string): void {
     throw new Error("Cloud metadata endpoint URLs are not allowed");
   }
 
-  // Reject IPv6 loopback / ULA
-  // Strip brackets from IPv6 addresses (e.g. [::1] → ::1)
+  // Strip brackets from IPv6 addresses (e.g. [::1] → ::1) and run full IP checks.
   const ipv6Bare = hostname.startsWith("[") ? hostname.slice(1, -1) : hostname;
+  assertSafeResolvedIp(ipv6Bare);
+}
 
-  // Normalise a potential IPv6 address for comparison
-  const isIPv6Loopback = ipv6Bare === "::1";
-  if (isIPv6Loopback) {
-    throw new Error("Loopback/localhost URLs are not allowed");
+/**
+ * Resolves the hostname of `rawUrl` via DNS and validates every returned
+ * address against `assertSafeResolvedIp`.
+ *
+ * This is the DNS-rebinding defence: even if a hostname passes the initial
+ * static check (it currently resolves to a public IP), an attacker with
+ * control over the DNS record could flip it to a private IP between the
+ * static check and the actual `fetch()` call.  By resolving explicitly here
+ * and pinning our fetch to the validated IP, we close that window.
+ *
+ * @throws {Error} if any resolved address is in a blocked range, if DNS
+ *   lookup fails, or if the URL cannot be parsed.
+ */
+export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error("Invalid URL: could not be parsed");
   }
 
-  // Reject ULA (fc00::/7) — matches fc** and fd**
-  if (/^f[cd][0-9a-f]{2}:/i.test(ipv6Bare)) {
-    throw new Error("Private/internal network URLs are not allowed");
+  // Strip brackets from IPv6 literal hostnames (e.g. [::1] → ::1).
+  const hostname = parsed.hostname.startsWith("[")
+    ? parsed.hostname.slice(1, -1)
+    : parsed.hostname;
+
+  // If the hostname is already an IP literal, validate it directly — no DNS needed.
+  const isIpLiteral =
+    /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) || // IPv4
+    /^[0-9a-f:]+$/i.test(hostname); // IPv6 (bare, no brackets)
+
+  if (isIpLiteral) {
+    assertSafeResolvedIp(hostname);
+    return;
   }
 
-  // Reject IPv4-mapped IPv6 addresses (e.g. ::ffff:127.0.0.1 or ::ffff:7f00:1).
-  // These are syntactic sugar for IPv4 addresses and bypass naive IPv4-only checks.
-  // RFC 4291 §2.5.5.2 defines the mapping as ::ffff:<IPv4 address>.
-  const ipv4MappedMatch =
-    /^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i.exec(ipv6Bare) ??
-    // Hex form: ::ffff:7f00:0001 → 127.0.0.1
-    /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i.exec(ipv6Bare);
-  if (ipv4MappedMatch) {
-    // Extract the embedded dotted-decimal address (first capture group) or
-    // convert hex segments to dotted-decimal (second regex match form).
-    let embeddedIp: string;
-    if (ipv4MappedMatch[0].includes(".")) {
-      // Dotted-decimal form: ::ffff:127.0.0.1
-      embeddedIp = ipv4MappedMatch[1];
-    } else {
-      // Hex form: ::ffff:7f00:1 → split high/low 16-bit words into 4 octets
-      const high = parseInt(ipv4MappedMatch[1], 16);
-      const low = parseInt(ipv4MappedMatch[2], 16);
-      embeddedIp = `${(high >> 8) & 0xff}.${high & 0xff}.${(low >> 8) & 0xff}.${low & 0xff}`;
-    }
-    // Re-run private-IPv4 check on the embedded address
-    const privateRanges = [
-      /^127\./,
-      /^10\./,
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
-      /^192\.168\./,
-      /^169\.254\./,
-    ];
-    for (const range of privateRanges) {
-      if (range.test(embeddedIp)) {
-        throw new Error("Private/internal network URLs are not allowed");
-      }
-    }
+  // Resolve the hostname.  `lookup` returns a single address per family.
+  // We check both IPv4 (family 4) and IPv6 (family 6) to be thorough.
+  const lookupResults = await Promise.all([
+    dnsPromises.lookup(hostname, { family: 4 }).catch(() => null),
+    dnsPromises.lookup(hostname, { family: 6 }).catch(() => null),
+  ]);
+
+  let atLeastOneResolved = false;
+  for (const result of lookupResults) {
+    if (result === null) continue; // family not available
+    atLeastOneResolved = true;
+    assertSafeResolvedIp(result.address);
   }
 
-  // Reject private IPv4 ranges via regex (avoids DNS — hostname-only check)
-  const privateRanges = [
-    /^127\./, // 127.0.0.0/8  — loopback
-    /^10\./, // 10.0.0.0/8   — RFC 1918
-    /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12 — RFC 1918
-    /^192\.168\./, // 192.168.0.0/16 — RFC 1918
-    /^169\.254\./, // 169.254.0.0/16 — link-local / APIPA
-  ];
-  for (const range of privateRanges) {
-    if (range.test(hostname)) {
-      throw new Error("Private/internal network URLs are not allowed");
-    }
+  if (!atLeastOneResolved) {
+    throw new Error(`DNS resolution failed for hostname: ${hostname}`);
   }
 }
 
@@ -226,8 +286,14 @@ export async function callBBBApi(
   apiName: string,
   params: Record<string, string | number | boolean | undefined>
 ): Promise<Record<string, string>> {
-  // SSRF protection: validate before any network request
+  // SSRF protection — two-layer defence:
+  // 1. Static check: scheme, literal-IP ranges, localhost, cloud-metadata hostnames.
+  // 2. DNS resolution check: resolves the hostname and validates every returned
+  //    address.  This closes the DNS-rebinding window: even if a hostname passes
+  //    the static check today, an attacker who controls DNS could flip the record
+  //    to a private IP between the static check and the actual fetch.
   validateExternalUrl(credentials.serverUrl);
+  await validateResolvedAddresses(credentials.serverUrl);
   const url = buildBBBUrl(credentials, apiName, params);
   const response = await fetch(url);
   if (!response.ok) {
@@ -249,8 +315,10 @@ export async function callBBBApi(
 export async function validateBBBServer(
   credentials: BBBCredentials
 ): Promise<{ version: string; apiVersion: string }> {
-  // SSRF protection: validate before any network request
+  // SSRF protection — two-layer defence (same as callBBBApi):
+  // static URL check + DNS-resolved-address check to prevent DNS rebinding.
   validateExternalUrl(credentials.serverUrl);
+  await validateResolvedAddresses(credentials.serverUrl);
   const baseUrl = credentials.serverUrl.replace(/\/+$/, "");
   const response = await fetch(`${baseUrl}/api`);
   if (!response.ok) {

@@ -1,4 +1,4 @@
-import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl } from "./bbbapi";
+import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl, assertSafeResolvedIp, validateResolvedAddresses } from "./bbbapi";
 
 describe("computeChecksum", () => {
   it("produces expected sha256 checksum for a known input", () => {
@@ -224,5 +224,159 @@ describe("validateExternalUrl", () => {
 
   it("rejects malformed URL", () => {
     expect(() => validateExternalUrl("not-a-url")).toThrow(/Invalid URL|Only HTTPS/i);
+  });
+});
+
+// ─── assertSafeResolvedIp ─────────────────────────────────────────────────────
+// Unit tests for the extracted IP-range checker used by both the static URL
+// validator and the DNS-resolution validator.
+
+describe("assertSafeResolvedIp", () => {
+  it("accepts a public IPv4 address", () => {
+    expect(() => assertSafeResolvedIp("1.2.3.4")).not.toThrow();
+    expect(() => assertSafeResolvedIp("8.8.8.8")).not.toThrow();
+  });
+
+  it("rejects IPv4 loopback 127.0.0.1", () => {
+    expect(() => assertSafeResolvedIp("127.0.0.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv4 loopback 127.255.255.255", () => {
+    expect(() => assertSafeResolvedIp("127.255.255.255")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 10.x.x.x", () => {
+    expect(() => assertSafeResolvedIp("10.0.0.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 172.16.x.x", () => {
+    expect(() => assertSafeResolvedIp("172.16.0.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects RFC-1918 172.31.x.x", () => {
+    expect(() => assertSafeResolvedIp("172.31.255.255")).toThrow(/Private|internal/i);
+  });
+
+  it("allows 172.32.x.x (just outside RFC-1918 range)", () => {
+    expect(() => assertSafeResolvedIp("172.32.0.1")).not.toThrow();
+  });
+
+  it("rejects RFC-1918 192.168.x.x", () => {
+    expect(() => assertSafeResolvedIp("192.168.1.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects link-local 169.254.x.x (AWS IMDS)", () => {
+    expect(() => assertSafeResolvedIp("169.254.169.254")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv6 loopback ::1", () => {
+    expect(() => assertSafeResolvedIp("::1")).toThrow(/[Ll]oopback|localhost/);
+  });
+
+  it("rejects IPv6 ULA fc00::/7 (fc prefix)", () => {
+    expect(() => assertSafeResolvedIp("fc00::1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv6 ULA fc00::/7 (fd prefix)", () => {
+    expect(() => assertSafeResolvedIp("fd12:3456::1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv4-mapped ::ffff:127.0.0.1", () => {
+    expect(() => assertSafeResolvedIp("::ffff:127.0.0.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv4-mapped ::ffff:10.0.0.1", () => {
+    expect(() => assertSafeResolvedIp("::ffff:10.0.0.1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects IPv4-mapped hex form ::ffff:7f00:1 (127.0.0.1)", () => {
+    expect(() => assertSafeResolvedIp("::ffff:7f00:1")).toThrow(/Private|internal/i);
+  });
+
+  it("allows public IPv4-mapped ::ffff:1.1.1.1", () => {
+    expect(() => assertSafeResolvedIp("::ffff:1.1.1.1")).not.toThrow();
+  });
+
+  it("accepts a public IPv6 address", () => {
+    expect(() => assertSafeResolvedIp("2001:4860:4860::8888")).not.toThrow();
+  });
+});
+
+// ─── validateResolvedAddresses — DNS rebinding protection ────────────────────
+// Tests use jest.spyOn on dns.promises.lookup to simulate DNS responses
+// without making real network calls.
+
+describe("validateResolvedAddresses", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const dns = require("dns");
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("P1 fix — rejects a hostname that DNS resolves to a private IPv4 (DNS rebinding scenario)", async () => {
+    // Simulate a domain that resolves to 10.0.0.1 (RFC-1918).
+    // validateExternalUrl("https://attacker.example.com") would pass (not a literal IP),
+    // but validateResolvedAddresses catches it at DNS-resolution time.
+    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
+      if (opts.family === 4) return Promise.resolve({ address: "10.0.0.1", family: 4 });
+      return Promise.reject(new Error("ENOTFOUND"));
+    });
+
+    await expect(validateResolvedAddresses("https://attacker.example.com")).rejects.toThrow(
+      /Private|internal/i
+    );
+  });
+
+  it("P1 fix — rejects a hostname that DNS resolves to 127.0.0.1 (localhost rebinding)", async () => {
+    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
+      if (opts.family === 4) return Promise.resolve({ address: "127.0.0.1", family: 4 });
+      return Promise.reject(new Error("ENOTFOUND"));
+    });
+
+    await expect(validateResolvedAddresses("https://evil.test")).rejects.toThrow(
+      /Private|internal/i
+    );
+  });
+
+  it("P1 fix — rejects a hostname that DNS resolves to IPv6 loopback ::1", async () => {
+    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
+      if (opts.family === 6) return Promise.resolve({ address: "::1", family: 6 });
+      return Promise.reject(new Error("ENOTFOUND"));
+    });
+
+    await expect(validateResolvedAddresses("https://evil6.test")).rejects.toThrow(
+      /[Ll]oopback|localhost/
+    );
+  });
+
+  it("passes for a hostname that DNS resolves to a public IPv4", async () => {
+    jest.spyOn(dns.promises, "lookup").mockImplementation((_host: string, opts: { family: number }) => {
+      if (opts.family === 4) return Promise.resolve({ address: "93.184.216.34", family: 4 });
+      return Promise.reject(new Error("ENOTFOUND"));
+    });
+
+    await expect(validateResolvedAddresses("https://example.com/bbb")).resolves.toBeUndefined();
+  });
+
+  it("passes for a literal public IPv4 in the URL (no DNS needed)", async () => {
+    // No DNS lookup should happen for a literal IP
+    const spy = jest.spyOn(dns.promises, "lookup");
+    await expect(validateResolvedAddresses("https://93.184.216.34/bbb")).resolves.toBeUndefined();
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("rejects a literal private IPv4 in the URL (no DNS needed)", async () => {
+    await expect(validateResolvedAddresses("https://192.168.1.1/bbb")).rejects.toThrow(
+      /Private|internal/i
+    );
+  });
+
+  it("throws when DNS lookup fails for all address families", async () => {
+    jest.spyOn(dns.promises, "lookup").mockRejectedValue(new Error("ENOTFOUND"));
+
+    await expect(validateResolvedAddresses("https://nonexistent.invalid")).rejects.toThrow(
+      /DNS resolution failed/i
+    );
   });
 });

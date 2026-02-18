@@ -61,10 +61,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : { type: "bigbluebutton_video", userId };
 
   try {
-    await prisma.credential.updateMany({
+    const { count } = await prisma.credential.updateMany({
       where: whereClause,
       data: { key: keys },
     });
+    if (count === 0) {
+      // No credential row was found — the app has not been installed yet (or
+      // the wrong userId/teamId was supplied).  Returning 200 here would be a
+      // silent no-op that hides the problem from the caller.
+      return res.status(404).json({ message: "BigBlueButton app is not installed. Please install the app first." });
+    }
     return res.status(200).json({ message: "Saved successfully" });
   } catch (error) {
     // Log a sanitized message only — do NOT log the raw error or the `keys` object,
