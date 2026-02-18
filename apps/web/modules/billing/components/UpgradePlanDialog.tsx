@@ -2,6 +2,7 @@
 
 import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/components/icon";
 import { Alert, AlertDescription, AlertTitle } from "@coss/ui/components/alert";
 import { Badge } from "@coss/ui/components/badge";
@@ -20,7 +21,7 @@ import Link from "next/link";
 import posthog from "posthog-js";
 import { useState } from "react";
 
-type BillingPeriod = "annual" | "monthly";
+type BillingPeriodToggle = "annual" | "monthly";
 
 interface PlanFeature {
   text: string;
@@ -60,7 +61,7 @@ function PlanColumn({
           <h3 className="font-medium text-sm text-emphasis">{name}</h3>
           {badge && <Badge variant="outline">{badge}</Badge>}
         </div>
-        <p className="mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
+        <p className="font-cal mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
         <p className="mt-2 leading-none font-medium text-sm text-subtle h-4">{priceSubtext}</p>
 
         <Button
@@ -99,10 +100,15 @@ export type UpgradePlanDialogProps = {
 
 export function UpgradePlanDialog({ tracking, target, info, children }: UpgradePlanDialogProps): JSX.Element {
   const { t } = useLocale();
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("annual");
+  const [billingPeriod, setBillingPeriod] = useState<"annual" | "monthly">("annual");
+
+  const { data: activeTeamPlan } = trpc.viewer.teams.hasActiveTeamPlan.useQuery();
 
   const teamPrice = `$${BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]}`;
   const orgPrice = `$${BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]}`;
+
+  const currentPlanPricingKey = activeTeamPlan?.billingPeriod === "ANNUALLY" ? "annual" : "monthly";
+  const currentTeamPrice = `$${BILLING_PRICING[BILLING_PLANS.TEAMS][currentPlanPricingKey]}`;
 
   const bpParam = billingPeriod === "annual" ? "a" : "m";
   const teamHref = `/settings/teams/new?bp=${bpParam}`;
@@ -140,12 +146,13 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
       <DialogPopup className="max-w-3xl" showCloseButton={false} bottomStickOnMobile={false}>
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
+            <DialogTitle className="sm:hidden">{t("upgrade_dialog_title_short")}</DialogTitle>
+            <DialogTitle className="hidden">{t("upgrade_dialog_title")}</DialogTitle>
             <ToggleGroup
               value={[billingPeriod]}
               onValueChange={(value): void => {
                 if (value.length > 0) {
-                  const newPeriod = value[0] as BillingPeriod;
+                  const newPeriod = value[0] as BillingPeriodToggle;
                   setBillingPeriod(newPeriod);
                   posthog.capture("upgrade_plan_dialog_billing_period_changed", {
                     source: tracking,
@@ -180,7 +187,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
         </DialogHeader>
 
         <DialogPanel>
-          <div className="mt-3 flex gap-4">
+          <div className="mt-3 flex gap-2 sm:gap-4 overflow-x-auto [&>*]:min-w-[220px]">
             {target === "team" && (
               <PlanColumn
                 name={t("team")}
@@ -242,20 +249,23 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
             />
           </div>
 
-          <Card className="mt-2 p-4 flex-row justify-between items-center">
+          <Card className="bg-muted mt-4 py-3 px-4 flex-row justify-between items-center">
             {target === "team" && (
               <div>
                 <p className="font-medium text-sm text-black">{t("individual")}</p>
-                <p className="font-semibold text-black text-2xl">{t("free")}</p>
+                <p className="font-cal mt-1 font-semibold text-black text-2xl leading-none">{t("free")}</p>
               </div>
             )}
             {target === "organization" && (
               <div>
-                <p className="font-semibold text-black text-2xl">{t("team")}</p>
+                <p className="font-medium text-sm text-black">{t("team")}</p>
+                <p className="font-cal mt-1 font-semibold text-black text-2xl leading-none">
+                  {currentTeamPrice}
+                </p>
               </div>
             )}
-            <Badge variant="outline" size="lg" className="opacity-50">
-              {t("upgrade_badge_current_plan")}
+            <Badge variant="outline" size="lg" className="rounded-lg py-1.5 px-2.5 h-fit!">
+              <span className="text-emphasis opacity-50 leading-none">{t("upgrade_badge_current_plan")}</span>
             </Badge>
           </Card>
         </DialogPanel>
