@@ -71,71 +71,7 @@ import { FormBuilder } from "./FormBuilder";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
-export type EventAdvancedTabCustomClassNames = {
-  destinationCalendar?: SelectClassNames;
-  eventName?: InputClassNames;
-  customEventTypeModal?: CustomEventTypeModalClassNames;
-  addToCalendarEmailOrganizer?: SettingsToggleClassNames & {
-    emailSelect?: {
-      container?: string;
-      select?: string;
-      displayEmailLabel?: string;
-    };
-  };
-  requiresConfirmation?: RequiresConfirmationCustomClassNames;
-  disableRescheduling?: DisableReschedulingCustomClassNames;
-  bookerEmailVerification?: SettingsToggleClassNames;
-  canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
-  calendarNotes?: SettingsToggleClassNames;
-  eventDetailsVisibility?: SettingsToggleClassNames;
-  bookingRedirect?: SettingsToggleClassNames & {
-    children?: string;
-    redirectUrlInput?: InputClassNames;
-    forwardParamsCheckbox?: CheckboxClassNames;
-    error?: string;
-  };
-  seatsOptions?: SettingsToggleClassNames & {
-    children?: string;
-    showAttendeesCheckbox?: CheckboxClassNames;
-    showAvalableSeatCountCheckbox?: CheckboxClassNames;
-    seatsInput: InputClassNames;
-  };
-  timezoneLock?: SettingsToggleClassNames;
-  hideOrganizerEmail?: SettingsToggleClassNames;
-  eventTypeColors?: SettingsToggleClassNames & {
-    warningText?: string;
-  };
-  roundRobinReschedule?: SettingsToggleClassNames;
-  customReplyToEmail?: SettingsToggleClassNames;
-  emailNotifications?: EmailNotificationToggleCustomClassNames;
-};
-
 type BookingField = z.infer<typeof fieldSchema>;
-
-export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
-  user?: Partial<
-    Pick<
-      RouterOutputs["viewer"]["me"]["get"],
-      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
-    >
-  >;
-  isUserLoading?: boolean;
-  showToast: (message: string, variant: "success" | "warning" | "error") => void;
-  orgId: number | null;
-  customClassNames?: EventAdvancedTabCustomClassNames;
-  hasPaidPlan?: boolean;
-};
-
-export type EventAdvancedTabProps = EventAdvancedBaseProps & {
-  calendarsQuery: {
-    data?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
-    isPending: boolean;
-    error: unknown;
-  };
-  showBookerLayoutSelector: boolean;
-  localeOptions?: { value: string; label: string }[];
-  verifiedEmails?: string[];
-};
 
 type CalendarSettingsProps = {
   eventType: EventAdvancedTabProps["eventType"];
@@ -168,7 +104,7 @@ const destinationCalendarComponents = {
     showToast,
   }: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType"> & {
     showConnectedCalendarSettings: boolean;
-  }) {
+  }): JSX.Element {
     const { t } = useLocale();
     const formMethods = useFormContext<FormValues>();
     const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
@@ -295,7 +231,7 @@ const destinationCalendarComponents = {
       </div>
     );
   },
-  DestinationCalendarSettingsSkeleton() {
+  DestinationCalendarSettingsSkeleton(): JSX.Element {
     return (
       <div className="border-subtle stack-y-6 rounded-lg border p-6">
         <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
@@ -320,7 +256,7 @@ const destinationCalendarComponents = {
 };
 
 const calendarComponents = {
-  CalendarSettingsSkeleton() {
+  CalendarSettingsSkeleton(): JSX.Element {
     return (
       <div>
         <destinationCalendarComponents.DestinationCalendarSettingsSkeleton />
@@ -328,7 +264,6 @@ const calendarComponents = {
       </div>
     );
   },
-
   CalendarSettings({
     eventType,
     calendarsQuery,
@@ -341,7 +276,7 @@ const calendarComponents = {
     eventNamePlaceholder,
     setShowEventNameTip,
     showToast,
-  }: CalendarSettingsProps) {
+  }: CalendarSettingsProps): JSX.Element {
     const formMethods = useFormContext<FormValues>();
     /**
      * Only display calendar selector if user has connected calendars AND if it's not
@@ -407,6 +342,70 @@ const calendarComponents = {
   },
 };
 
+export type EventAdvancedTabCustomClassNames = {
+  destinationCalendar?: SelectClassNames;
+  eventName?: InputClassNames;
+  customEventTypeModal?: CustomEventTypeModalClassNames;
+  addToCalendarEmailOrganizer?: SettingsToggleClassNames & {
+    emailSelect?: {
+      container?: string;
+      select?: string;
+      displayEmailLabel?: string;
+    };
+  };
+  requiresConfirmation?: RequiresConfirmationCustomClassNames;
+  disableRescheduling?: DisableReschedulingCustomClassNames;
+  bookerEmailVerification?: SettingsToggleClassNames;
+  canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
+  calendarNotes?: SettingsToggleClassNames;
+  eventDetailsVisibility?: SettingsToggleClassNames;
+  bookingRedirect?: SettingsToggleClassNames & {
+    children?: string;
+    redirectUrlInput?: InputClassNames;
+    forwardParamsCheckbox?: CheckboxClassNames;
+    error?: string;
+  };
+  seatsOptions?: SettingsToggleClassNames & {
+    children?: string;
+    showAttendeesCheckbox?: CheckboxClassNames;
+    showAvalableSeatCountCheckbox?: CheckboxClassNames;
+    seatsInput: InputClassNames;
+  };
+  timezoneLock?: SettingsToggleClassNames;
+  hideOrganizerEmail?: SettingsToggleClassNames;
+  eventTypeColors?: SettingsToggleClassNames & {
+    warningText?: string;
+  };
+  roundRobinReschedule?: SettingsToggleClassNames;
+  customReplyToEmail?: SettingsToggleClassNames;
+  emailNotifications?: EmailNotificationToggleCustomClassNames;
+};
+
+export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
+  user?: Partial<
+    Pick<
+      RouterOutputs["viewer"]["me"]["get"],
+      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
+    >
+  >;
+  isUserLoading?: boolean;
+  showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  orgId: number | null;
+  customClassNames?: EventAdvancedTabCustomClassNames;
+  hasPaidPlan?: boolean;
+};
+
+export type EventAdvancedTabProps = EventAdvancedBaseProps & {
+  calendarsQuery: {
+    data?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+    isPending: boolean;
+    error: unknown;
+  };
+  showBookerLayoutSelector: boolean;
+  localeOptions?: { value: string; label: string }[];
+  verifiedEmails?: string[];
+};
+
 export const EventAdvancedTab = ({
   eventType,
   team,
@@ -420,7 +419,7 @@ export const EventAdvancedTab = ({
   orgId,
   localeOptions,
   hasPaidPlan,
-}: EventAdvancedTabProps) => {
+}: EventAdvancedTabProps): JSX.Element => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
