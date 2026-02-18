@@ -1,4 +1,7 @@
-import { getBillingProviderService, getSeatBillingStrategyFactory } from "@calcom/ee/billing/di/containers/Billing";
+import {
+  getBillingProviderService,
+  getSeatBillingStrategyFactory,
+} from "@calcom/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 
 import type { SWHMap } from "./__handler";

@@ -13,7 +13,7 @@ import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
 
 type LicenseSelectionFormValues = {
   licenseKey: string;
@@ -180,9 +180,9 @@ const LicenseSelection = (
                       )}
                       addOnSuffix={
                         checkLicenseLoading ? (
-                          <Icon name="loader" className="h-5 w-5 animate-spin" />
+                          <LoaderIcon className="h-5 w-5 animate-spin" />
                         ) : licenseValidation?.valid && licenseTouched ? (
-                          <Icon name="check" className="h-5 w-5 text-green-700" />
+                          <CheckIcon className="h-5 w-5 text-green-700" />
                         ) : undefined
                       }
                       color={errors.licenseKey ? "warn" : ""}
