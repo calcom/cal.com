@@ -1302,6 +1302,146 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
+    it("should return an error when creating a team event type with seats and recurrence", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation seats-recurrence",
+        slug: `organizations-event-types-seats-recurrence-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+        seats: {
+          seatsPerTimeSlot: 5,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+        recurrence: {
+          frequency: "weekly",
+          interval: 1,
+          occurrences: 12,
+        },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
+    it("should return an error when trying to enable recurrence for a team event type with seats", async () => {
+      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation seats-then-recurrence",
+        slug: `organizations-event-types-seats-then-recurrence-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+        seats: {
+          seatsPerTimeSlot: 5,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+
+      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
+        recurrence: {
+          frequency: "weekly",
+          interval: 1,
+          occurrences: 12,
+        },
+      };
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${createdEventType.id}`)
+        .send(updateBody)
+        .expect(400);
+
+      expect(updateResponse.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
+    it("should return an error when trying to enable seats for a team event type with recurrence", async () => {
+      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation recurrence-then-seats",
+        slug: `organizations-event-types-recurrence-then-seats-${randomString()}`,
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+        ],
+        recurrence: {
+          frequency: "weekly",
+          interval: 1,
+          occurrences: 12,
+        },
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(createBody)
+        .expect(201);
+
+      const createdEventType: TeamEventTypeOutput_2024_06_14 = createResponse.body.data;
+
+      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
+        seats: {
+          seatsPerTimeSlot: 5,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+      };
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${createdEventType.id}`)
+        .send(updateBody)
+        .expect(400);
+
+      expect(updateResponse.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
     it("should preserve metadata fields when doing partial update", async () => {
       const createBody: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation with metadata",

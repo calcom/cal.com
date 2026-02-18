@@ -42,6 +42,7 @@ export class EventTypesRepository_2024_06_14 {
         seatsPerTimeSlot: true,
         locations: true,
         requiresConfirmation: true,
+        recurringEvent: true,
       },
     });
   }

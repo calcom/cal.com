@@ -1247,6 +1247,119 @@ describe("Event types Endpoints", () => {
         .expect(400);
     });
 
+    it("should return an error when creating an event type with seats enabled and recurrence enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class seats-recurrence",
+        slug: "coding-class-seats-recurrence",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        scheduleId: firstSchedule.id,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+        recurrence: {
+          frequency: FrequencyInput.weekly,
+          interval: 1,
+          occurrences: 12,
+        },
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
+    it("should return an error when trying to enable recurrence for an event type with seats enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class seats-then-recurrence",
+        slug: "coding-class-seats-then-recurrence",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        seats: {
+          seatsPerTimeSlot: 4,
+          showAttendeeInfo: true,
+          showAvailabilityCount: true,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          recurrence: {
+            frequency: FrequencyInput.weekly,
+            interval: 1,
+            occurrences: 12,
+          },
+        })
+        .expect(400);
+
+      expect(updateResponse.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
+    it("should return an error when trying to enable seats for an event type with recurrence enabled", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class recurrence-then-seats",
+        slug: "coding-class-recurrence-then-seats",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        recurrence: {
+          frequency: FrequencyInput.weekly,
+          interval: 1,
+          occurrences: 12,
+        },
+        scheduleId: firstSchedule.id,
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const createdEventType = createResponse.body.data;
+
+      const updateResponse = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${createdEventType.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send({
+          seats: {
+            seatsPerTimeSlot: 4,
+            showAttendeeInfo: true,
+            showAvailabilityCount: true,
+          },
+        })
+        .expect(400);
+
+      expect(updateResponse.body.error.message).toBe(
+        "Seats Validation failed: Seats cannot be combined with recurring events."
+      );
+    });
+
     it("should update event type", async () => {
       const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
