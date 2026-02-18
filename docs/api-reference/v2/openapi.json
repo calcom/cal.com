@@ -18866,7 +18866,7 @@
         "type": "object",
         "properties": {
           "lengthInMinutes": {
-            "type": "number",
+            "type": "integer",
             "example": 60
           },
           "lengthInMinutesOptions": {
@@ -18874,7 +18874,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "integer"
             }
           },
           "title": {
