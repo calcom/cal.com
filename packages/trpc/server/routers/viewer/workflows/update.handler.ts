@@ -560,6 +560,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: undefined,
           senderName: undefined,
           autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
+          sourceLocale: newStep.sourceLocale || ctx.user.locale,
         };
       })
   );

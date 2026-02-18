@@ -68,10 +68,10 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui/components/form";
-import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
@@ -1452,7 +1452,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange={(e) =>
                             form.setValue(
                               `steps.${step.stepNumber - 1}.autoTranslateEnabled`,
-                              e.target.checked
+                              e.target.checked,
+                              { shouldDirty: true }
                             )
                           }
                         />
