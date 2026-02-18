@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 
 import type { GetScheduleOptions } from "./types";

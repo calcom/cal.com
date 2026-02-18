@@ -488,3 +488,100 @@ describe("updateClientHandler", () => {
     );
   });
 });
+
+<<<OLD>>>
+    it("updates status to APPROVED (admin) and sends approved notification email with expected parameters", async () => {
+      const t = ((key: string, vars?: Record<string, unknown>) => {
+        if (key === "oauth_client_approved_email_subject") {
+          return `OAuth Client Approved: ${String(vars?.clientName ?? "")}`;
+        }
+        return key;
+      }) as unknown as TFunction;
+
+      mocks.getTranslation.mockResolvedValue(t);
+
+      mocks.findByClientIdIncludeUser.mockResolvedValue({
+        clientId: CLIENT_ID,
+        userId: OWNER_USER_ID,
+        name: CLIENT_NAME,
+        purpose: CLIENT_PURPOSE,
+        redirectUri: REDIRECT_URI,
+        websiteUrl: null,
+        logo: null,
+        status: "PENDING",
+        user: {
+          email: USER_EMAIL,
+          name: USER_NAME,
+        },
+      });
+
+      const prismaUpdate = vi.fn().mockResolvedValue({
+        clientId: CLIENT_ID,
+        name: CLIENT_NAME,
+        purpose: C
+... [truncated]
+<<<NEW>>>
+    it("updates status to APPROVED (admin) and sends approved notification email with expected parameters", async () => {
+      const t = ((key: string, vars?: Record<string, unknown>) => {
+        if (key === "oauth_client_approved_email_subject") {
+          return `OAuth Client Approved: ${String(vars?.clientName ?? "")}`;
+        }
+        return key;
+      }) as unknown as TFunction;
+
+      mocks.getTranslation.mockResolvedValue(t);
+
+      mocks.findByClientIdIncludeUser.mockResolvedValue({
+        clientId: CLIENT_ID,
+        userId: OWNER_USER_ID,
+        name: CLIENT_NAME,
+        purpose: CLIENT_PURPOSE,
+        redirectUri: REDIRECT_URI,
+        websiteUrl: null,
+        logo: null,
+        status: "PENDING",
+        user: {
+          email: USER_EMAIL,
+          name: USER_NAME,
+        },
+      });
+
+      const prismaUpdate = vi.fn().mockResolvedValue({
+        clientId: CLIENT_ID,
+        name: CLIENT_NAME,
+        purpose: CLIENT_PURPOSE,
+        redirectUri: REDIRECT_URI,
+        websiteUrl: null,
+        logo: null,
+        status: OAuthClientStatus.APPROVED,
+        user: {
+          email: USER_EMAIL,
+          name: USER_NAME,
+        },
+      });
+
+      const result = await updateClientHandler({
+        ctx: {
+          prisma: mocks.prisma as PrismaClient,
+          user: { id: OWNER_USER_ID, role: UserPermissionRole.ADMIN },
+        },
+        input: {
+          clientId: CLIENT_ID,
+          status: OAuthClientStatus.APPROVED,
+        },
+      });
+
+      expect(prismaUpdate).toHaveBeenCalledWith({
+        where: { clientId: CLIENT_ID },
+        data: {
+          status: OAuthClientStatus.APPROVED,
+        },
+      });
+
+      expect(mocks.sendOAuthClientApprovedNotification).toHaveBeenCalledWith({
+        clientName: CLIENT_NAME,
+        userEmail: USER_EMAIL,
+        userName: USER_NAME,
+        redirectUri: REDIRECT_URI,
+      });
+    });

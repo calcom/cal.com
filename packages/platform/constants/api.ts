@@ -1,9 +1,10 @@
-export const BASE_URL = "http://localhost:5555";
+export const BASE_URL = "https://api.cal.com";
 export const V2_ENDPOINTS = {
   me: "me",
-  availability: "schedules",
+  availability: "availability",
   eventTypes: "event-types",
   bookings: "bookings",
+  reschedule: "reschedule"
 };
 
 export const SUCCESS_STATUS = "success";

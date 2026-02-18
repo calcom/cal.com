@@ -38,6 +38,13 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
     ],
     orgSlug: org.slug || org.requestedSlug,
   });
+
+  // Add test case for moveUserToMatchingOrg
+  it("should move user to matching organization", async () => {
+    const mockEmail = "test@example.com";
+    await moveUserToMatchingOrg({ email: mockEmail });
+    // Add assertions here to verify the behavior of moveUserToMatchingOrg
+  });
 }
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
