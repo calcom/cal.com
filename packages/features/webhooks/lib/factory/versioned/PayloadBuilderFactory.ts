@@ -134,7 +134,8 @@ export type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CRE
 
 export type FormTriggerEvents =
   | typeof WebhookTriggerEvents.FORM_SUBMITTED
-  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
+  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
+  | typeof WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT;
 
 export type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
 
