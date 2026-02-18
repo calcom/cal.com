@@ -477,6 +477,7 @@ model User {
 
   // Used to lock the user account
   locked                         Boolean                       @default(false)
+  userAbuseScore                 UserAbuseScore?
   platformOAuthClients           PlatformOAuthClient[]
   AccessToken                    AccessToken[]
   RefreshToken                   RefreshToken[]
@@ -2058,6 +2059,19 @@ model UserHolidaySettings {
   updatedAt DateTime @updatedAt
 }
 
+model UserAbuseScore {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score          Int       @default(0)
+  abuseData      Json?
+  lastAnalyzedAt DateTime?
+  lockedAt       DateTime?
+  lockedReason   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
 // Holiday cache for Google Calendar public holidays
 model HolidayCache {
   id          String   @id @default(uuid())
@@ -2453,6 +2467,10 @@ enum WatchlistType {
   EMAIL
   DOMAIN
   USERNAME
+  SPAM_KEYWORD
+  SUSPICIOUS_DOMAIN
+  EMAIL_PATTERN
+  REDIRECT_DOMAIN
 }
 
 enum WatchlistAction {

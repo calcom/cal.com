@@ -38,6 +38,7 @@ export type AppFlags = {
   "hwm-seating": boolean;
   "active-user-billing": boolean;
   "sidebar-tips": boolean;
+  "abuse-scoring": boolean;
   "signup-watchlist-review": boolean;
 };
 
