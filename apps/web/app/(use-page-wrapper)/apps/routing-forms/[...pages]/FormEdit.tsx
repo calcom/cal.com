@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -37,7 +37,7 @@ const transformToBuilder = (fields: RoutingFormWithResponseCount["fields"]) => {
       placeholder: f.placeholder,
       options: options,
       // Ensure compatibility with FormBuilder expected structure
-      editable: "user" as const,
+      editable: (f.router ? "user-readonly" : "user") as const,
       sources: [],
       hidden: false,
     };
@@ -82,21 +82,13 @@ const FormEdit = ({
 
   // Sync from parent to local (when parent resets, e.g. on load)
   useEffect(() => {
-      // If hookForm values change significantly (e.g. loaded from server or reset), sync to builderForm
       const parentFields = hookForm.getValues("fields");
       const localFields = builderForm.getValues("fields");
       
       // Basic check to see if we need to sync from parent (e.g. on initial load or reset)
-      // We rely on checking if local is empty and parent is not, or assuming manual sync is fine.
-      // A better way is to listen to a specific event or prop change, but hookForm ref assumes imperative handle.
-      
-      // Let's just check length for now or if local is empty.
       if (parentFields?.length && (!localFields || localFields.length === 0)) {
-           // We might want to be careful not to overwrite user edits if they started editing empty form.
-           // However, if parent has fields, we generally want to start with them.
            builderForm.reset({ fields: transformToBuilder(parentFields) });
       } else if (parentFields?.length && localFields?.length && parentFields.length !== localFields.length) {
-           // If lengths differ significantly, it might be a reset. But checking ID is safer.
            if (parentFields[0].id !== localFields[0].id) {
                builderForm.reset({ fields: transformToBuilder(parentFields) });
            }
