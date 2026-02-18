@@ -518,12 +518,15 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
 
 function AttendeeRow({ attendee }: { attendee: BookingOutput["attendees"][number] }) {
   const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
-  const hasAvatar = !!attendee.user?.avatarUrl;
+  const hasAvatar = !!(attendee.user && attendee.user.avatarUrl);
   const avatarApiFallback = useAvatarUrl(attendee.email, !hasAvatar);
 
-  const imageSrc = hasAvatar
-    ? getUserAvatarUrl(attendee.user)
-    : (avatarApiFallback ?? getPlaceholderAvatar(null, name));
+  let imageSrc: string;
+  if (attendee.user && attendee.user.avatarUrl) {
+    imageSrc = getUserAvatarUrl(attendee.user);
+  } else {
+    imageSrc = avatarApiFallback ?? getPlaceholderAvatar(null, name);
+  }
 
   return (
     <div className="flex items-center gap-4">
