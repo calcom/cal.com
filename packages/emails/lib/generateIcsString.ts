@@ -101,7 +101,7 @@ const generateIcsString = ({
             email: member.email,
             partstat,
             // Use OPT-PARTICIPANT role for optional team members
-            role: member.optional ? "OPT-PARTICIPANT" : icsRole,
+            role: (member.optional ? "OPT-PARTICIPANT" : icsRole) as ParticipationRole,
             rsvp: true,
           }))
         : []),

@@ -4,4 +4,3 @@ export {
   type GoogleAdsTrackingData,
   type LinkedInAdsTrackingData,
 } from "./server";
-
