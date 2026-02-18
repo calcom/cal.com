@@ -6,6 +6,12 @@ import { Button } from "@calcom/ui/components/button";
 import Image from "next/image";
 import type { ReactElement } from "react";
 
+const VIEWPORT_CLASSES: Record<NonNullable<OptInFeatureConfig["showBannerOn"]>, string> = {
+  all: "",
+  mobile: "md:hidden",
+  desktop: "hidden md:block",
+};
+
 interface FeatureOptInBannerProps {
   featureConfig: OptInFeatureConfig;
   onDismiss: () => void;
@@ -18,11 +24,12 @@ export function FeatureOptInBanner({
   onOpenDialog,
 }: FeatureOptInBannerProps): ReactElement {
   const { t } = useLocale();
+  const viewportClass = VIEWPORT_CLASSES[featureConfig.showBannerOn ?? "all"];
 
   return (
     <div
       data-testid="feature-opt-in-banner"
-      className="group fixed right-5 bottom-5 z-50 hidden max-w-xs rounded-lg border border-subtle bg-default shadow-lg md:block">
+      className={`bg-default border-subtle fixed bottom-5 right-5 z-50 max-w-xs rounded-lg border shadow-lg group ${viewportClass}`}>
       <div className="p-4">
         <h3 data-testid="feature-opt-in-banner-title" className="text-emphasis text-lg font-semibold">
           {t(featureConfig.i18n.title)}

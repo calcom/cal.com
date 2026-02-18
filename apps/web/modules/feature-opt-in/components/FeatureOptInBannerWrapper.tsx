@@ -1,12 +1,12 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { FeedbackDialog } from "./FeedbackDialog";
 import type { ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
 import { FeatureOptInConfirmDialog } from "./FeatureOptInConfirmDialog";
+import { FeedbackDialog } from "./FeedbackDialog";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;
@@ -84,19 +84,21 @@ function FeatureOptInBannerWrapper({ state }: FeatureOptInBannerWrapperProps): R
           onTrackFeatureEnabled={state.trackFeatureEnabled}
         />
       )}
-      {state.feedback.feedbackDialogProps && (
-        <FeedbackDialog
-          isOpen={state.feedback.showFeedbackDialog}
-          onClose={state.feedback.onFeedbackComplete}
-          onSubmitSuccess={state.feedback.onFeedbackComplete}
-          surveyId={state.feedback.feedbackDialogProps.surveyId}
-          ratingQuestionId={state.feedback.feedbackDialogProps.ratingQuestionId}
-          commentQuestionId={state.feedback.feedbackDialogProps.commentQuestionId}
-          titleKey={state.feedback.feedbackDialogProps.titleKey}
-          descriptionKey={state.feedback.feedbackDialogProps.descriptionKey}
-          showOn={state.feedback.feedbackDialogProps.showOn}
-        />
-      )}
+      {state.feedback.feedbackDialogProps &&
+        createPortal(
+          <FeedbackDialog
+            isOpen={state.feedback.showFeedbackDialog}
+            onClose={state.feedback.onFeedbackComplete}
+            onSubmitSuccess={state.feedback.onFeedbackComplete}
+            surveyId={state.feedback.feedbackDialogProps.surveyId}
+            ratingQuestionId={state.feedback.feedbackDialogProps.ratingQuestionId}
+            commentQuestionId={state.feedback.feedbackDialogProps.commentQuestionId}
+            titleKey={state.feedback.feedbackDialogProps.titleKey}
+            descriptionKey={state.feedback.feedbackDialogProps.descriptionKey}
+            showOn={state.feedback.feedbackDialogProps.showOn}
+          />,
+          document.body
+        )}
     </>
   );
 }
