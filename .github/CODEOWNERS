@@ -1,5 +1,8 @@
 .github/actions/**/* @calcom/Foundation
+.github/CODEOWNERS @calcom/Foundation
 .github/workflows/**/* @calcom/Foundation
+/**/biome.json @calcom/Foundation
+/**/next.config.* @calcom/Foundation
 /**/package.json @calcom/Foundation
 /apps/web/lib/csp.ts @calcom/Foundation
 /apps/web/lib/buildNonce.ts @calcom/Foundation
