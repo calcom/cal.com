@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Cal.com Docs",
+  "css": "/global.css",
   "colors": {
     "primary": "#111827",
     "light": "#d6d6d6",

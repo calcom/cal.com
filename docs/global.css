@@ -1,0 +1,87 @@
+/**
+ * Custom CSS overrides for Cal.com API Documentation
+ * Fixes select input visibility issues in the API playground
+ * 
+ * Cal.com Brand Colors:
+ * - Light mode brand: #111827
+ * - Dark mode brand: #FFFFFF
+ * - Light mode text: #3c3e44
+ * - Dark mode text: #d4d4d4
+ * - Dark mode bg: #0f0f0f
+ */
+
+/* Fix select dropdown visibility in API playground */
+[data-api-playground] select,
+[data-testid="api-playground"] select,
+.api-playground select,
+.openapi-explorer select,
+[class*="playground"] select {
+  color: #3c3e44 !important;
+  background-color: #fff !important;
+}
+
+/* Dark mode fix for select dropdowns */
+.dark [data-api-playground] select,
+.dark [data-testid="api-playground"] select,
+.dark .api-playground select,
+.dark .openapi-explorer select,
+.dark [class*="playground"] select,
+[data-theme="dark"] [data-api-playground] select,
+[data-theme="dark"] [data-testid="api-playground"] select,
+[data-theme="dark"] .api-playground select,
+[data-theme="dark"] .openapi-explorer select,
+[data-theme="dark"] [class*="playground"] select {
+  color: #d4d4d4 !important;
+  background-color: #0f0f0f !important;
+}
+
+/* Ensure select option text is visible */
+select option {
+  color: #3c3e44;
+  background-color: #fff;
+}
+
+.dark select option,
+[data-theme="dark"] select option {
+  color: #d4d4d4;
+  background-color: #0f0f0f;
+}
+
+/* Fix for Mintlify's API reference select inputs */
+[class*="ParamField"] select,
+[class*="paramField"] select,
+[class*="RequestBodyParam"] select {
+  color: #3c3e44 !important;
+  background-color: #fff !important;
+}
+
+.dark [class*="ParamField"] select,
+.dark [class*="paramField"] select,
+.dark [class*="RequestBodyParam"] select,
+[data-theme="dark"] [class*="ParamField"] select,
+[data-theme="dark"] [class*="paramField"] select,
+[data-theme="dark"] [class*="RequestBodyParam"] select {
+  color: #d4d4d4 !important;
+  background-color: #0f0f0f !important;
+}
+
+/* Improve contrast for select dropdown text */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Ensure dropdown arrow is visible - using Cal.com brand color #111827 */
+select:not([multiple]) {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23111827' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.dark select:not([multiple]),
+[data-theme="dark"] select:not([multiple]) {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23d4d4d4' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
