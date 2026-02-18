@@ -69,7 +69,8 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
-  if (field.type === "multiselect") {
+  // "multiselect" and "checkbox" are both multi-value array fields
+  if (field.type === "multiselect" || field.type === "checkbox") {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
@@ -80,32 +81,14 @@ export function getFieldResponseForJsonLogic({
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  // "select" and "radio" are both single-value fields
+  if (field.type === "select" || field.type === "radio") {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array
         ? valueAsStringOrStringArray[0]
         : valueAsStringOrStringArray;
 
-    return transformSelectValue({ field, idOrLabel: valueAsString });
-  }
-
-  // "checkbox" is a multi-select (checkbox group) field — treat like multiselect
-  if (field.type === "checkbox") {
-    let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
-    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
-      return transformSelectValue({ field, idOrLabel });
-    });
-    return valueOrLabelArray;
-  }
-
-  // "radio" is a single-select (radio group) field — treat like select
-  if (field.type === "radio") {
-    const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
-    const valueAsString =
-      valueAsStringOrStringArray instanceof Array
-        ? valueAsStringOrStringArray[0]
-        : valueAsStringOrStringArray;
     return transformSelectValue({ field, idOrLabel: valueAsString });
   }
 

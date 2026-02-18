@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
@@ -122,23 +122,36 @@ function FormEdit({
     },
   });
 
+  // ── Stable id registry: maps builder field index → original routing field id ──
+  // This ensures that renaming a field (which changes bf.name) does NOT generate
+  // a new UUID and break existing RAQB routing conditions.
+  // We use position-based matching because FormBuilder preserves field order.
+  const fieldIdRegistryRef = useRef<string[]>(
+    (hookForm.getValues("fields") ?? []).map((rf) => rf.id ?? uuidv4())
+  );
+
   // ── Watch the shadow form and sync changes → routing form ─────────────────
   useEffect(() => {
     const subscription = builderForm.watch((values) => {
       const builderFields = values.bookingFields as FormBuilderFields | undefined;
       if (!builderFields) return;
 
-      // Re-fetch the *current* routing fields at sync time so we match
-      // the latest identifiers, not the stale closure value
-      const currentRoutingFields = hookForm.getValues("fields") ?? [];
+      // Grow or trim the id registry to match the current builder field count
+      const registry = fieldIdRegistryRef.current;
+      while (registry.length < builderFields.length) {
+        registry.push(uuidv4());
+      }
+      if (registry.length > builderFields.length) {
+        registry.splice(builderFields.length);
+      }
 
-      const updatedRoutingFields = builderFields.map((bf) => {
+      // Map each builder field to a routing field, preserving the stable id
+      // from the registry (keyed by position, not by name/identifier).
+      // This means rename operations retain the original id instead of
+      // generating a new UUID that would break RAQB routing rules.
+      const updatedRoutingFields = builderFields.map((bf, index) => {
         if (!bf) return null;
-        const original = currentRoutingFields.find(
-          (rf) =>
-            (rf.identifier ?? getFieldIdentifier(rf.label ?? "").toLowerCase()) === bf.name
-        );
-        return toRoutingField(bf as FormBuilderField, original?.id);
+        return toRoutingField(bf as FormBuilderField, registry[index]);
       });
 
       hookForm.setValue(
