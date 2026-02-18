@@ -1,28 +1,14 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { FormCard, FormCardBody } from "@calcom/ui/components/card";
-import {
-  BooleanToggleGroupField,
-  Label,
-  SelectField,
-  TextField,
-  MultiOptionInput,
-} from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
+import { FormBuilder } from "@calcom/web/modules/event-types/components/tabs/advanced/FormBuilder";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -30,242 +16,52 @@ import SingleForm from "@components/apps/routing-forms/SingleForm";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
-function Field({
-  fieldIndex,
-  hookForm,
-  hookFieldNamespace,
-  deleteField,
-  moveUp,
-  moveDown,
-  appUrl,
-  disableTypeChange,
-}: {
-  fieldIndex: number;
-  hookForm: HookForm;
-  hookFieldNamespace: `fields.${number}`;
-  deleteField: {
-    check: () => boolean;
-    fn: () => void;
-  };
-  moveUp: {
-    check: () => boolean;
-    fn: () => void;
-  };
-  moveDown: {
-    check: () => boolean;
-    fn: () => void;
-  };
-  appUrl: string;
-  disableTypeChange: boolean;
-}) {
-  const { t } = useLocale();
+// Transform helper: Routing Form -> FormBuilder
+const transformToBuilder = (fields: RoutingFormWithResponseCount["fields"]) => {
+  return (fields || []).map((f) => {
+    // Determine options based on type and type specific props
+    let options = f.options?.map((o) => ({
+      label: o.label,
+      value: o.id ?? o.label,
+    }));
 
-  const router = hookForm.getValues(`${hookFieldNamespace}.router`);
-  const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
-
-  const label = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.label`,
+    // Preserve router/routerField properties by spreading them
+    // Casting to any to allow extra properties not in FormBuilder schema
+    const field: any = {
+      ...f,
+      id: f.id,
+      name: f.identifier || f.label, // Use identifier as name if available
+      label: f.label,
+      type: f.type,
+      required: f.required ?? false,
+      placeholder: f.placeholder,
+      options: options,
+      // Ensure compatibility with FormBuilder expected structure
+      editable: "user" as const,
+      sources: [],
+      hidden: false,
+    };
+    return field;
   });
+};
 
-  const identifier = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.identifier`,
-  });
-
-  const fieldType = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.type`,
-  });
-
-  const preCountFieldLabel = label || routerField?.label || "Field";
-  const fieldLabel = `${fieldIndex + 1}. ${preCountFieldLabel}`;
-
-  return (
-    <div data-testid="field">
-      <FormCard
-        label={fieldLabel}
-        moveUp={moveUp}
-        moveDown={moveDown}
-        badge={
-          router
-            ? {
-                text: router.name,
-                variant: "gray",
-                href: `${appUrl}/form-edit/${router.id}`,
-              }
-            : null
-        }
-        deleteField={router ? null : deleteField}
-      >
-        <FormCardBody>
-          <div className="mb-3 w-full">
-            <TextField
-              data-testid={`${hookFieldNamespace}.label`}
-              disabled={!!router}
-              label="Label"
-              className="grow"
-              placeholder={t("this_is_what_your_users_would_see")}
-              defaultValue={label || routerField?.label || "Field"}
-              required
-              {...hookForm.register(`${hookFieldNamespace}.label`)}
-              onChange={(e) => {
-                const newLabel = e.target.value;
-                // Use label from useWatch which is guaranteed to be the previous value
-                // since useWatch updates reactively (after re-render), not synchronously
-                const previousLabel = label || "";
-                hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, {
-                  shouldDirty: true,
-                });
-                const currentIdentifier = hookForm.getValues(
-                  `${hookFieldNamespace}.identifier`
-                );
-                // Only auto-update identifier if it was auto-generated from the previous label
-                // This preserves manual identifier changes
-                const isIdentifierGeneratedFromPreviousLabel =
-                  currentIdentifier === getFieldIdentifier(previousLabel);
-                if (
-                  !currentIdentifier ||
-                  isIdentifierGeneratedFromPreviousLabel
-                ) {
-                  hookForm.setValue(
-                    `${hookFieldNamespace}.identifier`,
-                    getFieldIdentifier(newLabel),
-                    { shouldDirty: true }
-                  );
-                }
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
-            <TextField
-              disabled={!!router}
-              label={t("identifier_url_parameter")}
-              hint={t("identifier_url_parameter_hint")}
-              name={`${hookFieldNamespace}.identifier`}
-              required
-              placeholder={t("identifies_name_field")}
-              value={
-                identifier ||
-                routerField?.identifier ||
-                label ||
-                routerField?.label ||
-                ""
-              }
-              onChange={(e) => {
-                hookForm.setValue(
-                  `${hookFieldNamespace}.identifier`,
-                  e.target.value,
-                  { shouldDirty: true }
-                );
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
-            <Controller
-              name={`${hookFieldNamespace}.type`}
-              control={hookForm.control}
-              defaultValue={routerField?.type}
-              render={({ field: { value, onChange } }) => {
-                const defaultValue = FieldTypes.find(
-                  (fieldType) => fieldType.value === value
-                );
-                if (disableTypeChange) {
-                  return (
-                    <div className="data-testid-field-type">
-                      <Label htmlFor="field-type-button">{t("type")}</Label>
-                      <Tooltip content={t("field_type_change_suggestion")}>
-                        <Button
-                          type="button"
-                          disabled
-                          color="secondary"
-                          className={classNames(
-                            "h-8 w-full justify-between text-left text-sm",
-                            !!router && "bg-subtle cursor-not-allowed"
-                          )}
-                        >
-                          <span className="text-default">
-                            {defaultValue?.label || "Select field type"}
-                          </span>
-                          <Icon
-                            name="chevron-down"
-                            className="text-default h-4 w-4"
-                          />
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  );
-                } else {
-                  return (
-                    <SelectField
-                      maxMenuHeight={200}
-                      styles={{
-                        singleValue: (baseStyles) =>
-                          Object.assign({}, baseStyles, {
-                            fontSize: "14px",
-                          }),
-                        option: (baseStyles) =>
-                          Object.assign({}, baseStyles, {
-                            fontSize: "14px",
-                          }),
-                      }}
-                      label="Type"
-                      isDisabled={!!router}
-                      containerClassName="data-testid-field-type"
-                      options={FieldTypes}
-                      onChange={(option) => {
-                        if (!option) {
-                          return;
-                        }
-                        onChange(option.value);
-                      }}
-                      defaultValue={defaultValue}
-                    />
-                  );
-                }
-              }}
-            />
-          </div>
-          {["select", "multiselect"].includes(fieldType) ? (
-            <div className="bg-cal-muted w-full rounded-[10px] p-2">
-              <Label className="text-subtle">{t("options")}</Label>
-              <MultiOptionInput
-                fieldArrayName={`${hookFieldNamespace}.options`}
-                disabled={!!router}
-                optionPlaceholders={["< 10", "10 - 100", "100 - 500", "> 500"]}
-                defaultNumberOfOptions={4}
-                pasteDelimiters={["\n", ","]}
-                showMoveButtons={true}
-                minOptions={1}
-                addOptionLabel={t("add_an_option")}
-                addOptionButtonColor="minimal"
-              />
-            </div>
-          ) : null}
-
-          <div className="w-[106px]">
-            <Controller
-              name={`${hookFieldNamespace}.required`}
-              control={hookForm.control}
-              defaultValue={routerField?.required}
-              render={({ field: { value, onChange } }) => {
-                return (
-                  <BooleanToggleGroupField
-                    variant="small"
-                    disabled={!!router}
-                    label={t("required")}
-                    value={value}
-                    onValueChange={onChange}
-                  />
-                );
-              }}
-            />
-          </div>
-        </FormCardBody>
-      </FormCard>
-    </div>
-  );
-}
+// Transform helper: FormBuilder -> Routing Form
+const transformToRouting = (fields: ReturnType<typeof transformToBuilder>) => {
+  return fields.map((f: any) => ({
+    ...f,
+    id: f.id || uuidv4(),
+    label: f.label,
+    identifier: f.name, // Map name back to identifier
+    type: f.type,
+    // Fix: Ensure proper type compatibility or casting if needed
+    required: f.required,
+    placeholder: f.placeholder,
+    options: f.options?.map((o: any) => ({
+      label: o.label,
+      id: o.value,
+    })),
+  }));
+};
 
 const FormEdit = ({
   hookForm,
@@ -276,135 +72,63 @@ const FormEdit = ({
   form: inferSSRProps<typeof getServerSideProps>["form"];
   appUrl: string;
 }) => {
-  const fieldsNamespace = "fields";
-  const {
-    fields: hookFormFields,
-    append: appendHookFormField,
-    remove: removeHookFormField,
-    swap: swapHookFormField,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore https://github.com/react-hook-form/react-hook-form/issues/6679
-  } = useFieldArray({
-    control: hookForm.control,
-    name: fieldsNamespace,
-    keyName: "_id",
+  // Local form for FormBuilder
+  const builderForm = useForm({
+    defaultValues: {
+      fields: transformToBuilder(hookForm.getValues("fields")),
+    },
+    mode: "onChange",
   });
 
-  const [animationRef] = useAutoAnimate<HTMLDivElement>();
+  // Sync from parent to local (when parent resets, e.g. on load)
+  useEffect(() => {
+      // If hookForm values change significantly (e.g. loaded from server or reset), sync to builderForm
+      const parentFields = hookForm.getValues("fields");
+      const localFields = builderForm.getValues("fields");
+      
+      // Basic check to see if we need to sync from parent (e.g. on initial load or reset)
+      // We rely on checking if local is empty and parent is not, or assuming manual sync is fine.
+      // A better way is to listen to a specific event or prop change, but hookForm ref assumes imperative handle.
+      
+      // Let's just check length for now or if local is empty.
+      if (parentFields?.length && (!localFields || localFields.length === 0)) {
+           // We might want to be careful not to overwrite user edits if they started editing empty form.
+           // However, if parent has fields, we generally want to start with them.
+           builderForm.reset({ fields: transformToBuilder(parentFields) });
+      } else if (parentFields?.length && localFields?.length && parentFields.length !== localFields.length) {
+           // If lengths differ significantly, it might be a reset. But checking ID is safer.
+           if (parentFields[0].id !== localFields[0].id) {
+               builderForm.reset({ fields: transformToBuilder(parentFields) });
+           }
+      }
+  }, [hookForm, builderForm, form]);
 
-  const addField = () => {
-    appendHookFormField({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      id: uuidv4(),
-      // This is same type from react-awesome-query-builder
-      type: "text",
-      label: "",
+  // Sync from local to parent (on change)
+  useEffect(() => {
+    const subscription = builderForm.watch((value) => {
+      // transform back and update parent
+      if (value.fields) {
+        const transformed = transformToRouting(value.fields as any);
+        hookForm.setValue("fields", transformed as any, { shouldDirty: true, shouldValidate: true });
+      }
     });
-  };
+    return () => subscription.unsubscribe();
+  }, [builderForm, hookForm]);
 
-  // hookForm.reset(form);
-  if (!form.fields) {
-    form.fields = [];
-  }
-  return hookFormFields.length ? (
-    <div className="w-full py-4 lg:py-8">
-      <div ref={animationRef} className="flex w-full flex-col rounded-md">
-        {hookFormFields.map((field, key) => {
-          const existingField = Boolean(
-            (form.fields || []).find((f) => f.id === field.id)
-          );
-          const hasFormResponses = (form._count?.responses ?? 0) > 0;
-          return (
-            <Field
-              appUrl={appUrl}
-              fieldIndex={key}
-              hookForm={hookForm}
-              hookFieldNamespace={`${fieldsNamespace}.${key}`}
-              disableTypeChange={existingField && hasFormResponses}
-              deleteField={{
-                check: () => hookFormFields.length > 1,
-                fn: () => {
-                  removeHookFormField(key);
-                },
-              }}
-              moveUp={{
-                check: () => key !== 0,
-                fn: () => {
-                  swapHookFormField(key, key - 1);
-                },
-              }}
-              moveDown={{
-                check: () => key !== hookFormFields.length - 1,
-                fn: () => {
-                  if (key === hookFormFields.length - 1) {
-                    return;
-                  }
-                  swapHookFormField(key, key + 1);
-                },
-              }}
-              key={field.id}
-            />
-          );
-        })}
-      </div>
-      {hookFormFields.length ? (
-        <div className={classNames("flex")}>
-          <Button
-            data-testid="add-field"
-            type="button"
-            StartIcon="plus"
-            color="secondary"
-            onClick={addField}
-          >
-            Add question
-          </Button>
-        </div>
-      ) : null}
-    </div>
-  ) : (
-    <div className="w-full py-4 lg:py-8">
-      {/* TODO: remake empty screen for V3 */}
-      <div className="border-subtle bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
-        <div className="mb-3 grid">
-          {/* Icon card - Top */}
-          <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
-            <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
-            </div>
-          </div>
-          {/* Left fanned card */}
-          <div
-            className="bg-default border-subtle z-20 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
-            style={{
-              transform: "translate(-12px, 2px) rotate(-6deg)",
-            }}
-          />
-          {/* Right fanned card */}
-          <div
-            className="bg-default border-subtle z-10 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 rounded-md border shadow-sm"
-            style={{
-              transform: "translate(12px, 2px) rotate(6deg)",
-            }}
-          />
-        </div>
-        <div>
-          <h1 className="text-emphasis text-emphasis text-center text-lg font-semibold">
-            Create your first question
-          </h1>
-          <p className="text-default mt-2 text-center text-sm leading-normal">
-            Fields are the form fields that the booker would see.
-          </p>
-        </div>
-        <Button
-          data-testid="add-field"
-          onClick={addField}
-          StartIcon="plus"
-          className="mt-6"
-        >
-          Add question
-        </Button>
-      </div>
+  return (
+    <div className="p-4 w-full">
+      <FormProvider {...builderForm}>
+         <FormBuilder
+            title="Questions"
+            description="Add questions to your routing form."
+            addFieldLabel="Add a question"
+            formProp="fields"
+            dataStore={{ options: {} }} // FormBuilder expects this
+            disabled={false}
+            LockedIcon={false}
+            shouldConsiderRequired={(field: any) => field.required}
+         />
+      </FormProvider>
     </div>
   );
 };
