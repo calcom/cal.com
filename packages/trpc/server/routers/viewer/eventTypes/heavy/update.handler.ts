@@ -993,9 +993,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettingsForChildren = null;
   }
 
-  // Reconstruct children array from pendingChildrenChanges if present
+  // Reconstruct children array from pendingChildrenChanges or preserve existing children
   let resolvedChildren = children;
-  if (pendingChildrenChanges && !children) {
+  if (!children) {
     const existingChildren = await ctx.prisma.eventType.findMany({
       where: { parentId: id },
       select: {
@@ -1012,8 +1012,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
-    if (pendingChildrenChanges.clearAllChildren) {
-      // Only keep newly added children
+    if (pendingChildrenChanges?.clearAllChildren) {
       resolvedChildren = pendingChildrenChanges.childrenToAdd.map((c) => ({
         owner: {
           id: c.owner.id,
@@ -1024,10 +1023,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         hidden: c.hidden,
       }));
     } else {
-      const removeSet = new Set(pendingChildrenChanges.childrenToRemove);
-      const updateMap = new Map(pendingChildrenChanges.childrenToUpdate.map((u) => [u.userId, u]));
+      const removeSet = new Set(pendingChildrenChanges?.childrenToRemove ?? []);
+      const updateMap = new Map(
+        (pendingChildrenChanges?.childrenToUpdate ?? []).map((u) => [u.userId, u])
+      );
 
-      // Start with existing children, filter removals, apply updates
       resolvedChildren = existingChildren
         .filter((c) => c.owner && !removeSet.has(c.owner.id))
         .map((c) => {
@@ -1045,17 +1045,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           };
         });
 
-      // Add newly added children
-      for (const added of pendingChildrenChanges.childrenToAdd) {
-        resolvedChildren.push({
-          owner: {
-            id: added.owner.id,
-            name: added.owner.name,
-            email: added.owner.email,
-            eventTypeSlugs: [],
-          },
-          hidden: added.hidden,
-        });
+      if (pendingChildrenChanges) {
+        for (const added of pendingChildrenChanges.childrenToAdd) {
+          resolvedChildren.push({
+            owner: {
+              id: added.owner.id,
+              name: added.owner.name,
+              email: added.owner.email,
+              eventTypeSlugs: [],
+            },
+            hidden: added.hidden,
+          });
+        }
       }
     }
   }

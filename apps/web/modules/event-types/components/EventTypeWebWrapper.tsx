@@ -169,7 +169,6 @@ const EventTypeWeb = ({
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-      revalidateEventTypeEditPage(eventType.id);
       if (eventType.team?.slug) {
         // When an event-type is updated,
         // guests could still hit a stale cache and see the old page.
@@ -184,6 +183,7 @@ const EventTypeWeb = ({
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
+      revalidateEventTypeEditPage(eventType.id);
     },
     onError: (err) => {
       let message = "";
