@@ -1436,4 +1436,24 @@ export class UserRepository {
       data: { locked: true },
     });
   }
+
+  async unlockByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<{ email: string; username: string | null } | null> {
+    const user = await this.prismaClient.user.findFirst({
+      where: { email, locked: true },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) return null;
+
+    await this.prismaClient.user.update({
+      where: { id: user.id },
+      data: { locked: false },
+    });
+
+    return { email: user.email, username: user.username };
+  }
 }

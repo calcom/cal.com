@@ -12,8 +12,8 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -287,15 +287,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
-    // Only send verification email for non-premium usernames
-    // Premium usernames will get a magic link after payment in paymentCallback
-    if (!checkoutSessionId) {
-      sendEmailVerification({
-        email,
-        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
-        username: username || "",
-      });
-    }
   }
 
   const featureRepository = getFeatureRepository();
@@ -324,6 +315,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       { message: "Created user", stripeCustomerId: customer.stripeCustomerId, accountUnderReview: true },
       { status: 201 }
     );
+  }
+
+  if (!checkoutSessionId && !token) {
+    sendEmailVerification({
+      email,
+      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      username: username || "",
+    });
   }
 
   if (checkoutSessionId) {
