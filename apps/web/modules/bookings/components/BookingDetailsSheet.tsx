@@ -30,8 +30,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
-import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
+import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import Link from "next/link";
 import { useMemo, useRef } from "react";
@@ -41,6 +41,7 @@ import { BookingActionsDropdown } from "../../../components/booking/actions/Book
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import { RejectBookingButton } from "../../../components/booking/RejectBookingButton";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import { useAvatarUrl } from "../hooks/useAvatarUrl";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
@@ -214,15 +215,15 @@ function BookingDetailsSheetInner({
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
-        count: booking.eventType.recurringEvent.count,
-        recurringEvent: booking.eventType.recurringEvent,
-      }
+          count: booking.eventType.recurringEvent.count,
+          recurringEvent: booking.eventType.recurringEvent,
+        }
       : null;
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>)
-      .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
-      .map(([question, answer]) => [question, answer] as [string, unknown])
+        .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
+        .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
   const reason =
@@ -460,7 +461,7 @@ function DisplayTimestamp({
   const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
   const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
   const localizedTimezone = timeZone
-    ? formatToLocalizedTimezone(start, language, timeZone) ?? timeZone
+    ? (formatToLocalizedTimezone(start, language, timeZone) ?? timeZone)
     : start.format("Z");
 
   return (
@@ -507,31 +508,34 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           </div>
         )}
 
-        {booking.attendees.map((attendee, idx) => {
-          const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
-          return (
-            <div key={idx} className="flex items-center gap-4">
-              <Avatar
-                size="md"
-                imageSrc={
-                  attendee.user?.avatarUrl
-                    ? getUserAvatarUrl(attendee.user)
-                    : getPlaceholderAvatar(null, name)
-                }
-                alt={name}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
-                {attendee.phoneNumber && (
-                  <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
-                )}
-                <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
-              </div>
-            </div>
-          );
-        })}
+        {booking.attendees.map((attendee, idx) => (
+          <AttendeeRow key={idx} attendee={attendee} />
+        ))}
       </div>
     </Section>
+  );
+}
+
+function AttendeeRow({ attendee }: { attendee: BookingOutput["attendees"][number] }) {
+  const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+  const hasAvatar = !!attendee.user?.avatarUrl;
+  const avatarApiFallback = useAvatarUrl(attendee.email, !hasAvatar);
+
+  const imageSrc = hasAvatar
+    ? getUserAvatarUrl(attendee.user)
+    : (avatarApiFallback ?? getPlaceholderAvatar(null, name));
+
+  return (
+    <div className="flex items-center gap-4">
+      <Avatar size="md" imageSrc={imageSrc} alt={name} />
+      <div className="min-w-0 flex-1">
+        <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
+        {attendee.phoneNumber && (
+          <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
+        )}
+        <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
+      </div>
+    </div>
   );
 }
 
