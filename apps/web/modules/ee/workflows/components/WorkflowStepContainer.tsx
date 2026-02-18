@@ -68,11 +68,11 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui/components/form";
+import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
-import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
+import { AgentConfigurationSheet }from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
