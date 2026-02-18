@@ -365,6 +365,126 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
+      test("JSON string with only firstName (no lastName) from URL prefill", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: '{"firstName":"John"}',
+          email: "john@example.com",
+        });
+
+        expectResponsesToBe(
+          parsedResponses,
+          expect.objectContaining({
+            name: "John",
+            email: "john@example.com",
+          })
+        );
+      });
+
+      test("Invalid JSON string falls back to regular string handling", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: "{not valid json}",
+          email: "john@example.com",
+        });
+
+        expectResponsesToBe(
+          parsedResponses,
+          expect.objectContaining({
+            name: "{not valid json}",
+            email: "john@example.com",
+          })
+        );
+      });
+
+      test("JSON array falls back to regular string handling", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: '["John", "Doe"]',
+          email: "john@example.com",
+        });
+
+        expectResponsesToBe(
+          parsedResponses,
+          expect.objectContaining({
+            name: '["John", "Doe"]',
+            email: "john@example.com",
+          })
+        );
+      });
+
+      test("JSON object without firstName falls back to regular string handling", async () => {
+        const schema = getBookingResponsesSchema({
+          bookingFields: [
+            {
+              name: "name",
+              type: "name",
+              required: true,
+            },
+            {
+              name: "email",
+              type: "email",
+              required: true,
+            },
+          ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+          view: "ALL_VIEWS",
+        });
+        const parsedResponses = await schema.safeParseAsync({
+          name: '{"name":"John Doe"}',
+          email: "john@example.com",
+        });
+
+        expectResponsesToBe(
+          parsedResponses,
+          expect.objectContaining({
+            name: '{"name":"John Doe"}',
+            email: "john@example.com",
+          })
+        );
+      });
+
       test("`fullName` to `firstAndLastName` when there is a lastName(separated by space)", async () => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
