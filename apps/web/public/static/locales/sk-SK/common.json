@@ -3156,7 +3156,6 @@
   "create_account_password_hint": "Nemáte heslo k účtu, vytvorte ho prechodom na Zabezpečenie -> Heslo. Nemožno sa odpojiť, kým nie je vytvorené heslo k účtu.",
   "disconnect_account": "Odpojiť pripojený účet",
   "disconnect_account_hint": "Odpojenie vášho pripojeného účtu zmení spôsob, akým sa prihlasujete. Budete sa môcť prihlásiť do svojho účtu iba pomocou emailu + hesla",
-  "cookie_consent_checkbox": "Súhlasím so zásadami ochrany osobných údajov a používaním cookies",
   "make_a_call": "Zavolať",
   "skip_rr_assignment_label": "Preskočiť round robin priradenie, ak kontakt existuje v Salesforce",
   "skip_rr_description": "URL musí obsahovať e-mail kontaktu ako parameter, napr. ?email=kontaktovyEmail",

@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "Bir hesap şifreniz yok, Güvenlik -> Şifre'ye giderek bir tane oluşturun. Bir hesap şifresi oluşturulana kadar bağlantıyı kesemezsiniz.",
   "disconnect_account": "Bağlı hesabı ayır",
   "disconnect_account_hint": "Bağlı hesabınızı ayırmak, giriş yapma şeklinizi değiştirecektir. Hesabınıza yalnızca e-posta + şifre kullanarak giriş yapabileceksiniz",
-  "cookie_consent_checkbox": "Gizlilik politikasını ve çerez kullanımını kabul ediyorum",
   "make_a_call": "Arama yap",
   "skip_rr_assignment_label": "İletişim Salesforce'ta mevcutsa round robin atamasını atla",
   "skip_rr_description": "URL, bir parametre olarak iletişim e-postasını içermelidir örn. ?email=contactEmail",

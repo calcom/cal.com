@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "您沒有帳戶密碼，請導航到安全性 -> 密碼來創建一個。在創建帳戶密碼之前無法斷開連接。",
   "disconnect_account": "斷開連接的帳戶",
   "disconnect_account_hint": "斷開連接的帳戶將改變您的登錄方式。您將只能使用電子郵件和密碼登錄您的帳戶。",
-  "cookie_consent_checkbox": "我同意隱私政策和使用 Cookie",
   "make_a_call": "撥打電話",
   "skip_rr_assignment_label": "如果 Salesforce 中存在聯繫人，則跳過 round robin 分配",
   "skip_rr_description": "URL 必須包含聯繫人的電子郵件作為參數，例如 ?email=contactEmail",

@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "您还没有账户密码，请通过导航到“安全 -> 密码”来创建一个。在创建账户密码之前，无法断开连接。",
   "disconnect_account": "断开已连接的账户",
   "disconnect_account_hint": "断开已连接的账户将改变您的登录方式。您只能使用邮箱和密码登录您的账户。",
-  "cookie_consent_checkbox": "我同意隐私政策和Cookie使用",
   "make_a_call": "发起通话",
   "skip_rr_assignment_label": "如果联系人存在于Salesforce中，则跳过round robin分配",
   "skip_rr_description": "URL必须包含联系人的电子邮件作为参数，例如 ?email=contactEmail",

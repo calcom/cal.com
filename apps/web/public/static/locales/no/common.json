@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "Du har ikke et kontopassord, opprett ett ved å navigere til Sikkerhet -> Passord. Kan ikke koble fra før et kontopassord er opprettet.",
   "disconnect_account": "Koble fra tilkoblet konto",
   "disconnect_account_hint": "Å koble fra din tilkoblede konto vil endre måten du logger inn på. Du vil kun kunne logge inn på kontoen din ved å bruke e-post + passord",
-  "cookie_consent_checkbox": "Jeg godtar personvernreglene og bruk av informasjonskapsler",
   "make_a_call": "Foreta en samtale",
   "skip_rr_assignment_label": "Hopp over round robin-oppgave hvis kontakt finnes i Salesforce",
   "skip_rr_description": "URL-en må inneholde kontaktens e-post som en parameter, f.eks. ?email=contactEmail",

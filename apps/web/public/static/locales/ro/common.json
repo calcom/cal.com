@@ -3156,7 +3156,6 @@
   "create_account_password_hint": "Nu ai o parolă de cont, creează una navigând la Securitate -> Parolă. Nu te poți deconecta până nu creezi o parolă de cont.",
   "disconnect_account": "Deconectează contul conectat",
   "disconnect_account_hint": "Deconectarea contului conectat va schimba modul în care te autentifici. Vei putea să te autentifici în contul tău doar folosind email + parolă",
-  "cookie_consent_checkbox": "Sunt de acord cu politica de confidențialitate și utilizarea cookie-urilor",
   "make_a_call": "Efectuează un apel",
   "skip_rr_assignment_label": "Sari peste atribuirea round robin dacă contactul există în Salesforce",
   "skip_rr_description": "URL-ul trebuie să conțină emailul contactului ca parametru, ex. ?email=contactEmail",

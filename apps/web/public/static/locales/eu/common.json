@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "Ez duzu kontuaren pasahitzik, sortu bat Segurtasuna -> Pasahitza atalera joanez. Ezin da deskonektatu kontuaren pasahitza sortu arte",
   "disconnect_account": "Deskonektatu konektatutako kontua",
   "disconnect_account_hint": "Konektatutako kontua deskonektatzeak saioa hasteko modua aldatuko du. Posta elektronikoa + pasahitza erabiliz bakarrik hasi ahal izango duzu saioa",
-  "cookie_consent_checkbox": "Pribatutasun politika eta cookien erabilera onartzen ditut",
   "make_a_call": "Egin dei bat",
   "skip_rr_assignment_label": "Saltatu round robin esleipena kontaktua Salesforce-n existitzen bada",
   "skip_rr_description": "URLak kontaktuaren posta elektronikoa parametro gisa izan behar du, adib. ?email=kontaktuarenEmaila",

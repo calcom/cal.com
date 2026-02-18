@@ -28,13 +28,12 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
-import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { CheckboxField, Form, PasswordField, SelectField, TextField } from "@calcom/ui/components/form";
+import { Form, PasswordField, SelectField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { InfoIcon, ShieldCheckIcon, StarIcon } from "@coss/ui/icons";
@@ -221,11 +220,6 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
-  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
-
-  function handleConsentChange(consent: boolean) {
-    setUserConsentToCookie(!consent);
-  }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
@@ -336,7 +330,7 @@ export default function Signup({
 
   return (
     <>
-      {IS_CALCOM && (!IS_EUROPE || userConsentToCookie) ? (
+      {IS_CALCOM ? (
         <>
           {process.env.NEXT_PUBLIC_GTM_ID && (
             <>
@@ -564,11 +558,29 @@ export default function Signup({
                         />
                       ) : null}
 
-                      <CheckboxField
-                        data-testid="signup-cookie-content-checkbox"
-                        onChange={() => handleConsentChange(userConsentToCookie)}
-                        description={t("cookie_consent_checkbox")}
-                      />
+                      <div className="text-subtle text-sm">
+                        <ServerTrans
+                          t={t}
+                          i18nKey="signing_up_terms"
+                          values={{ appName: APP_NAME }}
+                          components={[
+                            <Link
+                              className="text-emphasis hover:underline"
+                              key="terms"
+                              href={`${WEBSITE_TERMS_URL}`}
+                              target="_blank">
+                              Terms
+                            </Link>,
+                            <Link
+                              className="text-emphasis hover:underline"
+                              key="privacy"
+                              href={`${WEBSITE_PRIVACY_POLICY_URL}`}
+                              target="_blank">
+                              Privacy Policy.
+                            </Link>,
+                          ]}
+                        />
+                      </div>
                       {errors.apiError && (
                         <Alert
                           className="mb-3"
@@ -758,29 +770,6 @@ export default function Signup({
                       <Link href="/auth/login" className="text-emphasis hover:underline">
                         {t("sign_in")}
                       </Link>
-                    </div>
-                    <div className="text-subtle">
-                      <ServerTrans
-                        t={t}
-                        i18nKey="signing_up_terms"
-                        values={{ appName: APP_NAME }}
-                        components={[
-                          <Link
-                            className="text-emphasis hover:underline"
-                            key="terms"
-                            href={`${WEBSITE_TERMS_URL}`}
-                            target="_blank">
-                            Terms
-                          </Link>,
-                          <Link
-                            className="text-emphasis hover:underline"
-                            key="privacy"
-                            href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                            target="_blank">
-                            Privacy Policy.
-                          </Link>,
-                        ]}
-                      />
                     </div>
                   </div>
                 </div>

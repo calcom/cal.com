@@ -3156,7 +3156,6 @@
   "create_account_password_hint": "U heeft geen accountwachtwoord, maak er een aan door naar Beveiliging -> Wachtwoord te navigeren. U kunt niet loskoppelen totdat een accountwachtwoord is aangemaakt.",
   "disconnect_account": "Koppel verbonden account los",
   "disconnect_account_hint": "Het loskoppelen van uw verbonden account zal de manier waarop u inlogt veranderen. U kunt alleen inloggen met e-mail + wachtwoord.",
-  "cookie_consent_checkbox": "Ik ga akkoord met het privacybeleid en het gebruik van cookies",
   "make_a_call": "Bel",
   "skip_rr_assignment_label": "Sla round robin-toewijzing over als contact in Salesforce bestaat",
   "skip_rr_description": "URL moet het e-mailadres van de contactpersoon als parameter bevatten, bijv. ?email=contactEmail",

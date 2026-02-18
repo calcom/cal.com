@@ -404,28 +404,6 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Checkbox for cookie consent does not need to be checked", async ({ page, users: _users }) => {
-    await page.goto("/signup");
-    await preventFlakyTest(page);
-
-    // Navigate to email form
-    await page.getByTestId("continue-with-email-button").click();
-
-    // Fill form
-    await page.locator('input[name="username"]').fill("pro");
-    await page.locator('input[name="email"]').fill("pro@example.com");
-    await page.locator('input[name="password"]').fill("Password99!");
-
-    const submitButton = page.getByTestId("signup-submit-button");
-    const checkbox = page.getByTestId("signup-cookie-content-checkbox");
-
-    await checkbox.check();
-    await expect(submitButton).toBeEnabled();
-
-    // the cookie consent checkbox does not need to be checked for user to proceed
-    await checkbox.uncheck();
-    await expect(submitButton).toBeEnabled();
-  });
 
   test("Signup with org invite link creates user and joins organization", async ({
     page,

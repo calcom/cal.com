@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "No tens una contrasenya de compte, crea'n una anant a Seguretat -> Contrasenya. No es pot desconnectar fins que no es creï una contrasenya de compte.",
   "disconnect_account": "Desconnecta el compte connectat",
   "disconnect_account_hint": "Desconnectar el teu compte connectat canviarà la manera com inicies sessió. Només podràs iniciar sessió al teu compte utilitzant correu electrònic + contrasenya",
-  "cookie_consent_checkbox": "Accepto la política de privadesa i l'ús de cookies",
   "make_a_call": "Fes una trucada",
   "skip_rr_assignment_label": "Salta l'assignació round robin si el contacte existeix a Salesforce",
   "skip_rr_description": "L'URL ha de contenir el correu electrònic dels contactes com a paràmetre, per exemple ?email=contactEmail",

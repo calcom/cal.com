@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "Sinulla ei ole tilin salasanaa. Luo sellainen menemällä kohtaan Turvallisuus -> Salasana. Et voi katkaista yhteyttä ennen kuin tilin salasana on luotu",
   "disconnect_account": "Katkaise yhdistetyn tilin yhteys",
   "disconnect_account_hint": "Yhdistetyn tilin yhteyden katkaiseminen muuttaa kirjautumistapaa. Voit kirjautua tilillesi vain sähköpostilla ja salasanalla",
-  "cookie_consent_checkbox": "Hyväksyn tietosuojakäytännön ja evästeiden käytön",
   "make_a_call": "Soita puhelu",
   "skip_rr_assignment_label": "Ohita round robin -jako, jos yhteystieto on jo Salesforcessa",
   "skip_rr_description": "URL:n täytyy sisältää yhteystiedon sähköposti parametrina, esim. ?email=contactEmail",

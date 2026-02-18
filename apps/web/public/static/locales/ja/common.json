@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "アカウントパスワードがありません。セキュリティ -> パスワードに移動して作成してください。アカウントパスワードが作成されるまで切断できません。",
   "disconnect_account": "接続されたアカウントを切断",
   "disconnect_account_hint": "接続されたアカウントを切断すると、ログイン方法が変更されます。メールとパスワードを使用してのみアカウントにログインできます。",
-  "cookie_consent_checkbox": "プライバシーポリシーとクッキーの使用に同意します",
   "make_a_call": "通話をする",
   "skip_rr_assignment_label": "Salesforceに連絡先が存在する場合、round robinの割り当てをスキップ",
   "skip_rr_description": "URLにはパラメータとして連絡先のメールアドレスを含める必要があります。例: ?email=contactEmail",

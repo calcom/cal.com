@@ -3222,7 +3222,6 @@
   "create_account_password_hint": "Nincs fiókjelszava, hozzon létre egyet a Biztonság -> Jelszó menüpontban. Nem választható le, amíg nincs fiókjelszó.",
   "disconnect_account": "A csatlakoztatott fiók leválasztása",
   "disconnect_account_hint": "A csatlakoztatott fiók leválasztása megváltoztatja a bejelentkezés módját. Csak e-mail + jelszó használatával tud majd bejelentkezni fiókjába",
-  "cookie_consent_checkbox": "Elfogadom az adatvédelmi irányelveket és a sütik használatát",
   "make_a_call": "Hívás",
   "skip_rr_assignment_label": "Round robin hozzárendelés kihagyása, ha a kapcsolat létezik a Salesforce-ban",
   "skip_rr_description": "Az URL-nek tartalmaznia kell a kapcsolat e-mail címét paraméterként, pl. ?email=contactEmail",
