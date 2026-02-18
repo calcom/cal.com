@@ -168,7 +168,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                 className="gap-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm">
                 {t("upgrade_billing_annual")}
                 <Badge variant="info" size="sm">
-                  -20%
+                  {t("discount_20")}
                 </Badge>
               </Toggle>
               <Toggle
