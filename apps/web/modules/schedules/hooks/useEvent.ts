@@ -102,7 +102,9 @@ export const useScheduleForEvent = ({
     shallow
   );
 
-  const effectiveTimezone = useStableTimezone(rawTimezone, restrictionSchedule);
+  const effectiveTimezone = useStableTimezone(rawTimezone, restrictionSchedule, () => {
+  schedule?.invalidate?.();
+});
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
