@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import type { CSSObjectWithLabel, GroupBase, SingleValue } from "react-select";
 import { Controller, useForm } from "react-hook-form";
 
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
@@ -9,10 +10,33 @@ import { WatchlistType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
-import { GlobeIcon, MailIcon } from "@coss/ui/icons";
+import { Input, Label, Select, TextArea } from "@calcom/ui/components/form";
 
 import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
+
+type TypeOption = { label: string; value: WatchlistType };
+
+const TYPE_CONFIG: Record<WatchlistType, { labelKey: string; placeholderKey: string }> = {
+  [WatchlistType.EMAIL]: { labelKey: "email", placeholderKey: "user@example.com" },
+  [WatchlistType.DOMAIN]: { labelKey: "domain", placeholderKey: "spammer.com" },
+  [WatchlistType.USERNAME]: { labelKey: "username", placeholderKey: "username" },
+  [WatchlistType.SPAM_KEYWORD]: { labelKey: "spam_keyword", placeholderKey: "spam_keyword_placeholder" },
+  [WatchlistType.SUSPICIOUS_DOMAIN]: {
+    labelKey: "suspicious_domain",
+    placeholderKey: "suspicious_domain_placeholder",
+  },
+  [WatchlistType.EMAIL_PATTERN]: { labelKey: "email_pattern", placeholderKey: "email_pattern_placeholder" },
+  [WatchlistType.REDIRECT_DOMAIN]: {
+    labelKey: "redirect_domain",
+    placeholderKey: "redirect_domain_placeholder",
+  },
+};
+
+const DOMAIN_VALIDATED_TYPES = new Set<WatchlistType>([
+  WatchlistType.DOMAIN,
+  WatchlistType.SUSPICIOUS_DOMAIN,
+  WatchlistType.REDIRECT_DOMAIN,
+]);
 
 export interface CreateBlocklistEntryModalProps {
   isOpen: boolean;
@@ -71,20 +95,53 @@ export function CreateBlocklistEntryModal({
       if (!emailRegex.test(value)) {
         return t("invalid_email_address");
       }
-    } else if (watchType === WatchlistType.DOMAIN) {
+    } else if (DOMAIN_VALIDATED_TYPES.has(watchType)) {
       const domainToValidate = value.startsWith("*.") ? value.slice(2) : value;
       if (!domainRegex.test(domainToValidate)) {
         return t("invalid_domain_format");
+      }
+    } else if (watchType === WatchlistType.EMAIL_PATTERN) {
+      try {
+        new RegExp(value);
+      } catch {
+        return t("invalid_regex_pattern");
       }
     }
 
     return true;
   };
 
-  const typeOptions = [
-    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <MailIcon className="h-4 w-4" /> },
-    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <GlobeIcon className="h-4 w-4" /> },
-  ];
+  const groupedOptions = useMemo<GroupBase<TypeOption>[]>(() => {
+    const groups: GroupBase<TypeOption>[] = [
+      {
+        label: t("blocking"),
+        options: [
+          { label: t("email"), value: WatchlistType.EMAIL },
+          { label: t("domain"), value: WatchlistType.DOMAIN },
+          { label: t("username"), value: WatchlistType.USERNAME },
+        ],
+      },
+      {
+        label: t("abuse_scoring"),
+        options: [
+          { label: t("spam_keyword"), value: WatchlistType.SPAM_KEYWORD },
+          { label: t("suspicious_domain"), value: WatchlistType.SUSPICIOUS_DOMAIN },
+          { label: t("email_pattern"), value: WatchlistType.EMAIL_PATTERN },
+          { label: t("redirect_domain"), value: WatchlistType.REDIRECT_DOMAIN },
+        ],
+      },
+    ];
+    return groups;
+  }, [t]);
+
+  const selectedOption = useMemo<TypeOption>(() => {
+    const config = TYPE_CONFIG[watchType];
+    return { label: t(config.labelKey), value: watchType };
+  }, [watchType, t]);
+
+  const config = TYPE_CONFIG[watchType];
+  const placeholderRaw = config.placeholderKey;
+  const placeholder = placeholderRaw.includes("_placeholder") ? t(placeholderRaw) : placeholderRaw;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -109,15 +166,20 @@ export function CreateBlocklistEntryModal({
                 control={control}
                 rules={{ required: t("field_required") }}
                 render={({ field }) => (
-                  <ToggleGroup
-                    value={field.value}
-                    onValueChange={(value) => {
-                      if (value) {
-                        field.onChange(value);
+                  <Select<TypeOption, false, GroupBase<TypeOption>>
+                    value={selectedOption}
+                    onChange={(option: SingleValue<TypeOption>) => {
+                      if (option) {
+                        field.onChange(option.value);
                         setValue("value", "");
                       }
                     }}
-                    options={typeOptions}
+                    options={groupedOptions}
+                    isSearchable={false}
+                    menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
+                    styles={{
+                      menuPortal: (base) => ({ ...base, zIndex: 9999, pointerEvents: "auto" }) as CSSObjectWithLabel,
+                    }}
                   />
                 )}
               />
@@ -126,7 +188,7 @@ export function CreateBlocklistEntryModal({
 
             <div>
               <Label htmlFor="value" className="text-emphasis mb-2 block text-sm font-medium">
-                {watchType === WatchlistType.EMAIL ? t("email") : t("domain_name")}{" "}
+                {t(config.labelKey)}
               </Label>
               <Controller
                 name="value"
@@ -135,12 +197,7 @@ export function CreateBlocklistEntryModal({
                   required: t("field_required"),
                   validate: validateValue,
                 }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    placeholder={watchType === WatchlistType.EMAIL ? "user@example.com" : "spammer.com"}
-                  />
-                )}
+                render={({ field }) => <Input {...field} placeholder={placeholder} />}
               />
               {errors.value && <p className="text-destructive mt-1 text-sm">{errors.value.message}</p>}
             </div>

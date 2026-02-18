@@ -85,9 +85,18 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
         header: t("type"),
         accessorKey: "type",
         size: 100,
-        cell: ({ row }) => (
-          <Badge variant="blue">{row.original.type === "EMAIL" ? t("email") : t("domain")}</Badge>
-        ),
+        cell: ({ row }) => {
+          const typeLabels: Record<string, string> = {
+            EMAIL: t("email"),
+            DOMAIN: t("domain"),
+            USERNAME: t("username"),
+            SPAM_KEYWORD: t("spam_keyword"),
+            SUSPICIOUS_DOMAIN: t("suspicious_domain"),
+            EMAIL_PATTERN: t("email_pattern"),
+            REDIRECT_DOMAIN: t("redirect_domain"),
+          };
+          return <Badge variant="blue">{typeLabels[row.original.type] ?? row.original.type}</Badge>;
+        },
       }
     );
 
