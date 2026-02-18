@@ -72,16 +72,24 @@ function toFormBuilderField(field: RoutingField, lockType = false): FormBuilderF
 
 /**
  * Convert a FormBuilder field → routing-form field.
+ *
  * Preserves the original `id` so RAQB conditions continue to work.
+ * Also re-attaches any router-specific metadata (`routerId`, `router`,
+ * `routerField`) from the original routing field so that linked-router
+ * fields are not silently stripped on save.
  */
-function toRoutingField(builderField: FormBuilderField, originalId?: string): RoutingField {
+function toRoutingField(
+  builderField: FormBuilderField,
+  originalId?: string,
+  originalRoutingField?: RoutingField
+): RoutingField {
   const bf = builderField as FormBuilderField & {
     required?: boolean;
     placeholder?: string;
     options?: { label: string; value: string }[];
   };
 
-  return {
+  const base = {
     id: originalId ?? uuidv4(),
     label: bf.label ?? bf.name,
     identifier: bf.name,
@@ -89,7 +97,22 @@ function toRoutingField(builderField: FormBuilderField, originalId?: string): Ro
     required: bf.required ?? false,
     placeholder: bf.placeholder ?? "",
     options: bf.options?.map((opt) => ({ label: opt.label, id: opt.value })),
-  } as RoutingField;
+  };
+
+  // Preserve router-field metadata (routerId / router / routerField) from the
+  // original routing field.  Without this, editing and saving a form that
+  // contains linked-router fields silently strips the router association,
+  // causing the form to lose its cross-form routing logic.
+  if (originalRoutingField && "routerId" in originalRoutingField) {
+    const { routerId, router, routerField } = originalRoutingField as RoutingField & {
+      routerId: string;
+      router?: unknown;
+      routerField?: unknown;
+    };
+    return { ...base, routerId, ...(router !== undefined && { router }), ...(routerField !== undefined && { routerField }) } as RoutingField;
+  }
+
+  return base as RoutingField;
 }
 
 // ─── FormEdit component ───────────────────────────────────────────────────────
@@ -168,6 +191,18 @@ function FormEdit({
     )
   );
 
+  // ── Original routing field registry: maps identifier → original RoutingField ──
+  // Preserves router-specific metadata (routerId/router/routerField) so that
+  // linked-router fields are not silently stripped when the form is saved.
+  const originalRoutingFieldRef = useRef<Map<string, RoutingField>>(
+    new Map(
+      (hookForm.getValues("fields") ?? []).map((rf) => {
+        const name = rf.identifier ?? getFieldIdentifier(rf.label ?? "").toLowerCase();
+        return [name, rf];
+      })
+    )
+  );
+
   // ── Watch the shadow form and sync changes → routing form ─────────────────
   useEffect(() => {
     const subscription = builderForm.watch((values) => {
@@ -176,6 +211,7 @@ function FormEdit({
 
       const registry = fieldIdRegistryRef.current;
       const originalTypes = originalTypeRegistryRef.current;
+      const originalRoutingFields = originalRoutingFieldRef.current;
 
       // Map each builder field to a routing field, preserving the stable id
       // from the registry (keyed by identifier, not by position).
@@ -197,7 +233,9 @@ function FormEdit({
           }
         }
 
-        return toRoutingField(resolvedBf, registry.get(name));
+        // Pass the original routing field so router-specific metadata
+        // (routerId/router/routerField) is preserved and not silently dropped.
+        return toRoutingField(resolvedBf, registry.get(name), originalRoutingFields.get(name));
       });
 
       hookForm.setValue(
