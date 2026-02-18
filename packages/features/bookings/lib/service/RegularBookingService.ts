@@ -113,6 +113,7 @@ import {
 } from "../handleNewBooking/buildBookingEventAuditData";
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { checkIfUserEmailIsVerified } from "../handleNewBooking/checkIfUserEmailIsVerified";
 import type { Booking } from "../handleNewBooking/createBooking";
 import { createBooking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
@@ -670,6 +671,15 @@ async function handler(
   });
 
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
+
+  try {
+    await checkIfUserEmailIsVerified({ userId });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      throw new HttpError({ statusCode: 403, message: error.message });
+    }
+    throw error;
+  }
 
   try {
     await checkIfBookerEmailIsBlocked({

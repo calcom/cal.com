@@ -3,26 +3,22 @@
  * These specifications verify the business rules and validation behavior for booking creation
  */
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  TestData,
-  getOrganizer,
   getBooker,
-  getScenarioData,
   getGoogleCalendarCredential,
-  mockCalendarToHaveNoBusySlots,
   getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { afterEach, beforeEach, vi } from "vitest";
-import { describe, expect } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({
@@ -1257,6 +1253,211 @@ describe("Booking Validation Specifications", () => {
       ).rejects.toThrow("Invalid verification code");
 
       expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith("user@example.com", "invalid-code");
+    });
+  });
+
+  describe("Logged-in User Email Verification", () => {
+    test("should block booking when logged-in user has not verified their email", async () => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const booker = getBooker({
+        email: "unverified@example.com",
+        name: "Unverified User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      const unverifiedUser = getOrganizer({
+        name: "Unverified User",
+        email: "unverified@example.com",
+        id: 201,
+        schedules: [TestData.schedules.IstWorkHours],
+        emailVerified: null,
+      });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: [unverifiedUser],
+          apps: [TestData.apps["google-calendar"]],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+          userId: 201,
+        })
+      ).rejects.toThrow("Your email must be verified before you can create a booking.");
+    });
+
+    test("should allow booking when logged-in user has verified their email", async () => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const booker = getBooker({
+        email: "verified@example.com",
+        name: "Verified User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      const verifiedUser = getOrganizer({
+        name: "Verified User",
+        email: "verified@example.com",
+        id: 201,
+        schedules: [TestData.schedules.IstWorkHours],
+        emailVerified: new Date(),
+      });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: [verifiedUser],
+          apps: [TestData.apps["google-calendar"]],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+        userId: 201,
+      });
+
+      expect(createdBooking).toEqual(
+        expect.objectContaining({
+          id: expect.any(Number),
+          uid: expect.any(String),
+          status: BookingStatus.ACCEPTED,
+        })
+      );
+    });
+
+    test("should allow booking when user is not logged in (guest booking)", async () => {
+      const handleNewBooking = getNewBookingHandler();
+
+      const booker = getBooker({
+        email: "guest@example.com",
+        name: "Guest User",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        emailVerified: new Date(),
+      });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 30,
+              length: 30,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"]],
+        })
+      );
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar", {});
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(createdBooking).toEqual(
+        expect.objectContaining({
+          id: expect.any(Number),
+          uid: expect.any(String),
+          status: BookingStatus.ACCEPTED,
+        })
+      );
     });
   });
 });
