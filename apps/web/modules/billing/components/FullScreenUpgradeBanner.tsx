@@ -4,8 +4,8 @@ import { useFillRemainingHeight } from "@calcom/lib/hooks/useFillRemainingHeight
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { Icon } from "@calcom/ui/components/icon";
-import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";
+import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";
 import {
@@ -91,7 +91,7 @@ export function FullScreenUpgradeBanner({
 
   return (
     <div ref={ref} className="flex w-full shrink-0 items-center justify-center rounded-xl bg-subtle p-8">
-      <div className="flex w-full max-w-3xl gap-2 overflow-hidden rounded-3xl bg-default py-8 pl-8 shadow-sm">
+      <div className="flex w-full h-full md:h-auto max-w-3xl gap-2 overflow-hidden rounded-3xl bg-default p-5 md:py-8 md:pl-8 md:pr-0 shadow-sm">
         {/* Left Content */}
         <div className="flex flex-1 flex-col justify-between">
           <div>
@@ -126,7 +126,7 @@ export function FullScreenUpgradeBanner({
             </div>
             <div className="mt-4 h-px w-full border border-t-subtle border-dashed" />
             {/* Buttons */}
-            <div className="mt-6 flex items-center gap-2">
+            <div className="mt-6 flex items-center justify-between md:justify-start gap-2">
               <UpgradePlanDialog
                 tracking={tracking}
                 info={{
@@ -175,7 +175,7 @@ export function FullScreenUpgradeBanner({
         </div>
 
         {/* Right Content - Image */}
-        <div className="-my-2 flex flex-1 items-center justify-center rounded-l-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted border-r-0 relative">
+        <div className="-my-2 hidden md:flex flex-1 items-center justify-center rounded-l-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted border-r-0 relative">
           <Image
             src={image.src}
             alt={name}
