@@ -93,7 +93,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
     <li
       data-testid="list-link-item"
       className={classNames(
-        "group flex w-full items-center justify-between p-5 pb-4",
+        "group relative w-full flex flex-col items-start justify-between p-5 pb-4 sm:flex-row sm:items-center",
         className,
         disabled ? "hover:bg-cal-muted" : ""
       )}>
@@ -101,7 +101,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         passHref
         href={href}
         className={classNames(
-          "text-default grow truncate text-sm",
+          "text-default grow truncate text-sm w-full pr-24 sm:pr-0",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <div className="flex items-center">
@@ -116,9 +116,13 @@ export function ListLinkItem(props: ListLinkItemProps) {
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>
-        <div className="mt-2">{children}</div>
+        <div className="mt-2 flex flex-col items-start gap-2 w-full">
+          {children}
+        </div>
       </Link>
-      {actions}
+      <div className="flex flex-col items-end justify-start gap-2 w-auto absolute right-5 top-3 z-10 sm:flex-row sm:items-center sm:static sm:mt-0 sm:pl-4">
+        {actions}
+      </div>
     </li>
   );
 }
