@@ -77,6 +77,7 @@ export interface BookingFullContextDto {
   userPrimaryEmail: string | null;
   iCalUID: string | null;
   iCalSequence: number;
+  location: string | null;
   metadata: JsonValue;
   responses: JsonValue;
 }

@@ -2439,6 +2439,7 @@ export class BookingRepository implements IBookingRepository {
       userPrimaryEmail: booking.userPrimaryEmail,
       iCalUID: booking.iCalUID,
       iCalSequence: booking.iCalSequence,
+      location: booking.location,
       metadata: booking.metadata,
       responses: booking.responses,
     };

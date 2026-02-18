@@ -31,7 +31,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { AssignmentReasonEnum, BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
@@ -245,7 +245,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     additionalNotes: booking.description,
     assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
       ? {
-          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum as AssignmentReasonEnum),
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
