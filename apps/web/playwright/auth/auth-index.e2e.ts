@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "../lib/fixtures";
 import { submitAndWaitForResponse } from "../lib/testUtils";
 
@@ -26,16 +25,18 @@ test.describe("Can signup from a team invite", async () => {
     await page.goto("/settings/teams/new");
     await page.waitForLoadState("networkidle");
 
-    // Create a new team
-    await page.locator('input[name="name"]').fill(teamName);
-    await page.locator('input[name="slug"]').fill(teamName);
+    // Create a new team (new onboarding-v3 style flow)
+    await page.locator('[data-testid="team-name-input"]').fill(teamName);
     await page.locator('button[type="submit"]').click();
 
-    // Add new member to team
-    await page.click('[data-testid="new-member-button"]');
-    await page.fill('input[id="inviteUser"]', testUser.email);
+    // Wait for the invite email page
+    await page.waitForURL(/\/settings\/teams\/new\/invite\/email.*$/i);
+    await page.waitForLoadState("networkidle");
+
+    // Add new member to team via email invite form
+    await page.locator('input[type="email"]').first().fill(testUser.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-    await page.getByTestId("invite-new-member-button").click();
+    await page.locator('button[type="submit"]').click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
 
@@ -67,8 +68,7 @@ test.describe("Can signup from a team invite", async () => {
     await newPage.fill('input[name="password"]', testUser.password);
     await submitAndWaitForResponse(newPage, "/api/auth/signup", { expectedStatusCode: 201 });
     // Since it's a new user, it should be redirected to the onboarding
-    await newPage.locator('text="Welcome to Cal.com!"').waitFor();
-    await expect(newPage.locator('text="Welcome to Cal.com!"')).toBeVisible();
+    await newPage.waitForURL(/\/(getting-started|onboarding\/(getting-started|personal\/settings))/);
     // We don't need the new browser anymore
     await newPage.close();
 

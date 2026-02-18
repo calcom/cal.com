@@ -127,103 +127,98 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             <span>{props.rating} stars</span> <Icon name="star" className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
             <span className="pl-1 text-subtle">{props.reviews} reviews</span>
           </div> */}
-      <p
-        className="text-default mt-2 grow text-sm"
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
-        style={{
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitBoxOrient: "vertical",
-          WebkitLineClamp: "3",
-        }}
-      />
+      <p className="text-default mt-2 text-sm line-clamp-3">
+        {markdownToSafeHTML(app.description).replace(/<[^>]+>/g, "")}
+      </p>
 
-      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
+      <div className="mt-auto flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
           className="flex w-32 grow justify-center"
           href={`/apps/${app.slug}`}
-          onClick={() => { posthog.capture("app_card_details_clicked", { slug: app.slug }) }}
+          onClick={() => {
+            posthog.capture("app_card_details_clicked", { slug: app.slug });
+          }}
           data-testid={`app-store-app-card-${app.slug}`}>
           {t("details")}
         </Button>
         {app.isGlobal ||
-          (credentials && credentials.length > 0 && allowedMultipleInstalls) ||
-          (credentials && credentials.length > 0 && isRedirectApp(app.slug))
+        (credentials && credentials.length > 0 && allowedMultipleInstalls) ||
+        (credentials && credentials.length > 0 && isRedirectApp(app.slug))
           ? !app.isGlobal && (
-            <InstallAppButton
-              type={app.type}
-              teamsPlanRequired={app.teamsPlanRequired}
-              disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
-              wrapperClassName="[@media(max-width:260px)]:w-full"
-              render={({ useDefaultComponent, ...props }) => {
-                if (useDefaultComponent) {
-                  props = {
-                    ...props,
-                    onClick: () => {
-                      handleAppInstall();
-                    },
-                    loading: mutation.isPending,
-                  };
-                } else {
-                  const originalOnClick = props.onClick;
-                  props = {
-                    ...props,
-                    onClick: (e) => {
-                      posthog.capture("app_install_button_clicked", {
-                        slug: app.slug,
-                        app_type: app.type,
-                        is_redirect: isRedirectApp(app.slug),
-                        is_conferencing: isConferencing(app.categories || []),
-                      });
-                      originalOnClick?.(e);
-                    },
-                  };
-                }
-                return (
-                  <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
-                );
-              }}
-            />
-          )
+              <InstallAppButton
+                type={app.type}
+                teamsPlanRequired={app.teamsPlanRequired}
+                disableInstall={!!app.dependencies && !app.dependencyData?.some((data) => !data.installed)}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
+                render={({ useDefaultComponent, ...props }) => {
+                  if (useDefaultComponent) {
+                    props = {
+                      ...props,
+                      onClick: () => {
+                        handleAppInstall();
+                      },
+                      loading: mutation.isPending,
+                    };
+                  } else {
+                    const originalOnClick = props.onClick;
+                    props = {
+                      ...props,
+                      onClick: (e) => {
+                        posthog.capture("app_install_button_clicked", {
+                          slug: app.slug,
+                          app_type: app.type,
+                          is_redirect: isRedirectApp(app.slug),
+                          is_conferencing: isConferencing(app.categories || []),
+                        });
+                        originalOnClick?.(e);
+                      },
+                    };
+                  }
+                  return (
+                    <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
+                  );
+                }}
+              />
+            )
           : credentials &&
-          !appInstalled && (
-            <InstallAppButton
-              type={app.type}
-              wrapperClassName="[@media(max-width:260px)]:w-full"
-              disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
-              teamsPlanRequired={app.teamsPlanRequired}
-              render={({ useDefaultComponent, ...props }) => {
-                if (useDefaultComponent) {
-                  props = {
-                    ...props,
-                    disabled: !!props.disabled,
-                    onClick: () => {
-                      handleAppInstall();
-                    },
-                    loading: mutation.isPending,
-                  };
-                } else {
-                  const originalOnClick = props.onClick;
-                  props = {
-                    ...props,
-                    onClick: (e) => {
-                      posthog.capture("app_install_button_clicked", {
-                        slug: app.slug,
-                        app_type: app.type,
-                        is_redirect: isRedirectApp(app.slug),
-                        is_conferencing: isConferencing(app.categories || []),
-                      });
-                      originalOnClick?.(e);
-                    },
-                  };
-                }
-                return (
-                  <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
-                );
-              }}
-            />
-          )}
+            !appInstalled && (
+              <InstallAppButton
+                type={app.type}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
+                disableInstall={!!app.dependencies && app.dependencyData?.some((data) => !data.installed)}
+                teamsPlanRequired={app.teamsPlanRequired}
+                render={({ useDefaultComponent, ...props }) => {
+                  if (useDefaultComponent) {
+                    props = {
+                      ...props,
+                      disabled: !!props.disabled,
+                      onClick: () => {
+                        handleAppInstall();
+                      },
+                      loading: mutation.isPending,
+                    };
+                  } else {
+                    const originalOnClick = props.onClick;
+                    props = {
+                      ...props,
+                      onClick: (e) => {
+                        posthog.capture("app_install_button_clicked", {
+                          slug: app.slug,
+                          app_type: app.type,
+                          is_redirect: isRedirectApp(app.slug),
+                          is_conferencing: isConferencing(app.categories || []),
+                        });
+                        originalOnClick?.(e);
+                      },
+                    };
+                  }
+                  return (
+                    <InstallAppButtonChild paid={app.paid} isRedirect={isRedirectApp(app.slug)} {...props} />
+                  );
+                }}
+              />
+            )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
         {appAdded > 0 && !isRedirectApp(app.slug) ? (

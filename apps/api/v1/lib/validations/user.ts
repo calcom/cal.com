@@ -1,10 +1,8 @@
-import { z } from "zod";
-
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { iso8601 } from "@calcom/prisma/zod-utils";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
-
+import { iso8601 } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 import { isValidBase64Image } from "~/lib/utils/isValidBase64Image";
 import { timeZone } from "~/lib/validations/shared/timeZone";
 
@@ -162,7 +160,6 @@ export const schemaUserReadPublic = UserSchema.pick({
   avatarUrl: true,
   timeZone: true,
   weekStart: true,
-  endTime: true,
   bufferTime: true,
   appTheme: true,
   theme: true,

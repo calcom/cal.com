@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { DecoyBookingSuccessCard } from "~/bookings/components/DecoyBookingSuccessCard";
-import { useDecoyBooking } from "@calcom/features/bookings/Booker/components/hooks/useDecoyBooking";
+import { useDecoyBooking } from "~/bookings/hooks/useDecoyBooking";
 
 export function parseBookingTime(time: string | Date | null | undefined): Dayjs | null {
   if (!time) return null;

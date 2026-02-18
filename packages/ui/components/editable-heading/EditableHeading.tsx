@@ -1,10 +1,9 @@
 "use client";
 
+import { PencilIcon } from "@coss/ui/icons";
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
-
-import { Icon } from "../icon";
 
 export const EditableHeading = function EditableHeading({
   value,
@@ -23,7 +22,14 @@ export const EditableHeading = function EditableHeading({
     <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
         <label className="min-w-8 relative inline-block">
-          <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
+          <span
+            className={classNames(
+              "whitespace-pre text-xl tracking-normal w-full truncate cursor-pointer",
+              isEditing && "text-transparent"
+            )}>
+            {value}
+          </span>
+
           <input
             {...passThroughProps}
             disabled={disabled}
@@ -31,23 +37,23 @@ export const EditableHeading = function EditableHeading({
             value={value}
             required
             className={classNames(
-              !disabled &&
-                "hover:text-default focus:text-emphasis cursor-pointer focus:outline-none focus:ring-0",
-              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl ",
+              !disabled && "hover:text-default focus:text-emphasis cursor-text",
+              "text-emphasis absolute left-0 top-0 w-full truncate border-none bg-transparent p-0 align-top text-xl transition-opacity",
+              isEditing ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
               passThroughProps.className
             )}
             onFocus={(e) => {
               setIsEditing(!disabled);
-              passThroughProps.onFocus && passThroughProps.onFocus(e);
+              passThroughProps.onFocus?.(e);
             }}
             onBlur={(e) => {
               setIsEditing(false);
-              passThroughProps.onBlur && passThroughProps.onBlur(e);
+              passThroughProps.onBlur?.(e);
             }}
-            onChange={(e) => onChange && onChange(e.target.value)}
+            onChange={(e) => onChange?.(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-3 inline h-3 w-3" />
+            <PencilIcon className="text-subtle group-hover:text-subtle -mt-px ml-1 inline h-4 w-4" />
           )}
         </label>
       </div>

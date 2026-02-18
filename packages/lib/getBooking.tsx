@@ -79,7 +79,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
   if (booking) {
     // @NOTE: had to do this because Server side cant return [Object objects]
     // probably fixable with json.stringify -> json.parse
-    booking["startTime"] = (booking?.startTime as Date)?.toISOString() as unknown as Date;
+    booking.startTime = (booking?.startTime as Date)?.toISOString() as unknown as Date;
   }
 
   return booking;
@@ -92,7 +92,7 @@ export const getBookingWithResponses = <
     select: BookingSelect & {
       responses: true;
     };
-  }>
+  }>,
 >(
   booking: T
 ) => {

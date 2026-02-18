@@ -104,7 +104,7 @@ export class CalendarTelemetryWrapper implements Calendar {
       },
     });
 
-    log.info("Calendar fetch completed", {
+    log.debug("Calendar fetch completed", {
       calendarCount: selectedCalendars.length,
       totalFetchDurationMs,
       totalEventsCount: results.length,
@@ -151,7 +151,7 @@ export class CalendarTelemetryWrapper implements Calendar {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
-      }
+      },
     });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.duration_ms", totalFetchDurationMs, {
@@ -159,18 +159,17 @@ export class CalendarTelemetryWrapper implements Calendar {
         cache: this.deps.cacheEnabled ? "on" : "off",
         calendarType: this.deps.calendarType,
         mode: String(this.deps.mode),
-      }
+      },
     });
 
     metrics.distribution("calendar.getAvailabilityWithTimeZones.events_count", results?.length ?? 0, {
-        attributes: {
-          cache: this.deps.cacheEnabled ? "on" : "off",
-          calendarType: this.deps.calendarType,
-        },
-      }
-    );
+      attributes: {
+        cache: this.deps.cacheEnabled ? "on" : "off",
+        calendarType: this.deps.calendarType,
+      },
+    });
 
-    log.info("Calendar fetch with timezones completed", {
+    log.debug("Calendar fetch with timezones completed", {
       calendarCount: selectedCalendars.length,
       totalFetchDurationMs,
       totalEventsCount: results?.length ?? 0,
@@ -190,7 +189,7 @@ export class CalendarTelemetryWrapper implements Calendar {
     return this.deps.originalCalendar.listCalendars(event);
   }
 
-  testDelegationCredentialSetup?(): Promise<boolean> {
-    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve(false);
+  testDelegationCredentialSetup?(): Promise<void> {
+    return this.deps.originalCalendar.testDelegationCredentialSetup?.() || Promise.resolve();
   }
 }

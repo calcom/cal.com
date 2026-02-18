@@ -16,7 +16,11 @@ export type TResendInvitationInputSchema = {
   isOrg: boolean;
 };
 
-export const ZResendInvitationInputSchema: z.ZodType<TResendInvitationInputSchema, z.ZodTypeDef, TResendInvitationInputSchemaInput> = z.object({
+export const ZResendInvitationInputSchema: z.ZodType<
+  TResendInvitationInputSchema,
+  z.ZodTypeDef,
+  TResendInvitationInputSchemaInput
+> = z.object({
   teamId: z.number(),
   email: emailSchema,
   language: z.string(),

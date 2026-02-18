@@ -18,12 +18,24 @@ describe("Payload Builder Registry", () => {
       const factory = createPayloadBuilderFactory();
 
       // Test each builder category by trigger event
-      const bookingBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.BOOKING_CREATED);
+      const bookingBuilder = factory.getBuilder(
+        DEFAULT_WEBHOOK_VERSION,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
       const formBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.FORM_SUBMITTED);
       const oooBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.OOO_CREATED);
-      const recordingBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.RECORDING_READY);
-      const meetingBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.MEETING_STARTED);
-      const instantBuilder = factory.getBuilder(DEFAULT_WEBHOOK_VERSION, WebhookTriggerEvents.INSTANT_MEETING);
+      const recordingBuilder = factory.getBuilder(
+        DEFAULT_WEBHOOK_VERSION,
+        WebhookTriggerEvents.RECORDING_READY
+      );
+      const meetingBuilder = factory.getBuilder(
+        DEFAULT_WEBHOOK_VERSION,
+        WebhookTriggerEvents.MEETING_STARTED
+      );
+      const instantBuilder = factory.getBuilder(
+        DEFAULT_WEBHOOK_VERSION,
+        WebhookTriggerEvents.INSTANT_MEETING
+      );
 
       expect(bookingBuilder).toBeDefined();
       expect(formBuilder).toBeDefined();
@@ -52,7 +64,10 @@ describe("Payload Builder Registry", () => {
       const factory = createPayloadBuilderFactory();
 
       // Request non-existent version (cast to WebhookVersion for testing fallback)
-      const builder = factory.getBuilder("9999-99-99" as WebhookVersion, WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(
+        "9999-99-99" as WebhookVersion,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
 
       // Should get default builder, not throw
       expect(builder).toBeDefined();
@@ -144,4 +159,3 @@ describe("Payload Builder Registry", () => {
     });
   });
 });
-
