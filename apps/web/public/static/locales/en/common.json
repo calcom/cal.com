@@ -228,6 +228,7 @@
   "time_left": "Time left",
   "event_type": "Event type",
   "duplicate_event_type": "Duplicate event type",
+  "managed_event_type_duplicate_disclaimer": "User assignments are not copied when duplicating a managed event type. You will need to add team members manually after duplication.",
   "enter_meeting": "Enter meeting",
   "video_call_provider": "Video call provider",
   "meeting_id": "Meeting ID",
