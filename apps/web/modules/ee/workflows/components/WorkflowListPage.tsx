@@ -53,8 +53,6 @@ export default function WorkflowListPage({ workflows }: Props) {
     },
   });
 
-
-
   async function moveWorkflow(index: number, increment: 1 | -1) {
     const types = workflows!;
 
@@ -265,54 +263,54 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </Tooltip>
                         </ButtonGroup>
                       </div>
-                        <div className="block sm:hidden">
-                          <Dropdown>
-                            <DropdownMenuTrigger asChild>
-                              <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              {(workflow.permissions
-                                ? workflow.permissions?.canUpdate
-                                : !workflow.readOnly) && (
-                                <DropdownMenuItem>
-                                  <DropdownItem
-                                    type="button"
-                                    StartIcon="pencil"
-                                    onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
-                                    {t("edit")}
-                                  </DropdownItem>
-                                </DropdownMenuItem>
-                              )}
+                      <div className="block sm:hidden">
+                        <Dropdown>
+                          <DropdownMenuTrigger asChild>
+                            <Button type="button" color="minimal" variant="icon" StartIcon="ellipsis" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {(workflow.permissions
+                              ? workflow.permissions?.canUpdate
+                              : !workflow.readOnly) && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  StartIcon="copy"
-                                  onClick={() => {
-                                    setDuplicateDialogOpen(true);
-                                    setwWorkflowToDuplicateId(workflow.id);
-                                  }}>
-                                  {t("duplicate")}
+                                  StartIcon="pencil"
+                                  onClick={async () => await router.replace(`/workflows/${workflow.id}`)}>
+                                  {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              {(workflow.permissions
-                                ? workflow.permissions?.canDelete
-                                : !workflow.readOnly) && (
-                                <DropdownMenuItem>
-                                  <DropdownItem
-                                    type="button"
-                                    color="destructive"
-                                    StartIcon="trash-2"
-                                    onClick={() => {
-                                      setDeleteDialogOpen(true);
-                                      setwWorkflowToDeleteId(workflow.id);
-                                    }}>
-                                    {t("delete")}
-                                  </DropdownItem>
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </Dropdown>
-                        </div>
+                            )}
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="copy"
+                                onClick={() => {
+                                  setDuplicateDialogOpen(true);
+                                  setwWorkflowToDuplicateId(workflow.id);
+                                }}>
+                                {t("duplicate")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                            {(workflow.permissions
+                              ? workflow.permissions?.canDelete
+                              : !workflow.readOnly) && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  color="destructive"
+                                  StartIcon="trash-2"
+                                  onClick={() => {
+                                    setDeleteDialogOpen(true);
+                                    setwWorkflowToDeleteId(workflow.id);
+                                  }}>
+                                  {t("delete")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </Dropdown>
+                      </div>
                     </div>
                   </div>
                 </li>
