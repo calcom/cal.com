@@ -144,6 +144,24 @@ export const fieldTypesSchemaMap = {
       }
 
       if (typeof response === "string") {
+        // Try to parse JSON strings from URL prefill (e.g., name={"firstName":"John","lastName":"Doe"})
+        try {
+          const parsed = JSON.parse(response);
+          if (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            "firstName" in parsed &&
+            typeof parsed.firstName === "string"
+          ) {
+            const firstAndLastNameResponse = {
+              firstName: parsed.firstName,
+              lastName: typeof parsed.lastName === "string" ? parsed.lastName : "",
+            };
+            return preprocessNameFieldDataWithVariant(correctedVariant, firstAndLastNameResponse);
+          }
+        } catch {
+          // Not valid JSON, treat as regular string
+        }
         return preprocessNameFieldDataWithVariant(correctedVariant, response);
       }
 

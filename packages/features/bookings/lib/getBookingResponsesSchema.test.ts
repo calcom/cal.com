@@ -329,8 +329,7 @@ describe("getBookingResponsesSchema", () => {
         );
       });
 
-      // TODO: Fix this behaviour later
-      test.skip("`firstAndLastName` variant to `fullName` when passed as JSON string from URL prefill", async () => {
+      test("`firstAndLastName` variant to `fullName` when passed as JSON string from URL prefill", async () => {
         const schema = getBookingResponsesSchema({
           bookingFields: [
             {
