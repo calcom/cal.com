@@ -4,10 +4,10 @@ import dayjs from "@calcom/dayjs";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -19,9 +19,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
@@ -125,19 +123,44 @@ async function validateUserPermissions(booking: Booking, user: TUser): Promise<v
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
   let hasBookingUpdatePermission = false;
+
   if (booking.eventType?.teamId) {
     const permissionCheckService = new PermissionCheckService();
     hasBookingUpdatePermission = await permissionCheckService.checkPermission({
       userId: user.id,
-      teamId: booking.eventType?.teamId,
+      teamId: booking.eventType.teamId,
       permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
   }
 
+  // this allows org admins to manage bookings for users in their organization
+  if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee && user.organizationId) {
+    const bookingOwnerOrgId = await getBookingOwnerOrganizationId(booking.userId);
+
+    if (bookingOwnerOrgId && bookingOwnerOrgId === user.organizationId) {
+      const permissionCheckService = new PermissionCheckService();
+      hasBookingUpdatePermission = await permissionCheckService.checkPermission({
+        userId: user.id,
+        teamId: user.organizationId,
+        permission: "booking.update",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+    }
+  }
+
   if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
+}
+
+async function getBookingOwnerOrganizationId(userId: number | null): Promise<number | null> {
+  if (!userId) return null;
+
+  const userRepo = new UserRepository(prisma);
+  const bookingOwner = await userRepo.getUserOrganizationAndTeams({ userId });
+
+  return bookingOwner?.organizationId ?? null;
 }
 
 function validateGuestsFieldEnabled(booking: Booking): void {
