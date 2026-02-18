@@ -10,10 +10,11 @@ describe("CrmContactOwnerMessage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders banner when teamMemberEmail is set and hideOrganizerEmail is true", () => {
-    render(<CrmContactOwnerMessage hideOrganizerEmail={true} />, {
+  it("renders banner when teamMemberEmail is set and showCrmOwnerBanner is true", () => {
+    render(<CrmContactOwnerMessage />, {
       mockStore: {
         teamMemberEmail: "owner@example.com",
+        showCrmOwnerBanner: true,
       },
     });
 
@@ -22,26 +23,28 @@ describe("CrmContactOwnerMessage", () => {
   });
 
   it("does not render when teamMemberEmail is null", () => {
-    render(<CrmContactOwnerMessage hideOrganizerEmail={true} />, {
+    render(<CrmContactOwnerMessage />, {
       mockStore: {
         teamMemberEmail: null,
+        showCrmOwnerBanner: true,
       },
     });
 
     expect(screen.queryByTestId("crm-contact-owner-msg")).not.toBeInTheDocument();
   });
 
-  it("does not render when hideOrganizerEmail is false", () => {
-    render(<CrmContactOwnerMessage hideOrganizerEmail={false} />, {
+  it("does not render when showCrmOwnerBanner is false", () => {
+    render(<CrmContactOwnerMessage />, {
       mockStore: {
         teamMemberEmail: "owner@example.com",
+        showCrmOwnerBanner: false,
       },
     });
 
     expect(screen.queryByTestId("crm-contact-owner-msg")).not.toBeInTheDocument();
   });
 
-  it("does not render when hideOrganizerEmail is undefined", () => {
+  it("does not render when showCrmOwnerBanner is undefined", () => {
     render(<CrmContactOwnerMessage />, {
       mockStore: {
         teamMemberEmail: "owner@example.com",

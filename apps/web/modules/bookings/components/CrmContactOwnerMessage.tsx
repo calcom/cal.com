@@ -2,11 +2,12 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ContactIcon } from "@coss/ui/icons";
 
-export const CrmContactOwnerMessage = ({ hideOrganizerEmail }: { hideOrganizerEmail?: boolean }) => {
+export const CrmContactOwnerMessage = () => {
   const { t } = useLocale();
   const teamMemberEmail = useBookerStoreContext((state) => state.teamMemberEmail);
+  const showCrmOwnerBanner = useBookerStoreContext((state) => state.showCrmOwnerBanner);
 
-  if (!teamMemberEmail || !hideOrganizerEmail) return null;
+  if (!teamMemberEmail || !showCrmOwnerBanner) return null;
 
   return (
     <div className="bg-default border-subtle items-center gap-3 rounded-xl border p-3 text-sm shadow-md">

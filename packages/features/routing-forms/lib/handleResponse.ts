@@ -108,6 +108,7 @@ const _handleResponse = async ({
     let crmContactOwnerRecordType: string | null = null;
     let crmAppSlug: string | null = null;
     let crmRecordId: string | null = null;
+    let showCrmOwnerBanner = false;
     let timeTaken: Record<string, number | null> = {};
     let checkedFallback = false;
     if (chosenRoute) {
@@ -134,6 +135,7 @@ const _handleResponse = async ({
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
             crmRecordId = contactOwnerQuery?.recordId ?? null;
+            showCrmOwnerBanner = contactOwnerQuery?.showCrmOwnerBanner ?? false;
           })(),
           (async () => {
             // Determine when to use fallbackAttributesQueryValue:
@@ -273,6 +275,7 @@ const _handleResponse = async ({
       crmContactOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      showCrmOwnerBanner,
       attributeRoutingConfig: chosenRoute
         ? "attributeRoutingConfig" in chosenRoute
           ? chosenRoute.attributeRoutingConfig

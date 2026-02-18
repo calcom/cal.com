@@ -72,6 +72,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
   onCancelWriteToEventRecord: z.boolean().optional(),
   onCancelWriteToEventRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
+  showCrmOwnerBanner: z.boolean().optional(),
 });
 
 export const appKeysSchema = z.object({

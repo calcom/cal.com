@@ -31,6 +31,7 @@ type GetUrlSearchParamsToForwardOptions = {
   crmContactOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmLookupDone?: boolean;
+  showCrmOwnerBanner?: boolean;
   reroutingFormResponses?: FormResponseValueOnly;
   teamId?: number | null;
   orgId?: number | null;
@@ -48,10 +49,11 @@ export function getUrlSearchParamsToForward({
   crmContactOwnerRecordType,
   crmAppSlug,
   crmLookupDone,
+  showCrmOwnerBanner,
   reroutingFormResponses,
   teamId,
   orgId,
-}: GetUrlSearchParamsToForwardOptions) {
+}: GetUrlSearchParamsToForwardOptions){
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
   const paramsFromCurrentUrl: Params = {};
@@ -135,6 +137,7 @@ export function getUrlSearchParamsToForward({
     ...(crmContactOwnerRecordType ? { ["cal.crmContactOwnerRecordType"]: crmContactOwnerRecordType } : null),
     ...(crmAppSlug ? { ["cal.crmAppSlug"]: crmAppSlug } : null),
     ...(crmLookupDone ? { ["cal.crmLookupDone"]: "true" } : null),
+    ...(showCrmOwnerBanner ? { ["cal.showCrmOwnerBanner"]: "true" } : null),
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
       : null),

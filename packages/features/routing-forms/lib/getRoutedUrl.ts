@@ -158,6 +158,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let crmContactOwnerEmail: string | null = null;
   let crmContactOwnerRecordType: string | null = null;
   let crmAppSlug: string | null = null;
+  let showCrmOwnerBanner = false;
   let fallbackAction: typeof decidedAction | null = null;
   try {
     const result = await handleResponse({
@@ -179,6 +180,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     crmContactOwnerEmail = result.crmContactOwnerEmail;
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
+    showCrmOwnerBanner = result.showCrmOwnerBanner;
     fallbackAction = result.fallbackAction ?? null;
     timeTaken = {
       ...timeTaken,
@@ -255,6 +257,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
             crmContactOwnerRecordType,
             crmAppSlug,
             crmLookupDone: fetchCrm,
+            showCrmOwnerBanner,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
           }),

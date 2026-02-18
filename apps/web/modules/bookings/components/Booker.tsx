@@ -18,7 +18,6 @@ import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-para
 import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import {
   CLOUDFLARE_SITE_ID,
@@ -33,6 +32,7 @@ import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import { useSkipConfirmStep } from "@calcom/web/modules/bookings/hooks/useSkipConfirmStep";
 import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
@@ -375,7 +375,7 @@ const BookerComponent = ({
       <div
         className={`fixed left-1/2 ${!isEmbed ? "top-4" : "top-0"} z-50 flex -translate-x-1/2 transform flex-col items-center gap-2`}>
         {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage />}
-        <CrmContactOwnerMessage hideOrganizerEmail={event.data?.hideOrganizerEmail} />
+        <CrmContactOwnerMessage />
       </div>
       <div
         className={classNames(

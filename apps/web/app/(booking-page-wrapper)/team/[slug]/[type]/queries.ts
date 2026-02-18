@@ -125,6 +125,7 @@ export async function getCRMData(
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
   const crmLookupDoneParam = query["cal.crmLookupDone"];
+  const showCrmOwnerBannerParam = query["cal.showCrmOwnerBanner"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
@@ -146,6 +147,7 @@ export async function getCRMData(
       recordType,
       crmAppSlug: crmAppSlugQuery,
       recordId: crmRecordIdQuery,
+      showCrmOwnerBanner,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -155,13 +157,25 @@ export async function getCRMData(
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
     crmRecordId = crmRecordIdQuery ?? undefined;
+
+    return {
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      crmRecordId,
+      showCrmOwnerBanner,
+    };
   }
+
+  const showCrmOwnerBannerFromParam =
+    (Array.isArray(showCrmOwnerBannerParam) ? showCrmOwnerBannerParam[0] : showCrmOwnerBannerParam) === "true";
 
   return {
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
     crmRecordId,
+    showCrmOwnerBanner: showCrmOwnerBannerFromParam,
   };
 }
 

@@ -90,6 +90,7 @@ export interface BookerProps {
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;
+  showCrmOwnerBanner?: boolean;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;

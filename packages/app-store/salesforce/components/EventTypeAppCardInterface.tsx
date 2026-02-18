@@ -48,6 +48,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
   const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
+  const showCrmOwnerBanner = getAppData("showCrmOwnerBanner") ?? false;
 
   const { t } = useLocale();
 
@@ -441,6 +442,21 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     fieldRules={rrSkipFieldRules}
                     updateFieldRules={(rules) => setAppData("rrSkipFieldRules", rules)}
                   />
+                  <Section.SubSection>
+                    <Section.SubSectionHeader
+                      icon="info"
+                      title={t("salesforce_show_crm_owner_banner")}
+                      labelFor="show-crm-owner-banner">
+                      <Switch
+                        id="show-crm-owner-banner"
+                        size="sm"
+                        checked={showCrmOwnerBanner}
+                        onCheckedChange={(checked) => {
+                          setAppData("showCrmOwnerBanner", checked);
+                        }}
+                      />
+                    </Section.SubSectionHeader>
+                  </Section.SubSection>
                 </>
               ) : null}
             </>

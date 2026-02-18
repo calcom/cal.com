@@ -90,6 +90,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
   const crmLookupDoneParam = query["cal.crmLookupDone"];
+  const showCrmOwnerBannerParam = query["cal.showCrmOwnerBanner"];
 
   const crmContactOwnerEmailStr = Array.isArray(crmContactOwnerEmail)
     ? crmContactOwnerEmail[0]
@@ -160,6 +161,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmOwnerRecordType = crmResult?.recordType ?? crmOwnerRecordTypeStr;
   const crmAppSlug = crmResult?.crmAppSlug ?? crmAppSlugStr;
   const crmRecordId = crmResult?.recordId ?? crmRecordIdStr;
+  const showCrmOwnerBanner = crmResult?.showCrmOwnerBanner ??
+    ((Array.isArray(showCrmOwnerBannerParam) ? showCrmOwnerBannerParam[0] : showCrmOwnerBannerParam) === "true");
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
@@ -216,6 +219,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       crmOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      showCrmOwnerBanner,
       isSEOIndexable: allowSEOIndexing,
     },
   };

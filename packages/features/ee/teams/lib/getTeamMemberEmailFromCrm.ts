@@ -28,7 +28,7 @@ interface EventData {
   length: number;
 }
 
-const returnNullValue = { email: null, recordType: null, crmAppSlug: null, recordId: null };
+const returnNullValue = { email: null, recordType: null, crmAppSlug: null, recordId: null, showCrmOwnerBanner: false };
 
 async function findUserByEmailWhoIsAHostOfEventType({
   email,
@@ -124,6 +124,15 @@ function getEnabledRoutingFormAppSlugFromQuery(query: ParsedUrlQuery) {
 /**
  * Uses the owner of the contact directly from CRM
  */
+function getShowCrmOwnerBannerFromMetadata(metadata: Prisma.JsonValue | null): boolean {
+  if (!metadata || typeof metadata !== 'object' || !('apps' in metadata)) return false;
+  const apps = (metadata as Record<string, unknown>).apps;
+  if (!apps || typeof apps !== 'object') return false;
+  const salesforce = (apps as Record<string, unknown>).salesforce;
+  if (!salesforce || typeof salesforce !== 'object') return false;
+  return (salesforce as Record<string, unknown>).showCrmOwnerBanner === true;
+}
+
 async function getOwnerEmailFromCrm(
   eventData: EventData,
   email: string
@@ -132,6 +141,7 @@ async function getOwnerEmailFromCrm(
   recordType: string | null;
   crmAppSlug: string | null;
   recordId: string | null;
+  showCrmOwnerBanner: boolean;
 }> {
   const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
 
@@ -157,7 +167,7 @@ async function getOwnerEmailFromCrm(
     );
     return returnNullValue;
   }
-  return crmContactOwner;
+  return { ...crmContactOwner, showCrmOwnerBanner: getShowCrmOwnerBannerFromMetadata(eventData.metadata) };
 }
 
 /**
@@ -224,6 +234,7 @@ async function getTeamMemberEmailForResponseOrContact({
   recordType: string | null;
   crmAppSlug: string | null;
   recordId: string | null;
+  showCrmOwnerBanner: boolean;
 }> {
   const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return returnNullValue;
@@ -252,7 +263,7 @@ async function getTeamMemberEmailForResponseOrContact({
     );
 
     if (skipContactOwner) return returnNullValue;
-    if (email) return { email, recordType, crmAppSlug, recordId };
+    if (email) return { email, recordType, crmAppSlug, recordId, showCrmOwnerBanner: getShowCrmOwnerBannerFromMetadata(eventData.metadata) };
   } else {
     log.debug("Getting the contact owner email from CRM");
     return await getOwnerEmailFromCrm(eventData, bookerEmail);
@@ -274,6 +285,7 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   recordType: string | null;
   crmAppSlug: string | null;
   recordId: string | null;
+  showCrmOwnerBanner: boolean;
 }> {
   // Without email no lookup is possible
   if (!query.email || typeof query.email !== "string") {

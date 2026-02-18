@@ -49,6 +49,12 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
+  // Extract showCrmOwnerBanner from Salesforce app metadata
+  const salesforceAppData = eventTypeMetadata && typeof eventTypeMetadata === 'object' && 'apps' in eventTypeMetadata
+    ? (eventTypeMetadata.apps as Record<string, any>)?.salesforce
+    : null;
+  const showCrmOwnerBanner = salesforceAppData?.showCrmOwnerBanner ?? false;
+
   let contactOwner: {
     email: string | null;
     recordType: string | null;
@@ -126,5 +132,5 @@ export default async function routerGetCrmContactOwnerEmail({
     });
   }
 
-  return contactOwner;
+  return { ...contactOwner, showCrmOwnerBanner };
 }
