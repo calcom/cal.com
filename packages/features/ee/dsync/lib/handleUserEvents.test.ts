@@ -48,9 +48,11 @@ vi.mock("./removeUserFromOrg", () => ({
 }));
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(function() { return {
-    isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
-  }; }),
+  UserRepository: vi.fn().mockImplementation(function () {
+    return {
+      isAMemberOfOrganization: vi.fn().mockResolvedValue(false),
+    };
+  }),
 }));
 
 async function createMockOrganization({ id, name, slug }: { id: number; name: string; slug: string }) {

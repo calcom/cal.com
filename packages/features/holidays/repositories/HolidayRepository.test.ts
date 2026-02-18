@@ -323,4 +323,3 @@ describe("HolidayRepository", () => {
     });
   });
 });
-

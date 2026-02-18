@@ -468,7 +468,7 @@ describe("managedEventManualReassignment - Integration Tests", () => {
     const newBooking = await prisma.booking.findFirst({
       where: { userId: newUser.id, eventTypeId: childEventTypes[1].id },
     });
-    
+
     expect(newBooking).toBeTruthy();
     expect(newBooking?.userId).toBe(newUser.id);
   });
@@ -499,4 +499,3 @@ describe("managedEventManualReassignment - Integration Tests", () => {
     ).rejects.toThrow();
   });
 });
-
