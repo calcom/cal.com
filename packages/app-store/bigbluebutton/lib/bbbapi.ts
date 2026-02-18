@@ -1,5 +1,73 @@
 import { createHash } from "crypto";
 
+// ─── SSRF Protection ──────────────────────────────────────────────────────────
+
+/**
+ * Validates that a URL is safe to fetch as an external server URL.
+ * Rejects non-https schemes, private/loopback IP ranges, localhost, and
+ * cloud-metadata endpoints (AWS/GCP/Azure) to prevent SSRF attacks.
+ *
+ * @throws {Error} with a descriptive message if the URL is unsafe.
+ */
+export function validateExternalUrl(rawUrl: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error("Invalid URL: could not be parsed");
+  }
+
+  // Only allow HTTPS
+  if (parsed.protocol !== "https:") {
+    throw new Error("Only HTTPS URLs are allowed for the BigBlueButton server URL");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // Reject localhost variants
+  if (hostname === "localhost" || hostname === "localhost.") {
+    throw new Error("Loopback/localhost URLs are not allowed");
+  }
+
+  // Reject cloud metadata endpoints (AWS, GCP, Azure)
+  const blockedHostnames = [
+    "169.254.169.254", // AWS/GCP/Azure IMDS
+    "metadata.google.internal", // GCP
+  ];
+  if (blockedHostnames.includes(hostname)) {
+    throw new Error("Cloud metadata endpoint URLs are not allowed");
+  }
+
+  // Reject IPv6 loopback / ULA
+  // Strip brackets from IPv6 addresses (e.g. [::1] → ::1)
+  const ipv6Bare = hostname.startsWith("[") ? hostname.slice(1, -1) : hostname;
+
+  // Normalise a potential IPv6 address for comparison
+  const isIPv6Loopback = ipv6Bare === "::1";
+  if (isIPv6Loopback) {
+    throw new Error("Loopback/localhost URLs are not allowed");
+  }
+
+  // Reject ULA (fc00::/7) — matches fc** and fd**
+  if (/^f[cd][0-9a-f]{2}:/i.test(ipv6Bare)) {
+    throw new Error("Private/internal network URLs are not allowed");
+  }
+
+  // Reject private IPv4 ranges via regex (avoids DNS — hostname-only check)
+  const privateRanges = [
+    /^127\./, // 127.0.0.0/8  — loopback
+    /^10\./, // 10.0.0.0/8   — RFC 1918
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12 — RFC 1918
+    /^192\.168\./, // 192.168.0.0/16 — RFC 1918
+    /^169\.254\./, // 169.254.0.0/16 — link-local / APIPA
+  ];
+  for (const range of privateRanges) {
+    if (range.test(hostname)) {
+      throw new Error("Private/internal network URLs are not allowed");
+    }
+  }
+}
+
 export type ChecksumAlgorithm = "sha1" | "sha256" | "sha384" | "sha512";
 
 export interface BBBCredentials {
@@ -110,6 +178,8 @@ export async function callBBBApi(
   apiName: string,
   params: Record<string, string | number | boolean | undefined>
 ): Promise<Record<string, string>> {
+  // SSRF protection: validate before any network request
+  validateExternalUrl(credentials.serverUrl);
   const url = buildBBBUrl(credentials, apiName, params);
   const response = await fetch(url);
   if (!response.ok) {
@@ -131,6 +201,8 @@ export async function callBBBApi(
 export async function validateBBBServer(
   credentials: BBBCredentials
 ): Promise<{ version: string; apiVersion: string }> {
+  // SSRF protection: validate before any network request
+  validateExternalUrl(credentials.serverUrl);
   const baseUrl = credentials.serverUrl.replace(/\/+$/, "");
   const response = await fetch(`${baseUrl}/api`);
   if (!response.ok) {
