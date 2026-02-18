@@ -309,8 +309,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-        ? duration
-        : event.data?.length;
+          ? duration
+          : event.data?.length;
 
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {

@@ -103,7 +103,9 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   await validateOptionsBelongToAttribute(options, attributes.id);
 
   await prisma.$transaction(async (tx) => {
-    const updateOptions = options.filter((option): option is typeof option & { id: string } => option.id !== undefined && option.id !== "");
+    const updateOptions = options.filter(
+      (option): option is typeof option & { id: string } => option.id !== undefined && option.id !== ""
+    );
     const updatedOptionsIds = updateOptions.map((option) => option.id);
     // We need to delete all options that are not present in this UpdateOptions.id (as they have been deleted)
     await tx.attributeOption.deleteMany({

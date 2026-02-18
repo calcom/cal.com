@@ -226,6 +226,14 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - Fix type errors before test failures - they're often the root cause
 - Run `yarn prisma generate` if you see missing enum/type errors
 
+## Spec-Driven Development (Opt-In)
+
+For complex features, you can use spec-driven development when explicitly requested.
+
+**To enable:** Tell the AI "use spec-driven development" or "follow the spec workflow"
+
+See [SPEC-WORKFLOW.md](SPEC-WORKFLOW.md) for the full workflow documentation.
+
 ## Extended Documentation
 
 For detailed information, see the `agents/` directory:

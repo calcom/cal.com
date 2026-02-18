@@ -1,15 +1,20 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  getCalendarCredentials,
   deduplicateCredentialsBasedOnSelectedCalendars,
+  deleteEvent,
+  getCalendarCredentials,
   processEvent,
 } from "./CalendarManager";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
+}));
+
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn(),
 }));
 
 vi.mock("@calcom/lib/constants", () => ({
@@ -558,6 +563,39 @@ describe("CalendarManager tests", () => {
         selectedCalendars,
       });
       expect(uniqueCredentials).toEqual(credentials);
+    });
+  });
+
+  describe("fn: deleteEvent", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should return early when bookingRefUid is empty string", async () => {
+      vi.mocked(getCalendar).mockResolvedValue({ deleteEvent: vi.fn() } as any);
+
+      const credential = {
+        id: 1,
+        type: "google_calendar",
+        key: { access_token: "test_token" },
+        encryptedKey: null,
+        userId: 1,
+        user: { email: "test@example.com" },
+        teamId: null,
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+        delegatedTo: null,
+      };
+
+      const result = await deleteEvent({
+        credential,
+        bookingRefUid: "",
+        event: buildCalendarEvent(),
+        externalCalendarId: "calendar-id",
+      });
+
+      expect(result).toEqual({});
     });
   });
 });

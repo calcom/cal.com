@@ -43,6 +43,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const { inviteMembers, isSubmitting } = useCreateTeam({
     redirectBasePath: "/settings/teams/new",
     skipRedirectAfterInvite: true,
+    isOnboarding: false,
   });
 
   // Read teamId from query params and store it (from payment callback or redirect)

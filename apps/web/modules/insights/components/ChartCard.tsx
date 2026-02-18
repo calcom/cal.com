@@ -25,7 +25,7 @@ export function ChartCard({
   isPending,
   isError,
   ...panelCardProps
-}: Omit<PanelCardProps, 'children'> & {
+}: Omit<PanelCardProps, "children"> & {
   legend?: Array<LegendItem>;
   legendSize?: LegendSize;
   enabledLegend?: Array<LegendItem>;
