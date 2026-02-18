@@ -18,6 +18,22 @@ export type FormBuilderFields = z.infer<typeof fieldsSchema>;
 export type FormBuilderField = FormBuilderFields[number];
 
 /**
+ * Returns true when the routing field is a linked-router field — i.e. it was
+ * sourced from another routing form via the "link router" feature and carries
+ * `routerId` metadata.
+ *
+ * Linked-router fields must be treated as fully locked (`editable: "system"`)
+ * because:
+ *   1. Their type and options are owned by the source router form; changes here
+ *      would silently diverge from the source.
+ *   2. Any identifier change would strip the `routerId` / `routerField` metadata
+ *      on save, breaking the cross-form routing linkage.
+ */
+export function isRouterField(field: RoutingField): boolean {
+  return "routerId" in field && Boolean((field as RoutingField & { routerId?: string }).routerId);
+}
+
+/**
  * Convert a routing-form field → FormBuilder field.
  *
  * Mapping:
@@ -29,11 +45,30 @@ export type FormBuilderField = FormBuilderFields[number];
  * @param lockType - when true (form has existing responses), sets `editable:
  *   "system-but-optional"` so FormBuilder renders the type selector as read-only,
  *   matching the previous behaviour that disabled type changes on non-empty forms.
+ *
+ * Linked-router fields (those with a `routerId`) are always rendered with
+ * `editable: "system"` regardless of `lockType`, because their schema is owned
+ * by the source router form and must never be modified here.
  */
 export function toFormBuilderField(field: RoutingField, lockType = false): FormBuilderField {
   const name = field.identifier
     ? field.identifier
     : getFieldIdentifier(field.label ?? "").toLowerCase();
+
+  // Determine editability:
+  //   - Router fields: fully locked ("system") — type AND identifier are immutable.
+  //   - Fields with responses: type locked ("system-but-optional") — label/options editable.
+  //   - Normal fields: fully editable ("user").
+  let editable: FormBuilderField["editable"];
+  if (isRouterField(field)) {
+    // Linked-router fields are owned by the source router; lock everything.
+    editable = "system";
+  } else if (lockType) {
+    // Form has existing responses — lock only the type selector.
+    editable = "system-but-optional";
+  } else {
+    editable = "user";
+  }
 
   return {
     name,
@@ -45,9 +80,7 @@ export function toFormBuilderField(field: RoutingField, lockType = false): FormB
       label: opt.label,
       value: opt.id ?? opt.label,
     })),
-    // "system-but-optional" keeps the field editable for label/options/required
-    // but locks the type selector — identical to the old `disableTypeChange` behaviour.
-    editable: lockType ? "system-but-optional" : "user",
+    editable,
     sources: [
       {
         label: "User",
@@ -107,4 +140,33 @@ export function toRoutingField(
   }
 
   return base as RoutingField;
+}
+
+/**
+ * Applies the type-revert guard for a single FormBuilder field in the watch
+ * subscription.
+ *
+ * When `hasResponses` is true and the field's identifier is present in
+ * `originalTypes`, any type change is silently reverted to the original.
+ * This is a defence-in-depth layer: `editable: "system-but-optional"` already
+ * prevents the UI from offering the type selector, but this guard catches the
+ * case where a future FormBuilder version might ignore the `editable` prop.
+ *
+ * Returns the original `bf` reference unchanged when no revert is needed
+ * (avoids unnecessary object allocation in the hot path).
+ *
+ * @param bf            The FormBuilder field from the watch callback.
+ * @param hasResponses  Whether the form has existing responses.
+ * @param originalTypes Map of identifier → original type, initialised at mount.
+ */
+export function applyTypeRevertGuard(
+  bf: FormBuilderField,
+  hasResponses: boolean,
+  originalTypes: ReadonlyMap<string, string>
+): FormBuilderField {
+  if (!hasResponses) return bf;
+  const lockedType = originalTypes.get(bf.name);
+  if (lockedType === undefined) return bf; // new field — no guard needed
+  if (bf.type === lockedType) return bf; // type already matches — no-op
+  return { ...bf, type: lockedType as FormBuilderField["type"] };
 }

@@ -6,9 +6,12 @@
  *  - toRoutingField: ID preservation, router field metadata preservation
  *  - ID registry: reordering/renaming does not reassign IDs; new fields get new IDs
  *  - Type lock: when hasResponses, existing fields get editable:"system-but-optional"
- *    and the type-revert guard applies
+ *    and applyTypeRevertGuard applies the defence-in-depth revert
+ *  - Router-field lock: fields with routerId always get editable:"system"
+ *  - isRouterField: correctly identifies linked-router fields
+ *  - applyTypeRevertGuard: reverts type mutations for existing fields
  *
- * These tests import the real production implementations from formEditUtils.ts so
+ * All tests import the real production implementations from formEditUtils.ts so
  * that tests always stay in sync with the production code.
  */
 
@@ -16,7 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 
 // The production adapter functions — imported directly so tests cannot diverge.
 // formEditUtils.ts only has Node-compatible imports (no browser/React dependencies).
-import { toFormBuilderField, toRoutingField } from "./formEditUtils";
+import { toFormBuilderField, toRoutingField, applyTypeRevertGuard, isRouterField } from "./formEditUtils";
 import type { RoutingField, FormBuilderField } from "./formEditUtils";
 
 // ─── Local narrow types for test fixtures ─────────────────────────────────────
@@ -71,6 +74,25 @@ function makeRouterRoutingField(overrides: Partial<RouterRoutingField> = {}): Ro
   } as RoutingField;
 }
 
+// ─── isRouterField tests ──────────────────────────────────────────────────────
+
+describe("isRouterField", () => {
+  it("returns true for a field with a non-empty routerId", () => {
+    const field = makeRouterRoutingField({ routerId: "some-router-id" } as any);
+    expect(isRouterField(field)).toBe(true);
+  });
+
+  it("returns false for a plain routing field (no routerId)", () => {
+    const field = makeRoutingField();
+    expect(isRouterField(field)).toBe(false);
+  });
+
+  it("returns false when routerId is an empty string", () => {
+    const field = { ...makeRoutingField(), routerId: "" } as RoutingField;
+    expect(isRouterField(field)).toBe(false);
+  });
+});
+
 // ─── toFormBuilderField tests ─────────────────────────────────────────────────
 
 describe("toFormBuilderField", () => {
@@ -113,9 +135,22 @@ describe("toFormBuilderField", () => {
     expect(bf.editable).toBe("user");
   });
 
-  it("sets editable:'system-but-optional' when lockType is true", () => {
+  it("sets editable:'system-but-optional' when lockType is true (non-router field)", () => {
     const bf = toFormBuilderField(makeRoutingField(), true);
     expect(bf.editable).toBe("system-but-optional");
+  });
+
+  it("sets editable:'system' for a router field regardless of lockType=false", () => {
+    const routerField = makeRouterRoutingField();
+    const bf = toFormBuilderField(routerField, false);
+    expect(bf.editable).toBe("system");
+  });
+
+  it("sets editable:'system' for a router field regardless of lockType=true", () => {
+    const routerField = makeRouterRoutingField();
+    const bf = toFormBuilderField(routerField, true);
+    // Router fields take precedence over the hasResponses lock
+    expect(bf.editable).toBe("system");
   });
 
   it("maps type from routing field", () => {
@@ -305,7 +340,7 @@ describe("ID registry behaviour", () => {
 // ─── Type lock (hasResponses) ─────────────────────────────────────────────────
 
 describe("Type lock when hasResponses", () => {
-  it("toFormBuilderField sets editable:'system-but-optional' for each field when hasResponses", () => {
+  it("toFormBuilderField sets editable:'system-but-optional' for each non-router field when hasResponses", () => {
     const fields = [
       makeRoutingField({ type: "text" }),
       makeRoutingField({ type: "select" }),
@@ -322,62 +357,91 @@ describe("Type lock when hasResponses", () => {
     expect(builderFields[0].editable).toBe("user");
   });
 
-  it("type-revert guard: reverts type mutation for existing fields", () => {
-    // Simulates the originalTypeRegistryRef logic in the watch subscription.
-    const originalType = "text";
-    const originalTypes = new Map([["full_name", originalType]]);
+  // ── applyTypeRevertGuard tests ────────────────────────────────────────────
+  // These tests exercise the *real* production guard from formEditUtils.ts,
+  // not a hand-rolled reimplementation.  If the guard is removed or changed
+  // in production, these tests will fail — correctly catching the regression.
 
-    const mutatedBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" } as FormBuilderField;
+  describe("applyTypeRevertGuard (production guard)", () => {
+    it("reverts type mutation for existing fields when hasResponses=true", () => {
+      const originalTypes = new Map([["full_name", "text"]]);
+      const mutatedBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" } as FormBuilderField;
 
-    // Guard: revert the type to the original
-    let resolvedBf = mutatedBf;
-    const hasResponses = true;
-    if (hasResponses && originalTypes.has(mutatedBf.name)) {
-      const lockedType = originalTypes.get(mutatedBf.name) as FormBuilderField["type"];
-      if (resolvedBf.type !== lockedType) {
-        resolvedBf = { ...resolvedBf, type: lockedType };
-      }
-    }
+      const result = applyTypeRevertGuard(mutatedBf, true, originalTypes);
 
-    const rf = toRoutingField(resolvedBf) as RoutingFieldBase;
-    expect(rf.type).toBe("text"); // type is reverted back to original
+      expect(result.type).toBe("text"); // reverted to original
+      expect(result).not.toBe(mutatedBf); // new object (was mutated)
+    });
+
+    it("does not affect new fields not in the original registry", () => {
+      const originalTypes = new Map([["existing_field", "text"]]);
+      const newField: FormBuilderField = { name: "brand_new", label: "Brand New", type: "select" } as FormBuilderField;
+
+      const result = applyTypeRevertGuard(newField, true, originalTypes);
+
+      expect(result.type).toBe("select"); // unchanged — not in registry
+      expect(result).toBe(newField); // same reference — no mutation
+    });
+
+    it("returns the same reference when type matches original (no-op path)", () => {
+      const originalTypes = new Map([["full_name", "text"]]);
+      const sameBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
+
+      const result = applyTypeRevertGuard(sameBf, true, originalTypes);
+
+      expect(result).toBe(sameBf); // same reference — no allocation
+      expect(result.type).toBe("text");
+    });
+
+    it("returns the same reference when hasResponses=false (short-circuit)", () => {
+      const originalTypes = new Map([["full_name", "text"]]);
+      const bf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" } as FormBuilderField;
+
+      const result = applyTypeRevertGuard(bf, false, originalTypes);
+
+      // Guard is disabled — type NOT reverted
+      expect(result).toBe(bf);
+      expect(result.type).toBe("select");
+    });
+
+    it("the guard result flows correctly through toRoutingField", () => {
+      const originalTypes = new Map([["full_name", "text"]]);
+      const mutatedBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "select" } as FormBuilderField;
+
+      const guarded = applyTypeRevertGuard(mutatedBf, true, originalTypes);
+      const rf = toRoutingField(guarded) as RoutingFieldBase;
+
+      expect(rf.type).toBe("text"); // reverted type flows into routing field
+    });
+  });
+});
+
+// ─── Router-field locking ─────────────────────────────────────────────────────
+
+describe("Router-field locking", () => {
+  it("router field gets editable:'system' even without hasResponses", () => {
+    const routerField = makeRouterRoutingField();
+    const bf = toFormBuilderField(routerField, false);
+    expect(bf.editable).toBe("system");
   });
 
-  it("type-revert guard: does not affect new fields not in original registry", () => {
-    const originalTypes = new Map([["existing_field", "text"]]);
-
-    const newField: FormBuilderField = { name: "brand_new", label: "Brand New", type: "select" } as FormBuilderField;
-
-    let resolvedBf = newField;
-    const hasResponses = true;
-    if (hasResponses && originalTypes.has(newField.name)) {
-      const lockedType = originalTypes.get(newField.name) as FormBuilderField["type"];
-      if (resolvedBf.type !== lockedType) {
-        resolvedBf = { ...resolvedBf, type: lockedType };
-      }
-    }
-
-    const rf = toRoutingField(resolvedBf) as RoutingFieldBase;
-    expect(rf.type).toBe("select"); // type unchanged — new field not in original registry
+  it("router field gets editable:'system' even with hasResponses", () => {
+    const routerField = makeRouterRoutingField();
+    const bf = toFormBuilderField(routerField, true);
+    // Router-field lock ('system') takes precedence over response lock ('system-but-optional')
+    expect(bf.editable).toBe("system");
   });
 
-  it("type-revert guard: preserves type when it matches original (no unnecessary mutation)", () => {
-    const originalTypes = new Map([["full_name", "text"]]);
+  it("plain field with hasResponses gets editable:'system-but-optional', not 'system'", () => {
+    const plainField = makeRoutingField();
+    const bf = toFormBuilderField(plainField, true);
+    expect(bf.editable).toBe("system-but-optional");
+  });
 
-    const sameBf: FormBuilderField = { name: "full_name", label: "Full Name", type: "text" } as FormBuilderField;
-
-    let resolvedBf = sameBf;
-    const hasResponses = true;
-    if (hasResponses && originalTypes.has(sameBf.name)) {
-      const lockedType = originalTypes.get(sameBf.name) as FormBuilderField["type"];
-      if (resolvedBf.type !== lockedType) {
-        resolvedBf = { ...resolvedBf, type: lockedType };
-      }
-    }
-
-    // No mutation — resolvedBf should still be the same reference
-    expect(resolvedBf).toBe(sameBf);
-    const rf = toRoutingField(resolvedBf) as RoutingFieldBase;
-    expect(rf.type).toBe("text");
+  it("isRouterField correctly identifies linked-router fields used in locking decision", () => {
+    const routerField = makeRouterRoutingField();
+    const plainField = makeRoutingField();
+    expect(isRouterField(routerField)).toBe(true);
+    expect(isRouterField(plainField)).toBe(false);
   });
 });

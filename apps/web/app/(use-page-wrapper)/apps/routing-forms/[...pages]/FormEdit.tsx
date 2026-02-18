@@ -14,7 +14,7 @@ import { FormBuilder } from "@calcom/web/modules/event-types/components/tabs/adv
 import SingleForm from "@components/apps/routing-forms/SingleForm";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { toFormBuilderField, toRoutingField } from "./formEditUtils";
+import { toFormBuilderField, toRoutingField, applyTypeRevertGuard } from "./formEditUtils";
 import type { RoutingField, FormBuilderField, FormBuilderFields } from "./formEditUtils";
 
 // ─── Local type helpers ───────────────────────────────────────────────────────
@@ -41,8 +41,12 @@ type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
  *     conditions keep matching.
  *  5. When the form has existing responses (`form._count.responses > 0`), the
  *     type of existing fields is locked via `editable: "system-but-optional"` and
- *     guarded in the watch subscription, restoring the previous `disableTypeChange`
- *     behaviour and preventing invalidation of stored response data.
+ *     guarded in the watch subscription via `applyTypeRevertGuard`, restoring the
+ *     previous `disableTypeChange` behaviour and preventing invalidation of stored
+ *     response data.
+ *  6. Linked-router fields (`routerId` present) are always rendered with
+ *     `editable: "system"` so FormBuilder locks them completely — users cannot
+ *     edit the type, identifier, or options of a router-linked field.
  */
 function FormEdit({
   hookForm,
@@ -88,8 +92,9 @@ function FormEdit({
   );
 
   // ── Original type registry: maps field identifier → original type ──────────
+  // Passed to `applyTypeRevertGuard` in the watch subscription.
   // Used as a defence-in-depth guard: if hasResponses and a type somehow changed
-  // (e.g. a future FormBuilder version ignores editable), we revert it here.
+  // (e.g. a future FormBuilder version ignores editable), the guard reverts it.
   const originalTypeRegistryRef = useRef<Map<string, string>>(
     new Map(
       (hookForm.getValues("fields") ?? []).map((rf) => {
@@ -133,13 +138,9 @@ function FormEdit({
 
         // Defence-in-depth: revert type changes for existing fields when the
         // form already has responses, regardless of FormBuilder's editable prop.
-        let resolvedBf = bf as FormBuilderField;
-        if (hasResponses && originalTypes.has(name)) {
-          const lockedType = originalTypes.get(name) as FormBuilderField["type"];
-          if (resolvedBf.type !== lockedType) {
-            resolvedBf = { ...resolvedBf, type: lockedType };
-          }
-        }
+        // `applyTypeRevertGuard` is a pure function in formEditUtils so it can
+        // be tested directly without simulating the React watch subscription.
+        const resolvedBf = applyTypeRevertGuard(bf as FormBuilderField, hasResponses, originalTypes);
 
         // Pass the original routing field so router-specific metadata
         // (routerId/router/routerField) is preserved and not silently dropped.
