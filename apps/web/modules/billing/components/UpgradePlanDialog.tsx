@@ -68,7 +68,7 @@ function PlanColumn({
           className="mt-4 w-full"
           variant={primaryButton ? "default" : "outline"}
           onClick={onCtaClick}
-          render={<Link href={buttonHref} target={buttonTarget} />}>
+          render={<Link href={buttonHref} target={buttonTarget} rel={buttonTarget === "_blank" ? "noopener noreferrer" : undefined} />}>
           <Icon name="circle-arrow-up" />
           <span>{buttonText}</span>
         </Button>
@@ -147,7 +147,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="sm:hidden">{t("upgrade_dialog_title_short")}</DialogTitle>
-            <DialogTitle className="hidden">{t("upgrade_dialog_title")}</DialogTitle>
+            <DialogTitle className="hidden sm:block">{t("upgrade_dialog_title")}</DialogTitle>
             <ToggleGroup
               value={[billingPeriod]}
               onValueChange={(value): void => {
