@@ -86,7 +86,9 @@ export type TCreateEventTypeInput = {
 
 export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
   .object({
-    title: z.string().trim().min(1),
+    title: z.string().trim().min(1)
+    .refine( (value) => value.trim().split(/\s+/).length <= 50,
+    { message: "Title cannot exceed 50 words" }),
     slug: eventTypeSlug,
     description: z.string().nullish(),
     length: z.number().int(),
