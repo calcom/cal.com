@@ -133,7 +133,7 @@ export function CalendarListContainer({
     let headingContent = null;
     if (heading) {
       headingContent = (
-        <>
+        <div className="border-subtle rounded-b-lg border border-t-0">
           <DestinationCalendarSettingsWebWrapper connectedCalendars={data} />
           <Suspense fallback={<SkeletonLoader />}>
             <SelectedCalendarsSettingsWebWrapper
@@ -144,7 +144,7 @@ export function CalendarListContainer({
               connectedCalendars={data}
             />
           </Suspense>
-        </>
+        </div>
       );
     }
     content = headingContent;
@@ -168,6 +168,7 @@ export function CalendarListContainer({
           category: t("calendar").toLowerCase(),
         })}
         description={t(`no_category_apps_description_calendar`)}
+        className="rounded-b-lg rounded-t-none border-t-0"
         buttonRaw={
           <Button
             EndIcon="external-link"
@@ -185,7 +186,8 @@ export function CalendarListContainer({
     <SettingsHeader
       title={t("calendars")}
       description={t("calendars_description")}
-      CTA={<AddCalendarButton />}>
+      CTA={<AddCalendarButton />}
+      borderInShellHeader={true}>
       {content}
     </SettingsHeader>
   );
