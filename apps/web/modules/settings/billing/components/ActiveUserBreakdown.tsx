@@ -155,7 +155,7 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
       </PanelCard>
 
       <Sheet open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-        <SheetContent side="right" inset>
+        <SheetContent side="right" variant="inset">
           <SheetHeader>
             <SheetTitle>{selectedUser?.name || selectedUser?.email}</SheetTitle>
             <SheetDescription>
