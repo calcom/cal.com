@@ -14,7 +14,7 @@ import {
   handleCancelBooking,
   handleMarkNoShow,
 } from "@calcom/platform-libraries";
-import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { type InstantBookingCreateResult, makeUserActor } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, HttpError } from "@calcom/platform-libraries/errors";
 import type { ApiResponse } from "@calcom/platform-types";
 import {
@@ -279,6 +279,7 @@ export class BookingsController_2024_04_15 {
           platformCancelUrl: bookingRequest.platformCancelUrl,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
+          actionSource: "API_V2",
         });
         if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
@@ -314,7 +315,8 @@ export class BookingsController_2024_04_15 {
         attendees: body.attendees,
         noShowHost: body.noShowHost,
         userId: user.id,
-        userUuid: user.uuid,
+        actor: makeUserActor(user.uuid),
+        actionSource: "API_V2",
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -610,6 +612,10 @@ export class BookingsController_2024_04_15 {
       ...clone.body,
       noEmail: oAuthParams === undefined ? false : !oAuthParams.arePlatformEmailsEnabled,
       creationSource: CreationSource.API_V2,
+      metadata: {
+        ...(clone.body.metadata || {}),
+        ...(oAuthClientId && { platformClientId: oAuthClientId }),
+      },
     };
     if (oAuthClientId) {
       await this.setPlatformAttendeesEmails(clone.body, oAuthClientId);

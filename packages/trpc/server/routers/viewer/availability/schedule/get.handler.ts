@@ -6,7 +6,7 @@ import type { TGetInputSchema } from "./get.schema";
 
 type GetOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "timeZone" | "defaultScheduleId">;
   };
   input: TGetInputSchema;
 };

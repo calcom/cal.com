@@ -31,7 +31,7 @@ export default function InsightsVirtualQueuesPage() {
         headline={t("no_routing_forms")}
         description={t("empty_routing_forms_description")}
       />
-    )
+    );
   }
 
   return (

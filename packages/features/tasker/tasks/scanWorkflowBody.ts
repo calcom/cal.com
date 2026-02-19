@@ -27,7 +27,11 @@ const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
  * Extracts the duplicated logic from both Iffy-enabled and Iffy-disabled paths.
  */
 async function handleUrlScanningForStep(
-  workflowStep: { id: number; reminderBody: string | null; workflow: { user: { whitelistWorkflows: boolean } | null } },
+  workflowStep: {
+    id: number;
+    reminderBody: string | null;
+    workflow: { user: { whitelistWorkflows: boolean } | null };
+  },
   userId: number
 ): Promise<void> {
   if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {

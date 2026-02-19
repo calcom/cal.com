@@ -18,4 +18,3 @@ export function findFieldValueByIdentifier(
 
   return { success: true, data: fieldValue ?? null };
 }
-
