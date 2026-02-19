@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 
 import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 

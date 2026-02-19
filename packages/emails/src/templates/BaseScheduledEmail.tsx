@@ -72,8 +72,8 @@ export const BaseScheduledEmail = (
         props.title
           ? props.title
           : props.calEvent.recurringEvent?.count
-          ? "your_event_has_been_scheduled_recurring"
-          : "your_event_has_been_scheduled"
+            ? "your_event_has_been_scheduled_recurring"
+            : "your_event_has_been_scheduled"
       )}
       callToAction={
         props.callToAction === null

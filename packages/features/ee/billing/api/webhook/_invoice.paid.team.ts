@@ -1,7 +1,8 @@
+import { getSeatBillingStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 import { z } from "zod";
+
 import type { SWHMap } from "./__handler";
-import { handleHwmResetAfterRenewal, validateInvoiceLinesForHwm } from "./hwm-webhook-utils";
 
 const log = logger.getSubLogger({ prefix: ["invoice-paid-team"] });
 
@@ -35,13 +36,17 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     customerId: invoice.customer,
   });
 
-  // Only handle renewal invoices for HWM reset
   if (invoice.billing_reason === "subscription_cycle") {
-    log.info(`Processing renewal invoice for team subscription ${subscriptionId}`);
-    const validation = validateInvoiceLinesForHwm(invoice.lines.data, subscriptionId, log);
-    if (validation.isValid) {
-      await handleHwmResetAfterRenewal(subscriptionId, validation.periodStart, log);
+    const periodStart = invoice.lines.data[0]?.period?.start;
+    if (!periodStart) {
+      log.warn(`Invoice has no period start for subscription ${subscriptionId}, skipping renewal handling`);
+      return { success: true };
     }
+
+    log.info(`Processing renewal invoice for team subscription ${subscriptionId}`);
+    const factory = getSeatBillingStrategyFactory();
+    const strategy = await factory.createBySubscriptionId(subscriptionId);
+    await strategy.onRenewalPaid(subscriptionId, new Date(periodStart * 1000));
   }
 
   return { success: true };

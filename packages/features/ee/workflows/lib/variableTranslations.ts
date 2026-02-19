@@ -16,8 +16,8 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
       let translatedVariable = DYNAMIC_TEXT_VARIABLES.includes(variable.toLowerCase())
         ? language.t(variable.toLowerCase().concat("_variable")).replace(/ /g, "_").toLocaleUpperCase()
         : DYNAMIC_TEXT_VARIABLES.includes(variable.toLowerCase().concat("_name")) //for the old variables names (ORGANIZER_NAME, ATTENDEE_NAME)
-        ? language.t(variable.toLowerCase().concat("_name_variable")).replace(/ /g, "_").toLocaleUpperCase()
-        : variable;
+          ? language.t(variable.toLowerCase().concat("_name_variable")).replace(/ /g, "_").toLocaleUpperCase()
+          : variable;
 
       // this takes care of translating formatted variables (e.g. {EVENT_DATE_DD MM YYYY})
       const formattedVarToTranslate = FORMATTED_DYNAMIC_TEXT_VARIABLES.map((formattedVar) => {
