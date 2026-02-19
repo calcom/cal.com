@@ -26,6 +26,12 @@ export type DispatchJobInput<T = unknown> = {
 
   /**trigger blocking behaviour to observe entire job lifecycle */
   allowBlocking?: boolean;
+
+  /**
+   * Unix ms timestamp for Inngest fallback scheduling.
+   * Used when job falls back to Inngest and needs to preserve delay.
+   */
+  inngestTs?: number;
 };
 
 // ---------------------------------------------------------------------------

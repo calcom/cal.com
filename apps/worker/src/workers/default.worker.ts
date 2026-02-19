@@ -1,13 +1,13 @@
+import { SleepSignal, JobName } from "@calid/job-dispatcher";
 import type { DefaultJob } from "@calid/job-engine";
 import {
   type RazorpayPaymentLinkPaidJobData,
   type RazorpayAppRevokedJobData,
   type BookingEmailsJobData,
 } from "@calid/job-engine";
-import { getRedisOptions, JobName, QueueName } from "@calid/queue";
+import { getRedisOptions, QueueName } from "@calid/queue";
 import { Worker } from "bullmq";
 import type { Job } from "bullmq";
-import { SleepSignal } from "packages/job-dispatcher/src";
 
 import { processBookingEmails } from "../processors/default/bookingEmails.processor";
 import { processRazorpayAppRevoked } from "../processors/default/razorpayAppRevoked.processor";

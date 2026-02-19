@@ -1,17 +1,27 @@
+import { JobName, dispatcher } from "@calid/job-dispatcher";
+import { QueueName } from "@calid/queue";
+
 import dayjs from "@calcom/dayjs";
-import { INNGEST_ID } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
+
+const log = logger.getSubLogger({ prefix: ["[handleWebhookScheduledTriggers]"] });
 
 export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
-  await prisma.webhookScheduledTriggers.deleteMany({
+  log.info("Starting webhook scheduled triggers scan");
+
+  // Purge stale triggers
+  const deleteResult = await prisma.webhookScheduledTriggers.deleteMany({
     where: {
-      startAfter: {
-        lte: dayjs().subtract(1, "day").toDate(),
-      },
+      startAfter: { lte: dayjs().subtract(1, "day").toDate() },
     },
   });
-  // get jobs that should be run
+
+  if (deleteResult.count > 0) {
+    log.info("Deleted stale webhook triggers", { count: deleteResult.count });
+  }
+
+  // Find jobs ready to schedule
   const jobsToRun = await prisma.webhookScheduledTriggers.findMany({
     where: {
       startAfter: {
@@ -22,51 +32,68 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     },
     select: {
       id: true,
-      jobName: true,
       startAfter: true,
-      payload: true,
-      subscriberUrl: true,
-      webhook: {
-        select: {
-          secret: true,
-        },
-      },
     },
   });
 
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+  log.info("Found webhook triggers to schedule", { count: jobsToRun.length });
 
   let scheduledJobs = 0;
+  let failedJobs = 0;
 
-  // run jobs
   for (const job of jobsToRun) {
-    const now = new Date();
-    const delay = Math.max(0, job.startAfter.getTime() - now.getTime());
+    const targetTime = job.startAfter.getTime();
+    const delayMs = Math.max(0, targetTime - Date.now());
 
-    console.log(
-      "Sending Inngest scheduling event for Webhook trigger: ",
-      delay > 0 ? now.getTime() + delay : undefined
-    );
-
-    const { ids } = await inngestClient.send({
-      name: `webhook/schedule.trigger-${key}`,
-      data: {
-        id: job.id,
-      },
-      ts: delay > 0 ? now.getTime() + delay : undefined,
+    log.info("Dispatching webhook trigger", {
+      webhookId: job.id,
+      targetTime: job.startAfter.toISOString(),
+      delayMs,
     });
 
-    await prisma.webhookScheduledTriggers.update({
-      where: {
-        id: job.id,
-      },
-      data: {
-        scheduled: true,
-      },
-    });
+    try {
+      await dispatcher.dispatch({
+        queue: QueueName.SCHEDULED,
+        name: JobName.WEBHOOK_SCHEDULED_TRIGGER,
+        data: { id: job.id },
+        inngestTs: targetTime,
+        bullmqOptions: {
+          delay: delayMs,
+          attempts: 2,
+          backoff: {
+            type: "exponential",
+            delay: 3000,
+          },
+          removeOnComplete: {
+            count: 1000,
+            age: 86400,
+          },
+          removeOnFail: {
+            count: 5000,
+          },
+        },
+      });
 
-    scheduledJobs++;
+      await prisma.webhookScheduledTriggers.update({
+        where: { id: job.id },
+        data: { scheduled: true },
+      });
+
+      scheduledJobs++;
+    } catch (error) {
+      log.error("Failed to dispatch webhook trigger", {
+        webhookId: job.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      failedJobs++;
+    }
   }
 
-  return { scheduledJobs };
+  log.info("Webhook scheduled triggers scan completed", {
+    total: jobsToRun.length,
+    scheduled: scheduledJobs,
+    failed: failedJobs,
+  });
+
+  return { scheduledJobs, failedJobs };
 }

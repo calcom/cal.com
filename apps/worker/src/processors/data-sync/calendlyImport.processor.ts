@@ -1,7 +1,7 @@
-import { dispatcher, createBullWorkflowContext } from "@calid/job-dispatcher";
+import { JobName, dispatcher, createBullWorkflowContext } from "@calid/job-dispatcher";
 import { calendlyImportService } from "@calid/job-engine";
 import type { CalendlyImportJobData } from "@calid/job-engine";
-import { QueueName, JobName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
 import type { Job } from "bullmq";
 
 export async function processCalendlyImport(job: Job<CalendlyImportJobData>) {

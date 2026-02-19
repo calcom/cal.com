@@ -1,6 +1,6 @@
-import { dispatcher } from "@calid/job-dispatcher";
+import { JobName, dispatcher } from "@calid/job-dispatcher";
 import type { BookingExportJobData } from "@calid/job-engine/types";
-import { QueueName, JobName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";

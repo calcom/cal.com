@@ -1,6 +1,7 @@
+import { JobName } from "@calid/job-dispatcher";
 import type { CalendlyImportJobData } from "@calid/job-engine";
 import { type CalendarSyncJobData, type DataSyncJob, type BookingExportJobData } from "@calid/job-engine";
-import { getRedisOptions, JobName, QueueName } from "@calid/queue";
+import { getRedisOptions, QueueName } from "@calid/queue";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
 import { SleepSignal } from "packages/job-dispatcher/src";

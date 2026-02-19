@@ -1,6 +1,6 @@
-import { dispatcher } from "@calid/job-dispatcher";
+import { JobName, dispatcher } from "@calid/job-dispatcher";
 import type { BookingEmailsJobData } from "@calid/job-engine";
-import { QueueName, JobName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
 
 import {
   sendScheduledEmailsAndSMS,

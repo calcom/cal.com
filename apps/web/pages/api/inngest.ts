@@ -1,10 +1,14 @@
-import { createInngestWorkflowContext, getInngestClient } from "@calid/job-dispatcher/";
+import { createInngestWorkflowContext, getInngestClient, JobName } from "@calid/job-dispatcher";
 import {
   calendlyImportService,
   bookingExportService,
   razorpayAppRevokedService,
   razorpayPaymentLinkPaidService,
   bookingEmailsService,
+  WebhookNotFoundError,
+  WebhookRejectedError,
+  WebhookTriggerError,
+  triggerScheduledWebhookService,
 } from "@calid/job-engine";
 import type {
   BookingEmailsJobData,
@@ -12,14 +16,14 @@ import type {
   CalendlyImportJobData,
   RazorpayAppRevokedJobData,
   RazorpayPaymentLinkPaidJobData,
+  TriggerScheduledWebhookData,
 } from "@calid/job-engine";
+import { NonRetriableError } from "inngest";
 import { serve } from "inngest/next";
 
-import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
 
-import { triggerScheduledWebhook } from "./trigger-scheduled-webhook";
 import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
 export const inngestClient = getInngestClient();
@@ -38,7 +42,7 @@ export const config = {
 
 const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `sync-import-from-calendly-${key}`, retries: 2 },
-  { event: `sync/import-from-calendly-${key}` },
+  { event: `${JobName.CALENDLY_IMPORT}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     await calendlyImportService(ctx, event.data as CalendlyImportJobData);
@@ -48,20 +52,11 @@ const handleCalendlyImportFn = inngestClient.createFunction(
 
 export const handleBookingExportFn = inngestClient.createFunction(
   { id: `core-export-bookings-${key}`, retries: 2 },
-  { event: `core/export-bookings-${key}` },
+  { event: `${JobName.BOOKING_EXPORT}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     await bookingExportService(ctx, event.data as BookingExportJobData);
     return { message: `Export Booking mail sent for userID: ${event.data.user.id}` };
-  }
-);
-
-const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
-  { id: `whatsapp-template-sync-${key}`, retries: 2 },
-  { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
-  async ({ step, logger }) => {
-    await syncTemplates({ step, logger });
-    return { message: `WhatsApp template sync completed` };
   }
 );
 
@@ -71,7 +66,7 @@ export const handleRazorpayAppRevoked = inngestClient.createFunction(
     name: "Handle Razorpay App Revoked",
     retries: 3,
   },
-  { event: `razorpay/app.revoked-${key}` },
+  { event: `${JobName.RAZORPAY_APP_REVOKED_WEBHOOK}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
@@ -85,7 +80,7 @@ export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
     name: "Handle Razorpay Payment Link Paid",
     retries: 3,
   },
-  { event: `razorpay/payment-link.paid-${key}` },
+  { event: `${JobName.RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
@@ -99,7 +94,7 @@ export const handleBookingEmailsScheduled = inngestClient.createFunction(
     name: "Send Booking Scheduled Emails",
     retries: 3,
   },
-  { event: `booking/emails.scheduled-${key}` },
+  { event: `${JobName.BOOKING_EMAILS_SCHEDULED}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
@@ -112,7 +107,7 @@ export const handleBookingEmailsRequest = inngestClient.createFunction(
     name: "Send Booking Request Emails",
     retries: 3,
   },
-  { event: `booking/emails.request-${key}` },
+  { event: `${JobName.BOOKING_EMAILS_REQUEST}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
@@ -125,7 +120,7 @@ export const handleBookingEmailsRescheduled = inngestClient.createFunction(
     name: "Send Booking Rescheduled Emails",
     retries: 3,
   },
-  { event: `booking/emails.rescheduled-${key}` },
+  { event: `${JobName.BOOKING_EMAILS_RESCHEDULED}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
@@ -138,10 +133,56 @@ export const handleBookingEmailsCancelled = inngestClient.createFunction(
     name: "Send Booking Cancelled Emails",
     retries: 3,
   },
-  { event: `booking/emails.cancelled-${key}` },
+  { event: `${JobName.BOOKING_EMAILS_CANCELLED}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
+  }
+);
+
+export const handleScheduledWebhookTrigger = inngestClient.createFunction(
+  {
+    id: `webhook-schedule-trigger-${key}`,
+    name: "Trigger scheduled webhook",
+    retries: 1,
+  },
+  {
+    event: `${JobName.WEBHOOK_SCHEDULED_TRIGGER}-${key}`,
+  },
+  async ({ event, step, logger }) => {
+    const data = event.data as TriggerScheduledWebhookData;
+
+    // Create workflow context from Inngest step + logger
+    const ctx = createInngestWorkflowContext(step, logger);
+
+    try {
+      const result = await triggerScheduledWebhookService(data, prisma, ctx);
+      return result;
+    } catch (error) {
+      // ── Permanent failures ────────────────────────────────────────────
+      if (error instanceof WebhookNotFoundError || error instanceof WebhookRejectedError) {
+        throw new NonRetriableError(error.message);
+      }
+
+      // ── Transient failures ────────────────────────────────────────────
+      if (error instanceof WebhookTriggerError) {
+        throw error;
+      }
+
+      // ── Unexpected errors ─────────────────────────────────────────────
+      throw new NonRetriableError(
+        `Unexpected error: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+);
+
+const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
+  { id: `whatsapp-template-sync-${key}`, retries: 2 },
+  { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
+  async ({ step, logger }) => {
+    await syncTemplates({ step, logger });
+    return { message: `WhatsApp template sync completed` };
   }
 );
 
@@ -161,18 +202,6 @@ const handleWhatsappReminderScheduled = inngestClient.createFunction(
     event: `whatsapp/reminder.scheduled-${key}`,
   },
   whatsappReminderScheduled
-);
-
-const handleScheduledWebhookTrigger = inngestClient.createFunction(
-  {
-    id: `webhook-schedule-trigger-${key}`,
-    name: "Trigger scheduled webhook",
-    retries: 1,
-  },
-  {
-    event: `webhook/schedule.trigger-${key}`,
-  },
-  triggerScheduledWebhook
 );
 
 export const triggerBookingPaymentReminder = inngestClient.createFunction(

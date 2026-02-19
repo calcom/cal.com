@@ -1,6 +1,6 @@
-import { dispatcher } from "@calid/job-dispatcher";
+import { JobName, dispatcher } from "@calid/job-dispatcher";
 import type { CalendlyImportJobData } from "@calid/job-engine";
-import { QueueName, JobName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
 import { CalendlyOAuthProvider } from "@onehash/calendly";
 import type { NextApiRequest, NextApiResponse } from "next";
 

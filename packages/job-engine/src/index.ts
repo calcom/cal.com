@@ -8,4 +8,5 @@ export * from "./data-sync/calendlyImport.service";
 export * from "./data-sync/bookingExport.service";
 export * from "./data-sync/type";
 
-export * from "./schedule/type";
+export * from "./scheduled/triggerScheduledWebhook.service";
+export * from "./scheduled/type";

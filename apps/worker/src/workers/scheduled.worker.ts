@@ -1,12 +1,19 @@
+import { JobName } from "@calid/job-dispatcher";
 import type { ScheduledJob } from "@calid/job-engine";
-import { QueueName, getRedisOptions } from "@calid/queue";
+import { type TriggerScheduledWebhookData } from "@calid/job-engine";
+// import type { SyncWhatsappTemplatesData } from "@calid/job-engine/src/scheduled/type.js";
+import { getRedisOptions, QueueName } from "@calid/queue";
+import type { Job } from "bullmq";
 import { Worker } from "bullmq";
+
+// import { syncWhatsappTemplatesProcessor } from "../processors/scheduled/syncWhatsappTemplates.processor.js";
+import { triggerScheduledWebhookProcessor } from "../processors/scheduled/triggerScheduledWebhook.processor.ts";
 
 export const SCHEDULED_WORKER_NAME = "scheduled-worker";
 
 export const SCHEDULED_RATE_LIMITER = {
-  max: 20,
-  duration: 1000,
+  max: 50, // Max 50 jobs per...
+  duration: 1000, // ...1 second (rate limiting)
 };
 
 export const SCHEDULED_WORKER_CONFIG = {
@@ -19,7 +26,19 @@ export const SCHEDULED_WORKER_CONFIG = {
 export const scheduledWorker = new Worker<ScheduledJob>(
   QueueName.SCHEDULED,
   async (job) => {
-    // await processCalendarSync(job);
+    const { name } = job;
+
+    switch (job.name) {
+      case JobName.WEBHOOK_SCHEDULED_TRIGGER:
+        await triggerScheduledWebhookProcessor(job as Job<TriggerScheduledWebhookData>);
+        break;
+
+      // case JobName.WHATSAPP_TEMPLATE_SYNC:
+      //   return syncWhatsappTemplatesProcessor(job as Job<SyncWhatsappTemplatesData>);
+
+      default:
+        throw new Error(`No processor registered for job type ${name}`);
+    }
   },
   {
     connection: getRedisOptions(),
