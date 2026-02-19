@@ -118,6 +118,7 @@ export class CalendarSyncService {
 
       await handleCancelBooking({
         userId: booking.userId,
+        actionSource: "SYSTEM",
         bookingData: {
           uid: booking.uid,
           cancellationReason: "Cancelled on user's calendar",
@@ -239,7 +240,10 @@ export type BookingWithEventType = NonNullable<
   Awaited<ReturnType<BookingRepository["findBookingByUidWithEventType"]>>
 >;
 
-type RescheduleBookingData = CreateRegularBookingData & { responses: Record<string, unknown> };
+type RescheduleBookingData = CreateRegularBookingData & {
+  responses: Record<string, unknown>;
+  idempotencyKey: string;
+};
 
 export const buildRescheduleBookingData = (
   booking: BookingWithEventType,

@@ -35,6 +35,13 @@ vi.mock("@calcom/lib/idempotencyKey/idempotencyKeyService", () => ({
   },
 }));
 
+vi.mock("@sentry/nextjs", () => ({
+  metrics: {
+    count: vi.fn(),
+    distribution: vi.fn(),
+  },
+}));
+
 const makeBooking = (overrides: Partial<BookingWithEventType> = {}): BookingWithEventType =>
   ({
     id: 1,
@@ -913,6 +920,7 @@ describe("CalendarSyncService - error isolation", () => {
 
     expect(mockHandleCancelBooking).toHaveBeenCalledWith({
       userId: 99,
+      actionSource: "SYSTEM",
       bookingData: {
         uid: "my-booking-uid",
         cancellationReason: "Cancelled on user's calendar",

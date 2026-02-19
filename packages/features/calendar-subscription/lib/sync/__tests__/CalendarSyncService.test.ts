@@ -27,6 +27,13 @@ vi.mock("@calcom/lib/idempotencyKey/idempotencyKeyService", () => ({
   },
 }));
 
+vi.mock("@sentry/nextjs", () => ({
+  metrics: {
+    count: vi.fn(),
+    distribution: vi.fn(),
+  },
+}));
+
 const mockSelectedCalendar: SelectedCalendar = {
   id: "test-calendar-id",
   userId: 1,
@@ -224,6 +231,7 @@ describe("CalendarSyncService", () => {
 
       expect(mockHandleCancelBooking).toHaveBeenCalledWith({
         userId: mockBooking.userId,
+        actionSource: "SYSTEM",
         bookingData: {
           uid: mockBooking.uid,
           cancellationReason: "Cancelled on user's calendar",
