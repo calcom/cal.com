@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 
 import { test } from "../lib/fixtures";
 import type { PrismaClient } from "@calcom/prisma";
-import { expect } from "@playwright/test";
 import jwt from "jsonwebtoken";
 import { test } from "../lib/fixtures";
 
