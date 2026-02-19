@@ -30,7 +30,8 @@ export async function getRequiresConfirmationFlags({
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
     paymentAppData.price,
-    userReschedulingIsOwner
+    userReschedulingIsOwner,
+    !!originalRescheduledBookingOrganizerId
   );
 
   return {
@@ -87,7 +88,10 @@ function isUserReschedulingOwner(
 function determineIsConfirmedByDefault(
   requiresConfirmation: boolean,
   price: number,
-  userReschedulingIsOwner: boolean
+  userReschedulingIsOwner: boolean,
+  isReschedule: boolean
 ): boolean {
-  return (!requiresConfirmation && price === 0) || userReschedulingIsOwner;
+  const freeAndNoConfirmation = !requiresConfirmation && price === 0;
+  const reschedulePaidEvent = !requiresConfirmation && isReschedule && price > 0;
+  return freeAndNoConfirmation || userReschedulingIsOwner || reschedulePaidEvent;
 }

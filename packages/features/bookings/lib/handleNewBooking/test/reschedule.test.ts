@@ -5,6 +5,7 @@ import {
   getDate,
   getGoogleCalendarCredential,
   getGoogleMeetCredential,
+  getStripeAppCredential,
   TestData,
   getOrganizer,
   getBooker,
@@ -1850,6 +1851,410 @@ describe("handleNewBooking", () => {
           timeout
         );
       });
+
+      describe("Paid event type - attendee reschedule", () => {
+        test(
+          `when event type does NOT require confirmation, attendee can reschedule a paid event successfully without host confirmation
+          1. Should cancel the existing booking
+          2. Should create a new booking in ACCEPTED state (no confirmation needed)
+          3. Should send rescheduled emails and trigger BOOKING_RESCHEDULED webhook
+        `,
+          async ({ emails }) => {
+            const handleNewBooking = getNewBookingHandler();
+            const booker = getBooker({
+              email: "booker@example.com",
+              name: "Booker",
+            });
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [
+                getGoogleCalendarCredential(),
+                getStripeAppCredential(),
+              ],
+              selectedCalendars: [TestData.selectedCalendars.google],
+            });
+
+            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+            const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+            const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
+
+            await createBookingScenario(
+              getScenarioData({
+                webhooks: [
+                  {
+                    userId: organizer.id,
+                    eventTriggers: ["BOOKING_CREATED"],
+                    subscriberUrl: "http://my-webhook.example.com",
+                    active: true,
+                    eventTypeId: 1,
+                    appId: null,
+                  },
+                ],
+                workflows: [
+                  {
+                    userId: organizer.id,
+                    trigger: "RESCHEDULE_EVENT",
+                    action: "EMAIL_HOST",
+                    template: "REMINDER",
+                    activeOn: [1],
+                  },
+                ],
+                eventTypes: [
+                  {
+                    id: 1,
+                    slotInterval: 15,
+                    length: 15,
+                    price: 100,
+                    requiresConfirmation: false,
+                    metadata: {
+                      apps: {
+                        stripe: {
+                          price: 100,
+                          enabled: true,
+                          currency: "usd",
+                        },
+                      },
+                    },
+                    users: [{ id: 101 }],
+                  },
+                ],
+                bookings: [
+                  {
+                    uid: uidOfBookingToBeRescheduled,
+                    eventTypeId: 1,
+                    user: { id: organizer.id },
+                    status: BookingStatus.ACCEPTED,
+                    startTime: `${plus1DateString}T05:00:00.000Z`,
+                    endTime: `${plus1DateString}T05:15:00.000Z`,
+                    references: [
+                      getMockBookingReference({
+                        type: appStoreMetadata.dailyvideo.type,
+                        uid: "MOCK_ID",
+                        meetingId: "MOCK_ID",
+                        meetingPassword: "MOCK_PASS",
+                        meetingUrl: "http://mock-dailyvideo.example.com",
+                        credentialId: 0,
+                      }),
+                      getMockBookingReference({
+                        type: appStoreMetadata.googlecalendar.type,
+                        uid: "MOCK_ID",
+                        meetingId: "MOCK_ID",
+                        meetingPassword: "MOCK_PASSWORD",
+                        meetingUrl: "https://UNUSED_URL",
+                        externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                        credentialId: 1,
+                      }),
+                    ],
+                    iCalUID,
+                  },
+                ],
+                organizer,
+                apps: [
+                  TestData.apps["google-calendar"],
+                  TestData.apps["daily-video"],
+                  TestData.apps["stripe-payment"],
+                ],
+              })
+            );
+
+            const existingBooking = await prismaMock.booking.findFirst({
+              where: { uid: uidOfBookingToBeRescheduled },
+            });
+            if (existingBooking) {
+              await prismaMock.payment.create({
+                data: {
+                  uid: "pay-reschedule-paid-1",
+                  bookingId: existingBooking.id,
+                  amount: 100,
+                  fee: 0,
+                  currency: "usd",
+                  success: true,
+                  refunded: false,
+                  data: {},
+                  externalId: "ext-reschedule-paid-1",
+                  appId: "stripepayment",
+                },
+              });
+              await prismaMock.booking.update({
+                where: { id: existingBooking.id },
+                data: { paid: true },
+              });
+            }
+
+            mockSuccessfulVideoMeetingCreation({ metadataLookupKey: "dailyvideo" });
+
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+              create: { uid: "MOCK_ID" },
+              update: { uid: "UPDATED_MOCK_ID", iCalUID },
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                rescheduleUid: uidOfBookingToBeRescheduled,
+                start: `${plus1DateString}T04:00:00.000Z`,
+                end: `${plus1DateString}T04:15:00.000Z`,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                  location: { optionValue: "", value: BookingLocations.CalVideo },
+                },
+              },
+            });
+
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+            });
+
+            await expectBookingInDBToBeRescheduledFromTo({
+              from: { uid: uidOfBookingToBeRescheduled },
+              to: {
+                description: "",
+                uid: createdBooking.uid!,
+                eventTypeId: mockBookingData.eventTypeId,
+                status: BookingStatus.ACCEPTED,
+                location: BookingLocations.CalVideo,
+                responses: expect.objectContaining({
+                  email: booker.email,
+                  name: booker.name,
+                }),
+              },
+            });
+
+            expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+            expectSuccessfulBookingRescheduledEmails({
+              booker,
+              organizer,
+              emails,
+              iCalUID,
+            });
+            expectBookingRescheduledWebhookToHaveBeenFired({
+              booker,
+              organizer,
+              location: BookingLocations.CalVideo,
+              subscriberUrl: "http://my-webhook.example.com",
+              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            });
+            expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
+              externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+              calEvent: {
+                videoCallData: expect.objectContaining({
+                  url: "http://mock-dailyvideo.example.com",
+                }),
+              },
+              uid: "MOCK_ID",
+            });
+          },
+          timeout
+        );
+
+        test(
+          `when event type DOES require confirmation, attendee reschedule of paid event needs host confirmation
+          1. Should cancel the existing booking and delete video/calendar events
+          2. Should create a new booking in PENDING state (host must confirm)
+          3. Should send BOOKING_REQUESTED emails and trigger BOOKING_REQUESTED webhook
+        `,
+          async ({ emails }) => {
+            const handleNewBooking = getNewBookingHandler();
+            const subscriberUrl = "http://my-webhook.example.com";
+            const booker = getBooker({
+              email: "booker@example.com",
+              name: "Booker",
+            });
+
+            const organizer = getOrganizer({
+              name: "Organizer",
+              email: "organizer@example.com",
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [
+                getGoogleCalendarCredential(),
+                getStripeAppCredential(),
+              ],
+              selectedCalendars: [TestData.selectedCalendars.google],
+            });
+
+            const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+            const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+            const scenarioData = getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl,
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  price: 100,
+                  requiresConfirmation: true,
+                  metadata: {
+                    apps: {
+                      stripe: {
+                        price: 100,
+                        enabled: true,
+                        currency: "usd",
+                      },
+                    },
+                  },
+                  users: [{ id: 101 }],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  user: { id: organizer.id },
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  references: [
+                    getMockBookingReference({
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com",
+                      credentialId: 0,
+                    }),
+                    getMockBookingReference({
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASSWORD",
+                      meetingUrl: "https://UNUSED_URL",
+                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                      credentialId: 1,
+                    }),
+                  ],
+                },
+              ],
+              organizer,
+              apps: [
+                TestData.apps["google-calendar"],
+                TestData.apps["daily-video"],
+                TestData.apps["stripe-payment"],
+              ],
+            });
+            await createBookingScenario(scenarioData);
+
+            const existingBookingForConfirmation = await prismaMock.booking.findFirst({
+              where: { uid: uidOfBookingToBeRescheduled },
+            });
+            if (existingBookingForConfirmation) {
+              await prismaMock.payment.create({
+                data: {
+                  uid: "pay-reschedule-confirm-1",
+                  bookingId: existingBookingForConfirmation.id,
+                  amount: 100,
+                  fee: 0,
+                  currency: "usd",
+                  success: true,
+                  refunded: false,
+                  data: {},
+                  externalId: "ext-reschedule-confirm-1",
+                  appId: "stripepayment",
+                },
+              });
+              await prismaMock.booking.update({
+                where: { id: existingBookingForConfirmation.id },
+                data: { paid: true },
+              });
+            }
+
+            const videoMock = mockSuccessfulVideoMeetingCreation({
+              metadataLookupKey: "dailyvideo",
+            });
+
+            const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
+              create: { uid: "MOCK_ID" },
+              update: { uid: "UPDATED_MOCK_ID", iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID" },
+            });
+
+            const mockBookingData = getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                rescheduleUid: uidOfBookingToBeRescheduled,
+                start: `${plus1DateString}T04:00:00.000Z`,
+                end: `${plus1DateString}T04:15:00.000Z`,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                  location: { optionValue: "", value: BookingLocations.CalVideo },
+                },
+              },
+            });
+
+            const createdBooking = await handleNewBooking({
+              bookingData: mockBookingData,
+            });
+
+            await expectBookingInDBToBeRescheduledFromTo({
+              from: { uid: uidOfBookingToBeRescheduled },
+              to: {
+                description: "",
+                uid: createdBooking.uid!,
+                eventTypeId: mockBookingData.eventTypeId,
+                status: BookingStatus.PENDING,
+                location: BookingLocations.CalVideo,
+                responses: expect.objectContaining({
+                  email: booker.email,
+                  name: booker.name,
+                }),
+              },
+            });
+
+            expectBookingRequestedEmails({ booker, organizer, emails });
+            expectBookingRequestedWebhookToHaveBeenFired({
+              booker,
+              organizer,
+              location: BookingLocations.CalVideo,
+              subscriberUrl,
+              eventType: scenarioData.eventTypes[0],
+            });
+            expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
+              bookingRef: {
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+                meetingId: "MOCK_ID",
+                meetingPassword: "MOCK_PASS",
+                meetingUrl: "http://mock-dailyvideo.example.com",
+              },
+            });
+            expectSuccessfulCalendarEventDeletionInCalendar(calendarMock, {
+              externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+              calEvent: {
+                videoCallData: expect.objectContaining({
+                  url: "http://mock-dailyvideo.example.com",
+                }),
+              },
+              uid: "MOCK_ID",
+            });
+          },
+          timeout
+        );
+      });
+
       test(
         `should reschedule a booking successfully with a different location option (change to Cal Video)
           1. Should cancel the existing booking
