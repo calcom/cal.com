@@ -4,11 +4,8 @@ import type { PrismaClient } from "@calcom/prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { getBookingHistoryViewerService } from "@calcom/features/booking-audit/di/BookingHistoryViewerService.container";
-import {
-  BookingAuditErrorCode,
-  BookingAuditPermissionError,
-} from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditErrorCode, BookingAuditPermissionError } from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
+import { getTranslation } from "@calcom/i18n/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
