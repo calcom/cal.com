@@ -6,10 +6,11 @@ import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/us
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
-import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
+import { LargeCalendar } from "./components/LargeCalendar";
 import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
 import { formatUsername } from "../booker/BookerPlatformWrapper";
@@ -66,7 +67,13 @@ export const EventTypeCalendarViewComponent = (
     bookerLayout,
   });
 
-  const { timezone } = useTimePreferences();
+  const { timezone: rawTimezone } = useTimePreferences();
+  const timezone = useStableTimezone(
+    rawTimezone,
+    event?.data?.restrictionScheduleId != null
+      ? { id: event.data.restrictionScheduleId, useBookerTimezone: event.data.useBookerTimezone }
+      : undefined
+  );
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
@@ -110,7 +117,7 @@ export const EventTypeCalendarViewComponent = (
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
+  const availableTimeSlots= useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
   return (
     <AtomsWrapper>

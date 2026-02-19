@@ -4,7 +4,9 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useMemo, useReducer, useState } from "react";
 
-import { DataTableProvider, useColumnFilters, useDataTable } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import {
   DataTableWrapper,
   DataTableToolbar,

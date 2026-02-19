@@ -1,7 +1,7 @@
 import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { bookerLayoutOptions } from "@calcom/prisma/zod-utils";
-import { LargeCalendar } from "@calcom/web/modules/calendar-view/components/LargeCalendar";
+import { LargeCalendar } from "./components/LargeCalendar";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
 export const CalendarViewComponent = () => {

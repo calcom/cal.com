@@ -19,7 +19,7 @@ import { DateRangePicker } from "@calcom/ui/components/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { CheckIcon } from "@coss/ui/icons";
 
-import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
+import { useDataTable, useFilterValue } from "~/data-table/hooks";
 import {
   CUSTOM_PRESET,
   CUSTOM_PRESET_VALUE,
