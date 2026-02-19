@@ -1,8 +1,7 @@
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
-import { resolveReplica } from "@calcom/lib/server/resolveReplica";
-import { prisma } from "@calcom/prisma";
+import { prisma, withDbContext } from "@calcom/prisma";
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { PageProps, Params, SearchParams } from "app/_types";
@@ -27,8 +26,7 @@ async function isCachedTeamBookingEnabled(params: Params, searchParams: SearchPa
 
   if (!teamId) return false;
 
-  const db = prisma.replica(resolveReplica(await headers()));
-  const featuresRepository = new FeaturesRepository(db);
+  const featuresRepository = new FeaturesRepository(prisma.replica());
   const isTeamFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
     teamId,
     "team-booking-page-cache"
@@ -36,70 +34,74 @@ async function isCachedTeamBookingEnabled(params: Params, searchParams: SearchPa
   return isTeamFeatureEnabled;
 }
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
-    return await generateCachedMetadata({ params, searchParams });
-  }
+const REPLICA_HEADER = "x-cal-replica";
 
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const props = await getData(legacyCtx);
-  const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
+export const generateMetadata = async ({ params, searchParams }: PageProps) =>
+  withDbContext({ replica: (await headers()).get(REPLICA_HEADER) }, async () => {
+    if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
+      return await generateCachedMetadata({ params, searchParams });
+    }
 
-  const profileName = eventData?.profile?.name ?? "";
-  const profileImage = eventData?.profile.image;
-  const title = eventData?.title ?? "";
-  const meeting = {
-    title,
-    profile: { name: profileName, image: profileImage },
-    users: [
-      ...(eventData?.users || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
-  };
-  const decodedParams = decodeParams(await params);
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData.entity.orgSlug ?? null),
-    `/team/${decodedParams.slug}/${decodedParams.type}`
-  );
+    const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+    const props = await getData(legacyCtx);
+    const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
 
-  return {
-    ...metadata,
-    robots: {
-      follow: !(eventData?.hidden || !isSEOIndexable),
-      index: !(eventData?.hidden || !isSEOIndexable),
-    },
-  };
-};
+    const profileName = eventData?.profile?.name ?? "";
+    const profileImage = eventData?.profile.image;
+    const title = eventData?.title ?? "";
+    const meeting = {
+      title,
+      profile: { name: profileName, image: profileImage },
+      users: [
+        ...(eventData?.users || []).map((user) => ({
+          name: `${user.name}`,
+          username: `${user.username}`,
+        })),
+      ],
+    };
+    const decodedParams = decodeParams(await params);
+    const metadata = await generateMeetingMetadata(
+      meeting,
+      (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+      (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
+      isBrandingHidden,
+      getOrgFullOrigin(eventData.entity.orgSlug ?? null),
+      `/team/${decodedParams.slug}/${decodedParams.type}`
+    );
+
+    return {
+      ...metadata,
+      robots: {
+        follow: !(eventData?.hidden || !isSEOIndexable),
+        index: !(eventData?.hidden || !isSEOIndexable),
+      },
+    };
+  });
 
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
-const ServerPage = async ({ params, searchParams }: PageProps) => {
-  if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
-    return await CachedTeamBooker({ params, searchParams });
-  }
+const ServerPage = async ({ params, searchParams }: PageProps) =>
+  withDbContext({ replica: (await headers()).get(REPLICA_HEADER) }, async () => {
+    if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
+      return await CachedTeamBooker({ params, searchParams });
+    }
 
-  const props = await getData(
-    buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
-  );
-
-  const eventLocale = props.eventData?.interfaceLanguage;
-  if (eventLocale) {
-    const ns = "common";
-    const translations = await loadTranslations(eventLocale, ns);
-    return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
-        <LegacyPage {...props} />
-      </CustomI18nProvider>
+    const props = await getData(
+      buildLegacyCtx(await headers(), await cookies(), await params, await searchParams)
     );
-  }
 
-  return <LegacyPage {...props} />;
-};
+    const eventLocale = props.eventData?.interfaceLanguage;
+    if (eventLocale) {
+      const ns = "common";
+      const translations = await loadTranslations(eventLocale, ns);
+      return (
+        <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+          <LegacyPage {...props} />
+        </CustomI18nProvider>
+      );
+    }
+
+    return <LegacyPage {...props} />;
+  });
 
 export default ServerPage;

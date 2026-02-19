@@ -16,7 +16,7 @@ export class EventRepository {
       input.eventSlug,
       input.isTeamEvent,
       input.org,
-      prisma,
+      prisma.replica(),
       input.fromRedirectOfNonOrgLink,
       userId
     );

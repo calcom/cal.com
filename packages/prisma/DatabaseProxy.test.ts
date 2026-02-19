@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { resolveReplica } from "@calcom/lib/server/resolveReplica";
-
-import { createDatabaseProxy, type DatabaseProxy, type ProxyConfig } from "./DatabaseProxy";
+import { createDatabaseProxy, withDbContext, type DatabaseProxy, type ProxyConfig } from "./DatabaseProxy";
 
 describe("DatabaseProxy", () => {
   let mockPrimary: any;
@@ -300,36 +298,118 @@ describe("DatabaseProxy", () => {
       expect(typeof proxy.tenant).toBe("function");
     });
   });
+
+  describe("when .replica() resolves from AsyncLocalStorage context", () => {
+    it("resolves replica name from context when called without args", async () => {
+      const result = await withDbContext({ replica: "read" }, async () => {
+        return proxy.replica().user.findMany();
+      });
+
+      expect(mockDefaultReplica.user.findMany).toHaveBeenCalled();
+      expect(mockPrimary.user.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "default-replica" }]);
+    });
+
+    it("explicit arg overrides context", async () => {
+      const result = await withDbContext({ replica: "nonexistent" }, async () => {
+        return proxy.replica("read").user.findMany();
+      });
+
+      expect(mockDefaultReplica.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "default-replica" }]);
+    });
+
+    it("falls back to primary when context replica not found", async () => {
+      const result = await withDbContext({ replica: "nonexistent" }, async () => {
+        return proxy.replica().user.findMany();
+      });
+
+      expect(mockPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "primary" }]);
+    });
+
+    it("falls back to primary outside of any context", async () => {
+      const result = await proxy.replica().user.findMany();
+
+      expect(mockPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "primary" }]);
+    });
+
+    it("does not affect direct prisma access (always primary)", async () => {
+      const result = await withDbContext({ replica: "read" }, async () => {
+        return proxy.user.findMany();
+      });
+
+      expect(mockPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "primary" }]);
+    });
+  });
+
+  describe("when .tenant() resolves from AsyncLocalStorage context", () => {
+    it("resolves tenant name from context when called without args", async () => {
+      const result = await withDbContext({ tenant: "acme" }, async () => {
+        return proxy.tenant().user.findMany();
+      });
+
+      expect(mockTenantPrimary.user.findMany).toHaveBeenCalled();
+      expect(mockPrimary.user.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "tenant-primary" }]);
+    });
+
+    it("resolves tenant + replica from context", async () => {
+      const result = await withDbContext({ tenant: "acme", replica: "read" }, async () => {
+        return proxy.tenant().replica().user.findMany();
+      });
+
+      expect(mockTenantReplica.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "tenant-replica" }]);
+    });
+
+    it("explicit arg overrides context", async () => {
+      const result = await withDbContext({ tenant: "nonexistent" }, async () => {
+        return proxy.tenant("acme").user.findMany();
+      });
+
+      expect(mockTenantPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "tenant-primary" }]);
+    });
+
+    it("tenant from context with explicit replica arg", async () => {
+      const result = await withDbContext({ tenant: "acme" }, async () => {
+        return proxy.tenant().replica("read").user.findMany();
+      });
+
+      expect(mockTenantReplica.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "tenant-replica" }]);
+    });
+
+    it("falls back to primary when context tenant not found", async () => {
+      const result = await withDbContext({ tenant: "nonexistent" }, async () => {
+        return proxy.tenant().user.findMany();
+      });
+
+      expect(mockPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "primary" }]);
+    });
+
+    it("falls back to primary outside of any context", async () => {
+      const result = await proxy.tenant().user.findMany();
+
+      expect(mockPrimary.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "primary" }]);
+    });
+
+    it("isolates concurrent contexts", async () => {
+      const [r1, r2, r3] = await Promise.all([
+        withDbContext({ replica: "read" }, () => proxy.replica().user.findMany()),
+        withDbContext({ tenant: "acme" }, () => proxy.tenant().user.findMany()),
+        proxy.user.findMany(),
+      ]);
+
+      expect(r1).toEqual([{ id: 1, name: "default-replica" }]);
+      expect(r2).toEqual([{ id: 1, name: "tenant-primary" }]);
+      expect(r3).toEqual([{ id: 1, name: "primary" }]);
+    });
+  });
 });
 
-describe("resolveReplica", () => {
-  it("returns the header value when present", () => {
-    const headers = new Headers({ "x-cal-replica": "read" });
-
-    expect(resolveReplica(headers)).toBe("read");
-  });
-
-  it("returns null when header is absent", () => {
-    const headers = new Headers();
-
-    expect(resolveReplica(headers)).toBeNull();
-  });
-
-  it("returns empty string when header is set to empty", () => {
-    const headers = new Headers({ "x-cal-replica": "" });
-
-    expect(resolveReplica(headers)).toBe("");
-  });
-
-  it("returns the value for any replica name", () => {
-    const headers = new Headers({ "x-cal-replica": "us-east" });
-
-    expect(resolveReplica(headers)).toBe("us-east");
-  });
-
-  it("is case-insensitive for header name", () => {
-    const headers = new Headers({ "X-Cal-Replica": "read" });
-
-    expect(resolveReplica(headers)).toBe("read");
-  });
-});

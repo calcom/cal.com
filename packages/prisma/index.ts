@@ -155,6 +155,7 @@ export const prisma: DatabaseProxy = createDatabaseProxy({
 });
 
 export type { DatabaseProxy };
+export { withDbContext, type DbContext } from "./DatabaseProxy";
 
 export default prisma;
 export * from "./selects";

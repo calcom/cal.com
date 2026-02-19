@@ -1,3 +1,4 @@
+import { dbContextMiddleware } from "../middlewares/dbContextMiddleware";
 import { errorConversionMiddleware } from "../middlewares/errorConversionMiddleware";
 import perfMiddleware from "../middlewares/perfMiddleware";
 import { isAdminMiddleware, isAuthed, isOrgAdminMiddleware } from "../middlewares/sessionMiddleware";
@@ -24,7 +25,7 @@ const isRateLimitedByUserIdMiddleware = ({ intervalInMs, limit }: IRateLimitOpti
       return next({ ctx: { user: ctx.user, session: ctx.session } });
     });
 */
-const authedProcedure = procedure.use(perfMiddleware).use(errorConversionMiddleware).use(isAuthed);
+const authedProcedure = procedure.use(dbContextMiddleware).use(perfMiddleware).use(errorConversionMiddleware).use(isAuthed);
 /*export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
 authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));*/
 export const authedAdminProcedure = publicProcedure.use(isAdminMiddleware);
