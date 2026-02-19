@@ -6,7 +6,7 @@ import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
-import { useFilterValue } from "@calcom/features/data-table/hooks";
+import { useFilterValue } from "~/data-table/hooks";
 import {
   type FilterableColumn,
   type FilterValue,

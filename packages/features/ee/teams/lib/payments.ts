@@ -43,6 +43,21 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
 
+function getTeamPriceId(billingPeriod: BillingPeriod): string {
+  const priceId =
+    billingPeriod === "ANNUALLY"
+      ? process.env.STRIPE_TEAM_ANNUAL_PRICE_ID
+      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    throw new Error(
+      `Missing env var: ${billingPeriod === "ANNUALLY" ? "STRIPE_TEAM_ANNUAL_PRICE_ID" : "STRIPE_TEAM_MONTHLY_PRICE_ID"}`
+    );
+  }
+
+  return priceId;
+}
+
 /**
  * Used to generate a checkout session when trying to create a team
  */
@@ -51,18 +66,21 @@ export const generateTeamCheckoutSession = async ({
   teamSlug,
   userId,
   isOnboarding,
+  billingPeriod = BillingPeriod.MONTHLY,
   tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
+  billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
     getDubCustomer(userId.toString()),
   ]);
+  const priceId = getTeamPriceId(billingPeriod);
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
@@ -83,7 +101,7 @@ export const generateTeamCheckoutSession = async ({
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
-        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        price: priceId,
         /**Initially it will be just the team owner */
         quantity: 1,
       },
@@ -106,6 +124,7 @@ export const generateTeamCheckoutSession = async ({
       teamName,
       teamSlug,
       userId,
+      billingPeriod,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
       ...(tracking?.googleAds?.gclid && {
@@ -269,17 +288,27 @@ export const purchaseTeamOrOrgSubscription = async (input: {
    * If the organization has a custom price per seat, it will create a new price in stripe and return its ID.
    */
   async function getFixedPrice() {
+    const isAnnual = billingPeriod === "ANNUALLY";
     const fixedPriceId = isOrg
-      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+      ? isAnnual
+        ? process.env.STRIPE_ORG_ANNUAL_PRICE_ID
+        : process.env.STRIPE_ORG_MONTHLY_PRICE_ID
+      : isAnnual
+        ? process.env.STRIPE_TEAM_ANNUAL_PRICE_ID
+        : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!fixedPriceId) {
-      throw new Error(
-        "You need to have STRIPE_ORG_MONTHLY_PRICE_ID and STRIPE_TEAM_MONTHLY_PRICE_ID env variables set"
-      );
+      const envVar = isOrg
+        ? isAnnual
+          ? "STRIPE_ORG_ANNUAL_PRICE_ID"
+          : "STRIPE_ORG_MONTHLY_PRICE_ID"
+        : isAnnual
+          ? "STRIPE_TEAM_ANNUAL_PRICE_ID"
+          : "STRIPE_TEAM_MONTHLY_PRICE_ID";
+      throw new Error(`Missing env var: ${envVar}`);
     }
 
-    log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat }));
+    log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod }));
 
     return fixedPriceId;
   }

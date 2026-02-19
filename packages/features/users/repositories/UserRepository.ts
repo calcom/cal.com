@@ -1429,4 +1429,31 @@ export class UserRepository {
       },
     });
   }
+
+  async lockByEmail({ email }: { email: string }) {
+    await this.prismaClient.user.updateMany({
+      where: { email },
+      data: { locked: true },
+    });
+  }
+
+  async unlockByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<{ email: string; username: string | null } | null> {
+    const user = await this.prismaClient.user.findFirst({
+      where: { email, locked: true },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) return null;
+
+    await this.prismaClient.user.update({
+      where: { id: user.id },
+      data: { locked: false },
+    });
+
+    return { email: user.email, username: user.username };
+  }
 }

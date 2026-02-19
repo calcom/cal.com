@@ -5,16 +5,34 @@ import { DomainIcon } from "@calcom/features/routing-trace/components/DomainIcon
 import { getDomainLabel } from "@calcom/features/routing-trace/presenters/getDomainLabel";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody } from "@calcom/ui/components/sheet";
+import { Button } from "@calcom/ui/components/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetBody,
+} from "@calcom/ui/components/sheet";
+
 
 interface RoutingTraceSheetProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   bookingUid: string;
+  /** Callback to open the wrong assignment report dialog. If not provided, report button is hidden */
+  onReport?: () => void;
+  hasExistingReport?: boolean;
 }
 
-export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTraceSheetProps) {
+export function RoutingTraceSheet({
+  isOpen,
+  setIsOpen,
+  bookingUid,
+  onReport,
+  hasExistingReport,
+}: RoutingTraceSheetProps) {
   const { t } = useLocale();
+  const showReportButton = !!onReport;
 
   const { data, isLoading } = trpc.viewer.bookings.getRoutingTrace.useQuery(
     { bookingUid },
@@ -27,8 +45,24 @@ export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTrac
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{t("routing_trace")}</SheetTitle>
+        <SheetHeader showCloseButton={!showReportButton} className="w-full">
+          {showReportButton ? (
+            <div className="flex w-full items-center justify-between">
+              <SheetTitle>{t("routing_trace")}</SheetTitle>
+              <div className="flex items-center gap-2 pl-2">
+                <Button
+                  color="secondary"
+                  size="sm"
+                  StartIcon="flag"
+                  disabled={hasExistingReport}
+                  onClick={onReport}>
+                  {t("report")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <SheetTitle>{t("routing_trace")}</SheetTitle>
+          )}
         </SheetHeader>
         <SheetBody>
           {isLoading && (
@@ -54,7 +88,9 @@ export function RoutingTraceSheet({ isOpen, setIsOpen, bookingUid }: RoutingTrac
                 return (
                   <div key={idx} className="relative flex gap-3 pb-6 last:pb-0">
                     {/* Timeline connector line */}
-                    {!isLast && <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />}
+                    {!isLast && (
+                      <div className="border-subtle absolute left-4 top-8 bottom-0 border-l" />
+                    )}
                     {/* Icon circle */}
                     <div className="bg-default border-subtle relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border">
                       <DomainIcon domain={step.domain} />

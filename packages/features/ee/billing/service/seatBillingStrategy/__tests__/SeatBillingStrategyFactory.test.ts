@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ITeamBillingDataRepository } from "../../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { BillingPeriodInfo } from "../../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
+import { ActiveUserBillingStrategy } from "../ActiveUserBillingStrategy";
 import { HighWaterMarkStrategy } from "../HighWaterMarkStrategy";
 import { ImmediateUpdateStrategy } from "../ImmediateUpdateStrategy";
 import { MonthlyProrationStrategy } from "../MonthlyProrationStrategy";
@@ -12,20 +13,28 @@ function createMockBillingPeriodService(info: BillingPeriodInfo) {
   return { getBillingPeriodInfo: vi.fn().mockResolvedValue(info) };
 }
 
-function createMockFeaturesRepository(enabledFlags: Record<string, boolean>): IFeaturesRepository {
+function createMockFeaturesRepository(
+  enabledFlags: Record<string, boolean>
+): IFeaturesRepository {
   return {
-    checkIfFeatureIsEnabledGlobally: vi.fn(async (slug: string) => enabledFlags[slug] ?? false),
+    checkIfFeatureIsEnabledGlobally: vi.fn(
+      async (slug: string) => enabledFlags[slug] ?? false
+    ),
   } as unknown as IFeaturesRepository;
 }
 
 function createMockBillingProviderService(): IBillingProviderService {
-  return { handleSubscriptionUpdate: vi.fn() } as unknown as IBillingProviderService;
+  return {
+    handleSubscriptionUpdate: vi.fn(),
+  } as unknown as IBillingProviderService;
 }
 
 function createMockHighWaterMarkRepository() {
   return {
     getByTeamId: vi.fn(),
-    updateIfHigher: vi.fn().mockResolvedValue({ updated: false, previousHighWaterMark: null }),
+    updateIfHigher: vi
+      .fn()
+      .mockResolvedValue({ updated: false, previousHighWaterMark: null }),
   };
 }
 
@@ -43,6 +52,13 @@ function createMockMonthlyProrationService() {
   };
 }
 
+function createMockActiveUserBillingService() {
+  return {
+    getActiveUserCountForOrg: vi.fn().mockResolvedValue(0),
+    getActiveUserCountForPlatformOrg: vi.fn().mockResolvedValue(0),
+  };
+}
+
 function createMockTeamBillingDataRepository(): ITeamBillingDataRepository {
   return {
     find: vi.fn(),
@@ -53,6 +69,7 @@ function createMockTeamBillingDataRepository(): ITeamBillingDataRepository {
 
 const baseBillingInfo: BillingPeriodInfo = {
   billingPeriod: null,
+  billingMode: "SEATS",
   subscriptionStart: new Date("2025-01-01"),
   subscriptionEnd: new Date("2026-01-01"),
   trialEnd: null,
@@ -73,7 +90,10 @@ function createFactory(
     highWaterMarkRepository: createMockHighWaterMarkRepository(),
     highWaterMarkService: createMockHighWaterMarkService(),
     monthlyProrationService: createMockMonthlyProrationService(),
-    teamBillingDataRepository: overrides?.teamBillingDataRepository ?? createMockTeamBillingDataRepository(),
+    teamBillingDataRepository:
+      overrides?.teamBillingDataRepository ??
+      createMockTeamBillingDataRepository(),
+    activeUserBillingService: createMockActiveUserBillingService(),
   } as never);
 }
 
@@ -85,12 +105,15 @@ describe("SeatBillingStrategyFactory", () => {
     });
     const factory = new SeatBillingStrategyFactory({
       billingPeriodService,
-      featuresRepository: createMockFeaturesRepository({ "monthly-proration": true }),
+      featuresRepository: createMockFeaturesRepository({
+        "monthly-proration": true,
+      }),
       billingProviderService: createMockBillingProviderService(),
       highWaterMarkRepository: createMockHighWaterMarkRepository(),
       highWaterMarkService: createMockHighWaterMarkService(),
       monthlyProrationService: createMockMonthlyProrationService(),
       teamBillingDataRepository: createMockTeamBillingDataRepository(),
+      activeUserBillingService: createMockActiveUserBillingService(),
     } as never);
     const strategy = await factory.createByTeamId(1);
 
@@ -124,7 +147,12 @@ describe("SeatBillingStrategyFactory", () => {
 
   it("returns ImmediateUpdateStrategy when team is in trial", async () => {
     const factory = createFactory(
-      { ...baseBillingInfo, billingPeriod: "ANNUALLY", isInTrial: true, trialEnd: new Date("2026-06-01") },
+      {
+        ...baseBillingInfo,
+        billingPeriod: "ANNUALLY",
+        isInTrial: true,
+        trialEnd: new Date("2026-06-01"),
+      },
       { "monthly-proration": true }
     );
     const strategy = await factory.createByTeamId(1);
@@ -134,7 +162,11 @@ describe("SeatBillingStrategyFactory", () => {
 
   it("returns ImmediateUpdateStrategy when subscriptionStart is null", async () => {
     const factory = createFactory(
-      { ...baseBillingInfo, billingPeriod: "ANNUALLY", subscriptionStart: null },
+      {
+        ...baseBillingInfo,
+        billingPeriod: "ANNUALLY",
+        subscriptionStart: null,
+      },
       { "monthly-proration": true }
     );
     const strategy = await factory.createByTeamId(1);
@@ -169,7 +201,9 @@ describe("SeatBillingStrategyFactory", () => {
     );
     const strategy = await factory.createBySubscriptionId("sub_abc");
 
-    expect(teamBillingDataRepo.findBySubscriptionId).toHaveBeenCalledWith("sub_abc");
+    expect(teamBillingDataRepo.findBySubscriptionId).toHaveBeenCalledWith(
+      "sub_abc"
+    );
     expect(strategy).toBeInstanceOf(HighWaterMarkStrategy);
   });
 
@@ -177,8 +211,94 @@ describe("SeatBillingStrategyFactory", () => {
     const teamBillingDataRepo = createMockTeamBillingDataRepository();
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue(null);
 
-    const factory = createFactory(baseBillingInfo, {}, { teamBillingDataRepository: teamBillingDataRepo });
+    const factory = createFactory(
+      baseBillingInfo,
+      {},
+      { teamBillingDataRepository: teamBillingDataRepo }
+    );
     const strategy = await factory.createBySubscriptionId("sub_unknown");
+
+    expect(strategy).toBeInstanceOf(ImmediateUpdateStrategy);
+  });
+
+  it("returns ActiveUserBillingStrategy when billingMode=ACTIVE_USERS and feature flag enabled", async () => {
+    const factory = createFactory(
+      {
+        ...baseBillingInfo,
+        billingPeriod: "MONTHLY",
+        billingMode: "ACTIVE_USERS",
+      },
+      { "active-user-billing": true }
+    );
+    const strategy = await factory.createByTeamId(1);
+
+    expect(strategy).toBeInstanceOf(ActiveUserBillingStrategy);
+  });
+
+  it("returns fallback when billingMode=ACTIVE_USERS but feature flag disabled", async () => {
+    const factory = createFactory(
+      {
+        ...baseBillingInfo,
+        billingPeriod: "MONTHLY",
+        billingMode: "ACTIVE_USERS",
+      },
+      { "active-user-billing": false }
+    );
+    const strategy = await factory.createByTeamId(1);
+
+    expect(strategy).toBeInstanceOf(ImmediateUpdateStrategy);
+  });
+
+  it("returns fallback when billingMode=SEATS even with active-user-billing flag enabled", async () => {
+    const factory = createFactory(
+      { ...baseBillingInfo, billingPeriod: "MONTHLY", billingMode: "SEATS" },
+      { "active-user-billing": true, "hwm-seating": true }
+    );
+    const strategy = await factory.createByTeamId(1);
+
+    expect(strategy).toBeInstanceOf(HighWaterMarkStrategy);
+  });
+
+  it("returns ActiveUserBillingStrategy for MONTHLY billing with billingMode=ACTIVE_USERS", async () => {
+    const factory = createFactory(
+      {
+        ...baseBillingInfo,
+        billingPeriod: "MONTHLY",
+        billingMode: "ACTIVE_USERS",
+      },
+      { "active-user-billing": true }
+    );
+    const strategy = await factory.createByTeamId(1);
+
+    expect(strategy).toBeInstanceOf(ActiveUserBillingStrategy);
+  });
+
+  it("returns ActiveUserBillingStrategy for ANNUALLY billing with billingMode=ACTIVE_USERS", async () => {
+    const factory = createFactory(
+      {
+        ...baseBillingInfo,
+        billingPeriod: "ANNUALLY",
+        billingMode: "ACTIVE_USERS",
+      },
+      { "active-user-billing": true }
+    );
+    const strategy = await factory.createByTeamId(1);
+
+    expect(strategy).toBeInstanceOf(ActiveUserBillingStrategy);
+  });
+
+  it("returns fallback when in trial even with billingMode=ACTIVE_USERS", async () => {
+    const factory = createFactory(
+      {
+        ...baseBillingInfo,
+        billingPeriod: "MONTHLY",
+        billingMode: "ACTIVE_USERS",
+        isInTrial: true,
+        trialEnd: new Date("2026-06-01"),
+      },
+      { "active-user-billing": true }
+    );
+    const strategy = await factory.createByTeamId(1);
 
     expect(strategy).toBeInstanceOf(ImmediateUpdateStrategy);
   });

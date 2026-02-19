@@ -34,13 +34,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import {
-  CheckboxField,
-  Form,
-  PasswordField,
-  SelectField,
-  TextField,
-} from "@calcom/ui/components/form";
+import { CheckboxField, Form, PasswordField, SelectField, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { InfoIcon, ShieldCheckIcon, StarIcon } from "@coss/ui/icons";
@@ -174,10 +168,7 @@ function UsernameField({
                 <p>{t("already_in_use_error")}</p>
               </div>
             ) : premium ? (
-              <div
-                data-testid="premium-username-warning"
-                className="flex items-center"
-              >
+              <div data-testid="premium-username-warning" className="flex items-center">
                 <StarIcon className="mr-1 inline-block h-4 w-4" />
                 <p>
                   {t("premium_username", {
@@ -425,14 +416,11 @@ export default function Signup({
             {accountUnderReview ? (
               <div
                 className="flex flex-col items-center gap-4 py-10 text-center"
-                data-testid="account-under-review"
-              >
+                data-testid="account-under-review">
                 <div className="bg-subtle flex h-12 w-12 items-center justify-center rounded-full">
                   <ShieldCheckIcon className="text-default h-6 w-6" />
                 </div>
-                <h1 className="font-cal text-[28px] leading-none">
-                  {t("account_under_review_title")}
-                </h1>
+                <h1 className="font-cal text-[28px] leading-none">{t("account_under_review_title")}</h1>
                 <p className="text-subtle text-base font-medium leading-5">
                   {t("account_under_review_description")}
                 </p>
@@ -452,17 +440,14 @@ export default function Signup({
                       onClick={() => {
                         setDisplayEmailForm(false);
                         setIsSamlSignup(false);
-                      }}
-                    >
+                      }}>
                       {t("back")}
                     </Button>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
                   <h1 className="font-cal text-[28px] leading-none ">
-                    {IS_CALCOM
-                      ? t("create_your_calcom_account")
-                      : t("create_your_account")}
+                    {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
                   </h1>
                   {IS_CALCOM ? (
                     <p className="text-subtle text-base font-medium leading-5">
@@ -485,9 +470,7 @@ export default function Signup({
                             WEBAPP_URL.includes("cal.eu") ||
                               (typeof window !== "undefined" &&
                                 window.location.hostname === "localhost" &&
-                                new URL(window.location.href).searchParams.get(
-                                  "region"
-                                ) === "eu")
+                                new URL(window.location.href).searchParams.get("region") === "eu")
                               ? "european_union"
                               : "united_states"
                           ),
@@ -496,9 +479,7 @@ export default function Signup({
                             WEBAPP_URL.includes("cal.eu") ||
                             (typeof window !== "undefined" &&
                               window.location.hostname === "localhost" &&
-                              new URL(window.location.href).searchParams.get(
-                                "region"
-                              ) === "eu")
+                              new URL(window.location.href).searchParams.get("region") === "eu")
                               ? "eu"
                               : "us",
                         }}
@@ -512,25 +493,16 @@ export default function Signup({
 
                             // Handle localhost - add region as URL parameter
                             if (currentUrl.hostname === "localhost") {
-                              currentUrl.searchParams.set(
-                                "region",
-                                option.value
-                              );
+                              currentUrl.searchParams.set("region", option.value);
                               window.location.href = currentUrl.toString();
                               return;
                             }
 
                             // Handle production domains - modify hostname only to preserve query params
                             if (option.value === "eu") {
-                              currentUrl.hostname = currentUrl.hostname.replace(
-                                "cal.com",
-                                "cal.eu"
-                              );
+                              currentUrl.hostname = currentUrl.hostname.replace("cal.com", "cal.eu");
                             } else {
-                              currentUrl.hostname = currentUrl.hostname.replace(
-                                "cal.eu",
-                                "cal.com"
-                              );
+                              currentUrl.hostname = currentUrl.hostname.replace("cal.eu", "cal.com");
                             }
                             window.location.href = currentUrl.toString();
                           }
@@ -548,21 +520,14 @@ export default function Signup({
                       form={formMethods}
                       handleSubmit={async (values) => {
                         let updatedValues = values;
-                        if (
-                          !formMethods.getValues().username &&
-                          isOrgInviteByLink
-                        ) {
+                        if (!formMethods.getValues().username && isOrgInviteByLink) {
                           updatedValues = {
                             ...values,
-                            username: getOrgUsernameFromEmail(
-                              values.email,
-                              orgAutoAcceptEmail
-                            ),
+                            username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
                           };
                         }
                         await signUp(updatedValues);
-                      }}
-                    >
+                      }}>
                       {/* Username */}
                       {!isOrgInviteByLink ? (
                         <UsernameField
@@ -578,15 +543,13 @@ export default function Signup({
                           addOnLeading={
                             orgSlug
                               ? truncateDomain(
-                                  `${getOrgFullOrigin(orgSlug, {
-                                    protocol: true,
-                                  }).replace(URL_PROTOCOL_REGEX, "")}/`
-                                )
-                              : truncateDomain(
-                                  `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(
+                                  `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
                                     URL_PROTOCOL_REGEX,
                                     ""
                                   )}/`
+                                )
+                              : truncateDomain(
+                                  `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
                                 )
                           }
                         />
@@ -633,9 +596,7 @@ export default function Signup({
 
                       <CheckboxField
                         data-testid="signup-cookie-content-checkbox"
-                        onChange={() =>
-                          handleConsentChange(userConsentToCookie)
-                        }
+                        onChange={() => handleConsentChange(userConsentToCookie)}
                         description={t("cookie_consent_checkbox")}
                       />
                       {errors.apiError && (
@@ -666,14 +627,11 @@ export default function Signup({
                               return;
                             }
 
-                            posthog.capture(
-                              "signup_saml_submit_button_clicked",
-                              {
-                                has_token: !!token,
-                                is_org_invite: isOrgInviteByLink,
-                                org_slug: orgSlug,
-                              }
-                            );
+                            posthog.capture("signup_saml_submit_button_clicked", {
+                              has_token: !!token,
+                              is_org_invite: isOrgInviteByLink,
+                              org_slug: orgSlug,
+                            });
 
                             localStorage.setItem("username", username);
                             const sp = new URLSearchParams();
@@ -681,18 +639,15 @@ export default function Signup({
                             sp.set("username", username);
                             sp.set("email", formMethods.getValues("email"));
                             router.push(
-                              `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` +
-                                `?${sp.toString()}`
+                              `${process.env.NEXT_PUBLIC_WEBAPP_URL}/auth/sso/saml` + `?${sp.toString()}`
                             );
                           }}
                           className={classNames(
                             "my-2 w-full justify-center rounded-md text-center",
-                            formMethods.formState.errors.username &&
-                              formMethods.formState.errors.email
+                            formMethods.formState.errors.username && formMethods.formState.errors.email
                               ? "opacity-50"
                               : ""
-                          )}
-                        >
+                          )}>
                           <ShieldCheckIcon className="mr-2 h-5 w-5" />
                           {t("create_account_with_saml")}
                         </Button>
@@ -707,17 +662,12 @@ export default function Signup({
                             !!formMethods.formState.errors.email ||
                             !formMethods.getValues("email") ||
                             !formMethods.getValues("password") ||
-                            (CLOUDFLARE_SITE_ID &&
-                              !process.env.NEXT_PUBLIC_IS_E2E &&
-                              !watch("cfToken")) ||
+                            (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
                             isSubmitting ||
                             usernameTaken
-                          }
-                        >
+                          }>
                           {premiumUsername && !usernameTaken
-                            ? `${t(
-                                "get_started"
-                              )} (${getPremiumPlanPriceValue()})`
+                            ? `${t("get_started")} (${getPremiumPlanPriceValue()})`
                             : t("get_started")}
                         </Button>
                       )}
@@ -745,17 +695,14 @@ export default function Signup({
                               />
                             </>
                           }
-                          className={classNames(
-                            "w-full justify-center rounded-md text-center"
-                          )}
+                          className={classNames("w-full justify-center rounded-md text-center")}
                           data-testid="continue-with-google-button"
                           onClick={async () => {
                             posthog.capture("signup_google_button_clicked", {
                               has_token: !!token,
                               is_org_invite: isOrgInviteByLink,
                               org_slug: orgSlug,
-                              has_prepopulated_username:
-                                !!prepopulateFormValues?.username,
+                              has_prepopulated_username: !!prepopulateFormValues?.username,
                             });
                             setIsSamlSignup(false);
                             setIsGoogleLoading(true);
@@ -764,28 +711,18 @@ export default function Signup({
                             const searchQueryParams = new URLSearchParams();
                             if (prepopulateFormValues?.username) {
                               // If username is present we save it in query params to check for premium
-                              searchQueryParams.set(
-                                "username",
-                                prepopulateFormValues.username
-                              );
-                              localStorage.setItem(
-                                "username",
-                                prepopulateFormValues.username
-                              );
+                              searchQueryParams.set("username", prepopulateFormValues.username);
+                              localStorage.setItem("username", prepopulateFormValues.username);
                             }
                             if (token) {
-                              searchQueryParams.set(
-                                "email",
-                                prepopulateFormValues?.email
-                              );
+                              searchQueryParams.set("email", prepopulateFormValues?.email);
                             }
                             const url = searchQueryParams.toString()
                               ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
                               : GOOGLE_AUTH_URL;
 
                             router.push(url);
-                          }}
-                        >
+                          }}>
                           {t("continue_with_google")}
                         </Button>
                       </div>
@@ -808,9 +745,7 @@ export default function Signup({
                       <Button
                         color="secondary"
                         disabled={isGoogleLoading}
-                        className={classNames(
-                          "w-full justify-center rounded-md text-center"
-                        )}
+                        className={classNames("w-full justify-center rounded-md text-center")}
                         onClick={() => {
                           posthog.capture("signup_email_button_clicked", {
                             has_token: !!token,
@@ -820,8 +755,7 @@ export default function Signup({
                           setDisplayEmailForm(true);
                           setIsSamlSignup(false);
                         }}
-                        data-testid="continue-with-email-button"
-                      >
+                        data-testid="continue-with-email-button">
                         {t("continue_with_email")}
                       </Button>
                       {isSAMLLoginEnabled && (
@@ -829,9 +763,7 @@ export default function Signup({
                           data-testid="continue-with-saml-button"
                           color="minimal"
                           disabled={isGoogleLoading}
-                          className={classNames(
-                            "w-full justify-center rounded-md text-center"
-                          )}
+                          className={classNames("w-full justify-center rounded-md text-center")}
                           onClick={() => {
                             posthog.capture("signup_saml_button_clicked", {
                               has_token: !!token,
@@ -840,8 +772,7 @@ export default function Signup({
                             });
                             setDisplayEmailForm(true);
                             setIsSamlSignup(true);
-                          }}
-                        >
+                          }}>
                           {`${t("or").toLocaleLowerCase()} ${t("saml_sso")}`}
                         </Button>
                       )}
@@ -854,10 +785,7 @@ export default function Signup({
                   <div className="flex flex-col text-sm">
                     <div className="flex gap-1">
                       <p className="text-subtle">{t("already_have_account")}</p>
-                      <Link
-                        href="/auth/login"
-                        className="text-emphasis hover:underline"
-                      >
+                      <Link href="/auth/login" className="text-emphasis hover:underline">
                         {t("sign_in")}
                       </Link>
                     </div>
@@ -871,16 +799,14 @@ export default function Signup({
                             className="text-emphasis hover:underline"
                             key="terms"
                             href={`${WEBSITE_TERMS_URL}`}
-                            target="_blank"
-                          >
+                            target="_blank">
                             Terms
                           </Link>,
                           <Link
                             className="text-emphasis hover:underline"
                             key="privacy"
                             href={`${WEBSITE_PRIVACY_POLICY_URL}`}
-                            target="_blank"
-                          >
+                            target="_blank">
                             Privacy Policy.
                           </Link>,
                         ]}

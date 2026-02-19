@@ -1,5 +1,3 @@
-import type { ErrorOption, FieldPath } from "react-hook-form";
-
 import type { RegularBookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
 import type { Slots } from "@calcom/features/calendars/lib/types";
 import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -26,7 +24,10 @@ type BookerEventUser = Pick<
   bookerUrl: string;
 };
 
-type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
+type BookerEventProfile = Pick<
+  PublicEvent["profile"],
+  "name" | "image" | "bookerLayouts" | "brandColor" | "darkBrandColor" | "theme" | "weekStart" | "username"
+>;
 
 // Re-export Slots from the server-safe location
 export type { Slots };
@@ -40,10 +41,10 @@ export type BookerEvent = Pick<
   | "recurringEvent"
   | "entity"
   | "locations"
-  | "enablePerHostLocations"
   | "metadata"
   | "isDynamic"
   | "requiresConfirmation"
+  | "requiresBookerEmailVerification"
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
@@ -66,12 +67,13 @@ export type BookerEvent = Pick<
   | "interfaceLanguage"
   | "team"
   | "owner"
+  | "restrictionScheduleId"
+  | "useBookerTimezone"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
+  enablePerHostLocations?: boolean;
 } & { profile: BookerEventProfile };
-
-export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
 export type EventPrice = { currency: string; price: number; displayAlternateSymbol?: boolean };
 
