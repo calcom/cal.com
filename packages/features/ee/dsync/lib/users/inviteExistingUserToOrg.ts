@@ -1,8 +1,7 @@
-import type { TFunction } from "i18next";
-
+import type { UserWithMembership } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import prisma from "@calcom/prisma";
-import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import type { TFunction } from "i18next";
 
 /**
  * This should only be used in a dsync context

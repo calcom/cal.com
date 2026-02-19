@@ -74,9 +74,7 @@ export class HighWaterMarkRepository {
 
     if (!team) return null;
 
-    const billing = team.isOrganization
-      ? team.organizationBilling
-      : team.teamBilling;
+    const billing = team.isOrganization ? team.organizationBilling : team.teamBilling;
     if (!billing) return null;
 
     return {
@@ -85,9 +83,7 @@ export class HighWaterMarkRepository {
     };
   }
 
-  async getBySubscriptionId(
-    subscriptionId: string
-  ): Promise<HighWaterMarkBySubscriptionData | null> {
+  async getBySubscriptionId(subscriptionId: string): Promise<HighWaterMarkBySubscriptionData | null> {
     // Try team billing first
     const teamBilling = await this.prisma.teamBilling.findUnique({
       where: { subscriptionId },
@@ -170,9 +166,7 @@ export class HighWaterMarkRepository {
         throw new Error(`No team found for teamId ${teamId}`);
       }
 
-      const billing = isOrganization
-        ? team.organizationBilling
-        : team.teamBilling;
+      const billing = isOrganization ? team.organizationBilling : team.teamBilling;
       if (!billing) {
         throw new Error(`No billing record found for team ${teamId}`);
       }
@@ -181,13 +175,10 @@ export class HighWaterMarkRepository {
       const currentPeriodStart = billing.highWaterMarkPeriodStart;
 
       // Check if we're in a new period (period start changed)
-      const isNewPeriod =
-        !currentPeriodStart ||
-        periodStart.getTime() !== currentPeriodStart.getTime();
+      const isNewPeriod = !currentPeriodStart || periodStart.getTime() !== currentPeriodStart.getTime();
 
       // If new period, always update. Otherwise, only update if higher.
-      const shouldUpdate =
-        isNewPeriod || currentHwm === null || newSeatCount > currentHwm;
+      const shouldUpdate = isNewPeriod || currentHwm === null || newSeatCount > currentHwm;
 
       if (!shouldUpdate) {
         return { updated: false, previousHighWaterMark: currentHwm };

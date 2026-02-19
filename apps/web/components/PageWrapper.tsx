@@ -1,9 +1,9 @@
 /**
  * PAGES ROUTER ONLY - Used exclusively by Next.js Pages Router
- * 
+ *
  * Currently only serves the /router endpoint (routing forms redirect page).
  * DO NOT add new features here - this file will be deprecated once we remove apps/web/pages.
- * 
+ *
  * For App Router, use PageWrapperAppDir.tsx instead.
  */
 

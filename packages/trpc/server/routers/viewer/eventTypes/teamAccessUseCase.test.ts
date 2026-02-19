@@ -6,9 +6,11 @@ import { TeamAccessUseCase } from "./teamAccessUseCase";
 
 // Mock the PermissionCheckService
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
-  PermissionCheckService: vi.fn().mockImplementation(function() { return {
-    checkPermission: vi.fn(),
-  }; }),
+  PermissionCheckService: vi.fn().mockImplementation(function () {
+    return {
+      checkPermission: vi.fn(),
+    };
+  }),
 }));
 
 describe("TeamAccessUseCase", () => {

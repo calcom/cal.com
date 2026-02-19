@@ -78,9 +78,8 @@ const getReminderPhoneNumber = async (
 
   if (seatReferenceUid) {
     const bookingSeatRepository = new BookingSeatRepository(prisma);
-    const seatAttendeeData = await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(
-      seatReferenceUid
-    );
+    const seatAttendeeData =
+      await bookingSeatRepository.getByReferenceUidWithAttendeeDetails(seatReferenceUid);
     return seatAttendeeData?.attendee?.phoneNumber || smsReminderNumber;
   }
 
