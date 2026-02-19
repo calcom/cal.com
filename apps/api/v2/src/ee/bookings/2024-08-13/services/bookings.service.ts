@@ -66,10 +66,9 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+import { randomUUID } from "node:crypto";
 
-import { distributedTracing } from "@calcom/lib/tracing/factory";
-
-export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
+export const BOOKING_REASSIGN_PERMISSION_ERROR= "You do not have permission to reassign this booking";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -1229,9 +1228,12 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
-    const traceContext = distributedTracing.createTrace("api_v2_confirm_booking", {
+    const traceContext = {
+      traceId: `trace_${randomUUID()}`,
+      spanId: `span_${randomUUID()}`,
+      operation: "api_v2_confirm_booking",
       meta: { bookingId: booking.id, bookingUid },
-    });
+    };
 
     await confirmBookingHandler({
       ctx: {
@@ -1268,9 +1270,12 @@ export class BookingsService_2024_08_13 {
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
     const userCalendars = await this.usersRepository.findByIdWithCalendars(requestUser.id);
 
-    const traceContext = distributedTracing.createTrace("api_v2_decline_booking", {
+    const traceContext = {
+      traceId: `trace_${randomUUID()}`,
+      spanId: `span_${randomUUID()}`,
+      operation: "api_v2_decline_booking",
       meta: { bookingId: booking.id, bookingUid },
-    });
+    };
 
     await confirmBookingHandler({
       ctx: {
