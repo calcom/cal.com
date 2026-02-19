@@ -6,9 +6,11 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 
 const mockGetTotalBookingDuration = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(function() { return {
-    getTotalBookingDuration: mockGetTotalBookingDuration,
-  }; }),
+  BookingRepository: vi.fn().mockImplementation(function () {
+    return {
+      getTotalBookingDuration: mockGetTotalBookingDuration,
+    };
+  }),
 }));
 
 type MockData = {

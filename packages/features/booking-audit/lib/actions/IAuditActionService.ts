@@ -18,6 +18,8 @@ export type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
+import type { EnrichmentDataStore, DataRequirements } from "../service/EnrichmentDataStore";
+
 /**
  * This is agnostic of the action and is common for all actions
  */
@@ -34,10 +36,12 @@ export type GetDisplayJsonParams = {
 export type GetDisplayTitleParams = {
   storedData: BaseStoredAuditData;
   userTimeZone: string;
+  dbStore: EnrichmentDataStore;
 };
 
 export type GetDisplayFieldsParams = {
   storedData: BaseStoredAuditData;
+  dbStore: EnrichmentDataStore;
 };
 
 /**
@@ -87,6 +91,14 @@ export interface IAuditActionService {
    * @returns The fields object without version wrapper and we decide what fields to show to the client
    */
   getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
+
+  /**
+   * Declare what data this action needs from DB
+   * Returns identifiers to be bulk-fetched before enrichment
+   * @param storedData - Parsed stored data { version, fields }
+   * @returns Data requirements with arrays of identifiers to fetch
+   */
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements;
 
   /**
    * Get the display title for the audit action

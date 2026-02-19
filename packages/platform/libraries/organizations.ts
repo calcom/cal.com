@@ -12,3 +12,6 @@ export { PlatformOrganizationBillingSyncTasker } from "@calcom/features/ee/organ
 export { PlatformOrganizationBillingTriggerTasker } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTriggerTasker";
 export { PlatformOrganizationBillingTaskService } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTaskService";
 export type { IBillingProviderService } from "@calcom/features/ee/billing/service/billingProvider/IBillingProviderService";
+
+export { getActiveUserBillingService } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.container";
+export { ActiveUserBillingService } from "@calcom/features/ee/billing/active-user/services/ActiveUserBillingService";

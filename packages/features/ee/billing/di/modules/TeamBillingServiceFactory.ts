@@ -1,10 +1,10 @@
-import { createModule, ModuleLoader, bindModuleToClassOnToken } from "@calcom/features/di/di";
-
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { TeamBillingServiceFactory } from "../../service/teams/TeamBillingServiceFactory";
 import { DI_TOKENS } from "../tokens";
 import { billingProviderServiceModuleLoader } from "./BillingProviderService";
 import { billingRepositoryFactoryModuleLoader } from "./BillingRepositoryFactory";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
+import { seatBillingStrategyFactoryModuleLoader } from "./SeatBillingStrategyFactory.module";
 import { teamBillingDataRepositoryModuleLoader } from "./TeamBillingDataRepositoryFactory";
 
 const teamBillingServiceFactoryModule = createModule();
@@ -20,6 +20,7 @@ const loadModule = bindModuleToClassOnToken({
     teamBillingDataRepository: teamBillingDataRepositoryModuleLoader,
     billingRepositoryFactory: billingRepositoryFactoryModuleLoader,
     isTeamBillingEnabled: isTeamBillingEnabledModuleLoader,
+    seatBillingStrategyFactory: seatBillingStrategyFactoryModuleLoader,
   },
 });
 
