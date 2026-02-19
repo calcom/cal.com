@@ -1,22 +1,23 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import logger from "@calcom/lib/logger";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
+import { resolveReplica } from "@calcom/lib/server/resolveReplica";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
+import { headers } from "next/headers";
+import { z } from "zod";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -109,7 +110,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Run independent queries in parallel — these all depend on team/eventData but not on each other
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
-  const featureRepo = new FeaturesRepository(prisma);
+  const db = prisma.replica(resolveReplica(await headers()));
+  const featureRepo = new FeaturesRepository(db);
   const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
     getUsersData(
       team.isPrivate,
@@ -227,7 +229,8 @@ const getTeamWithEventsData = async (
   isValidOrgDomain: boolean,
   currentOrgDomain: string | null
 ) => {
-  return await prisma.team.findFirst({
+  const db = prisma.replica(resolveReplica(await headers()));
+  return await db.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
       parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
@@ -317,7 +320,8 @@ const getUsersData = async (
       }));
   }
   if (!isPrivateTeam && users.length === 0) {
-    const { users: data } = await prisma.eventType.findUniqueOrThrow({
+    const db = prisma.replica(resolveReplica(await headers()));
+    const { users: data } = await db.eventType.findUniqueOrThrow({
       where: { id: eventTypeId },
       select: {
         users: {
