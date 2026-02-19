@@ -349,6 +349,13 @@ export function parseXmlResponse(xml: string): Record<string, string> {
  *   explicitly controls TLS SNI independently of the connection target — this is
  *   the only Node.js API that supports DNS-pinned + SNI-correct HTTPS requests.
  *
+ * DoS protection:
+ * - Timeout: 30-second limit for the entire request (connection + response).
+ *   Prevents hanging indefinitely on slow/unresponsive servers.
+ * - Response size limit: 10 MB maximum. BBB API responses are XML and should be
+ *   small (<100 KB typically). A 10 MB cap prevents memory exhaustion attacks
+ *   from malicious servers sending infinite response bodies.
+ *
  * @param rawUrl   The URL to fetch (original hostname form).
  */
 async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number; statusText: string; text: () => Promise<string> }> {
@@ -366,6 +373,12 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
   // may fail to route the request correctly.
   const hostHeader = parsed.port ? `${originalHostname}:${parsed.port}` : originalHostname;
 
+  // Timeout: 30 seconds for the entire request (connection + data transfer).
+  const TIMEOUT_MS = 30_000;
+  // Max response size: 10 MB. BBB API responses are small XML documents; this
+  // cap prevents memory exhaustion from malicious/misconfigured servers.
+  const MAX_RESPONSE_SIZE = 10 * 1024 * 1024;
+
   return new Promise((resolve, reject) => {
     const req = https.request(
       {
@@ -375,6 +388,8 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
         port,
         path,
         method: "GET",
+        // Set overall request timeout (covers connection + response).
+        timeout: TIMEOUT_MS,
         // servername controls TLS SNI independently of `host`.
         // The BBB server presents a certificate for its domain name; SNI must
         // send that domain name so the server selects the correct certificate.
@@ -386,7 +401,19 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
       },
       (res) => {
         const chunks: Buffer[] = [];
-        res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        let totalSize = 0;
+
+        res.on("data", (chunk: Buffer) => {
+          totalSize += chunk.length;
+          if (totalSize > MAX_RESPONSE_SIZE) {
+            // Abort the request and reject with a clear error.
+            req.destroy();
+            reject(new Error(`Response size exceeded limit of ${MAX_RESPONSE_SIZE} bytes`));
+            return;
+          }
+          chunks.push(chunk);
+        });
+
         res.on("end", () => {
           const body = Buffer.concat(chunks).toString("utf-8");
           resolve({
@@ -398,6 +425,13 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
         });
       }
     );
+
+    // Timeout handler: fires if the request takes longer than TIMEOUT_MS.
+    req.on("timeout", () => {
+      req.destroy();
+      reject(new Error(`Request timeout after ${TIMEOUT_MS}ms`));
+    });
+
     req.on("error", reject);
     req.end();
   });

@@ -12,5 +12,8 @@
   "devDependencies": {
     "@calcom/types": "workspace:*",
     "@types/uuid": "^9.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
   }
 }

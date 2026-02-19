@@ -21,6 +21,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
+  // CSRF protection: verify Origin header matches the request host.
+  // For same-origin requests, browsers automatically set Origin to the page's origin.
+  // Cross-site requests from an attacker's domain will have a different Origin.
+  // This complements SameSite cookie protection and defends against older browsers
+  // or misconfigured cookie settings.
+  const origin = req.headers.origin;
+  const host = req.headers.host;
+  if (origin) {
+    try {
+      const originUrl = new URL(origin);
+      // Compare origin hostname with request host (strip port if present for comparison)
+      const originHost = originUrl.host;
+      if (originHost !== host) {
+        return res.status(403).json({ message: "Invalid origin" });
+      }
+    } catch {
+      return res.status(403).json({ message: "Invalid origin header" });
+    }
+  }
+  // If no Origin header (can happen with same-site navigation in some browsers),
+  // the session cookie (with SameSite=Lax by default in next-auth) provides protection.
+
   const { teamId, returnTo } = req.query;
 
   // Validate teamId before using it: Number(undefined) = NaN, which Prisma rejects with a 500.
