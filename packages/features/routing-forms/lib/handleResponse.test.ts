@@ -215,6 +215,7 @@ describe("handleResponse", () => {
       formId: mockForm.id,
       response: mockResponse,
       chosenRouteId: null,
+      fallbackAction: null,
     });
     expect(mockRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
     expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
