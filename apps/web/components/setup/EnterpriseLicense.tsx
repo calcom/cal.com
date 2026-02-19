@@ -12,7 +12,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -122,9 +122,9 @@ const EnterpriseLicense = (
                 )}
                 addOnSuffix={
                   checkLicenseLoading ? (
-                    <Icon name="loader" className="h-5 w-5 animate-spin" />
+                    <LoaderIcon className="h-5 w-5 animate-spin" />
                   ) : errors.licenseKey === undefined && isDirty ? (
-                    <Icon name="check" className="h-5 w-5 text-green-700" />
+                    <CheckIcon className="h-5 w-5 text-green-700" />
                   ) : undefined
                 }
                 color={errors.licenseKey ? "warn" : ""}
