@@ -49,10 +49,10 @@ describe("OAuth Permissions Guard E2E", () => {
   const testClientSecret = "scope-e2e-secret";
   const testRedirectUri = "https://example.com/callback";
 
-  async function getAccessToken(scopes: AccessScope[]): Promise<string> {
+  async function getAccessToken(userId: number, scopes: AccessScope[]): Promise<string> {
     const result = await oAuthService.generateAuthorizationCode(
       testClientId,
-      user.id,
+      userId,
       testRedirectUri,
       scopes
     );
@@ -156,7 +156,7 @@ describe("OAuth Permissions Guard E2E", () => {
   describe("personal endpoints", () => {
     describe("positive", () => {
       it("should allow GET /me with PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get("/api/v2/me")
@@ -169,7 +169,7 @@ describe("OAuth Permissions Guard E2E", () => {
 
     describe("negative", () => {
       it("should deny GET /me with wrong resource scope (BOOKING_READ)", async () => {
-        const token = await getAccessToken([AccessScope.BOOKING_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.BOOKING_READ]);
 
         const response = await request(app.getHttpServer())
           .get("/api/v2/me")
@@ -182,7 +182,7 @@ describe("OAuth Permissions Guard E2E", () => {
       });
 
       it("should deny new-style token on endpoint without @OAuthPermissions decorator", async () => {
-        const token = await getAccessToken([AccessScope.PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .post("/api/v2/calendars/ics-feed/save")
@@ -200,7 +200,7 @@ describe("OAuth Permissions Guard E2E", () => {
   describe("team endpoints", () => {
     describe("positive", () => {
       it("should allow GET /teams with TEAM_PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.TEAM_PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.TEAM_PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get("/api/v2/teams")
@@ -213,7 +213,7 @@ describe("OAuth Permissions Guard E2E", () => {
 
     describe("negative", () => {
       it("should deny GET /teams with personal PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get("/api/v2/teams")
@@ -231,31 +231,6 @@ describe("OAuth Permissions Guard E2E", () => {
     let memberUser: User;
     let memberTeamMembership: Membership;
     let memberOrgMembership: Membership;
-
-    async function getAccessTokenForUser(userId: number, scopes: AccessScope[]): Promise<string> {
-      const result = await oAuthService.generateAuthorizationCode(
-        testClientId,
-        userId,
-        testRedirectUri,
-        scopes
-      );
-      const redirectUrl = new URL(result.redirectUrl);
-      const code = redirectUrl.searchParams.get("code") as string;
-
-      const response = await request(app.getHttpServer())
-        .post("/api/v2/auth/oauth2/token")
-        .type("form")
-        .send({
-          client_id: testClientId,
-          grant_type: "authorization_code",
-          code,
-          client_secret: testClientSecret,
-          redirect_uri: testRedirectUri,
-        })
-        .expect(200);
-
-      return response.body.access_token;
-    }
 
     beforeAll(async () => {
       const uniqueId = randomString();
@@ -288,7 +263,7 @@ describe("OAuth Permissions Guard E2E", () => {
     });
 
     it("should allow MEMBER to access @Roles('TEAM_ADMIN') endpoint with TEAM_SCHEDULE_READ scope", async () => {
-      const token = await getAccessTokenForUser(memberUser.id, [AccessScope.TEAM_SCHEDULE_READ]);
+      const token = await getAccessToken(memberUser.id, [AccessScope.TEAM_SCHEDULE_READ]);
 
       const response = await request(app.getHttpServer())
         .get(`/api/v2/teams/${standaloneTeam.id}/schedules`)
@@ -299,7 +274,7 @@ describe("OAuth Permissions Guard E2E", () => {
     });
 
     it("should allow MEMBER to access @Roles('ORG_ADMIN') endpoint with ORG_PROFILE_READ scope", async () => {
-      const token = await getAccessTokenForUser(memberUser.id, [AccessScope.ORG_PROFILE_READ]);
+      const token = await getAccessToken(memberUser.id, [AccessScope.ORG_PROFILE_READ]);
 
       const response = await request(app.getHttpServer())
         .get(`/api/v2/organizations/${org.id}/teams`)
@@ -319,7 +294,7 @@ describe("OAuth Permissions Guard E2E", () => {
   describe("org endpoints", () => {
     describe("positive", () => {
       it("should allow GET /organizations/:orgId/teams/:teamId with TEAM_PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.TEAM_PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.TEAM_PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get(`/api/v2/organizations/${org.id}/teams/${orgTeam.id}`)
@@ -330,7 +305,7 @@ describe("OAuth Permissions Guard E2E", () => {
       });
 
       it("should allow GET /organizations/:orgId/teams with ORG_PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.ORG_PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.ORG_PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get(`/api/v2/organizations/${org.id}/teams`)
@@ -341,7 +316,7 @@ describe("OAuth Permissions Guard E2E", () => {
       });
 
       it("should allow GET /organizations/:orgId/teams/:teamId with ORG_PROFILE_READ", async () => {
-        const token = await getAccessToken([AccessScope.ORG_PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.ORG_PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get(`/api/v2/organizations/${org.id}/teams/${orgTeam.id}`)
@@ -354,7 +329,7 @@ describe("OAuth Permissions Guard E2E", () => {
 
     describe("negative", () => {
       it("should deny GET /organizations/:orgId/teams with TEAM_PROFILE_READ scope", async () => {
-        const token = await getAccessToken([AccessScope.TEAM_PROFILE_READ]);
+        const token = await getAccessToken(user.id, [AccessScope.TEAM_PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
           .get(`/api/v2/organizations/${org.id}/teams`)
