@@ -1,6 +1,5 @@
 import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { BookingAttendeeItem_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
@@ -46,20 +45,22 @@ export class BookingAttendeesService_2024_08_13 {
   async getBookingAttendee(
     bookingUid: string,
     attendeeId: number
-  ): Promise<BookingAttendeeItem_2024_08_13> {
+  ): Promise<BookingAttendeeOutput_2024_08_13> {
     const attendee = await this.bookingAttendeesService.getBookingAttendee(
       bookingUid,
       attendeeId
     );
 
     return plainToClass(
-      BookingAttendeeItem_2024_08_13,
+      BookingAttendeeOutput_2024_08_13,
       {
-        id: attendee.id,
-        bookingId: attendee.bookingId,
         name: attendee.name,
         email: attendee.email,
+        displayEmail: this.getDisplayEmail(attendee.email),
         timeZone: attendee.timeZone,
+        language: attendee.locale ?? undefined,
+        absent: attendee.noShow ?? false,
+        phoneNumber: attendee.phoneNumber ?? undefined,
       },
       { strategy: "excludeAll" }
     );

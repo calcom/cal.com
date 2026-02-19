@@ -3,6 +3,7 @@ import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -10,8 +11,6 @@ import type {
   Booking,
   TUser,
 } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-
 import {
   buildCalendarEvent,
   getBooking,
@@ -79,7 +78,7 @@ export class BookingAttendeesService {
       );
     }
 
-    return { ...attendee, bookingId: booking.id };
+    return attendee;
   }
 
   async addAttendee({
