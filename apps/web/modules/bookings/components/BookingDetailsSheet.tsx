@@ -183,18 +183,18 @@ function BookingDetailsSheetInner({
     };
   });
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     navigation.setSelectedBookingUid(null);
     navigation.setActiveSegment(null);
-  };
+  }, [navigation.setSelectedBookingUid, navigation.setActiveSegment]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     navigation.navigateNext();
-  };
+  }, [navigation.navigateNext]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     navigation.navigatePrevious();
-  };
+  }, [navigation.navigatePrevious]);
 
   const joinButtonWrapperRef = useRef<HTMLDivElement>(null);
   const sheetContentRef = useRef<HTMLDivElement>(null);
