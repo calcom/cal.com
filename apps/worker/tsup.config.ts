@@ -20,5 +20,7 @@ export default defineConfig({
     "jsdom",
     "@react-email/render",
     "@react-email/components",
+
+    "deasync",
   ],
 });

@@ -1,4 +1,4 @@
-import { createBullWorkflowContext, SleepSignal } from "@calid/job-dispatcher/adapter/bull";
+import { createBullWorkflowContext, SleepSignal } from "@calid/job-dispatcher";
 import {
   bookingPaymentReminderService,
   PaymentReminderError,
