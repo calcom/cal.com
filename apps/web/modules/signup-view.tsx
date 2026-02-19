@@ -556,7 +556,7 @@ export default function Signup({
                           <img
                             className="text-subtle mr-2 h-4 w-4"
                             src="/google-icon-colored.svg"
-                            alt="Continue with Google Icon"
+                            alt={t("continue_with_google")}
                           />
                         }
                         className="w-full justify-center rounded-md text-center"
@@ -574,7 +574,7 @@ export default function Signup({
                           <img
                             className="text-subtle mr-2 h-4 w-4"
                             src="/microsoft-logo.svg"
-                            alt="Continue with Microsoft Icon"
+                            alt={t("continue_with_microsoft")}
                           />
                         }
                         className="w-full justify-center rounded-md text-center"
