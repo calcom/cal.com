@@ -7,6 +7,7 @@ import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import type { Slots } from "@calcom/features/calendars/lib/types";
+import { formatDateTime } from "@calcom/lib/dateTimeFormatter";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
@@ -407,9 +408,10 @@ const DatePicker = ({
     }
   };
   const month = browsingDate
-    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
-        new Date(browsingDate.year(), browsingDate.month())
-      )
+    ? formatDateTime(new Date(browsingDate.year(), browsingDate.month()), {
+        locale: locale || i18n.language,
+        month: "long",
+      })
     : null;
 
   return (

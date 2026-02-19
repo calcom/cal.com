@@ -1,3 +1,4 @@
+import "@calcom/dayjs/locales";
 import dayjs from "@calcom/dayjs";
 
 type DateTimeStyle = "full" | "long" | "medium" | "short";
@@ -28,6 +29,7 @@ const formatterCache = new Map<string, Intl.DateTimeFormat>();
 const weekdayCache = new Map<string, string[]>();
 
 function isSupported(locale: string): boolean {
+  if (!locale) return false;
   let supported = localeSupport.get(locale);
   if (supported === undefined) {
     supported = Intl.DateTimeFormat.supportedLocalesOf([locale]).length > 0;
@@ -64,7 +66,8 @@ function buildIntlOptions(options: DateTimeFormatOptions, includeMonth = true): 
 
 function formatWithDayjs(date: Date, options: DateTimeFormatOptions): string {
   const { locale, dateStyle, timeStyle, month, hour12, timeZone } = options;
-  const dayjsDate = timeZone ? dayjs(date).tz(timeZone).locale(locale) : dayjs(date).locale(locale);
+  const resolvedLocale = locale || "en";
+  const dayjsDate = timeZone ? dayjs(date).tz(timeZone).locale(resolvedLocale) : dayjs(date).locale(resolvedLocale);
 
   if (month) {
     const formatted = dayjsDate.format(MONTH_FORMATS[month] || "MMM");
