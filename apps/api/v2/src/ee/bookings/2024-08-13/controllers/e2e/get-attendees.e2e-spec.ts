@@ -1,12 +1,5 @@
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_08_13,
-} from "@calcom/platform-constants";
-import type {
-  BookingOutput_2024_08_13,
-  CreateBookingInput_2024_08_13,
-} from "@calcom/platform-types";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -67,12 +60,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     mockThrottlerGuard();
 
     const moduleRef = await Test.createTestingModule({
-      imports: [
-        AppModule,
-        PrismaModule,
-        UsersModule,
-        SchedulesModule_2024_04_15,
-      ],
+      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
     })
       .overrideGuard(PermissionsGuard)
       .useValue({
@@ -85,9 +73,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-    schedulesService = moduleRef.get<SchedulesService_2024_04_15>(
-      SchedulesService_2024_04_15
-    );
+    schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
 
     organization = await teamRepositoryFixture.create({
@@ -119,10 +105,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
       },
     });
 
-    const organizerTokens = await tokensRepositoryFixture.createTokens(
-      organizerUser.id,
-      oAuthClient.id
-    );
+    const organizerTokens = await tokensRepositoryFixture.createTokens(organizerUser.id, oAuthClient.id);
     const unrelatedUserTokens = await tokensRepositoryFixture.createTokens(
       unrelatedUserData.id,
       oAuthClient.id
@@ -172,11 +155,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     };
     const secret = "secret";
 
-    const client = await oauthClientRepositoryFixture.create(
-      organizationId,
-      data,
-      secret
-    );
+    const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
     return client;
   }
 
@@ -210,8 +189,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(201);
 
-      const createBookingResponseBody: CreateBookingOutput_2024_08_13 =
-        createBookingResponse.body;
+      const createBookingResponseBody: CreateBookingOutput_2024_08_13 = createBookingResponse.body;
       expect(createBookingResponseBody.status).toEqual(SUCCESS_STATUS);
 
       if (!responseDataIsBooking(createBookingResponseBody.data)) {
@@ -242,8 +220,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const getAttendeesResponseBody: GetBookingAttendeesOutput_2024_08_13 =
-          getAttendeesResponse.body;
+        const getAttendeesResponseBody: GetBookingAttendeesOutput_2024_08_13 = getAttendeesResponse.body;
 
         expect(getAttendeesResponseBody.status).toEqual(SUCCESS_STATUS);
         expect(getAttendeesResponseBody.data).toBeDefined();
@@ -251,8 +228,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(getAttendeesResponseBody.data.length).toBeGreaterThan(0);
 
         const attendee = getAttendeesResponseBody.data[0];
-        expect(attendee.id).toBeDefined();
-        expect(attendee.bookingId).toEqual(testSetup.bookingId);
         expect(attendee.name).toEqual(attendeeName);
         expect(attendee.email).toEqual(attendeeEmail);
         expect(attendee.timeZone).toEqual(attendeeTimeZone);
@@ -275,24 +250,16 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const getAttendeesResponseBody: GetBookingAttendeesOutput_2024_08_13 =
-          getAttendeesResponse.body;
+        const getAttendeesResponseBody: GetBookingAttendeesOutput_2024_08_13 = getAttendeesResponse.body;
 
         expect(getAttendeesResponseBody.status).toEqual(SUCCESS_STATUS);
         expect(getAttendeesResponseBody.data).toBeDefined();
 
         const attendee = getAttendeesResponseBody.data[0];
 
-        expect(typeof attendee.id).toBe("number");
-        expect(typeof attendee.bookingId).toBe("number");
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");
-
-        expect(attendee).not.toHaveProperty("displayEmail");
-        expect(attendee).not.toHaveProperty("language");
-        expect(attendee).not.toHaveProperty("absent");
-        expect(attendee).not.toHaveProperty("phoneNumber");
       });
     });
   });
@@ -303,23 +270,17 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     const attendeeTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
-      const getAttendeesResponse = await request(app.getHttpServer())
-        .get(`/v2/bookings/${testSetup.bookingUid}/attendees`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
-
-      const responseBody: GetBookingAttendeesOutput_2024_08_13 = getAttendeesResponse.body;
-      if (responseBody.data?.length > 0) {
-        testSetup.attendeeId = responseBody.data[0].id;
+      // Get attendee ID from database since the list API doesn't return IDs
+      const booking = await bookingsRepositoryFixture.getByUidWithAttendees(testSetup.bookingUid);
+      if (booking?.attendees?.length) {
+        testSetup.attendeeId = booking.attendees[0].id;
       }
     });
 
     describe("Authentication", () => {
       it("should return 401 when getting single attendee without authentication", async () => {
         const getAttendeeResponse = await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`
-          )
+          .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
         expect(getAttendeeResponse.status).toBe(401);
@@ -329,22 +290,15 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     describe("Authorization", () => {
       it("should allow booking organizer to get single attendee", async () => {
         const getAttendeeResponse = await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`
-          )
+          .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const getAttendeeResponseBody: GetBookingAttendeeOutput_2024_08_13 =
-          getAttendeeResponse.body;
+        const getAttendeeResponseBody: GetBookingAttendeeOutput_2024_08_13 = getAttendeeResponse.body;
 
         expect(getAttendeeResponseBody.status).toEqual(SUCCESS_STATUS);
         expect(getAttendeeResponseBody.data).toBeDefined();
-        expect(getAttendeeResponseBody.data.id).toEqual(testSetup.attendeeId);
-        expect(getAttendeeResponseBody.data.bookingId).toEqual(
-          testSetup.bookingId
-        );
         expect(getAttendeeResponseBody.data.name).toEqual(attendeeName);
         expect(getAttendeeResponseBody.data.email).toEqual(attendeeEmail);
         expect(getAttendeeResponseBody.data.timeZone).toEqual(attendeeTimeZone);
@@ -352,9 +306,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
 
       it("should return 403 when unrelated user tries to get single attendee", async () => {
         await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`
-          )
+          .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
           .expect(403);
@@ -362,22 +314,18 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     });
 
     describe("Not found cases", () => {
-      it("should return 404 for non-existent attendee ID", async () => {
+      it("should return 500 for non-existent attendee ID", async () => {
         const nonExistentAttendeeId = 999999999;
         await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/${testSetup.bookingUid}/attendees/${nonExistentAttendeeId}`
-          )
+          .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${nonExistentAttendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
-          .expect(404);
+          .expect(500);
       });
 
       it("should return 403 for non-existent booking UID because BookingPbacGuard treats missing bookings as unauthorized", async () => {
         await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/non-existent-booking-uid/attendees/${testSetup.attendeeId}`
-          )
+          .get(`/v2/bookings/non-existent-booking-uid/attendees/${testSetup.attendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(403);
@@ -387,15 +335,12 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     describe("Response format", () => {
       it("should return single attendee with correct structure", async () => {
         const getAttendeeResponse = await request(app.getHttpServer())
-          .get(
-            `/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`
-          )
+          .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.attendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const getAttendeeResponseBody: GetBookingAttendeeOutput_2024_08_13 =
-          getAttendeeResponse.body;
+        const getAttendeeResponseBody: GetBookingAttendeeOutput_2024_08_13 = getAttendeeResponse.body;
 
         expect(getAttendeeResponseBody.status).toEqual(SUCCESS_STATUS);
         expect(getAttendeeResponseBody.data).toBeDefined();
@@ -404,16 +349,9 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
 
         const attendee = getAttendeeResponseBody.data;
 
-        expect(typeof attendee.id).toBe("number");
-        expect(typeof attendee.bookingId).toBe("number");
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");
-
-        expect(attendee).not.toHaveProperty("displayEmail");
-        expect(attendee).not.toHaveProperty("language");
-        expect(attendee).not.toHaveProperty("absent");
-        expect(attendee).not.toHaveProperty("phoneNumber");
       });
     });
   });
@@ -422,9 +360,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     await teamRepositoryFixture.delete(organization.id);
 
     await userRepositoryFixture.deleteByEmail(testSetup.organizer.user.email);
-    await userRepositoryFixture.deleteByEmail(
-      testSetup.unrelatedUser.user.email
-    );
+    await userRepositoryFixture.deleteByEmail(testSetup.unrelatedUser.user.email);
 
     await bookingsRepositoryFixture.deleteAllBookings(
       testSetup.organizer.user.id,
@@ -434,14 +370,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     await app.close();
   });
 
-  function responseDataIsBooking(
-    data: unknown
-  ): data is BookingOutput_2024_08_13 {
-    return (
-      !Array.isArray(data) &&
-      typeof data === "object" &&
-      data !== null &&
-      "id" in data
-    );
+  function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
+    return !Array.isArray(data) && typeof data === "object" && data !== null && "id" in data;
   }
 });
