@@ -1,26 +1,37 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { IWebhookDataFetcher } from "../../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import { WebhookVersion } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
+import type { IWebhookService } from "../../interface/services";
+import type { PayloadBuilderFactory } from "../../factory/versioned/PayloadBuilderFactory";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
-import { WebhookTaskConsumer } from "../WebhookTaskConsumer";
+import { WebhookTaskConsumer } from "../../service/WebhookTaskConsumer";
 
 /**
  * Unit Tests for WebhookTaskConsumer
  *
- * Tests the heavy Consumer service for processing webhook delivery tasks.
+ * Tests the Consumer service for processing webhook delivery tasks.
+ * The consumer handles the heavy lifting: DB queries, payload building, HTTP delivery.
  *
+ * Constructor signature:
+ * - webhookRepository: IWebhookRepository
+ * - dataFetchers: IWebhookDataFetcher[]
+ * - payloadBuilderFactory: PayloadBuilderFactory
+ * - webhookService: IWebhookService
+ * - logger: ILogger
  */
 describe("WebhookTaskConsumer", () => {
   let consumer: WebhookTaskConsumer;
   let mockWebhookRepository: IWebhookRepository;
   let mockDataFetchers: IWebhookDataFetcher[];
+  let mockPayloadBuilderFactory: PayloadBuilderFactory;
+  let mockWebhookService: IWebhookService;
   let mockLogger: ILogger;
 
   beforeEach(() => {
-    // Mock Repository
     mockWebhookRepository = {
       getSubscribers: vi.fn().mockResolvedValue([]),
       getWebhookById: vi.fn(),
@@ -29,7 +40,6 @@ describe("WebhookTaskConsumer", () => {
       getFilteredWebhooksForUser: vi.fn(),
     } as unknown as IWebhookRepository;
 
-    // Mock Data Fetchers (Strategy Pattern implementations)
     const createMockFetcher = (triggerEvents: string[]): IWebhookDataFetcher => ({
       canHandle: vi.fn((event) => triggerEvents.includes(event)),
       fetchEventData: vi.fn().mockResolvedValue({ _scaffold: true }),
@@ -61,7 +71,16 @@ describe("WebhookTaskConsumer", () => {
       createMockFetcher([WebhookTriggerEvents.OOO_CREATED]),
     ];
 
-    // Mock Logger
+    mockPayloadBuilderFactory = {
+      getBuilder: vi.fn().mockReturnValue({
+        build: vi.fn().mockReturnValue({ payload: "mock-payload" }),
+      }),
+    } as unknown as PayloadBuilderFactory;
+
+    mockWebhookService = {
+      processWebhooks: vi.fn().mockResolvedValue(undefined),
+    } as unknown as IWebhookService;
+
     mockLogger = {
       debug: vi.fn(),
       info: vi.fn(),
@@ -70,11 +89,17 @@ describe("WebhookTaskConsumer", () => {
       getSubLogger: vi.fn().mockReturnThis(),
     } as unknown as ILogger;
 
-    consumer = new WebhookTaskConsumer(mockWebhookRepository, mockDataFetchers, mockLogger);
+    consumer = new WebhookTaskConsumer(
+      mockWebhookRepository,
+      mockDataFetchers,
+      mockPayloadBuilderFactory,
+      mockWebhookService,
+      mockLogger
+    );
   });
 
   describe("Constructor & Dependencies", () => {
-    it("should be instantiable with Repository, Data Fetchers, and Logger", () => {
+    it("should be instantiable with all required dependencies", () => {
       expect(consumer).toBeInstanceOf(WebhookTaskConsumer);
     });
 
@@ -154,7 +179,7 @@ describe("WebhookTaskConsumer", () => {
 
       expect(mockWebhookRepository.getSubscribers).toHaveBeenCalledWith({
         triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
-        userId: undefined, // Not in payload
+        userId: undefined,
         eventTypeId: 789,
         teamId: 111,
         orgId: 222,
@@ -171,110 +196,31 @@ describe("WebhookTaskConsumer", () => {
   });
 
   describe("processWebhookTask - Event Type Routing", () => {
-    it("should process BOOKING_CREATED event type (scaffold)", async () => {
+    it("should find appropriate data fetcher for BOOKING_REQUESTED", async () => {
       const payload: WebhookTaskPayload = {
         operationId: "op-test",
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
         bookingUid: "test-booking-uid",
         timestamp: new Date().toISOString(),
       };
 
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-1",
-          subscriberUrl: "https://example.com/webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: null,
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
       await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
-      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+
+      const bookingFetcher = mockDataFetchers[0];
+      expect(bookingFetcher.canHandle).toHaveBeenCalledWith(WebhookTriggerEvents.BOOKING_REQUESTED);
     });
 
-    it("should process FORM_SUBMITTED event type (scaffold)", async () => {
+    it("should throw error when no data fetcher found for trigger event", async () => {
       const payload: WebhookTaskPayload = {
         operationId: "op-test",
-        triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-        formId: "test-form-id",
-        timestamp: new Date().toISOString(),
-      };
-
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-1",
-          subscriberUrl: "https://example.com/webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: null,
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
-      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
-      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
-    });
-
-    it("should process RECORDING_READY event type (scaffold)", async () => {
-      const payload: WebhookTaskPayload = {
-        operationId: "op-test",
-        triggerEvent: WebhookTriggerEvents.RECORDING_READY,
-        recordingId: "test-recording-id",
+        triggerEvent: "UNKNOWN_EVENT" as WebhookTriggerEvents,
         bookingUid: "test-booking-uid",
         timestamp: new Date().toISOString(),
       };
 
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-1",
-          subscriberUrl: "https://example.com/webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: null,
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.RECORDING_READY],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
-      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
-      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
-    });
-
-    it("should process OOO_CREATED event type (scaffold)", async () => {
-      const payload: WebhookTaskPayload = {
-        userId: 456,
-        operationId: "op-test",
-        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
-        oooEntryId: 123,
-        timestamp: new Date().toISOString(),
-      };
-
-      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([
-        {
-          id: "sub-1",
-          subscriberUrl: "https://example.com/webhook",
-          payloadTemplate: null,
-          appId: null,
-          secret: null,
-          time: null,
-          timeUnit: null,
-          eventTriggers: [WebhookTriggerEvents.OOO_CREATED],
-          version: WebhookVersion.V_2021_10_20,
-        },
-      ]);
-
-      await expect(consumer.processWebhookTask(payload, "task-test")).resolves.not.toThrow();
-      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+      await expect(consumer.processWebhookTask(payload, "task-test")).rejects.toThrow(
+        "No data fetcher registered for trigger event: UNKNOWN_EVENT"
+      );
     });
   });
 
@@ -324,7 +270,6 @@ describe("WebhookTaskConsumer", () => {
         },
       ]);
 
-      // Mock the data fetcher to return null (simulating event not found)
       const bookingFetcher = mockDataFetchers[0];
       (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
