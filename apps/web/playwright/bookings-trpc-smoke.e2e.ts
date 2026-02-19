@@ -204,7 +204,7 @@ test.describe("tRPC bookings route smoke tests", () => {
     // Call the tRPC endpoint (public procedure, no auth needed)
     const response = await page.request.get(
       `/api/trpc/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
-        JSON.stringify({ "0": { json: { bookingId: booking.id } } })
+        JSON.stringify({ "0": { json: { bookingUid: booking.uid } } })
       )}`
     );
 
@@ -273,7 +273,7 @@ test.describe("tRPC bookings route smoke tests", () => {
     // Call the tRPC endpoint - should return null because booking is PENDING, not ACCEPTED
     const response = await page.request.get(
       `/api/trpc/bookings/getInstantBookingLocation?batch=1&input=${encodeURIComponent(
-        JSON.stringify({ "0": { json: { bookingId: booking.id } } })
+        JSON.stringify({ "0": { json: { bookingUid: booking.uid } } })
       )}`
     );
 
