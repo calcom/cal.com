@@ -1,9 +1,14 @@
+import type { Team } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
+import { Request } from "express";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Request } from "express";
-
-import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsUserInBillingOrg implements CanActivate {
@@ -22,7 +27,15 @@ export class IsUserInBillingOrg implements CanActivate {
       throw new ForbiddenException("IsUserInBillingOrg - No org id found in request params.");
     }
 
-    const user = await this.organizationsRepository.findOrgUser(Number(orgId), Number(userId));
+    const parsedOrgId = Number(orgId);
+
+    if (!Number.isInteger(parsedOrgId) || parsedOrgId < 1) {
+      throw new BadRequestException(
+        `IsUserInBillingOrg - Invalid teamId: '${orgId}' is not a valid number. Please provide a number that is larger than 0.`
+      );
+    }
+
+    const user = await this.organizationsRepository.findOrgUser(parsedOrgId, Number(userId));
 
     if (!user) {
       throw new ForbiddenException(
