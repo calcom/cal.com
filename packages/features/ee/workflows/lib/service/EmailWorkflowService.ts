@@ -571,12 +571,14 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
+    const replyTo = evt.hideOrganizerEmail
+      ? customReplyToEmail
+      : customReplyToEmail || evt.organizer.email;
+
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      ...(!evt.hideOrganizerEmail && {
-        replyTo: customReplyToEmail || evt.organizer.email,
-      }),
+      ...(replyTo && { replyTo }),
       attachments,
       sender,
     };

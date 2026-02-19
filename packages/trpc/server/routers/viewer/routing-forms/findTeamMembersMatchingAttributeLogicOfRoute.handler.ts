@@ -50,7 +50,7 @@ async function getEnrichedSerializableForm<
       } | null;
       metadata: unknown;
     } | null;
-  }
+  },
 >({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,

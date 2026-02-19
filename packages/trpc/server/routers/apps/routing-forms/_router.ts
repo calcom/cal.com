@@ -27,7 +27,7 @@ const getHandler = async <
   T extends {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     default: Function;
-  }
+  },
 >(
   /**
    * The name of the handler in cache. It has to be unique across all routes
