@@ -1,27 +1,4 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { API_KEY_HEADER } from "@/lib/docs/headers";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
-import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
-import { GetAssignedAttributeOptions } from "@/modules/organizations/attributes/options/inputs/get-assigned-attribute-options.input";
-import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
-import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
-import {
-  AssignOptionUserOutput,
-  UnassignOptionUserOutput,
-} from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
-import { GetAllAttributeAssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
-import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
-import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
-import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
-import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
-import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
-import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   Body,
   Controller,
@@ -35,14 +12,38 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { API_KEY_HEADER } from "@/lib/docs/headers";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
+import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
+import { GetAssignedAttributeOptions } from "@/modules/organizations/attributes/options/inputs/get-assigned-attribute-options.input";
+import { AssignOrganizationAttributeOptionToUserInput } from "@/modules/organizations/attributes/options/inputs/organizations-attributes-options-assign.input";
+import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
+import {
+  AssignOptionUserOutput,
+  UnassignOptionUserOutput,
+} from "@/modules/organizations/attributes/options/outputs/assign-option-user.output";
+import { GetAllAttributeAssignedOptionOutput } from "@/modules/organizations/attributes/options/outputs/assigned-options.output";
+import { CreateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/create-option.output";
+import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/delete-option.output";
+import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
+import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
+import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
+import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
 
 @Controller({
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Attributes / Options")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsAttributesOptionsController {
@@ -50,6 +51,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.create"])
   @Post("/attributes/:attributeId/options")
   @ApiOperation({ summary: "Create an attribute option" })
   async createOrganizationAttributeOption(
@@ -71,6 +73,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.delete"])
   @Delete("/attributes/:attributeId/options/:optionId")
   @ApiOperation({ summary: "Delete an attribute option" })
   async deleteOrganizationAttributeOption(
@@ -92,6 +95,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.update"])
   @Patch("/attributes/:attributeId/options/:optionId")
   @ApiOperation({ summary: "Update an attribute option" })
   async updateOrganizationAttributeOption(
@@ -115,6 +119,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.read"])
   @Get("/attributes/:attributeId/options")
   @ApiOperation({ summary: "Get all attribute options" })
   async getOrganizationAttributeOptions(
@@ -133,6 +138,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.read"])
   @Get("/attributes/:attributeId/options/assigned")
   @ApiOperation({ summary: "Get all assigned attribute options by attribute ID" })
   async getOrganizationAttributeAssignedOptions(
@@ -157,6 +163,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.read"])
   @Get("/attributes/slugs/:attributeSlug/options/assigned")
   @ApiOperation({ summary: "Get all assigned attribute options by attribute slug" })
   async getOrganizationAttributeAssignedOptionsBySlug(
@@ -181,6 +188,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.update"])
   @Post("/attributes/options/:userId")
   @ApiOperation({ summary: "Assign an attribute to a user" })
   async assignOrganizationAttributeOptionToUser(
@@ -202,6 +210,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.update"])
   @Delete("/attributes/options/:userId/:attributeOptionId")
   @ApiOperation({ summary: "Unassign an attribute from a user" })
   async unassignOrganizationAttributeOptionFromUser(
@@ -223,6 +232,7 @@ export class OrganizationsAttributesOptionsController {
 
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.attributes.read"])
   @Get("/attributes/options/:userId")
   @ApiOperation({ summary: "Get all attribute options for a user" })
   async getOrganizationAttributeOptionsForUser(

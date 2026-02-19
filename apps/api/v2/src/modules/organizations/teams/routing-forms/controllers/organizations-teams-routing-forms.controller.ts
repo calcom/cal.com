@@ -1,11 +1,17 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
@@ -14,17 +20,20 @@ import {
   RoutingFormOutput,
 } from "@/modules/organizations/routing-forms/outputs/get-routing-forms.output";
 import { OrganizationsTeamsRoutingFormsService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms.service";
-import { Controller, Get, Param, Query, UseGuards, ParseIntPipe } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/routing-forms",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  PbacGuard,
+  RolesGuard,
+  IsTeamInOrg,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @ApiTags("Orgs / Teams / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsTeamsRoutingFormsController {
@@ -36,6 +45,7 @@ export class OrganizationsTeamsRoutingFormsController {
   @ApiOperation({ summary: "Get team routing forms" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["routingForm.read"])
   async getTeamRoutingForms(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,

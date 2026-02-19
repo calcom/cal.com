@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -5,12 +22,14 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
@@ -20,30 +39,12 @@ import { GetAllOrgMemberships } from "@/modules/organizations/memberships/output
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Memberships")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -53,6 +54,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.listMembers"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get all memberships" })
@@ -74,6 +76,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.invite"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a membership" })
@@ -90,6 +93,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.listMembers"])
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -107,6 +111,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.remove"])
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -125,6 +130,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["organization.changeMemberRole"])
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update a membership" })

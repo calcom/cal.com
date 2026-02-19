@@ -27,11 +27,13 @@ import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
@@ -50,7 +52,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
   path: "/v2/organizations/:orgId/teams",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -65,6 +67,7 @@ export class OrganizationsTeamsController {
   @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.read"])
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -81,6 +84,7 @@ export class OrganizationsTeamsController {
   @ApiOperation({ summary: "Get teams membership for user" })
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.read"])
   async getMyTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination,
@@ -108,6 +112,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.read"])
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team" })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
@@ -120,6 +125,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.delete"])
   @Delete("/:teamId")
   @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "org_teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
@@ -137,6 +143,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.update"])
   @Patch("/:teamId")
   @ApiOperation({ summary: "Update a team" })
   async updateTeam(
@@ -154,6 +161,7 @@ export class OrganizationsTeamsController {
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.create"])
   @ApiOperation({ summary: "Create a team" })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
