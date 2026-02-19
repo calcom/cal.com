@@ -40,11 +40,11 @@ interface LoginValues {
 }
 
 const MicrosoftIcon = () => (
-  <img className="size-4" src="/microsoft-logo.svg" alt="Continue with Microsoft Icon" />
+  <img className="size-4" src="/microsoft-logo.svg" alt="" />
 );
 
 const GoogleIcon = () => (
-  <img className="size-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
+  <img className="size-4" src="/google-icon-colored.svg" alt="" />
 );
 
 function BackgroundGrid() {
