@@ -1,4 +1,3 @@
-// TODO: Fix tests (These test were never running due to the vitest workspace config)
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
