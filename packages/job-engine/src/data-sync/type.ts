@@ -1,6 +1,8 @@
+import type { BaseJob } from "../baseJobType";
+
 export type CalendarProvider = "google" | "outlook" | "apple" | "zoho";
 
-export interface CalendarSyncJobData {
+export interface CalendarSyncJobData extends BaseJob {
   userId: string;
   provider: CalendarProvider;
   syncType: "initial" | "incremental" | "webhook";
@@ -8,7 +10,7 @@ export interface CalendarSyncJobData {
   triggeredAt: string;
 }
 
-export interface BookingExportJobData {
+export interface BookingExportJobData extends BaseJob {
   user: {
     id: number;
     name: string | null;
@@ -26,7 +28,7 @@ export interface BookingExportJobData {
   };
 }
 
-export type CalendlyImportJobData = {
+export interface CalendlyImportJobData extends BaseJob {
   sendCampaignEmails: boolean;
   userCalendlyIntegrationProvider: {
     refreshToken: string;
@@ -41,6 +43,6 @@ export type CalendlyImportJobData = {
     email: string;
     slug: string;
   };
-};
+}
 
 export type DataSyncJob = CalendarSyncJobData | BookingExportJobData | CalendlyImportJobData;

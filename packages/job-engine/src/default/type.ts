@@ -1,13 +1,18 @@
+import type { BookingSeat, Payment, Prisma } from "@prisma/client";
+
 import type { EventNameObjectType } from "@calcom/lib/event";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { CalendarEvent } from "@calcom/types/Calendar";
+
+import type { BaseJob } from "../baseJobType";
 
 //Razorpay webhook job event payload
-export interface RazorpayAppRevokedJobData {
+export interface RazorpayAppRevokedJobData extends BaseJob {
   accountId: string;
   rawEvent?: Record<string, unknown>;
 }
 
-export interface RazorpayPaymentLinkPaidJobData {
+export interface RazorpayPaymentLinkPaidJobData extends BaseJob {
   paymentId: string;
   paymentLinkId: string;
   rawEvent?: Record<string, unknown>;
@@ -84,7 +89,7 @@ type SerializedCalendarEvent = {
  * - rescheduled → rescheduled booking emails
  * - cancelled  → cancellation emails
  */
-export interface BookingEmailsJobData {
+export interface BookingEmailsJobData extends BaseJob {
   /**
    * Serialized CalendarEvent (translate functions stripped for transport)
    */
@@ -145,7 +150,7 @@ type BookingData = {
   uid: string;
 };
 
-export interface BookingPaymentReminderData {
+export interface BookingPaymentReminderData extends BaseJob {
   evt: CalendarEvent;
   booking: BookingData;
   paymentData: Payment;

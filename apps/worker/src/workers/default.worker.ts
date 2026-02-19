@@ -13,6 +13,7 @@ import { processBookingEmails } from "../processors/default/bookingEmails.proces
 import { bookingPaymentReminderProcessor } from "../processors/default/bookingPaymentReminder.processor";
 import { processRazorpayAppRevoked } from "../processors/default/razorpayAppRevoked.processor";
 import { processRazorpayPaymentLinkPaid } from "../processors/default/razorpayPaymentLinkPaid.processor";
+import { resolveJobName } from "../utils/resolveJobName";
 
 export const DEFAULT_RATE_LIMITER = {
   max: 50,
@@ -29,7 +30,7 @@ export const defaultWorker = new Worker<DefaultJob>(
   QueueName.DEFAULT,
   async (job) => {
     try {
-      const { name } = job;
+      const name = resolveJobName(job);
 
       switch (job.name) {
         case JobName.RAZORPAY_APP_REVOKED_WEBHOOK:

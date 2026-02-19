@@ -9,6 +9,7 @@ import { SleepSignal } from "packages/job-dispatcher/src";
 import { processBookingExport } from "../processors/data-sync/bookingExport.processor";
 import { processCalendarSync } from "../processors/data-sync/calendarSync.processor";
 import { processCalendlyImport } from "../processors/data-sync/calendlyImport.processor";
+import { resolveJobName } from "../utils/resolveJobName";
 
 export const DATA_SYNC_RATE_LIMITER = {
   max: 5,
@@ -28,14 +29,14 @@ export const dataSyncWorker = new Worker<DataSyncJob>(
   QueueName.DATA_SYNC,
   async (job: Job<DataSyncJob>) => {
     try {
-      const { name } = job;
+      const name = resolveJobName(job);
 
       switch (name) {
-        case JobName.CALENDAR_SYNC:
-          await processCalendarSync(job as Job<CalendarSyncJobData>);
-          break;
         case JobName.BOOKING_EXPORT:
           await processBookingExport(job as Job<BookingExportJobData>);
+          break;
+        case JobName.CALENDAR_SYNC:
+          await processCalendarSync(job as Job<CalendarSyncJobData>);
           break;
         case JobName.CALENDLY_IMPORT:
           await processCalendlyImport(job as Job<CalendlyImportJobData>);

@@ -8,6 +8,7 @@ import { Worker } from "bullmq";
 
 // import { syncWhatsappTemplatesProcessor } from "../processors/scheduled/syncWhatsappTemplates.processor.js";
 import { triggerScheduledWebhookProcessor } from "../processors/scheduled/triggerScheduledWebhook.processor.ts";
+import { resolveJobName } from "../utils/resolveJobName";
 
 export const SCHEDULED_WORKER_NAME = "scheduled-worker";
 
@@ -27,7 +28,7 @@ export const scheduledWorker = new Worker<ScheduledJob>(
   QueueName.SCHEDULED,
   async (job) => {
     try {
-      const { name } = job;
+      const name = resolveJobName(job);
 
       switch (job.name) {
         case JobName.WEBHOOK_SCHEDULED_TRIGGER:

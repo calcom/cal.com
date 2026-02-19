@@ -302,7 +302,12 @@ export class JobDispatcher {
           `Available queues: [${Object.keys(this.queueRegistry).join(", ")}]`
       );
     }
-    return queue.add(jobName, data, overrides);
+    //needed name in data for manual retries of job
+    const dataWithName = {
+      ...data,
+      name: jobName,
+    };
+    return queue.add(jobName, dataWithName, overrides);
   }
 
   // -------------------------------------------------------------------------
