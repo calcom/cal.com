@@ -30,11 +30,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import Link from "next/link";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { z } from "zod";
 import { AcceptBookingButton } from "../../../components/booking/AcceptBookingButton";
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
@@ -42,6 +43,7 @@ import { BookingActionsStoreProvider } from "../../../components/booking/actions
 import { RejectBookingButton } from "../../../components/booking/RejectBookingButton";
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
+import { checkSheetActive, createBookingSheetKeydownHandler } from "../lib/bookingSheetKeyboardHandler";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
 import { JoinMeetingButton } from "./JoinMeetingButton";
@@ -121,7 +123,10 @@ function useActiveSegment(bookingAuditEnabled: boolean) {
     return activeSegment ?? "info";
   };
 
-  const derivedActiveSegment = getDerivedActiveSegment({ activeSegment, bookingAuditEnabled });
+  const derivedActiveSegment = getDerivedActiveSegment({
+    activeSegment,
+    bookingAuditEnabled,
+  });
 
   const setDerivedActiveSegment = (segment: "info" | "history") => {
     setActiveSegmentInStore(getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled }));
@@ -168,18 +173,48 @@ function BookingDetailsSheetInner({
     };
   });
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     navigation.setSelectedBookingUid(null);
     navigation.setActiveSegment(null);
-  };
+  }, [navigation.setSelectedBookingUid, navigation.setActiveSegment]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     navigation.navigateNext();
-  };
+  }, [navigation.navigateNext]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     navigation.navigatePrevious();
-  };
+  }, [navigation.navigatePrevious]);
+
+  const joinButtonWrapperRef = useRef<HTMLDivElement>(null);
+  const sheetContentRef = useRef<HTMLDivElement>(null);
+
+  const isSheetActive = useCallback(
+    () => checkSheetActive(sheetContentRef.current, document.activeElement),
+    []
+  );
+
+  useEffect(() => {
+    const handleKeyDown = createBookingSheetKeydownHandler({
+      isSheetActive,
+      canGoPrev: navigation.canGoPrev,
+      canGoNext: navigation.canGoNext,
+      isTransitioning: navigation.isTransitioning,
+      handlePrevious,
+      handleNext,
+      getJoinLink: () => joinButtonWrapperRef.current?.querySelector("a"),
+    });
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [
+    navigation.canGoPrev,
+    navigation.canGoNext,
+    navigation.isTransitioning,
+    handleNext,
+    handlePrevious,
+    isSheetActive,
+  ]);
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
@@ -228,6 +263,7 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose} modal={false}>
       <SheetContent
+        ref={sheetContentRef}
         className="overflow-y-auto pb-0 sm:pb-0"
         hideOverlay
         onInteractOutside={(e) => {
@@ -250,38 +286,62 @@ function BookingDetailsSheetInner({
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="chevron-up"
-                disabled={!navigation.canGoPrev || navigation.isTransitioning}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handlePrevious();
-                }}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="chevron-down"
-                disabled={!navigation.canGoNext || navigation.isTransitioning}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNext();
-                }}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="x"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleClose();
-                }}
-              />
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("previous_shortcut")}</span>
+                  </div>
+                }>
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="chevron-up"
+                  tabIndex={-1}
+                  disabled={!navigation.canGoPrev || navigation.isTransitioning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePrevious();
+                  }}
+                />
+              </Tooltip>
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("next_shortcut")}</span>
+                  </div>
+                }>
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="chevron-down"
+                  tabIndex={-1}
+                  disabled={!navigation.canGoNext || navigation.isTransitioning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNext();
+                  }}
+                />
+              </Tooltip>
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("close_shortcut")}</span>
+                  </div>
+                }>
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="x"
+                  tabIndex={-1}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleClose();
+                  }}
+                />
+              </Tooltip>
             </div>
           </div>
         </SheetHeader>
@@ -289,9 +349,9 @@ function BookingDetailsSheetInner({
         <SheetBody className="-mt-3">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <SheetTitle className="text-emphasis flex items-center gap-3 text-xl font-semibold">
-                <div className="bg-emphasis w-0.5 shrink-0 self-stretch rounded-lg"></div>
-                <span>{booking.title}</span>
+              <SheetTitle className="flex items-center gap-3 font-semibold text-emphasis text-xl">
+                <div className="w-0.5 shrink-0 self-stretch rounded-lg bg-emphasis"></div>
+                <span data-testid="booking-sheet-title">{booking.title}</span>
               </SheetTitle>
             </div>
 
@@ -373,11 +433,20 @@ function BookingDetailsSheetInner({
               </>
             ) : (
               !booking.rescheduled && (
-                <JoinMeetingButton
-                  location={booking.location}
-                  metadata={booking.metadata}
-                  bookingStatus={booking.status}
-                />
+                <Tooltip
+                  content={
+                    <div className="flex items-center gap-1.5">
+                      <span>{t("join_shortcut")}</span>
+                    </div>
+                  }>
+                  <div ref={joinButtonWrapperRef}>
+                    <JoinMeetingButton
+                      location={booking.location}
+                      metadata={booking.metadata}
+                      bookingStatus={booking.status}
+                    />
+                  </div>
+                </Tooltip>
               )
             )}
 
@@ -422,7 +491,7 @@ function WhenSection({
   return (
     <Section title={t("when")}>
       {previousBooking?.startTime && previousBooking?.endTime && (
-        <div className="text-default flex flex-col text-sm line-through opacity-60">
+        <div className="flex flex-col text-default text-sm line-through opacity-60">
           <DisplayTimestamp
             startTime={previousBooking.startTime}
             endTime={previousBooking.endTime}
@@ -432,7 +501,7 @@ function WhenSection({
       )}
       <div
         className={classNames(
-          "text-emphasis flex flex-col text-sm font-medium",
+          "flex flex-col font-medium text-emphasis text-sm",
           rescheduled && "line-through"
         )}>
         <DisplayTimestamp startTime={startTime} endTime={endTime} timeZone={timeZone} />
@@ -487,7 +556,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm leading-[1.2]">
+                <p className="truncate text-emphasis text-sm leading-[1.2]">
                   {booking.eventType?.hideOrganizerEmail
                     ? booking.user.name || t("organizer")
                     : booking.user.name || booking.user.email}
@@ -497,7 +566,7 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
                 </Badge>
               </div>
               {!booking.eventType?.hideOrganizerEmail && (
-                <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+                <p className="truncate text-default text-sm leading-[1.2]">{booking.user.email}</p>
               )}
             </div>
           </div>
@@ -569,7 +638,7 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-emphasis shrink-0 font-medium">{provider?.label}:</span>
+          <span className="shrink-0 font-medium text-emphasis">{provider?.label}:</span>
           <a
             href={locationToDisplay}
             target="_blank"
@@ -596,7 +665,7 @@ function RecurringInfoSection({
 
   return (
     <Section title={t("recurring_event")}>
-      <p className="text-emphasis text-sm font-medium">
+      <p className="font-medium text-emphasis text-sm">
         {getEveryFreqFor({
           t,
           recurringEvent: recurringInfo.recurringEvent,
@@ -622,7 +691,7 @@ function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("assignment_reason")}>
-      <div className="text-emphasis text-sm font-medium">{reason.reasonString}</div>
+      <div className="font-medium text-emphasis text-sm">{reason.reasonString}</div>
     </Section>
   );
 }
@@ -659,7 +728,7 @@ function PaymentSection({
 
   return (
     <Section title={t("payment")}>
-      <p className="text-emphasis text-sm font-medium">{formattedPrice}</p>
+      <p className="font-medium text-emphasis text-sm">{formattedPrice}</p>
       {paymentStatusMessage && <p className="text-subtle text-xs">{paymentStatusMessage}</p>}
     </Section>
   );
@@ -681,7 +750,7 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("slots")}>
-      <p className="text-emphasis text-sm font-medium">{t("slots_taken", { takenSeats, totalSeats })}</p>
+      <p className="font-medium text-emphasis text-sm">{t("slots_taken", { takenSeats, totalSeats })}</p>
     </Section>
   );
 }
@@ -719,7 +788,7 @@ function CustomQuestionsSection({
 
         return (
           <Section key={field.name} title={label}>
-            <p className="text-emphasis text-sm font-medium">
+            <p className="font-medium text-emphasis text-sm">
               {field.type === "boolean" ? (answer ? t("yes") : t("no")) : String(answer)}
             </p>
           </Section>
@@ -753,7 +822,7 @@ function OldRescheduledBookingInfo({
       {rescheduledToBooking?.uid && (
         <Section title={t("rescheduled")}>
           <Link href={`/booking/${rescheduledToBooking.uid}`}>
-            <div className="text-default flex items-center gap-1 text-sm underline">
+            <div className="flex items-center gap-1 text-default text-sm underline">
               {t("view_booking")}
               <ExternalLinkIcon className="h-4 w-4" />
             </div>
@@ -762,17 +831,17 @@ function OldRescheduledBookingInfo({
       )}
       {rescheduledBy && (
         <Section title={t("rescheduled_by")}>
-          <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{rescheduledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">{cancellationReason}</p>
         </Section>
       )}
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{cancelledBy}</p>
         </Section>
       )}
     </>
@@ -794,9 +863,9 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
   return (
     <>
       <Section title={t("rescheduled_by")}>
-        {rescheduledBy && <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>}
+        {rescheduledBy && <p className="font-medium text-emphasis text-sm">{rescheduledBy}</p>}
         <Link href={`/booking/${booking.fromReschedule}`}>
-          <div className="text-default flex items-center gap-1 text-sm underline">
+          <div className="flex items-center gap-1 text-default text-sm underline">
             {t("original_booking")}
             <ExternalLinkIcon className="h-4 w-4" />
           </div>
@@ -804,7 +873,7 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
       </Section>
       {cancellationReason && (
         <Section title={t("reschedule_reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">{cancellationReason}</p>
         </Section>
       )}
     </>
@@ -834,12 +903,12 @@ function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
     <>
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{cancelledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">{cancellationReason}</p>
         </Section>
       )}
     </>
@@ -855,7 +924,7 @@ function AdditionalNotesSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("additional_notes")}>
-      <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{booking.description}</p>
+      <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">{booking.description}</p>
     </Section>
   );
 }
@@ -931,7 +1000,7 @@ function TrackingSection({
         {utmEntries.map(([key, value]) => (
           <div key={key} className="mb-1 last:mb-0">
             <span className="font-medium">{key}</span>:{" "}
-            <code className="bg-subtle text-default rounded px-1 py-0.5 font-mono text-xs">{value}</code>
+            <code className="rounded bg-subtle px-1 py-0.5 font-mono text-default text-xs">{value}</code>
           </div>
         ))}
       </div>
@@ -950,7 +1019,7 @@ function Section({
 }) {
   return (
     <div className={classNames("flex flex-col gap-1", className)}>
-      <h3 className="text-subtle text-xs font-medium">{title}</h3>
+      <h3 className="font-medium text-subtle text-xs">{title}</h3>
       {children}
     </div>
   );
