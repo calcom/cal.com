@@ -9,7 +9,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions"
 import { hasPermission } from "@calcom/platform-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 
 export default function Authorize() {
   const { t } = useLocale();
@@ -66,7 +66,7 @@ export default function Authorize() {
           {client.logo ? (
             <Avatar
               alt=""
-              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+              fallback={<PlusIcon className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc={client.logo}
               size="lg"
@@ -74,7 +74,7 @@ export default function Authorize() {
           ) : (
             <Avatar
               alt=""
-              fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+              fallback={<PlusIcon className="text-subtle h-6 w-6" />}
               className="items-center"
               imageSrc="/cal-com-icon.svg"
               size="lg"
@@ -97,7 +97,7 @@ export default function Authorize() {
         <ul className="stack-y-4 text-sm text-black">{permissions}</ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
-            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+            <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
             <div className="mb-1 text-sm font-medium">

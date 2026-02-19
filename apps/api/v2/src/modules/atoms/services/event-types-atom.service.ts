@@ -38,12 +38,32 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
   credentials: CredentialDataWithTeamName[];
   locationOption: LocationOption | null;
 };
+
+/**
+ * Normalizes a period date to UTC midnight.
+ * Atoms receives JSON where dates are strings (e.g., "2024-01-20T00:00:00.000Z" or "2024-01-20"),
+ * but TypeScript types them as Date. This function handles both cases.
+ * We extract the date part (YYYY-MM-DD) to avoid timezone shifts.
+ */
+function normalizePeriodDate(date: Date | string | null | undefined): Date | null | undefined {
+  if (date === undefined) return undefined;
+  if (date === null) return null;
+
+  // Handle both string (from JSON) and Date object (if already parsed)
+  const dateStr = typeof date === "string" ? date : date.toISOString();
+
+  // Extract the date part (first 10 chars: YYYY-MM-DD) to avoid timezone shifts
+  // e.g., "2024-01-20T00:00:00.000+04:00" -> "2024-01-20" -> UTC midnight Jan 20
+  const dateOnly = dateStr.slice(0, 10);
+  return new Date(dateOnly);
+}
 
 @Injectable()
 export class EventTypesAtomService {
@@ -56,7 +76,8 @@ export class EventTypesAtomService {
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {
@@ -134,8 +155,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
@@ -162,8 +196,21 @@ export class EventTypesAtomService {
       bookingFields.push(systemBeforeFieldEmail);
     }
 
+    // Normalize period dates to UTC midnight (only if provided)
+    const periodDates =
+      body.periodStartDate !== undefined || body.periodEndDate !== undefined
+        ? {
+            ...(body.periodStartDate !== undefined
+              ? { periodStartDate: normalizePeriodDate(body.periodStartDate) }
+              : {}),
+            ...(body.periodEndDate !== undefined
+              ? { periodEndDate: normalizePeriodDate(body.periodEndDate) }
+              : {}),
+          }
+        : {};
+
     const eventType = await updateEventType({
-      input: { ...body, id: eventTypeId, bookingFields },
+      input: { ...body, id: eventTypeId, bookingFields, ...periodDates },
       ctx: {
         user: eventTypeUser,
         prisma: this.dbWrite.prisma,
@@ -421,32 +468,50 @@ export class EventTypesAtomService {
   }): Promise<PublicEventType> {
     const orgSlug = orgId ? await this.getTeamSlug(orgId) : null;
 
-    let slug: string | null = null;
+    let usernameOrTeamSlug: string | null = null;
     if (isTeamEvent) {
       if (!teamId) {
         throw new BadRequestException("teamId is required for team events, please provide a valid teamId");
       }
-      slug = await this.getTeamSlug(teamId);
+      usernameOrTeamSlug = await this.getTeamSlug(teamId);
     } else {
       if (!username) {
         throw new BadRequestException(
           "username is required for non-team events, please provide a valid username"
         );
       }
-      slug = username;
+      usernameOrTeamSlug = username;
     }
 
-    const slugLower = slug.toLowerCase();
+    usernameOrTeamSlug = usernameOrTeamSlug.toLowerCase();
 
     try {
-      const event = await getPublicEvent(
-        slugLower,
+      let event = await getPublicEvent(
+        usernameOrTeamSlug,
         eventSlug,
         isTeamEvent,
         orgSlug,
         this.dbRead.prisma as unknown as PrismaClient,
         true
       );
+
+      const usernamePossiblyNotFromProfile = username && orgId && !event;
+      if (usernamePossiblyNotFromProfile) {
+        const user = await this.usersRepository.findByUsernameWithProfile(username);
+        if (user) {
+          const profile = await this.usersService.getUserMainProfile(user);
+          if (profile?.username) {
+            event = await getPublicEvent(
+              profile.username,
+              eventSlug,
+              isTeamEvent,
+              orgSlug,
+              this.dbRead.prisma as unknown as PrismaClient,
+              true
+            );
+          }
+        }
+      }
 
       if (!event) {
         throw new NotFoundException(`Event type with slug ${eventSlug} not found`);

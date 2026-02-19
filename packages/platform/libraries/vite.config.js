@@ -43,6 +43,8 @@ export default defineConfig({
         "private-links": resolve(__dirname, "./src/private-links.ts"),
         pbac: resolve(__dirname, "./src/pbac.ts"),
         errors: resolve(__dirname, "./src/errors.ts"),
+        calendars: resolve(__dirname, "./src/calendars.ts"),
+        tasker: resolve(__dirname, "./src/tasker.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

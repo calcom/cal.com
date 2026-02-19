@@ -1,11 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useWatch } from "react-hook-form";
-import { Toaster } from "sonner";
-import { v4 as uuidv4 } from "uuid";
-
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -16,17 +10,20 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import {
   BooleanToggleGroupField,
   Label,
+  MultiOptionInput,
   SelectField,
   TextField,
-  MultiOptionInput,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { ChevronDownIcon, MenuIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { Toaster } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
@@ -96,8 +93,7 @@ function Field({
               }
             : null
         }
-        deleteField={router ? null : deleteField}
-      >
+        deleteField={router ? null : deleteField}>
         <FormCardBody>
           <div className="mb-3 w-full">
             <TextField
@@ -117,20 +113,15 @@ function Field({
                 hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, {
                   shouldDirty: true,
                 });
-                const currentIdentifier = hookForm.getValues(
-                  `${hookFieldNamespace}.identifier`
-                );
+                const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
                 // Only auto-update identifier if it was auto-generated from the previous label
                 // This preserves manual identifier changes
                 const isIdentifierGeneratedFromPreviousLabel =
-                  currentIdentifier === getFieldIdentifier(previousLabel);
-                if (
-                  !currentIdentifier ||
-                  isIdentifierGeneratedFromPreviousLabel
-                ) {
+                  currentIdentifier === getFieldIdentifier(previousLabel).toLowerCase();
+                if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
                   hookForm.setValue(
                     `${hookFieldNamespace}.identifier`,
-                    getFieldIdentifier(newLabel),
+                    getFieldIdentifier(newLabel).toLowerCase(),
                     { shouldDirty: true }
                   );
                 }
@@ -145,19 +136,11 @@ function Field({
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
-              value={
-                identifier ||
-                routerField?.identifier ||
-                label ||
-                routerField?.label ||
-                ""
-              }
+              value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(
-                  `${hookFieldNamespace}.identifier`,
-                  e.target.value,
-                  { shouldDirty: true }
-                );
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
+                  shouldDirty: true,
+                });
               }}
             />
           </div>
@@ -167,9 +150,7 @@ function Field({
               control={hookForm.control}
               defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
-                const defaultValue = FieldTypes.find(
-                  (fieldType) => fieldType.value === value
-                );
+                const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 if (disableTypeChange) {
                   return (
                     <div className="data-testid-field-type">
@@ -182,15 +163,9 @@ function Field({
                           className={classNames(
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
-                          )}
-                        >
-                          <span className="text-default">
-                            {defaultValue?.label || "Select field type"}
-                          </span>
-                          <Icon
-                            name="chevron-down"
-                            className="text-default h-4 w-4"
-                          />
+                          )}>
+                          <span className="text-default">{defaultValue?.label || t("select_field_type")}</span>
+                          <ChevronDownIcon className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
                     </div>
@@ -282,8 +257,6 @@ const FormEdit = ({
     append: appendHookFormField,
     remove: removeHookFormField,
     swap: swapHookFormField,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore https://github.com/react-hook-form/react-hook-form/issues/6679
   } = useFieldArray({
     control: hookForm.control,
     name: fieldsNamespace,
@@ -294,8 +267,6 @@ const FormEdit = ({
 
   const addField = () => {
     appendHookFormField({
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
       id: uuidv4(),
       // This is same type from react-awesome-query-builder
       type: "text",
@@ -311,9 +282,7 @@ const FormEdit = ({
     <div className="w-full py-4 lg:py-8">
       <div ref={animationRef} className="flex w-full flex-col rounded-md">
         {hookFormFields.map((field, key) => {
-          const existingField = Boolean(
-            (form.fields || []).find((f) => f.id === field.id)
-          );
+          const existingField = Boolean((form.fields || []).find((f) => f.id === field.id));
           const hasFormResponses = (form._count?.responses ?? 0) > 0;
           return (
             <Field
@@ -350,13 +319,7 @@ const FormEdit = ({
       </div>
       {hookFormFields.length ? (
         <div className={classNames("flex")}>
-          <Button
-            data-testid="add-field"
-            type="button"
-            StartIcon="plus"
-            color="secondary"
-            onClick={addField}
-          >
+          <Button data-testid="add-field" type="button" StartIcon="plus" color="secondary" onClick={addField}>
             Add question
           </Button>
         </div>
@@ -370,7 +333,7 @@ const FormEdit = ({
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
             <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
+              <MenuIcon className="text-emphasis h-4 w-4" />
             </div>
           </div>
           {/* Left fanned card */}
@@ -396,12 +359,7 @@ const FormEdit = ({
             Fields are the form fields that the booker would see.
           </p>
         </div>
-        <Button
-          data-testid="add-field"
-          onClick={addField}
-          StartIcon="plus"
-          className="mt-6"
-        >
+        <Button data-testid="add-field" onClick={addField} StartIcon="plus" className="mt-6">
           Add question
         </Button>
       </div>
@@ -421,9 +379,7 @@ export default function FormEditPage({
         {...props}
         appUrl={appUrl}
         permissions={permissions}
-        Page={({ hookForm, form }) => (
-          <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />
-        )}
+        Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
       />
     </>
   );

@@ -70,6 +70,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     schedulingType: true,
     length: true,
     locations: true,
+    enablePerHostLocations: true,
     customInputs: true,
     disableGuests: true,
     metadata: true,
@@ -130,6 +131,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     },
     successRedirectUrl: true,
     forwardParamsSuccessRedirect: true,
+    redirectUrlOnNoRoutingFormResponse: true,
     workflows: {
       include: {
         workflow: {
@@ -170,6 +172,8 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    restrictionScheduleId: true,
+    useBookerTimezone: true,
     parent: {
       select: {
         team: {
@@ -339,6 +343,8 @@ export const getPublicEvent = async (
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      restrictionScheduleId: null,
+      useBookerTimezone: false,
       // Clears meta data since we don't want to send this in the public api.
       subsetOfUsers: users.map((user) => ({
         ...user,
@@ -590,6 +596,8 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    restrictionScheduleId: event.restrictionScheduleId,
+    useBookerTimezone: event.useBookerTimezone,
   };
 };
 
@@ -659,7 +667,7 @@ export async function getUsersFromEvent(
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)
-      : (await getOwnerFromUsersArray(prisma, id)) ?? [];
+      : ((await getOwnerFromUsersArray(prisma, id)) ?? []);
   }
   if (!owner) {
     return null;

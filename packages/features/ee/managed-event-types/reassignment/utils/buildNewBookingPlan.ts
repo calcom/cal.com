@@ -93,4 +93,3 @@ export function buildNewBookingPlan({
     iCalSequence: 0,
   };
 }
-

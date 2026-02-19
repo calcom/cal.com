@@ -50,7 +50,7 @@ export const DestinationCalendarSettingsWebWrapper = ({
   };
 
   const validatedReminderValue = reminderSchema.safeParse(
-    calendars.data.destinationCalendar.customCalendarReminder
+    calendars.data.destinationCalendar?.customCalendarReminder
   );
   let reminderValue: ReminderMinutes = null;
   if (validatedReminderValue.success) {
@@ -63,7 +63,7 @@ export const DestinationCalendarSettingsWebWrapper = ({
         connectedCalendars={calendars.data.connectedCalendars}
         isPending={mutation.isPending}
         destinationCalendar={calendars.data.destinationCalendar}
-        value={calendars.data.destinationCalendar.externalId}
+        value={calendars.data.destinationCalendar?.externalId}
         hidePlaceholder
         onChange={mutation.mutate}
         onReminderChange={handleReminderChange}

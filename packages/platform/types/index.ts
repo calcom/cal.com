@@ -15,3 +15,4 @@ export * from "./src/routing-forms";
 export * from "./src/me";
 export * from "./src/pagination/pagination.input";
 export * from "./src/pagination/pagination.output";
+export * from "./src/utils/normalizeTimezone";

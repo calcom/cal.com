@@ -19,5 +19,6 @@ export const listReportsHandler = async ({ input }: ListReportsOptions) => {
     searchTerm: input.searchTerm,
     filters: input.filters,
     systemFilters: input.systemFilters,
+    sortBy: input.sortBy,
   });
 };

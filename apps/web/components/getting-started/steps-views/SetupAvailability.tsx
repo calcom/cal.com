@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 
-import Schedule from "@calcom/features/schedules/components/Schedule";
+import Schedule from "@calcom/web/modules/schedules/components/Schedule";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
