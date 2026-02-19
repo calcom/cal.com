@@ -42,6 +42,7 @@
     "@calcom/lib": "workspace:*",
     "@calcom/platform-constants": "workspace:*",
     "@calcom/platform-enums": "workspace:*",
+    "@calcom/platform-libraries": "workspace:*",
     "@calcom/platform-types": "workspace:*",
     "@calcom/platform-utils": "workspace:*",
     "@calcom/prisma": "workspace:*",
