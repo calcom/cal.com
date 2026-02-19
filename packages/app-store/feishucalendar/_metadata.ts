@@ -1,10 +1,9 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Feishu Calendar",
-  description: _package.description,
+  description:
+    "Feishu Calendar is a time management and scheduling service developed by Feishu. Allows users to create and edit events, with options available for type and time. Available to anyone that has a Feishu account on both mobile and web versions.",
   installed: true,
   type: "feishu_calendar",
   title: "Feishu Calendar",
