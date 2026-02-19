@@ -1,16 +1,30 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"], // worker entry (the file that starts BullMQ workers)
+  entry: ["src/index.ts"],
+  outDir: "dist",
+
+  platform: "node",
+  target: "node20",
   format: ["cjs"],
-  target: "node18",
+
   bundle: true,
+  splitting: false,
   sourcemap: true,
   clean: true,
-  noExternal: ["@calid/job-engine", "@calcom/emails", "@calcom/dayjs", "@calcom/lib"],
+
+  /**
+   * This prevents runtime "Cannot find module packages/xxx/src"
+   */
+  noExternal: [/^@calid\//, /^@calcom\//, /^@onehash\//],
+
+  /**
+   * Keep heavy runtime/native deps external
+   */
   external: [
+    "inngest",
     "@prisma/client",
-    "bull",
+    "bullmq",
     "ioredis",
 
     // email rendering stack
@@ -23,4 +37,10 @@ export default defineConfig({
 
     "deasync",
   ],
+
+  esbuildOptions(options) {
+    options.banner = {
+      js: `#!/usr/bin/env node`,
+    };
+  },
 });
