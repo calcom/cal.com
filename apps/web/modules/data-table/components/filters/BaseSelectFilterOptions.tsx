@@ -134,6 +134,7 @@ export function BaseSelectFilterOptions<T extends Extract<FilterType, "ms" | "ss
               )}
               <CommandItem
                 key={optionValue}
+                value={optionLabel}
                 onSelect={() => onOptionSelect(column, filterValue, optionValue)}>
                 <div
                   className={classNames(
