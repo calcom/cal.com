@@ -51,7 +51,7 @@ export class ManagedEventReassignmentService {
     this.luckyUserService = deps.luckyUserService;
     this.log = logger.getSubLogger({ prefix: ["ManagedEventReassignmentService"] });
   }
-  
+
   async executeAutoReassignment({
     bookingId,
     orgId,
@@ -216,4 +216,3 @@ export class ManagedEventReassignmentService {
     return luckyUser;
   }
 }
-
