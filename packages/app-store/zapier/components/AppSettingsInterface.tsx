@@ -35,35 +35,23 @@ const templates: Template[] = [
     link: "https://zapier.com/app/editor/template/1083605",
   },
   {
-    icon: "gmail.svg",
-    app: "Gmail",
-    text: "Send emails via Gmail for cancelled events",
-    link: "https://zapier.com/app/editor/template/1083609",
-  },
-  {
-    icon: "gmail.svg",
-    app: "Gmail",
-    text: "Send emails via Gmail after scheduled meetings end",
-    link: "https://zapier.com/app/editor/template/1083613",
-  },
-  {
-    icon: "googleCalendar.svg",
-    app: "Google Calendar",
-    text: "Add new bookings to Google Calendar",
-    link: "https://zapier.com/app/editor/template/1083651",
+    icon: "zapier.svg",
+    app: "Zapier",
+    text: "Handle booking no-show updates",
+    link: "https://zapier.com/app/editor/template/1083614",
   },
 ];
 
-export default function AppSettings() {
+const AppSettingsInterface = () => {
   const { t } = useLocale();
+
   return (
-    <>
-      <div className="text-sm font-semibold leading-4 ">{t("get_started_zapier_templates")}</div>
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        {templates.map((template, index) => (
-          <TemplateCard key={index} template={template} />
-        ))}
-      </div>
-    </>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {templates.map((template) => (
+        <TemplateCard key={template.link} template={template} />
+      ))}
+    </div>
   );
-}
+};
+
+export default AppSettingsInterface;
