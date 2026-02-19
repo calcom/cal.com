@@ -776,10 +776,10 @@ export default function Signup({
                                 prepopulateFormValues.username
                               );
                             }
-                            if (token) {
+                            if (token && prepopulateFormValues?.email) {
                               searchQueryParams.set(
                                 "email",
-                                prepopulateFormValues?.email
+                                prepopulateFormValues.email
                               );
                             }
                             const url = searchQueryParams.toString()
@@ -841,10 +841,10 @@ export default function Signup({
                                 prepopulateFormValues.username
                               );
                             }
-                            if (token) {
+                            if (token && prepopulateFormValues?.email) {
                               searchQueryParams.set(
                                 "email",
-                                prepopulateFormValues?.email
+                                prepopulateFormValues.email
                               );
                             }
                             const url = searchQueryParams.toString()
