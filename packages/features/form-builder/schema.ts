@@ -144,6 +144,19 @@ export const fieldTypesSchemaMap = {
       }
 
       if (typeof response === "string") {
+        const nameJsonSchema = z.object({
+          firstName: z.string(),
+          lastName: z.string().optional().default(""),
+        });
+
+        try {
+          const parsed = nameJsonSchema.safeParse(JSON.parse(response));
+          if (parsed.success) {
+            return preprocessNameFieldDataWithVariant(correctedVariant, parsed.data);
+          }
+        } catch {
+          // if invalid JSON, then treat as regular string
+        }
         return preprocessNameFieldDataWithVariant(correctedVariant, response);
       }
 
