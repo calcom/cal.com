@@ -200,6 +200,7 @@ const buildWhereClauseForActiveBookings = ({
 });
 
 const selectStatementToGetBookingForCalEventBuilder = {
+  id: true,
   uid: true,
   title: true,
   startTime: true,
@@ -212,6 +213,13 @@ const selectStatementToGetBookingForCalEventBuilder = {
   iCalUID: true,
   iCalSequence: true,
   oneTimePassword: true,
+  status: true,
+  eventTypeId: true,
+  userId: true,
+  smsReminderNumber: true,
+  cancellationReason: true,
+  rejectionReason: true,
+  rescheduledBy: true,
   attendees: {
     select: {
       name: true,
@@ -254,6 +262,9 @@ const selectStatementToGetBookingForCalEventBuilder = {
       slug: true,
       description: true,
       hideCalendarNotes: true,
+      price: true,
+      currency: true,
+      length: true,
       hideCalendarEventDetails: true,
       hideOrganizerEmail: true,
       schedulingType: true,

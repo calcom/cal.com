@@ -1,24 +1,27 @@
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { OAUTH_ERROR_REASONS, OAuthErrorReason } from "@calcom/features/oauth/services/OAuthService";
+import type { OAuthErrorReason } from "@calcom/features/oauth/services/OAuthService";
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";
-
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
-
 import type { TGetClientForAuthorizationInputSchema } from "./getClientForAuthorization.schema";
 
 type GetClientForAuthorizationOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
   input: TGetClientForAuthorizationInputSchema;
 };
 
-export const getClientForAuthorizationHandler = async ({ input }: GetClientForAuthorizationOptions) => {
+export const getClientForAuthorizationHandler = async ({ ctx, input }: GetClientForAuthorizationOptions) => {
   try {
     const { clientId, redirectUri } = input;
 
     const oAuthService = getOAuthService();
 
-    const oAuthClient = await oAuthService.getClientForAuthorization(clientId, redirectUri);
+    const oAuthClient = await oAuthService.getClientForAuthorization(clientId, redirectUri, ctx.user.id);
 
     return {
       clientId: oAuthClient.clientId,
