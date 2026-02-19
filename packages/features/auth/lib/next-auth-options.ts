@@ -55,11 +55,11 @@ import type { Account, AuthOptions, Profile, Session, User } from "next-auth";
 import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
-import type { Provider } from "next-auth/providers/index";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import type { Provider } from "next-auth/providers/index";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { dub } from "./dub";
 import { ErrorCode } from "./ErrorCode";
@@ -280,10 +280,26 @@ export const CalComCredentialsProvider = CredentialsProvider({
   name: "Cal.com",
   type: "credentials",
   credentials: {
-    email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
-    password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-    totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
-    backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
+    email: {
+      label: "Email Address",
+      type: "email",
+      placeholder: "john.doe@example.com",
+    },
+    password: {
+      label: "Password",
+      type: "password",
+      placeholder: "Your super secure password",
+    },
+    totpCode: {
+      label: "Two-factor Code",
+      type: "input",
+      placeholder: "Code from authenticator app",
+    },
+    backupCode: {
+      label: "Backup Code",
+      type: "input",
+      placeholder: "Two-factor backup code",
+    },
   },
   authorize: authorizeCredentials,
 });
@@ -485,7 +501,6 @@ if (IS_OUTLOOK_LOGIN_ENABLED) {
     AzureADProvider({
       clientId: OUTLOOK_CLIENT_ID!,
       clientSecret: OUTLOOK_CLIENT_SECRET!,
-      tenantId: process.env.AZURE_AD_TENANT_ID,
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -734,7 +749,10 @@ export const getOptions = ({
       if (account.type === "oauth") {
         log.debug("callbacks:jwt:accountType:oauth", safeStringify({ account }));
         if (!account.provider || !account.providerAccountId) {
-          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
+          return {
+            ...token,
+            upId: user.profile?.upId ?? token.upId ?? null,
+          } as JWT;
         }
         const idP = mapIdentityProvider(account.provider);
 
@@ -885,7 +903,10 @@ export const getOptions = ({
         }
 
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        const profileResult = determineProfile({ profiles: allProfiles, token });
+        const profileResult = determineProfile({
+          profiles: allProfiles,
+          token,
+        });
         log.debug(
           "callbacks:jwt:accountType:oauth:existingUser",
           safeStringify({ userId: existingUser.id, upId: profileResult.upId })
@@ -913,7 +934,10 @@ export const getOptions = ({
 
       log.warn(
         "callbacks:jwt - unknown account type",
-        safeStringify({ accountType: account.type, accountProvider: account.provider })
+        safeStringify({
+          accountType: account.type,
+          accountProvider: account.provider,
+        })
       );
       return token;
     },
@@ -987,7 +1011,9 @@ export const getOptions = ({
         }
       }
       if (!user.email) {
-        log.warn("callbacks:signIn - user email is missing", { provider: account?.provider });
+        log.warn("callbacks:signIn - user email is missing", {
+          provider: account?.provider,
+        });
         return false;
       }
 
@@ -1109,7 +1135,10 @@ export const getOptions = ({
           });
 
           if (!userWithNewEmail) {
-            await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { email: user.email },
+            });
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser.email);
             } else {
@@ -1332,7 +1361,11 @@ export const getOptions = ({
                 verified: true,
                 organization: { connect: { id: orgId } },
                 teams: {
-                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+                  create: {
+                    role: MembershipRole.MEMBER,
+                    accepted: true,
+                    team: { connect: { id: orgId } },
+                  },
                 },
               }),
               creationSource: CreationSource.WEBAPP,
@@ -1470,7 +1503,10 @@ const determineProfile = ({
   profiles: { id: number | null; upId: string }[];
 }): { id: number | null; upId: string } => {
   // Filter out profiles with null id for safety when selecting a default without token hint
-  const validProfiles = profiles.filter((p) => p.id !== null) as { id: number; upId: string }[];
+  const validProfiles = profiles.filter((p) => p.id !== null) as {
+    id: number;
+    upId: string;
+  }[];
 
   // If profile switcher is disabled, return the first valid profile or fallback to the first original profile if none are valid
   if (!ENABLE_PROFILE_SWITCHER) {
