@@ -4,18 +4,22 @@ import {
   type TargetRoutingFormForResponse,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
+import { DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE } from "@calcom/app-store/routing-forms/lib/constants";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { emailSchema } from "@calcom/lib/emailSchema";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { z } from "zod";
+import { checkRoutingFormBlocklist } from "./checkRoutingFormBlocklist";
+import { extractEmailsFromFormResponse } from "./extractEmailsFromFormResponse";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
@@ -102,6 +106,92 @@ const _handleResponse = async ({
       });
     }
 
+    if (!isPreview) {
+      const emailsFromForm = extractEmailsFromFormResponse(serializableFormWithFields.fields, response);
+      if (emailsFromForm.length > 0) {
+        let orgIdForBlocklist: number | null = formOrgId;
+        if (!orgIdForBlocklist) {
+          try {
+            orgIdForBlocklist =
+              (await getOrgIdFromMemberOrTeamId({
+                memberId: form.user.id,
+                teamId: form.teamId,
+              })) ?? null;
+          } catch (error) {
+            moduleLogger.warn(
+              "Unable to resolve orgId for blocklist check, continuing with global-only checks",
+              {
+                formId: form.id,
+                userId: form.user.id,
+                teamId: form.teamId,
+                error,
+              }
+            );
+            orgIdForBlocklist = null;
+          }
+        }
+
+        const blocklistResult = await checkRoutingFormBlocklist({
+          emails: emailsFromForm,
+          orgId: orgIdForBlocklist,
+        });
+
+        if (blocklistResult.isBlocked) {
+          moduleLogger.debug("Routing form submission blocked by watchlist, returning decoy response", {
+            emails: emailsFromForm,
+            orgId: orgIdForBlocklist,
+          });
+          const blockedFallbackAction = {
+            type: RouteActionType.CustomPageMessage,
+            value: DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE,
+          };
+          if (queueFormResponse) {
+            return {
+              isPreview: false,
+              isBlocked: true,
+              formResponse: null,
+              queuedFormResponse: {
+                id: "00000000-0000-0000-0000-000000000000",
+                formId: form.id,
+                response,
+              },
+              teamMembersMatchingAttributeLogic: null,
+              crmContactOwnerEmail: null,
+              crmContactOwnerRecordType: null,
+              crmAppSlug: null,
+              crmRecordId: null,
+              attributeRoutingConfig: null,
+              checkedFallback: false,
+              timeTaken: {},
+              fallbackAction: blockedFallbackAction,
+            };
+          }
+          return {
+            isPreview: false,
+            isBlocked: true,
+            formResponse: {
+              id: 0,
+              formId: form.id,
+              response,
+              chosenRouteId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            queuedFormResponse: null,
+            teamMembersMatchingAttributeLogic: null,
+            crmContactOwnerEmail: null,
+            crmContactOwnerRecordType: null,
+            crmAppSlug: null,
+            crmRecordId: null,
+            attributeRoutingConfig: null,
+            checkedFallback: false,
+            timeTaken: {},
+            fallbackAction: blockedFallbackAction,
+          };
+        }
+      }
+    }
+
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
     let crmContactOwnerEmail: string | null = null;
@@ -142,8 +232,7 @@ const _handleResponse = async ({
             // 3. If fallbackAction is CustomPageMessage or ExternalRedirectUrl → don't use it (attribute routing doesn't apply)
             const hasFallbackAction = "fallbackAction" in chosenRoute && chosenRoute.fallbackAction;
             const shouldUseFallbackAttributesQuery =
-              !hasFallbackAction ||
-              chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
+              !hasFallbackAction || chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
             const teamMembersMatchingAttributeLogicWithResult =
               formTeamId && formOrgId
                 ? await findTeamMembersMatchingAttributeLogic(
@@ -266,6 +355,7 @@ const _handleResponse = async ({
 
     return {
       isPreview: !!isPreview,
+      isBlocked: false,
       formResponse: dbFormResponse,
       queuedFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,

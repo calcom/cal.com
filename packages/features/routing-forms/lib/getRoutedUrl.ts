@@ -186,7 +186,8 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     };
 
     // Save the pending trace (trace steps are added inside handleResponse)
-    if (!isBookingDryRun) {
+    // Skip trace saving for blocked submissions as their IDs are decoy values
+    if (!isBookingDryRun && !result.isBlocked) {
       if (formResponseId) {
         await routingTraceService.savePendingRoutingTrace({ formResponseId });
       } else if (queuedFormResponseId) {

@@ -2,6 +2,7 @@ import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import type { GlobalRoute, LocalRoute, SerializableRoute } from "../types/types";
 import { RouteActionType } from "../zod";
+import { DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE } from "./constants";
 
 export const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
@@ -10,7 +11,7 @@ export const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> =
     isFallback: true,
     action: {
       type: RouteActionType.CustomPageMessage,
-      value: "Thank you for your interest! We will be in touch soon.",
+      value: DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE,
     },
     queryValue: { id: uuid, type: "group" } as LocalRoute["queryValue"],
   };

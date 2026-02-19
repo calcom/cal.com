@@ -4,19 +4,29 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/crmRouting/routerGetCrmContactOwnerEmail";
+import { DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE } from "@calcom/app-store/routing-forms/lib/constants";
 import type { TargetRoutingFormForResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
 import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 
+import { checkRoutingFormBlocklist } from "./checkRoutingFormBlocklist";
 import { findTeamMembersMatchingAttributeLogic } from "./findTeamMembersMatchingAttributeLogic";
 import { handleResponse } from "./handleResponse";
+
+vi.mock("./checkRoutingFormBlocklist", () => ({
+  checkRoutingFormBlocklist: vi.fn(),
+}));
 
 vi.mock("./findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
 vi.mock("@calcom/features/routing-forms/repositories/RoutingFormResponseRepository");
+vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
+  default: vi.fn(),
+}));
 
 const mockRoutingFormResponseRepository = {
   recordQueuedFormResponse: vi.fn(),
@@ -123,6 +133,8 @@ describe("handleResponse", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return mockRoutingFormResponseRepository as any;
     });
+    vi.mocked(getOrgIdFromMemberOrTeamId).mockResolvedValue(undefined);
+    vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: false });
   });
 
   it("should throw an Error for missing required fields", async () => {
@@ -670,6 +682,255 @@ describe("handleResponse", () => {
       expect(result.crmContactOwnerEmail).toEqual("crm-owner@example.com");
       // fallbackAction should be null because CRM contact owner was found
       expect(result.fallbackAction).toBeNull();
+    });
+  });
+
+  describe("Blocklist check", () => {
+    it("should return decoy response when email is blocked", async () => {
+      vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: true });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: mockForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(checkRoutingFormBlocklist).toHaveBeenCalledWith({
+        emails: ["john.doe@example.com"],
+        orgId: 2,
+      });
+      expect(result.isPreview).toBe(false);
+      expect(result.formResponse).toBeDefined();
+      expect(result.formResponse?.id).toBe(0);
+      expect(result.queuedFormResponse).toBeNull();
+      expect(result.fallbackAction).toEqual({
+        type: "customPageMessage",
+        value: DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE,
+      });
+      expect(mockRoutingFormResponseRepository.recordFormResponse).not.toHaveBeenCalled();
+      expect(onSubmissionOfFormResponse).not.toHaveBeenCalled();
+    });
+
+    it("should return queued decoy response when email is blocked and queueFormResponse is true", async () => {
+      vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: true });
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: mockForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+        queueFormResponse: true,
+      });
+
+      expect(result.formResponse).toBeNull();
+      expect(result.queuedFormResponse).toBeDefined();
+      expect(result.queuedFormResponse?.id).toBe("00000000-0000-0000-0000-000000000000");
+      expect(result.fallbackAction).toEqual({
+        type: "customPageMessage",
+        value: DEFAULT_FALLBACK_ROUTE_ACTION_MESSAGE,
+      });
+      expect(mockRoutingFormResponseRepository.recordQueuedFormResponse).not.toHaveBeenCalled();
+    });
+
+    it("should proceed normally when email is not blocked", async () => {
+      vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: false });
+      const dbFormResponse = {
+        id: 1,
+        uuid: "d8b4b7d2-3f45-4f67-9aa1-98c4b49cf283",
+        formId: mockForm.id,
+        response: mockResponse,
+        chosenRouteId: null,
+        formFillerId: "user1",
+        routedToBookingUid: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: mockForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(mockRoutingFormResponseRepository.recordFormResponse).toHaveBeenCalled();
+      expect(result.formResponse).toEqual(dbFormResponse);
+    });
+
+    it("should skip blocklist check in preview mode", async () => {
+      const result = await handleResponse({
+        response: mockResponse,
+        form: mockForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: true,
+      });
+
+      expect(checkRoutingFormBlocklist).not.toHaveBeenCalled();
+      expect(result.isPreview).toBe(true);
+      expect(result.formResponse?.id).toBe(0);
+    });
+
+    it("should resolve orgId for personal forms before blocklist check", async () => {
+      const personalForm: TargetRoutingFormForResponse = {
+        ...mockForm,
+        teamId: null,
+        team: null,
+      };
+      const resolvedOrgId = 1234;
+      vi.mocked(getOrgIdFromMemberOrTeamId).mockResolvedValue(resolvedOrgId);
+
+      const dbFormResponse = {
+        id: 1,
+        uuid: "personal-form-response",
+        formId: personalForm.id,
+        response: mockResponse,
+        chosenRouteId: null,
+        formFillerId: "user1",
+        routedToBookingUid: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+
+      await handleResponse({
+        response: mockResponse,
+        form: personalForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(getOrgIdFromMemberOrTeamId).toHaveBeenCalledWith({
+        memberId: personalForm.user.id,
+        teamId: personalForm.teamId,
+      });
+      expect(checkRoutingFormBlocklist).toHaveBeenCalledWith({
+        emails: ["john.doe@example.com"],
+        orgId: resolvedOrgId,
+      });
+    });
+
+    it("should proceed when orgId lookup fails for personal forms (fail-open)", async () => {
+      const personalForm: TargetRoutingFormForResponse = {
+        ...mockForm,
+        teamId: null,
+        team: null,
+      };
+      vi.mocked(getOrgIdFromMemberOrTeamId).mockRejectedValue(new Error("Transient DB error"));
+      vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: false });
+
+      const dbFormResponse = {
+        id: 1,
+        uuid: "personal-form-fail-open-response",
+        formId: personalForm.id,
+        response: mockResponse,
+        chosenRouteId: null,
+        formFillerId: "user1",
+        routedToBookingUid: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: personalForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(getOrgIdFromMemberOrTeamId).toHaveBeenCalledWith({
+        memberId: personalForm.user.id,
+        teamId: personalForm.teamId,
+      });
+      expect(checkRoutingFormBlocklist).toHaveBeenCalledWith({
+        emails: ["john.doe@example.com"],
+        orgId: null,
+      });
+      expect(result.formResponse).toEqual(dbFormResponse);
+    });
+
+    it("should skip blocklist check when form has no email fields", async () => {
+      const formWithoutEmail: TargetRoutingFormForResponse = {
+        ...mockForm,
+        fields: [
+          {
+            id: "name",
+            label: "Name",
+            type: "text" as const,
+            required: true,
+            identifier: "name",
+            placeholder: undefined,
+            selectText: undefined,
+            deleted: false,
+          },
+        ],
+      };
+
+      const dbFormResponse = {
+        id: 1,
+        uuid: "abc",
+        formId: formWithoutEmail.id,
+        response: { name: { value: "John", label: "Name" } },
+        chosenRouteId: null,
+        formFillerId: "user1",
+        routedToBookingUid: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+
+      await handleResponse({
+        response: { name: { value: "John", label: "Name" } },
+        form: formWithoutEmail,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(checkRoutingFormBlocklist).not.toHaveBeenCalled();
+    });
+
+    it("should proceed normally when blocklist check fails (fail-open)", async () => {
+      vi.mocked(checkRoutingFormBlocklist).mockResolvedValue({ isBlocked: false });
+      const dbFormResponse = {
+        id: 1,
+        uuid: "abc",
+        formId: mockForm.id,
+        response: mockResponse,
+        chosenRouteId: null,
+        formFillerId: "user1",
+        routedToBookingUid: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue(dbFormResponse);
+
+      const result = await handleResponse({
+        response: mockResponse,
+        form: mockForm,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      });
+
+      expect(mockRoutingFormResponseRepository.recordFormResponse).toHaveBeenCalled();
+      expect(result.formResponse).toEqual(dbFormResponse);
     });
   });
 });

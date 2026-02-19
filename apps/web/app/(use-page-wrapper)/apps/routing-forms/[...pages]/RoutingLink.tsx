@@ -128,7 +128,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         crmAppSlug,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
-      const decidedAction = chosenRoute.action;
+      const decidedAction = data.fallbackAction ?? chosenRoute.action;
       sdkActionManager?.fire("routed", {
         actionType: decidedAction.type,
         actionValue: decidedAction.value,

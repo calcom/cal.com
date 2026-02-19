@@ -1,5 +1,6 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { getEmailFromIdentifierKeyedResponse } from "@calcom/features/routing-forms/lib/getEmailFromIdentifierKeyedResponse";
 import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
@@ -21,17 +22,7 @@ export default async function routerGetCrmContactOwnerEmail({
 }) {
   if (attributeRoutingConfig?.skipContactOwner) return null;
 
-  let prospectEmail: string | null = null;
-  if (identifierKeyedResponse) {
-    for (const identifier of Object.keys(identifierKeyedResponse)) {
-      const fieldResponse = identifierKeyedResponse[identifier];
-      if (identifier === "email") {
-        prospectEmail =
-          fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
-        break;
-      }
-    }
-  }
+  const prospectEmail = getEmailFromIdentifierKeyedResponse(identifierKeyedResponse);
   if (!prospectEmail) return null;
 
   if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId)

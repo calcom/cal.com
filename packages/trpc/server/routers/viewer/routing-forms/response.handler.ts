@@ -2,9 +2,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { handleResponse } from "@calcom/features/routing-forms/lib/handleResponse";
 import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import type { PrismaClient } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TResponseInputSchema } from "./response.schema";
 
 interface ResponseHandlerOptions {
@@ -61,7 +59,8 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
   });
 
   // Save the pending trace
-  if (traceService) {
+  // Skip trace saving for blocked submissions as their IDs are decoy values
+  if (traceService && !result.isBlocked) {
     const formResponseId = result.formResponse?.id;
     const queuedFormResponseId = result.queuedFormResponse?.id;
 
@@ -72,7 +71,8 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     }
   }
 
-  return result;
+  const { isBlocked: _isBlocked, ...clientResult } = result;
+  return clientResult;
 };
 
 export default responseHandler;
