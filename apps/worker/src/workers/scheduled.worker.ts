@@ -1,4 +1,4 @@
-import { JobName } from "@calid/job-dispatcher";
+import { JobName, SleepSignal } from "@calid/job-dispatcher";
 import type { ScheduledJob } from "@calid/job-engine";
 import { type TriggerScheduledWebhookData } from "@calid/job-engine";
 // import type { SyncWhatsappTemplatesData } from "@calid/job-engine/src/scheduled/type.js";
@@ -26,18 +26,29 @@ export const SCHEDULED_WORKER_CONFIG = {
 export const scheduledWorker = new Worker<ScheduledJob>(
   QueueName.SCHEDULED,
   async (job) => {
-    const { name } = job;
+    try {
+      const { name } = job;
 
-    switch (job.name) {
-      case JobName.WEBHOOK_SCHEDULED_TRIGGER:
-        await triggerScheduledWebhookProcessor(job as Job<TriggerScheduledWebhookData>);
-        break;
+      switch (job.name) {
+        case JobName.WEBHOOK_SCHEDULED_TRIGGER:
+          await triggerScheduledWebhookProcessor(job as Job<TriggerScheduledWebhookData>);
+          break;
 
-      // case JobName.WHATSAPP_TEMPLATE_SYNC:
-      //   return syncWhatsappTemplatesProcessor(job as Job<SyncWhatsappTemplatesData>);
+        // case JobName.WHATSAPP_TEMPLATE_SYNC:
+        //   return syncWhatsappTemplatesProcessor(job as Job<SyncWhatsappTemplatesData>);
 
-      default:
-        throw new Error(`No processor registered for job type ${name}`);
+        default:
+          throw new Error(`No processor registered for job type ${name}`);
+      }
+    } catch (error) {
+      // Sleep signal is not an error - it's expected workflow behavior
+      if (error instanceof SleepSignal) {
+        console.log(`Job ${job.id} sleeping for ${error.duration}ms`);
+        return; // Success - job will resume after delay
+      }
+
+      // Real error - rethrow for retry logic
+      throw error;
     }
   },
   {

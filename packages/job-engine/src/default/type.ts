@@ -132,4 +132,30 @@ export interface BookingEmailsJobData {
   };
 }
 
-export type DefaultJob = BookingEmailJob | RazorpayAppRevokedJobData | RazorpayPaymentLinkPaidJobData;
+type PaymentAppCredentials = {
+  key: Prisma.JsonValue;
+  appId: string;
+  appDirName?: string;
+};
+
+type BookingData = {
+  user: { email: string | null; name: string | null; timeZone: string } | null;
+  id: number;
+  startTime: { toISOString: () => string };
+  uid: string;
+};
+
+export interface BookingPaymentReminderData {
+  evt: CalendarEvent;
+  booking: BookingData;
+  paymentData: Payment;
+  eventTypeMetadata?: EventTypeMetadata;
+  bookingSeatId?: BookingSeat["id"];
+  paymentAppCredentials: PaymentAppCredentials;
+}
+
+export type DefaultJob =
+  | BookingEmailJob
+  | RazorpayAppRevokedJobData
+  | RazorpayPaymentLinkPaidJobData
+  | BookingPaymentReminderData;

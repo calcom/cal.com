@@ -1,5 +1,5 @@
 import { SleepSignal, JobName } from "@calid/job-dispatcher";
-import type { DefaultJob } from "@calid/job-engine";
+import type { BookingPaymentReminderData, DefaultJob } from "@calid/job-engine";
 import {
   type RazorpayPaymentLinkPaidJobData,
   type RazorpayAppRevokedJobData,
@@ -10,6 +10,7 @@ import { Worker } from "bullmq";
 import type { Job } from "bullmq";
 
 import { processBookingEmails } from "../processors/default/bookingEmails.processor";
+import { bookingPaymentReminderProcessor } from "../processors/default/bookingPaymentReminder.processor";
 import { processRazorpayAppRevoked } from "../processors/default/razorpayAppRevoked.processor";
 import { processRazorpayPaymentLinkPaid } from "../processors/default/razorpayPaymentLinkPaid.processor";
 
@@ -37,6 +38,10 @@ export const defaultWorker = new Worker<DefaultJob>(
 
         case JobName.RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK:
           await processRazorpayPaymentLinkPaid(job as Job<RazorpayPaymentLinkPaidJobData>);
+          break;
+
+        case JobName.BOOKING_PAYMENT_REMINDER:
+          await bookingPaymentReminderProcessor(job as Job<BookingPaymentReminderData>);
           break;
 
         case JobName.BOOKING_EMAILS_SCHEDULED:

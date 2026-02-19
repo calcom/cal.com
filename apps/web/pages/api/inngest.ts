@@ -4,15 +4,20 @@ import {
   bookingExportService,
   razorpayAppRevokedService,
   razorpayPaymentLinkPaidService,
+  bookingPaymentReminderService,
   bookingEmailsService,
   WebhookNotFoundError,
   WebhookRejectedError,
   WebhookTriggerError,
   triggerScheduledWebhookService,
+  BookingNotFoundError,
+  PaymentAppNotFoundError,
+  PaymentReminderError,
 } from "@calid/job-engine";
 import type {
   BookingEmailsJobData,
   BookingExportJobData,
+  BookingPaymentReminderData,
   CalendlyImportJobData,
   RazorpayAppRevokedJobData,
   RazorpayPaymentLinkPaidJobData,
@@ -21,8 +26,9 @@ import type {
 import { NonRetriableError } from "inngest";
 import { serve } from "inngest/next";
 
+import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
-import bookingPaymentReminderHandler from "@calcom/lib/payment/bookingPaymentReminder";
+import prisma from "@calcom/prisma";
 
 import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
@@ -177,6 +183,40 @@ export const handleScheduledWebhookTrigger = inngestClient.createFunction(
   }
 );
 
+export const triggerBookingPaymentReminder = inngestClient.createFunction(
+  {
+    id: `booking-payment-reminder-${key}`,
+    name: "Send Booking payment reminder",
+  },
+  {
+    event: `${JobName.BOOKING_PAYMENT_REMINDER}-${key}`,
+  },
+  async ({ event, step, logger }) => {
+    const data = event.data as BookingPaymentReminderData;
+
+    // Create workflow context from Inngest step + logger
+    const workflow = createInngestWorkflowContext(step, logger);
+
+    try {
+      const result = await bookingPaymentReminderService(data, prisma, workflow);
+      return result;
+    } catch (error) {
+      // ── Permanent failures ────────────────────────────────────────────
+      if (error instanceof BookingNotFoundError || error instanceof PaymentAppNotFoundError) {
+        throw new NonRetriableError(error.message);
+      }
+
+      // ── Transient failures ────────────────────────────────────────────
+      if (error instanceof PaymentReminderError) {
+        throw error;
+      }
+
+      // ── Unexpected errors ─────────────────────────────────────────────
+      throw error;
+    }
+  }
+);
+
 const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
   { id: `whatsapp-template-sync-${key}`, retries: 2 },
   { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
@@ -202,15 +242,6 @@ const handleWhatsappReminderScheduled = inngestClient.createFunction(
     event: `whatsapp/reminder.scheduled-${key}`,
   },
   whatsappReminderScheduled
-);
-
-export const triggerBookingPaymentReminder = inngestClient.createFunction(
-  {
-    id: `booking-payment-reminder-${key}`,
-    name: "Send Booking payment reminder",
-  },
-  { event: `booking/payment-reminder-${key}` },
-  bookingPaymentReminderHandler
 );
 
 export default serve({

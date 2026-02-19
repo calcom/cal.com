@@ -1,6 +1,7 @@
 export * from "./default/razorpayAppRevoked.service";
 export * from "./default/razorpayPaymentLinkPaid.service";
 export * from "./default/bookingEmails.service";
+export * from "./default/bookingPaymentReminder.service";
 export * from "./default/type";
 
 export * from "./data-sync/calendarSync.service";
