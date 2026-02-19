@@ -1,7 +1,6 @@
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type AdminGetAllOptions = {
@@ -22,6 +21,11 @@ export const adminGetUnverifiedHandler = async (_opts: AdminGetAllOptions) => {
       slug: true,
       metadata: true,
       organizationSettings: true,
+      organizationBilling: {
+        select: {
+          planName: true,
+        },
+      },
       members: {
         where: {
           role: "OWNER",

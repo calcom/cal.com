@@ -393,6 +393,12 @@ export class OrganizationRepository {
             orgAutoAcceptEmail: true,
           },
         },
+        organizationBilling: {
+          select: {
+            subscriptionId: true,
+            planName: true,
+          },
+        },
       },
     });
     if (!org) {

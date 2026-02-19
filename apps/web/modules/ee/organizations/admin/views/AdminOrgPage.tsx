@@ -1,15 +1,36 @@
 "use client";
 
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { DropdownActions, Table } from "@calcom/ui/components/table";
+import { Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
+import {
+  Menu,
+  MenuItem,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuSub,
+  MenuSubPopup,
+  MenuSubTrigger,
+  MenuTrigger,
+} from "@coss/ui/components/menu";
+import {
+  BookOpenCheckIcon,
+  CheckCheckIcon,
+  CheckIcon,
+  CreditCardIcon,
+  PencilIcon,
+  TerminalIcon,
+  TrashIcon,
+} from "@coss/ui/icons";
+import { useState } from "react";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 
@@ -43,7 +64,10 @@ export function AdminOrgTable() {
   const publishOrg = async (org: (typeof data)[number]) => {
     if (!org.metadata?.requestedSlug) {
       showToast(t("could_not_find_slug_to_publish_org"), "error");
-      console.error("metadata.requestedSlug isn't set", org.metadata?.requestedSlug);
+      console.error(
+        "metadata.requestedSlug isn't set",
+        org.metadata?.requestedSlug
+      );
       return;
     }
     updateMutation.mutate({
@@ -52,15 +76,21 @@ export function AdminOrgTable() {
     });
   };
 
-  const [orgToDelete, setOrgToDelete] = useState<(typeof data)[number] | null>(null);
+  const [orgToDelete, setOrgToDelete] = useState<(typeof data)[number] | null>(
+    null
+  );
   return (
     <div>
       <Table>
         <Header>
-          <ColumnTitle widthClassNames="w-auto">{t("organization")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">
+            {t("organization")}
+          </ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("owner")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("reviewed")}</ColumnTitle>
-          <ColumnTitle widthClassNames="w-auto">{t("dns_configured")}</ColumnTitle>
+          <ColumnTitle widthClassNames="w-auto">
+            {t("dns_configured")}
+          </ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("published")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">{t("admin_api")}</ColumnTitle>
           <ColumnTitle widthClassNames="w-auto">
@@ -81,7 +111,9 @@ export function AdminOrgTable() {
               </Cell>
               <Cell widthClassNames="w-auto">
                 <span className="break-all">
-                  {org.members.length ? org.members[0].user.email : "No members"}
+                  {org.members.length
+                    ? org.members[0].user.email
+                    : "No members"}
                 </span>
               </Cell>
               <Cell>
@@ -122,85 +154,121 @@ export function AdminOrgTable() {
               </Cell>
               <Cell widthClassNames="w-auto">
                 <div className="flex w-full justify-end">
-                  <DropdownActions
-                    actions={[
-                      ...(!org.organizationSettings?.isAdminReviewed
-                        ? [
-                            {
-                              id: "review",
-                              label: t("review"),
-                              onClick: () => {
-                                updateMutation.mutate({
-                                  id: org.id,
-                                  organizationSettings: {
-                                    isAdminReviewed: true,
-                                  },
-                                });
+                  <Menu>
+                    <MenuTrigger
+                      render={
+                        <Button
+                          type="button"
+                          color="secondary"
+                          variant="icon"
+                          StartIcon="ellipsis"
+                        />
+                      }
+                    />
+                    <MenuPopup align="end">
+                      {!org.organizationSettings?.isAdminReviewed && (
+                        <MenuItem
+                          onClick={() => {
+                            updateMutation.mutate({
+                              id: org.id,
+                              organizationSettings: {
+                                isAdminReviewed: true,
                               },
-                              icon: "check" as const,
-                            },
-                          ]
-                        : []),
-                      ...(!org.organizationSettings?.isOrganizationConfigured
-                        ? [
-                            {
-                              id: "dns",
-                              label: t("mark_dns_configured"),
-                              onClick: () => {
-                                updateMutation.mutate({
-                                  id: org.id,
-                                  organizationSettings: {
-                                    isOrganizationConfigured: true,
-                                  },
-                                });
+                            });
+                          }}
+                        >
+                          <CheckIcon />
+                          {t("review")}
+                        </MenuItem>
+                      )}
+                      {!org.organizationSettings?.isOrganizationConfigured && (
+                        <MenuItem
+                          onClick={() => {
+                            updateMutation.mutate({
+                              id: org.id,
+                              organizationSettings: {
+                                isOrganizationConfigured: true,
                               },
-                              icon: "check-check" as const,
-                            },
-                          ]
-                        : []),
-                      {
-                        id: "edit",
-                        label: t("edit"),
-                        href: `/settings/admin/organizations/${org.id}/edit`,
-                        icon: "pencil" as const,
-                      },
-                      ...(!org.slug
-                        ? [
-                            {
-                              id: "publish",
-                              label: t("publish"),
-                              onClick: () => {
-                                publishOrg(org);
-                              },
-                              icon: "book-open-check" as const,
-                            },
-                          ]
-                        : []),
-                      {
-                        id: "api",
-                        label: org.organizationSettings?.isAdminAPIEnabled
-                          ? t("revoke_admin_api")
-                          : t("grant_admin_api"),
-                        onClick: () => {
+                            });
+                          }}
+                        >
+                          <CheckCheckIcon />
+                          {t("mark_dns_configured")}
+                        </MenuItem>
+                      )}
+                      <MenuItem
+                        render={
+                          <a
+                            href={`/settings/admin/organizations/${org.id}/edit`}
+                          />
+                        }
+                      >
+                        <PencilIcon />
+                        {t("edit")}
+                      </MenuItem>
+                      {!org.slug && (
+                        <MenuItem onClick={() => publishOrg(org)}>
+                          <BookOpenCheckIcon />
+                          {t("publish")}
+                        </MenuItem>
+                      )}
+                      <MenuItem
+                        onClick={() => {
                           updateMutation.mutate({
                             id: org.id,
                             organizationSettings: {
-                              isAdminAPIEnabled: !org.organizationSettings?.isAdminAPIEnabled,
+                              isAdminAPIEnabled:
+                                !org.organizationSettings?.isAdminAPIEnabled,
                             },
                           });
-                        },
-                        icon: "terminal" as const,
-                      },
-                      {
-                        id: "delete",
-                        label: t("delete"),
-                        onClick: () => {
-                          setOrgToDelete(org);
-                        },
-                        icon: "trash" as const,
-                      },
-                    ]}
-                  />
+                        }}
+                      >
+                        <TerminalIcon />
+                        {org.organizationSettings?.isAdminAPIEnabled
+                          ? t("revoke_admin_api")
+                          : t("grant_admin_api")}
+                      </MenuItem>
+                      {org.organizationBilling && (
+                        <>
+                          <MenuSeparator />
+                          <MenuSub>
+                            <MenuSubTrigger>
+                              <CreditCardIcon />
+                              Plan
+                            </MenuSubTrigger>
+                            <MenuSubPopup>
+                              <MenuRadioGroup
+                                value={org.organizationBilling.planName}
+                                onValueChange={(value) => {
+                                  updateMutation.mutate({
+                                    id: org.id,
+                                    billingPlan: value as
+                                      | "ORGANIZATION"
+                                      | "ENTERPRISE",
+                                  });
+                                }}
+                              >
+                                <MenuRadioItem value="ORGANIZATION">
+                                  Organization
+                                </MenuRadioItem>
+                                <MenuRadioItem value="ENTERPRISE">
+                                  Enterprise
+                                </MenuRadioItem>
+                              </MenuRadioGroup>
+                            </MenuSubPopup>
+                          </MenuSub>
+                        </>
+                      )}
+                      <MenuSeparator />
+                      <MenuItem
+                        variant="destructive"
+                        onClick={() => setOrgToDelete(org)}
+                      >
+                        <TrashIcon />
+                        {t("delete")}
+                      </MenuItem>
+                    </MenuPopup>
+                  </Menu>
                 </div>
               </Cell>
             </Row>
@@ -241,7 +309,11 @@ const DeleteOrgDialog = ({
   }
   return (
     // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
-    <Dialog name="delete-user" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
+    <Dialog
+      name="delete-user"
+      open={!!org.id}
+      onOpenChange={(open) => (open ? () => {} : onClose())}
+    >
       <ConfirmationDialogContent
         title={t("admin_delete_organization_title", {
           organizationName: org.name,
@@ -249,7 +321,8 @@ const DeleteOrgDialog = ({
         confirmBtnText={t("delete")}
         cancelBtnText={t("cancel")}
         variety="danger"
-        onConfirm={onConfirm}>
+        onConfirm={onConfirm}
+      >
         <ul className="stack-y-2 ml-4 mt-5 list-disc">
           <li>{t("admin_delete_organization_description_1")}</li>
           <li>{t("admin_delete_organization_description_2")}</li>
@@ -261,7 +334,10 @@ const DeleteOrgDialog = ({
   );
 };
 
-async function invalidateQueries(utils: ReturnType<typeof trpc.useUtils>, data: { orgId: number }) {
+async function invalidateQueries(
+  utils: ReturnType<typeof trpc.useUtils>,
+  data: { orgId: number }
+) {
   await utils.viewer.organizations.adminGetAll.invalidate();
   await utils.viewer.organizations.adminGet.invalidate({
     id: data.orgId,

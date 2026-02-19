@@ -1,5 +1,6 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -13,6 +14,7 @@ export const ZAdminUpdate = z.object({
   name: z.string().optional(),
   slug: z.string().nullish(),
   organizationSettings: orgSettingsSchema.unwrap().optional(),
+  billingPlan: z.enum(["ORGANIZATION", "ENTERPRISE"]).optional(),
 });
 
 export type TAdminUpdate = z.infer<typeof ZAdminUpdate>;
@@ -26,7 +28,7 @@ export class AdminOrganizationUpdateService {
   constructor(private readonly deps: AdminOrganizationUpdateServiceDeps) {}
 
   async updateOrganization(input: TAdminUpdate) {
-    const { id, organizationSettings, ...restInput } = input;
+    const { id, organizationSettings, billingPlan, ...restInput } = input;
     const { organizationRepository } = this.deps;
 
     const existingOrg = await organizationRepository.findByIdIncludeOrganizationSettings({ id });
@@ -127,7 +129,34 @@ export class AdminOrganizationUpdateService {
       return updatedOrganization;
     });
 
+    if (billingPlan) {
+      await this.updateBillingPlan(id, billingPlan);
+    }
+
     return updatedOrganization;
+  }
+
+  private async updateBillingPlan(organizationId: number, planName: string) {
+    const billing = await this.deps.prismaClient.organizationBilling.findFirst({
+      where: { teamId: organizationId },
+      select: { id: true, subscriptionId: true },
+    });
+
+    if (!billing) {
+      throw new HttpError({
+        message: "No billing record found for this organization",
+        statusCode: 404,
+      });
+    }
+
+    await this.deps.prismaClient.organizationBilling.update({
+      where: { id: billing.id },
+      data: { planName },
+    });
+
+    await stripe.subscriptions.update(billing.subscriptionId, {
+      metadata: { planName },
+    });
   }
 }
 
