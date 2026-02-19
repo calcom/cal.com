@@ -25,8 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Validate teamId before using it: Number(undefined) = NaN, which Prisma rejects with a 500.
   // Parse it first and gate all team-scoped logic on the valid numeric result.
+  // Additionally, teamId must be > 0 since 0 is not a valid team ID in the database.
   const teamIdNum = teamId !== undefined ? Number(teamId) : null;
-  if (teamId !== undefined && (isNaN(teamIdNum as number) || !Number.isInteger(teamIdNum))) {
+  if (teamId !== undefined && (isNaN(teamIdNum as number) || !Number.isInteger(teamIdNum) || (teamIdNum as number) <= 0)) {
     return res.status(400).json({ message: "Invalid teamId" });
   }
 

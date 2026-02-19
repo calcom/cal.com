@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -11,17 +11,22 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { appKeysSchema, type AppKeys } from "../../zod";
 
-const CHECKSUM_OPTIONS = [
-  { value: "sha256", label: "SHA-256 (recommended)" },
-  { value: "sha512", label: "SHA-512" },
-  { value: "sha384", label: "SHA-384" },
-  { value: "sha1", label: "SHA-1 (legacy)" },
-] as const;
-
 export default function BigBlueButtonSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Build checksum options using translated labels so they can be localized.
+  // Previously hardcoded English labels broke word order for non-English locales.
+  const checksumOptions = useMemo(
+    () => [
+      { value: "sha256" as const, label: t("bigbluebutton_checksum_sha256") },
+      { value: "sha512" as const, label: t("bigbluebutton_checksum_sha512") },
+      { value: "sha384" as const, label: t("bigbluebutton_checksum_sha384") },
+      { value: "sha1" as const, label: t("bigbluebutton_checksum_sha1") },
+    ],
+    [t]
+  );
 
   const form = useForm<AppKeys>({
     resolver: zodResolver(appKeysSchema),
@@ -84,11 +89,11 @@ export default function BigBlueButtonSetup() {
 
             <SelectField
               label={t("bigbluebutton_checksum_algorithm")}
-              options={CHECKSUM_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+              options={checksumOptions}
               onChange={(option) => {
                 if (option) form.setValue("checksumAlgorithm", option.value as AppKeys["checksumAlgorithm"]);
               }}
-              defaultValue={CHECKSUM_OPTIONS[0]}
+              defaultValue={checksumOptions[0]}
             />
 
             <div className="mt-2 flex items-center justify-end space-x-2">

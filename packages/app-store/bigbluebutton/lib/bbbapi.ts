@@ -360,6 +360,12 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
   const port = parsed.port ? parseInt(parsed.port, 10) : 443;
   const path = parsed.pathname + parsed.search;
 
+  // Build the Host header value: hostname + port (if non-default for HTTPS).
+  // The Host header must include the port when it differs from the default
+  // (443 for HTTPS), otherwise virtual-host routing and some reverse proxies
+  // may fail to route the request correctly.
+  const hostHeader = parsed.port ? `${originalHostname}:${parsed.port}` : originalHostname;
+
   return new Promise((resolve, reject) => {
     const req = https.request(
       {
@@ -375,7 +381,8 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
         servername: originalHostname,
         // Set the Host header so the BBB server's virtual-host routing picks the
         // correct vhost (same reason as servername, but at HTTP layer).
-        headers: { Host: originalHostname },
+        // Include the port if present to ensure correct routing.
+        headers: { Host: hostHeader },
       },
       (res) => {
         const chunks: Buffer[] = [];
