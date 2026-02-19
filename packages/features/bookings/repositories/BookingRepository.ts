@@ -930,6 +930,31 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findByUidIncludeEventTypeAndWorkflowReminders({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        status: true,
+        startTime: true,
+        endTime: true,
+        iCalSequence: true,
+        eventType: {
+          select: {
+            id: true,
+            disableCancelling: true,
+            disableRescheduling: true,
+          },
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+      },
+    });
+  }
+
   async findByIdIncludeUserAndAttendees(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
