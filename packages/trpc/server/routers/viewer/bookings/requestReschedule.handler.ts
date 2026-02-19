@@ -6,7 +6,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -47,7 +47,7 @@ type RequestRescheduleOptions = {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRequestRescheduleInputSchema;
-  source: ActionSource;
+  source: ValidActionSource;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
