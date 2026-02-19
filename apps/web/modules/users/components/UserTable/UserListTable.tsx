@@ -489,8 +489,7 @@ function UserListTableContent({
           const permissionsForUser = {
             canEdit:
               ((permissionsRaw.canEdit ?? false) || (permissions?.canEditAttributesForUser ?? false)) &&
-              user.accepted &&
-              !isSelf,
+              user.accepted,
             canRemove: (permissionsRaw.canRemove ?? false) && !isSelf,
             canImpersonate:
               user.accepted &&

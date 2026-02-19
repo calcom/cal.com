@@ -259,16 +259,16 @@ function MemberListContent(props: Props) {
         teamId: teamIds[0],
         searchTerm,
       });
-      const deletedUserEmail = state.deleteMember.user?.id;
+      const deletedUserId = state.deleteMember.user?.id;
       if (previousValue) {
         removeMemberFromCache({
           utils,
-          memberId: deletedUserEmail as number,
+          memberId: deletedUserId as number,
           teamId: teamIds[0],
           searchTerm,
         });
       }
-      return { previousValue, deletedUserEmail };
+      return { previousValue, deletedUserId };
     },
     async onSuccess(data, variables, context) {
       await utils.viewer.teams.get.invalidate();
@@ -276,9 +276,9 @@ function MemberListContent(props: Props) {
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
-      const { previousValue: _previousValue, deletedUserEmail } = context;
-      const currentUserEmail = session?.user.id;
-      const isSelf = deletedUserEmail === currentUserEmail;
+      const { previousValue: _previousValue, deletedUserId } = context;
+      const currentUserId = session?.user.id;
+      const isSelf = deletedUserId === currentUserId;
       if (isSelf) {
         router.push("/teams");
       }
