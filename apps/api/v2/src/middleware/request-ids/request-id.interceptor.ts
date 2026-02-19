@@ -1,7 +1,8 @@
-import { extractUserContext } from "@/lib/extract-user-context";
-import { CallHandler, ExecutionContext, Injectable, NestInterceptor, Logger } from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { Request, Response } from "express";
 import { tap } from "rxjs/operators";
+import { extractUserContext } from "@/lib/extract-user-context";
+import { stripPiiFromResponseData } from "@/lib/strip-pii";
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -27,7 +28,8 @@ export class ResponseInterceptor implements NestInterceptor {
 
         try {
           if (data && typeof data === "object") {
-            jsonBodyString = JSON.stringify(data);
+            const sanitizedData = stripPiiFromResponseData(data as Record<string, unknown>);
+            jsonBodyString = JSON.stringify(sanitizedData);
           }
         } catch (err) {
           this.logger.error("Could not parse request body");
