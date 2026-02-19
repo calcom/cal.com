@@ -1,5 +1,7 @@
 import appConfig from "@/config/app";
 import { AuthMethods } from "@/lib/enums/auth-methods";
+import { oAuthServiceModule } from "@/lib/modules/oauth.module";
+import { OAuthService } from "@/lib/services/oauth.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
@@ -21,6 +23,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { createRequest } from "node-mocks-http";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuth2ClientRepositoryFixture } from "test/fixtures/repository/oauth2-client.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -30,7 +33,9 @@ import { MockedRedisService } from "test/mocks/mock-redis-service";
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { generateSecret } from "@calcom/platform-libraries";
 import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 
 import {
   ApiAuthGuardRequest,
@@ -50,17 +55,43 @@ describe("ApiAuthStrategy", () => {
   let oAuthClientTwo: PlatformOAuthClient;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let oAuthClientRepositoryFixture: OAuthClientRepositoryFixture;
+  let oAuth2ClientFixture: OAuth2ClientRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
   let membershipRepositoryFixture: MembershipRepositoryFixture;
+  let oAuthService: OAuthService;
 
   const validApiKeyEmail = `api-auth-api-key-user-${randomString()}@api.com`;
   const validAccessTokenEmail = `api-auth-access-token-user-${randomString()}@api.com`;
   const validOAuthEmail = `api-auth-oauth-user-${randomString()}@api.com`;
 
+  const thirdPartyClientId = `api-auth-third-party-${randomString()}`;
+  const thirdPartyClientSecret = "third-party-secret";
+  const thirdPartyRedirectUri = "https://example.com/callback";
+
   let validApiKeyUser: User;
   let validAccessTokenUser: User;
   let validOAuthUser: User;
   let module: TestingModule;
+
+  async function getThirdPartyAccessToken(userId: number, scopes: AccessScope[]): Promise<string> {
+    const result = await oAuthService.generateAuthorizationCode(
+      thirdPartyClientId,
+      userId,
+      thirdPartyRedirectUri,
+      scopes
+    );
+    const redirectUrl = new URL(result.redirectUrl);
+    const code = redirectUrl.searchParams.get("code") as string;
+
+    const tokens = await oAuthService.exchangeCodeForTokens(
+      thirdPartyClientId,
+      code,
+      thirdPartyClientSecret,
+      thirdPartyRedirectUri
+    );
+
+    return tokens.accessToken;
+  }
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -73,6 +104,7 @@ describe("ApiAuthStrategy", () => {
         ProfilesModule,
         TokensModule,
         MembershipsModule,
+        oAuthServiceModule,
       ],
       providers: [
         MockedRedisService,
@@ -93,11 +125,13 @@ describe("ApiAuthStrategy", () => {
     }).compile();
 
     strategy = module.get<ApiAuthStrategy>(ApiAuthStrategy);
+    oAuthService = module.get<OAuthService>(OAuthService);
     userRepositoryFixture = new UserRepositoryFixture(module);
     tokensRepositoryFixture = new TokensRepositoryFixture(module);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(module);
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
+    oAuth2ClientFixture = new OAuth2ClientRepositoryFixture(module);
     profilesRepositoryFixture = new ProfileRepositoryFixture(module);
     membershipRepositoryFixture = new MembershipRepositoryFixture(module);
     organization = await teamRepositoryFixture.create({ name: `api-auth-organization-1-${randomString()}` });
@@ -152,6 +186,16 @@ describe("ApiAuthStrategy", () => {
     };
     oAuthClient = await oAuthClientRepositoryFixture.create(organization.id, data, "secret");
     oAuthClientTwo = await oAuthClientRepositoryFixture.create(organizationTwo.id, data, "secret");
+
+    const [hashedSecret] = generateSecret(thirdPartyClientSecret);
+    await oAuth2ClientFixture.create({
+      clientId: thirdPartyClientId,
+      name: "Third Party E2E Test Client",
+      redirectUri: thirdPartyRedirectUri,
+      clientSecret: hashedSecret,
+      clientType: OAuthClientType.CONFIDENTIAL,
+      userId: validOAuthUser.id,
+    });
   });
 
   describe("authenticate with strategy", () => {
@@ -360,9 +404,34 @@ describe("ApiAuthStrategy", () => {
         }
       }
     });
+
+    it("should set authMethod to THIRD_PARTY_ACCESS_TOKEN for a valid third-party access token", async () => {
+      const thirdPartyToken = await getThirdPartyAccessToken(validOAuthUser.id, [AccessScope.PROFILE_READ]);
+
+      const mockRequest = {
+        params: {},
+        get: (key: string) => {
+          const headers: Record<string, string> = {
+            Authorization: `Bearer ${thirdPartyToken}`,
+          };
+          return headers[key];
+        },
+        authMethod: undefined as AuthMethods | undefined,
+        organizationId: null as number | null,
+        allowedAuthMethods: undefined,
+      } as unknown as ApiAuthGuardRequest;
+
+      strategy.success = jest.fn();
+
+      await strategy.authenticate(mockRequest);
+
+      expect(strategy.success).toHaveBeenCalled();
+      expect(mockRequest.authMethod).toEqual(AuthMethods["THIRD_PARTY_ACCESS_TOKEN"]);
+    });
   });
 
   afterAll(async () => {
+    await oAuth2ClientFixture.delete(thirdPartyClientId);
     await oAuthClientRepositoryFixture.delete(oAuthClient.id);
     await userRepositoryFixture.delete(validApiKeyUser.id);
     await userRepositoryFixture.delete(validAccessTokenUser.id);

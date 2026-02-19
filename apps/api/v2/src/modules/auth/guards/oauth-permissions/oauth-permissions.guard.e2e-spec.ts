@@ -227,6 +227,95 @@ describe("OAuth Permissions Guard E2E", () => {
     });
   });
 
+  describe("role-protected endpoints with third-party tokens", () => {
+    let memberUser: User;
+    let memberTeamMembership: Membership;
+    let memberOrgMembership: Membership;
+
+    async function getAccessTokenForUser(userId: number, scopes: AccessScope[]): Promise<string> {
+      const result = await oAuthService.generateAuthorizationCode(
+        testClientId,
+        userId,
+        testRedirectUri,
+        scopes
+      );
+      const redirectUrl = new URL(result.redirectUrl);
+      const code = redirectUrl.searchParams.get("code") as string;
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: testClientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(200);
+
+      return response.body.access_token;
+    }
+
+    beforeAll(async () => {
+      const uniqueId = randomString();
+
+      memberUser = await userRepositoryFixture.create({
+        email: `scope-e2e-member-${uniqueId}@api.com`,
+        username: `scope-e2e-member-${uniqueId}`,
+      });
+
+      memberTeamMembership = await membershipRepositoryFixture.create({
+        user: { connect: { id: memberUser.id } },
+        team: { connect: { id: standaloneTeam.id } },
+        role: MembershipRole.MEMBER,
+        accepted: true,
+      });
+
+      memberOrgMembership = await membershipRepositoryFixture.create({
+        user: { connect: { id: memberUser.id } },
+        team: { connect: { id: org.id } },
+        role: MembershipRole.MEMBER,
+        accepted: true,
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${memberUser.id}`,
+        username: memberUser.email!,
+        organization: { connect: { id: org.id } },
+        user: { connect: { id: memberUser.id } },
+      });
+    });
+
+    it("should allow MEMBER to access @Roles('TEAM_ADMIN') endpoint with TEAM_SCHEDULE_READ scope", async () => {
+      const token = await getAccessTokenForUser(memberUser.id, [AccessScope.TEAM_SCHEDULE_READ]);
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/teams/${standaloneTeam.id}/schedules`)
+        .set({ Authorization: `Bearer ${token}` })
+        .expect(200);
+
+      expect(response.body.status).toBe("success");
+    });
+
+    it("should allow MEMBER to access @Roles('ORG_ADMIN') endpoint with ORG_PROFILE_READ scope", async () => {
+      const token = await getAccessTokenForUser(memberUser.id, [AccessScope.ORG_PROFILE_READ]);
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/organizations/${org.id}/teams`)
+        .set({ Authorization: `Bearer ${token}` })
+        .expect(200);
+
+      expect(response.body.status).toBe("success");
+    });
+
+    afterAll(async () => {
+      await membershipRepositoryFixture.delete(memberOrgMembership.id);
+      await membershipRepositoryFixture.delete(memberTeamMembership.id);
+      await userRepositoryFixture.delete(memberUser.id);
+    });
+  });
+
   describe("org endpoints", () => {
     describe("positive", () => {
       it("should allow GET /organizations/:orgId/teams/:teamId with TEAM_PROFILE_READ scope", async () => {
