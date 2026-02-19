@@ -1,6 +1,7 @@
 import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { HttpException, Injectable, NotFoundException } from "@nestjs/common";
+import { BookingAttendeeItem_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
@@ -18,21 +19,73 @@ export class BookingAttendeesService_2024_08_13 {
     this.bookingAttendeesService = new BookingAttendeesService();
   }
 
+  async getBookingAttendees(
+    bookingUid: string
+  ): Promise<BookingAttendeeOutput_2024_08_13[]> {
+    const attendees = await this.bookingAttendeesService.getBookingAttendees(
+      bookingUid
+    );
+
+    return attendees.map((attendee) =>
+      plainToClass(
+        BookingAttendeeOutput_2024_08_13,
+        {
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale ?? undefined,
+          absent: attendee.noShow ?? false,
+          phoneNumber: attendee.phoneNumber ?? undefined,
+        },
+        { strategy: "excludeAll" }
+      )
+    );
+  }
+
+  async getBookingAttendee(
+    bookingUid: string,
+    attendeeId: number
+  ): Promise<BookingAttendeeItem_2024_08_13> {
+    const attendee = await this.bookingAttendeesService.getBookingAttendee(
+      bookingUid,
+      attendeeId
+    );
+
+    return plainToClass(
+      BookingAttendeeItem_2024_08_13,
+      {
+        id: attendee.id,
+        bookingId: attendee.bookingId,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+      },
+      { strategy: "excludeAll" }
+    );
+  }
+
   async addAttendee(
     bookingUid: string,
     input: AddAttendeeInput_2024_08_13,
     user: ApiAuthGuardUser
   ): Promise<BookingAttendeeOutput_2024_08_13> {
-    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithEventType(
+      bookingUid
+    );
     if (!booking) {
       throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
     }
 
     const platformClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      ? await this.platformBookingsService.getOAuthClientParams(
+          booking.eventTypeId
+        )
       : undefined;
 
-    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+    const emailsEnabled = platformClientParams
+      ? platformClientParams.arePlatformEmailsEnabled
+      : true;
 
     const createdAttendee = await this.bookingAttendeesService.addAttendee({
       bookingId: booking.id,

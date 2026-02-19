@@ -5,7 +5,13 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import logger from "@calcom/lib/logger";
-import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+import { prisma } from "@calcom/prisma";
+import type {
+  Booking,
+  TUser,
+} from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+
 import {
   buildCalendarEvent,
   getBooking,
@@ -41,6 +47,41 @@ export type CreatedAttendee = {
 };
 
 export class BookingAttendeesService {
+  async getBookingAttendees(bookingUid: string) {
+    const bookingRepository = new BookingRepository(prisma);
+    const booking =
+      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid,
+      });
+
+    if (!booking) {
+      throw new Error(`Booking with uid ${bookingUid} not found`);
+    }
+
+    return booking.attendees;
+  }
+
+  async getBookingAttendee(bookingUid: string, attendeeId: number) {
+    const bookingRepository = new BookingRepository(prisma);
+    const booking =
+      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid,
+      });
+
+    if (!booking) {
+      throw new Error(`Booking with uid ${bookingUid} not found`);
+    }
+
+    const attendee = booking.attendees.find((a) => a.id === attendeeId);
+    if (!attendee) {
+      throw new Error(
+        `Attendee with id ${attendeeId} not found in booking ${bookingUid}`
+      );
+    }
+
+    return { ...attendee, bookingId: booking.id };
+  }
+
   async addAttendee({
     bookingId,
     attendee,
@@ -56,7 +97,10 @@ export class BookingAttendeesService {
 
     const organizer = await getOrganizerData(booking.userId);
 
-    const validatedAttendees = await sanitizeAndFilterGuests([attendee], booking);
+    const validatedAttendees = await sanitizeAndFilterGuests(
+      [attendee],
+      booking
+    );
 
     const newAttendeeDetails = validatedAttendees.map((a) => ({
       name: a.name || "",
@@ -89,7 +133,10 @@ export class BookingAttendeesService {
     const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await featuresRepository.checkIfTeamHasFeature(
+          organizationId,
+          "booking-audit"
+        )
       : false;
 
     await bookingEventHandlerService.onAttendeeAdded({
@@ -134,7 +181,9 @@ export class BookingAttendeesService {
     await emailsAndSmsHandler.handleAddAttendee({
       evt,
       eventType: {
-        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(
+          booking?.eventType?.metadata
+        ),
         schedulingType: booking.eventType?.schedulingType || null,
       },
       newGuests: [attendeeEmail],
