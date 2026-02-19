@@ -260,6 +260,10 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");
+        expect(attendee).toHaveProperty("displayEmail");
+        expect(attendee).toHaveProperty("language");
+        expect(attendee).toHaveProperty("absent");
+        expect(attendee).toHaveProperty("phoneNumber");
       });
     });
   });
@@ -352,6 +356,10 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");
+        expect(attendee).toHaveProperty("displayEmail");
+        expect(attendee).toHaveProperty("language");
+        expect(attendee).toHaveProperty("absent");
+        expect(attendee).toHaveProperty("phoneNumber");
       });
     });
   });
