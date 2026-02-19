@@ -9,7 +9,7 @@ import type {
   TranslationWithParams,
   GetDisplayTitleParams,
 } from "./IAuditActionService";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 /**
  * Location Changed Audit Action Service
  * Handles LOCATION_CHANGED action with per-action versioning
