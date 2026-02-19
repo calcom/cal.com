@@ -177,8 +177,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Pbac(["eventType.read"])
-  @UseGuards(IsOrgGuard, PbacGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
+  @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
   @ApiOperation({
     summary: "Get team event types",
