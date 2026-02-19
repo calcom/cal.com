@@ -21,3 +21,5 @@ export { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/li
 export { BookingAttendeesService } from "@calcom/features/bookings/services/BookingAttendeesService";
 export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
