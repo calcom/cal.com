@@ -752,10 +752,15 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
-  const paymentAppData = getPaymentAppData({
-    ...eventType,
-    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
-  });
+  const bookingDurationMinutes = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes");
+  const paymentAppData = getPaymentAppData(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    undefined,
+    { duration: bookingDurationMinutes }
+  );
 
   const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,

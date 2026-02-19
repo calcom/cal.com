@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePayment } from "./handlePayment";
 
 vi.mock("@calcom/app-store/zod-utils", () => ({
@@ -288,5 +287,64 @@ describe("handlePayment", () => {
     });
 
     expect(result?.amount).toBe(3000); // Base 1000 cents + ($20 * 100 cents)
+  });
+
+  it("should use pricePerDuration when evt.length matches", async () => {
+    const mockEventTypeWithPricePerDuration = {
+      ...mockEventType,
+      metadata: {
+        apps: {
+          stripe: {
+            enabled: true,
+            price: 1000,
+            currency: "USD",
+            paymentOption: "ON_BOOKING",
+            pricePerDuration: { 30: 2000, 60: 3500 },
+          },
+        },
+      },
+    };
+
+    const result = await handlePayment({
+      evt: { ...mockEvent, length: 30 },
+      selectedEventType: mockEventTypeWithPricePerDuration,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+    });
+
+    expect(result?.amount).toBe(2000);
+    expect(result?.currency).toBe("USD");
+  });
+
+  it("should fall back to base price when evt.length not in pricePerDuration", async () => {
+    const mockEventTypeWithPricePerDuration = {
+      ...mockEventType,
+      metadata: {
+        apps: {
+          stripe: {
+            enabled: true,
+            price: 1000,
+            currency: "USD",
+            paymentOption: "ON_BOOKING",
+            pricePerDuration: { 30: 2000, 60: 3500 },
+          },
+        },
+      },
+    };
+
+    const result = await handlePayment({
+      evt: { ...mockEvent, length: 45 },
+      selectedEventType: mockEventTypeWithPricePerDuration,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+    });
+
+    expect(result?.amount).toBe(1000);
   });
 });

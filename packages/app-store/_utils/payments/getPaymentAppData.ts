@@ -1,7 +1,5 @@
-import type { z } from "zod";
-
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
+import type { z } from "zod";
 import type { appDataSchemas } from "../../apps.schemas.generated";
 import type { appDataSchema, paymentOptionEnum } from "../../stripepayment/zod";
 import type { EventTypeAppsList } from "../../utils";
@@ -14,7 +12,8 @@ export function getPaymentAppData(
     currency: string;
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   },
-  forcedGet?: boolean
+  forcedGet?: boolean,
+  options?: { duration?: number }
 ) {
   const eventType = {
     ..._eventType,
@@ -26,11 +25,15 @@ export function getPaymentAppData(
   }
   type appId = keyof typeof metadataApps;
   // @TODO: a lot of unknowns types here can be improved later
-  const paymentAppIds = (Object.keys(metadataApps) as Array<keyof typeof appDataSchemas>).filter(
-    (app) =>
-      (metadataApps[app as appId] as unknown as z.infer<typeof appDataSchema>)?.price &&
-      (metadataApps[app as appId] as unknown as z.infer<typeof appDataSchema>)?.enabled
-  );
+  const paymentAppIds = (Object.keys(metadataApps) as Array<keyof typeof appDataSchemas>).filter((app) => {
+    const appData = metadataApps[app as appId] as unknown as z.infer<typeof appDataSchema>;
+    if (!appData?.enabled) return false;
+    if (typeof appData.price === "number" && appData.price > 0) return true;
+    const ppd = appData.pricePerDuration as Record<number, number> | undefined;
+    if (ppd && typeof ppd === "object" && Object.values(ppd).some((v) => typeof v === "number" && v > 0))
+      return true;
+    return false;
+  });
 
   // Event type should only have one payment app data
   let paymentAppData: {
@@ -43,13 +46,28 @@ export function getPaymentAppData(
     refundPolicy?: string;
     refundDaysCount?: number;
     refundCountCalendarDays?: boolean;
+    pricePerDuration?: Record<number, number>;
   } | null = null;
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
     if (appData && paymentAppData === null) {
+      const typedAppData = appData as {
+        price: number;
+        pricePerDuration?: Record<number, number>;
+        [key: string]: unknown;
+      };
+      const duration = options?.duration;
+      const effectivePrice =
+        duration != null &&
+        typedAppData.pricePerDuration &&
+        typeof typedAppData.pricePerDuration[duration] === "number"
+          ? typedAppData.pricePerDuration[duration]
+          : typedAppData.price;
       paymentAppData = {
         ...appData,
         appId,
+        price: effectivePrice,
+        pricePerDuration: typedAppData.pricePerDuration,
       };
     }
   }

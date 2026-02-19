@@ -1,7 +1,5 @@
-import { z } from "zod";
-
 import { RefundPolicy } from "@calcom/lib/payment/types";
-
+import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { paymentOptions } from "./lib/constants";
 
@@ -20,6 +18,7 @@ export const appDataSchema = eventTypeAppCardZod.merge(
   z.object({
     price: z.number(),
     currency: z.string(),
+    pricePerDuration: z.record(z.number(), z.number()).optional(),
     paymentOption: paymentOptionEnum.optional(),
     enabled: z.boolean().optional(),
     refundPolicy: z.nativeEnum(RefundPolicy).optional(),

@@ -1,19 +1,16 @@
-import React, { Fragment } from "react";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/PriceIcon";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { EventDetailBlocks } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
-import { type IconName } from "@calcom/ui/components/icon";
-
-import { EventDetailBlocks } from "@calcom/features/bookings/types";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/PriceIcon";
+import React, { Fragment } from "react";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
 import { EventOccurences } from "./Occurences";
-import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 
 type EventDetailsPropsBase = {
   event: Pick<
@@ -135,6 +132,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
   const { t } = useLocale();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
+  const selectedDuration = useBookerStore((state) => state.selectedDuration);
 
   return (
     <>
@@ -177,9 +175,17 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
               </EventMetaBlock>
             );
 
-          case EventDetailBlocks.PRICE:
+          case EventDetailBlocks.PRICE: {
             const paymentAppData = getPaymentAppData(event);
-            if (event.price <= 0 || paymentAppData.price <= 0) return null;
+            const multipleDurations = (event.metadata?.multipleDuration as number[] | undefined) ?? [];
+            const durationForPrice = selectedDuration ?? multipleDurations[0];
+            const effectivePrice =
+              paymentAppData.pricePerDuration &&
+              durationForPrice != null &&
+              typeof paymentAppData.pricePerDuration[durationForPrice] === "number"
+                ? paymentAppData.pricePerDuration[durationForPrice]
+                : paymentAppData.price;
+            if (event.price <= 0 && effectivePrice <= 0) return null;
 
             return (
               <EventMetaBlock
@@ -190,13 +196,10 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                     currency={event.currency}
                   />
                 }>
-                <Price
-                  price={paymentAppData.price}
-                  currency={event.currency}
-                  displayAlternateSymbol={false}
-                />
+                <Price price={effectivePrice} currency={event.currency} displayAlternateSymbol={false} />
               </EventMetaBlock>
             );
+          }
         }
       })}
     </>

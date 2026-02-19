@@ -156,6 +156,7 @@
   "round_robin_host_unavailable_for_booking": "Round robin host is unavailable for booking.",
   "help": "Help",
   "price": "Price",
+  "price_per_duration": "Price per duration",
   "paid": "Paid",
   "refunded": "Refunded",
   "record": "Record",

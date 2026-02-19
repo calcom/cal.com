@@ -1,20 +1,16 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Select, TextField } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
-
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useEffect, useState } from "react";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 import { autoChargeNoShowFeeTimeUnitEnum } from "../zod";
@@ -47,6 +43,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
+  const multipleDurations = (eventType.metadata?.multipleDuration as number[] | undefined) ?? [];
+  const hasMultipleDurations = multipleDurations.length > 0;
+  const pricePerDuration = (getAppData("pricePerDuration") as Record<number, number> | undefined) ?? {};
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
       .toLocaleString(locale, {
@@ -100,9 +99,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               addOnSuffix={currency.toUpperCase()}
               addOnClassname="h-[38px]"
               step="0.01"
-              min="0.5"
+              min="0"
               type="number"
-              required
+              required={!hasMultipleDurations}
               placeholder="Price"
               disabled={disabled}
               onChange={(e) => {
@@ -111,6 +110,50 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}
             />
           </div>
+          {hasMultipleDurations && (
+            <div className="mt-4">
+              <label className="text-default mb-2 block text-sm font-medium">{t("price_per_duration")}</label>
+              <div className="flex flex-col gap-2">
+                {multipleDurations.map((durationMins) => {
+                  const amount = pricePerDuration[durationMins] ?? 0;
+                  return (
+                    <div key={durationMins} className="flex items-center gap-2">
+                      <span className="text-default min-w-16 text-sm">
+                        {t("multiple_duration_mins", { count: durationMins })}
+                      </span>
+                      <TextField
+                        data-testid={`stripe-price-duration-${durationMins}`}
+                        labelSrOnly
+                        className="h-[38px] flex-1"
+                        addOnLeading={
+                          <>{selectedCurrency.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}</>
+                        }
+                        addOnSuffix={currency.toUpperCase()}
+                        addOnClassname="h-[38px]"
+                        step="0.01"
+                        min="0"
+                        type="number"
+                        placeholder="0"
+                        disabled={disabled}
+                        onChange={(e) => {
+                          const value = convertToSmallestCurrencyUnit(Number(e.target.value) || 0, currency);
+                          setAppData("pricePerDuration", {
+                            ...pricePerDuration,
+                            [durationMins]: value,
+                          });
+                        }}
+                        value={
+                          amount > 0
+                            ? convertFromSmallestToPresentableCurrencyUnit(amount, currency)
+                            : undefined
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="mt-5 w-60">
             <label className="text-default mb-1 block text-sm font-medium" htmlFor="currency">
               {t("currency")}
