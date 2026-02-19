@@ -107,22 +107,12 @@ export type {
   PrismaClient,
 };
 
-function parseReplicaConfig(): Record<string, string> {
-  const config = process.env.DATABASE_READ_REPLICAS;
-  if (!config) return {};
-  try {
-    return JSON.parse(config);
-  } catch {
-    return {};
-  }
-}
+const DEFAULT_TENANT_KEY = "_default";
 
-type TenantEnvConfig =
-  | string
-  | {
-      primary: string;
-      replicas?: Record<string, string>;
-    };
+interface TenantEnvConfig {
+  primary?: string;
+  replicas?: Record<string, string>;
+}
 
 function parseTenantsConfig(): Record<string, TenantEnvConfig> {
   const config = process.env.DATABASE_TENANTS;
@@ -134,36 +124,33 @@ function parseTenantsConfig(): Record<string, TenantEnvConfig> {
   }
 }
 
-const replicaConfig = parseReplicaConfig();
-const replicas = new Map<string, PrismaClient>(
-  Object.entries(replicaConfig).map(([name, url]) => [name, customPrisma({ datasources: { db: { url } } })])
-);
+function buildReplicasMap(replicasConfig: Record<string, string>): Map<string, PrismaClient> {
+  return new Map(
+    Object.entries(replicasConfig).map(([name, url]) => [name, customPrisma({ datasources: { db: { url } } })])
+  );
+}
 
 const tenantsEnvConfig = parseTenantsConfig();
 const tenants = new Map<string, TenantConfig>();
+let defaultReplicas = new Map<string, PrismaClient>();
 
-for (const [tenantName, tenantEnvConfig] of Object.entries(tenantsEnvConfig)) {
-  const isSimpleConfig = typeof tenantEnvConfig === "string";
-  const primaryUrl = isSimpleConfig ? tenantEnvConfig : tenantEnvConfig.primary;
-  const tenantPrimary = customPrisma({ datasources: { db: { url: primaryUrl } } });
+for (const [tenantName, cfg] of Object.entries(tenantsEnvConfig)) {
+  if (tenantName === DEFAULT_TENANT_KEY) {
+    defaultReplicas = buildReplicasMap(cfg.replicas ?? {});
+    continue;
+  }
 
-  const tenantReplicasConfig = isSimpleConfig ? {} : (tenantEnvConfig.replicas ?? {});
-  const tenantReplicas = new Map<string, PrismaClient>(
-    Object.entries(tenantReplicasConfig).map(([name, url]) => [
-      name,
-      customPrisma({ datasources: { db: { url } } }),
-    ])
-  );
+  if (!cfg.primary) continue;
 
   tenants.set(tenantName, {
-    primary: tenantPrimary,
-    replicas: tenantReplicas,
+    primary: customPrisma({ datasources: { db: { url: cfg.primary } } }),
+    replicas: buildReplicasMap(cfg.replicas ?? {}),
   });
 }
 
 export const prisma: DatabaseProxy = createDatabaseProxy({
   primary: basePrisma,
-  replicas,
+  replicas: defaultReplicas,
   tenants,
 });
 

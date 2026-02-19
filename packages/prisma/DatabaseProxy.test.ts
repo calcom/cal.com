@@ -6,8 +6,7 @@ import { createDatabaseProxy, type DatabaseProxy, type ProxyConfig } from "./Dat
 
 describe("DatabaseProxy", () => {
   let mockPrimary: any;
-  let mockReplica1: any;
-  let mockReplica2: any;
+  let mockDefaultReplica: any;
   let mockTenantPrimary: any;
   let mockTenantReplica: any;
   let proxy: DatabaseProxy;
@@ -20,32 +19,24 @@ describe("DatabaseProxy", () => {
       $disconnect: vi.fn(),
     };
 
-    mockReplica1 = {
-      user: { findMany: vi.fn().mockResolvedValue([{ id: 1, name: "replica1" }]) },
+    mockDefaultReplica = {
+      user: { findMany: vi.fn().mockResolvedValue([{ id: 1, name: "default-replica" }]) },
       booking: { create: vi.fn().mockResolvedValue({ id: 2 }) },
-    };
-
-    mockReplica2 = {
-      user: { findMany: vi.fn().mockResolvedValue([{ id: 1, name: "replica2" }]) },
-      booking: { create: vi.fn().mockResolvedValue({ id: 3 }) },
     };
 
     mockTenantPrimary = {
       user: { findMany: vi.fn().mockResolvedValue([{ id: 1, name: "tenant-primary" }]) },
-      booking: { create: vi.fn().mockResolvedValue({ id: 4 }) },
+      booking: { create: vi.fn().mockResolvedValue({ id: 3 }) },
     };
 
     mockTenantReplica = {
       user: { findMany: vi.fn().mockResolvedValue([{ id: 1, name: "tenant-replica" }]) },
-      booking: { create: vi.fn().mockResolvedValue({ id: 5 }) },
+      booking: { create: vi.fn().mockResolvedValue({ id: 4 }) },
     };
 
     const config: ProxyConfig = {
       primary: mockPrimary,
-      replicas: new Map([
-        ["read", mockReplica1],
-        ["us-east", mockReplica2],
-      ]),
+      replicas: new Map([["read", mockDefaultReplica]]),
       tenants: new Map([
         [
           "acme",
@@ -88,19 +79,12 @@ describe("DatabaseProxy", () => {
     });
   });
 
-  describe("when accessing read replicas via .replica(name)", () => {
-    it("routes to named replica", async () => {
+  describe("when accessing default tenant replicas via .replica(name)", () => {
+    it("routes to named replica from _default tenant config", async () => {
       const result = await proxy.replica("read").user.findMany();
 
-      expect(mockReplica1.user.findMany).toHaveBeenCalled();
-      expect(result).toEqual([{ id: 1, name: "replica1" }]);
-    });
-
-    it("routes to different replica by name", async () => {
-      const result = await proxy.replica("us-east").user.findMany();
-
-      expect(mockReplica2.user.findMany).toHaveBeenCalled();
-      expect(result).toEqual([{ id: 1, name: "replica2" }]);
+      expect(mockDefaultReplica.user.findMany).toHaveBeenCalled();
+      expect(result).toEqual([{ id: 1, name: "default-replica" }]);
     });
 
     it("falls back to primary when replica not found", async () => {
@@ -189,10 +173,10 @@ describe("DatabaseProxy", () => {
       expect(result).toEqual([{ id: 1, name: "tenant-primary" }]);
     });
 
-    it("does not use global replicas for tenant queries", async () => {
+    it("does not use default replicas for tenant queries", async () => {
       await proxy.tenant("acme").replica("read").user.findMany();
 
-      expect(mockReplica1.user.findMany).not.toHaveBeenCalled();
+      expect(mockDefaultReplica.user.findMany).not.toHaveBeenCalled();
     });
   });
 
@@ -230,11 +214,11 @@ describe("DatabaseProxy", () => {
       expect(mockPrimary.user.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it("isolates replica calls from primary", async () => {
+    it("isolates default replica calls from primary", async () => {
       await proxy.replica("read").user.findMany();
       await proxy.user.findMany();
 
-      expect(mockReplica1.user.findMany).toHaveBeenCalledTimes(1);
+      expect(mockDefaultReplica.user.findMany).toHaveBeenCalledTimes(1);
       expect(mockPrimary.user.findMany).toHaveBeenCalledTimes(1);
     });
 
@@ -247,14 +231,14 @@ describe("DatabaseProxy", () => {
       ]);
 
       expect(results[0]).toEqual([{ id: 1, name: "primary" }]);
-      expect(results[1]).toEqual([{ id: 1, name: "replica1" }]);
+      expect(results[1]).toEqual([{ id: 1, name: "default-replica" }]);
       expect(results[2]).toEqual([{ id: 1, name: "tenant-primary" }]);
       expect(results[3]).toEqual([{ id: 1, name: "tenant-replica" }]);
     });
   });
 
   describe("when configuration is incomplete", () => {
-    it("handles empty replicas map gracefully", () => {
+    it("handles no default replicas gracefully", () => {
       const config: ProxyConfig = {
         primary: mockPrimary,
         replicas: new Map(),
@@ -268,7 +252,7 @@ describe("DatabaseProxy", () => {
     it("handles empty tenants map gracefully", () => {
       const config: ProxyConfig = {
         primary: mockPrimary,
-        replicas: new Map([["read", mockReplica1]]),
+        replicas: new Map([["read", mockDefaultReplica]]),
         tenants: new Map(),
       };
       const proxyNoTenants = createDatabaseProxy(config);
