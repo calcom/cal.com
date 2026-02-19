@@ -2,10 +2,8 @@ import routerGetCrmContactOwnerEmail from "@calcom/app-store/routing-forms/lib/c
 import {
   onSubmissionOfFormResponse,
   type TargetRoutingFormForResponse,
-  triggerFallbackWebhook,
 } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import isRouter from "@calcom/app-store/routing-forms/lib/isRouter";
-import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
@@ -186,50 +184,6 @@ const _handleResponse = async ({
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
-    let dbFormResponse, queuedFormResponse;
-    if (!isPreview) {
-      const formResponseRepo = new RoutingFormResponseRepository(prisma);
-      if (queueFormResponse) {
-        queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
-          formId: form.id,
-          response,
-          chosenRouteId,
-        });
-        dbFormResponse = null;
-      } else {
-        dbFormResponse = await formResponseRepo.recordFormResponse({
-          formId: form.id,
-          response,
-          chosenRouteId,
-        });
-        queuedFormResponse = null;
-
-        await onSubmissionOfFormResponse({
-          form: serializableFormWithFields,
-          formResponseInDb: dbFormResponse,
-          chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
-        });
-      }
-    } else {
-      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
-      if (queueFormResponse) {
-        queuedFormResponse = {
-          id: "00000000-0000-0000-0000-000000000000",
-          formId: form.id,
-          response,
-        };
-      } else {
-        // Create a mock response for dry run
-        dbFormResponse = {
-          id: 0,
-          formId: form.id,
-          response,
-          chosenRouteId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-    }
     const getFallbackAction = () => {
       if (!chosenRoute || !("fallbackAction" in chosenRoute)) {
         return null;
@@ -260,21 +214,54 @@ const _handleResponse = async ({
       return null;
     };
 
-    const fallbackAction = getFallbackAction();
+    let dbFormResponse, queuedFormResponse;
+    if (!isPreview) {
+      const formResponseRepo = new RoutingFormResponseRepository(prisma);
+      if (queueFormResponse) {
+        queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
+          formId: form.id,
+          response,
+          chosenRouteId,
+        });
+        dbFormResponse = null;
+      } else {
+        dbFormResponse = await formResponseRepo.recordFormResponse({
+          formId: form.id,
+          response,
+          chosenRouteId,
+        });
+        queuedFormResponse = null;
 
-    if (fallbackAction && dbFormResponse && !isPreview) {
-      await triggerFallbackWebhook({
-        form: {
-          id: form.id,
-          name: form.name,
-          teamId: form.teamId,
-          user: { id: form.user.id },
-        },
-        responseId: dbFormResponse.id,
-        response: response as FormResponse,
-        fallbackAction,
-      });
+        const fallbackAction = getFallbackAction();
+
+        await onSubmissionOfFormResponse({
+          form: serializableFormWithFields,
+          formResponseInDb: dbFormResponse,
+          chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+          fallbackAction,
+        });
+      }
+    } else {
+      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
+      if (queueFormResponse) {
+        queuedFormResponse = {
+          id: "00000000-0000-0000-0000-000000000000",
+          formId: form.id,
+          response,
+        };
+      } else {
+        // Create a mock response for dry run
+        dbFormResponse = {
+          id: 0,
+          formId: form.id,
+          response,
+          chosenRouteId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
     }
+    const fallbackAction = getFallbackAction();
 
     return {
       isPreview: !!isPreview,

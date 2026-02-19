@@ -134,7 +134,12 @@ export async function _onFormSubmission(
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
     eventTypeId?: number;
-  }
+  },
+  fallbackAction?: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+    eventTypeId?: number;
+  } | null
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -172,9 +177,20 @@ export async function _onFormSubmission(
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   };
 
-  const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+  const subscriberOptionsFallbackHit = fallbackAction
+    ? {
+        userId,
+        teamId,
+        orgId,
+        triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      }
+    : null;
 
-  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
+  const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent, webhooksFallbackHit] = await Promise.all([
+    getWebhooks(subscriberOptionsFormSubmitted),
+    getWebhooks(subscriberOptionsFormSubmittedNoEvent),
+    subscriberOptionsFallbackHit ? getWebhooks(subscriberOptionsFallbackHit) : Promise.resolve([]),
+  ]);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
     sendGenericWebhookPayload({
@@ -227,7 +243,32 @@ export async function _onFormSubmission(
         );
       });
 
-      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
+      const promisesFallbackHit = webhooksFallbackHit.map((webhook) =>
+        sendGenericWebhookPayload({
+          secretKey: webhook.secret,
+          triggerEvent: "ROUTING_FORM_FALLBACK_HIT",
+          createdAt: new Date().toISOString(),
+          webhook,
+          data: {
+            formId: form.id,
+            formName: form.name,
+            teamId: form.teamId,
+            responseId,
+            fallbackAction: fallbackAction
+              ? {
+                  type: fallbackAction.type,
+                  value: fallbackAction.value,
+                  ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
+                }
+              : undefined,
+            responses: response,
+          },
+        }).catch((e) => {
+          moduleLogger.error(`Error executing ROUTING_FORM_FALLBACK_HIT webhook`, e);
+        })
+      );
+
+      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent, ...promisesFallbackHit];
 
       await Promise.all(promises);
 
@@ -281,69 +322,6 @@ export async function _onFormSubmission(
 }
 export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
-/**
- * Triggers the ROUTING_FORM_FALLBACK_HIT webhook when a fallback route is hit
- * This is called separately from onFormSubmission because the fallback action
- * is determined after the form response is recorded
- */
-export async function triggerFallbackWebhook({
-  form,
-  responseId,
-  response,
-  fallbackAction,
-}: {
-  form: {
-    id: string;
-    name: string;
-    teamId?: number | null;
-    user: { id: number };
-  };
-  responseId: number;
-  response: FormResponse;
-  fallbackAction: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
-    value: string;
-    eventTypeId?: number;
-  };
-}) {
-  const { userId, teamId } = getWebhookTargetEntity(form);
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  const subscriberOptions = {
-    userId,
-    teamId,
-    orgId,
-    triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
-  };
-
-  const webhooks = await getWebhooks(subscriberOptions);
-
-  const promises = webhooks.map((webhook) =>
-    sendGenericWebhookPayload({
-      secretKey: webhook.secret,
-      triggerEvent: "ROUTING_FORM_FALLBACK_HIT",
-      createdAt: new Date().toISOString(),
-      webhook,
-      data: {
-        formId: form.id,
-        formName: form.name,
-        teamId: form.teamId,
-        responseId,
-        fallbackAction: {
-          type: fallbackAction.type,
-          value: fallbackAction.value,
-          ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
-        },
-        responses: response,
-      },
-    }).catch((e) => {
-      moduleLogger.error(`Error executing ROUTING_FORM_FALLBACK_HIT webhook`, e);
-    })
-  );
-
-  await Promise.all(promises);
-}
-
 export type TargetRoutingFormForResponse = SerializableForm<
   App_RoutingForms_Form & {
     user: {
@@ -365,10 +343,16 @@ export const onSubmissionOfFormResponse = async ({
   form,
   formResponseInDb,
   chosenRouteAction,
+  fallbackAction,
 }: {
   form: TargetRoutingFormForResponse;
   formResponseInDb: { id: number; response: Prisma.JsonValue };
   chosenRouteAction: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+    eventTypeId?: number;
+  } | null;
+  fallbackAction?: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
     eventTypeId?: number;
@@ -403,6 +387,7 @@ export const onSubmissionOfFormResponse = async ({
     { ...form, fields: form.fields, userWithEmails },
     formResponseInDb.response as FormResponse,
     formResponseInDb.id,
-    chosenRouteAction ?? undefined
+    chosenRouteAction ?? undefined,
+    fallbackAction
   );
 };
