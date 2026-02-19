@@ -159,6 +159,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     entry:
       | (WatchlistEntry & {
           bookingReports?: Array<{
+            organizationId: number | null;
             booking: {
               uid: string;
               title: string | null;
@@ -170,6 +171,7 @@ export class WatchlistRepository implements IWatchlistRepository {
   }> {
     const bookingReportSelect = {
       select: {
+        organizationId: true,
         booking: {
           select: {
             uid: true,
@@ -365,7 +367,15 @@ export class WatchlistRepository implements IWatchlistRepository {
     const where = {
       OR: [
         { organizationId: params.organizationId, isGlobal: false },
-        { isGlobal: true, organizationId: null },
+        {
+          isGlobal: true,
+          organizationId: null,
+          globalBookingReports: {
+            some: {
+              organizationId: params.organizationId,
+            },
+          },
+        },
       ],
       ...(params.searchTerm && {
         value: {

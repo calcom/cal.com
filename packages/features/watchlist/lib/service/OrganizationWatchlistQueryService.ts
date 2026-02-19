@@ -1,9 +1,14 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
-import { MembershipRole, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
-
+import { MembershipRole, type WatchlistSource, type WatchlistType } from "@calcom/prisma/enums";
 import { WatchlistErrors } from "../errors/WatchlistErrors";
+
+type Deps = {
+  watchlistRepo: WatchlistRepository;
+  userRepo: UserRepository;
+  permissionCheckService: PermissionCheckService;
+};
 
 export interface ListWatchlistEntriesInput {
   organizationId: number;
@@ -22,12 +27,6 @@ export interface GetWatchlistEntryDetailsInput {
   userId: number;
   entryId: string;
 }
-
-type Deps = {
-  watchlistRepo: WatchlistRepository;
-  userRepo: UserRepository;
-  permissionCheckService: PermissionCheckService;
-};
 
 export class OrganizationWatchlistQueryService {
   constructor(private readonly deps: Deps) {}
@@ -96,11 +95,14 @@ export class OrganizationWatchlistQueryService {
     }
 
     const isOrgEntry = result.entry.organizationId === input.organizationId;
-    const isGlobalEntry = result.entry.isGlobal && result.entry.organizationId === null;
+    const isGlobalEntryLinkedToOrg =
+      result.entry.isGlobal &&
+      result.entry.organizationId === null &&
+      Boolean(result.entry.bookingReports?.some((report) => report.organizationId === input.organizationId));
 
-    if (!isOrgEntry && !isGlobalEntry) {
+    if (!isOrgEntry && !isGlobalEntryLinkedToOrg) {
       throw WatchlistErrors.permissionDenied(
-        "You can only view blocklist entries from your organization or global entries"
+        "You can only view blocklist entries from your organization or global entries tied to reports from your organization"
       );
     }
 
@@ -122,7 +124,7 @@ export class OrganizationWatchlistQueryService {
     return {
       entry: result.entry,
       auditHistory: auditHistoryWithUsers,
-      isReadOnly: isGlobalEntry,
+      isReadOnly: isGlobalEntryLinkedToOrg,
     };
   }
 }

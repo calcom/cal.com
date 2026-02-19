@@ -1,4 +1,4 @@
-import type { WatchlistType, WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
+import type { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 
 export interface WatchlistEntry {
   id: string;
@@ -68,6 +68,7 @@ export interface IWatchlistRepository {
     entry:
       | (WatchlistEntry & {
           bookingReports?: Array<{
+            organizationId: number | null;
             booking: {
               uid: string;
               title: string | null;
