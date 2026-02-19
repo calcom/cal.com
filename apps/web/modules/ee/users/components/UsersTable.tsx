@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ControlledDialog as Dialog } from "@calcom/features/components/controlled-dialog/ControlledDialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

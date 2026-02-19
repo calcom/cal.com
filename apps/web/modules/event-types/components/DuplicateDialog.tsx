@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { ControlledDialog as Dialog } from "@calcom/features/components/controlled-dialog/ControlledDialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { EventTypeDuplicateInput } from "@calcom/features/eventtypes/lib/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";

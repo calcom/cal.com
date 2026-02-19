@@ -2,7 +2,7 @@ import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/av
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
-import { ControlledDialog as Dialog } from "@calcom/features/components/controlled-dialog/ControlledDialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";

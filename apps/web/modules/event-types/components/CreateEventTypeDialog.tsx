@@ -2,7 +2,7 @@ import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
-import { ControlledDialog as Dialog } from "@calcom/features/components/controlled-dialog/ControlledDialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
 import { useCreateEventType } from "~/event-types/hooks/useCreateEventType";

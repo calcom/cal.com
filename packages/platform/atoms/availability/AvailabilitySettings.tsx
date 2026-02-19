@@ -2,7 +2,7 @@
 
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { PlatformDialog } from "@calcom/features/components/controlled-dialog";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -122,17 +122,19 @@ const DeleteDialogButton = ({
   isPending,
   onDeleteConfirmed,
   handleDelete,
+  isPlatform,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
   isPending: boolean;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
 
   return (
-    <PlatformDialog>
+    <Dialog isPlatform={isPlatform}>
       <DialogTrigger asChild>
         <Button
           StartIcon="trash"
@@ -158,7 +160,7 @@ const DeleteDialogButton = ({
         }}>
         {t("delete_schedule_description")}
       </ConfirmationDialogContent>
-    </PlatformDialog>
+    </Dialog>
   );
 };
 
@@ -495,6 +497,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   disabled={schedule.isLastSchedule}
                   isPending={isDeleting}
                   handleDelete={handleDelete}
+                  isPlatform={isPlatform}
                 />
                 <VerticalDivider className="hidden sm:inline" />
               </>
@@ -521,6 +524,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           disabled={schedule.isLastSchedule}
                           isPending={isDeleting}
                           handleDelete={handleDelete}
+                          isPlatform={isPlatform}
                           onDeleteConfirmed={() => {
                             setOpenSidebar(false);
                           }}
