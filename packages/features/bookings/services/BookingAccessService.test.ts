@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { BookingAccessService } from "./BookingAccessService";
 
@@ -15,6 +13,7 @@ describe("BookingAccessService", () => {
   let mockPrismaClient: PrismaClient;
   let mockBookingRepo: {
     findByUidIncludeEventType: ReturnType<typeof vi.fn>;
+    findByUidForAuthorizationCheck: ReturnType<typeof vi.fn>;
   };
   let mockUserRepo: {
     getUserOrganizationAndTeams: ReturnType<typeof vi.fn>;
@@ -30,6 +29,7 @@ describe("BookingAccessService", () => {
 
     mockBookingRepo = {
       findByUidIncludeEventType: vi.fn(),
+      findByUidForAuthorizationCheck: vi.fn(),
     };
 
     mockUserRepo = {
@@ -338,6 +338,263 @@ describe("BookingAccessService", () => {
 
         expect(result).toBe(false);
         expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe("checkBookingAccessWithPBAC", () => {
+    describe("Owner check", () => {
+      it("should return true when user is the booking owner", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 123,
+          eventType: null,
+          attendees: [],
+        });
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+      });
+
+      it("should return false when booking is not found", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue(null);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "non-existent",
+        });
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("Host check", () => {
+      it("should return true when user is a host via eventType.users", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: {
+            teamId: null,
+            users: [{ id: 123, email: "host@example.com" }],
+            hosts: [],
+          },
+          attendees: [{ email: "host@example.com" }],
+        });
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+      });
+
+      it("should return true when user is a host via eventType.hosts", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: {
+            teamId: null,
+            users: [],
+            hosts: [{ user: { id: 123, email: "host@example.com" } }],
+          },
+          attendees: [{ email: "host@example.com" }],
+        });
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+      });
+    });
+
+    describe("Team event type PBAC check", () => {
+      it("should return true when user has booking.read on the team", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: {
+            teamId: 100,
+            users: [],
+            hosts: [],
+          },
+          attendees: [],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
+          userId: 123,
+          teamId: 100,
+          permission: "booking.read",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+      });
+
+      it("should return false when user lacks booking.read on the team", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: {
+            teamId: 100,
+            users: [],
+            hosts: [],
+          },
+          attendees: [],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("Personal event type - org membership check", () => {
+      it("should return true when user has booking.read on organizer's org", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+        mockUserRepo.getUserOrganizationAndTeams.mockResolvedValue({
+          organizationId: 200,
+          teams: [],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(true);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
+          userId: 123,
+          teamId: 200,
+          permission: "booking.read",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+      });
+
+      it("should return false when user lacks booking.read on organizer's org and no teams", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+        mockUserRepo.getUserOrganizationAndTeams.mockResolvedValue({
+          organizationId: 200,
+          teams: [],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("Personal event type - team membership check", () => {
+      it("should return true when user has booking.read on any of organizer's teams", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+        mockUserRepo.getUserOrganizationAndTeams.mockResolvedValue({
+          organizationId: null,
+          teams: [{ teamId: 300 }, { teamId: 400 }],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(true);
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledTimes(2);
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenNthCalledWith(1, {
+          userId: 123,
+          teamId: 300,
+          permission: "booking.read",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenNthCalledWith(2, {
+          userId: 123,
+          teamId: 400,
+          permission: "booking.read",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        });
+      });
+
+      it("should return false when user lacks booking.read on all organizer's teams", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+        mockUserRepo.getUserOrganizationAndTeams.mockResolvedValue({
+          organizationId: null,
+          teams: [{ teamId: 300 }, { teamId: 400 }],
+        });
+        mockPermissionCheckService.checkPermission.mockResolvedValue(false);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(false);
+        expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    describe("Personal event type - no booking userId", () => {
+      it("should return false when booking has no userId and no teamId", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: null,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("Personal event type - booking owner not found", () => {
+      it("should return false when booking owner is not found", async () => {
+        mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
+          userId: 456,
+          eventType: { teamId: null, users: [], hosts: [] },
+          attendees: [],
+        });
+        mockUserRepo.getUserOrganizationAndTeams.mockResolvedValue(null);
+
+        const result = await service.checkBookingAccessWithPBAC({
+          userId: 123,
+          bookingUid: "test-uid",
+        });
+
+        expect(result).toBe(false);
       });
     });
   });

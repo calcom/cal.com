@@ -2,7 +2,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { BookingRepository } from "../repositories/BookingRepository";
 
 type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["findByUidIncludeEventType"]>>>;
@@ -174,19 +173,44 @@ export class BookingAccessService {
     }
 
     // Check 3: PBAC permission check for team bookings
-    if (!booking.eventType?.teamId) {
-      // No team associated with booking and user is not owner/host
-      return false;
+    if (booking.eventType?.teamId) {
+      const hasPermission = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId: booking.eventType.teamId,
+        permission: "booking.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+      return hasPermission;
     }
 
-    const permissionCheckService = new PermissionCheckService();
-    const hasPermission = await permissionCheckService.checkPermission({
-      userId,
-      teamId: booking.eventType.teamId,
-      permission: "booking.read",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
+    // Check 4: Personal event type — check if the organizer is in a team/org
+    // where the current user has booking.read permission (mirrors get.handler.ts query #7)
+    if (!booking.userId) return false;
 
-    return hasPermission;
+    const userRepo = new UserRepository(this.prismaClient);
+    const bookingOwner = await userRepo.getUserOrganizationAndTeams({ userId: booking.userId });
+    if (!bookingOwner) return false;
+
+    if (bookingOwner.organizationId) {
+      const hasAccess = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId: bookingOwner.organizationId,
+        permission: "booking.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+      if (hasAccess) return true;
+    }
+
+    for (const membership of bookingOwner.teams) {
+      const hasAccess = await this.permissionCheckService.checkPermission({
+        userId,
+        teamId: membership.teamId,
+        permission: "booking.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+      if (hasAccess) return true;
+    }
+
+    return false;
   }
 }
