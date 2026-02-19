@@ -5,6 +5,8 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type {
@@ -73,7 +75,8 @@ export class BookingAttendeesService {
 
     const attendee = booking.attendees.find((a) => a.id === attendeeId);
     if (!attendee) {
-      throw new Error(
+      throw new ErrorWithCode(
+        ErrorCode.NotFound,
         `Attendee with id ${attendeeId} not found in booking ${bookingUid}`
       );
     }

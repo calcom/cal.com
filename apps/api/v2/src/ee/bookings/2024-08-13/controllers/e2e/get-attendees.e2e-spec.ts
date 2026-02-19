@@ -257,6 +257,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
 
         const attendee = getAttendeesResponseBody.data[0];
 
+        expect(typeof attendee.id).toBe("number");
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");
@@ -274,10 +275,15 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     const attendeeTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
-      // Get attendee ID from database since the list API doesn't return IDs
-      const booking = await bookingsRepositoryFixture.getByUidWithAttendees(testSetup.bookingUid);
-      if (booking?.attendees?.length) {
-        testSetup.attendeeId = booking.attendees[0].id;
+      const getAttendeesResponse = await request(app.getHttpServer())
+        .get(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+        .expect(200);
+
+      const getAttendeesResponseBody: GetBookingAttendeesOutput_2024_08_13 = getAttendeesResponse.body;
+      if (getAttendeesResponseBody.data?.length) {
+        testSetup.attendeeId = getAttendeesResponseBody.data[0].id;
       }
     });
 
@@ -318,13 +324,13 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
     });
 
     describe("Not found cases", () => {
-      it("should return 500 for non-existent attendee ID", async () => {
+      it("should return 404 for non-existent attendee ID", async () => {
         const nonExistentAttendeeId = 999999999;
         await request(app.getHttpServer())
           .get(`/v2/bookings/${testSetup.bookingUid}/attendees/${nonExistentAttendeeId}`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
-          .expect(500);
+          .expect(404);
       });
 
       it("should return 403 for non-existent booking UID because BookingPbacGuard treats missing bookings as unauthorized", async () => {
@@ -353,6 +359,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
 
         const attendee = getAttendeeResponseBody.data;
 
+        expect(attendee).not.toHaveProperty("id");
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");

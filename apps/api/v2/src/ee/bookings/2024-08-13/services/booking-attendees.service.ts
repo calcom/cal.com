@@ -1,8 +1,13 @@
 import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
+import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
+import { BookingAttendee } from "@calcom/platform-types";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
+import {
+  BookingAttendeeWithId_2024_08_13,
+} from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -20,15 +25,16 @@ export class BookingAttendeesService_2024_08_13 {
 
   async getBookingAttendees(
     bookingUid: string
-  ): Promise<BookingAttendeeOutput_2024_08_13[]> {
+  ): Promise<BookingAttendeeWithId_2024_08_13[]> {
     const attendees = await this.bookingAttendeesService.getBookingAttendees(
       bookingUid
     );
 
     return attendees.map((attendee) =>
       plainToClass(
-        BookingAttendeeOutput_2024_08_13,
+        BookingAttendeeWithId_2024_08_13,
         {
+          id: attendee.id,
           name: attendee.name,
           email: attendee.email,
           displayEmail: this.getDisplayEmail(attendee.email),
@@ -45,25 +51,32 @@ export class BookingAttendeesService_2024_08_13 {
   async getBookingAttendee(
     bookingUid: string,
     attendeeId: number
-  ): Promise<BookingAttendeeOutput_2024_08_13> {
-    const attendee = await this.bookingAttendeesService.getBookingAttendee(
-      bookingUid,
-      attendeeId
-    );
+  ): Promise<BookingAttendee> {
+    try {
+      const attendee = await this.bookingAttendeesService.getBookingAttendee(
+        bookingUid,
+        attendeeId
+      );
 
-    return plainToClass(
-      BookingAttendeeOutput_2024_08_13,
-      {
-        name: attendee.name,
-        email: attendee.email,
-        displayEmail: this.getDisplayEmail(attendee.email),
-        timeZone: attendee.timeZone,
-        language: attendee.locale ?? undefined,
-        absent: attendee.noShow ?? false,
-        phoneNumber: attendee.phoneNumber ?? undefined,
-      },
-      { strategy: "excludeAll" }
-    );
+      return plainToClass(
+        BookingAttendee,
+        {
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale ?? undefined,
+          absent: attendee.noShow ?? false,
+          phoneNumber: attendee.phoneNumber ?? undefined,
+        },
+        { strategy: "excludeAll" }
+      );
+    } catch (e) {
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.NotFound) {
+        throw new NotFoundException(e.message);
+      }
+      throw e;
+    }
   }
 
   async addAttendee(
