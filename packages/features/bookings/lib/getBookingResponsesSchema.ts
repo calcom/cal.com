@@ -133,43 +133,16 @@ function preprocess<T extends z.ZodType>({
         const fieldTypeSchema = fieldTypesSchemaMap[field.type as keyof typeof fieldTypesSchemaMap];
         // TODO: Move all the schemas along with their respective types to fieldTypeSchema, that would make schemas shared across Routing Forms builder and Booking Question Formm builder
         if (fieldTypeSchema) {
-          newResponses[field.name] = fieldTypeSchema.preprocess({
+          const preprocessed = fieldTypeSchema.preprocess({
             response: value,
             isPartialSchema,
             field,
           });
+          newResponses[field.name] = preprocessed;
           return;
         }
-        if (field.type === "boolean") {
-          // Turn a boolean in string to a real boolean
-          newResponses[field.name] = value === "true" || value === true;
-        }
-        // Make sure that the value is an array
-        else if (field.type === "multiemail" || field.type === "checkbox" || field.type === "multiselect") {
-          newResponses[field.name] = value instanceof Array ? value : [value];
-        }
-        // Parse JSON
-        else if (field.type === "radioInput" && typeof value === "string") {
-          let parsedValue = {
-            optionValue: "",
-            value: "",
-          };
-          try {
-            parsedValue = JSON.parse(value);
-          } catch (e) {
-            log.error(`Failed to parse JSON for field ${field.name}`, e);
-          }
-          const optionsInputs = field.optionsInputs;
-          const optionInputField = optionsInputs?.[parsedValue.value];
-          if (optionInputField && optionInputField.type === "phone") {
-            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
-          }
-          newResponses[field.name] = parsedValue;
-        } else if (field.type === "phone") {
-          newResponses[field.name] = ensureValidPhoneNumber(value);
-        } else {
-          newResponses[field.name] = value;
-        }
+
+        newResponses[field.name] = value;
       });
 
       return {
@@ -201,8 +174,8 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
-              return isValidPhoneNumber(val);
-            });
+            return isValidPhoneNumber(val);
+          });
         // Tag the message with the input name so that the message can be shown at appropriate place
         const m = (message: string, options?: Record<string, unknown>) => {
           const translatedMessage = translateFn ? translateFn(message, options) : message;

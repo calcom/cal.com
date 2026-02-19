@@ -129,76 +129,7 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
-const buildWhereClauseForActiveBookings = ({
-  eventTypeId,
-  startDate,
-  endDate,
-  users,
-  virtualQueuesData,
-  includeNoShowInRRCalculation = false,
-  rrTimestampBasis,
-}: {
-  eventTypeId: number;
-  startDate?: Date;
-  endDate?: Date;
-  users: { id: number; email: string }[];
-  virtualQueuesData: {
-    chosenRouteId: string;
-    fieldOptionData: {
-      fieldId: string;
-      selectedOptionIds: string | number | string[];
-    };
-  } | null;
-  includeNoShowInRRCalculation: boolean;
-  rrTimestampBasis: RRTimestampBasis;
-}): Prisma.BookingWhereInput => ({
-  OR: [
-    {
-      userId: {
-        in: users.map((user) => user.id),
-      },
-      ...(!includeNoShowInRRCalculation
-        ? {
-            OR: [{ noShowHost: false }, { noShowHost: null }],
-          }
-        : {}),
-    },
-    {
-      attendees: {
-        some: {
-          email: {
-            in: users.map((user) => user.email),
-          },
-        },
-      },
-    },
-  ],
-  ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
-  status: BookingStatus.ACCEPTED,
-  eventTypeId,
-  ...(startDate || endDate
-    ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
-      ? {
-          createdAt: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
-      : {
-          startTime: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
-    : {}),
-  ...(virtualQueuesData
-    ? {
-        routedFromRoutingFormReponse: {
-          chosenRouteId: virtualQueuesData.chosenRouteId,
-        },
-      }
-    : {}),
-});
+
 
 const selectStatementToGetBookingForCalEventBuilder = {
   uid: true,
@@ -355,7 +286,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
 };
 
 export class BookingRepository implements IBookingRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   /**
    * Gets the fromReschedule field for a booking by UID
@@ -783,20 +714,20 @@ export class BookingRepository implements IBookingRepository {
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
-          where: {
-            startTime: { lte: endDate },
-            endTime: { gte: startDate },
-            eventType: {
-              id: eventTypeId,
-              requiresConfirmation: true,
-              requiresConfirmationWillBlockSlot: true,
-            },
-            status: {
-              in: [BookingStatus.PENDING],
-            },
+        where: {
+          startTime: { lte: endDate },
+          endTime: { gte: startDate },
+          eventType: {
+            id: eventTypeId,
+            requiresConfirmation: true,
+            requiresConfirmationWillBlockSlot: true,
           },
-          select: bookingsSelect,
-        })
+          status: {
+            in: [BookingStatus.PENDING],
+          },
+        },
+        select: bookingsSelect,
+      })
       : [];
 
     const [resultOne, resultTwo, resultThree] = await Promise.all([
@@ -846,29 +777,82 @@ export class BookingRepository implements IBookingRepository {
     includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
   }) {
-    const allBookings = await this.prismaClient.booking.findMany({
-      where: buildWhereClauseForActiveBookings({
-        eventTypeId,
-        startDate,
-        endDate,
-        users,
-        virtualQueuesData,
-        includeNoShowInRRCalculation,
-        rrTimestampBasis,
+    const commonWhere: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      eventTypeId,
+      ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
+      ...(startDate || endDate
+        ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
+          ? {
+            createdAt: {
+              ...(startDate ? { gte: startDate } : {}),
+              ...(endDate ? { lte: endDate } : {}),
+            },
+          }
+          : {
+            startTime: {
+              ...(startDate ? { gte: startDate } : {}),
+              ...(endDate ? { lte: endDate } : {}),
+            },
+          }
+        : {}),
+      ...(virtualQueuesData
+        ? {
+          routedFromRoutingFormReponse: {
+            chosenRouteId: virtualQueuesData.chosenRouteId,
+          },
+        }
+        : {}),
+    };
+
+    const select = {
+      id: true,
+      attendees: true,
+      userId: true,
+      createdAt: true,
+      status: true,
+      startTime: true,
+      routedFromRoutingFormReponse: true,
+    };
+
+    const [bookingsAsHost, bookingsAsAttendee] = await Promise.all([
+      this.prismaClient.booking.findMany({
+        where: {
+          ...commonWhere,
+          userId: {
+            in: users.map((user) => user.id),
+          },
+          ...(!includeNoShowInRRCalculation
+            ? {
+              OR: [{ noShowHost: false }, { noShowHost: null }],
+            }
+            : {}),
+        },
+        select,
       }),
-      select: {
-        id: true,
-        attendees: true,
-        userId: true,
-        createdAt: true,
-        status: true,
-        startTime: true,
-        routedFromRoutingFormReponse: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      this.prismaClient.booking.findMany({
+        where: {
+          ...commonWhere,
+          attendees: {
+            some: {
+              email: {
+                in: users.map((user) => user.email),
+              },
+            },
+          },
+        },
+        select,
+      }),
+    ]);
+
+    const allBookingsMap = new Map<number, (typeof bookingsAsHost)[0]>();
+    [...bookingsAsHost, ...bookingsAsAttendee].forEach((booking) => {
+      allBookingsMap.set(booking.id, booking);
     });
+
+    const allBookings = Array.from(allBookingsMap.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
 
     let queueBookings = allBookings;
 

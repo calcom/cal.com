@@ -55,7 +55,7 @@ export type InstantBookingCreateResult = {
   meetingTokenId: number;
   bookingId: number;
   bookingUid: string;
-  expires: Date;
+  expires: string;
   userId: number | null;
 };
 

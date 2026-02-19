@@ -1,5 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { MeetLocationType } from "@calcom/app-store/locations";
+import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import getCalendarsEvents, {
@@ -389,31 +390,31 @@ export const createEvent = async (
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
-        // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
-        .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
-        .catch(async (error: { code: number; calError: string }) => {
-          success = false;
-          /**
-           * There is a time when selectedCalendar externalId doesn't match witch certain credential
-           * so google returns 404.
-           * */
-          if (error?.code === 404) {
-            return undefined;
-          }
-          if (error?.calError) {
-            calError = error.calError;
-          }
-          log.error(
-            "createEvent failed",
-            safeStringify(error),
-            safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
-          );
-          // @TODO: This code will be off till we can investigate an error with it
-          //https://github.com/calcom/cal.com/issues/3949
-          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+      // Ideally we should pass externalId always, but let's start with DelegationCredential case first as in that case, CalendarService need to handle a special case for DelegationCredential to determine the selectedCalendar.
+      // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
+      .createEvent(calEvent, credential.id, externalCalendarIdWhenDelegationCredentialIsChosen)
+      .catch(async (error: { code: number; calError: string }) => {
+        success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
+        if (error?.code === 404) {
           return undefined;
-        })
+        }
+        if (error?.calError) {
+          calError = error.calError;
+        }
+        log.error(
+          "createEvent failed",
+          safeStringify(error),
+          safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+        );
+        // @TODO: This code will be off till we can investigate an error with it
+        //https://github.com/calcom/cal.com/issues/3949
+        // await sendBrokenIntegrationEmail(calEvent, "calendar");
+        return undefined;
+      })
     : undefined;
   if (!creationResult) {
     logger.error(
@@ -485,24 +486,24 @@ export const updateEvent = async (
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
       ? await calendar
-          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
-          .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
-            success = true;
-            return event;
-          })
-          .catch(async (e: { calError: string }) => {
-            // @TODO: This code will be off till we can investigate an error with it
-            // @see https://github.com/calcom/cal.com/issues/3949
-            // await sendBrokenIntegrationEmail(calEvent, "calendar");
-            log.error(
-              "updateEvent failed",
-              safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
-            );
-            if (e?.calError) {
-              calError = e.calError;
-            }
-            return undefined;
-          })
+        .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+        .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
+          success = true;
+          return event;
+        })
+        .catch(async (e: { calError: string }) => {
+          // @TODO: This code will be off till we can investigate an error with it
+          // @see https://github.com/calcom/cal.com/issues/3949
+          // await sendBrokenIntegrationEmail(calEvent, "calendar");
+          log.error(
+            "updateEvent failed",
+            safeStringify({ e, calEvent: getPiiFreeCalendarEvent(calEvent) })
+          );
+          if (e?.calError) {
+            calError = e.calError;
+          }
+          return undefined;
+        })
       : undefined;
 
   if (!updatedResult) {
@@ -578,4 +579,39 @@ export const deleteEvent = async ({
   }
 
   return Promise.resolve({});
+};
+
+export const getBusyVideoTimes = async (
+  withCredentials: CredentialForCalendarService[],
+  dateFrom: string,
+  dateTo: string
+): Promise<EventBusyDate[]> => {
+  const videoCredentials = withCredentials.filter((credential) => credential.type.endsWith("_video"));
+
+  const promises = videoCredentials.map(async (credential) => {
+    const videoType = credential.type.split("_").join("");
+    const adapterImport = VideoApiAdapterMap[videoType as keyof typeof VideoApiAdapterMap];
+
+    if (!adapterImport) {
+      return [];
+    }
+
+    try {
+      const module = await adapterImport;
+      const adapterFactory = module.default;
+      const adapter = adapterFactory(credential);
+
+      if (!adapter || !adapter.getAvailability) {
+        return [];
+      }
+
+      return await adapter.getAvailability(dateFrom, dateTo);
+    } catch (e) {
+      log.error("Error fetching video availability", safeStringify({ type: credential.type, error: e }));
+      return [];
+    }
+  });
+
+  const results = await Promise.all(promises);
+  return results.reduce((acc, availability) => acc.concat(availability), [] as EventBusyDate[]);
 };

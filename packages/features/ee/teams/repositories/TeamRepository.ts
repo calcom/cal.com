@@ -11,19 +11,19 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
-      metadata: z.infer<typeof teamMetadataSchema>;
-      isOrganization: boolean;
-    })
+    metadata: z.infer<typeof teamMetadataSchema>;
+    isOrganization: boolean;
+  })
   | null;
 
 type GetTeamOrOrgArg<TeamSelect extends Prisma.TeamSelect> = {
   lookupBy: (
     | {
-        id: number;
-      }
+      id: number;
+    }
     | {
-        slug: string;
-      }
+      slug: string;
+    }
   ) & {
     havingMemberWithId?: number;
   };
@@ -124,8 +124,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   const team = teamsWithParsedMetadata[0];
   if (!team) return null;
   // HACK: I am not sure how to make Prisma in peace with TypeScript with this repository pattern
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return team as any;
+  return team as unknown as TeamGetPayloadWithParsedMetadata<TeamSelect>;
 }
 
 export async function getTeam<TeamSelect extends Prisma.TeamSelect>({
@@ -167,7 +166,7 @@ const teamSelect = {
 } satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient) { }
 
   async findById({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({

@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
+import { getBusyCalendarTimes, getBusyVideoTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import { subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { stringToDayjs } from "@calcom/lib/dayjs";
@@ -24,7 +24,7 @@ export interface IBusyTimesService {
 }
 
 export class BusyTimesService {
-  constructor(public readonly dependencies: IBusyTimesService) {}
+  constructor(public readonly dependencies: IBusyTimesService) { }
 
   async _getBusyTimes(params: {
     credentials: CredentialForCalendarService[];
@@ -41,16 +41,16 @@ export class BusyTimesService {
     rescheduleUid?: string | null;
     duration?: number | null;
     currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-          eventType: Pick<
-            EventType,
-            "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-          > | null;
-          _count?: {
-            seatsReferences: number;
-          };
-        })[]
-      | null;
+    | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+      eventType: Pick<
+        EventType,
+        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      > | null;
+      _count?: {
+        seatsReferences: number;
+      };
+    })[]
+    | null;
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
     mode?: CalendarFetchMode;
@@ -217,8 +217,7 @@ export class BusyTimesService {
         const calendarBusyTimes = calendarBusyTimesQuery.data;
         const endConnectedCalendarsGet = performance.now();
         logger.debug(
-          `Connected Calendars get took ${
-            endConnectedCalendarsGet - startConnectedCalendarsGet
+          `Connected Calendars get took ${endConnectedCalendarsGet - startConnectedCalendarsGet
           } ms for user ${username}`,
           JSON.stringify({
             eventTypeId,
@@ -264,12 +263,9 @@ export class BusyTimesService {
         );
       }
 
-      /*
-    // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
-    const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
-    console.log("videoBusyTimes", videoBusyTimes);
-    busyTimes.push(...videoBusyTimes);
-    */
+      const videoBusyTimes = await getBusyVideoTimes(credentials, startTime, endTime);
+      logger.debug("videoBusyTimes", videoBusyTimes);
+      busyTimes.push(...videoBusyTimes);
     } else {
       logger.warn(`No credentials found for user ${userId}`, {
         selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
@@ -464,12 +460,11 @@ export class BusyTimesService {
       },
       eventTypeId,
       status: BookingStatus.ACCEPTED,
-      // FIXME: bookings that overlap on one side will never be counted
       startTime: {
-        gte: startTimeDate,
+        lt: endTimeDate,
       },
       endTime: {
-        lte: endTimeDate,
+        gt: startTimeDate,
       },
     };
 

@@ -348,7 +348,7 @@ export async function handler(
     meetingTokenId: instantMeetingToken.id,
     bookingId: newBooking.id,
     bookingUid: newBooking.uid,
-    expires: instantMeetingToken.expires,
+    expires: instantMeetingToken.expires.toISOString(),
     userId: newBooking.userId,
   } satisfies InstantBookingCreateResult;
 }
@@ -357,7 +357,7 @@ export async function handler(
  * Instant booking service that handles instant/immediate bookings
  */
 export class InstantBookingCreateService implements IBookingCreateService {
-  constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
+  constructor(private readonly deps: IInstantBookingCreateServiceDependencies) { }
 
   async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
     return handler(input.bookingData, this.deps);

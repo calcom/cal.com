@@ -313,7 +313,6 @@ export const buildEventForTeamEventType = async ({
   const teamMemberPromises = filteredUsers
     .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
-      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
       if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
         teamDestinationCalendars.push({
@@ -583,21 +582,19 @@ async function handler(
 ) {
   const {
     bookingData: rawBookingData,
-    userId,
-    userUuid,
-    platformClientId,
-    platformCancelUrl,
-    platformBookingUrl,
-    platformRescheduleUrl,
-    platformBookingLocation,
-    hostname,
-    forcedSlug,
-    areCalendarEventsEnabled = true,
-    skipAvailabilityCheck = false,
-    skipEventLimitsCheck = false,
-    skipCalendarSyncTaskCreation = false,
-    traceContext: passedTraceContext,
+    // ...
   } = input;
+
+  if (rawBookingData.guests && rawBookingData.guests.length > 0) {
+    const unnamedGuests = rawBookingData.guests.filter((guest) => !guest.name);
+    if (unnamedGuests.length > 0) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Guest email and name are required",
+      });
+    }
+  }
+
   let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
 
   const traceContext = passedTraceContext
@@ -623,9 +620,9 @@ async function handler(
     userId: userId ?? null,
     eventType: eventType
       ? {
-          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
-        }
+        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+        minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
+      }
       : null,
   });
 
@@ -809,10 +806,10 @@ async function handler(
         organizationId: eventOrganizationId,
         previousBooking: originalRescheduledBooking
           ? {
-              uid: originalRescheduledBooking.uid,
-              startTime: originalRescheduledBooking.startTime,
-              endTime: originalRescheduledBooking.endTime,
-            }
+            uid: originalRescheduledBooking.uid,
+            startTime: originalRescheduledBooking.startTime,
+            endTime: originalRescheduledBooking.endTime,
+          }
           : null,
       };
     }
@@ -1440,9 +1437,9 @@ async function handler(
   const { bookingLocation, conferenceCredentialId: eventTypeCredentialId } =
     organizerOrFirstDynamicGroupMemberDefaultLocationUrl
       ? {
-          bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-          conferenceCredentialId: undefined,
-        }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
       : getLocationValueForDB(locationBodyString, eventType.locations);
 
   // Use per-host credential if available, otherwise fall back to event type credential
@@ -1752,10 +1749,10 @@ async function handler(
       organizationId: eventOrganizationId,
       previousBooking: originalRescheduledBooking
         ? {
-            uid: originalRescheduledBooking.uid,
-            startTime: originalRescheduledBooking.startTime,
-            endTime: originalRescheduledBooking.endTime,
-          }
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
         : null,
     };
   }
@@ -1829,10 +1826,10 @@ async function handler(
         organizationId: eventOrganizationId,
         previousBooking: originalRescheduledBooking
           ? {
-              uid: originalRescheduledBooking.uid,
-              startTime: originalRescheduledBooking.startTime,
-              endTime: originalRescheduledBooking.endTime,
-            }
+            uid: originalRescheduledBooking.uid,
+            startTime: originalRescheduledBooking.startTime,
+            endTime: originalRescheduledBooking.endTime,
+          }
           : null,
       };
     } else {
@@ -2159,14 +2156,14 @@ async function handler(
 
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-          evt,
-          originalRescheduledBooking.uid,
-          undefined,
-          changedOrganizer,
-          previousHostDestinationCalendar,
-          isBookingRequestedReschedule,
-          skipDeleteEventsAndMeetings
-        )
+        evt,
+        originalRescheduledBooking.uid,
+        undefined,
+        changedOrganizer,
+        previousHostDestinationCalendar,
+        isBookingRequestedReschedule,
+        skipDeleteEventsAndMeetings
+      )
       : placeholderCreatedEvent;
 
     results = updateManager.results;
@@ -2461,17 +2458,17 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
+      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+    }
     : undefined;
 
   // Query feature flags in parallel before firing booking events
   // TODO: We should support checkIfOrgHasFeatures - Bulk plus orgId check, that would be more efficient.
   const [isBookingEmailSmsTaskerEnabled, isBookingAuditEnabled] = orgId
     ? await Promise.all([
-        deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
-        deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit"),
-      ])
+      deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
+      deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit"),
+    ])
     : [false, false];
 
   await this.fireBookingEvents({
@@ -2561,9 +2558,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-              ...eventType.metadata,
-              apps: eventType.metadata?.apps as Prisma.JsonValue,
-            }
+            ...eventType.metadata,
+            apps: eventType.metadata?.apps as Prisma.JsonValue,
+          }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2653,10 +2650,10 @@ async function handler(
       organizationId: eventOrganizationId,
       previousBooking: originalRescheduledBooking
         ? {
-            uid: originalRescheduledBooking.uid,
-            startTime: originalRescheduledBooking.startTime,
-            endTime: originalRescheduledBooking.endTime,
-          }
+          uid: originalRescheduledBooking.uid,
+          startTime: originalRescheduledBooking.startTime,
+          endTime: originalRescheduledBooking.endTime,
+        }
         : null,
     };
   }
@@ -2895,10 +2892,10 @@ async function handler(
     organizationId: eventOrganizationId,
     previousBooking: originalRescheduledBooking
       ? {
-          uid: originalRescheduledBooking.uid,
-          startTime: originalRescheduledBooking.startTime,
-          endTime: originalRescheduledBooking.endTime,
-        }
+        uid: originalRescheduledBooking.uid,
+        startTime: originalRescheduledBooking.startTime,
+        endTime: originalRescheduledBooking.endTime,
+      }
       : null,
   };
 }
@@ -2909,7 +2906,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) { }
 
   async fireBookingEvents({
     booking,
@@ -2977,10 +2974,10 @@ export class RegularBookingService implements IBookingService {
         bookerName,
         rescheduledBy: rescheduledBy
           ? {
-              attendeeId: rescheduledByAttendeeId ?? null,
-              userUuid: rescheduledByUserUuid ?? null,
-              email: rescheduledBy,
-            }
+            attendeeId: rescheduledByAttendeeId ?? null,
+            userUuid: rescheduledByUserUuid ?? null,
+            email: rescheduledBy,
+          }
           : null,
         logger: tracingLogger,
       });

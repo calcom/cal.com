@@ -187,7 +187,7 @@ function getCompliantPassword(
   defaultPassword: string | null | undefined,
   requirements: MeetingPasswordRequirement
 ): string | undefined {
-  if (!requirements ) {
+  if (!requirements) {
     return defaultPassword ?? undefined;
   }
 
@@ -490,10 +490,20 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   return {
-    getAvailability: async () => {
+    getAvailability: async (dateFrom?: string, dateTo?: string) => {
       try {
+        const query = new URLSearchParams({
+          type: "scheduled",
+          page_size: "300",
+        });
+        if (dateFrom) {
+          query.append("from", dayjs(dateFrom).format("YYYY-MM-DD"));
+        }
+        if (dateTo) {
+          query.append("to", dayjs(dateTo).format("YYYY-MM-DD"));
+        }
         // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
-        const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
+        const responseBody = await fetchZoomApi(`users/me/meetings?${query.toString()}`);
 
         const data = zoomMeetingsSchema.parse(responseBody);
         return data.meetings.map((meeting) => ({
