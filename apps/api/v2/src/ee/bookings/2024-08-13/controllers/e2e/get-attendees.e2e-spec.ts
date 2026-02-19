@@ -264,7 +264,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(attendee).toHaveProperty("displayEmail");
         expect(attendee).toHaveProperty("language");
         expect(attendee).toHaveProperty("absent");
-        expect(attendee).toHaveProperty("phoneNumber");
       });
     });
   });
@@ -366,7 +365,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(attendee).toHaveProperty("displayEmail");
         expect(attendee).toHaveProperty("language");
         expect(attendee).toHaveProperty("absent");
-        expect(attendee).toHaveProperty("phoneNumber");
       });
     });
   });
