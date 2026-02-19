@@ -1,25 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react";
-
-import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
+import process from "node:process";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import {
-  LastUsed,
-  useLastUsed,
-} from "@calcom/web/modules/auth/hooks/useLastUsed";
-import {
-  HOSTED_CAL_FEATURES,
-  WEBAPP_URL,
-  WEBSITE_URL,
-} from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -27,24 +10,26 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
-
-import { Button } from "@coss/ui/components/button";
-import { Field, FieldLabel } from "@coss/ui/components/field";
-import { Input } from "@coss/ui/components/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@coss/ui/components/input-group";
-import { Separator } from "@coss/ui/components/separator";
-
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
+import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
+import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
-
+import { Button } from "@coss/ui/components/button";
+import { Field, FieldLabel } from "@coss/ui/components/field";
+import { Input } from "@coss/ui/components/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@coss/ui/components/input-group";
+import { Separator } from "@coss/ui/components/separator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface LoginValues {
   email: string;
@@ -55,19 +40,11 @@ interface LoginValues {
 }
 
 const MicrosoftIcon = () => (
-  <img
-    className="size-4"
-    src="/microsoft-logo.svg"
-    alt="Continue with Microsoft Icon"
-  />
+  <img className="size-4" src="/microsoft-logo.svg" alt="Continue with Microsoft Icon" />
 );
 
 const GoogleIcon = () => (
-  <img
-    className="size-4"
-    src="/google-icon-colored.svg"
-    alt="Continue with Google Icon"
-  />
+  <img className="size-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
 
 function BackgroundGrid() {
@@ -86,8 +63,7 @@ function BackgroundGrid() {
         height={height}
         viewBox={`0 0 ${width} ${height}`}
         fill="none"
-        className="[--grid-fill:#f7f7f7] [--grid-stroke:rgba(34,42,53,0.08)] dark:[--grid-fill:#1f1f1f] dark:[--grid-stroke:rgba(255,255,255,0.08)]"
-      >
+        className="[--grid-fill:#f7f7f7] [--grid-stroke:rgba(34,42,53,0.08)] dark:[--grid-fill:#1f1f1f] dark:[--grid-stroke:rgba(255,255,255,0.08)]">
         <defs>
           <radialGradient id="gridFade" cx="50%" cy="50%" rx="70%" ry="70%">
             <stop offset="20%" stopColor="white" stopOpacity="1" />
@@ -97,18 +73,8 @@ function BackgroundGrid() {
             <rect width={width} height={height} fill="url(#gridFade)" />
           </mask>
           <filter id="gridShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow
-              dx="0"
-              dy="4"
-              stdDeviation="4"
-              floodColor="rgba(34,42,53,0.05)"
-            />
-            <feDropShadow
-              dx="0"
-              dy="1"
-              stdDeviation="2"
-              floodColor="rgba(19,19,22,0.03)"
-            />
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="rgba(34,42,53,0.05)" />
+            <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="rgba(19,19,22,0.03)" />
           </filter>
         </defs>
         <g mask="url(#gridMask)">
@@ -156,17 +122,13 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .regex(emailRegex, `${t("enter_valid_email")}`),
-      ...(totpEmail
-        ? {}
-        : { password: z.string().min(1, `${t("error_required_field")}`) }),
+      ...(totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
-  const [twoFactorRequired, setTwoFactorRequired] = useState(
-    !!totpEmail || false
-  );
+  const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastUsed, setLastUsed] = useLastUsed();
@@ -176,15 +138,9 @@ export default function Login({
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
-    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t(
-      "please_try_again"
-    )}`,
-    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t(
-      "please_try_again_and_contact_us"
-    )}`,
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t(
-      "account_created_with_identity_provider"
-    ),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
   let callbackUrl = searchParams?.get("callbackUrl") || "";
@@ -200,8 +156,7 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const { data, isPending, error } =
-    trpc.viewer.public.ssoConnections.useQuery();
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -229,24 +184,17 @@ export default function Login({
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
-    } else if (res.error === ErrorCode.SecondFactorRequired)
-      setTwoFactorRequired(true);
-    else if (res.error === ErrorCode.IncorrectBackupCode)
-      setErrorMessage(t("incorrect_backup_code"));
-    else if (res.error === ErrorCode.MissingBackupCodes)
-      setErrorMessage(t("missing_backup_codes"));
+    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
+    else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
   const showSocialLogin = isGoogleLoginEnabled || isOutlookLoginEnabled;
-  const socialProviderCount = [
-    isGoogleLoginEnabled,
-    isOutlookLoginEnabled,
-  ].filter(Boolean).length;
+  const socialProviderCount = [isGoogleLoginEnabled, isOutlookLoginEnabled].filter(Boolean).length;
   const showSignupLink =
-    process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" &&
-    searchParams?.get("register") !== "false";
+    process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false";
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-default/80 px-4 py-10">
@@ -257,13 +205,11 @@ export default function Login({
         <div className="w-full rounded-xl border border-subtle bg-default p-10 shadow-sm">
           {/* Logo */}
           <div className="mb-2 text-center">
-            <h1 className="font-cal text-xl font-bold text-emphasis">
-              Cal.com
-            </h1>
+            <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
           </div>
 
           {/* Heading */}
-          <p className="mb-8 text-center text-sm text-subtle">
+          <p className="mb-8 text-center text-sm text-subtle" data-testid="login-subtitle">
             {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
           </p>
 
@@ -283,8 +229,7 @@ export default function Login({
                         await signIn("google", {
                           callbackUrl,
                         });
-                      }}
-                    >
+                      }}>
                       <GoogleIcon />
                       <span>{t("signin_with_google")}</span>
                     </Button>
@@ -300,8 +245,7 @@ export default function Login({
                         await signIn("azure-ad", {
                           callbackUrl,
                         });
-                      }}
-                    >
+                      }}>
                       <MicrosoftIcon />
                       <span>{t("signin_with_microsoft")}</span>
                     </Button>
@@ -311,25 +255,14 @@ export default function Login({
                 {/* Divider */}
                 <div className="my-6 flex items-center gap-4">
                   <Separator className="flex-1" />
-                  <span className="text-sm text-zinc-400">
-                    {t("or").toLowerCase()}
-                  </span>
+                  <span className="text-sm text-zinc-400">{t("or").toLowerCase()}</span>
                   <Separator className="flex-1" />
                 </div>
               </>
             )}
 
-            <form
-              onSubmit={methods.handleSubmit(onSubmit)}
-              noValidate
-              data-testid="login-form"
-            >
-              <input
-                defaultValue={csrfToken || undefined}
-                type="hidden"
-                hidden
-                {...register("csrfToken")}
-              />
+            <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
+              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
 
               {!twoFactorRequired && (
                 <div className="space-y-6">
@@ -339,9 +272,7 @@ export default function Login({
                     <Input
                       id="email"
                       type="email"
-                      defaultValue={
-                        totpEmail || (searchParams?.get("email") as string)
-                      }
+                      defaultValue={totpEmail || (searchParams?.get("email") as string)}
                       autoComplete="email"
                       {...register("email")}
                     />
@@ -356,10 +287,7 @@ export default function Login({
                   <Field>
                     <div className="flex w-full items-center justify-between">
                       <FieldLabel>{t("password")}</FieldLabel>
-                      <Link
-                        href="/auth/forgot-password"
-                        className="text-sm text-subtle hover:text-emphasis"
-                      >
+                      <Link href="/auth/forgot-password" className="text-sm text-subtle hover:text-emphasis">
                         {t("forgot")}
                       </Link>
                     </div>
@@ -376,17 +304,8 @@ export default function Login({
                           variant="ghost"
                           size="icon-xs"
                           onClick={() => setShowPassword(!showPassword)}
-                          aria-label={
-                            showPassword
-                              ? t("hide_password")
-                              : t("show_password")
-                          }
-                        >
-                          {showPassword ? (
-                            <EyeOff className="size-4" />
-                          ) : (
-                            <Eye className="size-4" />
-                          )}
+                          aria-label={showPassword ? t("hide_password") : t("show_password")}>
+                          {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                         </Button>
                       </InputGroupAddon>
                     </InputGroup>
@@ -402,26 +321,19 @@ export default function Login({
               {/* Two Factor */}
               {twoFactorRequired && (
                 <div className="space-y-4">
-                  {!twoFactorLostAccess ? (
-                    <TwoFactor center />
-                  ) : (
-                    <BackupCode center />
-                  )}
+                  {!twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center />}
                 </div>
               )}
 
               {/* Error Message */}
-              {errorMessage && (
-                <Alert severity="error" title={errorMessage} className="mt-4" />
-              )}
+              {errorMessage && <Alert severity="error" title={errorMessage} className="mt-4" />}
 
               {/* Submit Button */}
               <Button
                 type="submit"
                 variant="outline"
                 className="mt-8 w-full"
-                disabled={formState.isSubmitting}
-              >
+                disabled={formState.isSubmitting}>
                 {twoFactorRequired ? t("submit") : t("continue")}
               </Button>
             </form>
@@ -442,8 +354,7 @@ export default function Login({
                           methods.setValue("totpCode", "");
                         }
                         setErrorMessage(null);
-                      }}
-                    >
+                      }}>
                       <Icon name="arrow-left" className="mr-2 size-4" />
                       {t("go_back")}
                     </Button>
@@ -454,8 +365,7 @@ export default function Login({
                           setTwoFactorLostAccess(true);
                           setErrorMessage(null);
                           methods.setValue("totpCode", "");
-                        }}
-                      >
+                        }}>
                         <Icon name="lock" className="mr-2 size-4" />
                         {t("lost_access")}
                       </Button>
@@ -466,8 +376,7 @@ export default function Login({
                     variant="ghost"
                     onClick={() => {
                       window.location.replace("/");
-                    }}
-                  >
+                    }}>
                     {t("cancel")}
                   </Button>
                 )}
@@ -481,9 +390,12 @@ export default function Login({
           <div className="mt-6 flex items-center justify-center gap-4 text-center">
             {showSignupLink && (
               <Link
-                href={`${WEBSITE_URL}/signup`}
-                className="text-sm font-medium text-emphasis hover:underline"
-              >
+                href={
+                  callbackUrl
+                    ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
+                    : `${WEBSITE_URL}/signup`
+                }
+                className="text-sm font-medium text-emphasis hover:underline">
                 {t("create_account")}
               </Link>
             )}

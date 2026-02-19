@@ -5,7 +5,7 @@ import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import prisma from "@calcom/prisma";
 
 export async function updateProfilePhotoMicrosoft(accessToken: string, userId: number) {
-  logger.info("updateProfilePhotoMicrosoft called", { userId, hasToken: !!accessToken });
+  logger.info("updateProfilePhotoMicrosoft called", { hasToken: !!accessToken });
   try {
     const response = await fetch("https://graph.microsoft.com/v1.0/me/photo/$value", {
       headers: {
@@ -16,11 +16,10 @@ export async function updateProfilePhotoMicrosoft(accessToken: string, userId: n
     if (!response.ok) {
       // in case user might not have a profile photo set
       if (response.status === 404) {
-        logger.info("Microsoft profile photo not found for user", { userId });
+        logger.info("Microsoft profile photo not found for user");
         return;
       }
       logger.error("Failed to fetch Microsoft profile photo", {
-        userId,
         status: response.status,
         statusText: response.statusText,
       });
@@ -39,7 +38,7 @@ export async function updateProfilePhotoMicrosoft(accessToken: string, userId: n
 
     const userRepo = new UserRepository(prisma);
     await userRepo.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
-    logger.info("Microsoft profile photo updated successfully", { userId });
+    logger.info("Microsoft profile photo updated successfully");
   } catch (error) {
     logger.error("Error updating avatarUrl from Microsoft sign-in", error);
   }

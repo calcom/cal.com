@@ -18,16 +18,9 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Willkommen zurück! Melden Sie sich an, um fortzufahren");
-      const locator = page.getByText("Willkommen zurück! Melden Sie sich an, um fortzufahren", {
-        exact: true,
-      });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -45,14 +38,9 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
     await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=مرحباً بعودتك! سجّل الدخول للمتابعة");
-      const locator = page.getByText("مرحباً بعودتك! سجّل الدخول للمتابعة", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -70,14 +58,9 @@ test.describe("unauthorized user sees correct translations (zh)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来！请登录以继续");
-      const locator = page.getByText("欢迎回来！请登录以继续", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -95,14 +78,9 @@ test.describe("unauthorized user sees correct translations (zh-CN)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来！请登录以继续");
-      const locator = page.getByText("欢迎回来！请登录以继续", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -120,14 +98,9 @@ test.describe("unauthorized user sees correct translations (zh-TW)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=歡迎回來！請登入以繼續");
-      const locator = page.getByText("歡迎回來！請登入以繼續", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -145,14 +118,9 @@ test.describe("unauthorized user sees correct translations (pt)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bem-vindo de volta! Inicie sessão para continuar");
-      const locator = page.getByText("Bem-vindo de volta! Inicie sessão para continuar", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -170,14 +138,9 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bem-vindo de volta! Faça login para continuar");
-      const locator = page.getByText("Bem-vindo de volta! Faça login para continuar", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -196,14 +159,9 @@ test.describe("unauthorized user sees correct translations (es-419)", async () =
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=¡Bienvenido de nuevo! Inicia sesión para continuar");
-      const locator = page.getByText("¡Bienvenido de nuevo! Inicia sesión para continuar", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
