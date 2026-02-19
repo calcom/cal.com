@@ -19,10 +19,13 @@ const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => 
       "installCount" DESC
     `
   );
-  return mostPopularApps.reduce((acc, { appId, installCount }) => {
-    acc[appId] = installCount;
-    return acc;
-  }, {} as Record<string, number>);
+  return mostPopularApps.reduce(
+    (acc, { appId, installCount }) => {
+      acc[appId] = installCount;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 };
 
 const getInstallCountPerApp = async (): Promise<Record<string, number>> => {

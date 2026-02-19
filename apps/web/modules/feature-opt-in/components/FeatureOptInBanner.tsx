@@ -22,7 +22,7 @@ export function FeatureOptInBanner({
   return (
     <div
       data-testid="feature-opt-in-banner"
-      className="bg-default border-subtle fixed bottom-5 right-5 z-50 max-w-xs rounded-lg border shadow-lg group">
+      className="group fixed right-5 bottom-5 z-50 hidden max-w-xs rounded-lg border border-subtle bg-default shadow-lg md:block">
       <div className="p-4">
         <h3 data-testid="feature-opt-in-banner-title" className="text-emphasis text-lg font-semibold">
           {t(featureConfig.i18n.title)}
