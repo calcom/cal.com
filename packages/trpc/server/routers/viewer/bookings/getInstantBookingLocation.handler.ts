@@ -1,5 +1,4 @@
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
-
 import type { TInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 
 type GetOptions = {
@@ -11,7 +10,7 @@ export const getHandler = async ({ ctx: _ctx, input }: GetOptions) => {
   const { bookingUid } = input;
 
   const bookingRepository = getBookingRepository();
-  const booking = await bookingRepository.findAcceptedByUidForInstantBooking({ bookingUid });
+  const booking = await bookingRepository.findAcceptedByUid({ bookingUid });
 
   // Don't leak anything private from the booking
   return {

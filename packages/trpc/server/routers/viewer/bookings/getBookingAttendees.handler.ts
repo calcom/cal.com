@@ -1,5 +1,4 @@
 import { getBookingRepository } from "@calcom/features/di/containers/Booking";
-
 import type { TGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 
 type GetBookingAttendeesOptions = {
@@ -9,7 +8,7 @@ type GetBookingAttendeesOptions = {
 
 export const getBookingAttendeesHandler = async ({ ctx: _ctx, input }: GetBookingAttendeesOptions) => {
   const bookingRepository = getBookingRepository();
-  const count = await bookingRepository.countSeatReferencesByReferenceUid({
+  const count = await bookingRepository.countSeatsByReferenceUid({
     referenceUid: input.seatReferenceUid,
   });
 

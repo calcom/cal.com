@@ -31,7 +31,12 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
-import { AssignmentReasonEnum, BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  type AssignmentReasonEnum,
+  BookingStatus,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
@@ -245,7 +250,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     additionalNotes: booking.description,
     assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
       ? {
-          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum as AssignmentReasonEnum),
+          category: getAssignmentReasonCategory(
+            booking.assignmentReason[0].reasonEnum as AssignmentReasonEnum
+          ),
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
@@ -253,7 +260,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEventId) {
-    const recurringBookingExists = await bookingRepository.findRecurringEventBookingExists({
+    const recurringBookingExists = await bookingRepository.existsByRecurringEventId({
       recurringEventId,
       bookingId: booking.id,
     });
@@ -265,7 +272,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
   }
-const traceContext = {
+  const traceContext = {
     ...ctx.traceContext,
     bookingUid: booking.uid || "unknown",
     confirmed: String(confirmed),

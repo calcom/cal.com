@@ -7,12 +7,7 @@ import type { JsonValue } from "@calcom/types/JsonObject";
 /**
  * Booking status values (ORM-agnostic string literal union)
  */
-export type BookingStatusDto =
-  | "CANCELLED"
-  | "ACCEPTED"
-  | "REJECTED"
-  | "PENDING"
-  | "AWAITING_HOST";
+export type BookingStatusDto = "CANCELLED" | "ACCEPTED" | "REJECTED" | "PENDING" | "AWAITING_HOST";
 
 import type { AttendeeDto } from "./AttendeeDto";
 import type { BookingReferenceCreateInput, BookingReferenceDto } from "./BookingReferenceDto";
@@ -22,7 +17,7 @@ import type { PaymentDto } from "./PaymentDto";
 import type { BookingConfirmationUserDto, BookingUserDto } from "./UserDto";
 
 /**
- * Basic booking information returned by findByUidBasic
+ * Basic booking information returned by findByUid
  */
 export interface BookingBasicDto {
   id: number;

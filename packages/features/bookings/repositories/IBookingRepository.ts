@@ -1,16 +1,15 @@
-import type { Booking } from "@calcom/prisma/client";
-import type { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-
 import type {
   BookingBasicDto,
-  BookingInstantLocationDto,
-  BookingExistsDto,
-  BookingFullContextDto,
-  BookingForConfirmationDto,
-  BookingUpdateResultDto,
   BookingBatchUpdateResultDto,
+  BookingExistsDto,
+  BookingForConfirmationDto,
+  BookingFullContextDto,
+  BookingInstantLocationDto,
+  BookingUpdateResultDto,
   UpdateLocationInput,
 } from "@calcom/lib/dto/BookingDto";
+import type { Booking } from "@calcom/prisma/client";
+import type { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 
 export interface BookingWhereInput {
   id?: number;
@@ -55,13 +54,11 @@ interface BookingWithWorkflowReminders {
 }
 
 export interface IBookingRepository {
-  findByUidBasic(params: { bookingUid: string }): Promise<BookingBasicDto | null>;
+  findByUid(params: { bookingUid: string }): Promise<BookingBasicDto | null>;
 
-  findAcceptedByUidForInstantBooking(params: {
-    bookingUid: string;
-  }): Promise<BookingInstantLocationDto | null>;
+  findAcceptedByUid(params: { bookingUid: string }): Promise<BookingInstantLocationDto | null>;
 
-  countSeatReferencesByReferenceUid(params: { referenceUid: string }): Promise<number | null>;
+  countSeatsByReferenceUid(params: { referenceUid: string }): Promise<number | null>;
 
   findByIdForAdminIncludeFullContext(params: {
     bookingId: number;
@@ -77,7 +74,7 @@ export interface IBookingRepository {
 
   updateStatusToAccepted(params: { bookingId: number }): Promise<BookingUpdateResultDto>;
 
-  findRecurringEventBookingExists(params: {
+  existsByRecurringEventId(params: {
     recurringEventId: string;
     bookingId: number;
   }): Promise<BookingExistsDto | null>;
