@@ -1376,6 +1376,7 @@ model App_RoutingForms_QueuedFormResponse {
   formId              String
   response            Json
   chosenRouteId       String?
+  fallbackAction      Json?
   createdAt           DateTime                       @default(now())
   updatedAt           DateTime?                      @updatedAt
   actualResponseId    Int?                           @unique

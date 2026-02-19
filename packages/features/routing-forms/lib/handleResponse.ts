@@ -214,6 +214,8 @@ const _handleResponse = async ({
       return null;
     };
 
+    const fallbackAction = getFallbackAction();
+
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       const formResponseRepo = new RoutingFormResponseRepository(prisma);
@@ -222,6 +224,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          fallbackAction: fallbackAction as Prisma.InputJsonValue | null,
         });
         dbFormResponse = null;
       } else {
@@ -231,8 +234,6 @@ const _handleResponse = async ({
           chosenRouteId,
         });
         queuedFormResponse = null;
-
-        const fallbackAction = getFallbackAction();
 
         await onSubmissionOfFormResponse({
           form: serializableFormWithFields,
@@ -261,7 +262,6 @@ const _handleResponse = async ({
         };
       }
     }
-    const fallbackAction = getFallbackAction();
 
     return {
       isPreview: !!isPreview,
