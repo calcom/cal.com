@@ -8,7 +8,8 @@ export class RequestIdMiddleware implements NestMiddleware {
   private readonly logger = new Logger("RequestIdMiddleware - NestMiddleware");
 
   use(req: Request, res: Response, next: NextFunction) {
-    const requestId = uuid();
+    const vercelId = req.headers["x-vercel-id"] as string | undefined;
+    const requestId = vercelId ?? uuid();
     req.headers["X-Request-Id"] = requestId;
     const { method, headers, body: requestBody, baseUrl } = req;
     let jsonBodyString = "{}";

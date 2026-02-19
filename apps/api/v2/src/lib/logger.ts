@@ -45,6 +45,21 @@ export const loggerConfig = (): LoggerOptions => {
     rejectionHandlers: transports,
     defaultMeta: {
       service: "cal-platform-api",
+      vercel: process.env.VERCEL
+        ? {
+            environment: process.env.VERCEL_ENV,
+            region: process.env.VERCEL_REGION,
+            deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
+            deploymentUrl: process.env.VERCEL_URL,
+          }
+        : undefined,
+      git: process.env.VERCEL
+        ? {
+            commit: process.env.VERCEL_GIT_COMMIT_SHA,
+            repo: process.env.VERCEL_GIT_REPO_SLUG,
+            ref: process.env.VERCEL_GIT_COMMIT_REF,
+          }
+        : undefined,
     },
   };
 };
