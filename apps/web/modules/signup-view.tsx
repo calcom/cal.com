@@ -875,7 +875,7 @@ export default function Signup({
                     <div className="flex flex-col gap-2">
                       <Button
                         color="secondary"
-                        disabled={isGoogleLoading}
+                        disabled={isGoogleLoading || isMicrosoftLoading}
                         className={classNames(
                           "w-full justify-center rounded-md text-center"
                         )}
