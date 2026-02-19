@@ -17,6 +17,7 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
   }[];
   isFullWidth?: boolean;
   orientation?: "horizontal" | "vertical";
+  layout?: string;
 }
 
 const OptionalTooltipWrapper = ({
@@ -42,13 +43,15 @@ export const ToggleGroup = ({
   isFullWidth,
   orientation = "horizontal",
   customClassNames,
+  layout,
   ...props
-}: ToggleGroupProps & { customClassNames?: string }) => {
+}: ToggleGroupProps & { customClassNames?: string }) => {  
   return (
     <>
       <RadixToggleGroup.Root
         type="single"
         {...props}
+        value={layout}
         orientation={orientation}
         onValueChange={onValueChange}
         style={{
@@ -83,7 +86,8 @@ export const ToggleGroup = ({
                   "flex items-center gap-1",
                   orientation === "horizontal" && "justify-center",
                   orientation === "vertical" && "justify-start"
-                )}>
+                )}
+                >
                 {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
                 {option.label}
               </div>

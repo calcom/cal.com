@@ -240,6 +240,7 @@ const LayoutToggle = ({
       defaultValue={layout}
       aria-label={t("layout")}
       options={layoutOptions}
+      layout={layout}
     />
   );
 };
