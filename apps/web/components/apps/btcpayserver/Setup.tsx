@@ -16,8 +16,8 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { LoaderIcon } from "@coss/ui/icons";
 
 export default function BTCPaySetup(props: IBTCPaySetupProps) {
   const params = useCompatSearchParams();
@@ -324,7 +324,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       disabled={loading || validating || !updatable}>
                       {loading ? (
                         <>
-                          <Icon name="loader" className="mr-2 animate-spin" />
+                          <LoaderIcon className="mr-2 animate-spin" />
                           {t("connecting")}
                         </>
                       ) : (

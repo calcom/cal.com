@@ -34,7 +34,9 @@ const createTestUser = async (overrides?: {
     data: {
       email: overrides?.email ?? `test-user-${timestamp}-${randomSuffix}@example.com`,
       username:
-        overrides?.username === null ? null : overrides?.username ?? `testuser-${timestamp}-${randomSuffix}`,
+        overrides?.username === null
+          ? null
+          : (overrides?.username ?? `testuser-${timestamp}-${randomSuffix}`),
       name: "Test User",
       organizationId: overrides?.organizationId ?? undefined,
     },

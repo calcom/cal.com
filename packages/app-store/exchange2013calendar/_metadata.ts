@@ -1,10 +1,8 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Microsoft Exchange 2013 Calendar",
-  description: _package.description,
+  description: "For calendars hosted on on-premises Microsoft Exchange 2013 servers",
   installed: true,
   type: "exchange2013_calendar",
   title: "Microsoft Exchange 2013 Calendar",

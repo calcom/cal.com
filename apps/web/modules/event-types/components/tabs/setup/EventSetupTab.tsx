@@ -156,7 +156,6 @@ export const EventSetupTab = (
                     const markdownValue = turndown(cleanedValue);
                     formMethods.setValue("description", markdownValue, { shouldDirty: true });
                   }}
-                  excludedToolbarItems={["blockType"]}
                   placeholder={t("quick_video_meeting")}
                   editable={!descriptionLockedProps.disabled}
                   firstRender={firstRender}

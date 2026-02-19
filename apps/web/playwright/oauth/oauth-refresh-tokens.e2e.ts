@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
+import jwt from "jsonwebtoken";
 
 import { test } from "../lib/fixtures";
 import type { PrismaClient } from "@calcom/prisma";
@@ -46,6 +47,25 @@ test.describe("OAuth - refresh tokens", () => {
     return client;
   }
 
+  function signRefreshToken(clientId: string, userId: number): string {
+    const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
+    if (!secretKey) {
+      throw new Error("CALENDSO_ENCRYPTION_KEY is not set");
+    }
+
+    return jwt.sign(
+      {
+        userId,
+        teamId: null,
+        scope: [],
+        token_type: "Refresh Token",
+        clientId,
+      },
+      secretKey,
+      { expiresIn: 30 * 24 * 60 * 60 }
+    );
+  }
+
   test("token refresh fails if client is not approved", async ({ page, users, prisma }, testInfo) => {
     const user = await users.create({ username: "oauth-refresh-status-check" });
     await user.apiLogin();
@@ -58,11 +78,13 @@ test.describe("OAuth - refresh tokens", () => {
       clientType: "PUBLIC",
     });
 
+    const refreshToken = signRefreshToken(client.clientId, user.id);
+
     const refreshResponse = await page.request.post("/api/auth/oauth/refreshToken", {
       form: {
         grant_type: "refresh_token",
         client_id: client.clientId,
-        refresh_token: "fake-refresh-token",
+        refresh_token: refreshToken,
       },
     });
 

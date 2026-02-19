@@ -75,7 +75,12 @@ function convertToTemplateOptions(
       value: template,
       needsTeamsUpgrade,
       upgradeTeamsBadgeProps: needsTeamsUpgrade ? { hasPaidPlan, hasActiveTeamPlan, isTrial } : undefined,
-    } as { label: string; value: WorkflowTemplates; needsTeamsUpgrade: boolean; upgradeTeamsBadgeProps?: PlanState };
+    } as {
+      label: string;
+      value: WorkflowTemplates;
+      needsTeamsUpgrade: boolean;
+      upgradeTeamsBadgeProps?: PlanState;
+    };
   });
 }
 
@@ -93,8 +98,8 @@ export function getWorkflowTemplateOptions(
     action && isWhatsappAction(action)
       ? WHATSAPP_WORKFLOW_TEMPLATES
       : action && isEmailToAttendeeAction(action)
-      ? ATTENDEE_WORKFLOW_TEMPLATES
-      : BASIC_WORKFLOW_TEMPLATES;
+        ? ATTENDEE_WORKFLOW_TEMPLATES
+        : BASIC_WORKFLOW_TEMPLATES;
 
   return convertToTemplateOptions(t, planState, TEMPLATES);
 }
