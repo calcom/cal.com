@@ -19,7 +19,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     { label: "Page View (use for custom tracking)", value: "PageView" },
   ];
 
-  // Set the Value of Select based on trackingEvent
   const currentOption = eventOptions.find((e) => e.value === trackingEvent) || eventOptions[0];
 
   useEffect(() => {
