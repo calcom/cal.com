@@ -604,39 +604,43 @@ function MemberListContent(props: Props) {
                           </DropdownMenuItem>
                           {editMode && (
                             <>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "EDIT_USER_SHEET",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="pencil">
-                                  {t("edit")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  color="destructive"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_DELETE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="user-x">
-                                  {isSelf ? t("leave") : t("remove")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
+                              {canChangeRole ? (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "EDIT_USER_SHEET",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="pencil">
+                                    {t("edit")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              ) : null}
+                              {canRemove ? (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_DELETE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="user-x">
+                                    {isSelf ? t("leave") : t("remove")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              ) : null}
                             </>
                           )}
                         </DropdownMenuContent>
