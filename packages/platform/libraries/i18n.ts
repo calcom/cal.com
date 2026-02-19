@@ -6,12 +6,12 @@ import { createInstance } from "i18next";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { i18n } = require("@calcom/config/i18n/next-i18next.config");
-const englishTranslations: Record<string, string> = require("@calcom/config/i18n/locales/en/common.json");
+const englishTranslations: Record<string, string> = require("@calcom/config/i18n/locales/en/atom.json");
 /* eslint-enable @typescript-eslint/no-require-imports */
 
-const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
+const translationCache = new Map<string, Record<string, string>>([["en-atom", englishTranslations]]);
 const i18nInstanceCache = new Map<string, I18nInstance>();
-const SUPPORTED_NAMESPACES = ["common"];
+const SUPPORTED_NAMESPACES = ["atom"];
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
@@ -22,7 +22,7 @@ const SUPPORTED_NAMESPACES = ["common"];
 export async function loadTranslations(_locale: string, _ns: string) {
   let locale = _locale === "zh" ? "zh-CN" : _locale;
   locale = i18n.locales.includes(locale) ? locale : "en";
-  const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
+  const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "atom";
   const cacheKey = `${locale}-${ns}`;
 
   if (translationCache.has(cacheKey)) {
