@@ -78,12 +78,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-type BookingsUnionQuery = SelectQueryBuilder<
-  DB,
-  "Booking",
-  Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
->;
-
 export async function getBookings({
   user,
   prisma,
@@ -137,9 +131,7 @@ export async function getBookings({
       : Promise.resolve([]),
   ]);
 
-  const bookingQueries: { query: BookingsUnionQuery; tables: (keyof DB)[] }[] = [];
-
-  // If userIds filter is provided
+  // Validate userIds filter if provided
   if (!!filters?.userIds && filters.userIds.length > 0) {
     const areUserIdsWithinUserOrgOrTeam = filters.userIds.every((userId) =>
       allAccessibleUserIds.includes(userId)
@@ -147,302 +139,204 @@ export async function getBookings({
 
     const isCurrentUser = filters.userIds.length === 1 && user.id === filters.userIds[0];
 
-    //  Scope depends on `user.orgId`:
-    // - Throw an error if trying to filter by usersIds that are not within your ORG
-    // - Throw an error if trying to filter by usersIds that are not within your TEAM
     if (!areUserIdsWithinUserOrgOrTeam && !isCurrentUser) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "You do not have permissions to fetch bookings for specified userIds",
       });
     }
-
-    // 1. Booking created by one of the filtered users
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .where("userId", "in", filters.userIds),
-      tables: ["Booking"],
-    });
-
-    // 2. Attendee email matches one of the filtered users' emails
-    if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
-        tables: ["Booking", "Attendee"],
-      });
-    }
-
-    // 3. Seat reference attendee email matches one of the filtered users' emails
-    if (attendeeEmailsFromUserIdsFilter?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
-        tables: ["Booking", "Attendee", "BookingSeat"],
-      });
-    }
-  } else {
-    // 1. Current user created bookings
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .where("Booking.userId", "=", user.id),
-      tables: ["Booking"],
-    });
-    // 2. Current user is an attendee
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
-      tables: ["Booking", "Attendee"],
-    });
-    // 3. Current user is an attendee via seats reference
-    bookingQueries.push({
-      query: kysely
-        .selectFrom("Booking")
-        .select("Booking.id")
-        .select("Booking.startTime")
-        .select("Booking.endTime")
-        .select("Booking.createdAt")
-        .select("Booking.updatedAt")
-        .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
-        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
-      tables: ["Booking", "Attendee", "BookingSeat"],
-    });
-    // 4. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees
-    // PERFORMANCE: Use subquery with team membership instead of materializing all emails (can be 400+ for large orgs)
-    if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", (eb) =>
-            eb
-              .selectFrom("users")
-              .select("users.email")
-              .innerJoin("Membership", "Membership.userId", "users.id")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking", "Attendee"],
-      });
-    }
-    // 5. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings where organization/team members are attendees via seatsReference
-    // PERFORMANCE: Use subquery with team membership instead of materializing all emails
-    if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", (eb) =>
-            eb
-              .selectFrom("users")
-              .select("users.email")
-              .innerJoin("Membership", "Membership.userId", "users.id")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking", "Attendee", "BookingSeat"],
-      });
-    }
-
-    // 6. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get booking created for an event type within the organization/team
-    // PERFORMANCE: Use subquery to get event type IDs instead of materializing them
-    if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .where("Booking.eventTypeId", "in", (eb) =>
-            eb
-              .selectFrom("EventType")
-              .select("EventType.id")
-              .where("EventType.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking"],
-      });
-    }
-
-    // 7. Scope depends on `user.orgId`:
-    // - If Current user is ORG_OWNER/ADMIN or has booking.read permission, get bookings created by users within the same organization/team
-    // PERFORMANCE: Use subquery with team membership instead of materializing all user IDs
-    if (teamIdsWithBookingPermission?.length) {
-      bookingQueries.push({
-        query: kysely
-          .selectFrom("Booking")
-          .select("Booking.id")
-          .select("Booking.startTime")
-          .select("Booking.endTime")
-          .select("Booking.createdAt")
-          .select("Booking.updatedAt")
-          .where("Booking.userId", "in", (eb) =>
-            eb
-              .selectFrom("Membership")
-              .select("Membership.userId")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
-          ),
-        tables: ["Booking"],
-      });
-    }
   }
-
-  const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
-    // 1. Apply mandatory status filter
-    let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus);
-
-    // 2. Filter by Event Type IDs derived from Team IDs (if provided)
-    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
-    }
-
-    // 3. Filter by specific Event Type IDs (if provided)
-    // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
-    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
-    }
-
-    // 4. Filter by Attendee Name (if provided)
-    if (filters?.attendeeName) {
-      if (typeof filters.attendeeName === "string") {
-        // Simple string match (exact)
-        fullQuery = fullQuery
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.name", "=", filters.attendeeName.trim());
-      } else if (isTextFilterValue(filters.attendeeName)) {
-        // TODO: write makeWhereClause equivalent for kysely
-        fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery,
-          "name",
-          filters.attendeeName.data.operator,
-          filters.attendeeName.data.operand,
-          tables.includes("Attendee")
-        );
-      }
-    }
-
-    // 5. Filter by Attendee Email (if provided)
-    if (filters?.attendeeEmail) {
-      if (typeof filters.attendeeEmail === "string") {
-        // Simple string match (exact)
-        fullQuery = fullQuery
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "=", filters.attendeeEmail.trim());
-      } else if (isTextFilterValue(filters.attendeeEmail)) {
-        // TODO: write makeWhereClause equivalent for kysely
-        fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery,
-          "email",
-          filters.attendeeEmail.data.operator,
-          filters.attendeeEmail.data.operand,
-          tables.includes("Attendee")
-        );
-      }
-    }
-
-    // 6. Filter by Booking Uid (if provided)
-    if (filters?.bookingUid) {
-      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
-    }
-
-    // 7. Booking Start/End Time Range Filters
-    if (filters?.afterStartDate) {
-      fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
-    }
-    if (filters?.beforeEndDate) {
-      fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
-    }
-
-    return fullQuery;
-  });
-
-  const queryUnion = queriesWithFilters.reduce((acc, query) => {
-    return acc.unionAll(query);
-  });
 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
-  const getBookingsUnionCompiled = kysely
-    .selectFrom(queryUnion.as("union_subquery"))
-    .distinct()
-    .selectAll("union_subquery")
-    .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.afterCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
-    )
-    .orderBy(orderBy.key, orderBy.order)
-    .limit(take)
-    .offset(skip)
-    .compile();
+  // PERFORMANCE: Single CTE + OR-based query replaces the previous 7-branch UNION ALL.
+  // This enables a single backward index scan on the (startTime, endTime, status) composite
+  // index instead of materializing millions of intermediate rows across 7 branches and
+  // deduplicating them. The OR conditions with EXISTS avoid JOINs that cause row multiplication.
+  const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
+  const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
 
-  const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
+  // Helper: apply common booking filters to a base query.
+  // Uses concrete DB type; CTE-extended queries are compatible via structural subtyping
+  // (the CTEs add tables but don't change Booking columns).
+  function applyCommonFilters(
+    query: SelectQueryBuilder<DB, "Booking", {}>
+  ): SelectQueryBuilder<DB, "Booking", {}> {
+    let q: SelectQueryBuilder<DB, "Booking", {}> = addStatusesQueryFilters(query, bookingListingByStatus);
 
-  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
+    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
+      q = q.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
+    }
+    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
+      q = q.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
+    }
 
-  const totalCount = Number(
-    (
-      await kysely
-        .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
-        .executeTakeFirst()
-    )?.bookingCount ?? 0
-  );
+    if (filters?.attendeeName) {
+      if (typeof filters.attendeeName === "string") {
+        q = addAttendeeExistsFilter(q, "name", "equals", filters.attendeeName.trim());
+      } else if (isTextFilterValue(filters.attendeeName)) {
+        q = addAttendeeExistsFilter(
+          q,
+          "name",
+          filters.attendeeName.data.operator,
+          filters.attendeeName.data.operand
+        );
+      }
+    }
+    if (filters?.attendeeEmail) {
+      if (typeof filters.attendeeEmail === "string") {
+        q = addAttendeeExistsFilter(q, "email", "equals", filters.attendeeEmail.trim());
+      } else if (isTextFilterValue(filters.attendeeEmail)) {
+        q = addAttendeeExistsFilter(
+          q,
+          "email",
+          filters.attendeeEmail.data.operator,
+          filters.attendeeEmail.data.operand
+        );
+      }
+    }
+
+    if (filters?.bookingUid) {
+      q = q.where("Booking.uid", "=", filters.bookingUid.trim());
+    }
+    if (filters?.afterStartDate) {
+      q = q.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+    }
+    if (filters?.beforeEndDate) {
+      q = q.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+    }
+    if (filters?.afterUpdatedDate) {
+      q = q.where("Booking.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate());
+    }
+    if (filters?.beforeUpdatedDate) {
+      q = q.where("Booking.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate());
+    }
+    if (filters?.afterCreatedDate) {
+      q = q.where("Booking.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate());
+    }
+    if (filters?.beforeCreatedDate) {
+      q = q.where("Booking.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate());
+    }
+    return q;
+  }
+
+  // Helper: add select columns, orderBy, limit, offset and execute both paginated + count
+  async function executePaginatedAndCount(baseQuery: SelectQueryBuilder<DB, "Booking", {}>): Promise<{
+    bookingsFromQuery: Pick<Booking, "id" | "startTime" | "endTime" | "createdAt" | "updatedAt">[];
+    totalCount: number;
+  }> {
+    const [bookings, countResult] = await Promise.all([
+      baseQuery
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt")
+        .orderBy(orderBy.key, orderBy.order)
+        .limit(take)
+        .offset(skip)
+        .execute(),
+      baseQuery.select(({ fn }) => fn.count<number>("Booking.id").as("bookingCount")).executeTakeFirst(),
+    ]);
+
+    return {
+      bookingsFromQuery: bookings,
+      totalCount: Number(countResult?.bookingCount ?? 0),
+    };
+  }
+
+  let bookingsFromUnion: Pick<Booking, "id" | "startTime" | "endTime" | "createdAt" | "updatedAt">[];
+  let totalCount: number;
+
+  if (hasUserIdsFilter) {
+    // Path: userIds filter - bookings by specific user IDs or their attendee emails
+    const base = applyCommonFilters(
+      kysely.selectFrom("Booking").where(({ or, eb, exists, selectFrom }) => {
+        const conditions = [eb("Booking.userId", "in", filters.userIds!)];
+        if (attendeeEmailsFromUserIdsFilter?.length) {
+          conditions.push(
+            exists(
+              selectFrom("Attendee")
+                .select("Attendee.id")
+                .whereRef("Attendee.bookingId", "=", "Booking.id")
+                .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
+            )
+          );
+        }
+        return or(conditions);
+      })
+    );
+    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+  } else if (hasTeamAccess) {
+    // Path: team access - CTE-based query with team member lookups computed once
+    const base = applyCommonFilters(
+      kysely
+        .with("team_user_ids", (db) =>
+          db
+            .selectFrom("Membership")
+            .select("Membership.userId")
+            .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+        )
+        .with("team_emails", (db) =>
+          db
+            .selectFrom("users")
+            .select("users.email")
+            .where("users.id", "in", (eb) => eb.selectFrom("team_user_ids").select("team_user_ids.userId"))
+        )
+        .with("team_event_type_ids", (db) =>
+          db
+            .selectFrom("EventType")
+            .select("EventType.id")
+            .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
+        )
+        .selectFrom("Booking")
+        .where(({ or, eb, exists, selectFrom }) =>
+          or([
+            eb("Booking.userId", "=", user.id),
+            eb("Booking.userId", "in", (sub) =>
+              sub.selectFrom("team_user_ids").select("team_user_ids.userId")
+            ),
+            eb("Booking.eventTypeId", "in", (sub) =>
+              sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
+            ),
+            exists(
+              selectFrom("Attendee")
+                .select("Attendee.id")
+                .whereRef("Attendee.bookingId", "=", "Booking.id")
+                .where(({ or: innerOr, eb: innerEb }) =>
+                  innerOr([
+                    innerEb("Attendee.email", "=", user.email),
+                    innerEb("Attendee.email", "in", (sub) =>
+                      sub.selectFrom("team_emails").select("team_emails.email")
+                    ),
+                  ])
+                )
+            ),
+          ])
+        )
+    );
+    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+  } else {
+    // Path: no team access - user's own bookings and bookings where user is attendee
+    const base = applyCommonFilters(
+      kysely
+        .selectFrom("Booking")
+        .where(({ or, eb, exists, selectFrom }) =>
+          or([
+            eb("Booking.userId", "=", user.id),
+            exists(
+              selectFrom("Attendee")
+                .select("Attendee.id")
+                .whereRef("Attendee.bookingId", "=", "Booking.id")
+                .where("Attendee.email", "=", user.email)
+            ),
+          ])
+        )
+    );
+    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+  }
+
+  log.debug(`Get bookings for user ${user.id}`);
 
   const plainBookings = !(bookingsFromUnion?.length === 0)
     ? await kysely
@@ -999,7 +893,10 @@ async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): P
   return Array.from(new Set(users.map((user) => user.id)));
 }
 
-function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
+function addStatusesQueryFilters(
+  query: SelectQueryBuilder<DB, "Booking", {}>,
+  statuses: InputByStatus[]
+): SelectQueryBuilder<DB, "Booking", {}> {
   if (statuses?.length) {
     return query.where(({ eb, or, and }) =>
       or(
@@ -1048,8 +945,8 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
   return query;
 }
 
-function addAdvancedAttendeeWhereClause(
-  query: BookingsUnionQuery,
+function addAttendeeExistsFilter(
+  query: SelectQueryBuilder<DB, "Booking", {}>,
   key: "name" | "email",
   operator:
     | "endsWith"
@@ -1060,59 +957,58 @@ function addAdvancedAttendeeWhereClause(
     | "notContains"
     | "isEmpty"
     | "isNotEmpty",
-  operand: string,
-  isAttendeeTableJoined: boolean
-) {
-  let fullQuery = query.$if(!isAttendeeTableJoined, (eb) =>
-    eb.innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-  ) as SelectQueryBuilder<
-    DB,
-    "Booking" | "Attendee",
-    Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
-  >;
+  operand: string
+): SelectQueryBuilder<DB, "Booking", {}> {
+  const columnRef = `Attendee.${key}` as "Attendee.name" | "Attendee.email";
 
-  switch (operator) {
-    case "endsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}`);
-      break;
+  return query.where(({ exists, selectFrom }) => {
+    let subQuery = selectFrom("Attendee")
+      .select("Attendee.id")
+      .whereRef("Attendee.bookingId", "=", "Booking.id");
 
-    case "startsWith":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `${operand}%`);
-      break;
+    switch (operator) {
+      case "endsWith":
+        subQuery = subQuery.where(columnRef, "ilike", `%${operand}`);
+        break;
 
-    case "equals":
-      fullQuery = fullQuery.where((eb) =>
-        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "=", `${operand.toLowerCase()}`)
-      );
-      break;
+      case "startsWith":
+        subQuery = subQuery.where(columnRef, "ilike", `${operand}%`);
+        break;
 
-    case "notEquals":
-      fullQuery = fullQuery.where((eb) =>
-        eb(eb.fn<string>("lower", [`Attendee.${key}`]), "!=", `${operand.toLowerCase()}`)
-      );
-      break;
+      case "equals":
+        subQuery = subQuery.where((eb) =>
+          eb(eb.fn<string>("lower", [columnRef]), "=", `${operand.toLowerCase()}`)
+        );
+        break;
 
-    case "contains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "ilike", `%${operand}%`);
-      break;
+      case "notEquals":
+        subQuery = subQuery.where((eb) =>
+          eb(eb.fn<string>("lower", [columnRef]), "!=", `${operand.toLowerCase()}`)
+        );
+        break;
 
-    case "notContains":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "not ilike", `%${operand}%`);
-      break;
+      case "contains":
+        subQuery = subQuery.where(columnRef, "ilike", `%${operand}%`);
+        break;
 
-    case "isEmpty":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "=", "");
-      break;
+      case "notContains":
+        subQuery = subQuery.where(columnRef, "not ilike", `%${operand}%`);
+        break;
 
-    case "isNotEmpty":
-      fullQuery = fullQuery.where(`Attendee.${key}`, "!=", "");
-      break;
+      case "isEmpty":
+        subQuery = subQuery.where(columnRef, "=", "");
+        break;
 
-    default:
-      break;
-  }
+      case "isNotEmpty":
+        subQuery = subQuery.where(columnRef, "!=", "");
+        break;
 
-  return fullQuery;
+      default:
+        break;
+    }
+
+    return exists(subQuery);
+  });
 }
 
 function getOrderBy(
