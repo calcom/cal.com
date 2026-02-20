@@ -21,7 +21,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
 const ServerPage = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  const hasTeamPlan = userId && (await MembershipRepository.hasAnyAcceptedMembershipByUserId({ userId }));
+  const hasTeamPlan = userId && (await MembershipRepository.hasAnyAcceptedMembershipByUserId(userId));
 
   if (!hasTeamPlan) {
     return <FullscreenUpgradeBannerForRoutingFormPage />;

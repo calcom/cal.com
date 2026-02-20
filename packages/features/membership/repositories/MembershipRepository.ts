@@ -131,8 +131,8 @@ export class MembershipRepository {
     });
   }
 
-  static async findFirstAcceptedMembershipByUserId(userId: number) {
-    return await prisma.membership.findFirst({
+  static async hasAnyAcceptedMembershipByUserId(userId: number) {
+    const membership = await prisma.membership.findFirst({
       where: {
         accepted: true,
         userId,
@@ -142,7 +142,9 @@ export class MembershipRepository {
           },
         },
       },
+      select: { id: true },
     });
+    return Boolean(membership);
   }
 
   static async findAcceptedMembershipsByUserIdsInTeam({
@@ -560,18 +562,6 @@ export class MembershipRepository {
         },
       },
     });
-  }
-
-  static async hasAnyAcceptedMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId,
-        accepted: true,
-      },
-      select: { id: true },
-    });
-
-    return !!membership;
   }
 
   // Two indexed lookups instead of JOIN with ILIKE (which bypasses index)

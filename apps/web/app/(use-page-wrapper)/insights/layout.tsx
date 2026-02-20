@@ -12,9 +12,7 @@ export default async function InsightsLayout({ children }: { children: React.Rea
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  const hasMembership = userId
-    ? await MembershipRepository.hasAnyAcceptedMembershipByUserId({ userId })
-    : false;
+  const hasMembership = userId ? await MembershipRepository.hasAnyAcceptedMembershipByUserId(userId) : false;
 
   if (!hasMembership) {
     return (
