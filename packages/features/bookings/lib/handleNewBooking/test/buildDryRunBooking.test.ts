@@ -1,7 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
-
+import { describe, expect, it, vi } from "vitest";
 import { buildDryRunBooking } from "../../service/RegularBookingService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -95,6 +93,7 @@ describe("buildDryRunBooking", () => {
       creationSource: CreationSource.WEBAPP,
       references: [],
       payment: [],
+      tracking: null,
     });
 
     expect(troubleshooterData).toEqual({

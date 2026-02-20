@@ -1,3 +1,4 @@
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -18,6 +19,7 @@ export const getWebhookPayloadForBooking = ({
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    tracking?: Tracking | null;
   };
   evt: CalendarEvent;
 }) => {
@@ -35,6 +37,7 @@ export const getWebhookPayloadForBooking = ({
     ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
     bookingId: booking.id,
+    ...(booking.tracking && { tracking: booking.tracking }),
   };
 
   return payload;

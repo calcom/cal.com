@@ -6,6 +6,7 @@ import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -127,6 +128,7 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    tracking?: Tracking | null;
     status: BookingStatus;
   };
   paid?: boolean;
@@ -579,6 +581,7 @@ export async function handleConfirmation(args: {
       smsReminderNumber: booking.smsReminderNumber || undefined,
       metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
+      ...(booking.tracking && { tracking: booking.tracking }),
     };
 
     const promises = subscribersBookingCreated.map((sub) =>

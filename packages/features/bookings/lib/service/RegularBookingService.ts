@@ -253,6 +253,7 @@ export const buildDryRunBooking = ({
     creationSource: CreationSource.WEBAPP,
     references: [],
     payment: [],
+    tracking: null,
   } satisfies ReturnTypeCreateBooking;
 
   /**
@@ -2518,6 +2519,7 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    ...(booking?.tracking && { tracking: booking.tracking }),
   };
 
   if (bookingRequiresPayment) {

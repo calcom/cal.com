@@ -218,6 +218,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         },
         take: 1,
       },
+      tracking: {
+        select: {
+          utm_source: true,
+          utm_medium: true,
+          utm_campaign: true,
+          utm_term: true,
+          utm_content: true,
+        },
+      },
     },
   });
 
@@ -546,6 +555,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventTypeId: booking.eventType?.id,
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
+      ...(booking.tracking && { tracking: booking.tracking }),
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
 

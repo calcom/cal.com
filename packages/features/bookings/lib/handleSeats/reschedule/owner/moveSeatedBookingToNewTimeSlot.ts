@@ -1,16 +1,14 @@
-import { cloneDeep } from "lodash";
-
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
-
+import { cloneDeep } from "lodash";
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
+import type { RescheduleSeatedBookingObject, SeatedBooking } from "../../types";
 
 async function updateBooking({
   bookingId,
@@ -37,6 +35,15 @@ async function updateBooking({
       references: true,
       payment: true,
       attendees: true,
+      tracking: {
+        select: {
+          utm_source: true,
+          utm_medium: true,
+          utm_campaign: true,
+          utm_term: true,
+          utm_content: true,
+        },
+      },
     },
   });
   return { ...booking, userUuid: booking.user?.uuid ?? null };

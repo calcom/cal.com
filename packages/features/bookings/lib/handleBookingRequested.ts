@@ -1,5 +1,6 @@
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -54,6 +55,7 @@ export async function handleBookingRequested(args: {
     eventTypeId: number | null;
     userId: number | null;
     id: number;
+    tracking?: Tracking | null;
   };
 }) {
   const { evt, booking } = args;

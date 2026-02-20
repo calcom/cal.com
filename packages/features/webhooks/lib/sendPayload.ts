@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import type {
   DelegationCredentialErrorPayloadType,
   PaymentData,
@@ -101,6 +102,7 @@ export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
     paymentData?: PaymentData;
     requestReschedule?: boolean;
     assignmentReason?: string | { reasonEnum: string; reasonString: string }[] | null;
+    tracking?: Tracking | null;
   };
 
 export type WebhookPayloadType =
@@ -177,6 +179,15 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     metadata: {
       videoCallUrl: data.metadata?.videoCallUrl,
     },
+    ...(data.tracking && {
+      utm: {
+        utm_source: data.tracking.utm_source,
+        utm_medium: data.tracking.utm_medium,
+        utm_campaign: data.tracking.utm_campaign,
+        utm_term: data.tracking.utm_term,
+        utm_content: data.tracking.utm_content,
+      },
+    }),
   };
   return JSON.stringify(body);
 }
@@ -258,6 +269,13 @@ const sendPayload = async (
     }
   }
 
+  let utm: Tracking | undefined;
+  if (isEventPayload(data) && data.tracking) {
+    const { tracking: _tracking, ...rest } = data;
+    utm = _tracking ?? undefined;
+    data = rest as typeof data;
+  }
+
   if (body === undefined) {
     if (
       template &&
@@ -266,12 +284,13 @@ const sendPayload = async (
         isNoShowPayload(data) ||
         isDelegationCredentialErrorPayload(data))
     ) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt, ...(utm && { utm }) }, contentType);
     } else {
       body = JSON.stringify({
         triggerEvent: triggerEvent,
         createdAt: createdAt,
         payload: data,
+        ...(utm && { utm }),
       });
     }
   }

@@ -103,6 +103,15 @@ export async function getBooking(bookingId: number) {
       paid: true,
       destinationCalendar: true,
       status: true,
+      tracking: {
+        select: {
+          utm_source: true,
+          utm_medium: true,
+          utm_campaign: true,
+          utm_term: true,
+          utm_content: true,
+        },
+      },
       user: {
         select: {
           id: true,
