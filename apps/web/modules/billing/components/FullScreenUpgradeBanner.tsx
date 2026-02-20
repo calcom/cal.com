@@ -72,6 +72,46 @@ function useResponsiveOffset(
   }
 }
 
+function BannerImage({
+  image,
+  name,
+  youtubeId,
+  tracking,
+  target,
+  onPlayVideo,
+}: {
+  image: { src: string; width: number; height: number };
+  name: string;
+  youtubeId?: string;
+  tracking: string;
+  target: UpgradeTarget;
+  onPlayVideo: () => void;
+}): JSX.Element {
+  const { t } = useLocale();
+  return (
+    <>
+      <Image
+        src={image.src}
+        alt={name}
+        width={image.width}
+        height={image.height}
+        className="h-full w-full object-cover"
+      />
+      {youtubeId && (
+        <button
+          type="button"
+          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+          onClick={() => {
+            posthog.capture("fullscreen_upgrade_banner_video_played", { source: tracking, target });
+            onPlayVideo();
+          }}>
+          <Image src="/play_button.svg" alt={t("play_video")} width={48} height={48} />
+        </button>
+      )}
+    </>
+  );
+}
+
 export function FullScreenUpgradeBanner({
   tracking,
   name,
@@ -88,6 +128,15 @@ export function FullScreenUpgradeBanner({
   const deviceSpecificOffset = useResponsiveOffset(extraOffset);
   const { t } = useLocale();
   const ref = useFillRemainingHeight(deviceSpecificOffset);
+
+  const bannerImageProps = {
+    image,
+    name,
+    youtubeId,
+    tracking,
+    target,
+    onPlayVideo: () => setVideoOpen(true),
+  };
 
   return (
     <div ref={ref} className="flex w-full shrink-0 items-center justify-center rounded-xl bg-subtle p-8">
@@ -116,6 +165,11 @@ export function FullScreenUpgradeBanner({
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Image - mobile only */}
+          <div className="md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted relative">
+            <BannerImage {...bannerImageProps} />
           </div>
 
           <div>
@@ -176,24 +230,7 @@ export function FullScreenUpgradeBanner({
 
         {/* Right Content - Image */}
         <div className="-my-2 hidden md:flex flex-1 items-center justify-center rounded-l-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted border-r-0 relative">
-          <Image
-            src={image.src}
-            alt={name}
-            width={image.width}
-            height={image.height}
-            className="h-full w-full object-cover"
-          />
-          {youtubeId && (
-            <button
-              type="button"
-              className="absolute inset-0 flex items-center justify-center cursor-pointer"
-              onClick={() => {
-                posthog.capture("fullscreen_upgrade_banner_video_played", { source: tracking, target });
-                setVideoOpen(true);
-              }}>
-              <Image src="/play_button.svg" alt={t("play_video")} width={48} height={48} />
-            </button>
-          )}
+          <BannerImage {...bannerImageProps} />
         </div>
       </div>
 
