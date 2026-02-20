@@ -130,8 +130,8 @@ function withSlotsCache(
 }
 
 export interface GuestBusyTimesDeps {
-  bookingRepo: Pick<BookingRepository, "findByUidIncludeEventType" | "findAcceptedBookingsByUserIdsOrEmails">;
-  userRepo: Pick<UserRepository, "findUsersByEmails">;
+  bookingRepo: Pick<BookingRepository, "findByUidIncludeEventType" | "findAcceptedByUserIdsOrEmails">;
+  userRepo: Pick<UserRepository, "findByEmails">;
 }
 
 export async function getGuestBusyTimesForReschedule({
@@ -159,10 +159,10 @@ export async function getGuestBusyTimesForReschedule({
       .filter((email) => !hostEmailsLower.has(email.toLowerCase()));
     if (!guestEmails.length) return [];
 
-    const calUsers = await userRepo.findUsersByEmails({ emails: guestEmails });
+    const calUsers = await userRepo.findByEmails({ emails: guestEmails });
     if (!calUsers.length) return [];
 
-    const guestBookings = await bookingRepo.findAcceptedBookingsByUserIdsOrEmails({
+    const guestBookings = await bookingRepo.findAcceptedByUserIdsOrEmails({
       userIds: calUsers.map((u) => u.id),
       emails: calUsers.map((u) => u.email),
       startDate,

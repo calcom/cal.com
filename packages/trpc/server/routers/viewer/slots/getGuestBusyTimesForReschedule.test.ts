@@ -6,10 +6,10 @@ function createMockDeps(): GuestBusyTimesDeps {
   return {
     bookingRepo: {
       findByUidIncludeEventType: vi.fn(),
-      findAcceptedBookingsByUserIdsOrEmails: vi.fn(),
+      findAcceptedByUserIdsOrEmails: vi.fn(),
     },
     userRepo: {
-      findUsersByEmails: vi.fn(),
+      findByEmails: vi.fn(),
     },
   };
 }
@@ -36,7 +36,7 @@ describe("getGuestBusyTimesForReschedule", () => {
 
     const result = await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
     expect(result).toEqual([]);
-    expect(deps.userRepo.findUsersByEmails).not.toHaveBeenCalled();
+    expect(deps.userRepo.findByEmails).not.toHaveBeenCalled();
   });
 
   it("returns empty array when booking is not found", async () => {
@@ -53,7 +53,7 @@ describe("getGuestBusyTimesForReschedule", () => {
 
     const result = await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
     expect(result).toEqual([]);
-    expect(deps.userRepo.findUsersByEmails).not.toHaveBeenCalled();
+    expect(deps.userRepo.findByEmails).not.toHaveBeenCalled();
   });
 
   it("filters host emails case-insensitively", async () => {
@@ -69,21 +69,21 @@ describe("getGuestBusyTimesForReschedule", () => {
     (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
       attendees: [{ email: "guest@external.com" }],
     });
-    (deps.userRepo.findUsersByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
     expect(result).toEqual([]);
-    expect(deps.bookingRepo.findAcceptedBookingsByUserIdsOrEmails).not.toHaveBeenCalled();
+    expect(deps.bookingRepo.findAcceptedByUserIdsOrEmails).not.toHaveBeenCalled();
   });
 
   it("returns busy times for guest Cal.com users", async () => {
     (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
       attendees: [{ email: "host@example.com" }, { email: "guest@cal.com" }],
     });
-    (deps.userRepo.findUsersByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
       { id: 10, email: "guest@cal.com" },
     ]);
-    (deps.bookingRepo.findAcceptedBookingsByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
       {
         uid: "booking-456",
         startTime: new Date("2025-06-15T10:00:00Z"),
@@ -106,16 +106,16 @@ describe("getGuestBusyTimesForReschedule", () => {
     (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
       attendees: [{ email: "guest@cal.com" }],
     });
-    (deps.userRepo.findUsersByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
       { id: 10, email: "guest@cal.com" },
     ]);
-    (deps.bookingRepo.findAcceptedBookingsByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
       []
     );
 
     await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
 
-    expect(deps.bookingRepo.findAcceptedBookingsByUserIdsOrEmails).toHaveBeenCalledWith(
+    expect(deps.bookingRepo.findAcceptedByUserIdsOrEmails).toHaveBeenCalledWith(
       expect.objectContaining({
         excludeUid: "uid-123",
       })

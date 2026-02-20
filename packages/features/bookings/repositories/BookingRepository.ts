@@ -1738,7 +1738,7 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async findAcceptedBookingsByUserIdsOrEmails({
+  async findAcceptedByUserIdsOrEmails({
     userIds,
     emails,
     startDate,

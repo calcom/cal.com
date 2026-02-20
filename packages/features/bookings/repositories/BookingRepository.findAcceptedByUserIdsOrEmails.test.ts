@@ -1,13 +1,13 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Create a minimal mock PrismaClient
 const mockFindMany = vi.fn();
 const mockPrisma = {
   booking: { findMany: mockFindMany },
-} as any;
+} as unknown as PrismaClient;
 
-describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
+describe("BookingRepository.findAcceptedByUserIdsOrEmails", () => {
   let repo: BookingRepository;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
   });
 
   it("returns empty array when both userIds and emails are empty", async () => {
-    const result = await repo.findAcceptedBookingsByUserIdsOrEmails({
+    const result = await repo.findAcceptedByUserIdsOrEmails({
       userIds: [],
       emails: [],
       startDate: new Date(),
@@ -28,7 +28,7 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
 
   it("queries with ACCEPTED status filter", async () => {
     mockFindMany.mockResolvedValue([]);
-    await repo.findAcceptedBookingsByUserIdsOrEmails({
+    await repo.findAcceptedByUserIdsOrEmails({
       userIds: [1],
       emails: [],
       startDate: new Date("2025-01-01"),
@@ -47,7 +47,7 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
     const startDate = new Date("2025-01-01");
     const endDate = new Date("2025-01-31");
     mockFindMany.mockResolvedValue([]);
-    await repo.findAcceptedBookingsByUserIdsOrEmails({
+    await repo.findAcceptedByUserIdsOrEmails({
       userIds: [1],
       emails: [],
       startDate,
@@ -65,7 +65,7 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
 
   it("excludes booking by uid when excludeUid provided", async () => {
     mockFindMany.mockResolvedValue([]);
-    await repo.findAcceptedBookingsByUserIdsOrEmails({
+    await repo.findAcceptedByUserIdsOrEmails({
       userIds: [1],
       emails: [],
       startDate: new Date(),
@@ -83,7 +83,7 @@ describe("BookingRepository.findAcceptedBookingsByUserIdsOrEmails", () => {
 
   it("selects only uid, startTime, and endTime", async () => {
     mockFindMany.mockResolvedValue([]);
-    await repo.findAcceptedBookingsByUserIdsOrEmails({
+    await repo.findAcceptedByUserIdsOrEmails({
       userIds: [1],
       emails: [],
       startDate: new Date(),

@@ -1462,7 +1462,7 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
-  async findUsersByEmails({ emails }: { emails: string[] }) {
+  async findByEmails({ emails }: { emails: string[] }) {
     if (!emails.length) return [];
     return this.prismaClient.user.findMany({
       where: {

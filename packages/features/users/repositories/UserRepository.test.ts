@@ -1,5 +1,6 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("@calcom/app-store/delegationCredential", () => ({
@@ -112,18 +113,18 @@ describe("UserRepository", () => {
     });
   });
 
-  describe("findUsersByEmails", () => {
+  describe("findByEmails", () => {
     test("returns empty array for empty emails input", async () => {
-      const result = await new UserRepository(prismock).findUsersByEmails({ emails: [] });
+      const result = await new UserRepository(prismock).findByEmails({ emails: [] });
       expect(result).toEqual([]);
     });
 
     test("queries by primary email and verified secondary emails", async () => {
       const mockFindMany = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
-      const mockPrisma = { user: { findMany: mockFindMany } } as any;
+      const mockPrisma = { user: { findMany: mockFindMany } } as unknown as PrismaClient;
       const userRepo = new UserRepository(mockPrisma);
 
-      const result = await userRepo.findUsersByEmails({ emails: ["test@example.com"] });
+      const result = await userRepo.findByEmails({ emails: ["test@example.com"] });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ id: 1, email: "test@example.com" });
@@ -149,10 +150,10 @@ describe("UserRepository", () => {
 
     test("selects only id and email fields", async () => {
       const mockFindMany = vi.fn().mockResolvedValue([{ id: 2, email: "user@example.com" }]);
-      const mockPrisma = { user: { findMany: mockFindMany } } as any;
+      const mockPrisma = { user: { findMany: mockFindMany } } as unknown as PrismaClient;
       const userRepo = new UserRepository(mockPrisma);
 
-      await userRepo.findUsersByEmails({ emails: ["user@example.com"] });
+      await userRepo.findByEmails({ emails: ["user@example.com"] });
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
