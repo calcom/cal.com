@@ -60,6 +60,9 @@ COPY --from=builder /calid/apps/worker/dist ./apps/worker/dist
 # Copy shared packages needed at runtime
 COPY --from=builder /calid/packages ./packages
 
+# Copy translations
+COPY --from=builder /calid/apps/web/public/static/locales ./apps/web/public/static/locales
+
 # Generate prisma client (safe if unused)
 RUN npx prisma generate || true
 

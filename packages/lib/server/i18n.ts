@@ -1,9 +1,30 @@
+import fs from "fs";
 import { createInstance } from "i18next";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import path from "path";
 
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
+
+/**Helper fn to load the start of target dir */
+function findRepoRoot(startDir: string, rootFolderName: string) {
+  let currentDir = startDir;
+
+  while (true) {
+    const baseName = path.basename(currentDir);
+
+    if (baseName === rootFolderName) {
+      return currentDir;
+    }
+
+    const parentDir = path.dirname(currentDir);
+
+    if (parentDir === currentDir) {
+      throw new Error(`Could not find repo root "${rootFolderName}"`);
+    }
+
+    currentDir = parentDir;
+  }
+}
 
 /**
  * Loads English fallback translations for when requested locale translations fail
@@ -18,19 +39,17 @@ async function loadFallbackTranslations() {
   }
 
   try {
-    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
+    const repoRoot = findRepoRoot(__dirname, "apps");
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch fallback translations: ${res.status}`);
-    }
+    const filePath = path.join(repoRoot, "web", "public", "static", "locales", "en", "common.json");
 
-    const translations = await res.json();
+    const file = await fs.promises.readFile(filePath, "utf-8");
+    const translations = JSON.parse(file);
+
     translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
-    console.error("Could not fetch fallback translations:", error);
+    console.error("Could not load fallback translations from filesystem:", error);
     return {};
   }
 }
@@ -50,22 +69,19 @@ export async function loadTranslations(_locale: string, ns: string) {
   }
 
   try {
-    const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-    const response = await fetch(url, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
+    const repoRoot = findRepoRoot(__dirname, "apps");
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch translations: ${response.status}`);
-    }
+    const filePath = path.join(repoRoot, "web", "public", "static", "locales", locale, `${ns}.json`);
 
-    const translations = await response.json();
+    const file = await fs.promises.readFile(filePath, "utf-8");
+    const translations = JSON.parse(file);
+
     translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
     console.warn(`Failed to load translations for ${locale}/${ns}, falling back to English:`, error);
-    const fallbackTranslations = await loadFallbackTranslations();
-    return fallbackTranslations;
+
+    return loadFallbackTranslations();
   }
 }
 
