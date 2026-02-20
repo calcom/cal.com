@@ -354,11 +354,11 @@ describe("ReassignmentAuditActionService", () => {
       expect(result).toEqual([
         {
           labelKey: "booking_audit_action.assignment_type",
-          valueKey: "booking_audit_action.assignment_type_manual",
+          fieldValue: { type: "translationKey", valueKey: "booking_audit_action.assignment_type_manual" },
         },
         {
           labelKey: "booking_audit_action.previous_assignee",
-          valueKey: "Previous Host",
+          fieldValue: { type: "rawValue", value: "Previous Host" },
         },
       ]);
     });
@@ -394,11 +394,11 @@ describe("ReassignmentAuditActionService", () => {
       expect(result).toEqual([
         {
           labelKey: "booking_audit_action.assignment_type",
-          valueKey: "booking_audit_action.assignment_type_round_robin",
+          fieldValue: { type: "translationKey", valueKey: "booking_audit_action.assignment_type_round_robin" },
         },
         {
           labelKey: "booking_audit_action.previous_assignee",
-          valueKey: "Previous Host",
+          fieldValue: { type: "rawValue", value: "Previous Host" },
         },
       ]);
     });
