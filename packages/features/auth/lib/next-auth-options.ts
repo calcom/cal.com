@@ -922,6 +922,9 @@ export const getOptions = ({
           avatarUrl: existingUser.avatarUrl,
           role: existingUser.role,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          impersonatedBy: token.impersonatedBy,
+          org: token?.org,
+          orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
 
