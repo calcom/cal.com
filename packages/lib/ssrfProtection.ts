@@ -29,6 +29,7 @@ const CLOUD_METADATA_ENDPOINTS: string[] = [
   "169.254.169.253", // Azure alternate
   "metadata.google.internal", // GCP metadata
   "metadata.google.com", // GCP alternate
+  "100.100.100.200", // Alibaba Cloud ECS metadata (falls in CGNAT 100.64.0.0/10)
 ];
 
 // Hostnames blocked on Cal.com SaaS (includes metadata + localhost)
