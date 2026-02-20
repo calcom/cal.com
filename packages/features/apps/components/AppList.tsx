@@ -34,7 +34,7 @@ export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?:
 
 interface AppListProps {
   variant?: AppCategories;
-  data: { items: ConnectedApps };
+  data: ConnectedApps;
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   appCardClassName?: string;
