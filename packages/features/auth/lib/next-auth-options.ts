@@ -6,6 +6,7 @@ import {
   type GoogleCalendar,
 } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { getIdentityProvider } from "@calcom/features/auth/lib/identityProviders";
 import {
   IS_OUTLOOK_LOGIN_ENABLED,
   OUTLOOK_CLIENT_ID,
@@ -537,20 +538,6 @@ function isNumber(n: string) {
 
 const calcomAdapter = CalComAdapter(prisma);
 
-const mapIdentityProvider = (providerName: string): IdentityProvider => {
-  switch (providerName) {
-    case "saml-idp":
-    case "saml":
-      return IdentityProvider.SAML;
-    case "azure-ad":
-      return IdentityProvider.AZUREAD;
-    case "google":
-      return IdentityProvider.GOOGLE;
-    default:
-      return IdentityProvider.GOOGLE;
-  }
-};
-
 export const getOptions = ({
   getDubId,
   getTrackingData,
@@ -754,7 +741,7 @@ export const getOptions = ({
             upId: user.profile?.upId ?? token.upId ?? null,
           } as JWT;
         }
-        const idP = mapIdentityProvider(account.provider);
+        const idP = getIdentityProvider(account.provider);
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -1028,7 +1015,7 @@ export const getOptions = ({
         return false;
       }
       if (account?.provider) {
-        const idP = mapIdentityProvider(account.provider);
+        const idP = getIdentityProvider(account.provider);
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
         const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
 
