@@ -1,8 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
@@ -15,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const code = req.query.code as string;
-  const state = decodeOAuthState(req);
+  const state = decodeOAuthState(req, "tandem");
 
   let clientId = "";
   let clientSecret = "";

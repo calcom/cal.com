@@ -1,8 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -87,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const state = decodeOAuthState(req);
+  const state = decodeOAuthState(req, "basecamp3");
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }
