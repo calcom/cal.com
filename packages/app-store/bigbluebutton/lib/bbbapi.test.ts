@@ -1,4 +1,4 @@
-import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl, assertSafeResolvedIp, validateResolvedAddresses, resolveAndValidateAddresses, buildPinnedUrl } from "./bbbapi";
+import { computeChecksum, buildQueryString, buildBBBUrl, parseXmlResponse, validateExternalUrl, assertSafeResolvedIp, validateResolvedAddresses, resolveAndValidateAddresses, buildPinnedUrl, buildHostHeader } from "./bbbapi";
 
 describe("computeChecksum", () => {
   it("produces expected sha256 checksum for a known input", () => {
@@ -485,5 +485,40 @@ describe("buildPinnedUrl", () => {
     expect(pinned).toContain("/bigbluebutton/api/join");
     expect(pinned).toContain("meetingID=test");
     expect(pinned).toContain("checksum=abc123");
+  });
+});
+
+// ─── buildHostHeader — RFC 7230 §5.4 Host header construction ────────────────
+
+describe("buildHostHeader", () => {
+  it("returns bare hostname for a plain domain without port", () => {
+    expect(buildHostHeader(new URL("https://bbb.example.com/api"))).toBe("bbb.example.com");
+  });
+
+  it("appends port for a plain domain with non-default port", () => {
+    expect(buildHostHeader(new URL("https://bbb.example.com:8443/api"))).toBe("bbb.example.com:8443");
+  });
+
+  it("wraps IPv6 literal in brackets (no port)", () => {
+    // URL.hostname for "https://[2001:db8::1]/api" returns "2001:db8::1" (no brackets).
+    // The Host header must restore them per RFC 7230 §5.4 / RFC 3986 §3.2.2.
+    expect(buildHostHeader(new URL("https://[2001:db8::1]/api"))).toBe("[2001:db8::1]");
+  });
+
+  it("wraps IPv6 literal in brackets and appends port", () => {
+    expect(buildHostHeader(new URL("https://[2001:db8::1]:8443/api"))).toBe("[2001:db8::1]:8443");
+  });
+
+  it("wraps IPv6 loopback ::1 in brackets", () => {
+    // This tests the generic bracket-restoration logic regardless of SSRF guards.
+    expect(buildHostHeader(new URL("https://[::1]:9090/"))).toBe("[::1]:9090");
+  });
+
+  it("returns IPv4 address without brackets (no port)", () => {
+    expect(buildHostHeader(new URL("https://1.2.3.4/api"))).toBe("1.2.3.4");
+  });
+
+  it("returns IPv4 address with port", () => {
+    expect(buildHostHeader(new URL("https://1.2.3.4:8443/api"))).toBe("1.2.3.4:8443");
   });
 });

@@ -195,6 +195,25 @@ export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
 }
 
 /**
+ * Builds the value for the HTTP `Host` header from a parsed URL.
+ *
+ * RFC 7230 §5.4 requires IPv6 literals in the Host header to be enclosed in
+ * square brackets — the same form used in URL authority components per
+ * RFC 3986 §3.2.2.  `URL.hostname` strips those brackets (it returns the bare
+ * address, e.g. "::1" for "[::1]"), so they must be re-added for IPv6 before
+ * constructing the header value.
+ *
+ * @param parsed  An already-parsed URL object.
+ * @returns       The correct Host header value (e.g. "[::1]:8443" or "example.com:8443").
+ */
+export function buildHostHeader(parsed: URL): string {
+  const hostname = parsed.hostname; // brackets already stripped by URL parser
+  const isIPv6 = hostname.includes(":");
+  const hostPart = isIPv6 ? `[${hostname}]` : hostname;
+  return parsed.port ? `${hostPart}:${parsed.port}` : hostPart;
+}
+
+/**
  * Builds a URL that targets a specific IP address rather than the hostname,
  * replacing the host component while preserving path, query string, and port.
  *
@@ -373,11 +392,10 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
   const port = parsed.port ? parseInt(parsed.port, 10) : 443;
   const path = parsed.pathname + parsed.search;
 
-  // Build the Host header value: hostname + port (if non-default for HTTPS).
-  // The Host header must include the port when it differs from the default
-  // (443 for HTTPS), otherwise virtual-host routing and some reverse proxies
-  // may fail to route the request correctly.
-  const hostHeader = parsed.port ? `${originalHostname}:${parsed.port}` : originalHostname;
+  // Build the Host header value using the shared helper that correctly handles
+  // IPv6 literals (RFC 7230 §5.4 requires brackets around IPv6 addresses in
+  // the Host header; URL.hostname strips them, so they must be restored).
+  const hostHeader = buildHostHeader(parsed);
 
   // Timeout: 30 seconds for the entire request (connection + data transfer).
   const TIMEOUT_MS = 30_000;

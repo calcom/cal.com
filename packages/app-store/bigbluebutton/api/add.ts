@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
@@ -62,25 +63,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appType = "bigbluebutton_video";
 
   try {
-    // Atomic upsert via transaction: the findFirst and create execute inside the same
-    // transaction to eliminate the TOCTOU race between the existence check and the
-    // insert.  Without this, two concurrent requests could both pass the findFirst
-    // guard and create duplicate credentials.
-    await prisma.$transaction(async (tx) => {
-      const alreadyInstalled = await tx.credential.findFirst({
-        where: { type: appType, ...installForObject },
-      });
-      if (alreadyInstalled) {
-        throw new Error("Already installed");
-      }
-      await tx.credential.create({
-        data: {
-          type: appType,
-          key: {},
-          ...installForObject,
-          appId: "bigbluebutton",
-        },
-      });
+    // The database enforces uniqueness via a partial unique index on
+    // (type, userId) and (type, teamId) for bigbluebutton_video credentials
+    // (see migration 20260220000000_bigbluebutton_credential_unique).
+    // This makes the duplicate check atomic at the storage layer: even if two
+    // requests race past application-level guards, only one INSERT will succeed
+    // and the other will receive a unique constraint violation (P2002).
+    await prisma.credential.create({
+      data: {
+        type: appType,
+        key: {},
+        ...installForObject,
+        appId: "bigbluebutton",
+      },
     });
 
     // getSafeRedirectUrl validates the destination is same-origin/relative, preventing open redirect.
@@ -93,10 +88,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ url: redirectPath });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "Already installed") {
-        return res.status(422).json({ message: "Already installed" });
-      }
+    // Prisma P2002: unique constraint violation — the credential already exists.
+    // The partial unique indexes on (type, userId) and (type, teamId) for
+    // bigbluebutton_video ensure this is raised even under concurrent requests.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return res.status(422).json({ message: "Already installed" });
     }
     console.error("Error installing BigBlueButton app:", error instanceof Error ? error.message : "Unknown error");
     res.status(500).json({ message: "Internal server error" });
