@@ -203,68 +203,68 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
 
         <DialogPanel>
           <div className="mt-3 overflow-x-auto">
-          <div className="flex gap-2 sm:gap-4 max-sm:grid max-sm:grid-flow-col max-sm:auto-cols-fr max-sm:w-max">
-            {target === "team" && (
+            <div className="flex gap-2 sm:gap-4 max-sm:grid max-sm:grid-flow-col max-sm:auto-cols-fr max-sm:w-max">
+              {target === "team" && (
+                <PlanColumn
+                  name={t("team")}
+                  badge={t("upgrade_badge_free_trial")}
+                  price={teamPrice}
+                  priceSubtext={t("upgrade_price_per_month_user")}
+                  description={t("upgrade_plan_team_tagline")}
+                  features={teamFeatures}
+                  buttonText={t("upgrade_cta_teams")}
+                  buttonHref={teamHref}
+                  primaryButton={target === "team"}
+                  onCtaClick={() =>
+                    posthog.capture("upgrade_plan_dialog_cta_clicked", {
+                      source: tracking,
+                      plan: "team",
+                      target,
+                      billingPeriod,
+                    })
+                  }
+                />
+              )}
+
               <PlanColumn
-                name={t("team")}
+                name={t("organization")}
                 badge={t("upgrade_badge_free_trial")}
-                price={teamPrice}
+                price={orgPrice}
                 priceSubtext={t("upgrade_price_per_month_user")}
-                description={t("upgrade_plan_team_tagline")}
-                features={teamFeatures}
-                buttonText={t("upgrade_cta_teams")}
-                buttonHref={teamHref}
-                primaryButton={target === "team"}
+                description={t("upgrade_plan_org_tagline")}
+                features={orgFeatures}
+                buttonText={t("upgrade_cta_orgs")}
+                buttonHref={organizationHref}
+                primaryButton={target === "organization"}
                 onCtaClick={() =>
                   posthog.capture("upgrade_plan_dialog_cta_clicked", {
                     source: tracking,
-                    plan: "team",
+                    plan: "organization",
                     target,
                     billingPeriod,
                   })
                 }
               />
-            )}
 
-            <PlanColumn
-              name={t("organization")}
-              badge={t("upgrade_badge_free_trial")}
-              price={orgPrice}
-              priceSubtext={t("upgrade_price_per_month_user")}
-              description={t("upgrade_plan_org_tagline")}
-              features={orgFeatures}
-              buttonText={t("upgrade_cta_orgs")}
-              buttonHref={organizationHref}
-              primaryButton={target === "organization"}
-              onCtaClick={() =>
-                posthog.capture("upgrade_plan_dialog_cta_clicked", {
-                  source: tracking,
-                  plan: "organization",
-                  target,
-                  billingPeriod,
-                })
-              }
-            />
-
-            <PlanColumn
-              name={t("enterprise")}
-              price={t("custom")}
-              priceSubtext=""
-              description={t("upgrade_plan_enterprise_tagline")}
-              features={enterpriseFeatures}
-              buttonText={t("upgrade_cta_enterprise")}
-              buttonHref="https://cal.com/sales"
-              buttonTarget="_blank"
-              onCtaClick={() =>
-                posthog.capture("upgrade_plan_dialog_cta_clicked", {
-                  source: tracking,
-                  plan: "enterprise",
-                  target,
-                  billingPeriod,
-                })
-              }
-            />
-          </div>
+              <PlanColumn
+                name={t("enterprise")}
+                price={t("custom")}
+                priceSubtext=""
+                description={t("upgrade_plan_enterprise_tagline")}
+                features={enterpriseFeatures}
+                buttonText={t("upgrade_cta_enterprise")}
+                buttonHref="https://cal.com/sales"
+                buttonTarget="_blank"
+                onCtaClick={() =>
+                  posthog.capture("upgrade_plan_dialog_cta_clicked", {
+                    source: tracking,
+                    plan: "enterprise",
+                    target,
+                    billingPeriod,
+                  })
+                }
+              />
+            </div>
           </div>
 
           <Card className="bg-muted mt-4 py-3 px-4 flex-row justify-between items-center">
@@ -277,8 +277,13 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
             {target === "organization" && (
               <div>
                 <p className="font-medium text-sm text-emphasis">{t("team")}</p>
-                <p className="font-cal mt-1 font-semibold text-emphasis text-2xl leading-none">
-                  {currentTeamPrice}
+                <p className="mt-1">
+                  <span className="font-cal font-semibold text-emphasis text-2xl leading-none">
+                    {currentTeamPrice}
+                  </span>
+                  <span className="ml-1 leading-none font-medium text-sm text-subtle">
+                    {t("upgrade_price_per_month_user")}
+                  </span>
                 </p>
               </div>
             )}
