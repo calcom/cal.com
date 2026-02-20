@@ -2,7 +2,11 @@ import dayjs from "@calcom/dayjs";
 import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
 
 import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";
-import { getGoogleCalendarClient, type GoogleCalendarClient, type GoogleCalendarHoliday } from "./GoogleCalendarClient";
+import {
+  getGoogleCalendarClient,
+  type GoogleCalendarClient,
+  type GoogleCalendarHoliday,
+} from "./GoogleCalendarClient";
 
 export interface CachedHoliday {
   id: string;
@@ -67,14 +71,16 @@ export class HolidayServiceCachingProxy {
 
     const cached = await HolidayRepository.findManyCachedHolidays({ countryCode, year });
 
-    return cached.map((h): CachedHoliday => ({
-      id: h.id,
-      countryCode: h.countryCode,
-      eventId: h.eventId,
-      name: h.name,
-      date: h.date,
-      year: h.year,
-    }));
+    return cached.map(
+      (h): CachedHoliday => ({
+        id: h.id,
+        countryCode: h.countryCode,
+        eventId: h.eventId,
+        name: h.name,
+        date: h.date,
+        year: h.year,
+      })
+    );
   }
 
   async getHolidaysInRange(countryCode: string, startDate: Date, endDate: Date): Promise<CachedHoliday[]> {
@@ -94,14 +100,16 @@ export class HolidayServiceCachingProxy {
       endDate,
     });
 
-    return cached.map((h): CachedHoliday => ({
-      id: h.id,
-      countryCode: h.countryCode,
-      eventId: h.eventId,
-      name: h.name,
-      date: h.date,
-      year: h.year,
-    }));
+    return cached.map(
+      (h): CachedHoliday => ({
+        id: h.id,
+        countryCode: h.countryCode,
+        eventId: h.eventId,
+        name: h.name,
+        date: h.date,
+        year: h.year,
+      })
+    );
   }
 }
 
@@ -113,4 +121,3 @@ export function getHolidayServiceCachingProxy(): HolidayServiceCachingProxy {
   }
   return defaultProxy;
 }
-

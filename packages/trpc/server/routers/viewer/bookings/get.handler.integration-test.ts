@@ -225,9 +225,7 @@ describe("getBookings - integration", () => {
     });
 
     const testBookingIds = [booking1.id, booking2.id, booking3.id];
-    const relevantBookingIds = result.bookings
-      .map((b) => b.id)
-      .filter((id) => testBookingIds.includes(id));
+    const relevantBookingIds = result.bookings.map((b) => b.id).filter((id) => testBookingIds.includes(id));
 
     const uniqueIds = new Set(relevantBookingIds);
     expect(relevantBookingIds.length).toBe(uniqueIds.size);

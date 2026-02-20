@@ -432,14 +432,15 @@ export const InfiniteEventTypeList = ({
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
     }
-    setParamsIfDefined("dialog", "duplicate");
-    setParamsIfDefined("title", eventType.title);
-    setParamsIfDefined("description", eventType.description);
-    setParamsIfDefined("slug", eventType.slug);
-    setParamsIfDefined("id", eventType.id);
-    setParamsIfDefined("length", eventType.length);
-    setParamsIfDefined("pageSlug", group.profile.slug);
-    router.push(`${pathname}?${newSearchParams.toString()}`);
+        setParamsIfDefined("dialog", "duplicate");
+        setParamsIfDefined("title", eventType.title);
+        setParamsIfDefined("description", eventType.description);
+        setParamsIfDefined("slug", eventType.slug);
+        setParamsIfDefined("id", eventType.id);
+        setParamsIfDefined("length", eventType.length);
+        setParamsIfDefined("pageSlug", group.profile.slug);
+        setParamsIfDefined("schedulingType", eventType.schedulingType);
+        router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -695,18 +696,16 @@ export const InfiniteEventTypeList = ({
                                   </DropdownMenuItem>
                                 )}
                                 {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
-                                  <>
-                                    <DropdownMenuItem className="outline-none">
-                                      <DropdownItem
-                                        type="button"
-                                        data-testid={`event-type-duplicate-${type.id}`}
-                                        StartIcon="copy"
-                                        onClick={() => openDuplicateModal(type, group)}>
-                                        {t("duplicate")}
-                                      </DropdownItem>
-                                    </DropdownMenuItem>
-                                  </>
+                                {!readOnly && !isChildrenManagedEventType && (
+                                  <DropdownMenuItem className="outline-none">
+                                    <DropdownItem
+                                      type="button"
+                                      data-testid={`event-type-duplicate-${type.id}`}
+                                      StartIcon="copy"
+                                      onClick={() => openDuplicateModal(type, group)}>
+                                      {t("duplicate")}
+                                    </DropdownItem>
+                                  </DropdownMenuItem>
                                 )}
                                 {!isManagedEventType && (
                                   <DropdownMenuItem className="outline-none">
@@ -812,7 +811,7 @@ export const InfiniteEventTypeList = ({
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
-                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                          {!readOnly && !isChildrenManagedEventType && (
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
