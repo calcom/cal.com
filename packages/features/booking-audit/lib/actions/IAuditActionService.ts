@@ -18,7 +18,7 @@ export type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
-import type { EnrichmentDataStore, DataRequirements } from "../service/EnrichmentDataStore";
+import type { DataRequirements, EnrichmentDataStore } from "../service/EnrichmentDataStore";
 
 /**
  * This is agnostic of the action and is common for all actions
@@ -128,23 +128,14 @@ export interface IAuditActionService {
   >;
 
   /**
-   * Migrate old version data to latest version
+   * Validate task payload data against latest schema
    *
-   * Required method that validates and migrates data to latest schema version.
-   * For V1-only actions, simply validates and returns with isMigrated=false.
-   * For multi-version actions, checks version and transforms if needed.
+   * Task payloads are always created with the latest schema version,
+   * so this simply validates the data without any migration logic.
+   * For reading historical data from the database, use parseStored instead.
    *
-   * @param data - Data from task payload (any supported version)
-   * @returns Migration result with status and latest data
+   * @param data - Data from task payload (always latest version)
+   * @returns Validated data matching latest schema
    */
-  migrateToLatest(data: unknown): {
-    /**
-     * True if migration was performed, false if already latest
-     */
-    isMigrated: boolean;
-    /**
-     * Always set, either migrated or original
-     */
-    latestData: Record<string, unknown>;
-  };
+  parse(data: unknown): Record<string, unknown>;
 }

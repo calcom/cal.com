@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { ReassignmentAuditActionService } from "../ReassignmentAuditActionService";
 import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./contractVerification";
 
@@ -111,18 +110,17 @@ describe("ReassignmentAuditActionService", () => {
     });
   });
 
-  describe("migrateToLatest", () => {
-    it("should return data as-is for V1 (no migration needed)", () => {
+  describe("parse", () => {
+    it("should validate and return data for V1", () => {
       const fields = {
         organizerUuid: { old: "organizer-old", new: "organizer-new" },
         reassignmentReason: "Host unavailable",
         reassignmentType: "manual" as const,
       };
 
-      const result = service.migrateToLatest(fields);
+      const result = service.parse(fields);
 
-      expect(result.isMigrated).toBe(false);
-      expect(result.latestData).toEqual(fields);
+      expect(result).toEqual(fields);
     });
   });
 

@@ -1,15 +1,14 @@
-import { z } from "zod";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { z } from "zod";
+import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
+  GetDisplayJsonParams,
+  GetDisplayTitleParams,
   IAuditActionService,
   TranslationWithParams,
-  GetDisplayTitleParams,
-  GetDisplayJsonParams,
-  BaseStoredAuditData,
 } from "./IAuditActionService";
-import type { DataRequirements } from "../service/EnrichmentDataStore";
 
 /**
  * Created Audit Action Service
@@ -65,10 +64,8 @@ export class CreatedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  migrateToLatest(data: unknown) {
-    // V1-only: validate and return as-is (no migration needed)
-    const validated = fieldsSchemaV1.parse(data);
-    return { isMigrated: false, latestData: validated };
+  parse(data: unknown): Record<string, unknown> {
+    return fieldsSchemaV1.parse(data);
   }
 
   getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {

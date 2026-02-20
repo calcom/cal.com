@@ -212,8 +212,7 @@ describe("Accepted Action Integration", () => {
           operationId,
           timestamp,
           organizationId: testData.organization.id,
-        },
-        "test-task-id"
+        }
       );
 
       const result1 = await bookingAuditViewerService.getAuditLogsForBooking({

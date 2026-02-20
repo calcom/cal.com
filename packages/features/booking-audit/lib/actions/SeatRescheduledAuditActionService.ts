@@ -1,14 +1,14 @@
 import { z } from "zod";
-
-import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
+import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
-  IAuditActionService,
-  GetDisplayTitleParams,
   GetDisplayJsonParams,
+  GetDisplayTitleParams,
+  IAuditActionService,
   TranslationWithParams,
 } from "./IAuditActionService";
+
 /**
  * Seat Rescheduled Audit Action Service
  * Handles SEAT_RESCHEDULED action with per-action versioning
@@ -61,10 +61,8 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  migrateToLatest(data: unknown) {
-    // V1-only: validate and return as-is (no migration needed)
-    const validated = fieldsSchemaV1.parse(data);
-    return { isMigrated: false, latestData: validated };
+  parse(data: unknown): Record<string, unknown> {
+    return fieldsSchemaV1.parse(data);
   }
 
   getDataRequirements(): DataRequirements {

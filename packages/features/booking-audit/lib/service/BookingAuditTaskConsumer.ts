@@ -1,6 +1,5 @@
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
-import { Task } from "@calcom/features/tasker/repository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -86,7 +85,7 @@ export class BookingAuditTaskConsumer {
   /**
    * Process single booking Audit Task
    */
-  async processAuditTask(payload: SingleBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
+  async processAuditTask(payload: SingleBookingAuditTaskConsumerPayload): Promise<void> {
     const { action, bookingUid, actor, organizationId, data, timestamp, source, operationId, context } =
       payload;
 
@@ -100,7 +99,7 @@ export class BookingAuditTaskConsumer {
       return;
     }
 
-    const dataInLatestFormat = await this.migrateIfNeeded({ action, data, payload, taskId });
+    const validatedData = this.validate({ action, data });
 
     await this.onBookingAction({
       bookingUid,
@@ -108,7 +107,7 @@ export class BookingAuditTaskConsumer {
       action,
       source,
       operationId,
-      data: dataInLatestFormat,
+      data: validatedData,
       timestamp,
       context,
     });
@@ -117,7 +116,7 @@ export class BookingAuditTaskConsumer {
   /**
    * Process Bulk bookings Audit Task
    */
-  async processBulkAuditTask(payload: BulkBookingAuditTaskConsumerPayload, taskId: string): Promise<void> {
+  async processBulkAuditTask(payload: BulkBookingAuditTaskConsumerPayload): Promise<void> {
     const { bookings, action, actor, organizationId, timestamp, source, operationId, context } = payload;
 
     if (
@@ -130,15 +129,13 @@ export class BookingAuditTaskConsumer {
       return;
     }
 
-    const migratedBookings = await this.bulkMigrateIfNeeded({
+    const validatedBookings = this.bulkValidate({
       bookings,
       action,
-      payload,
-      taskId,
     });
 
     await this.onBulkBookingActions({
-      bookings: migratedBookings,
+      bookings: validatedBookings,
       actor,
       action,
       source,
@@ -149,120 +146,34 @@ export class BookingAuditTaskConsumer {
   }
 
   /**
-   * Migrate If Needed - Validates and migrates data to latest version
+   * Validate data against latest schema for the given action.
    *
-   * This is where action-specific data validation happens.
-   * The action service's migrateToLatest method:
-   * - Validates the data against all supported versions
-   * - Migrates to latest version if needed
-   * - Returns validated data with migration status
-   *
-   * If migration occurred, updates the task payload in DB for retries.
+   * Task payloads are always created with the latest schema version,
+   * so this simply validates the data without any migration logic.
    */
-  private async migrateIfNeeded(params: {
-    action: BookingAuditAction;
-    data: unknown;
-    payload: SingleBookingAuditTaskConsumerPayload;
-    taskId: string;
-  }) {
-    const { action, data, payload, taskId } = params;
+  private validate(params: { action: BookingAuditAction; data: unknown }): Record<string, unknown> {
+    const { action, data } = params;
     const actionService = this.actionServiceRegistry.getActionService(action);
-
-    // migrateToLatest validates data with action-specific schema and migrates if needed
-    const migrationResult = actionService.migrateToLatest(data);
-
-    // If migrated, update task payload in DB
-    if (migrationResult.isMigrated) {
-      logger.info(`Schema migration performed: action=${action}`);
-      await this.updateTaskPayload(payload, migrationResult.latestData, taskId);
-    }
-
-    return migrationResult.latestData;
+    return actionService.parse(data);
   }
 
   /**
-   * Update Task Payload - Updates the task payload in DB with migrated data
-   *
-   * This ensures that task retries use the latest schema version.
-   * When a task fails and retries, it will use the already-migrated payload.
-   *
-   * @param payload - Original task payload
-   * @param latestData - Migrated data in latest schema version
-   * @param taskId - Task ID (required for DB update)
-   */
-  private async updateTaskPayload(
-    payload: BookingAuditTaskConsumerPayload,
-    latestData: unknown,
-    taskId: string
-  ): Promise<void> {
-    try {
-      const updatedPayload = { ...payload, data: latestData };
-      await Task.updatePayload(taskId, JSON.stringify(updatedPayload));
-
-      logger.info(`Successfully updated task payload in DB: taskId=${taskId}, action=${payload.action}`);
-    } catch (error) {
-      // Warning because nothing functionally failed, we have a risk in future that if we completely remove a version support, the particular task if retried will fail with a schema error.
-      logger.warn(`Failed to update task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`);
-    }
-  }
-
-  /**
-   * Bulk Migrate If Needed - Migrates all bookings in a bulk operation
+   * Validate all bookings' data against latest schema in a bulk operation.
    *
    * Since all bookings in a bulk operation share the same action type,
-   * they all use the same action service and schema version.
-   * If any booking is migrated, updates the DB task payload for retry consistency.
-   *
-   * @param params - Bookings, action, payload, and task ID
-   * @returns Array of migrated bookings with latest data
+   * they all use the same action service for validation.
    */
-  private async bulkMigrateIfNeeded(params: {
+  private bulkValidate(params: {
     bookings: BulkBookingAuditTaskConsumerPayload["bookings"];
     action: BookingAuditAction;
-    payload: BulkBookingAuditTaskConsumerPayload;
-    taskId: string;
-  }): Promise<Array<{ bookingUid: string; data: Record<string, unknown> }>> {
-    const { bookings, action, payload, taskId } = params;
+  }): Array<{ bookingUid: string; data: Record<string, unknown> }> {
+    const { bookings, action } = params;
     const actionService = this.actionServiceRegistry.getActionService(action);
 
-    let anyMigrated = false;
-    const migratedBookings = await Promise.all(
-      bookings.map(async (booking) => {
-        const migrationResult = actionService.migrateToLatest(booking.data);
-        if (migrationResult.isMigrated) {
-          anyMigrated = true;
-        }
-        return {
-          bookingUid: booking.bookingUid,
-          data: migrationResult.latestData,
-        };
-      })
-    );
-
-    if (anyMigrated) {
-      logger.info(`Schema migration performed for bulk audit: action=${action}`);
-      await this.updateBulkTaskPayload(payload, migratedBookings, taskId);
-    }
-
-    return migratedBookings;
-  }
-
-  private async updateBulkTaskPayload(
-    payload: BulkBookingAuditTaskConsumerPayload,
-    migratedBookings: Array<{ bookingUid: string; data: Record<string, unknown> }>,
-    taskId: string
-  ): Promise<void> {
-    try {
-      const updatedPayload = { ...payload, bookings: migratedBookings };
-      await Task.updatePayload(taskId, JSON.stringify(updatedPayload));
-
-      logger.info(`Successfully updated bulk task payload in DB: taskId=${taskId}, action=${payload.action}`);
-    } catch (error) {
-      // Warning because nothing functionally failed, we have a risk in future that if we completely remove a version support, the particular task if retried will fail with a schema error.
-      logger.warn(
-        `Failed to update bulk task payload in DB: taskId=${taskId}, error=${safeStringify(error)}`
-      );
-    }
+    return bookings.map((booking) => ({
+      bookingUid: booking.bookingUid,
+      data: actionService.parse(booking.data),
+    }));
   }
 
   /**

@@ -1,7 +1,7 @@
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { getBookingAuditTaskConsumer } from "@calcom/features/booking-audit/di/BookingAuditTaskConsumer.container";
 import { BookingAuditTaskConsumerSchema } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 const log = logger.getSubLogger({ prefix: ["[tasker] bookingAudit"] });
 
@@ -14,9 +14,6 @@ const log = logger.getSubLogger({ prefix: ["[tasker] bookingAudit"] });
  */
 export async function bookingAudit(payload: string, taskId?: string): Promise<void> {
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required for booking audit consumer");
-    }
     const parsedPayload: unknown = JSON.parse(payload);
 
     const parseResult = BookingAuditTaskConsumerSchema.safeParse(parsedPayload);
@@ -31,9 +28,9 @@ export async function bookingAudit(payload: string, taskId?: string): Promise<vo
     const bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
 
     if (validatedPayload.isBulk) {
-      await bookingAuditTaskConsumer.processBulkAuditTask(validatedPayload, taskId);
+      await bookingAuditTaskConsumer.processBulkAuditTask(validatedPayload);
     } else {
-      await bookingAuditTaskConsumer.processAuditTask(validatedPayload, taskId);
+      await bookingAuditTaskConsumer.processAuditTask(validatedPayload);
     }
   } catch (error) {
     const errorMsg = `Error processing booking audit: ${safeStringify(error)} | TaskId: ${taskId}`;

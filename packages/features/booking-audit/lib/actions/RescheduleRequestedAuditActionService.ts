@@ -1,12 +1,11 @@
 import { z } from "zod";
-
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  GetDisplayJsonParams,
+  GetDisplayTitleParams,
   IAuditActionService,
   TranslationWithParams,
-  GetDisplayTitleParams,
-  GetDisplayJsonParams,
 } from "./IAuditActionService";
 
 /**
@@ -58,10 +57,8 @@ export class RescheduleRequestedAuditActionService implements IAuditActionServic
     return this.helper.getVersion(data);
   }
 
-  migrateToLatest(data: unknown) {
-    // V1-only: validate and return as-is (no migration needed)
-    const validated = fieldsSchemaV1.parse(data);
-    return { isMigrated: false, latestData: validated };
+  parse(data: unknown): Record<string, unknown> {
+    return fieldsSchemaV1.parse(data);
   }
 
   getDataRequirements(): DataRequirements {
