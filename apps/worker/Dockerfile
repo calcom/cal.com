@@ -52,7 +52,9 @@ RUN corepack enable
 
 # Copy runtime deps
 COPY --from=builder /calid/node_modules ./node_modules
-COPY --from=builder /calid/package.json ./package.json
+# COPY --from=builder /calid/package.json ./package.json
+COPY ./package.json ./i18n.json ./
+
 
 # Copy built worker
 COPY --from=builder /calid/apps/worker/dist ./apps/worker/dist
