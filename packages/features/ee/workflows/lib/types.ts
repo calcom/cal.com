@@ -117,6 +117,9 @@ export type BookingInfo = {
     url?: string;
   };
   platformClientId?: string | null;
+  recordingUrl?: string | null;
+  transcriptionUrl?: string | null;
+  recordingDuration?: string | null;
 };
 
 export type WorkflowContextData =

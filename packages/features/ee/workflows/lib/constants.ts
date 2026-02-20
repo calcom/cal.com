@@ -15,6 +15,8 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
   WorkflowTriggerEvents.BOOKING_PAID,
   WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+  WorkflowTriggerEvents.RECORDING_READY,
+  WorkflowTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [
@@ -77,6 +79,9 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "attendee_timezone",
   "event_start_time_in_attendee_timezone",
   "event_end_time_in_attendee_timezone",
+  "recording_url",
+  "transcription_url",
+  "recording_duration",
 ];
 
 export const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
@@ -98,6 +103,8 @@ export const IMMEDIATE_WORKFLOW_TRIGGER_EVENTS: WorkflowTriggerEvents[] = [
   WorkflowTriggerEvents.BOOKING_REQUESTED,
   WorkflowTriggerEvents.FORM_SUBMITTED,
   WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT, // no real immediate workflow but it's scheduled with tasker
+  WorkflowTriggerEvents.RECORDING_READY,
+  WorkflowTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
 ];
 
 export const FORM_TRIGGER_WORKFLOW_EVENTS: WorkflowTriggerEvents[] = [

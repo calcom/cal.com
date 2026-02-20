@@ -42,6 +42,9 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   rescheduleReason?: string | null;
   cancellationReason?: string | null;
   bookerUrl: string;
+  recordingUrl?: string | null;
+  transcriptionUrl?: string | null;
+  recordingDuration?: string | null;
 };
 
 type ProcessWorkflowStepParams = (

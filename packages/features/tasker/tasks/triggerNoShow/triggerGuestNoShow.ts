@@ -1,7 +1,12 @@
+import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { Booking } from "./common";
 import {
   calculateMaxStartTime,
   fireNoShowUpdatedEvent,
@@ -19,6 +24,49 @@ type UpdatedAttendee = {
   phoneNumber: string | null;
   bookingId: number | null;
   noShow: boolean | null;
+};
+
+const triggerGuestNoShowWorkflows = async (booking: Booking, bookingWithUpdatedData: any) => {
+  try {
+    const workflows = (booking.eventType?.workflows?.map((w) => w.workflow) ?? []) as Workflow[];
+    const guestNoShowWorkflows = workflows.filter(
+      (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    );
+
+    if (guestNoShowWorkflows.length === 0) {
+      log.debug("No guest no-show workflows configured");
+      return;
+    }
+
+    const hideBranding = await getHideBranding({
+      teamId: booking.eventType?.teamId ?? undefined,
+    });
+
+    const creditService = new CreditService();
+
+    await scheduleWorkflowReminders({
+      workflows: guestNoShowWorkflows,
+      calendarEvent: {
+        ...bookingWithUpdatedData,
+        bookerUrl: "",
+        eventType: {
+          slug: booking.eventType?.slug ?? "",
+          schedulingType: booking.eventType?.schedulingType,
+          hosts: booking.eventType?.hosts,
+        },
+      } as any,
+      hideBranding,
+      smsReminderNumber: null,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+    });
+
+    log.debug("Guest no-show workflows triggered", {
+      bookingUid: booking.uid,
+      workflowCount: guestNoShowWorkflows.length,
+    });
+  } catch (error) {
+    log.error("Error triggering guest no-show workflows", error);
+  }
 };
 
 const markGuestAsNoshowInBooking = async ({
@@ -126,6 +174,8 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
+
+      await triggerGuestNoShowWorkflows(booking, bookingWithUpdatedData);
     }
   } else {
     if (!didGuestJoinTheCall) {
@@ -154,6 +204,8 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
         participants,
         originalRescheduledBooking
       );
+
+      await triggerGuestNoShowWorkflows(booking, bookingWithUpdatedData);
     }
   }
 }

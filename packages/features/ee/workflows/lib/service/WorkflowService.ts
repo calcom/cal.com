@@ -244,6 +244,42 @@ export class WorkflowService {
     });
   }
 
+  static async scheduleRecordingWorkflows({
+    workflows,
+    triggers,
+    recordingData,
+    ...args
+  }: ScheduleWorkflowRemindersArgs & {
+    triggers: (
+      | typeof WorkflowTriggerEvents.RECORDING_READY
+      | typeof WorkflowTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED
+    )[];
+    recordingData: {
+      recordingUrl?: string | null;
+      transcriptionUrl?: string | null;
+      recordingDuration?: string | null;
+    };
+  }) {
+    if (workflows.length <= 0) return;
+
+    const workflowsToTrigger = workflows.filter((workflow) => triggers.includes(workflow.trigger));
+
+    if (workflowsToTrigger.length === 0) return;
+
+    await scheduleWorkflowReminders({
+      ...args,
+      calendarEvent: args.calendarEvent
+        ? {
+            ...args.calendarEvent,
+            recordingUrl: recordingData.recordingUrl,
+            transcriptionUrl: recordingData.transcriptionUrl,
+            recordingDuration: recordingData.recordingDuration,
+          }
+        : undefined,
+      workflows: workflowsToTrigger,
+    });
+  }
+
   static async scheduleLazyEmailWorkflow({
     workflowTriggerEvent,
     workflowStepId,

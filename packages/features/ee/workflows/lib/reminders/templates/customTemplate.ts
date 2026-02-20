@@ -115,6 +115,9 @@ export type VariablesType = {
   attendeeTimezone?: string;
   eventTimeInAttendeeTimezone?: Dayjs;
   eventEndTimeInAttendeeTimezone?: Dayjs;
+  recordingUrl?: string;
+  transcriptionUrl?: string;
+  recordingDuration?: string;
 };
 
 // Replaces placeholders like {EVENT_NAME_VARIABLE} with {EVENT_NAME}
@@ -196,7 +199,10 @@ const customTemplate = (
     .replaceAll(
       "{EVENT_END_TIME_IN_ATTENDEE_TIMEZONE}",
       variables.eventEndTimeInAttendeeTimezone?.format(currentTimeFormat) || ""
-    );
+    )
+    .replaceAll("{RECORDING_URL}", variables.recordingUrl || "")
+    .replaceAll("{TRANSCRIPTION_URL}", variables.transcriptionUrl || "")
+    .replaceAll("{RECORDING_DURATION}", variables.recordingDuration || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");

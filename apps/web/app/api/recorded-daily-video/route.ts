@@ -34,6 +34,9 @@ import {
   triggerRecordingReadyWebhook,
   triggerTranscriptionGeneratedWebhook,
 } from "@calcom/web/lib/daily-webhook/triggerWebhooks";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { RecordingWorkflowService } from "@calcom/ee/workflows/lib/service/RecordingWorkflowService";
+
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
@@ -116,6 +119,11 @@ export async function postHandler(request: NextRequest) {
         }),
       ]);
 
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: booking?.user?.id,
+        teamId,
+      });
+
       const tasks = [
         {
           fn: triggerRecordingReadyWebhook({
@@ -137,6 +145,23 @@ export async function postHandler(request: NextRequest) {
         {
           fn: sendDailyVideoRecordingEmails(evt, downloadLink),
           errorMsg: "send recording emails",
+        },
+        {
+          fn: RecordingWorkflowService.triggerRecordingReadyWorkflows({
+            booking: {
+              id: booking.id,
+              uid: booking.uid,
+              eventTypeId: booking.eventTypeId,
+              eventType: booking.eventType,
+              user: booking.user,
+              teamId,
+            },
+            downloadLink,
+            calendarEvent: evt,
+            teamId,
+            orgId,
+          }),
+          errorMsg: "trigger recording ready workflows",
         },
       ];
 
@@ -204,6 +229,11 @@ export async function postHandler(request: NextRequest) {
         getBatchProcessorJobAccessLink(id),
       ]);
 
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: booking?.user?.id,
+        teamId,
+      });
+
       await triggerTranscriptionGeneratedWebhook({
         evt,
         downloadLinks: {
@@ -216,6 +246,24 @@ export async function postHandler(request: NextRequest) {
           eventTypeParentId: booking.eventType?.parentId,
           teamId,
         },
+      });
+
+      await RecordingWorkflowService.triggerTranscriptionWorkflows({
+        booking: {
+          id: booking.id,
+          uid: booking.uid,
+          eventTypeId: booking.eventTypeId,
+          eventType: booking.eventType,
+          user: booking.user,
+          teamId,
+        },
+        downloadLinks: {
+          transcription: batchProcessorJobAccessLink.transcription,
+          recording,
+        },
+        calendarEvent: evt,
+        teamId,
+        orgId,
       });
 
       return NextResponse.json({ message: "Success" });

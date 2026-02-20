@@ -507,6 +507,9 @@ export class EmailWorkflowService {
         attendeeTimezone: attendeeToBeUsedInMail.timeZone,
         eventTimeInAttendeeTimezone: dayjs(startTime).tz(attendeeToBeUsedInMail.timeZone),
         eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
+        recordingUrl: evt.recordingUrl,
+        transcriptionUrl: evt.transcriptionUrl,
+        recordingDuration: evt.recordingDuration,
       };
 
       const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
