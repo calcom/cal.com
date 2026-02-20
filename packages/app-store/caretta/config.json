@@ -1,0 +1,20 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Caretta",
+  "slug": "caretta",
+  "type": "caretta_automation",
+  "logo": "icon.jpeg",
+  "url": "https://www.caretta.so/",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal.com, Inc.",
+  "email": "pavlos@caretta.so",
+  "description": "Realtime Sales AI",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "externalLink": {
+    "url": "https://www.caretta.so/",
+    "newTab": true
+  },
+  "__template": "link-as-an-app"
+}

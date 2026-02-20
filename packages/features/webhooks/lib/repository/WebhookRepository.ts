@@ -123,7 +123,8 @@ export class WebhookRepository implements IWebhookRepository {
   }): Promise<WebhookSubscriber[]> {
     const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
 
-    // Use static SQL with IS NOT NULL guards and PostgreSQL ANY() for arrays
+    // IMPORTANT: Explicit type casts (::int, ::text) are required for nullable params
+    // PostgreSQL can't infer types for NULL values without explicit casts
     const results = await this.prisma.$queryRaw<WebhookQueryResult[]>`
       -- Platform webhooks (highest priority)
       SELECT 
@@ -142,8 +143,8 @@ export class WebhookRepository implements IWebhookRepository {
         2 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND ${userId} IS NOT NULL
-        AND "userId" = ${userId}
+        AND ${userId}::int IS NOT NULL
+        AND "userId" = ${userId}::int
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
@@ -155,8 +156,8 @@ export class WebhookRepository implements IWebhookRepository {
         3 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND ${eventTypeId} IS NOT NULL
-        AND "eventTypeId" = ${eventTypeId}
+        AND ${eventTypeId}::int IS NOT NULL
+        AND "eventTypeId" = ${eventTypeId}::int
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
@@ -168,8 +169,8 @@ export class WebhookRepository implements IWebhookRepository {
         4 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND ${managedParentEventTypeId} IS NOT NULL
-        AND "eventTypeId" = ${managedParentEventTypeId}
+        AND ${managedParentEventTypeId}::int IS NOT NULL
+        AND "eventTypeId" = ${managedParentEventTypeId}::int
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       
@@ -181,7 +182,7 @@ export class WebhookRepository implements IWebhookRepository {
         5 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND ${teamIds} IS NOT NULL
+        AND ${teamIds}::int[] IS NOT NULL
         AND cardinality(${teamIds}::int[]) > 0
         AND "teamId" = ANY(${teamIds}::int[])
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
@@ -195,8 +196,8 @@ export class WebhookRepository implements IWebhookRepository {
         6 as priority
       FROM "Webhook"
       WHERE active = true 
-        AND ${oAuthClientId} IS NOT NULL
-        AND "platformOAuthClientId" = ${oAuthClientId}
+        AND ${oAuthClientId}::text IS NOT NULL
+        AND "platformOAuthClientId" = ${oAuthClientId}::text
         AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
         AND platform = false
       

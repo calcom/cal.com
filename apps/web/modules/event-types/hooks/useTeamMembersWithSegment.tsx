@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc } from "@calcom/trpc/react";
-import { type UseTeamMembersWithSegmentProps, useProcessTeamMembersData } from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
+import {
+  type UseTeamMembersWithSegmentProps,
+  useProcessTeamMembersData,
+} from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 
 export const useTeamMembersWithSegment = ({
   initialTeamMembers,

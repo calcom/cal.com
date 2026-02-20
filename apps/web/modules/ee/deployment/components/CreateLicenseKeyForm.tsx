@@ -38,13 +38,7 @@ import {
 import { Field, FieldLabel } from "@coss/ui/components/field";
 import { Form } from "@coss/ui/components/form";
 import { Input } from "@coss/ui/components/input";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "@coss/ui/components/select";
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
 import { ToggleGroup, Toggle } from "@coss/ui/components/toggle-group";
 
 function CopyButton({ value }: { value: string }) {
@@ -101,18 +95,10 @@ interface CouponFormValues {
   durationInMonths: number;
 }
 
-const CreateANewLicenseKeyFormChild = ({
-  session,
-}: {
-  session: Ensure<SessionContextValue, "data">;
-}) => {
+const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(
-    null
-  );
-  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(
-    null
-  );
+  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
 
@@ -127,20 +113,15 @@ const CreateANewLicenseKeyFormChild = ({
     },
   });
 
-  const licenseMutation = trpc.viewer.admin.createSelfHostedLicense.useMutation(
-    {
-      onSuccess: async (values) => {
-        showToast(
-          "Success: We have created a stripe payment URL for this billing email",
-          "success"
-        );
-        setStripeCheckoutUrl(values.stripeCheckoutUrl);
-      },
-      onError: async (err) => {
-        setServerErrorMessage(err.message);
-      },
-    }
-  );
+  const licenseMutation = trpc.viewer.admin.createSelfHostedLicense.useMutation({
+    onSuccess: async (values) => {
+      showToast("Success: We have created a stripe payment URL for this billing email", "success");
+      setStripeCheckoutUrl(values.stripeCheckoutUrl);
+    },
+    onError: async (err) => {
+      setServerErrorMessage(err.message);
+    },
+  });
 
   const watchedBillingPeriod = licenseForm.watch("billingPeriod");
   const watchedBillingEmail = licenseForm.watch("billingEmail");
@@ -162,196 +143,184 @@ const CreateANewLicenseKeyFormChild = ({
         </CardFrameDescription>
       </CardFrameHeader>
 
-        {!stripeCheckoutUrl ? (
-          <Card>
-            <CardPanel>
-              <Form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  licenseForm.handleSubmit((values) => {
-                    licenseMutation.mutate(values);
-                  })(event);
-                }}
-              >
-                {serverErrorMessage && (
-                  <Alert variant="error">
-                    <AlertDescription>{serverErrorMessage}</AlertDescription>
-                  </Alert>
-                )}
+      {!stripeCheckoutUrl ? (
+        <Card>
+          <CardPanel>
+            <Form
+              onSubmit={(event) => {
+                event.preventDefault();
+                licenseForm.handleSubmit((values) => {
+                  licenseMutation.mutate(values);
+                })(event);
+              }}>
+              {serverErrorMessage && (
+                <Alert variant="error">
+                  <AlertDescription>{serverErrorMessage}</AlertDescription>
+                </Alert>
+              )}
 
-                <Controller
-                  name="billingPeriod"
-                  control={licenseForm.control}
-                  render={({ field: { value, onChange } }) => (
-                    <Field>
-                      <FieldLabel>Billing Period</FieldLabel>
-                      <ToggleGroup
-                        className="w-full"
-                        variant="outline"
-                        value={[value]}
-                        onValueChange={(newValue) => {
-                          if (newValue.length > 0) onChange(newValue[0]);
-                        }}
-                      >
-                        <Toggle value="MONTHLY" className="flex-1">
-                          Monthly
-                        </Toggle>
-                        <Toggle value="ANNUALLY" className="flex-1">
-                          Annually
-                        </Toggle>
-                      </ToggleGroup>
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  name="billingEmail"
-                  control={licenseForm.control}
-                  rules={{ required: t("must_enter_billing_email") }}
-                  render={({ field: { value, onChange } }) => (
-                    <Field>
-                      <FieldLabel>Billing Email for Customer</FieldLabel>
-                      <Input
-                        placeholder="john@acme.com"
-                        disabled={!isAdmin}
-                        defaultValue={value}
-                        onChange={onChange}
-                        autoComplete="off"
-                      />
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  name="billingType"
-                  control={licenseForm.control}
-                  render={({ field: { value, onChange } }) => (
-                    <Field>
-                      <FieldLabel>Booking Type</FieldLabel>
-                      <ToggleGroup
-                        className="w-full"
-                        variant="outline"
-                        value={[value]}
-                        onValueChange={(newValue) => {
-                          if (newValue.length > 0) onChange(newValue[0]);
-                        }}
-                      >
-                        <Toggle value="PER_BOOKING" className="flex-1">
-                          Per Booking
-                        </Toggle>
-                        <Toggle value="PER_USER" className="flex-1">
-                          Per User
-                        </Toggle>
-                      </ToggleGroup>
-                    </Field>
-                  )}
-                />
-
-                <div className="flex flex-wrap gap-2 *:flex-1">
-                  <Controller
-                    name="entityCount"
-                    control={licenseForm.control}
-                    rules={{ required: "Must enter a total of billable users" }}
-                    render={({ field: { value, onChange } }) => (
-                      <Field>
-                        <FieldLabel>Total entities included</FieldLabel>
-                        <Input
-                          type="number"
-                          placeholder="100"
-                          defaultValue={value}
-                          onChange={(event) => onChange(+event.target.value)}
-                        />
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="entityPrice"
-                    control={licenseForm.control}
-                    rules={{ required: "Must enter fixed price per user" }}
-                    render={({ field: { value, onChange } }) => (
-                      <Field>
-                        <FieldLabel>Fixed price per entity ($)</FieldLabel>
-                        <Input
-                          type="number"
-                          defaultValue={value / 100}
-                          onChange={(event) =>
-                            onChange(+event.target.value * 100)
-                          }
-                        />
-                      </Field>
-                    )}
-                  />
-                </div>
-
-                <Controller
-                  name="overages"
-                  control={licenseForm.control}
-                  rules={{ required: "Must enter overages" }}
-                  render={({ field: { value, onChange } }) => (
-                    <Field>
-                      <FieldLabel>Overages ($)</FieldLabel>
-                      <Input
-                        type="number"
-                        placeholder="0.99"
-                        disabled={!isAdmin}
-                        defaultValue={value / 100}
-                        onChange={(event) =>
-                          onChange(+event.target.value * 100)
-                        }
-                        autoComplete="off"
-                      />
-                    </Field>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  disabled={
-                    licenseForm.formState.isSubmitting ||
-                    licenseMutation.isPending
-                  }
-                  className="w-full"
-                >
-                  {t("continue")} - {calculateMonthlyPrice()}
-                </Button>
-              </Form>
-            </CardPanel>
-          </Card>
-        ) : (
-          <Card>
-            <CardPanel>
-              <div className="flex flex-col gap-4">
-                <Field>
-                  <FieldLabel>Checkout URL</FieldLabel>
-                  <div className="flex w-full items-center gap-1">
-                    <Input disabled value={stripeCheckoutUrl} className="min-w-0 flex-1" />
-                    <CopyButton value={stripeCheckoutUrl} />
-                  </div>
-                </Field>
-                {couponCode && (
+              <Controller
+                name="billingPeriod"
+                control={licenseForm.control}
+                render={({ field: { value, onChange } }) => (
                   <Field>
-                    <FieldLabel>Coupon Code</FieldLabel>
-                    <div className="flex w-full items-center gap-1">
-                      <Input disabled value={couponCode} className="min-w-0 flex-1" />
-                      <CopyButton value={couponCode} />
-                    </div>
+                    <FieldLabel>Billing Period</FieldLabel>
+                    <ToggleGroup
+                      className="w-full"
+                      variant="outline"
+                      value={[value]}
+                      onValueChange={(newValue) => {
+                        if (newValue.length > 0) onChange(newValue[0]);
+                      }}>
+                      <Toggle value="MONTHLY" className="flex-1">
+                        Monthly
+                      </Toggle>
+                      <Toggle value="ANNUALLY" className="flex-1">
+                        Annually
+                      </Toggle>
+                    </ToggleGroup>
                   </Field>
                 )}
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => {
-                    licenseForm.reset();
-                    setStripeCheckoutUrl(null);
-                    setCouponCode(null);
-                  }}
-                >
-                  Back
-                </Button>
+              />
+
+              <Controller
+                name="billingEmail"
+                control={licenseForm.control}
+                rules={{ required: t("must_enter_billing_email") }}
+                render={({ field: { value, onChange } }) => (
+                  <Field>
+                    <FieldLabel>Billing Email for Customer</FieldLabel>
+                    <Input
+                      placeholder="john@acme.com"
+                      disabled={!isAdmin}
+                      defaultValue={value}
+                      onChange={onChange}
+                      autoComplete="off"
+                    />
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="billingType"
+                control={licenseForm.control}
+                render={({ field: { value, onChange } }) => (
+                  <Field>
+                    <FieldLabel>Booking Type</FieldLabel>
+                    <ToggleGroup
+                      className="w-full"
+                      variant="outline"
+                      value={[value]}
+                      onValueChange={(newValue) => {
+                        if (newValue.length > 0) onChange(newValue[0]);
+                      }}>
+                      <Toggle value="PER_BOOKING" className="flex-1">
+                        Per Booking
+                      </Toggle>
+                      <Toggle value="PER_USER" className="flex-1">
+                        Per User
+                      </Toggle>
+                    </ToggleGroup>
+                  </Field>
+                )}
+              />
+
+              <div className="flex flex-wrap gap-2 *:flex-1">
+                <Controller
+                  name="entityCount"
+                  control={licenseForm.control}
+                  rules={{ required: "Must enter a total of billable users" }}
+                  render={({ field: { value, onChange } }) => (
+                    <Field>
+                      <FieldLabel>Total entities included</FieldLabel>
+                      <Input
+                        type="number"
+                        placeholder="100"
+                        defaultValue={value}
+                        onChange={(event) => onChange(+event.target.value)}
+                      />
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="entityPrice"
+                  control={licenseForm.control}
+                  rules={{ required: "Must enter fixed price per user" }}
+                  render={({ field: { value, onChange } }) => (
+                    <Field>
+                      <FieldLabel>Fixed price per entity ($)</FieldLabel>
+                      <Input
+                        type="number"
+                        defaultValue={value / 100}
+                        onChange={(event) => onChange(+event.target.value * 100)}
+                      />
+                    </Field>
+                  )}
+                />
               </div>
-            </CardPanel>
-          </Card>
-        )}
+
+              <Controller
+                name="overages"
+                control={licenseForm.control}
+                rules={{ required: "Must enter overages" }}
+                render={({ field: { value, onChange } }) => (
+                  <Field>
+                    <FieldLabel>Overages ($)</FieldLabel>
+                    <Input
+                      type="number"
+                      placeholder="0.99"
+                      disabled={!isAdmin}
+                      defaultValue={value / 100}
+                      onChange={(event) => onChange(+event.target.value * 100)}
+                      autoComplete="off"
+                    />
+                  </Field>
+                )}
+              />
+
+              <Button
+                type="submit"
+                disabled={licenseForm.formState.isSubmitting || licenseMutation.isPending}
+                className="w-full">
+                {t("continue")} - {calculateMonthlyPrice()}
+              </Button>
+            </Form>
+          </CardPanel>
+        </Card>
+      ) : (
+        <Card>
+          <CardPanel>
+            <div className="flex flex-col gap-4">
+              <Field>
+                <FieldLabel>Checkout URL</FieldLabel>
+                <div className="flex w-full items-center gap-1">
+                  <Input disabled value={stripeCheckoutUrl} className="min-w-0 flex-1" />
+                  <CopyButton value={stripeCheckoutUrl} />
+                </div>
+              </Field>
+              {couponCode && (
+                <Field>
+                  <FieldLabel>Coupon Code</FieldLabel>
+                  <div className="flex w-full items-center gap-1">
+                    <Input disabled value={couponCode} className="min-w-0 flex-1" />
+                    <CopyButton value={couponCode} />
+                  </div>
+                </Field>
+              )}
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  licenseForm.reset();
+                  setStripeCheckoutUrl(null);
+                  setCouponCode(null);
+                }}>
+                Back
+              </Button>
+            </div>
+          </CardPanel>
+        </Card>
+      )}
 
       <CardFrameFooter>
         <p className="text-muted-foreground text-xs">
@@ -427,8 +396,7 @@ function CreateCouponDialog({
             type="button"
             className="cursor-pointer font-medium text-foreground underline underline-offset-2"
           />
-        }
-      >
+        }>
         Create a coupon
       </DialogTrigger>
       <DialogPopup className="sm:max-w-md">
@@ -441,13 +409,11 @@ function CreateCouponDialog({
               setCouponResult(null);
               couponMutation.mutate(values);
             })(event);
-          }}
-        >
+          }}>
           <DialogHeader>
             <DialogTitle>Create Coupon</DialogTitle>
             <DialogDescription>
-              Create a Stripe coupon with a promotion code restricted to a
-              specific customer.
+              Create a Stripe coupon with a promotion code restricted to a specific customer.
             </DialogDescription>
           </DialogHeader>
           <DialogPanel className="flex flex-col gap-4">
@@ -478,11 +444,7 @@ function CreateCouponDialog({
               render={({ field: { value, onChange } }) => (
                 <Field>
                   <FieldLabel>Coupon Name (optional)</FieldLabel>
-                  <Input
-                    placeholder="e.g. ACME Corp Discount"
-                    value={value}
-                    onChange={onChange}
-                  />
+                  <Input placeholder="e.g. ACME Corp Discount" value={value} onChange={onChange} />
                 </Field>
               )}
             />
@@ -512,12 +474,7 @@ function CreateCouponDialog({
               render={({ field: { value, onChange } }) => (
                 <Field>
                   <FieldLabel>Promo Code</FieldLabel>
-                  <Input
-                    placeholder="e.g. ACME50OFF"
-                    value={value}
-                    onChange={onChange}
-                    required
-                  />
+                  <Input placeholder="e.g. ACME50OFF" value={value} onChange={onChange} required />
                 </Field>
               )}
             />
@@ -534,8 +491,7 @@ function CreateCouponDialog({
                     value={[value]}
                     onValueChange={(newValue) => {
                       if (newValue.length > 0) onChange(newValue[0]);
-                    }}
-                  >
+                    }}>
                     <Toggle value="percent" className="flex-1">
                       Percentage
                     </Toggle>
@@ -554,10 +510,7 @@ function CreateCouponDialog({
               render={({ field: { value, onChange } }) => (
                 <Field>
                   <FieldLabel>
-                    Discount Amount{" "}
-                    {couponForm.watch("discountType") === "percent"
-                      ? "(%)"
-                      : "(cents)"}
+                    Discount Amount {couponForm.watch("discountType") === "percent" ? "(%)" : "(cents)"}
                   </FieldLabel>
                   <Input
                     type="number"
@@ -583,8 +536,7 @@ function CreateCouponDialog({
                     value={value}
                     onValueChange={(newValue) => {
                       if (newValue) onChange(newValue);
-                    }}
-                  >
+                    }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
@@ -624,15 +576,8 @@ function CreateCouponDialog({
             )}
           </DialogPanel>
           <DialogFooter variant="bare">
-            <DialogClose render={<Button variant="ghost" />}>
-              Cancel
-            </DialogClose>
-            <Button
-              type="submit"
-              disabled={
-                couponForm.formState.isSubmitting || couponMutation.isPending
-              }
-            >
+            <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+            <Button type="submit" disabled={couponForm.formState.isSubmitting || couponMutation.isPending}>
               Create Coupon
             </Button>
           </DialogFooter>

@@ -3,6 +3,7 @@ import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/a
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep, WorkflowListType as WorkflowType } from "@calcom/ee/workflows/lib/types";
+import type { filterQuerySchemaStrict } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HttpError } from "@calcom/lib/http-error";
@@ -16,14 +17,28 @@ import {
   WorkflowMethods,
   type WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
-import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
-import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
 import { z } from "zod";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
 });
+
+export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
+
+export type TFilteredListInputSchema =
+  | {
+      filters?: z.infer<typeof filterQuerySchemaStrict>;
+    }
+  | null
+  | undefined;
+
+export type TGetVerifiedEmailsInputSchema = {
+  teamId?: number;
+};
+
+export type TGetVerifiedNumbersInputSchema = {
+  teamId?: number;
+};
 
 const excludeFormTriggersWhereClause = {
   trigger: {
@@ -39,8 +54,6 @@ const getWorkflowType = (trigger: WorkflowTriggerEvents): PrismaWorkflowType => 
   }
   return PrismaWorkflowType.EVENT_TYPE;
 };
-
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
 const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
