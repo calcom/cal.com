@@ -1,11 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect } from "react";
-
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -13,6 +7,10 @@ import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import { useEffect } from "react";
 
 const EMAIL_CLIENTS = [
   {
@@ -43,18 +41,14 @@ function VerifyEmailPage() {
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
-  const flags = useFlagMap();
 
   useEffect(() => {
     if (data?.isVerified) {
-      posthog.capture("verify_email_already_verified", {
-        onboarding_v3_enabled: flags["onboarding-v3"],
-      });
-      const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
-      router.replace(gettingStartedPath);
+      posthog.capture("verify_email_already_verified");
+      router.replace("/onboarding/getting-started");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isVerified, flags]);
+  }, [data?.isVerified]);
   if (!isLocaleReady) {
     return null;
   }

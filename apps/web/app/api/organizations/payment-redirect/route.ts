@@ -1,15 +1,12 @@
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+import { orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import stripe from "@calcom/features/ee/payments/server/stripe";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
-import { prisma } from "@calcom/prisma";
-import { orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -33,18 +30,13 @@ async function getHandler(req: NextRequest) {
     // Extract organizationOnboardingId from metadata
     const organizationOnboardingId = checkoutSession.metadata?.organizationOnboardingId;
 
-    // Check if onboarding-v3 feature flag is enabled
-    const featuresRepository = new FeaturesRepository(prisma);
-    const isOnboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
-
     // Build query params to preserve
     const params = new URLSearchParams({
       session_id,
       paymentStatus,
     });
 
-    // If onboarding-v3 is enabled AND organizationOnboardingId exists, redirect to onboarding flow
-    if (isOnboardingV3Enabled && organizationOnboardingId) {
+    if (organizationOnboardingId) {
       // Check if this is a migration flow (user has already completed onboarding)
       const onboarding = await OrganizationOnboardingRepository.findById(organizationOnboardingId);
       const hasMigratedTeams =
@@ -66,8 +58,7 @@ async function getHandler(req: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Otherwise, redirect to the current flow
-    // Preserve any additional query params that were passed
+    // No organizationOnboardingId - redirect to the status page
     searchParams.forEach((value, key) => {
       if (key !== "session_id" && key !== "paymentStatus") {
         params.append(key, value);

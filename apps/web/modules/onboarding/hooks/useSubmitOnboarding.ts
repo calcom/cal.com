@@ -1,17 +1,13 @@
-import { useState } from "react";
-
-import { setShowNewOrgModalFlag } from "@calcom/web/modules/ee/organizations/hooks/useWelcomeModal";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { setShowNewOrgModalFlag } from "@calcom/web/modules/ee/organizations/hooks/useWelcomeModal";
+import { useState } from "react";
 import type { OnboardingState } from "../store/onboarding-store";
 
 export const useSubmitOnboarding = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const flags = useFlagMap();
 
   const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
 
@@ -51,8 +47,8 @@ export const useSubmitOnboarding = () => {
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => {
           // If invite has a team name, try to find the team ID (for migrated teams)
-          let teamId: number | undefined = undefined;
-          let teamName: string | undefined = undefined;
+          let teamId: number | undefined;
+          let teamName: string | undefined;
 
           if (invite.team && invite.team.trim().length > 0) {
             const matchingTeam = teams.find((team) => team.name.toLowerCase() === invite.team.toLowerCase());
@@ -132,10 +128,9 @@ export const useSubmitOnboarding = () => {
 
   const skipToPersonal = (resetOnboarding: () => void) => {
     resetOnboarding();
-    const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/personal/settings" : "/getting-started";
     // Use window.location.href for a full page reload to ensure JWT callback runs
     // without trigger="update", which will call autoMergeIdentities() and fetch org data
-    window.location.href = gettingStartedPath;
+    window.location.href = "/onboarding/personal/settings";
   };
 
   return {

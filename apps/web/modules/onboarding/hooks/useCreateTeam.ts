@@ -1,4 +1,3 @@
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { useRouter } from "next/navigation";
@@ -20,7 +19,6 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
   } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const flags = useFlagMap();
   const { setTeamId, teamId } = useOnboardingStore();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation();
@@ -116,10 +114,7 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
 
       // Redirect to personal settings after successful invite (unless caller handles its own redirect)
       if (!skipRedirectAfterInvite) {
-        const gettingStartedPath = flags["onboarding-v3"]
-          ? "/onboarding/personal/settings?fromTeamOnboarding=true"
-          : "/getting-started";
-        router.replace(gettingStartedPath);
+        router.replace("/onboarding/personal/settings?fromTeamOnboarding=true");
       }
     } catch (error) {
       console.error("Failed to invite members:", error);

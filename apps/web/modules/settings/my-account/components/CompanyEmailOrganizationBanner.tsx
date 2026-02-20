@@ -1,12 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-
+import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { MailIcon } from "./MailIcon";
 
 type CompanyEmailOrganizationBannerProps = {
@@ -16,26 +13,16 @@ type CompanyEmailOrganizationBannerProps = {
 export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmailOrganizationBannerProps) => {
   const { t } = useLocale();
   const router = useRouter();
-  const flags = useFlagMap();
 
   const handleLearnMore = () => {
-    const redirectPath = flags["onboarding-v3"]
-      ? "/onboarding/organization/details?migrate=true"
-      : "/settings/organizations/new";
-
     posthog.capture("company_email_banner_upgrade_clicked");
-
-    router.push(redirectPath);
+    router.push("/onboarding/organization/details?migrate=true");
   };
 
   const handleDismiss = () => {
     posthog.capture("company_email_banner_dismissed");
     onDismissAction();
   };
-
-  if (!flags["onboarding-v3"]) {
-    return null;
-  }
 
   return (
     <div className="border-subtle from-muted relative mb-6 overflow-hidden rounded-lg border bg-gradient-to-r to-transparent p-4">
