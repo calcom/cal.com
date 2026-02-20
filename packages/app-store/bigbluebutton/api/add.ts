@@ -41,19 +41,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // (or vice-versa), causing a spurious 403.
       const DEFAULT_PORTS: Record<string, string> = { "http:": "80", "https:": "443" };
       const originPort = originUrl.port || DEFAULT_PORTS[originUrl.protocol] || "";
-      const originNormalized = `${originUrl.hostname}:${originPort}`;
+      // For IPv6 addresses, originUrl.hostname returns the bare address without brackets
+      // (e.g. "::1"), while the Host header keeps them (e.g. "[::1]:3000").
+      // Wrap IPv6 literals in brackets so both sides use the same "[::1]:port" form.
+      const originHostname = originUrl.hostname.includes(":")
+        ? `[${originUrl.hostname}]`
+        : originUrl.hostname;
+      const originNormalized = `${originHostname}:${originPort}`;
 
       // Reconstruct the host header in the same hostname:port form.
-      // req.headers.host may be "example.com" (no port) or "example.com:443".
+      // req.headers.host may be "example.com" (no port) or "example.com:443" or "[::1]:3000".
       const hostHeader = host ?? "";
       let hostNormalized: string;
-      if (hostHeader.includes(":")) {
+      // IPv6 Host headers look like "[::1]:3000" — the colon inside brackets must not
+      // be mistaken for the host:port separator.  A port is present only when there is
+      // a colon AFTER the closing bracket, or (for non-IPv6) any colon at all.
+      const hasExplicitPort = hostHeader.startsWith("[")
+        ? hostHeader.lastIndexOf(":") > hostHeader.lastIndexOf("]")
+        : hostHeader.includes(":");
+      if (hasExplicitPort) {
         // Port already present — keep as-is.
         hostNormalized = hostHeader;
       } else {
-        // No explicit port; derive the default from the incoming request protocol.
-        // Next.js sets req.socket.encrypted for TLS connections.
-        const proto = (req.socket as { encrypted?: boolean }).encrypted ? "https:" : "http:";
+        // No explicit port; infer from x-forwarded-proto (set by reverse proxies) or
+        // fall back to req.socket.encrypted (works for direct TLS connections).
+        const forwardedProto = Array.isArray(req.headers["x-forwarded-proto"])
+          ? req.headers["x-forwarded-proto"][0]
+          : req.headers["x-forwarded-proto"];
+        const proto = forwardedProto
+          ? `${forwardedProto}:`
+          : (req.socket as { encrypted?: boolean }).encrypted
+            ? "https:"
+            : "http:";
         hostNormalized = `${hostHeader}:${DEFAULT_PORTS[proto] ?? "80"}`;
       }
 
