@@ -257,6 +257,7 @@ export async function handlePaymentSuccess(params: {
       await handleBookingRequested({
         evt,
         booking,
+        oAuthClientId: platformClientParams?.platformClientId,
       });
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
