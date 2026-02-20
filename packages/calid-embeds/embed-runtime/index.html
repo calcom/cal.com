@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Embed Playground</title>
+    <script src="./playground/runtime/window-state.ts"></script>
+
+    <script>
+      (function bootstrapPageState() {
+        const sp = new URL(document.URL).searchParams;
+        window._rescheduleUid = sp.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
+        window._activeCalLink = sp.get("calLink");
+        window._initialNs = (sp.get("only") || "").split("ns:")[1] || "";
+
+        if (!location.search.includes("nonResponsive")) {
+          const vm = document.createElement("meta");
+          vm.name = "viewport";
+          vm.content = "width=device-width";
+          document.head.appendChild(vm);
+        }
+      })();
+    </script>
+
+    <script>
+      function embedSnippet() {
+        (function (C, A, L) {
+          let p = function (a, ar) {
+            a.q.push(ar);
+          };
+          let d = C.document;
+          C.Cal =
+            C.Cal ||
+            function () {
+              let cal = C.Cal;
+              let ar = arguments;
+              if (!cal.loaded) {
+                cal.ns = {};
+                cal.q = cal.q || [];
+                d.head.appendChild(d.createElement("script")).src = A;
+                cal.loaded = true;
+              }
+              if (ar[0] === L) {
+                const api = function () {
+                  p(api, arguments);
+                };
+                const namespace = ar[1];
+                api.q = api.q || [];
+                if (typeof namespace === "string") {
+                  cal.ns[namespace] = cal.ns[namespace] || api;
+                  p(cal.ns[namespace], ar);
+                  p(cal, ["initNamespace", namespace]);
+                } else {
+                  p(cal, ar);
+                }
+                return;
+              }
+              p(cal, ar);
+            };
+        })(window, window.calOrigin + "/embed-link/embed.js", "init");
+      }
+      embedSnippet();
+    </script>
+
+    <script>
+      function mountFreshNamespaceInline(targetEl) {
+        Cal("init", "withoutReloadNamespace", { debug: true, calOrigin: window.calOrigin });
+        Cal.ns.withoutReloadNamespace("inline", {
+          elementOrSelector: targetEl,
+          calLink: "pro?case=addInlineEmbedInANewNamespaceWithoutReload",
+          config: { "flag.coep": "true" },
+        });
+      }
+
+      function reinstallWithDefaultNs(targetEl) {
+        Cal("init", { debug: true, calOrigin: window.calOrigin });
+        Cal("inline", {
+          elementOrSelector: targetEl,
+          calLink: "pro?case=doubleInstallSnippetWithInlineEmbed",
+          config: { "flag.coep": "true" },
+        });
+        embedSnippet();
+        Cal("init", { debug: true, calOrigin: window.calOrigin });
+        Cal("inline", { elementOrSelector: targetEl, calLink: "pro", config: { "flag.coep": "true" } });
+      }
+
+      function reinstallWithNamedNs(targetEl) {
+        Cal("init", "doubleInstall", { debug: true, calOrigin: window.calOrigin });
+        Cal.ns.doubleInstall("inline", {
+          elementOrSelector: targetEl,
+          calLink: "pro?case=doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace",
+          config: { "flag.coep": "true" },
+        });
+        embedSnippet();
+        Cal("init", "doubleInstall", { debug: true, calOrigin: window.calOrigin });
+        Cal.ns.doubleInstall("inline", {
+          elementOrSelector: targetEl,
+          calLink: "pro",
+          config: { "flag.coep": "true" },
+        });
+      }
+
+      function mountTwoNamespacesWithDifferentOrigins() {
+        Cal("init", "namespace-init-test-1", { debug: true, calOrigin: window.calOrigin });
+        Cal("init", "namespace-init-test-2", { debug: true, calOrigin: "http://127.0.0.1:3000" });
+        Cal.ns["namespace-init-test-2"]("inline", {
+          elementOrSelector: "#two-ns-content-2",
+          calLink: "pro",
+          config: { "flag.coep": "true" },
+        });
+        Cal.ns["namespace-init-test-1"]("inline", {
+          elementOrSelector: "#two-ns-content-1",
+          calLink: "pro",
+          config: { "flag.coep": "true" },
+        });
+      }
+    </script>
+
+    <style>
+      :root {
+        --cal-brand-color: gray;
+        --pg-gradient-start: rgba(120, 116, 186, 1);
+        --pg-gradient-mid: rgba(221, 221, 255, 1);
+        --pg-gradient-end: rgba(148, 232, 249, 1);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--pg-gradient-start) 0%,
+          var(--pg-gradient-mid) 50%,
+          var(--pg-gradient-end) 100%
+        );
+        min-height: 100vh;
+        padding: 16px;
+      }
+
+      h2 {
+        border-left: 4px solid rgba(120, 116, 186, 0.8);
+        padding-left: 8px;
+        margin-top: 28px;
+      }
+
+      h3 {
+        margin: 0 0 8px;
+      }
+
+      .embed-section {
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(6px);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+      }
+
+      .embed-section h3 a {
+        color: #3a368a;
+        text-decoration: none;
+      }
+
+      .embed-section h3 a:hover {
+        text-decoration: underline;
+      }
+
+      .loader {
+        color: green;
+      }
+
+      .controls-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      button:hover {
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      #toolbar {
+        background: rgba(255, 255, 255, 0.55);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      #toolbar a,
+      #toolbar button {
+        font-size: 0.85rem;
+      }
+
+      .place {
+        width: 100%;
+      }
+
+      .dynamic-test-area {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .dynamic-test-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .dynamic-test-content {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .side-by-side {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .side-by-side .label {
+        width: 30%;
+        font-weight: 600;
+      }
+
+      .side-by-side .place {
+        width: 70%;
+      }
+
+      .scroll-container-x {
+        width: 500px;
+        overflow-y: scroll;
+      }
+
+      .scroll-container-xy {
+        height: 500px;
+        width: 500px;
+        overflow-y: scroll;
+      }
+
+      code {
+        background: rgba(0, 0, 0, 0.08);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="margin: 0 0 16px; color: #2d2a6e">Cal Embed Playground</h1>
+
+    <div id="toolbar">
+      <a href="?color-scheme=dark">Dark Page Color Scheme</a>
+      <a href="?nonResponsive">Non-Responsive Mode</a>
+      <a href="?only=prerender-test">Prerender Test Only</a>
+      <a href="?only=preload-test">Preload Test Only</a>
+      <a href="?only=all">Render All Embeds</a>
+      <a href="?only=ns:floatingButton">Floating Popup</a>
+      <a
+        href="?name=john&email=email&guests=abc&guests=def&notes=NOTES&location=%7B%22optionValue%22%3A%22%2B919999999999%22%2C%22value%22%3A%22phone%22%7D&only=ns%3ApageParamsForwarding"
+        >Page Params Forwarding</a
+      >
+      <button onclick="document.documentElement.style.colorScheme='dark'">Page → Dark</button>
+      <button onclick="document.documentElement.style.colorScheme='light'">Page → Light</button>
+    </div>
+
+    <div id="misc-embeds">
+      <section class="dynamic-test-area">
+        <div class="dynamic-test-row">
+          <button onclick="mountFreshNamespaceInline('#fresh-ns-target')">
+            Add Inline Embed (new namespace, no reload)
+          </button>
+          <div id="fresh-ns-target" class="dynamic-test-content"></div>
+        </div>
+        <div class="dynamic-test-row">
+          <button onclick="reinstallWithDefaultNs('#double-default-target')">
+            Double Install — Default Namespace
+          </button>
+          <div id="double-default-target" class="dynamic-test-content"></div>
+        </div>
+        <div class="dynamic-test-row">
+          <button onclick="reinstallWithNamedNs('#double-named-target')">
+            Double Install — Named Namespace
+          </button>
+          <div id="double-named-target" class="dynamic-test-content"></div>
+        </div>
+        <div class="dynamic-test-row">
+          <button onclick="mountTwoNamespacesWithDifferentOrigins()">
+            Two Namespaces, Two Different Origins
+          </button>
+          <div class="dynamic-test-content">
+            <div id="two-ns-content-1"></div>
+            <div id="two-ns-content-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        if (only === "all" || only === "prerender-test") {
+          document.write(`
+          <div class="embed-section">
+            <h3>Prerender Test</h3>
+            <button data-cal-namespace="e2ePrerenderLightTheme"
+              data-cal-config='{"theme":"dark","email":"preloaded-prefilled@example.com","name":"Preloaded Prefilled","flag.coep":"true"}'
+              data-cal-link="free/30min">Book with Free User [Dark Theme — Prerendered]</button>
+            <p><em>The Cal link is being prerendered. It should open instantly. Best tested on slow networks.</em></p>
+          </div>`);
+        }
+        if (only === "all" || only === "preload-test") {
+          document.write(`
+          <div class="embed-section">
+            <h3>Preload Test</h3>
+            <button data-cal-namespace="preloadTest"
+              data-cal-config='{"theme":"dark","email":"preloaded-prefilled@example.com","name":"Preloaded Prefilled","flag.coep":"true"}'
+              data-cal-link="free/30min">Book with Free User [Dark Theme — Preloaded]</button>
+            <p><em>Resources are being preloaded. Useful when you don't know the exact embed type in advance.</em></p>
+          </div>`);
+        }
+      </script>
+
+      <h2>Popup — Theme Tests</h2>
+      <div class="controls-bar">
+        <button
+          data-cal-namespace="e2ePopupLightTheme"
+          data-cal-link="free"
+          data-cal-config='{"theme":"light","flag.coep":"true"}'>
+          Free User [Light]
+        </button>
+        <button
+          data-cal-namespace="popupAutoTheme"
+          data-cal-link="free"
+          data-cal-config='{"flag.coep":"true"}'>
+          Free User [Auto]
+        </button>
+        <button
+          data-cal-namespace="popupDarkTheme"
+          data-cal-config='{"theme":"dark","flag.coep":"true"}'
+          data-cal-link="free">
+          Free User [Dark]
+        </button>
+        <button
+          data-cal-namespace="popupTeamLinkLightTheme"
+          data-cal-config='{"theme":"light","flag.coep":"true"}'
+          data-cal-link="team/seeded-team/collective-seeded-team-event">
+          Team [Light]
+        </button>
+        <button
+          data-cal-namespace="popupTeamLinkDarkTheme"
+          data-cal-config='{"theme":"dark","flag.coep":"true"}'
+          data-cal-link="team/seeded-team/collective-seeded-team-event">
+          Team [Dark]
+        </button>
+        <button
+          data-cal-namespace="popupTeamLinksList"
+          data-cal-link="team/seeded-team/"
+          data-cal-config='{"flag.coep":"true"}'>
+          Team Links [Auto]
+        </button>
+        <button
+          data-cal-namespace="popupPaidEvent"
+          data-cal-link="pro/paid"
+          data-cal-config='{"flag.coep":"true"}'>
+          Paid Event [Auto]
+        </button>
+      </div>
+
+      <h2>Popup — Reschedule Tests</h2>
+      <div class="controls-bar">
+        <script>
+          document.write(
+            `<button data-cal-namespace="popupRescheduleWithReschedulePath" data-cal-config='{"flag.coep":"true"}' data-cal-link="reschedule/${window._rescheduleUid}">Reschedule via /reschedule path</button>`
+          );
+          document.write(
+            `<button data-cal-namespace="popupRescheduleWithRescheduleUidParam" data-cal-config='{"flag.coep":"true","rescheduleUid":"${window._rescheduleUid}"}' data-cal-link="${window._activeCalLink}">Reschedule via rescheduleUid param</button>`
+          );
+        </script>
+      </div>
+
+      <h2>Popup — Configuration Variants</h2>
+      <div class="controls-bar">
+        <button
+          data-cal-namespace="popupHideEventTypeDetails"
+          data-cal-link="free/30min"
+          data-cal-config='{"flag.coep":"true"}'>
+          Free [hideEventTypeDetails]
+        </button>
+        <button
+          data-cal-namespace="popupPaidEvent"
+          data-cal-config='{"layout":"week_view","flag.coep":"true"}'
+          data-cal-link="pro/paid">
+          Paid — Week View
+        </button>
+        <button
+          data-cal-namespace="popupPaidEvent"
+          data-cal-config='{"layout":"column_view","flag.coep":"true"}'
+          data-cal-link="pro/paid">
+          Paid — Column View
+        </button>
+      </div>
+
+      <h2>Popup — Routing Form Tests</h2>
+      <div class="controls-bar">
+        <button
+          data-cal-namespace="routingFormAuto"
+          data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"
+          data-cal-config='{"flag.coep":"true"}'>
+          Routing Form [Auto] — tests routed event
+        </button>
+        <button
+          data-cal-namespace="routingFormDark"
+          data-cal-config='{"theme":"dark","flag.coep":"true"}'
+          data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">
+          Routing Form [Dark]
+        </button>
+        <button
+          data-cal-namespace="routingFormHeadlessRouter"
+          data-cal-link="router?form=948ae412-d995-4865-875a-48302588de03&Test field=event-routing"
+          data-cal-config='{"flag.coep":"true"}'>
+          Headless Router
+        </button>
+      </div>
+
+      <h2>Popup — Child Element Target</h2>
+      <a
+        style="
+          display: inline-block;
+          padding: 6px 12px;
+          background: rgba(255, 255, 255, 0.6);
+          border-radius: 4px;
+        "
+        data-cal-namespace="childElementTarget"
+        href="javascript:void(0)"
+        data-cal-link="free/30min"
+        data-cal-config='{"flag.coep":"true"}'>
+        Anchor trigger &nbsp;<b>[bold child]</b>&nbsp;<span>[span child]</span>
+      </a>
+
+      <h2>Inline Embeds</h2>
+
+      <div class="embed-section" id="cal-booking-place-default">
+        <h3><a href="?only=ns:default">Default Namespace [Dark Theme + Guests]</a></h3>
+        <div class="controls-bar">
+          <button onclick="Cal('ui',{theme:'light'})">→ Light</button>
+          <button onclick="Cal('ui',{theme:'dark'})">→ Dark</button>
+          <button onclick="Cal('ui',{layout:'week_view'})">→ Week</button>
+          <button onclick="Cal('ui',{layout:'month_view'})">→ Month</button>
+          <button onclick="Cal('ui',{layout:'column_view'})">→ Column</button>
+        </div>
+        <i class="last-action">Last booking action will appear here</i>
+        <div class="place"></div>
+        <div class="loader" id="cal-booking-loader-"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-second">
+        <h3><a href="?only=ns:second">Second Namespace [Custom Styling]</a></h3>
+        <div class="controls-bar">
+          <button
+            onclick="Cal.ns.second('ui',{cssVarsPerTheme:{light:{'cal-border-booker':'green','cal-border-booker-width':'20px'},dark:{'cal-border-booker':'red','cal-border-booker-width':'5px'}}})">
+            Border per theme
+          </button>
+          <button
+            onclick="Cal.ns.second('ui',{cssVarsPerTheme:{light:{'cal-brand':'green'},dark:{'cal-brand':'red'}}})">
+            Brand color per theme
+          </button>
+          <button onclick="Cal.ns.second('ui',{styles:{eventTypeListItem:{backgroundColor:'blue'}}})">
+            <code>eventTypeListItem</code> blue
+          </button>
+          <button onclick="Cal.ns.second('ui',{styles:{body:{background:'red'}}})">
+            <code>body</code> red
+          </button>
+          <button onclick="Cal.ns.second('ui',{styles:{align:'left'}})">Align left</button>
+          <button onclick="Cal.ns.second('ui',{styles:{align:'center'}})">Align center</button>
+          <button
+            onclick="Cal.ns.second('ui',{styles:{enabledDateButton:{backgroundColor:window.generateRandomHexColor()},disabledDateButton:{backgroundColor:window.generateRandomHexColor()}}})">
+            Random date btn colors
+          </button>
+        </div>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-third">
+        <h3><a href="?only=ns:third">Third Namespace [Transparent Background, 30% width]</a></h3>
+        <div style="width: 30%" class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-fourth">
+        <h3><a href="?only=ns:fourth">Fourth Namespace [Team Event, 30% width]</a></h3>
+        <div style="width: 30%" class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-corpTest">
+        <h3><a href="?only=ns:corpTest">CORP/COEP Blocking Test</a></h3>
+        <p>This embed will stay in a loading state indefinitely — that is the expected behavior.</p>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-fifth">
+        <h3><a href="?only=ns:fifth">Fifth Namespace [Team Event — Side by Side]</a></h3>
+        <div class="side-by-side">
+          <div class="label">Book a team meeting on the right →</div>
+          <div class="place"></div>
+        </div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-inline-routing-form">
+        <h3><a href="?only=inline-routing-form">Inline Routing Form</a></h3>
+        <div class="side-by-side">
+          <div class="label">Routing form on the right →</div>
+          <div class="place"></div>
+        </div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-hideEventTypeDetails">
+        <h3><a href="?only=ns:hideEventTypeDetails">Hide EventType Details</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section scroll-container-x" id="cal-booking-place-windowScrollToTimeslot">
+        <h3><a href="?only=ns:windowScrollToTimeslot">Window Scroll to Timeslot</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section scroll-container-xy" id="cal-booking-place-containerScrollToTimeslot">
+        <h3><a href="?only=ns:containerScrollToTimeslot">Container Scroll to Timeslot</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-conflicting-theme">
+        <h3>
+          <a href="?only=conflicting-theme">Conflicting Themes — Same Namespace (one will remain loading)</a>
+        </h3>
+        <div style="display: flex; gap: 12px">
+          <div style="flex: 1">
+            <strong>Light</strong>
+            <div class="light"></div>
+          </div>
+          <div style="flex: 1">
+            <strong>Dark</strong>
+            <div class="dark"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-monthView">
+        <h3><a href="?only=ns:monthView">Month View</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-weekView">
+        <h3><a href="?only=ns:weekView">Week View</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-columnView">
+        <h3><a href="?only=ns:columnView">Column View</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-columnViewHideEventTypeDetails">
+        <h3><a href="?only=ns:columnViewHideEventTypeDetails">Column View + Hide EventType Details</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-pageParamsForwarding">
+        <h3><a href="?only=ns:pageParamsForwarding">Page Params Forwarding</a></h3>
+        <div class="place"></div>
+      </div>
+
+      <div class="embed-section" id="cal-booking-place-autoScrollTest">
+        <h3><a href="?only=ns:autoScrollTest">Auto Scroll Test</a></h3>
+        <div class="place"></div>
+      </div>
+    </div>
+
+    <div class="embed-section" id="cal-booking-place-skeletonDemo">
+      <h3><a href="?only=ns:skeletonDemo">Skeleton Loader — Inline Demo</a></h3>
+      <div class="place"></div>
+    </div>
+
+    <div class="embed-section" id="cal-booking-place-skeletonDemoElementClick">
+      <h3><a href="?only=ns:skeletonDemoElementClick">Skeleton Loader — Modal Demo</a></h3>
+      <button
+        data-cal-namespace="skeletonDemoElementClick"
+        data-cal-link="team/seeded-team/collective-seeded-team-event"
+        data-cal-config='{"cal.embed.pageType":"team.event.booking.slots"}'>
+        Open Skeleton Modal
+      </button>
+      <div class="place"></div>
+    </div>
+
+    <script type="module" src="./playground/runtime/embed-runner.ts"></script>
+
+    <script>
+      if (window._initialNs && window._initialNs.startsWith("skeletonDemo")) {
+        document.getElementById("misc-embeds").style.display = "none";
+      }
+    </script>
+  </body>
+</html>

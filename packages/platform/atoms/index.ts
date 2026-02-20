@@ -13,7 +13,13 @@ export { useTeamEventTypes } from "./hooks/event-types/public/useTeamEventTypes"
 export { useEventType as useEvent } from "./hooks/event-types/public/useEventType";
 export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";
 export { useCancelBooking } from "./hooks/bookings/useCancelBooking";
+export { BookerPlatformWrapper } from "./booker/BookerPlatformWrapper";
 export { useBooking } from "./hooks/bookings/useBooking";
+export type {
+  BookerPlatformWrapperAtomPropsForIndividual,
+  BookerPlatformWrapperAtomPropsForTeam,
+} from "./booker/types";
+export { useGetRoutingFormUrlProps } from "./booker-embed/useGetRoutingFormUrlProps";
 export { useBookings } from "./hooks/bookings/useBookings";
 export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
