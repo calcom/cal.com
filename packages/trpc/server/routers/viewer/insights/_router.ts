@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
@@ -10,17 +8,17 @@ import {
 } from "@calcom/features/insights/lib/bookingUtils";
 import { objectToCsv } from "@calcom/features/insights/lib/objectToCsv";
 import {
-  getTimeView,
-  getDateRanges,
   type GetDateRangesParams,
+  getDateRanges,
+  getTimeView,
 } from "@calcom/features/insights/server/insightsDateUtils";
 import {
   bookingRepositoryBaseInputSchema,
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
-  routingRepositoryBaseInputSchema,
-  routedToPerPeriodInputSchema,
   routedToPerPeriodCsvInputSchema,
+  routedToPerPeriodInputSchema,
+  routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
 import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
@@ -29,9 +27,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
-
 import { TRPCError } from "@trpc/server";
-
+import { z } from "zod";
 import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 const userSelect = {
@@ -241,7 +238,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { columnFilters, timeZone } = input;
-      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+      const { startDate, endDate, dateTarget } = extractDateRangeFromColumnFilters(columnFilters);
 
       // Calculate timeView and dateRanges
       const timeView = getTimeView(startDate, endDate);
@@ -258,6 +255,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getEventTrendsStats({
           timeZone,
           dateRanges,
+          dateTarget,
         });
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -829,7 +827,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { columnFilters, timeZone } = input;
-      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+      const { startDate, endDate, dateTarget } = extractDateRangeFromColumnFilters(columnFilters);
 
       // Calculate timeView and dateRanges
       const timeView = getTimeView(startDate, endDate);
@@ -846,6 +844,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getNoShowHostsOverTimeStats({
           timeZone,
           dateRanges,
+          dateTarget,
         });
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -855,7 +854,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { columnFilters, timeZone } = input;
-      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+      const { startDate, endDate, dateTarget } = extractDateRangeFromColumnFilters(columnFilters);
 
       // Calculate timeView and dateRanges
       const timeView = getTimeView(startDate, endDate);
@@ -872,6 +871,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getCSATOverTimeStats({
           timeZone,
           dateRanges,
+          dateTarget,
         });
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
