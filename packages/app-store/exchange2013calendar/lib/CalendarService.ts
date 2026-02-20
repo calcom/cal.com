@@ -1,25 +1,4 @@
-import {
-  Appointment,
-  Attendee,
-  CalendarView,
-  ConflictResolutionMode,
-  DateTime,
-  DeleteMode,
-  ExchangeService,
-  ExchangeVersion,
-  FolderId,
-  FolderView,
-  ItemId,
-  LegacyFreeBusyStatus,
-  MessageBody,
-  PropertySet,
-  SendInvitationsMode,
-  SendInvitationsOrCancellationsMode,
-  Uri,
-  WebCredentials,
-  WellKnownFolderName,
-} from "ews-javascript-api";
-
+import process from "node:process";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
 // import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
@@ -33,7 +12,30 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
+import {
+  Appointment,
+  Attendee,
+  CalendarView,
+  ConflictResolutionMode,
+  DateTime,
+  DeleteMode,
+  ExchangeService,
+  ExchangeVersion,
+  type FindFoldersResults,
+  type FindItemsResults,
+  type Folder,
+  FolderId,
+  FolderView,
+  ItemId,
+  LegacyFreeBusyStatus,
+  MessageBody,
+  PropertySet,
+  SendInvitationsMode,
+  SendInvitationsOrCancellationsMode,
+  Uri,
+  WebCredentials,
+  WellKnownFolderName,
+} from "ews-javascript-api";
 import { ExchangeAuthentication } from "../../exchangecalendar/enums";
 
 class ExchangeCalendarService implements Calendar {
@@ -134,7 +136,7 @@ class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string) {
+  async deleteEvent(uid: string): Promise<void> {
     try {
       const appointment = await Appointment.Bind(
         await this.getExchangeService(),
@@ -157,7 +159,7 @@ class ExchangeCalendarService implements Calendar {
       for (let i = 0; i < selectedCalendars.length; i++) {
         //Only select valid calendars! (We get all all active calendars on the instance! even from different users!)
         for (let k = 0; k < externalCalendars.length; k++) {
-          if (selectedCalendars[i].externalId == externalCalendars[k].externalId) {
+          if (selectedCalendars[i].externalId === externalCalendars[k].externalId) {
             calendarsToGetAppointmentsFrom.push(selectedCalendars[i]);
           }
         }
@@ -166,16 +168,17 @@ class ExchangeCalendarService implements Calendar {
       const finaleRet = [];
       for (let i = 0; i < calendarsToGetAppointmentsFrom.length; i++) {
         const calendarFolderId = new FolderId(calendarsToGetAppointmentsFrom[i].externalId);
-        const localReturn = await this.getExchangeService()
+        const service = await this.getExchangeService();
+        const localReturn = await service
           .FindAppointments(
             calendarFolderId,
             new CalendarView(DateTime.Parse(dateFrom), DateTime.Parse(dateTo))
           )
-          .then(function (params) {
+          .then((params: FindItemsResults<Appointment>) => {
             const ret: EventBusyDate[] = [];
 
             for (let k = 0; k < params.Items.length; k++) {
-              if (params.Items[k].LegacyFreeBusyStatus != LegacyFreeBusyStatus.Free) {
+              if (params.Items[k].LegacyFreeBusyStatus !== LegacyFreeBusyStatus.Free) {
                 //Dont use this appointment if "ShowAs" was set to "free"
                 ret.push({
                   start: new Date(params.Items[k].Start.ToISOString()),
@@ -195,15 +198,16 @@ class ExchangeCalendarService implements Calendar {
     }
   }
 
-  async listCalendars() {
+  async listCalendars(): Promise<IntegrationCalendar[]> {
     try {
       const allFolders: IntegrationCalendar[] = [];
-      return (await this.getExchangeService())
+      const service = await this.getExchangeService();
+      return service
         .FindFolders(WellKnownFolderName.MsgFolderRoot, new FolderView(1000))
-        .then(async (res) => {
+        .then(async (res: FindFoldersResults) => {
           for (const k in res.Folders) {
             const f = res.Folders[k];
-            if (f.FolderClass == "IPF.Appointment") {
+            if (f.FolderClass === "IPF.Appointment") {
               //Select parent folder for all calendars
               allFolders.push({
                 externalId: f.Id.UniqueId,
@@ -211,20 +215,18 @@ class ExchangeCalendarService implements Calendar {
                 primary: true, //The first one is prime
                 integration: this.integrationName,
               });
-              return await this.getExchangeService()
-                .FindFolders(f.Id, new FolderView(1000))
-                .then((res) => {
-                  //Find all calendars inside calendar folder
-                  res.Folders.forEach((fs) => {
-                    allFolders.push({
-                      externalId: fs.Id.UniqueId,
-                      name: fs.DisplayName ?? "",
-                      primary: false,
-                      integration: this.integrationName,
-                    });
+              return await service.FindFolders(f.Id, new FolderView(1000)).then((res: FindFoldersResults) => {
+                //Find all calendars inside calendar folder
+                res.Folders.forEach((fs: Folder) => {
+                  allFolders.push({
+                    externalId: fs.Id.UniqueId,
+                    name: fs.DisplayName ?? "",
+                    primary: false,
+                    integration: this.integrationName,
                   });
-                  return allFolders;
                 });
+                return allFolders;
+              });
             }
           }
           return allFolders;
@@ -239,7 +241,7 @@ class ExchangeCalendarService implements Calendar {
     const exch1 = new ExchangeService(this.exchangeVersion);
     exch1.Credentials = new WebCredentials(this.credentials.username, this.credentials.password);
     exch1.Url = new Uri(this.url);
-    
+
     // Add NTLM authentication support for on-premise Exchange servers
     if (this.authenticationMethod === ExchangeAuthentication.NTLM) {
       const { XhrApi } = await import("@ewsjs/xhr");
@@ -248,7 +250,7 @@ class ExchangeCalendarService implements Calendar {
       }).useNtlmAuthentication(this.credentials.username, this.credentials.password);
       exch1.XHRApi = xhr;
     }
-    
+
     return exch1;
   }
 }
