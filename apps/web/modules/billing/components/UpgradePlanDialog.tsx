@@ -60,7 +60,11 @@ function PlanColumn({
       <CardPanel className="px-0">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-sm text-emphasis">{name}</h3>
-          {badge && <Badge variant="outline" className="rounded-lg py-0.5 px-2 h-fit!">{badge}</Badge>}
+          {badge && (
+            <Badge variant="outline" className="rounded-lg py-0.5 px-2 h-fit!">
+              {badge}
+            </Badge>
+          )}
         </div>
         <p className="font-cal mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
         <p className="mt-2 leading-none font-medium text-sm text-subtle h-4">{priceSubtext}</p>
@@ -155,9 +159,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center justify-between max-sm:w-full">
               <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
-              <DialogClose
-                className="sm:hidden"
-                render={<Button size="icon" variant="ghost" />}>
+              <DialogClose className="sm:hidden" render={<Button size="icon" variant="ghost" />}>
                 <Icon name="x" />
               </DialogClose>
             </div>
@@ -174,7 +176,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                   });
                 }
               }}
-              className="rounded-lg bg-muted p-1"
+              className="max-sm:order-last rounded-lg bg-muted p-1"
               size="sm">
               <Toggle
                 value="annual"
@@ -190,17 +192,17 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                 {t("monthly")}
               </Toggle>
             </ToggleGroup>
+            {info && (
+              <Alert variant="info" className="w-full">
+                <AlertTitle>{info.title}</AlertTitle>
+                <AlertDescription>{info.description}</AlertDescription>
+              </Alert>
+            )}
           </div>
-          {info && (
-            <Alert variant="info">
-              <AlertTitle>{info.title}</AlertTitle>
-              <AlertDescription>{info.description}</AlertDescription>
-            </Alert>
-          )}
         </DialogHeader>
 
         <DialogPanel>
-          <div className="mt-3 flex gap-2 sm:gap-4 overflow-x-auto [&>*]:min-w-[220px]">
+          <div className="mt-3 flex gap-2 sm:gap-4 overflow-x-auto">
             {target === "team" && (
               <PlanColumn
                 name={t("team")}
