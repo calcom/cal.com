@@ -1,6 +1,7 @@
 "use client";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { ORG_SCOPES, TEAM_SCOPES } from "@calcom/features/oauth/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
@@ -220,11 +221,11 @@ const OAuthClientDetailsDialog = ({
               </div>
             ) : null}
 
-            {status === "PENDING" ? (
+            {status === "PENDING" && !showAdminActions ? (
               <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
             ) : null}
 
-            {status === "APPROVED" ? (
+            {status === "APPROVED" && !showAdminActions ? (
               <Alert severity="warning" title={t("oauth_client_approved_reapproval_info")} />
             ) : null}
 
@@ -238,6 +239,14 @@ const OAuthClientDetailsDialog = ({
                     <p>{t("oauth_client_rejected_resubmit_info")}</p>
                   </div>
                 }
+              />
+            ) : null}
+
+            {showAdminActions && hasTeamOrOrgScopes(formClientScopes) ? (
+              <Alert
+                severity="warning"
+                title={t("oauth_client_team_org_scopes_warning")}
+                data-testid="oauth-client-team-org-scopes-warning"
               />
             ) : null}
 
@@ -357,6 +366,11 @@ const OAuthClientDetailsDialog = ({
     </Dialog>
   );
 };
+
+function hasTeamOrOrgScopes(scopes: AccessScope[]): boolean {
+  const teamOrOrgSet = new Set<string>([...TEAM_SCOPES, ...ORG_SCOPES]);
+  return scopes.some((s) => teamOrOrgSet.has(s));
+}
 
 function getStatusBadgeVariant(status: string) {
   switch (status) {

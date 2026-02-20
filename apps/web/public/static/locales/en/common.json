@@ -1199,6 +1199,7 @@
   "oauth_client_rejected_resubmit_info": "Please address this issue and submit for re-approval. While in rejected status, this client cannot be used by anyone, including the client owner.",
   "oauth_client_approved_reapproval_info": "Changing the client's name, logo, website URL, or redirect URIs will trigger a re-review by our admins, and the client will be unusable until approved again.",
   "oauth_client_pending_info_description": "This OAuth client is pending approval and can only be used by the client owner for testing. It cannot be used by other users until approved.",
+  "oauth_client_team_org_scopes_warning": "This OAuth client requests team or organization scopes. Please only approve this client when the purpose for this is clear.",
   "reject_oauth_client": "Reject OAuth client",
   "oauth_client_rejected_email_subject": "Your OAuth Client {{clientName}} Has Been Rejected",
   "oauth_client_rejected_email_title": "OAuth Client Rejected: {{clientName}}",
