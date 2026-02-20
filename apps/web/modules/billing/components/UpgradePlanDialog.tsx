@@ -202,7 +202,8 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
         </DialogHeader>
 
         <DialogPanel>
-          <div className="mt-3 flex gap-2 sm:gap-4 overflow-x-auto">
+          <div className="mt-3 overflow-x-auto">
+          <div className="flex gap-2 sm:gap-4 max-sm:grid max-sm:grid-flow-col max-sm:auto-cols-fr max-sm:w-max">
             {target === "team" && (
               <PlanColumn
                 name={t("team")}
@@ -263,6 +264,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                 })
               }
             />
+          </div>
           </div>
 
           <Card className="bg-muted mt-4 py-3 px-4 flex-row justify-between items-center">
