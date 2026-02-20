@@ -7,7 +7,7 @@ import { PlatformBilling, Team } from "@calcom/prisma/client";
 export type BillingData = {
   team: (Team & { platformBilling: PlatformBilling | null }) | null;
   status: "valid" | "no_subscription" | "no_billing";
-  plan: string;
+  plan: PlatformPlan | "none";
 };
 
 export interface IBillingService {

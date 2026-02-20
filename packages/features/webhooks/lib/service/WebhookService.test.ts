@@ -72,7 +72,11 @@ describe("WebhookService", () => {
 
   describe("X-Cal-Webhook-Version header", () => {
     it("should include X-Cal-Webhook-Version header when sending webhook directly", async () => {
-      const service = new WebhookService(mockRepository as unknown as IWebhookRepository, mockTasker as unknown as ITasker, mockLogger as unknown as ILogger);
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
 
       const subscriber: WebhookSubscriber = {
         id: "webhook-1",
@@ -101,7 +105,11 @@ describe("WebhookService", () => {
     });
 
     it("should include correct version for each subscriber", async () => {
-      const service = new WebhookService(mockRepository as unknown as IWebhookRepository, mockTasker as unknown as ITasker, mockLogger as unknown as ILogger);
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
 
       const subscriber1: WebhookSubscriber = {
         id: "webhook-1",
@@ -128,7 +136,10 @@ describe("WebhookService", () => {
         payload: { test: "data", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED },
       } as unknown as WebhookPayload;
 
-      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber1, subscriber2]);
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [
+        subscriber1,
+        subscriber2,
+      ]);
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
@@ -142,7 +153,11 @@ describe("WebhookService", () => {
     it("should schedule webhook with version when TASKER_ENABLE_WEBHOOKS is enabled", async () => {
       process.env.TASKER_ENABLE_WEBHOOKS = "1";
 
-      const service = new WebhookService(mockRepository as unknown as IWebhookRepository, mockTasker as unknown as ITasker, mockLogger as unknown as ILogger);
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
 
       const subscriber: WebhookSubscriber = {
         id: "webhook-1",

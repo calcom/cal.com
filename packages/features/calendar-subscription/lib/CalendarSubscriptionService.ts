@@ -9,11 +9,13 @@ import type {
 } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import type { ISelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository.interface";
 import logger from "@calcom/lib/logger";
-import { metrics } from "@sentry/nextjs";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { metrics } from "@sentry/nextjs";
 
 // biome-ignore lint/nursery/useExplicitType: logger type is inferred
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
@@ -21,12 +23,17 @@ const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 export class CalendarSubscriptionService {
   static CALENDAR_SUBSCRIPTION_CACHE_FEATURE = "calendar-subscription-cache" as const;
   static CALENDAR_SUBSCRIPTION_SYNC_FEATURE = "calendar-subscription-sync" as const;
+  static MAX_SUBSCRIBE_ERRORS = 3;
 
   constructor(
     private deps: {
       adapterFactory: AdapterFactory;
       selectedCalendarRepository: ISelectedCalendarRepository;
-      featuresRepository: FeaturesRepository;
+      featureRepository: IFeatureRepository;
+      teamFeatureRepository: ITeamFeatureRepository;
+      userFeatureRepository: IUserFeatureRepository & {
+        checkIfUserHasFeature: (userId: number, slug: string) => Promise<boolean>;
+      };
       calendarCacheEventService: CalendarCacheEventService;
       calendarSyncService: CalendarSyncService;
     }
@@ -54,19 +61,41 @@ export class CalendarSubscriptionService {
       return;
     }
 
+    const subscribeErrorCount = selectedCalendar.syncSubscribedErrorCount ?? 0;
+    if (subscribeErrorCount >= CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS) {
+      log.debug("Selected calendar exceeded subscribe error threshold", { selectedCalendarId });
+      return;
+    }
+
     const calendarSubscriptionAdapter = this.deps.adapterFactory.get(
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
-    const res = await calendarSubscriptionAdapter.subscribe(selectedCalendar, credential);
 
-    await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
-      channelId: res?.id,
-      channelResourceId: res?.resourceId,
-      channelResourceUri: res?.resourceUri,
-      channelKind: res?.provider,
-      channelExpiration: res?.expiration,
-      syncSubscribedAt: new Date(),
-    });
+    try {
+      const res = await calendarSubscriptionAdapter.subscribe(selectedCalendar, credential);
+      await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
+        channelId: res?.id,
+        channelResourceId: res?.resourceId,
+        channelResourceUri: res?.resourceUri,
+        channelKind: res?.provider,
+        channelExpiration: res?.expiration,
+        syncSubscribedAt: new Date(),
+        syncSubscribedErrorAt: null,
+        syncSubscribedErrorCount: 0,
+      });
+    } catch (error: unknown) {
+      const nextErrorCount = Math.min(
+        CalendarSubscriptionService.MAX_SUBSCRIBE_ERRORS,
+        (selectedCalendar.syncSubscribedErrorCount ?? 0) + 1
+      );
+      await this.deps.selectedCalendarRepository.updateSubscription(selectedCalendarId, {
+        // don't need to cleanup other fields as they will only be used if syncSubscribedAt is not null
+        syncSubscribedAt: null,
+        syncSubscribedErrorAt: new Date(),
+        syncSubscribedErrorCount: nextErrorCount,
+      });
+      throw error;
+    }
 
     await this.processEvents(selectedCalendar);
   }
@@ -112,16 +141,12 @@ export class CalendarSubscriptionService {
    * Process webhook
    */
   // biome-ignore lint/complexity/noExcessiveLinesPerFunction: webhook processing requires multiple steps
-  async processWebhook(
-    provider: CalendarSubscriptionProvider,
-    request: Request
-  ) {
+  async processWebhook(provider: CalendarSubscriptionProvider, request: Request) {
     const startTime = performance.now();
     log.debug("processWebhook", { provider });
 
     try {
-      const calendarSubscriptionAdapter =
-        this.deps.adapterFactory.get(provider);
+      const calendarSubscriptionAdapter = this.deps.adapterFactory.get(provider);
 
       const isValid = await calendarSubscriptionAdapter.validate(request);
       if (!isValid) {
@@ -131,9 +156,7 @@ export class CalendarSubscriptionService {
         throw new Error("Invalid webhook request");
       }
 
-      const channelId = await calendarSubscriptionAdapter.extractChannelId(
-        request
-      );
+      const channelId = await calendarSubscriptionAdapter.extractChannelId(request);
       if (!channelId) {
         metrics.count("calendar.subscription.webhook.missing_channel", 1, {
           attributes: { provider },
@@ -143,8 +166,7 @@ export class CalendarSubscriptionService {
 
       log.debug("Processing webhook", { channelId });
 
-      const selectedCalendar =
-        await this.deps.selectedCalendarRepository.findByChannelId(channelId);
+      const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
       if (!selectedCalendar) {
         metrics.count("calendar.subscription.webhook.skipped", 1, {
           attributes: { provider, reason: "calendar_not_found" },
@@ -165,19 +187,13 @@ export class CalendarSubscriptionService {
         attributes: { provider },
       });
 
-      metrics.distribution(
-        "calendar.subscription.webhook.duration_ms",
-        durationMs,
-        {
-          attributes: { provider },
-        }
-      );
+      metrics.distribution("calendar.subscription.webhook.duration_ms", durationMs, {
+        attributes: { provider },
+      });
 
-      metrics.distribution(
-        "calendar.subscription.webhook.events_fetched",
-        eventsProcessed.eventsFetched,
-        { attributes: { provider } }
-      );
+      metrics.distribution("calendar.subscription.webhook.events_fetched", eventsProcessed.eventsFetched, {
+        attributes: { provider },
+      });
     } catch (error) {
       const durationMs = performance.now() - startTime;
 
@@ -185,13 +201,9 @@ export class CalendarSubscriptionService {
         attributes: { provider },
       });
 
-      metrics.distribution(
-        "calendar.subscription.webhook.duration_ms",
-        durationMs,
-        {
-          attributes: { provider, outcome: "error" },
-        }
-      );
+      metrics.distribution("calendar.subscription.webhook.duration_ms", durationMs, {
+        attributes: { provider, outcome: "error" },
+      });
 
       log.error("Webhook processing failed", {
         provider,
@@ -213,9 +225,7 @@ export class CalendarSubscriptionService {
    * @returns Object with counts of events fetched, cached, and synced, plus propagation lag metrics
    */
   // biome-ignore lint/complexity/noExcessiveLinesPerFunction: event processing requires multiple steps
-  async processEvents(
-    selectedCalendar: SelectedCalendar
-  ): Promise<{
+  async processEvents(selectedCalendar: SelectedCalendar): Promise<{
     eventsFetched: number;
     eventsCached: number;
     eventsSynced: number;
@@ -238,10 +248,7 @@ export class CalendarSubscriptionService {
       selectedCalendar.integration as CalendarSubscriptionProvider
     );
 
-    if (
-      !selectedCalendar.credentialId &&
-      !selectedCalendar.delegationCredentialId
-    ) {
+    if (!selectedCalendar.credentialId && !selectedCalendar.delegationCredentialId) {
       log.debug("Selected Calendar doesn't have credentials", {
         selectedCalendarId: selectedCalendar.id,
       });
@@ -270,10 +277,7 @@ export class CalendarSubscriptionService {
 
     let events: CalendarSubscriptionEvent | null = null;
     try {
-      events = await calendarSubscriptionAdapter.fetchEvents(
-        selectedCalendar,
-        credential
-      );
+      events = await calendarSubscriptionAdapter.fetchEvents(selectedCalendar, credential);
     } catch (err) {
       metrics.count("calendar.subscription.events.fetch.error", 1, {
         attributes: { provider: selectedCalendar.integration },
@@ -292,87 +296,59 @@ export class CalendarSubscriptionService {
 
     result.eventsFetched = events.items.length;
 
-    metrics.distribution(
-      "calendar.subscription.events.fetched",
-      events.items.length,
-      {
-        attributes: {
-          provider: selectedCalendar.integration,
-          incremental: !!selectedCalendar.syncToken,
-        },
-      }
-    );
+    metrics.distribution("calendar.subscription.events.fetched", events.items.length, {
+      attributes: {
+        provider: selectedCalendar.integration,
+        incremental: !!selectedCalendar.syncToken,
+      },
+    });
 
     const now = Date.now();
     const lagStats = this.calculatePropagationLag(events.items, now);
     if (lagStats) {
       result.propagationLagMs = lagStats;
-      metrics.distribution(
-        "calendar.subscription.propagation_lag.avg_ms",
-        lagStats.avg,
-        {
-          attributes: { provider: selectedCalendar.integration },
-        }
-      );
-      metrics.distribution(
-        "calendar.subscription.propagation_lag.max_ms",
-        lagStats.max,
-        {
-          attributes: { provider: selectedCalendar.integration },
-        }
-      );
+      metrics.distribution("calendar.subscription.propagation_lag.avg_ms", lagStats.avg, {
+        attributes: { provider: selectedCalendar.integration },
+      });
+      metrics.distribution("calendar.subscription.propagation_lag.max_ms", lagStats.max, {
+        attributes: { provider: selectedCalendar.integration },
+      });
     }
 
     await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
-        syncToken: events.syncToken || selectedCalendar.syncToken,
-        syncedAt: new Date(),
-        syncErrorAt: null,
-        syncErrorCount: 0,
-      }
-    );
+      syncToken: events.syncToken || selectedCalendar.syncToken,
+      syncedAt: new Date(),
+      syncErrorAt: null,
+      syncErrorCount: 0,
+    });
 
     if (cacheEnabled && cacheEnabledForUser) {
       log.debug("Caching events", { count: events.items.length });
-      await this.deps.calendarCacheEventService.handleEvents(selectedCalendar, events.items );
+      await this.deps.calendarCacheEventService.handleEvents(selectedCalendar, events.items);
       result.eventsCached = events.items.length;
 
-      metrics.distribution(
-        "calendar.subscription.events.cached",
-        events.items.length,
-        {
-          attributes: { provider: selectedCalendar.integration },
-        }
-      );
+      metrics.distribution("calendar.subscription.events.cached", events.items.length, {
+        attributes: { provider: selectedCalendar.integration },
+      });
     }
 
     if (syncEnabled) {
       log.debug("Syncing events", { count: events.items.length });
-      await this.deps.calendarSyncService.handleEvents(
-        selectedCalendar,
-        events.items
-      );
+      await this.deps.calendarSyncService.handleEvents(selectedCalendar, events.items);
       result.eventsSynced = events.items.length;
 
-      metrics.distribution(
-        "calendar.subscription.events.synced",
-        events.items.length,
-        {
-          attributes: { provider: selectedCalendar.integration },
-        }
-      );
+      metrics.distribution("calendar.subscription.events.synced", events.items.length, {
+        attributes: { provider: selectedCalendar.integration },
+      });
     }
 
-    metrics.distribution(
-      "calendar.subscription.processEvents.duration_ms",
-      performance.now() - startTime,
-      {
-        attributes: {
-          provider: selectedCalendar.integration,
-          cache: cacheEnabled && cacheEnabledForUser ? "on" : "off",
-          sync: syncEnabled ? "on" : "off",
-        },
-      }
-    );
+    metrics.distribution("calendar.subscription.processEvents.duration_ms", performance.now() - startTime, {
+      attributes: {
+        provider: selectedCalendar.integration,
+        cache: cacheEnabled && cacheEnabledForUser ? "on" : "off",
+        sync: syncEnabled ? "on" : "off",
+      },
+    });
 
     return result;
   }
@@ -417,10 +393,12 @@ export class CalendarSubscriptionService {
    */
   // biome-ignore lint/nursery/useExplicitType: return type is void
   async checkForNewSubscriptions() {
-    const teamIds = await this.deps.featuresRepository.getTeamsWithFeatureEnabled(
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      );
-
+    if (!(await this.isCacheEnabled())) {
+      return;
+    }
+    const teamIds = await this.deps.teamFeatureRepository.getTeamsWithFeatureEnabled(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
     const rows = await this.deps.selectedCalendarRepository.findNextSubscriptionBatch({
       take: 100,
       integrations: this.deps.adapterFactory.getProviders(),
@@ -436,7 +414,7 @@ export class CalendarSubscriptionService {
    * @returns true if cache is enabled
    */
   async isCacheEnabled(): Promise<boolean> {
-    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+    return this.deps.featureRepository.checkIfFeatureIsEnabledGlobally(
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
     );
   }
@@ -446,7 +424,7 @@ export class CalendarSubscriptionService {
    * @returns true if cache is enabled
    */
   async isCacheEnabledForUser(userId: number): Promise<boolean> {
-    return this.deps.featuresRepository.checkIfUserHasFeature(
+    return this.deps.userFeatureRepository.checkIfUserHasFeature(
       userId,
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
     );
@@ -457,7 +435,7 @@ export class CalendarSubscriptionService {
    * @returns true if sync is enabled
    */
   async isSyncEnabled(): Promise<boolean> {
-    return this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
+    return this.deps.featureRepository.checkIfFeatureIsEnabledGlobally(
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_SYNC_FEATURE
     );
   }

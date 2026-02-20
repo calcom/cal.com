@@ -19,6 +19,7 @@
     "@calcom/lib": "workspace:*",
     "@calcom/trpc": "workspace:*",
     "@calcom/ui": "workspace:*",
+    "@coss/ui": "workspace:*",
     "@evyweb/ioctopus": "1.2.0",
     "@tanstack/react-table": "8.20.6",
     "@tanstack/react-virtual": "3.10.9",
@@ -27,6 +28,7 @@
     "city-timezones": "1.2.1",
     "class-variance-authority": "0.7.1",
     "date-fns-tz": "3.2.0",
+    "deasync": "^0.1.31",
     "framer-motion": "10.12.8",
     "p-limit": "6.2.0",
     "react-awesome-query-builder": "5.1.2",
@@ -48,6 +50,7 @@
   "devDependencies": {
     "@calcom/testing": "workspace:*",
     "@testing-library/react-hooks": "8.0.1",
+    "@types/deasync": "^0",
     "@types/web-push": "3.6.3",
     "trigger.dev": "4.3.2"
   }

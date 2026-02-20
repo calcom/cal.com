@@ -14,7 +14,11 @@ export abstract class Tasker<T> {
   protected readonly syncTasker: T;
   protected readonly logger: ILogger;
 
-  constructor(dependencies: { asyncTasker: T; syncTasker: T; logger: ILogger }) {
+  constructor(dependencies: {
+    asyncTasker: T;
+    syncTasker: T;
+    logger: ILogger;
+  }) {
     this.logger = dependencies.logger;
 
     if (!isAsyncTaskerEnabled) {

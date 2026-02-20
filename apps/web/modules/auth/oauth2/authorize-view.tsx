@@ -9,40 +9,55 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon, PlusIcon } from "@coss/ui/icons";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
-export default function Authorize() {
+export function Authorize() {
   const { t } = useLocale();
   const { status } = useSession();
+  const { data: user } = useMeQuery();
 
   const router = useRouter();
   const searchParams = useCompatSearchParams();
 
   const client_id = (searchParams?.get("client_id") as string) || "";
+  const redirect_uri = searchParams?.get("redirect_uri") as string;
   const state = searchParams?.get("state") as string;
   const scope = searchParams?.get("scope") as string;
   const code_challenge = searchParams?.get("code_challenge") as string;
   const code_challenge_method = searchParams?.get("code_challenge_method") as string;
+  const show_account_selector = searchParams?.get("show_account_selector") === "true";
 
   const queryString = searchParams?.toString();
 
-  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
+  const [selectedAccount, setSelectedAccount] = useState<{
+    value: string;
+    label: string;
+  } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
-  const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
+  const {
+    data: client,
+    error: getClientError,
+    isPending: isPendingGetClient,
+  } = trpc.viewer.oAuth.getClientForAuthorization.useQuery(
     {
       clientId: client_id as string,
+      redirectUri: redirect_uri,
     },
     {
-      enabled: status !== "loading",
+      enabled: status === "authenticated" && !!redirect_uri,
     }
   );
 
   const { data, isPending: isPendingProfiles } =
-    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery();
+    trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery(undefined, {
+      enabled: show_account_selector,
+    });
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
@@ -50,29 +65,12 @@ export default function Authorize() {
         data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
     },
     onError: (error) => {
-      let oauthError = "server_error";
-      if (error.data?.code === "BAD_REQUEST") {
-        oauthError = "invalid_request";
-      } else if (error.data?.code === "UNAUTHORIZED") {
-        oauthError = "unauthorized_client";
-      }
-
-      const errorParams = new URLSearchParams({
-        error: oauthError,
-      });
-
-      if (error.message) {
-        errorParams.append("error_description", error.message);
-      }
-
-      if (state) {
-        errorParams.append("state", state);
-      }
-
       if (client?.redirectUri) {
-        window.location.href = `${client.redirectUri}${
-          client.redirectUri.includes("?") ? "&" : "?"
-        }${errorParams.toString()}`;
+        redirectToOAuthError({
+          redirectUri: client.redirectUri,
+          trpcError: error,
+          state,
+        });
       }
     },
   });
@@ -87,14 +85,14 @@ export default function Authorize() {
     : [];
 
   useEffect(() => {
-    if (mappedProfiles.length > 0) {
+    if (show_account_selector && mappedProfiles.length > 0) {
       setSelectedAccount(mappedProfiles[0]);
     }
-  }, [isPendingProfiles]);
+  }, [isPendingProfiles, show_account_selector]);
 
   // Auto-authorize trusted clients
   useEffect(() => {
-    if (client?.isTrusted && selectedAccount) {
+    if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
         redirectUri: client.redirectUri,
@@ -104,7 +102,7 @@ export default function Authorize() {
         state,
       });
     }
-  }, [client?.isTrusted, selectedAccount]);
+  }, [client?.isTrusted]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -120,9 +118,11 @@ export default function Authorize() {
     }
   }, [status]);
 
-  const isPending = isPendingGetClient || isPendingProfiles || status !== "authenticated";
+  if (getClientError) {
+    return <div>{getClientError.message}</div>;
+  }
 
-  if (isPending) {
+  if (isPendingGetClient || (show_account_selector && isPendingProfiles) || status !== "authenticated") {
     return <></>;
   }
 
@@ -131,77 +131,107 @@ export default function Authorize() {
   }
 
   // Don't show UI for trusted clients, they'll auto-authorize
-  if (client.isTrusted && selectedAccount) {
+  if (client.isTrusted) {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-gray-700">Authorizing...</span>
+          <span className="text-lg font-medium text-gray-700">{t("authorizing")}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pt-2 pb-3">
-        <div className="flex items-center justify-center">
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="px-9 pt-2 pb-3 mt-2 max-w-xl rounded-md border bg-default border-subtle">
+        <div className="flex justify-center items-center">
           <Avatar
             alt=""
-            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+            fallback={<PlusIcon className="w-6 h-6 text-subtle" />}
             className="items-center"
             imageSrc={client.logo}
             size="lg"
           />
-          <div className="relative -ml-6 h-24 w-24">
-            <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative -ml-6 w-24 h-24">
+            <div className="flex absolute inset-0 justify-center items-center">
               <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
+                <img src="/cal-com-icon.svg" alt="Logo" className="w-16 h-16 rounded-full" />
               </div>
             </div>
           </div>
         </div>
-        <h1 className="px-5 pt-3 pb-5 text-center text-2xl font-bold tracking-tight">
-          {t("access_cal_account", { clientName: client.name, appName: APP_NAME })}
+        <h1 className="px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
+          {t("access_cal_account", {
+            clientName: client.name,
+            appName: APP_NAME,
+          })}
         </h1>
-        <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
-        <Select
-          isSearchable={true}
-          id="account-select"
-          onChange={(value) => {
-            setSelectedAccount(value);
-          }}
-          className="w-52"
-          defaultValue={selectedAccount || mappedProfiles[0]}
-          options={mappedProfiles}
-        />
-        <div className="mt-5 mb-4 font-medium">{t("allow_client_to", { clientName: client.name })}</div>
-        <ul className="stack-y-4 text-sm">
+        {!show_account_selector && (
+          <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
+            <div className="flex gap-2 items-center" data-testid="signed-in-user">
+              <Avatar
+                size="sm"
+                alt={user?.username ? t("avatar_of_username", { username: user.username }) : t("avatar")}
+                imageSrc={user?.avatarUrl ?? user?.avatar}
+              />
+              <Tooltip content={user?.email} side="bottom">
+                <span className="cursor-default">
+                  {t("signed_in_as", { name: user?.name || user?.email })}
+                </span>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+        {show_account_selector && (
+          <>
+            <div className="mb-1 text-sm font-medium">{t("select_account_team")}</div>
+            <Select
+              isSearchable={true}
+              id="account-select"
+              onChange={(value) => {
+                setSelectedAccount(value);
+              }}
+              className="w-52"
+              defaultValue={selectedAccount || mappedProfiles[0]}
+              options={mappedProfiles}
+            />
+          </>
+        )}
+        <div className="mt-8 mb-4 text-sm font-semibold">
+          {t("allow_client_to", { clientName: client.name })}
+        </div>
+        <ul className="text-sm stack-y-3">
           <li className="relative pl-5">
             <span className="absolute left-0">&#10003;</span>{" "}
             {t("associate_with_cal_account", { clientName: client.name })}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("see_personal_info")}
+            <span className="absolute left-0">&#10003;</span>
+            {t("see_personal_info")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("see_primary_email_address")}
+            <span className="absolute left-0">&#10003;</span>
+            {t("see_primary_email_address")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("connect_installed_apps")}
+            <span className="absolute left-0">&#10003;</span>
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_event_type")}
+            <span className="absolute left-0">&#10003;</span>
+            {t("access_event_type")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_availability")}
+            <span className="absolute left-0">&#10003;</span>
+            {t("access_availability")}
           </li>
           <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span> {t("access_bookings")}
+            <span className="absolute left-0">&#10003;</span>
+            {t("access_bookings")}
           </li>
         </ul>
-        <div className="bg-subtle mt-8 mb-8 flex rounded-md p-3">
+        <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>
-            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+            <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1">
             <div className="mb-1 text-sm font-medium">
@@ -210,7 +240,7 @@ export default function Authorize() {
             <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
           </div>
         </div>
-        <div className="border-subtle border- -mx-9 mb-4 border-b" />
+        <div className="-mx-9 mb-4 border-b border-subtle border-" />
         <div className="flex justify-end">
           <Button
             className="mr-2"
@@ -248,3 +278,56 @@ export default function Authorize() {
     </div>
   );
 }
+
+function mapTrpcCodeToOAuthError(code: string | undefined) {
+  if (code === "BAD_REQUEST") return "invalid_request";
+  if (code === "UNAUTHORIZED") return "unauthorized_client";
+  return "server_error";
+}
+
+function buildOAuthErrorRedirectUrl({
+  redirectUri,
+  error,
+  errorDescription,
+  state,
+}: {
+  redirectUri: string;
+  error: string;
+  errorDescription?: string;
+  state?: string;
+}) {
+  const errorParams = new URLSearchParams({
+    error,
+  });
+
+  if (errorDescription) {
+    errorParams.append("error_description", errorDescription);
+  }
+
+  if (state) {
+    errorParams.append("state", state);
+  }
+
+  return `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}${errorParams.toString()}`;
+}
+
+function redirectToOAuthError({
+  redirectUri,
+  trpcError,
+  state,
+}: {
+  redirectUri: string;
+  trpcError: { data?: { code?: string } | null; message: string };
+  state?: string;
+}) {
+  const redirectUrl = buildOAuthErrorRedirectUrl({
+    redirectUri,
+    error: mapTrpcCodeToOAuthError(trpcError.data?.code),
+    errorDescription: trpcError.message,
+    state,
+  });
+
+  window.location.href = redirectUrl;
+}
+
+export default Authorize;
