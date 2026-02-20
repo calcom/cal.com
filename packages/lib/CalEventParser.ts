@@ -1,13 +1,11 @@
 import type { TFunction } from "i18next";
 import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { Prisma } from "@calcom/prisma/client";
 import type {
   AdditionalInformation,
   AppsStatus,
-  CalendarEvent,
   CalEventResponses,
   Person,
   RecurringEvent,
@@ -17,6 +15,8 @@ import type {
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+
+import { getAppFromLocationValue } from "@calcom/app-store/utils";
 
 const translator = short();
 
@@ -189,17 +189,23 @@ export const getLocation = (calEvent: {
   if (meetingUrl) {
     return meetingUrl;
   }
+
   const providerName = getProviderName(calEvent.location);
   return providerName || calEvent.location || "";
 };
 
 export const getProviderName = (location?: string | null): string => {
-  // TODO: use getAppName from @calcom/app-store
   if (location && location.includes("integrations:")) {
-    let locationName = location.split(":")[1];
+    const app = getAppFromLocationValue(location);
+    if (app) {
+      return app.name;
+    }
+    // Fallback to original logic if app not found
+    let locationName = location?.split(":")[1];
     if (locationName === "daily") {
       locationName = "Cal Video";
     }
+
     return locationName[0].toUpperCase() + locationName.slice(1);
   }
   // If location its a url, probably we should be validating it with a custom library
