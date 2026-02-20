@@ -5,8 +5,8 @@ import type { EventLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import classNames from "@calcom/ui/classNames";
+import { LinkIcon, MapIcon, MapPinIcon, PhoneIcon, VideoIcon } from "@coss/ui/icons";
 
 export type LocationSelectCustomClassNames = {
   optionIcon?: string;
@@ -47,19 +47,19 @@ const OptionWithIcon = ({
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <PhoneIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "userPhone":
-        return <Icon name="phone" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <PhoneIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "inPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <MapPinIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "attendeeInPerson":
-        return <Icon name="map-pin" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <MapPinIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "link":
-        return <Icon name="link" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <LinkIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       case "somewhereElse":
-        return <Icon name="map" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <MapIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
       default:
-        return <Icon name="video" className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
+        return <VideoIcon className={classNames("h-3.5 w-3.5", customClassNames?.optionIcon)} />;
     }
   };
 

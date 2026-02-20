@@ -110,7 +110,7 @@ const buildResultPayload = async ({
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
   t: TFunction;
   emailToAttendeeMap: EmailToAttendeeMap;
-}): Promise<{message: string; attendees: NoShowAttendees}> => {
+}): Promise<{ message: string; attendees: NoShowAttendees }> => {
   const updatedAttendees = await updateAttendees({ attendees, emailToAttendeeMap });
 
   if (updatedAttendees.length === 1) {
@@ -241,7 +241,8 @@ async function fireNoShowUpdated({
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
-  const isSomethingChanged = auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
+  const isSomethingChanged =
+    auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
   if (isSomethingChanged) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -448,7 +449,7 @@ const updateAttendees = async ({
   emailToAttendeeMap,
 }: {
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
-  emailToAttendeeMap: EmailToAttendeeMap; 
+  emailToAttendeeMap: EmailToAttendeeMap;
 }): Promise<NoShowAttendees> => {
   const attendeeRepository = new AttendeeRepository(prisma);
   const updatePromises = attendees.map((attendee) => {

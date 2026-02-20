@@ -139,7 +139,7 @@ export function filterActiveLinks<
     expiresAt?: Date | null;
     maxUsageCount?: number | null;
     usageCount?: number | null;
-  }
+  },
 >(links: T[], timezone?: string | null): T[] {
   return links.filter((link) => !isLinkExpired(link, timezone));
 }

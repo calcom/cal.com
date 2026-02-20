@@ -1,29 +1,27 @@
-import { useSearchParams } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
-import { useAgentsData } from "@calcom/web/modules/ee/workflows/hooks/useAgentsData";
 import {
   isCalAIAction,
-  isSMSAction,
   isFormTrigger,
+  isSMSAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
-import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
+import { SCANNING_WORKFLOW_STEPS, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { WorkflowActions } from "@calcom/prisma/enums";
-import { WorkflowTemplates } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { type RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { useAgentsData } from "@calcom/web/modules/ee/workflows/hooks/useAgentsData";
+import { ArrowRightIcon, ZapIcon } from "@coss/ui/icons";
+import { useSearchParams } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
+import { useEffect, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -197,7 +195,7 @@ export default function WorkflowDetailsPage(props: Props) {
           label={
             <div className="flex items-center gap-2 pt-1 pb-2">
               <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
-                <Icon name="zap" size="16" />
+                <ZapIcon size={16} />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
             </div>
@@ -239,7 +237,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     label={
                       <div className="flex items-center gap-2 pt-1 pb-2">
                         <div className="border-subtle text-subtle rounded-lg border p-1">
-                          <Icon name="arrow-right" size="16" />
+                          <ArrowRightIcon size={16} />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
                       </div>

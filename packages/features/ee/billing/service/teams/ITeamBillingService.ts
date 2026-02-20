@@ -1,6 +1,9 @@
 import type { Team } from "@calcom/prisma/client";
 
-import type { IBillingRepositoryCreateArgs, SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type {
+  IBillingRepositoryCreateArgs,
+  SubscriptionStatus,
+} from "../../repository/billing/IBillingRepository";
 import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
 
 export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
