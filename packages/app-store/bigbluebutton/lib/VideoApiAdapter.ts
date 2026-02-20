@@ -12,7 +12,7 @@ import type { BBBCredentials } from "./bbbapi";
 
 const log = logger.getSubLogger({ prefix: ["app-store/bigbluebutton/lib/VideoApiAdapter"] });
 
-function getCredentials(credential: CredentialPayload): BBBCredentials {
+function getCredential(credential: CredentialPayload): BBBCredentials {
   const keys = appKeysSchema.parse(credential.key);
   return {
     serverUrl: keys.serverUrl,
@@ -26,7 +26,7 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
     getAvailability: () => Promise.resolve([]),
 
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const bbbCreds = getCredentials(credential);
+      const bbbCreds = getCredential(credential);
       const meetingID = uuidv4();
       // Generate random passwords for attendees and moderators
       const attendeePW = uuidv4().slice(0, 12);
@@ -43,24 +43,21 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
             : undefined,
         });
 
-        // Build the organizer (moderator) join URL.
-        // VideoCallData.url is used as the organizer's join link in booking confirmation
-        // emails.  It must be a moderator join URL so the host has full meeting control
-        // (mute participants, end meeting, etc.) when they click the link.
-        const organizerName = event.organizer?.name ?? "Host";
-        const hostJoinUrl = getBBBJoinUrl(
-          bbbCreds,
-          meeting.meetingID,
-          organizerName,
-          meeting.moderatorPW
-        );
-
-        // Build a generic attendee join URL.
-        // BBB includes `fullName` in the URL checksum, so a URL signed for one person's
-        // name cannot be reused by another.  We generate a generic attendee URL (signed
-        // with the attendee password) to store in the booking reference — attendees who
-        // receive the confirmation email will use this URL, or the server can generate
-        // a personalised URL at join-time using the stored attendeePW.
+        // Build a generic attendee join URL for use as the canonical meeting URL.
+        //
+        // `VideoCallData.url` is sent to ALL participants (both organizer and
+        // attendees) in booking confirmation emails by the standard cal.com
+        // email pipeline (`getVideoCallUrlFromCalEvent`).  Using a moderator
+        // join URL here would expose moderator privileges to every attendee who
+        // receives the confirmation email.
+        //
+        // We therefore use an attendee-role join URL as `url` so that everyone
+        // who receives the confirmation email joins with attendee privileges.
+        //
+        // Note: BBB includes `fullName` in the URL checksum, so a signed URL is
+        // name-specific.  "Attendee" is used as a generic placeholder; servers
+        // that need per-person URLs should regenerate the join URL at join-time
+        // using the stored `password` (attendeePW) with the attendee's actual name.
         const attendeeJoinUrl = getBBBJoinUrl(
           bbbCreds,
           meeting.meetingID,
@@ -71,26 +68,15 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         return {
           type: "bigbluebutton_video",
           id: meeting.meetingID,
-          // `url` is the link sent to the organizer in booking confirmation emails.
-          // We use the moderator join URL here so the organizer (host) automatically
-          // has moderator privileges when they join via the confirmation link.
-          // Attendees join via a separate attendee join URL (available via the booking
-          // reference attendee link or the per-attendee join endpoint).
-          url: hostJoinUrl,
+          // `url` is the link sent to ALL participants in booking confirmation emails.
+          // Using the attendee join URL (attendeePW) ensures no attendee accidentally
+          // receives moderator privileges via the confirmation email link.
+          url: attendeeJoinUrl,
           // `password` stores the attendee password in the booking reference.
           // This is used for attendee-facing join flows and is safe to expose
           // to attendees — it does NOT grant moderator privileges.
-          // The moderator password is embedded in `url` (the host join URL) and
-          // is never exposed in this field.
           password: meeting.attendeePW,
-          // Attendee join URL is stored separately so that the booking confirmation
-          // page can display the correct link for non-organizer attendees.
-          // Note: this is not part of the standard VideoCallData interface; it is
-          // handled by the BBB-specific booking page (if present).
-          // TODO: once cal.com supports a first-class attendee join URL in
-          //   VideoCallData, migrate attendeeJoinUrl there.
-          ...(attendeeJoinUrl && { attendeeJoinUrl }),
-        } as VideoCallData & { attendeeJoinUrl?: string };
+        };
       } catch (error) {
         log.error("Failed to create BigBlueButton meeting", { error });
         throw error;
@@ -105,7 +91,7 @@ const BigBlueButtonVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
       // would require the moderator password, which is embedded in the old booking
       // reference's url (not trivially extractable here).  This matches the pattern
       // used by Jitsi and other adapters that skip explicit deletion on reschedule.
-      const bbbCreds = getCredentials(credential);
+      const bbbCreds = getCredential(credential);
 
       if (bookingRef.meetingId) {
         log.info("Skipping explicit end of old BBB meeting on reschedule (auto-expire handles cleanup)", {

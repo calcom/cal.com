@@ -323,14 +323,16 @@ describe("assertSafeResolvedIp", () => {
     expect(() => assertSafeResolvedIp("febf::1")).toThrow(/Private|internal/i);
   });
 
-  it("does NOT match fec0::1 (outside fe80::/10 — not link-local)", () => {
-    // fec0:: is the start of the deprecated Site-Local range (fec0::/10).
-    // It is outside the fe80::/10 link-local range tested here.
-    // Note: site-local is deprecated by RFC 3879; fec0::/10 is not currently
-    // caught by any existing check in assertSafeResolvedIp (it is not ULA).
-    // This test documents the current behaviour — a future hardening pass could
-    // add a site-local block if desired.
-    expect(() => assertSafeResolvedIp("fec0::1")).not.toThrow();
+  it("rejects fec0::1 (IPv6 deprecated site-local fec0::/10)", () => {
+    // fec0::/10 is the deprecated Site-Local address range (RFC 3879).
+    // Although deprecated, many kernels still route these addresses within an
+    // administrative domain, making them an SSRF risk.  We block the entire
+    // fec0::/10 range (fec0:: through feff::) defensively.
+    expect(() => assertSafeResolvedIp("fec0::1")).toThrow(/Private|internal/i);
+  });
+
+  it("rejects feff::1 (upper bound of deprecated site-local fec0::/10)", () => {
+    expect(() => assertSafeResolvedIp("feff::1")).toThrow(/Private|internal/i);
   });
 });
 

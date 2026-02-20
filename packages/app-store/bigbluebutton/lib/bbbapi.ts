@@ -52,6 +52,16 @@ export function assertSafeResolvedIp(ip: string): void {
     throw new Error("Private/internal network URLs are not allowed");
   }
 
+  // ── IPv6 site-local (fec0::/10) — deprecated but still reachable ─────────
+  // fec0:: through feff:: are the deprecated Site-Local range (RFC 3879).
+  // Although deprecated, many kernels still route these addresses within an
+  // administrative domain.  An SSRF to a site-local address can reach internal
+  // hosts that are not accessible from the public internet.  We block the
+  // entire fec0::/10 range (fec0:: through feff::) defensively.
+  if (/^fe[c-f][0-9a-f]:/i.test(normalized)) {
+    throw new Error("Private/internal network URLs are not allowed");
+  }
+
   // ── IPv4-mapped IPv6: ::ffff:<IPv4> or ::ffff:<hex>:<hex> ────────────────
   // RFC 4291 §2.5.5.2 — these are syntactic aliases for IPv4 addresses and
   // must be unwrapped before applying the IPv4 range checks, otherwise a
@@ -221,9 +231,16 @@ export async function validateResolvedAddresses(rawUrl: string): Promise<void> {
  * @returns       The correct Host header value (e.g. "[::1]:8443" or "example.com:8443").
  */
 export function buildHostHeader(parsed: URL): string {
-  const hostname = parsed.hostname; // brackets already stripped by URL parser
-  const isIPv6 = hostname.includes(":");
-  const hostPart = isIPv6 ? `[${hostname}]` : hostname;
+  // `URL.hostname` for an IPv6 literal includes the surrounding brackets in
+  // Node.js (e.g. "https://[2001:db8::1]/api" → hostname "[2001:db8::1]").
+  // Strip them first to get the bare address, then unconditionally re-add them
+  // for IPv6 so we never produce double-bracketed values like "[[::1]]".
+  const rawHostname = parsed.hostname;
+  const isIPv6Bracketed = rawHostname.startsWith("[") && rawHostname.endsWith("]");
+  // Bare address without brackets (e.g. "2001:db8::1" or "1.2.3.4")
+  const bareHostname = isIPv6Bracketed ? rawHostname.slice(1, -1) : rawHostname;
+  const isIPv6 = bareHostname.includes(":");
+  const hostPart = isIPv6 ? `[${bareHostname}]` : bareHostname;
   return parsed.port ? `${hostPart}:${parsed.port}` : hostPart;
 }
 
@@ -418,6 +435,24 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
   const MAX_RESPONSE_SIZE = 10 * 1024 * 1024;
 
   return new Promise((resolve, reject) => {
+    // Wall-clock deadline timer: enforces a hard upper bound on the total time
+    // for the entire request (DNS already done, connection + response headers +
+    // response body).
+    //
+    // Why not rely solely on the `timeout` option of https.request?
+    // The `timeout` option only fires the "timeout" event when the *socket* has
+    // been idle (no data in either direction) for TIMEOUT_MS.  A slow server
+    // that trickles data continuously would never trigger it, allowing the
+    // request to run indefinitely.  `setTimeout` below fires unconditionally
+    // after TIMEOUT_MS from when the request is initiated, regardless of I/O
+    // activity — making it a true wall-clock deadline.
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      req.destroy();
+      reject(new Error(`Request timeout after ${TIMEOUT_MS}ms`));
+    }, TIMEOUT_MS);
+
     const req = https.request(
       {
         // Connect to the pre-validated IP — not the hostname — to pin the socket
@@ -426,8 +461,6 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
         port,
         path,
         method: "GET",
-        // Set overall request timeout (covers connection + response).
-        timeout: TIMEOUT_MS,
         // servername controls TLS SNI independently of `host`.
         // The BBB server presents a certificate for its domain name; SNI must
         // send that domain name so the server selects the correct certificate.
@@ -445,6 +478,7 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
           totalSize += chunk.length;
           if (totalSize > MAX_RESPONSE_SIZE) {
             // Abort the request and reject with a clear error.
+            clearTimeout(timer);
             req.destroy();
             reject(new Error(`Response size exceeded limit of ${MAX_RESPONSE_SIZE} bytes`));
             return;
@@ -453,6 +487,7 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
         });
 
         res.on("end", () => {
+          clearTimeout(timer);
           const body = Buffer.concat(chunks).toString("utf-8");
           resolve({
             ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300,
@@ -464,13 +499,15 @@ async function safeFetch(rawUrl: string): Promise<{ ok: boolean; status: number;
       }
     );
 
-    // Timeout handler: fires if the request takes longer than TIMEOUT_MS.
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error(`Request timeout after ${TIMEOUT_MS}ms`));
+    req.on("error", (err) => {
+      clearTimeout(timer);
+      // Suppress the "socket hang up" error that req.destroy() generates when
+      // our own wall-clock timer fires — the caller already received the timeout
+      // rejection above.
+      if (!timedOut) {
+        reject(err);
+      }
     });
-
-    req.on("error", reject);
     req.end();
   });
 }
