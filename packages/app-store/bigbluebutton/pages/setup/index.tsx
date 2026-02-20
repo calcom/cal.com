@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "next-i18next";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 

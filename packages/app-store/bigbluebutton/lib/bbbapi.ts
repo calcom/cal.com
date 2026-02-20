@@ -147,9 +147,15 @@ export async function resolveAndValidateAddresses(rawUrl: string): Promise<strin
     : parsed.hostname;
 
   // If the hostname is already an IP literal, validate it directly — no DNS needed.
+  //
+  // IPv6 detection: a bare IPv6 address MUST contain at least one colon — without
+  // a colon the string is just a hex hostname (e.g. "deadbeef", "cafe1234") that
+  // must go through DNS resolution like any other hostname.  The previous regex
+  // `/^[0-9a-f:]+$/i` matched hex-only hostnames as "IPv6", causing them to skip
+  // DNS validation entirely and reach `assertSafeResolvedIp` unchecked.
   const isIpLiteral =
-    /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) || // IPv4
-    /^[0-9a-f:]+$/i.test(hostname); // IPv6 (bare, no brackets)
+    /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) || // IPv4 dotted-decimal
+    /^[0-9a-f]*:[0-9a-f:]*$/i.test(hostname); // IPv6 bare — must contain ≥1 colon
 
   if (isIpLiteral) {
     assertSafeResolvedIp(hostname);
