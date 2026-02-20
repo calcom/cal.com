@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";

@@ -32,9 +32,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (origin) {
     try {
       const originUrl = new URL(origin);
-      // Compare origin hostname with request host (strip port if present for comparison)
-      const originHost = originUrl.host;
-      if (originHost !== host) {
+      // Normalize both sides to hostname:port form so that default ports are
+      // handled consistently.  Browsers omit the default port from the Origin
+      // header (e.g. "https://example.com" not "https://example.com:443"), and
+      // the Host header from a reverse proxy may also omit it.  Without
+      // normalization a same-origin request on the default HTTPS port produces
+      // originUrl.host = "example.com" while req.headers.host = "example.com:443"
+      // (or vice-versa), causing a spurious 403.
+      const DEFAULT_PORTS: Record<string, string> = { "http:": "80", "https:": "443" };
+      const originPort = originUrl.port || DEFAULT_PORTS[originUrl.protocol] || "";
+      const originNormalized = `${originUrl.hostname}:${originPort}`;
+
+      // Reconstruct the host header in the same hostname:port form.
+      // req.headers.host may be "example.com" (no port) or "example.com:443".
+      const hostHeader = host ?? "";
+      let hostNormalized: string;
+      if (hostHeader.includes(":")) {
+        // Port already present — keep as-is.
+        hostNormalized = hostHeader;
+      } else {
+        // No explicit port; derive the default from the incoming request protocol.
+        // Next.js sets req.socket.encrypted for TLS connections.
+        const proto = (req.socket as { encrypted?: boolean }).encrypted ? "https:" : "http:";
+        hostNormalized = `${hostHeader}:${DEFAULT_PORTS[proto] ?? "80"}`;
+      }
+
+      if (originNormalized !== hostNormalized) {
         return res.status(403).json({ message: "Invalid origin" });
       }
     } catch {

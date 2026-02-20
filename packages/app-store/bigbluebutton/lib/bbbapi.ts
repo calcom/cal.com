@@ -113,9 +113,23 @@ export function validateExternalUrl(rawUrl: string): void {
     throw new Error("Cloud metadata endpoint URLs are not allowed");
   }
 
-  // Strip brackets from IPv6 addresses (e.g. [::1] → ::1) and run full IP checks.
-  const ipv6Bare = hostname.startsWith("[") ? hostname.slice(1, -1) : hostname;
-  assertSafeResolvedIp(ipv6Bare);
+  // Only run IP-range checks when the hostname is actually an IP literal.
+  // Applying assertSafeResolvedIp to a plain domain name (e.g. "10.example.com")
+  // would incorrectly reject it because the raw string matches the /^10\./ regex
+  // even though it is a legitimate public domain, not a private IP address.
+  // Hostnames that are not IP literals are validated post-DNS by
+  // resolveAndValidateAddresses(), which checks the resolved IP addresses.
+  //
+  // Note: URL.hostname preserves brackets for IPv6 literals (e.g. "[::1]"),
+  // so we detect them by the leading "[" bracket rather than by colon presence.
+  const ipv4Re = /^\d{1,3}(\.\d{1,3}){3}$/;
+  const isIPv4Literal = ipv4Re.test(hostname);
+  const isIPv6Literal = hostname.startsWith("[") && hostname.endsWith("]");
+  if (isIPv4Literal || isIPv6Literal) {
+    // Strip brackets from IPv6 literals (e.g. "[::1]" → "::1") before checking.
+    const ipBare = isIPv6Literal ? hostname.slice(1, -1) : hostname;
+    assertSafeResolvedIp(ipBare);
+  }
 }
 
 /**
