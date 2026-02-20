@@ -38,7 +38,6 @@ type TestSetup = {
   unrelatedUser: TestUser;
   eventTypeId: number;
   bookingUid: string;
-  bookingId: number;
   attendeeId: number;
 };
 
@@ -140,7 +139,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
       },
       eventTypeId: eventType.id,
       bookingUid: "",
-      bookingId: 0,
       attendeeId: 0,
     };
   }
@@ -199,7 +197,6 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
       }
 
       testSetup.bookingUid = createBookingResponseBody.data.uid;
-      testSetup.bookingId = createBookingResponseBody.data.id;
     });
 
     describe("Authentication", () => {
@@ -225,7 +222,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
         expect(getAttendeesResponseBody.status).toEqual(SUCCESS_STATUS);
         expect(getAttendeesResponseBody.data).toBeDefined();
         expect(Array.isArray(getAttendeesResponseBody.data)).toBe(true);
-        expect(getAttendeesResponseBody.data.length).toBeGreaterThan(0);
+        expect(getAttendeesResponseBody.data.length).toBe(1);
 
         const attendee = getAttendeesResponseBody.data[0];
         expect(attendee.name).toEqual(attendeeName);
