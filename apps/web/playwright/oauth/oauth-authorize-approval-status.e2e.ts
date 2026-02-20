@@ -411,4 +411,166 @@ test.describe("OAuth authorize - client approval status", () => {
     const url = new URL(page.url());
     expect(url.searchParams.get("code")).toBeTruthy();
   });
+
+  test("user-only scopes render flat list without category headers", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-user-only" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}user-only-${Date.now()}`,
+      status: "APPROVED",
+      scopes: ["BOOKING_READ", "SCHEDULE_READ", "PROFILE_READ"],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_READ,PROFILE_READ&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByText("View bookings")).toBeVisible();
+    await expect(page.getByText("View availability")).toBeVisible();
+    await expect(page.getByText("View personal info and primary email address")).toBeVisible();
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_organization")).not.toBeVisible();
+  });
+
+  test("team-only scopes render flat list without category headers", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-team-only" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}team-only-${Date.now()}`,
+      status: "APPROVED",
+      scopes: ["TEAM_BOOKING_READ", "TEAM_PROFILE_READ"],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByText("View team bookings")).toBeVisible();
+    await expect(page.getByText("View team profiles")).toBeVisible();
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_organization")).not.toBeVisible();
+  });
+
+  test("org-only scopes render flat list without category headers", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-org-only" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}org-only-${Date.now()}`,
+      status: "APPROVED",
+      scopes: ["ORG_BOOKING_READ", "ORG_PROFILE_READ"],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByText("View organization bookings")).toBeVisible();
+    await expect(page.getByText("View organization teams")).toBeVisible();
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_organization")).not.toBeVisible();
+  });
+
+  test("mixed user and team scopes render grouped with category headers", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-mixed-user-team" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}mixed-user-team-${Date.now()}`,
+      status: "APPROVED",
+      scopes: ["BOOKING_READ", "SCHEDULE_READ", "TEAM_BOOKING_READ", "TEAM_PROFILE_READ"],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).toBeVisible();
+
+    await expect(page.getByText("View bookings")).toBeVisible();
+    await expect(page.getByText("View availability")).toBeVisible();
+
+    await expect(page.getByText("View team bookings")).toBeVisible();
+    await expect(page.getByText("View team profiles")).toBeVisible();
+  });
+
+  test("mixed user, team, and org scopes render grouped with all category headers", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-mixed-all" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}mixed-all-${Date.now()}`,
+      status: "APPROVED",
+      scopes: [
+        "BOOKING_READ",
+        "TEAM_BOOKING_READ",
+        "TEAM_PROFILE_READ",
+        "ORG_BOOKING_READ",
+        "ORG_PROFILE_READ",
+      ],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ,ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_organization")).toBeVisible();
+
+    await expect(page.getByText("View bookings")).toBeVisible();
+    await expect(page.getByText("View team bookings")).toBeVisible();
+    await expect(page.getByText("View team profiles")).toBeVisible();
+    await expect(page.getByText("View organization bookings")).toBeVisible();
+    await expect(page.getByText("View organization teams")).toBeVisible();
+  });
 });
