@@ -412,7 +412,7 @@ describe("BookingAccessService", () => {
     });
 
     describe("Team event type PBAC check", () => {
-      it("should return true when user has booking.read on the team", async () => {
+      it("should return true when user has booking.readTeamBookings on the team", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: {
@@ -433,12 +433,12 @@ describe("BookingAccessService", () => {
         expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
           userId: 123,
           teamId: 100,
-          permission: "booking.read",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          permission: "booking.readTeamBookings",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
         });
       });
 
-      it("should return false when user lacks booking.read on the team", async () => {
+      it("should return false when user lacks booking.readTeamBookings on the team", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: {
@@ -460,7 +460,7 @@ describe("BookingAccessService", () => {
     });
 
     describe("Personal event type - org membership check", () => {
-      it("should return true when user has booking.read on organizer's org", async () => {
+      it("should return true when user has booking.readOrgBookings on organizer's org", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: { teamId: null, users: [], hosts: [] },
@@ -481,12 +481,12 @@ describe("BookingAccessService", () => {
         expect(mockPermissionCheckService.checkPermission).toHaveBeenCalledWith({
           userId: 123,
           teamId: 200,
-          permission: "booking.read",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          permission: "booking.readOrgBookings",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
         });
       });
 
-      it("should return false when user lacks booking.read on organizer's org and no teams", async () => {
+      it("should return false when user lacks booking.readOrgBookings on organizer's org and no teams", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: { teamId: null, users: [], hosts: [] },
@@ -508,7 +508,7 @@ describe("BookingAccessService", () => {
     });
 
     describe("Personal event type - team membership check", () => {
-      it("should return true when user has booking.read on any of organizer's teams", async () => {
+      it("should return true when user has booking.readTeamBookings on any of organizer's teams", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: { teamId: null, users: [], hosts: [] },
@@ -530,18 +530,18 @@ describe("BookingAccessService", () => {
         expect(mockPermissionCheckService.checkPermission).toHaveBeenNthCalledWith(1, {
           userId: 123,
           teamId: 300,
-          permission: "booking.read",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          permission: "booking.readTeamBookings",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
         });
         expect(mockPermissionCheckService.checkPermission).toHaveBeenNthCalledWith(2, {
           userId: 123,
           teamId: 400,
-          permission: "booking.read",
-          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          permission: "booking.readTeamBookings",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
         });
       });
 
-      it("should return false when user lacks booking.read on all organizer's teams", async () => {
+      it("should return false when user lacks booking.readTeamBookings on all organizer's teams", async () => {
         mockBookingRepo.findByUidForAuthorizationCheck.mockResolvedValue({
           userId: 456,
           eventType: { teamId: null, users: [], hosts: [] },

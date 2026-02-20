@@ -177,14 +177,13 @@ export class BookingAccessService {
       const hasPermission = await this.permissionCheckService.checkPermission({
         userId,
         teamId: booking.eventType.teamId,
-        permission: "booking.read",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        permission: "booking.readTeamBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
       return hasPermission;
     }
 
-    // Check 4: Personal event type — check if the organizer is in a team/org
-    // where the current user has booking.read permission (mirrors get.handler.ts query #7)
+    // Check 4: Personal event type — check organizer's org/team memberships
     if (!booking.userId) return false;
 
     const userRepo = new UserRepository(this.prismaClient);
@@ -195,8 +194,8 @@ export class BookingAccessService {
       const hasAccess = await this.permissionCheckService.checkPermission({
         userId,
         teamId: bookingOwner.organizationId,
-        permission: "booking.read",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        permission: "booking.readOrgBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
       if (hasAccess) return true;
     }
@@ -205,8 +204,8 @@ export class BookingAccessService {
       const hasAccess = await this.permissionCheckService.checkPermission({
         userId,
         teamId: membership.teamId,
-        permission: "booking.read",
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        permission: "booking.readTeamBookings",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
       if (hasAccess) return true;
     }
