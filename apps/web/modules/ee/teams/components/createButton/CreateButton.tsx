@@ -62,6 +62,12 @@ export function CreateButton(props: CreateBtnProps) {
 
   const hasTeams = !!options.find((option) => option.teamId);
   const platform = !!options.find((option) => option.platform);
+  const hasMultipleOptions = options.length > 1;
+  const isFabVariant = !disableMobileButton;
+  // On FAB variant, EndIcon shows as "plus" on mobile, so we remove StartIcon to avoid duplicate
+  // On button variant, both icons work correctly
+  const startIcon = isFabVariant && hasMultipleOptions ? undefined : "plus";
+  const endIcon = hasMultipleOptions ? "chevron-down" : undefined;
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
@@ -82,16 +88,17 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams && !platform ? (
         <Button
-          size="sm"
           onClick={() =>
             CreateDialog
               ? openModal(options[0])
               : createFunction
-              ? createFunction(options[0].teamId || undefined)
-              : null
+                ? createFunction(options[0].teamId || undefined)
+                : null
           }
           data-testid="create-button"
-          StartIcon="plus"
+          StartIcon={startIcon}
+          EndIcon={endIcon}
+          size="sm"
           loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           className={classNames(disableMobileButton && "md:min-h-min md:min-w-min", className)}
@@ -103,7 +110,8 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon="plus"
+              StartIcon={startIcon}
+              EndIcon={endIcon}
               size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
@@ -126,8 +134,8 @@ export function CreateButton(props: CreateBtnProps) {
                     CreateDialog
                       ? openModal(option)
                       : createFunction
-                      ? createFunction(option.teamId || undefined, option.platform)
-                      : null
+                        ? createFunction(option.teamId || undefined, option.platform)
+                        : null
                   }>
                   {" "}
                   {/*improve this code */}

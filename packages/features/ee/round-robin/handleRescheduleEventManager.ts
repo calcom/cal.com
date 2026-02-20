@@ -124,7 +124,7 @@ export const handleRescheduleEventManager = async ({
 
       const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
         ? googleCalResult.updatedEvent[0]?.hangoutLink
-        : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+        : (googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink);
 
       if (googleHangoutLink) {
         results.push({
@@ -154,7 +154,7 @@ export const handleRescheduleEventManager = async ({
     }
     const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
       ? results[0]?.updatedEvent[0]
-      : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+      : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
     metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
     metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
     metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;

@@ -8,7 +8,7 @@ import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerSt
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -93,13 +93,20 @@ export const EventDuration = ({
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
+  const hideDurationSelector = event?.metadata?.hideDurationSelectorInBookingPage;
+
+  // When duration selector is hidden, show only the selected/default duration as text
+  // URL params can still set the duration, but the user cannot change it via UI
+  if (hideDurationSelector) {
+    return <>{getDurationFormatted(selectedDuration || event.length, t)}</>;
+  }
 
   return selectedDuration ? (
     <div className="border-default relative mr-5 flex flex-row items-center justify-between rounded-md border">
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 left-0 flex">
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <ChevronLeftIcon className="text-subtle h-4 w-4" />
           </div>
           <div className="to-default flex h-9 w-5 bg-linear-to-l from-transparent" />
         </button>
@@ -129,7 +136,7 @@ export const EventDuration = ({
         <button onClick={handleRight} className="absolute bottom-0 right-0 flex">
           <div className="to-default flex h-9 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <ChevronRightIcon className="text-subtle h-4 w-4" />
           </div>
         </button>
       )}

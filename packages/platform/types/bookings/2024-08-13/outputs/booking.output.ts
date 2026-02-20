@@ -4,21 +4,20 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsInt,
   IsObject,
   IsOptional,
   IsString,
-  IsEmail,
   IsTimeZone,
   IsUrl,
   ValidateNested,
 } from "class-validator";
-
 import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
 
-class BookingAttendee {
+export class BookingAttendee {
   @ApiProperty({ type: String, example: "John Doe" })
   @IsString()
   @Expose()
@@ -28,6 +27,11 @@ class BookingAttendee {
   @IsString()
   @Expose()
   email!: string;
+
+  @ApiProperty({ type: String, example: "john@example.com", description: "Clean email for display purposes" })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
 
   @ApiProperty({ type: String, example: "America/New_York" })
   @IsTimeZone()
@@ -94,6 +98,15 @@ class BookingHost {
   @IsString()
   @Expose()
   email!: string;
+
+  @ApiProperty({
+    type: String,
+    example: "jane100@example.com",
+    description: "Clean email for display purposes",
+  })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
 
   @ApiProperty({ type: String, example: "jane100" })
   @IsString()
@@ -395,6 +408,15 @@ class ReassignedToDto {
   @IsEmail()
   @Expose()
   email!: string;
+
+  @ApiProperty({
+    type: String,
+    example: "john.doe@example.com",
+    description: "Clean email for display purposes",
+  })
+  @IsString()
+  @Expose()
+  displayEmail!: string;
 }
 
 export class ReassignBookingOutput_2024_08_13 {

@@ -1,3 +1,50 @@
+import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CancelBookingInput,
+  CancelBookingInput_2024_08_13,
+  CancelBookingInputPipe,
+  CancelSeatedBookingInput_2024_08_13,
+  CreateBookingInput,
+  CreateBookingInput_2024_08_13,
+  CreateBookingInputPipe,
+  CreateInstantBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  DeclineBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  GetBookingRecordingsOutput,
+  GetBookingsInput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetBookingTranscriptsOutput,
+  GetBookingVideoSessionsOutput,
+  MarkAbsentBookingInput_2024_08_13,
+  ReassignToUserBookingInput_2024_08_13,
+  RescheduleBookingInput,
+  RescheduleBookingInput_2024_08_13,
+  RescheduleBookingInputPipe,
+  RescheduleSeatedBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiBody,
+  ApiExtraModels,
+  ApiHeader,
+  ApiOperation,
+  ApiTags as DocsTags,
+  getSchemaPath,
+} from "@nestjs/swagger";
+import { Request } from "express";
 import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
@@ -11,7 +58,7 @@ import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/out
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import {
   API_KEY_OR_ACCESS_TOKEN_HEADER,
   OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
@@ -31,56 +78,6 @@ import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/op
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UsersService } from "@/modules/users/services/users.service";
-import {
-  Controller,
-  Post,
-  Logger,
-  Body,
-  UseGuards,
-  Req,
-  Get,
-  Param,
-  Query,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import {
-  ApiOperation,
-  ApiTags as DocsTags,
-  ApiHeader,
-  getSchemaPath,
-  ApiBody,
-  ApiExtraModels,
-} from "@nestjs/swagger";
-import { Request } from "express";
-
-import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CancelBookingInput,
-  CancelBookingInput_2024_08_13,
-  CancelBookingInputPipe,
-  CancelSeatedBookingInput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-  GetBookingsOutput_2024_08_13,
-  RescheduleBookingInput,
-  RescheduleBookingInput_2024_08_13,
-  RescheduleBookingInputPipe,
-  RescheduleSeatedBookingInput_2024_08_13,
-  GetBookingRecordingsOutput,
-  GetBookingTranscriptsOutput,
-  GetBookingVideoSessionsOutput,
-} from "@calcom/platform-types";
-import {
-  CreateBookingInputPipe,
-  CreateBookingInput,
-  GetBookingsInput_2024_08_13,
-  ReassignToUserBookingInput_2024_08_13,
-  MarkAbsentBookingInput_2024_08_13,
-  CreateBookingInput_2024_08_13,
-  CreateInstantBookingInput_2024_08_13,
-  CreateRecurringBookingInput_2024_08_13,
-  DeclineBookingInput_2024_08_13,
-} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings",
@@ -178,6 +175,33 @@ export class BookingsController_2024_08_13 {
     };
   }
 
+  @Get("/by-seat/:seatUid")
+  @UseGuards(OptionalApiAuthGuard)
+  @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
+  @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
+  @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get a booking by seat UID",
+    description: `Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.
+
+      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
+      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
+  })
+  async getBookingBySeatUid(
+    @Param("seatUid") seatUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.getBookingBySeatUid(seatUid, user);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
+
   @Get("/:bookingUid")
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
@@ -212,10 +236,9 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid/recordings")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
@@ -230,16 +253,13 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
   @Get("/:bookingUid/transcripts")
-  // @Pbac(["booking.readRecordings"])
+  @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
-  @UseGuards(BookingUidGuard)
-  // @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get Cal Video real time transcript download links for the booking",
@@ -258,8 +278,6 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: transcripts ?? [],
-      message:
-        "This endpoint will require authentication in a future release. Please update your integration to include valid credentials. See https://cal.com/docs/api-reference/v2/introduction#authentication for details.",
     };
   }
 
@@ -280,7 +298,7 @@ export class BookingsController_2024_08_13 {
     const { bookings, pagination } = await this.bookingsService.getBookings(queryParams, {
       email: user.email,
       id: user.id,
-      orgId: profile?.organizationId,
+      orgId: profile?.organizationId ?? undefined,
     });
 
     return {
@@ -397,18 +415,18 @@ export class BookingsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-    async markNoShow(
-      @Param("bookingUid") bookingUid: string,
-      @Body() body: MarkAbsentBookingInput_2024_08_13,
-      @GetUser() user: ApiAuthGuardUser
-    ): Promise<MarkAbsentBookingOutput_2024_08_13> {
-      const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
+  async markNoShow(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: MarkAbsentBookingInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<MarkAbsentBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.markAbsent(bookingUid, user.id, body, user.uuid);
 
-      return {
-        status: SUCCESS_STATUS,
-        data: booking,
-      };
-    }
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
 
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)

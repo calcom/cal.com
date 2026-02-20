@@ -1,6 +1,4 @@
-import type { Logger } from "tslog";
-import { v4 as uuid } from "uuid";
-
+import process from "node:process";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -10,8 +8,6 @@ import type {
   EventType,
   GetAvailabilityUser,
   UserAvailabilityService,
-  IFromUser,
-  IToUser,
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
@@ -33,6 +29,7 @@ import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/rep
 import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter-blocked-hosts.controller";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
@@ -43,49 +40,32 @@ import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits"
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
+  BookingDateInPastError,
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
-  BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
-import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { TRPCError } from "@trpc/server";
-
+import type { Logger } from "tslog";
+import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
-type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
 };
-
-export interface IGetAvailableSlots {
-  slots: Record<
-    string,
-    {
-      time: string;
-      attendees?: number | undefined;
-      bookingUid?: string | undefined;
-      away?: boolean | undefined;
-      fromUser?: IFromUser | undefined;
-      toUser?: IToUser | undefined;
-      reason?: string | undefined;
-      emoji?: string | undefined;
-      showNotePublicly?: boolean | undefined;
-    }[]
-  >;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  troubleshooter?: any;
-}
 
 export type GetAvailableSlotsResponse = Awaited<
   ReturnType<(typeof AvailableSlotsService)["prototype"]["_getAvailableSlots"]>
@@ -107,6 +87,7 @@ export interface IAvailableSlotsService {
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
   noSlotsNotificationService: NoSlotsNotificationService;
+  orgMembershipLookup: OrgMembershipLookup;
 }
 
 function withSlotsCache(
@@ -157,7 +138,7 @@ export class AvailableSlotsService {
     eventTypeId,
   }: {
     bookerClientUid: string | undefined;
-    usersWithCredentials: GetAvailabilityUser[];
+    usersWithCredentials: NonNullable<GetAvailabilityUser>[];
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
@@ -200,8 +181,8 @@ export class AvailableSlotsService {
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
         : input.usernameList
-        ? [input.usernameList]
-        : [],
+          ? [input.usernameList]
+          : [],
     });
 
     const usersWithOldSelectedCalendars = usersForDynamicEventType.map((user) => withSelectedCalendars(user));
@@ -280,7 +261,7 @@ export class AvailableSlotsService {
    * cause slots from adjacent days to leak into the response.
    */
   private _filterSlotsByRequestedDateRange<
-    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>
+    T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
   >({
     slotsMappedToDate,
     startTime,
@@ -373,8 +354,8 @@ export class AvailableSlotsService {
   }) {
     if (!eventTypeSlug || !slug) return null;
 
-    let teamId;
-    let userId;
+    let teamId: number | undefined;
+    let userId: number | undefined;
     if (isTeamEvent) {
       teamId = await this.getTeamIdFromSlug(
         slug,
@@ -787,7 +768,7 @@ export class AvailableSlotsService {
     endTime,
     bypassBusyCalendarTimes,
     silentCalendarFailures,
-    shouldServeCache,
+    mode,
   }: {
     input: TGetScheduleInputSchema;
     eventType: Exclude<
@@ -804,7 +785,7 @@ export class AvailableSlotsService {
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
-    shouldServeCache?: boolean;
+    mode?: CalendarFetchMode;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
@@ -871,7 +852,7 @@ export class AvailableSlotsService {
         });
     }
 
-    let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+    let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined;
     if (eventType && (bookingLimits || durationLimits)) {
       const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
       const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
@@ -894,7 +875,7 @@ export class AvailableSlotsService {
 
     const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
-    let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+    let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined;
     if (teamForBookingLimits && teamBookingLimits) {
       const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
       const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
@@ -941,7 +922,7 @@ export class AvailableSlotsService {
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures: silentCalendarFailures,
-        shouldServeCache,
+        mode,
       },
       initialData: {
         eventType,
@@ -986,6 +967,55 @@ export class AvailableSlotsService {
     }
 
     return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
+  }
+
+  /**
+   * Resolves the organization ID for watchlist blocking with the following priority:
+   * 1. Request context (orgSlug) - most accurate for the current request scope
+   * 2. EventType team hierarchy - for team/managed events
+   * 3. User's org membership - fallback for personal events of org members
+   *
+   * This ensures org-scoped blocking works correctly for:
+   * - Team events under an org
+   * - Managed events (child events of org team event types)
+   * - Personal events of org members accessed via org domain
+   */
+  private async resolveOrganizationIdForBlocking({
+    orgDetails,
+    eventType,
+  }: {
+    orgDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean };
+    eventType: {
+      parent?: { team?: { parentId: number | null } | null } | null;
+      team?: { parentId: number | null } | null;
+      userId: number | null;
+    };
+  }): Promise<number | null> {
+    if (orgDetails.isValidOrgDomain && orgDetails.currentOrgDomain) {
+      const orgId = await this.dependencies.teamRepo.findOrganizationIdBySlug({
+        slug: orgDetails.currentOrgDomain,
+      });
+      if (orgId) {
+        return orgId;
+      }
+    }
+
+    // EventType team hierarchy - for team/managed events
+    const eventTypeOrgId = eventType.parent?.team?.parentId ?? eventType.team?.parentId ?? null;
+    if (eventTypeOrgId) {
+      return eventTypeOrgId;
+    }
+
+    // User's org membership - fallback for personal events of org members
+    // This is a heuristic and uses the first org membership.
+    // TODO:When multi-org is supported, revisit.
+    if (eventType.userId) {
+      return await this.dependencies.orgMembershipLookup.findFirstOrganizationIdForUser({
+        userId: eventType.userId,
+      });
+    }
+
+    return null;
   }
 
   private async _getRegularOrDynamicEventType(
@@ -1033,7 +1063,8 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const shouldServeCache = false;
+    // Use "slots" mode to enable cache when available for getting calendar availability
+    const mode: CalendarFetchMode = "slots";
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1097,11 +1128,36 @@ export class AvailableSlotsService {
         rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
       });
 
-    const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+    // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)
+
+    const organizationId = await this.resolveOrganizationIdForBlocking({
+      orgDetails,
+      eventType,
+    });
+
+    const { eligibleHosts: eligibleQualifiedRRHosts } = await filterBlockedHosts(
+      qualifiedRRHosts,
+      organizationId
+    );
+    const { eligibleHosts: eligibleFixedHosts } = await filterBlockedHosts(fixedHosts, organizationId);
+    const { eligibleHosts: eligibleFallbackRRHosts } = allFallbackRRHosts
+      ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
+      : { eligibleHosts: [] };
+
+    const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
+
+    // If all hosts are blocked, return empty slots
+    if (allHosts.length === 0) {
+      loggerWithEventDetails.info("All hosts are blocked by watchlist, returning empty slots");
+      return {
+        slots: {},
+      };
+    }
 
     const twoWeeksFromNow = dayjs().add(2, "week");
 
-    const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
+    const hasFallbackRRHosts =
+      eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
@@ -1121,7 +1177,7 @@ export class AvailableSlotsService {
             : endTime,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
-        shouldServeCache,
+        mode,
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1142,13 +1198,13 @@ export class AvailableSlotsService {
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...qualifiedRRHosts, ...fixedHosts],
+            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           });
           if (
             !getAggregatedAvailability(
@@ -1165,8 +1221,9 @@ export class AvailableSlotsService {
         loggerWithEventDetails.info({
           email: input.email,
           contactOwnerEmail,
-          qualifiedRRHosts: qualifiedRRHosts.map((host) => host.user.id),
-          fallbackRRHosts: allFallbackRRHosts.map((host) => host.user.id),
+          eligibleQualifiedRRHosts: eligibleQualifiedRRHosts.map((host) => host.user.id),
+          eligibleFallbackRRHosts: eligibleFallbackRRHosts.map((host) => host.user.id),
+          blockedHostsCount: qualifiedRRHosts.length - eligibleQualifiedRRHosts.length,
           fallBackActive: diff > 0,
         });
       }
@@ -1177,13 +1234,13 @@ export class AvailableSlotsService {
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...allFallbackRRHosts, ...fixedHosts],
+            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
             startTime,
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
-            shouldServeCache,
+            mode,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
@@ -1223,7 +1280,7 @@ export class AvailableSlotsService {
 
         const restrictionTimezone = eventType.useBookerTimezone
           ? input.timeZone
-          : restrictionSchedule.timeZone!;
+          : (restrictionSchedule.timeZone ?? "UTC");
         const eventLength = input.duration || eventType.length;
 
         const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
@@ -1413,7 +1470,7 @@ export class AvailableSlotsService {
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
     const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
-    const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+    const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
     const periodLimits = calculatePeriodLimits({
       periodType: eventType.periodType,
       periodDays: eventType.periodDays,

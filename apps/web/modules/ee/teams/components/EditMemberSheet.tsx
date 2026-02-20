@@ -19,7 +19,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 import { SheetFooterControls } from "@calcom/web/modules/users/components/UserTable/EditSheet/SheetFooterControls";
 import { useEditMode } from "@calcom/web/modules/users/components/UserTable/EditSheet/store";
-import type { MemberPermissions } from "@calcom/web/modules/users/components/UserTable/types";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 
 import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
@@ -196,7 +196,7 @@ export function EditMemberSheet({
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
-              <div className="border-sublte bg-default w-full rounded-xl border p-4">
+              <div className="border-subtle bg-default w-full rounded-xl border p-4">
                 <div
                   className="block w-full rounded-lg ring-1 ring-[#0000000F]"
                   style={{

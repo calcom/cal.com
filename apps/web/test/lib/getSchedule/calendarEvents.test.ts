@@ -5,7 +5,7 @@ import {
   Timezones,
   TestData,
   mockCalendar,
-} from "../../utils/bookingScenario/bookingScenario";
+} from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test } from "vitest";
 

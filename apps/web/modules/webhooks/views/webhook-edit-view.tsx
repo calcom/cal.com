@@ -16,7 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ExternalLinkIcon } from "@coss/ui/icons";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -105,7 +105,7 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
                   href={getWebhookVersionDocsUrl(formMethods.watch("version"))}
                   target="_blank"
                   className="text-subtle hover:text-emphasis flex items-center">
-                  <Icon name="external-link" className="h-4 w-4" />
+                  <ExternalLinkIcon className="h-4 w-4" />
                 </Link>
               </Tooltip>
             </div>

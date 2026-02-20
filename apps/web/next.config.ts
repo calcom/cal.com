@@ -3,15 +3,15 @@ import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
-
 import i18nConfig from "./next-i18next.config";
 import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
   orgUserRoutePath,
-  orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
+  orgUserTypeRoutePath,
 } from "./pagesAndRewritePaths";
+import { TRIGGER_VERSION } from "./trigger.version"; // adjust path as needed
 
 dotenvConfig({ path: "../../.env" });
 
@@ -57,6 +57,10 @@ const isOrganizationsEnabled =
 const env = process.env as Record<string, string | undefined>;
 
 env.NEXT_PUBLIC_CALCOM_VERSION = version;
+
+if (process.env.NODE_ENV === "production" || process.env.CALCOM_ENV === "production") {
+  env.TRIGGER_VERSION = TRIGGER_VERSION;
+}
 
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   env.NEXT_PUBLIC_WEBAPP_URL = `https://${process.env.VERCEL_URL}`;
@@ -617,6 +621,11 @@ const nextConfig = (phase: string): NextConfig => {
         {
           source: "/settings/organizations/platform/:path*",
           destination: "/settings/platform",
+          permanent: true,
+        },
+        {
+          source: "/settings/organizations/members",
+          destination: "/members",
           permanent: true,
         },
         {

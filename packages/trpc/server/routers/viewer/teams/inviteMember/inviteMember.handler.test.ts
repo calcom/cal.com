@@ -3,8 +3,8 @@
  *
  * It mocks a lot of things that are untested and integration tests make more sense for this handler
  */
-import { scenarios as checkRateLimitAndThrowErrorScenarios } from "../../../../../../../tests/libs/__mocks__/checkRateLimitAndThrowError";
-import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mocks__/getTranslation";
+import { scenarios as checkRateLimitAndThrowErrorScenarios } from "./__mocks__/checkRateLimitAndThrowError";
+import { mock as getTranslationMock } from "./__mocks__/getTranslation";
 import {
   inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
   default as inviteMemberUtilsMock,
@@ -37,7 +37,11 @@ vi.mock("@trpc/server", () => {
 
 vi.mock("@calcom/prisma", () => {
   return {
-    prisma: vi.fn(),
+    prisma: {
+      monthlyProration: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    },
   };
 });
 
@@ -47,7 +51,7 @@ vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/pbac/services/permission.service", () => {
   return {
-    PermissionService: vi.fn().mockImplementation(function() {
+    PermissionService: vi.fn().mockImplementation(function () {
       return {
         validatePermission: vi.fn().mockReturnValue({ isValid: true }),
         validatePermissions: vi.fn().mockReturnValue({ isValid: true }),
@@ -58,7 +62,7 @@ vi.mock("@calcom/features/pbac/services/permission.service", () => {
 
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
   return {
-    PermissionCheckService: vi.fn().mockImplementation(function() {
+    PermissionCheckService: vi.fn().mockImplementation(function () {
       return {
         checkPermission: vi.fn().mockResolvedValue(true),
         checkPermissions: vi.fn().mockResolvedValue(true),

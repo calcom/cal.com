@@ -1,11 +1,10 @@
-import type { z } from "zod";
-
-import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
+import { assertSuccessfullyConfiguredInWorkspace } from "@calcom/app-store/delegationCredential";
 import { sendDelegationCredentialDisabledEmail } from "@calcom/emails/integration-email-service";
-import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import type { z } from "zod";
 
 import { getAffectedMembersForDisable } from "./getAffectedMembersForDisable.handler";
 import type { DelegationCredentialToggleEnabledSchema } from "./schema";
@@ -82,8 +81,8 @@ export async function toggleDelegationCredentialEnabled(
       log.error(`Delegation credential ${input.id} has no workspace platform slug`);
     }
 
-    let calendarAppName;
-    let conferencingAppName;
+    let calendarAppName: string;
+    let conferencingAppName: string;
 
     if (slug === "google") {
       calendarAppName = "Google Calendar";
@@ -142,14 +141,10 @@ const assertWorkspaceConfigured = async ({
     throw new Error("Domain wide delegation doesn't have service account key");
   }
 
-  const isSuccessfullyConfigured = await checkIfSuccessfullyConfiguredInWorkspace({
+  await assertSuccessfullyConfiguredInWorkspace({
     delegationCredential,
     user,
   });
-
-  if (!isSuccessfullyConfigured) {
-    throw new Error("Workspace not successfully configured");
-  }
 };
 
 function hasServiceAccountKey<T extends { serviceAccountKey: ServiceAccountKey | null }>(

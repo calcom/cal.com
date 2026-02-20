@@ -18,13 +18,13 @@ import {
   useBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import DatePicker from "@calcom/features/calendars/DatePicker";
+import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import type { Slot } from "~/schedules/lib/types";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -38,25 +38,34 @@ import { Select, ColorPicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, SunIcon } from "@coss/ui/icons";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
 import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
 import { EmbedTheme } from "@calcom/features/embed/lib/constants";
 import { getDimension } from "@calcom/features/embed/lib/getDimension";
 import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
-import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState, EmbedConfig } from "@calcom/features/embed/types";
+import type {
+  EmbedTabs,
+  EmbedType,
+  EmbedTypes,
+  PreviewState,
+  EmbedConfig,
+} from "@calcom/features/embed/types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {
   types: EmbedTypes;
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
-  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+  defaultBrandColor: {
+    brandColor: string | null;
+    darkBrandColor: string | null;
+  } | null;
   noQueryParamMode?: boolean;
 };
 
@@ -181,7 +190,7 @@ const ThemeSelectControl = ({
 }: ControlProps<{ value: EmbedTheme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
+      <SunIcon className="text-subtle mr-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -321,7 +330,9 @@ const EmailEmbed = ({
 
           setSelectedDatesAndTimes(updatedDatesAndTimes);
         } else {
-          const updatedDatesAndTimesForEvent = { ...selectedDatesAndTimesForEvent };
+          const updatedDatesAndTimesForEvent = {
+            ...selectedDatesAndTimesForEvent,
+          };
           delete updatedDatesAndTimesForEvent[selectedDate as string];
           setSelectedTimeslot(null);
           setSelectedDatesAndTimes({
@@ -342,7 +353,9 @@ const EmailEmbed = ({
 
       setSelectedDatesAndTimes(updatedDatesAndTimes);
     } else if (!selectedDatesAndTimes) {
-      setSelectedDatesAndTimes({ [eventType.slug]: { [selectedDate as string]: [time] } });
+      setSelectedDatesAndTimes({
+        [eventType.slug]: { [selectedDate as string]: [time] },
+      });
     } else {
       setSelectedDatesAndTimes({
         ...selectedDatesAndTimes,
@@ -377,7 +390,9 @@ const EmailEmbed = ({
             <DatePicker
               isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
+                setSelectedDate({
+                  date: date === null ? date : date.format("YYYY-MM-DD"),
+                });
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
@@ -572,7 +587,11 @@ const EmailEmbedPreview = ({
                           </tr>
                           <tr>
                             <td>
-                              <table style={{ borderCollapse: "separate", borderSpacing: "0px 4px" }}>
+                              <table
+                                style={{
+                                  borderCollapse: "separate",
+                                  borderSpacing: "0px 4px",
+                                }}>
                                 <tbody>
                                   <tr style={{ height: "25px" }}>
                                     {sortedTimes?.length > 0 &&
@@ -712,7 +731,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
     { id: parsedEventId },
-    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
+    {
+      enabled: !Number.isNaN(parsedEventId) && embedType === "email",
+      refetchOnWindowFocus: false,
+    }
   );
   const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
@@ -758,6 +780,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
+    useSlotsViewOnSmallScreen: "true" as const,
   };
 
   const paletteDefaultValue = (paletteName: string) => {
@@ -931,7 +954,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
             <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
-              <Icon name="arrow-left" className="mr-4 w-4" />
+              <ArrowLeftIcon className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
@@ -1132,7 +1155,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {/* Conditionally render EmbedTheme only if NOT React Atom */}
                       {embedParams.embedTabName !== EmbedTabName.ATOM_REACT && (
                         <Label className="mb-6">
-                          <div className="mb-2">EmbedTheme</div>
+                          <div className="mb-2">Embed theme</div>
                           <Select
                             className="w-full"
                             defaultValue={ThemeOptions[0]}

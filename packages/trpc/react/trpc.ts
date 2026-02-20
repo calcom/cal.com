@@ -30,7 +30,7 @@ const resolveEndpoint = (links: any) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
-    let endpoint;
+    let endpoint: keyof typeof links;
     let path = "";
     if (parts.length == 2) {
       endpoint = parts[0] as keyof typeof links;
@@ -56,8 +56,8 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
       typeof window !== "undefined"
         ? "/api/trpc"
         : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}/api/trpc`
-        : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
+          ? `https://${process.env.VERCEL_URL}/api/trpc`
+          : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
     /**
      * If you want to use SSR, you need to use the server's full URL

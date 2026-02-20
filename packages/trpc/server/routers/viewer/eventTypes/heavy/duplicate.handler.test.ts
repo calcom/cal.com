@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -49,8 +49,7 @@ describe("duplicateHandler", () => {
     await expect(duplicateHandler({ ctx, input })).rejects.toThrow(
       new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message:
-          "Error duplicating event type PrismaClientKnownRequestError: Unique constraint failed",
+        message: "Error duplicating event type PrismaClientKnownRequestError: Unique constraint failed",
       })
     );
   });

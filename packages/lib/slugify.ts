@@ -10,11 +10,9 @@ export const slugify = (str: string, forDisplayingInput?: boolean) => {
     .toLowerCase() // Convert to lowercase
     .trim() // Remove whitespace from both sides
     .normalize("NFD") // Normalize to decomposed form for handling accents
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-ignore - Unicode property escapes require ES6+ target in some TS configs
     .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-ignore - Unicode property escapes require ES6+ target in some TS configs
     .replace(/[^.\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode and except "." period) with a dash
     .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
     .replace(/^-+/, "") // Remove dashes from start

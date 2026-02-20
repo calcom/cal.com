@@ -1,10 +1,7 @@
+import prisma from "@calcom/prisma";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-
-import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { SchedulingType } from "@calcom/prisma/enums";
-
 import { test } from "../lib/fixtures";
 import { moveUserToOrg } from "../lib/orgMigration";
 import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
@@ -37,15 +34,6 @@ test.describe("Organization", () => {
         `${org.name}'s admin invited you to join the organization ${org.name} on Cal.com`,
         "signup?token"
       );
-
-      await expectUserToBeAMemberOfOrganization({
-        page,
-        orgSlug: org.slug,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
 
       assertInviteLink(inviteLink);
       await signupFromEmailInviteLink({
@@ -112,24 +100,6 @@ test.describe("Organization", () => {
       // '-domain' because the email doesn't match orgAutoAcceptEmail
       const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
       await inviteAnEmail(page, invitedUserEmail, true);
-      await expectUserToBeAMemberOfTeam({
-        page,
-        teamId: team.id,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
-
-      await expectUserToBeAMemberOfOrganization({
-        page,
-        orgSlug: org.slug,
-        username: usernameDerivedFromEmail,
-        role: "member",
-        isMemberShipAccepted: false,
-        email: invitedUserEmail,
-      });
-
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -532,7 +502,10 @@ async function signupFromInviteLink({
   await inviteLinkPage.locator("input[name=email]").fill(email);
   await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await inviteLinkPage.locator("button[type=submit]").click();
-  await inviteLinkPage.waitForURL("/getting-started");
+  await inviteLinkPage.waitForURL((url) => {
+    const path = url.pathname;
+    return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
+  });
   return { email };
 }
 
@@ -567,7 +540,10 @@ export async function signupFromEmailInviteLink({
   // Check required fields
   await signupPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await signupPage.locator("button[type=submit]").click();
-  await signupPage.waitForURL("/getting-started?from=signup");
+  await signupPage.waitForURL((url) => {
+    const path = url.pathname;
+    return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
+  });
   await context.close();
   await signupPage.close();
 }

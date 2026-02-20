@@ -49,7 +49,7 @@ export type AIPhoneServiceConfiguration<T extends AIPhoneServiceProviderType = A
   AIPhoneServiceProviderTypeMap[T]["Configuration"];
 
 export type AIPhoneServiceUpdateModelParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["UpdateModelParams"];
 
 export type AIPhoneServiceModel<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
@@ -65,37 +65,37 @@ export type AIPhoneServicePhoneNumber<T extends AIPhoneServiceProviderType = AIP
   AIPhoneServiceProviderTypeMap[T]["PhoneNumber"];
 
 export type AIPhoneServiceUpdatePhoneNumberParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["UpdatePhoneNumberParams"];
 
 export type AIPhoneServiceCreatePhoneNumberParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["CreatePhoneNumberParams"];
 
 export type AIPhoneServiceImportPhoneNumberParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["ImportPhoneNumberParams"];
 
 export type AIPhoneServiceUpdateAgentParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["UpdateAgentParams"];
 
 export type AIPhoneServiceTools<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
   AIPhoneServiceProviderTypeMap[T]["Tools"];
 
 export type AIPhoneServiceCreatePhoneCallParams<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["CreatePhoneCallParams"];
 
 export type AIPhoneServiceAgentWithDetails<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["AgentWithDetails"];
 
 export type AIPhoneServiceListCallsParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
   AIPhoneServiceProviderTypeMap[T]["ListCallsParams"];
 
 export type AIPhoneServiceListCallsResponse<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceProviderTypeMap[T]["ListCallsResponse"];
 
 export type AIPhoneServiceVoice<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
@@ -120,7 +120,7 @@ export type AIPhoneServiceCallData<T extends AIPhoneServiceProviderType = AIPhon
 
 // Extended import phone number params with additional fields
 export type AIPhoneServiceImportPhoneNumberParamsExtended<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > = AIPhoneServiceImportPhoneNumberParams<T> & {
   userId: number;
   teamId?: number;
@@ -420,7 +420,7 @@ export interface AIPhoneServiceProviderConfig {
  * Factory interface for creating AI phone service providers
  */
 export interface AIPhoneServiceProviderFactory<
-  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType
+  T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType,
 > {
   create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider<T>;
 }
