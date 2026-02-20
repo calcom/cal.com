@@ -172,6 +172,288 @@ const injectScheduleAgent = (iCalString: string): string => {
   return result;
 };
 
+/**
+ * Finds the actual DST transition moment for a given year and hemisphere direction
+ * by binary-searching when the UTC offset changes.
+ *
+ * @param timezone - IANA timezone string
+ * @param year - Year to search within
+ * @param fromMonth - Start month (0-based) to begin search
+ * @param toMonth - End month (0-based) to end search
+ * @returns dayjs object at the transition moment (local time)
+ */
+const findDSTTransition = (
+  timezone: string,
+  year: number,
+  fromMonth: number,
+  toMonth: number
+): ReturnType<typeof dayjs> | null => {
+  let low = dayjs.utc(new Date(year, fromMonth, 1)).valueOf();
+  let high = dayjs.utc(new Date(year, toMonth, 1)).valueOf();
+  const lowOffset = dayjs(low).tz(timezone).utcOffset();
+  const highOffset = dayjs(high).tz(timezone).utcOffset();
+
+  if (lowOffset === highOffset) return null;
+
+  // Binary search for the transition point (within 1 minute precision)
+  while (high - low > 60 * 1000) {
+    const mid = Math.floor((low + high) / 2);
+    const midOffset = dayjs(mid).tz(timezone).utcOffset();
+    if (midOffset === lowOffset) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  // Return the transition time in local timezone
+  return dayjs(high).tz(timezone);
+};
+
+/**
+ * Formats a transition moment as an iCal DTSTART value (e.g., 20260308T020000).
+ * Uses the actual transition year as the DTSTART epoch for the RRULE.
+ */
+const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string => {
+  const year = String(transition.year());
+  const month = String(transition.month() + 1).padStart(2, "0");
+  const day = String(transition.date()).padStart(2, "0");
+  const hour = String(transition.hour()).padStart(2, "0");
+  const minute = String(transition.minute()).padStart(2, "0");
+  return `${year}${month}${day}T${hour}${minute}00`;
+};
+
+/**
+ * Generates a BYDAY RRULE value (e.g., "2SU") for the day-of-week pattern
+ * of a given date (nth occurrence of weekday in its month).
+ */
+const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
+  const dayNames = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const dayOfWeek = dayNames[d.day()];
+  const dayOfMonth = d.date();
+  // Determine which occurrence (1st, 2nd, 3rd, 4th, or last=-1)
+  const weekNum = Math.ceil(dayOfMonth / 7);
+  // Check if it could be the last occurrence (within last 7 days of month)
+  const daysInMonth = d.daysInMonth();
+  if (dayOfMonth > daysInMonth - 7) {
+    return `-1${dayOfWeek}`;
+  }
+  return `${weekNum}${dayOfWeek}`;
+};
+
+/**
+ * Builds a VTIMEZONE component string for the given IANA timezone identifier.
+ * Computes actual timezone-specific DST transition rules by binary-searching
+ * the actual transition moments in the event's year (not 1970), ensuring
+ * BYDAY/BYMONTH reflects the current DST rules for zones that changed after 1970
+ * (e.g., the US changed from first Sunday in April to second Sunday in March in 2007;
+ * the EU changed from last Sunday in March to last Sunday in March — but many zones
+ * have changed their rules and hardcoding 1970 would use outdated transitions).
+ *
+ * RFC 5545 Section 3.6.5 requires VTIMEZONE when DTSTART uses TZID.
+ * We generate a VTIMEZONE with STANDARD and DAYLIGHT components reflecting
+ * the actual DST transition dates for the given timezone (not US-specific).
+ *
+ * @param timezone - IANA timezone string (e.g., "America/Chicago", "Europe/London")
+ * @param eventStart - ISO string of the event start time
+ * @returns VTIMEZONE iCalendar block string (including BEGIN/END)
+ */
+const buildVTimezone = (timezone: string, eventStart: string): string => {
+  // Use the event's actual year to get current DST rules (not 1970 which may be outdated)
+  const eventYear = dayjs(eventStart).tz(timezone).year();
+  const winterMoment = dayjs(eventStart).tz(timezone).month(0); // January (likely standard time)
+  const summerMoment = dayjs(eventStart).tz(timezone).month(6); // July (likely daylight time)
+
+  // Format offset as iCal TZOFFSET (e.g., -0500 or +0200)
+  const formatOffset = (d: ReturnType<typeof dayjs>): string => {
+    const offsetMinutes = d.utcOffset();
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const abs = Math.abs(offsetMinutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, "0");
+    const mins = String(abs % 60).padStart(2, "0");
+    return `${sign}${hours}${mins}`;
+  };
+
+  const standardOffset = formatOffset(winterMoment);
+  const daylightOffset = formatOffset(summerMoment);
+  const hasDST = standardOffset !== daylightOffset;
+
+  const lines: string[] = ["BEGIN:VTIMEZONE", `TZID:${timezone}`];
+
+  if (hasDST) {
+    // Find the actual DST transition dates for the event's year.
+    // Using the event year (not 1970) ensures BYDAY/BYMONTH reflects the current
+    // DST rules — zones like America/* changed rules in 2007, so 1970 would be wrong.
+    // Spring transition: standard → daylight (Jan→Jul direction)
+    const springTransition = findDSTTransition(timezone, eventYear, 0, 6);
+    // Fall transition: daylight → standard (Jul→Jan direction)
+    const fallTransition = findDSTTransition(timezone, eventYear, 6, 11);
+
+    // Determine which UTC offset is truly "daylight" (higher) vs "standard" (lower).
+    // For Northern Hemisphere zones, summerMoment has the higher offset (e.g. EDT +4 > EST +5 is
+    // wrong, let me think in minutes: EST=-300, EDT=-240 → EDT > EST).
+    // For Southern Hemisphere zones (Australia, NZ, South America), January is summer/daylight
+    // so winterMoment (Jan) actually has the HIGHER UTC offset (e.g. AEDT=+660 > AEST=+600).
+    const winterUtcOffset = winterMoment.utcOffset(); // January offset (minutes)
+    const summerUtcOffset = summerMoment.utcOffset(); // July offset (minutes)
+    // The higher UTC offset corresponds to daylight saving time
+    const trueStandardOffset = winterUtcOffset < summerUtcOffset ? standardOffset : daylightOffset;
+    const trueDaylightOffset = winterUtcOffset < summerUtcOffset ? daylightOffset : standardOffset;
+
+    // springTransition (Jan→Jul) goes FROM winterUtcOffset TO summerUtcOffset.
+    // If summerUtcOffset > winterUtcOffset (NH): spring = clocks-forward = DAYLIGHT start.
+    // If summerUtcOffset < winterUtcOffset (SH): spring = clocks-back = STANDARD start.
+    const springIsDaylight = summerUtcOffset > winterUtcOffset;
+
+    if (springTransition) {
+      const dtstart = formatTransitionDtstart(springTransition);
+      const byday = getBydayRule(springTransition);
+      const bymonth = springTransition.month() + 1;
+
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      } else {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      }
+    } else {
+      // Fallback if transition not found — use offset without RRULE
+      lines.push(
+        "BEGIN:DAYLIGHT",
+        `TZOFFSETFROM:${trueStandardOffset}`,
+        `TZOFFSETTO:${trueDaylightOffset}`,
+        "TZNAME:DST",
+        "DTSTART:19700101T000000",
+        "END:DAYLIGHT"
+      );
+    }
+
+    if (fallTransition) {
+      const dtstart = formatTransitionDtstart(fallTransition);
+      const byday = getBydayRule(fallTransition);
+      const bymonth = fallTransition.month() + 1;
+
+      // fallTransition (Jul→Jan) is the opposite of springTransition
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      } else {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      }
+    } else {
+      // Fallback if transition not found
+      lines.push(
+        "BEGIN:STANDARD",
+        `TZOFFSETFROM:${trueDaylightOffset}`,
+        `TZOFFSETTO:${trueStandardOffset}`,
+        "TZNAME:ST",
+        "DTSTART:19700101T000000",
+        "END:STANDARD"
+      );
+    }
+  } else {
+    // No DST — single STANDARD component
+    lines.push(
+      "BEGIN:STANDARD",
+      `TZOFFSETFROM:${standardOffset}`,
+      `TZOFFSETTO:${standardOffset}`,
+      `TZNAME:${timezone}`,
+      "DTSTART:19700101T000000",
+      "END:STANDARD"
+    );
+  }
+
+  lines.push("END:VTIMEZONE");
+  return lines.join("\r\n");
+};
+
+/**
+ * Injects a VTIMEZONE block and rewrites DTSTART/DTEND from UTC to timezone-local format.
+ *
+ * The `ics` library generates UTC times (DTSTART:20240115T140000Z) with no VTIMEZONE.
+ * CalDAV servers like Fastmail read this as UTC and send scheduling emails in UTC,
+ * confusing attendees in other timezones.
+ *
+ * Per RFC 5545 Section 3.6.5, when a DTSTART uses TZID, a matching VTIMEZONE component
+ * MUST be included in the iCalendar object.
+ *
+ * @param iCalString - Raw ICS string from the `ics` library
+ * @param timezone - IANA timezone for the event (organizer's timezone)
+ * @param startTime - ISO string of event start time
+ * @param endTime - ISO string of event end time
+ * @returns Modified ICS string with VTIMEZONE and timezone-aware DTSTART/DTEND
+ */
+const injectVTimezone = (
+  iCalString: string,
+  timezone: string,
+  startTime: string,
+  endTime: string
+): string => {
+  // Format local datetime as iCal local format: YYYYMMDDTHHMMSS (no Z suffix)
+  const formatLocalDateTime = (isoString: string, tz: string): string => {
+    const local = dayjs(isoString).tz(tz);
+    return local.format("YYYYMMDDTHHmmss");
+  };
+
+  const localStart = formatLocalDateTime(startTime, timezone);
+  const localEnd = formatLocalDateTime(endTime, timezone);
+
+  // Replace DTSTART:...Z (UTC) with DTSTART;TZID=timezone:localtime
+  // Also handle DTEND (ics library uses DURATION, but handle DTEND just in case)
+  let result = iCalString
+    .replace(
+      /^DTSTART:[^\r\n]+/m,
+      `DTSTART;TZID=${timezone}:${localStart}`
+    )
+    .replace(
+      /^DTEND:[^\r\n]+/m,
+      `DTEND;TZID=${timezone}:${localEnd}`
+    );
+
+  // Note: the `ics` library may use DURATION instead of DTEND.
+  // If DURATION is present, we should add DTEND as well for clarity,
+  // but DURATION + DTSTART;TZID= is valid per RFC 5545, so we leave it as-is.
+
+  // Build and inject VTIMEZONE block before BEGIN:VEVENT
+  const vtimezone = buildVTimezone(timezone, startTime);
+  result = result.replace(
+    /^BEGIN:VEVENT/m,
+    `${vtimezone}\r\nBEGIN:VEVENT`
+  );
+
+  return result;
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -217,7 +499,14 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+
+      // Bug fix: Use the booking's canonical UID (event.uid) when available,
+      // rather than always generating a new random UUID. This ensures the CalDAV
+      // event UID matches the UID used in cal.com's email invitations, preventing
+      // duplicate events when recipients add the email .ics to their calendar.
+      // See: https://github.com/calcom/cal.com/issues/9485
+      // RFC 5545 Section 3.8.4.7: UID must be the same across all representations of an event.
+      const uid = event.uid || uuidv4();
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
@@ -242,6 +531,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      // Bug fix: Inject VTIMEZONE block and rewrite DTSTART/DTEND to use the organizer's
+      // local timezone instead of UTC. Without this, CalDAV servers like Fastmail
+      // send scheduling emails with UTC times, confusing attendees in other timezones.
+      // Per RFC 5545 Section 3.6.5, DTSTART with TZID requires a matching VTIMEZONE.
+      // See: https://github.com/calcom/cal.com/issues/9485
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = injectVTimezone(iCalString, timezone, event.startTime, event.endTime);
+
       const mainHostDestinationCalendar = event.destinationCalendar
         ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
           event.destinationCalendar[0])
@@ -261,7 +558,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              iCalString: injectScheduleAgent(iCalString),
+              iCalString: injectScheduleAgent(iCalStringWithTimezone),
               headers: this.headers,
             })
           )
@@ -320,6 +617,13 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
+      // Apply timezone fix to updated events as well
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = iCalString
+        ? injectVTimezone(iCalString, timezone, event.startTime, event.endTime)
+        : "";
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -328,7 +632,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              data: injectScheduleAgent(iCalString ?? ""),
+              data: injectScheduleAgent(iCalStringWithTimezone ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
