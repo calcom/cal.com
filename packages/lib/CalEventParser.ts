@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getAppFromLocationValue } from "@calcom/app-store/utils";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { Prisma } from "@calcom/prisma/client";
 import type {
@@ -194,15 +195,15 @@ export const getLocation = (calEvent: {
 };
 
 export const getProviderName = (location?: string | null): string => {
-  // TODO: use getAppName from @calcom/app-store
   if (location && location.includes("integrations:")) {
-    let locationName = location.split(":")[1];
-    if (locationName === "daily") {
-      locationName = "Cal Video";
+    const app = getAppFromLocationValue(location);
+    if (app) {
+      return app.name;
     }
+    // Fallback for unknown integrations: capitalize the slug after "integrations:"
+    const locationName = location.split(":")[1];
     return locationName[0].toUpperCase() + locationName.slice(1);
   }
-  // If location its a url, probably we should be validating it with a custom library
   if (location && /^https?:\/\//.test(location)) {
     return location;
   }
