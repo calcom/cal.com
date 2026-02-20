@@ -52,15 +52,12 @@ export class AttributeSyncRuleService {
     userId: number;
     teamConditions: ITeamCondition[];
   }) {
-    const userMemberships =
-      await this.deps.membershipRepository.findAllByUserId({
-        userId,
-        filters: { accepted: true },
-      });
+    const userMemberships = await this.deps.membershipRepository.findAllByUserId({
+      userId,
+      filters: { accepted: true },
+    });
 
-    const userTeamIdSet = new Set(
-      userMemberships.map((membership) => membership.teamId)
-    );
+    const userTeamIdSet = new Set(userMemberships.map((membership) => membership.teamId));
 
     const teamConditionEvaluated: boolean[] = [];
 
@@ -90,11 +87,10 @@ export class AttributeSyncRuleService {
   }): Promise<boolean[]> {
     const attributeService = getAttributeService();
 
-    const userAttributes =
-      await attributeService.getUsersAttributesByOrgMembershipId({
-        userId: user.id,
-        orgId: user.organizationId,
-      });
+    const userAttributes = await attributeService.getUsersAttributesByOrgMembershipId({
+      userId: user.id,
+      orgId: user.organizationId,
+    });
 
     const attributeConditionResults: boolean[] = [];
 
@@ -114,10 +110,7 @@ export class AttributeSyncRuleService {
     const { operator } = condition;
 
     if (!userAttribute) {
-      if (
-        operator === ConditionOperatorEnum.IN ||
-        operator === ConditionOperatorEnum.EQUALS
-      ) {
+      if (operator === ConditionOperatorEnum.IN || operator === ConditionOperatorEnum.EQUALS) {
         return false;
       }
       // For NOT_IN/NOT_EQUALS: user doesn't have attribute, condition passes
@@ -125,17 +118,9 @@ export class AttributeSyncRuleService {
     }
 
     if (userAttribute.type === "MULTI_SELECT") {
-      return this.evaluateMultiSelectCondition(
-        userAttribute,
-        operator,
-        condition
-      );
+      return this.evaluateMultiSelectCondition(userAttribute, operator, condition);
     } else {
-      return this.evaluateSingleValueCondition(
-        userAttribute,
-        operator,
-        condition
-      );
+      return this.evaluateSingleValueCondition(userAttribute, operator, condition);
     }
   }
 
@@ -149,14 +134,10 @@ export class AttributeSyncRuleService {
 
     switch (operator) {
       case ConditionOperatorEnum.IN:
-        return conditionAttributeOptionIds.every((id) =>
-          userAttributeOptionIds.has(id)
-        );
+        return conditionAttributeOptionIds.every((id) => userAttributeOptionIds.has(id));
 
       case ConditionOperatorEnum.NOT_IN:
-        return !conditionAttributeOptionIds.some((id) =>
-          userAttributeOptionIds.has(id)
-        );
+        return !conditionAttributeOptionIds.some((id) => userAttributeOptionIds.has(id));
 
       default:
         return false;
@@ -164,10 +145,7 @@ export class AttributeSyncRuleService {
   }
 
   private evaluateSingleValueCondition(
-    userAttribute: Extract<
-      UserAttribute,
-      { type: "TEXT" | "NUMBER" | "SINGLE_SELECT" }
-    >,
+    userAttribute: Extract<UserAttribute, { type: "TEXT" | "NUMBER" | "SINGLE_SELECT" }>,
     operator: ConditionOperatorEnum,
     condition: IAttributeCondition
   ): boolean {
@@ -175,13 +153,11 @@ export class AttributeSyncRuleService {
     // For TEXT/NUMBER: condition stores actual values, compare against value (case-insensitive)
     const isSingleSelect = userAttribute.type === "SINGLE_SELECT";
 
-    const userValue = isSingleSelect
-      ? userAttribute.optionId
-      : userAttribute.value?.toLowerCase() ?? null;
+    const userValue = isSingleSelect ? userAttribute.optionId : (userAttribute.value?.toLowerCase() ?? null);
 
     const conditionValue = isSingleSelect
-      ? condition.value[0] ?? null
-      : condition.value[0]?.toLowerCase() ?? null;
+      ? (condition.value[0] ?? null)
+      : (condition.value[0]?.toLowerCase() ?? null);
 
     switch (operator) {
       case ConditionOperatorEnum.EQUALS:

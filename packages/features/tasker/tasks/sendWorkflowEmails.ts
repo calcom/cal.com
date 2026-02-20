@@ -51,9 +51,11 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
 
     const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
 
-    const calendarEvent = (await CalendarEventBuilder.fromBooking(booking, {
-      platformClientId: bookingMetadata?.platformClientId,
-    })).build();
+    const calendarEvent = (
+      await CalendarEventBuilder.fromBooking(booking, {
+        platformClientId: bookingMetadata?.platformClientId,
+      })
+    ).build();
 
     if (!calendarEvent) {
       throw new Error("Calendar event could not be built");
@@ -61,10 +63,10 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
 
     // Check if videoCallUrl exists in booking metadata and add it to evt.metadata
     const metadata = bookingMetadata?.videoCallUrl
-    ? {
-      videoCallUrl: bookingMetadata.videoCallUrl,
-    }
-    : undefined;
+      ? {
+          videoCallUrl: bookingMetadata.videoCallUrl,
+        }
+      : undefined;
 
     const evtWithMetadata = { ...calendarEvent, metadata };
 

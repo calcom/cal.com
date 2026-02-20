@@ -467,7 +467,7 @@ type RichDescriptionCalEvent = {
   additionalInformation?: AdditionalInformation;
   location?: string | null;
   uid?: string | null;
-}
+};
 
 export const getRichDescriptionHTML = (
   calEvent: RichDescriptionCalEvent,
@@ -649,5 +649,5 @@ export const getVideoCallUrlFromCalEvent = (calEvent: {
 };
 
 export const getVideoCallPassword = (videoCallData?: VideoCallData): string => {
-  return isDailyVideoCall(videoCallData) ? "" : videoCallData?.password ?? "";
+  return isDailyVideoCall(videoCallData) ? "" : (videoCallData?.password ?? "");
 };

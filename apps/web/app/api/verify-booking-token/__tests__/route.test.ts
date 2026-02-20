@@ -179,7 +179,22 @@ describe("verify-booking-token route", () => {
   });
 
   describe("GET handler", () => {
-    it("should redirect to booking page with error when action is reject (requires POST)", async () => {
+    it("should process rejection via GET (for email clients that don't support POST)", async () => {
+      createMockBooking({
+        id: 1,
+        uid: "abc123",
+        oneTimePassword: "test-token",
+        recurringEventId: null,
+      });
+      createMockUser({
+        id: 42,
+        uuid: "user-uuid",
+        email: "test@example.com",
+        username: "testuser",
+        role: "USER",
+        destinationCalendar: null,
+      });
+
       const baseUrl =
         "https://app.example.com/api/verify-booking-token?action=reject&token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
@@ -191,7 +206,16 @@ describe("verify-booking-token route", () => {
 
       expect(redirectUrl.origin).toBe("https://app.example.com");
       expect(redirectUrl.pathname).toBe("/booking/abc123");
-      expect(redirectUrl.searchParams.get("error")).toBe("Rejection requires POST method");
+      expect(redirectUrl.searchParams.get("error")).toBeNull();
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
     });
 
     it("should redirect with error when query params are invalid (missing action)", async () => {
