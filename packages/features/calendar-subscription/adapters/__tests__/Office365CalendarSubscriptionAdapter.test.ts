@@ -1,7 +1,5 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
-
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { Office365CalendarSubscriptionAdapter } from "../Office365CalendarSubscription.adapter";
 
 const _mockSelectedCalendar: SelectedCalendar = {
@@ -64,16 +62,18 @@ vi.mock("@calcom/lib/logger", () => ({
 }));
 
 describe("Office365CalendarSubscriptionAdapter", () => {
-  const mockWebhookUrl = "https://example.com/api/webhooks/calendar-subscription/office365_calendar";
+  const mockWebhookBaseUrl = "https://example.com";
   const mockWebhookToken = "test-webhook-token";
+  const originalFetch = global.fetch;
 
   beforeEach(() => {
-    vi.stubEnv("MICROSOFT_WEBHOOK_URL", mockWebhookUrl);
+    vi.stubEnv("MICROSOFT_WEBHOOK_URL", mockWebhookBaseUrl);
     vi.stubEnv("MICROSOFT_WEBHOOK_TOKEN", mockWebhookToken);
     vi.stubEnv("NEXT_PUBLIC_WEBAPP_URL", "https://app.example.com");
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
@@ -95,6 +95,13 @@ describe("Office365CalendarSubscriptionAdapter", () => {
       });
       const res = await adapter.validate(req);
       expect(res).toBe(false);
+    });
+
+    test("returns true for validationToken handshake", async () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const req = new Request("https://example.com?validationToken=abc123");
+      const res = await adapter.validate(req);
+      expect(res).toBe(true);
     });
 
     test("returns false if MICROSOFT_WEBHOOK_TOKEN is missing", async () => {

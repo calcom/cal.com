@@ -1,13 +1,13 @@
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
 import type {
-  CalendarSubscriptionEvent,
-  ICalendarSubscriptionPort,
-  CalendarSubscriptionResult,
   CalendarCredential,
+  CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
+  CalendarSubscriptionResult,
+  ICalendarSubscriptionPort,
 } from "../lib/CalendarSubscriptionPort.interface";
 import { CalendarCacheEventService } from "../lib/cache/CalendarCacheEventService";
 
@@ -49,13 +49,20 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
   private readonly subscriptionTtlMs = SUBSCRIPTION_TTL_MS;
   private readonly webhookToken = process.env.MICROSOFT_WEBHOOK_TOKEN ?? null;
 
-  private readonly webhookUrl = `${
-    process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
-  }/api/webhooks/calendar-subscription/office365_calendar`;
+  private readonly webhookUrl = (() => {
+    const base = process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+    return base ? `${base}/api/webhooks/calendar-subscription/office365_calendar` : null;
+  })();
   private tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
   async validate(request: Request): Promise<boolean> {
     try {
+      if (request?.url) {
+        const urlObj = new URL(request.url);
+        const validationToken = urlObj.searchParams.get("validationToken");
+        if (validationToken) return true;
+      }
+
       const body = await request
         .clone()
         .json()
@@ -151,9 +158,8 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       const startDateTime = now.toISOString();
       const endDateTime = monthsAhead.toISOString();
 
-      let next:
-        | string
-        | null = `/me/calendars/${selectedCalendar.externalId}/calendarView/delta?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
+      let next: string | null =
+        `/me/calendars/${selectedCalendar.externalId}/calendarView/delta?startDateTime=${startDateTime}&endDateTime=${endDateTime}`;
 
       log.info("Initial fetch", { url: next });
 
