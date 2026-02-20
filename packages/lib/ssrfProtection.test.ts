@@ -62,6 +62,7 @@ describe("isBlockedHostname", () => {
     "metadata.google.internal", // GCP
     "169.254.169.254.", // trailing dot normalization
     "METADATA.GOOGLE.INTERNAL", // case insensitive
+    "100.100.100.200", // Alibaba Cloud ECS metadata (CGNAT range)
   ])("blocks cloud metadata endpoint %s", (hostname) => {
     expect(isBlockedHostname(hostname)).toBe(true);
   });
@@ -108,6 +109,9 @@ describe("validateUrlForSSRFSync", () => {
     ["https://169.254.169.254/latest/meta-data/", "Blocked hostname"],
     ["https://localhost/logo.png", "Blocked hostname"],
     ["not-a-url", "Invalid URL format"],
+    ["https://100.100.100.200/latest/meta-data/", "Blocked hostname"], // Alibaba Cloud ECS metadata
+    ["https://100.64.0.1/", "Private IP address"], // RFC 6598 CGNAT range
+    ["https://100.127.255.254/", "Private IP address"], // RFC 6598 CGNAT range (end)
   ])("blocks %s", (url, expectedError) => {
     const result = validateUrlForSSRFSync(url);
     expect(result).toEqual({ isValid: false, error: expectedError });
@@ -196,6 +200,8 @@ describe("Self-hosted environment behavior", () => {
     expect(validateSelfHosted("http://metadata.google.com/computeMetadata/v1/").isValid).toBe(false);
     // Azure alternate
     expect(validateSelfHosted("http://169.254.169.253/metadata/instance").isValid).toBe(false);
+    // Alibaba Cloud ECS metadata (100.100.100.200 is in CGNAT 100.64.0.0/10)
+    expect(validateSelfHosted("http://100.100.100.200/latest/meta-data/").isValid).toBe(false);
   });
 
   it("allows HTTPS URLs for self-hosted", async () => {
