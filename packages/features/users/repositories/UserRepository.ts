@@ -1,11 +1,11 @@
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -327,6 +327,31 @@ export class UserRepository {
         AND t0."emailVerified" IS NOT NULL
         AND u."locked" = FALSE
     `);
+  }
+
+  async findVerifiedUserByEmail({ email }: { email: string }) {
+    const users = await this.prismaClient.$queryRaw<
+      Array<{
+        id: number;
+        email: string;
+        requiresBookerEmailVerification: boolean;
+      }>
+    >(Prisma.sql`
+      SELECT u."id", u."email", u."requiresBookerEmailVerification"
+      FROM "public"."users" AS u
+      WHERE u."email" = ${email}
+        AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      UNION
+      SELECT u."id", u."email", u."requiresBookerEmailVerification"
+      FROM "public"."SecondaryEmail" AS t0
+      INNER JOIN "public"."users" AS u ON u."id" = t0."userId"
+      WHERE t0."email" = ${email}
+        AND t0."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      LIMIT 1
+    `);
+    return users[0] ?? null;
   }
 
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {

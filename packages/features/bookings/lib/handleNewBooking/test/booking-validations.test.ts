@@ -40,10 +40,21 @@ vi.mock("@calcom/features/users/repositories/UserRepository", async (importOrigi
 
   return {
     ...actual,
-    UserRepository: vi.fn(function (prisma) {
-      const realInstance = new OriginalUserRepository(prisma);
+    UserRepository: vi.fn(function (prismaClient) {
+      const realInstance = new OriginalUserRepository(prismaClient);
       realInstance.findManyByEmailsWithEmailVerificationSettings =
         mockFindManyByEmailsWithEmailVerificationSettings;
+      realInstance.findVerifiedUserByEmail = async ({ email }: { email: string }) => {
+        const user = await prismaClient.user.findFirst({
+          where: { email, emailVerified: { not: null } },
+          select: { id: true, email: true, requiresBookerEmailVerification: true },
+        });
+        if (user) return user;
+        return prismaClient.user.findFirst({
+          where: { secondaryEmails: { some: { email, emailVerified: { not: null } } } },
+          select: { id: true, email: true, requiresBookerEmailVerification: true },
+        });
+      };
       return realInstance;
     }),
   };

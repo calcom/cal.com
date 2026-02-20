@@ -64,6 +64,10 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
   default: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("@calcom/features/bookings/lib/handleNewBooking/checkIfBookerEmailIsBlocked", () => ({
+  checkIfBookerEmailIsBlocked: vi.fn().mockResolvedValue(false),
+}));
+
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   BookingRepository: vi.fn().mockImplementation(function() { return {
