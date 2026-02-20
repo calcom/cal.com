@@ -222,7 +222,9 @@ class Office365CalendarService implements Calendar {
       const token = parsedLoginResponse?.access_token;
       const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
       const email = this.credential?.user?.email.replace(oauthClientIdAliasRegex, "");
-      const encodedFilter = encodeURIComponent(`mail eq '${email}'`);
+      const encodedFilter = encodeURIComponent(
+        `mail eq '${email}' or userPrincipalName eq '${email}'`
+      );
       const queryParams = `$filter=${encodedFilter}`;
 
       const response = await fetch(`https://graph.microsoft.com/v1.0/users?${queryParams}`, {
