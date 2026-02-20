@@ -46,12 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const keys = parseResult.data;
 
-  // Validate the BBB server before saving
+  // Validate the BBB server before saving.
+  // Use a static error message to avoid leaking the sharedSecret if the underlying
+  // error happens to embed it in its message string.
   try {
     await validateBBBServer(keys);
-  } catch (error) {
+  } catch {
     return res.status(400).json({
-      message: error instanceof Error ? error.message : "Could not connect to BigBlueButton server",
+      message: "Could not connect to BigBlueButton server",
     });
   }
 
@@ -73,11 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "BigBlueButton app is not installed. Please install the app first." });
     }
     return res.status(200).json({ message: "Saved successfully" });
-  } catch (error) {
-    // Log a sanitized message only — do NOT log the raw error or the `keys` object,
-    // as they can contain the sharedSecret.
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("Failed to save BigBlueButton credentials:", message);
+  } catch {
+    // Use a static log message — do NOT interpolate error.message here, as a Prisma
+    // error could theoretically embed the `keys` object (which contains sharedSecret).
+    console.error("Failed to save BigBlueButton credentials");
     return res.status(500).json({ message: "Failed to save credentials" });
   }
 }

@@ -62,19 +62,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appType = "bigbluebutton_video";
 
   try {
-    const alreadyInstalled = await prisma.credential.findFirst({
-      where: { type: appType, ...installForObject },
-    });
-    if (alreadyInstalled) {
-      throw new Error("Already installed");
-    }
-    await prisma.credential.create({
-      data: {
-        type: appType,
-        key: {},
-        ...installForObject,
-        appId: "bigbluebutton",
-      },
+    // Atomic upsert via transaction: the findFirst and create execute inside the same
+    // transaction to eliminate the TOCTOU race between the existence check and the
+    // insert.  Without this, two concurrent requests could both pass the findFirst
+    // guard and create duplicate credentials.
+    await prisma.$transaction(async (tx) => {
+      const alreadyInstalled = await tx.credential.findFirst({
+        where: { type: appType, ...installForObject },
+      });
+      if (alreadyInstalled) {
+        throw new Error("Already installed");
+      }
+      await tx.credential.create({
+        data: {
+          type: appType,
+          key: {},
+          ...installForObject,
+          appId: "bigbluebutton",
+        },
+      });
     });
 
     // getSafeRedirectUrl validates the destination is same-origin/relative, preventing open redirect.
