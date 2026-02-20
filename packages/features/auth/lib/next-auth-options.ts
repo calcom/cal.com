@@ -1034,6 +1034,11 @@ export const getOptions = ({
         const xmsEdov = (profile as any)?.xms_edov;
         const isAzureEmailDomainVerified = xmsEdov === true || xmsEdov === "1" || xmsEdov === 1;
 
+        // Azure AD never sets email_verified in the token profile, so isEmailVerified is always
+        // falsy for AZUREAD logins. Use isAzureEmailDomainVerified (xms_edov) as the equivalent
+        // proof of ownership so the auto-merge path treats Azure AD the same as other verified IdPs.
+        const isVerified = isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
+
         if (idP === IdentityProvider.AZUREAD && !isAzureEmailDomainVerified) {
           log.error(
             "Azure AD email domain not verified (xms_edov claim)",
@@ -1173,7 +1178,7 @@ export const getOptions = ({
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
           if (
             !hostedCal &&
-            isEmailVerified &&
+            isVerified &&
             existingUserWithEmail.identityProvider !== IdentityProvider.CAL
           ) {
             // Verify SAML IdP is authoritative before auto-merge
