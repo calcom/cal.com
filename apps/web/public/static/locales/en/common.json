@@ -4563,7 +4563,14 @@
     "assignment_type_round_robin": "Round robin",
     "actor_impersonated_by": "Impersonator",
     "source": "Source",
-    "error_processing": "Unable to load details - {{actionType}}"
+    "error_processing": "Unable to load details - {{actionType}}",
+    "attendees": "Attendees",
+    "host": "Host",
+    "attendee_no_show_status_yes": "{{email}}: Yes",
+    "attendee_no_show_status_no": "{{email}}: No",
+    "host_no_show_status_yes": "{{name}}: Yes",
+    "host_no_show_status_no": "{{name}}: No",
+    "unknown_user": "Unknown"
   },
   "error_loading_booking_logs": "Error loading booking logs",
   "no_audit_logs_found": "No audit logs found",
