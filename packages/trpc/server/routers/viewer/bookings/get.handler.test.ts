@@ -123,37 +123,34 @@ describe("getBookings - PBAC Permission Checks", () => {
     $queryRaw: vi.fn().mockResolvedValue([]),
   } as unknown as PrismaClient;
 
-  // Create a comprehensive kysely mock that handles all chain methods
   const createMockKysely = () => {
-    const mockQueryBuilder = {
-      select: vi.fn((arg?: any) => {
-        // Handle select with callback function
-        if (typeof arg === "function") {
-          return mockQueryBuilder;
-        }
-        return mockQueryBuilder;
-      }),
+    const mockQueryBuilder: Record<string, any> = {
+      select: vi.fn((_arg?: unknown) => mockQueryBuilder),
       selectAll: vi.fn(() => mockQueryBuilder),
       where: vi.fn(() => mockQueryBuilder),
+      whereRef: vi.fn(() => mockQueryBuilder),
       innerJoin: vi.fn(() => mockQueryBuilder),
-      union: vi.fn(() => mockQueryBuilder),
-      unionAll: vi.fn(() => mockQueryBuilder),
-      distinct: vi.fn(() => mockQueryBuilder),
-      as: vi.fn(() => mockQueryBuilder),
-      $if: vi.fn(() => mockQueryBuilder),
       orderBy: vi.fn(() => mockQueryBuilder),
       limit: vi.fn(() => mockQueryBuilder),
       offset: vi.fn(() => mockQueryBuilder),
-      compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
       executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
       execute: vi.fn().mockResolvedValue([]),
     };
 
+    const mockWithChain: Record<string, any> = {
+      with: vi.fn(() => mockWithChain),
+      selectFrom: vi.fn(() => mockQueryBuilder),
+    };
+
     return {
       selectFrom: vi.fn(() => mockQueryBuilder),
-      executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      with: vi.fn(() => mockWithChain),
       _mockQueryBuilder: mockQueryBuilder,
-    } as unknown as Kysely<DB> & { _mockQueryBuilder: typeof mockQueryBuilder };
+      _mockWithChain: mockWithChain,
+    } as unknown as Kysely<DB> & {
+      _mockQueryBuilder: typeof mockQueryBuilder;
+      _mockWithChain: typeof mockWithChain;
+    };
   };
 
   let mockKysely: ReturnType<typeof createMockKysely>;
@@ -339,8 +336,8 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
   });
 
-  describe("Event type filtering with subqueries", () => {
-    it("should use subqueries for event types from teams where user has booking.read permission", async () => {
+  describe("CTE-based query for team access", () => {
+    it("should use CTEs via .with() when user has team access", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -355,10 +352,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // PERFORMANCE: With the optimization, we no longer call $queryRaw to fetch event type IDs.
-      // Instead, we use subqueries directly in the SQL to avoid materializing large arrays.
-      // The query is built using Kysely and executed via executeQuery.
-      expect((mockKysely as any).executeQuery).toHaveBeenCalled();
+      expect(mockKysely.with).toHaveBeenCalled();
     });
   });
 
@@ -388,9 +382,8 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockPrisma.user.findMany).toHaveBeenCalled();
     });
 
-    it("should NOT fetch user IDs when no userIds filter is provided (uses subqueries instead)", async () => {
+    it("should NOT fetch user IDs when no userIds filter is provided", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1, 2]);
-      // Reset the mock to track calls
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -400,20 +393,17 @@ describe("getBookings - PBAC Permission Checks", () => {
         prisma: mockPrisma,
         kysely: mockKysely as unknown as Kysely<DB>,
         bookingListingByStatus: ["upcoming"],
-        filters: {}, // No userIds filter
+        filters: {},
         take: 10,
         skip: 0,
       });
 
-      // PERFORMANCE: Without userIds filter, we don't need to fetch user IDs for validation.
-      // The query uses subqueries instead of materializing all user IDs/emails.
-      // user.findMany should NOT be called for getUserIdsFromTeamIds
       expect(mockPrisma.user.findMany).not.toHaveBeenCalled();
     });
   });
 
-  describe("UNION ALL with DISTINCT query optimization", () => {
-    it("should use unionAll instead of union for combining booking queries", async () => {
+  describe("CTE + OR-based query optimization", () => {
+    it("should build CTE chain with .with() for team access path", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -428,13 +418,10 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify unionAll is used (UNION ALL) instead of union (UNION)
-      // This is the performance optimization: UNION ALL avoids an implicit DISTINCT
-      // at each union step, deferring deduplication to the outer SELECT DISTINCT
-      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+      expect(mockKysely.with).toHaveBeenCalledWith("team_user_ids", expect.any(Function));
     });
 
-    it("should apply DISTINCT on the outer select from union subquery", async () => {
+    it("should use selectFrom Booking on the CTE chain", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -449,12 +436,10 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify distinct() is called on the outer query to deduplicate
-      // results from UNION ALL
-      expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
+      expect(mockKysely._mockWithChain.selectFrom).toHaveBeenCalledWith("Booking");
     });
 
-    it("should use count with distinct for totalCount calculation", async () => {
+    it("should execute paginated query and count in parallel", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -469,9 +454,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // The count query uses fn.count("union_subquery.id").distinct()
-      // instead of fn.countAll() to ensure duplicates from UNION ALL
-      // are not counted multiple times
+      expect(mockKysely._mockQueryBuilder.execute).toHaveBeenCalled();
       expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
     });
   });

@@ -149,16 +149,9 @@ export async function getBookings({
 
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
-  // PERFORMANCE: Single CTE + OR-based query replaces the previous 7-branch UNION ALL.
-  // This enables a single backward index scan on the (startTime, endTime, status) composite
-  // index instead of materializing millions of intermediate rows across 7 branches and
-  // deduplicating them. The OR conditions with EXISTS avoid JOINs that cause row multiplication.
   const hasUserIdsFilter = !!filters?.userIds && filters.userIds.length > 0;
   const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
 
-  // Helper: apply common booking filters to a base query.
-  // Uses concrete DB type; CTE-extended queries are compatible via structural subtyping
-  // (the CTEs add tables but don't change Booking columns).
   function applyCommonFilters(
     query: SelectQueryBuilder<DB, "Booking", {}>
   ): SelectQueryBuilder<DB, "Booking", {}> {
@@ -220,7 +213,6 @@ export async function getBookings({
     return q;
   }
 
-  // Helper: add select columns, orderBy, limit, offset and execute both paginated + count
   async function executePaginatedAndCount(baseQuery: SelectQueryBuilder<DB, "Booking", {}>): Promise<{
     bookingsFromQuery: Pick<Booking, "id" | "startTime" | "endTime" | "createdAt" | "updatedAt">[];
     totalCount: number;
@@ -249,7 +241,6 @@ export async function getBookings({
   let totalCount: number;
 
   if (hasUserIdsFilter) {
-    // Path: userIds filter - bookings by specific user IDs or their attendee emails
     const base = applyCommonFilters(
       kysely.selectFrom("Booking").where(({ or, eb, exists, selectFrom }) => {
         const conditions = [eb("Booking.userId", "in", filters.userIds!)];
@@ -268,7 +259,6 @@ export async function getBookings({
     );
     ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
   } else if (hasTeamAccess) {
-    // Path: team access - CTE-based query with team member lookups computed once
     const base = applyCommonFilters(
       kysely
         .with("team_user_ids", (db) =>
@@ -317,7 +307,6 @@ export async function getBookings({
     );
     ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
   } else {
-    // Path: no team access - user's own bookings and bookings where user is attendee
     const base = applyCommonFilters(
       kysely
         .selectFrom("Booking")
