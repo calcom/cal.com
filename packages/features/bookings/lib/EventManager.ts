@@ -399,7 +399,7 @@ export default class EventManager {
 
       return {
         type: result.type,
-        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        uid: createdEventObj ? createdEventObj.id : (result.createdEvent?.id?.toString() ?? ""),
         thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
         meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
@@ -688,9 +688,7 @@ export default class EventManager {
 
     if (evt.requiresConfirmation) {
       if (!skipDeleteEventsAndMeetings) {
-        log.debug(
-          "RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking"
-        );
+        log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
         // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
         await this.deleteEventsAndMeetings({
           event: {
@@ -939,6 +937,7 @@ export default class EventManager {
                   invalid: credentialFromDB.invalid,
                   appId: credentialFromDB.appId,
                   user: credentialFromDB.user,
+                  encryptedKey: credentialFromDB.encryptedKey,
                   delegatedToId: credentialFromDB.delegatedToId,
                   delegatedTo: credentialFromDB.delegatedTo,
                   delegationCredentialId: credentialFromDB.delegationCredentialId,
@@ -1155,6 +1154,7 @@ export default class EventManager {
                 invalid: credentialFromDB.invalid,
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
+                encryptedKey: credentialFromDB.encryptedKey,
                 delegatedToId: credentialFromDB.delegatedToId,
                 delegatedTo: credentialFromDB.delegatedTo,
                 delegationCredentialId: credentialFromDB.delegationCredentialId,

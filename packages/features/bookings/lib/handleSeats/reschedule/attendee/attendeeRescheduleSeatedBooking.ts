@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
@@ -107,7 +106,11 @@ const attendeeRescheduleSeatedBooking = async (
     ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
     : copyEvent;
 
-  await sendRescheduledSeatEmailAndSMS(copyEventWithVideoCallData, seatAttendee as Person, eventType.metadata);
+  await sendRescheduledSeatEmailAndSMS(
+    copyEventWithVideoCallData,
+    seatAttendee as Person,
+    eventType.metadata
+  );
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

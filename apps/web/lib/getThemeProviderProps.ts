@@ -96,8 +96,8 @@ export function getThemeProviderProps({
   const themeSupport = isBookingPage
     ? ThemeSupport.Booking
     : props.isThemeSupported === false
-    ? ThemeSupport.None
-    : ThemeSupport.App;
+      ? ThemeSupport.None
+      : ThemeSupport.App;
 
   const themeQueryParam = searchParams?.get("theme") ?? "";
   const themeParsed = z.enum(["light", "dark", "system", "auto"]).safeParse(themeQueryParam);
@@ -133,10 +133,10 @@ export function getThemeProviderProps({
       // Even though it's recommended to use different namespaces when you want to theme differently on the same page but if the embeds are on different pages, the problem can still arise
       `embed-theme-${embedNamespace}${appearanceIdSuffix}${embedExplicitlySetThemeSuffix}`
     : themeSupport === ThemeSupport.App
-    ? "app-theme"
-    : isBookingPageThemeSupportRequired
-    ? `booking-theme${appearanceIdSuffix}`
-    : undefined;
+      ? "app-theme"
+      : isBookingPageThemeSupportRequired
+        ? `booking-theme${appearanceIdSuffix}`
+        : undefined;
 
   const themeProviderProps = {
     storageKey,
