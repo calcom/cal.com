@@ -1,9 +1,9 @@
-import { Queue, QueueEvents } from "bullmq";
+import { Queue } from "bullmq";
 
 import { getRedisOptions } from "../redis";
 
 let queue: Queue | null = null;
-let queueEvents: QueueEvents | null = null;
+// const queueEvents: QueueEvents | null = null;
 export const DEFAULT_QUEUE = "default_queue";
 
 const DEFAULT_JOB_OPTIONS = {
@@ -21,6 +21,16 @@ const DEFAULT_JOB_OPTIONS = {
   },
 };
 
+/** 
+For IO-heavy, short/medium-running, horizontally scalable jobs.
+
+Examples:
+
+Booking emails
+Notifications / reminders
+Integrations / webhooks
+Maintenance / cron job
+*/
 export function getDefaultQueue(): Queue {
   if (!queue) {
     queue = new Queue(DEFAULT_QUEUE, {
@@ -32,12 +42,12 @@ export function getDefaultQueue(): Queue {
   return queue;
 }
 
-export function getDefaultQueueEvents(): QueueEvents {
-  if (!queueEvents) {
-    queueEvents = new QueueEvents(`${DEFAULT_QUEUE}_events`, {
-      connection: getRedisOptions(),
-    });
-  }
+// export function getDefaultQueueEvents(): QueueEvents {
+//   if (!queueEvents) {
+//     queueEvents = new QueueEvents(`${DEFAULT_QUEUE}_events`, {
+//       connection: getRedisOptions(),
+//     });
+//   }
 
-  return queueEvents;
-}
+//   return queueEvents;
+// }

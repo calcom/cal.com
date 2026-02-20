@@ -62,17 +62,25 @@ export function setInngestClient(client: InngestClient): void {
  * @param jobName  Canonical job name (`queue/name`)
  * @param data     JSON payload
  * @param logger   Logger instance
+ * @param ts       Optional Unix ms timestamp for delayed execution
  * @returns The raw result from `inngestClient.send()`
  */
 export async function sendToInngest(
   jobName: string,
   data: unknown,
-  logger: DispatcherLogger
+  logger: DispatcherLogger,
+  ts?: number
 ): Promise<InngestSendReturn> {
   const client = getInngestClient();
   const inngestJobName = `${jobName}-${INNGEST_ID === "onehash-cal" ? "prod" : "stag"}`;
 
-  const result = await client.send({ name: inngestJobName, data });
+  const payload: { name: string; data: unknown; ts?: number } = {
+    name: inngestJobName,
+    data,
+    ...(ts && { ts }),
+  };
+
+  const result = await client.send(payload);
 
   logger.info("[job-dispatcher] Job dispatched via Inngest", { jobName });
   return result;

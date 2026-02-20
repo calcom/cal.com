@@ -19,6 +19,6 @@
     "emitDeclarationOnly": false,
     "sourceMap": true
   },
-  "include": ["src"],
+  "include": ["src", "../job-engine/src/types"],
   "exclude": ["node_modules", "dist"]
 }

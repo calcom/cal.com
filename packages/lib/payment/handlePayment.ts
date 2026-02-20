@@ -1,16 +1,18 @@
+import { JobName, dispatcher } from "@calid/job-dispatcher";
+import { QueueName } from "@calid/queue";
 import type { AppCategories, Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CompleteEventType } from "@calcom/prisma/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
 
-import { INNGEST_ID } from "../constants";
+const log = logger.getSubLogger({ prefix: ["[handle-payment]"] });
 
 const isPaymentApp = (x: unknown): x is PaymentApp =>
   !!x &&
@@ -64,16 +66,19 @@ const handlePayment = async ({
   responses: Prisma.JsonValue;
 }) => {
   if (isDryRun) return null;
+
   const key = paymentAppCredentials?.app?.dirName;
   if (!isKeyOf(appStore, key)) {
-    console.warn(`key: ${key} is not a valid key in appStore`);
+    log.warn("Invalid payment app key", { key });
     return null;
   }
+
   const paymentApp = await appStore[key]?.();
   if (!isPaymentApp(paymentApp)) {
-    console.warn(`payment App service of type ${paymentApp} is not implemented`);
+    log.warn("Payment app service not implemented", { type: typeof paymentApp });
     return null;
   }
+
   const PaymentService = paymentApp.lib.PaymentService;
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
@@ -140,13 +145,12 @@ const handlePayment = async ({
   }
 
   if (!paymentInfo) {
-    console.error("Payment data is null");
+    log.error("Payment data is null", { bookingId: booking.id });
     throw new Error("Payment data is null");
   }
+
   try {
-    // Schedule Inngest function to verify payment and trigger afterPayment after 10 minutes
-    const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-    //removing translate fn as  it wasn't being serialized properly when passed through Inngest
+    // Serialize event (remove translate functions for dispatching)
     const serializableEvt = {
       ...evt,
       organizer: {
@@ -162,8 +166,16 @@ const handlePayment = async ({
         },
       })),
     };
-    await inngestClient.send({
-      name: `booking/payment-reminder-${key}`,
+
+    log.info("Dispatching payment reminder job", {
+      bookingId: booking.id,
+      delay: "10 minutes",
+    });
+
+    // Schedule payment reminder via dispatcher (10 minute delay)
+    await dispatcher.dispatch({
+      queue: QueueName.DEFAULT,
+      name: JobName.BOOKING_PAYMENT_REMINDER,
       data: {
         evt: serializableEvt,
         booking: {
@@ -175,17 +187,42 @@ const handlePayment = async ({
         paymentData: paymentInfo,
         eventTypeMetadata: selectedEventType?.metadata,
         bookingSeatId: bookingSeat?.id,
-        // Include payment app credentials for afterPayment execution
         paymentAppCredentials: {
           key: paymentAppCredentials.key,
           appId: paymentAppCredentials.appId,
           appDirName: paymentAppCredentials.app?.dirName,
         },
       },
+      // 10 minute delay - preserve for Inngest fallback
+      inngestTs: Date.now() + 10 * 60 * 1000,
+      bullmqOptions: {
+        delay: 10 * 60 * 1000, // 10 minutes
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: {
+          count: 1000,
+          age: 86400,
+        },
+        removeOnFail: {
+          count: 5000,
+        },
+      },
     });
-  } catch (e) {
-    console.error(e);
+
+    log.info("Payment reminder job dispatched successfully", {
+      bookingId: booking.id,
+    });
+  } catch (error) {
+    log.error("Failed to dispatch payment reminder job", {
+      bookingId: booking.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    // Don't throw - payment was created successfully, reminder is just a bonus
   }
+
   return paymentInfo;
 };
 

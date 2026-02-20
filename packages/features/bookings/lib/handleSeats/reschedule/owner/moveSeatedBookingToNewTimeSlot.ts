@@ -10,7 +10,7 @@ import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import { triggerBookingEmailsInngest } from "../../../handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "../../../handleNewBooking/triggerBookingEmails";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (
@@ -91,7 +91,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
-    await triggerBookingEmailsInngest({
+    await triggerBookingEmails({
       calEvent: {
         ...copyEvent,
         additionalNotes, // Resets back to the additionalNote input and not the override value

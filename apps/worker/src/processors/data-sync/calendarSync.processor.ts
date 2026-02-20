@@ -1,8 +1,8 @@
-import { handleGoogleCalendarSync } from "@calid/job-engine/calendar-sync";
-import type { CalendarSyncJob } from "@calid/queue/types";
+import { handleGoogleCalendarSync } from "@calid/job-engine";
+import type { CalendarSyncJobData } from "@calid/job-engine";
 import type { Job } from "bullmq";
 
-export async function processCalendarSync(job: Job<CalendarSyncJob>) {
+export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
   const { userId, provider, syncType, cursor } = job.data;
 
   job.log(`Starting ${syncType} sync for ${provider}`);

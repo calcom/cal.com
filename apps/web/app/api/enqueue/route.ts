@@ -1,4 +1,5 @@
-import { JobName, QueueName } from "@calid/queue";
+import { JobName } from "@calid/job-dispatcher";
+import { QueueName } from "@calid/queue";
 // app/api/enqueue/route.ts
 import { NextResponse } from "next/server";
 

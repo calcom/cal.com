@@ -1,175 +1,80 @@
-import type { Prisma } from "@prisma/client";
+// import { dispatcher } from "@calid/job-dispatcher";
+// import type { RazorpayAppRevokedJobData, RazorpayPaymentLinkPaidJobData } from "@calid/job-engine/types";
+// import { QueueName, JobName } from "@calid/queue";
 
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import logger from "@calcom/lib/logger";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
-import { prisma } from "@calcom/prisma";
+// import logger from "@calcom/lib/logger";
 
-const log = logger.getSubLogger({ prefix: [`[inngest/razorpay-webhooks]`] });
+// const log = logger.getSubLogger({ prefix: ["[razorpay/webhookHandlers]"] });
 
-async function detachAppFromEvents(where: Prisma.EventTypeWhereInput) {
-  try {
-    const eventTypes = await prisma.eventType.findMany({
-      where,
-    });
+// export const appRevokedHandler = async ({ event }: { event: { data: { accountId: string } } }) => {
+//   const { accountId } = event.data;
 
-    for (const eventType of eventTypes) {
-      try {
-        const metadata = isPrismaObjOrUndefined(eventType.metadata);
+//   log.info(`Dispatching APP_REVOKED job for account: ${accountId}`);
 
-        if (metadata?.apps && isPrismaObjOrUndefined(metadata?.apps)?.razorpay) {
-          delete isPrismaObjOrUndefined(metadata.apps)?.razorpay;
+//   const payload: RazorpayAppRevokedJobData = { accountId };
 
-          await prisma.eventType.update({
-            where: {
-              id: eventType.id,
-            },
-            data: {
-              metadata: metadata,
-            },
-          });
-        }
-      } catch (error) {
-        log.error(`Failed to detach app from event type ${eventType.id}:`, error);
-      }
-    }
-  } catch (error) {
-    log.error("Failed to fetch event types:", error);
-    throw error;
-  }
-}
+//   const { jobId } = await dispatcher.dispatch({
+//     queue: QueueName.DEFAULT,
+//     name: JobName.RAZORPAY_APP_REVOKED,
+//     data: payload,
+//     options: {
+//       attempts: 3,
+//       backoff: {
+//         type: "exponential",
+//         delay: 3000,
+//       },
+//       removeOnComplete: {
+//         age: 86400,
+//         count: 100,
+//       },
+//       removeOnFail: {
+//         age: 604800,
+//         count: 1000,
+//       },
+//     },
+//   });
 
-export const appRevokedHandler = async ({ event, step }) => {
-  const { accountId } = event.data;
+//   log.info(`APP_REVOKED job dispatched with jobId: ${jobId} for account: ${accountId}`);
+//   return { success: true, message: "App revoked job dispatched", jobId };
+// };
 
-  log.info(`Processing APP_REVOKED for account: ${accountId}`);
+// export const paymentLinkPaidHandler = async ({
+//   event,
+// }: {
+//   event: { data: { paymentId: string; paymentLinkId: string } };
+// }) => {
+//   const { paymentId, paymentLinkId } = event.data;
 
-  // Step 1: Find credential
-  const credential = await step.run("find-credential", async () => {
-    return await prisma.credential.findFirst({
-      where: {
-        key: {
-          path: ["account_id"],
-          equals: accountId,
-        },
-        appId: "razorpay",
-      },
-    });
-  });
+//   if (!paymentId || !paymentLinkId) {
+//     log.warn("Missing paymentId or paymentLinkId in payment link paid event");
+//     return { success: false, message: "Missing required data" };
+//   }
 
-  if (!credential) {
-    log.warn(`No credentials found for account_id: ${accountId}`);
-    return { success: true, message: "Credential not found" };
-  }
+//   log.info(`Dispatching PAYMENT_LINK_PAID job for payment: ${paymentId}`);
 
-  const userId = credential.userId;
-  const calIdTeamId = credential.calIdTeamId;
+//   const payload: RazorpayPaymentLinkPaidJobData = { paymentId, paymentLinkId };
 
-  // Step 2: Detach app from user events (non-critical)
-  if (userId) {
-    await step.run("detach-user-events", async () => {
-      try {
-        await detachAppFromEvents({
-          metadata: {
-            not: undefined,
-          },
-          userId: userId,
-        });
-        log.info(`Detached app from user ${userId} events`);
-      } catch (error) {
-        log.error(`Failed to detach app from user ${userId} events:`, error);
-        // Don't throw - this is non-critical
-      }
-    });
-  }
+//   const { jobId } = await dispatcher.dispatch({
+//     queue: QueueName.DEFAULT,
+//     name: JobName.RAZORPAY_PAYMENT_LINK_PAID,
+//     data: payload,
+//     options: {
+//       attempts: 3,
+//       backoff: {
+//         type: "exponential",
+//         delay: 3000,
+//       },
+//       removeOnComplete: {
+//         age: 86400,
+//         count: 100,
+//       },
+//       removeOnFail: {
+//         age: 604800,
+//         count: 1000,
+//       },
+//     },
+//   });
 
-  // Step 3: Detach app from team events (non-critical)
-  if (calIdTeamId) {
-    await step.run("detach-team-events", async () => {
-      try {
-        await detachAppFromEvents({
-          metadata: {
-            not: undefined,
-          },
-          calIdTeamId,
-        });
-        log.info(`Detached app from team ${calIdTeamId} events`);
-      } catch (error) {
-        log.error(`Failed to detach app from team ${calIdTeamId} events:`, error);
-        // Don't throw - this is non-critical
-      }
-    });
-  }
-
-  // Step 4: Delete credential (critical)
-  await step.run("delete-credential", async () => {
-    await prisma.credential.delete({
-      where: {
-        id: credential.id,
-      },
-    });
-    log.info(`Successfully deleted credential for account_id: ${accountId}`);
-  });
-
-  return {
-    success: true,
-    message: `Successfully revoked app for account: ${accountId}`,
-  };
-};
-
-export const paymentLinkPaidHandler = async ({ event, step }) => {
-  const { paymentId, paymentLinkId } = event.data;
-
-  if (!paymentId || !paymentLinkId) {
-    log.warn("Missing paymentId or paymentLinkId in payment link paid event");
-    return { success: false, message: "Missing required data" };
-  }
-
-  log.info(`Processing PAYMENT_LINK_PAID: ${paymentId}`);
-
-  // Step 1: Find payment
-  const payment = await step.run("find-payment", async () => {
-    return await prisma.payment.findUnique({
-      where: { externalId: paymentLinkId },
-      select: { id: true, bookingId: true, success: true },
-    });
-  });
-
-  if (!payment) {
-    log.warn(`Payment not found for paymentLinkId: ${paymentLinkId}`);
-    return { success: false, message: "Payment not found" };
-  }
-
-  // Process payment if not already successful
-  if (!payment.success) {
-    await step.run("process-payment", async () => {
-      try {
-        await handlePaymentSuccess(payment.id, payment.bookingId, { paymentId });
-        log.info(`Successfully processed payment: ${paymentId}`);
-      } catch (error) {
-        // If it's a 200 status code, treat it as success
-        if (error instanceof HttpCode && error.statusCode === 200) {
-          return {
-            success: true,
-            message: `Payment ${paymentId} processed successfully`,
-          };
-          // throw new NonRetriableError(
-          //   `Error - eventTypesAndBookingsToBeInserted: ${error instanceof Error ? error.message : error}`
-          // );
-        }
-        throw error;
-      }
-    });
-    return {
-      success: true,
-      message: `Payment ${paymentId} processed successfully`,
-    };
-  } else {
-    log.info(`Payment ${paymentId} already marked as successful`);
-    return {
-      success: true,
-      message: `Payment ${paymentId} already successful`,
-    };
-  }
-};
+//   log.info(`PAYMENT_LINK_PAID job dispatched with jobId: ${jobId} for payment: ${paymentId}`);
+//   return { success: true, message: "Payment link paid job dispatched", jobId };
+// };

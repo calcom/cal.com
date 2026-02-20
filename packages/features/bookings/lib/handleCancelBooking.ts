@@ -51,7 +51,7 @@ import type { CalendarEvent, RecurringEvent } from "@calcom/types/Calendar";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { bookingToDeleteSelect, getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
-import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "./handleNewBooking/triggerBookingEmails";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -798,7 +798,7 @@ async function handler(input: CancelBookingInput) {
     if ((!platformClientId || (platformClientId && arePlatformEmailsEnabled)) && !fromApi) {
       // Send cancelled emails asynchronously via Inngest to improve cancellation response time
       // Passing updated recurringEvent for the case of recurring instance cancellation, so we can display the cancelled dates in the email
-      await triggerBookingEmailsInngest({
+      await triggerBookingEmails({
         calEvent: !!updatedRecurringEvent ? { ...evt, recurringEvent: updatedRecurringEvent } : evt,
         eventNameObject: { eventName: bookingToDelete?.eventType?.eventName },
         isHostConfirmationEmailsDisabled: false,

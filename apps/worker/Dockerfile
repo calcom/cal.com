@@ -1,107 +1,71 @@
-# =====================================================
-# 1️⃣ BUILDER STAGE (full deps + build)
-# =====================================================
-FROM node:20-alpine AS builder
+ARG NODE_VERSION=22
 
-WORKDIR /app
+# ---------------------------------------------------------
+# 1️⃣ Builder stage (install + build)
+# ---------------------------------------------------------
+FROM node:${NODE_VERSION}-slim AS builder
 
-RUN apk add --no-cache libc6-compat openssl python3 make g++
+WORKDIR /calid
+
+# Native deps REQUIRED for prisma/sharp/sqlite/swc
+RUN set -eux; \
+    apt-get update -qq && \
+    apt-get install -y \
+      build-essential \
+      openssl \
+      pkg-config \
+      python-is-python3 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Yarn 3
 RUN corepack enable
 
-COPY package.json yarn.lock turbo.json ./
-COPY .yarn .yarn
-COPY .yarnrc.yml ./
+# Copy entire monorepo
+COPY . .
 
-RUN yarn plugin import workspace-tools
+# Yarn tweaks 
+RUN yarn config set httpTimeout 1200000
+RUN yarn config set enableImmutableInstalls false
 
-# Runtime workspaces
-COPY apps/worker apps/worker
-COPY packages/queue packages/queue
-COPY packages/job-engine packages/job-engine
-COPY packages/prisma packages/prisma
-COPY packages/tsconfig packages/tsconfig
+# Install workspace deps
+RUN yarn install
 
-# Build-only transitive workspaces
-COPY packages/lib packages/lib
-COPY packages/config packages/config
-COPY packages/eslint-plugin packages/eslint-plugin
-COPY packages/dayjs packages/dayjs
-COPY packages/types packages/types
-
-# Install FULL graph (for build)
-RUN yarn workspaces focus \
-    @calid/worker \
-    @calid/queue \
-    @calid/job-engine \
-    @calid/prisma \
-    --all && \
-    yarn cache clean --all && \
-    rm -rf .yarn/cache .yarn/install-state.gz
-
-# Build everything (THIS generates Prisma client + engines)
+# Build ONLY worker and its deps
 RUN yarn turbo run build --filter=@calid/worker...
 
-# -----------------------------------------------------
-# STASH PRISMA RUNTIME BEFORE PRUNING NODE_MODULES
-# -----------------------------------------------------
-RUN mkdir -p /app/prisma-runtime && \
-    cp -R node_modules/.prisma /app/prisma-runtime/.prisma && \
-    cp -R node_modules/@prisma /app/prisma-runtime/@prisma
-
-# =====================================================
-# 2️⃣ PRUNE STEP — runtime deps ONLY (no prisma workspace)
-# =====================================================
-RUN rm -rf node_modules
-ENV YARN_ENABLE_IMMUTABLE_INSTALLS=false
-
-RUN yarn workspaces focus \
-    @calid/worker \
-    @calid/queue \
-    @calid/job-engine \
-    --production && \
-    yarn cache clean --all && \
-    rm -rf .yarn/cache .yarn/install-state.gz
-
-
-# =====================================================
-# 3️⃣ RUNTIME IMAGE
-# =====================================================
-FROM node:20-alpine AS runner
+# ---------------------------------------------------------
+# 2️⃣ Production runtime image
+# ---------------------------------------------------------
+FROM node:${NODE_VERSION}-slim AS runner
 
 WORKDIR /app
+ENV NODE_ENV=production
 
-RUN apk add --no-cache openssl libc6-compat
+RUN set -eux; \
+    apt-get update -qq && \
+    apt-get install -y \
+      openssl \
+      postgresql-client \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 RUN corepack enable
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 worker
-
-# Yarn runtime essentials
-COPY --from=builder --chown=worker:nodejs /app/.yarn/releases ./.yarn/releases
-COPY --from=builder --chown=worker:nodejs /app/.yarn/plugins ./.yarn/plugins
-COPY --from=builder --chown=worker:nodejs /app/.yarnrc.yml ./
-COPY --from=builder --chown=worker:nodejs /app/package.json ./
-
-# Compiled code
-COPY --from=builder --chown=worker:nodejs /app/apps/worker/dist ./apps/worker/dist
-COPY --from=builder --chown=worker:nodejs /app/packages/queue/dist ./packages/queue/dist
-COPY --from=builder --chown=worker:nodejs /app/packages/job-engine/dist ./packages/job-engine/dist
-
-# package.json for module resolution
-COPY --from=builder --chown=worker:nodejs /app/apps/worker/package.json ./apps/worker/package.json
-COPY --from=builder --chown=worker:nodejs /app/packages/queue/package.json ./packages/queue/package.json
-COPY --from=builder --chown=worker:nodejs /app/packages/job-engine/package.json ./packages/job-engine/package.json
-
-# Runtime node_modules 
-COPY --from=builder --chown=worker:nodejs /app/node_modules ./node_modules
-
-#
-# Restore Prisma runtime (engines + generated client)
-COPY --from=builder --chown=worker:nodejs /app/prisma-runtime/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=worker:nodejs /app/prisma-runtime/@prisma ./node_modules/@prisma
+# Copy runtime deps
+COPY --from=builder /calid/node_modules ./node_modules
+# COPY --from=builder /calid/package.json ./package.json
+COPY ./package.json ./i18n.json ./
 
 
-ENV NODE_ENV=production
-USER worker
+# Copy built worker
+COPY --from=builder /calid/apps/worker/dist ./apps/worker/dist
+
+# Copy shared packages needed at runtime
+COPY --from=builder /calid/packages ./packages
+
+# Copy translations
+COPY --from=builder /calid/apps/web/public/static/locales ./apps/web/public/static/locales
+
+# Generate prisma client (safe if unused)
+RUN npx prisma generate || true
 
 CMD ["node", "apps/worker/dist/index.js"]

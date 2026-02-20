@@ -1,9 +1,15 @@
-import { getRedisOptions, JobName, QueueName } from "@calid/queue";
-import { type CalendarSyncJob, type DataSyncJob } from "@calid/queue/types";
+import { JobName } from "@calid/job-dispatcher";
+import type { CalendlyImportJobData } from "@calid/job-engine";
+import { type CalendarSyncJobData, type DataSyncJob, type BookingExportJobData } from "@calid/job-engine";
+import { getRedisOptions, QueueName } from "@calid/queue";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
+import { SleepSignal } from "packages/job-dispatcher/src";
 
-import { processCalendarSync } from "../processors/calendarSync.processor";
+import { processBookingExport } from "../processors/data-sync/bookingExport.processor";
+import { processCalendarSync } from "../processors/data-sync/calendarSync.processor";
+import { processCalendlyImport } from "../processors/data-sync/calendlyImport.processor";
+import { resolveJobName } from "../utils/resolveJobName";
 
 export const DATA_SYNC_RATE_LIMITER = {
   max: 5,
@@ -17,27 +23,41 @@ export const DATA_SYNC_WORKER_CONFIG = {
   limiter: DATA_SYNC_RATE_LIMITER, // apply rate limiting
 };
 
+export const DATA_SYNC_WORKER_NAME = "data-sync-worker";
+
 export const dataSyncWorker = new Worker<DataSyncJob>(
   QueueName.DATA_SYNC,
   async (job: Job<DataSyncJob>) => {
-    const { name } = job;
+    try {
+      const name = resolveJobName(job);
 
-    switch (name) {
-      case JobName.CALENDAR_SYNC:
-        await processCalendarSync(job as Job<CalendarSyncJob>);
-        break;
-      case JobName.BOOKING_EXPORT:
-        // await processBookingExport(job as Job<BookingExportJob>);
-        break;
-      case JobName.CALENDLY_IMPORT:
-        // await processCalendlyImport(job as Job<CalendlyImportJob>);
-        break;
-      default:
-        throw new Error(`No processor registered for job type ${name}`);
+      switch (name) {
+        case JobName.BOOKING_EXPORT:
+          await processBookingExport(job as Job<BookingExportJobData>);
+          break;
+        case JobName.CALENDAR_SYNC:
+          await processCalendarSync(job as Job<CalendarSyncJobData>);
+          break;
+        case JobName.CALENDLY_IMPORT:
+          await processCalendlyImport(job as Job<CalendlyImportJobData>);
+          break;
+        default:
+          throw new Error(`No processor registered for job type ${name}`);
+      }
+    } catch (error) {
+      // Sleep signal is not an error - it's expected workflow behavior
+      if (error instanceof SleepSignal) {
+        console.log(`Job ${job.id} sleeping for ${error.duration}ms`);
+        return; // Success - job will resume after delay
+      }
+
+      // Real error - rethrow for retry logic
+      throw error;
     }
   },
   {
     connection: getRedisOptions(),
+    name: DATA_SYNC_WORKER_NAME,
     ...DATA_SYNC_WORKER_CONFIG,
   }
 );

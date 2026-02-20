@@ -1,24 +1,16 @@
 {
-  "extends": "@calcom/tsconfig/base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2022",
-
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "../../",
+    "paths": {
+      "@calid/job-engine/*": ["./packages/job-engine/src/*"],
+      "@calid/job-engine": ["packages/job-engine/src/index.ts"]
+    },
+    "moduleResolution": "bundler",
     "types": ["node"],
-    "lib": ["ES2022"],
-
-    "strict": true,
-    "skipLibCheck": true,
-
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": false,
-    "sourceMap": true
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }
