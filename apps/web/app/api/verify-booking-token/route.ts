@@ -1,13 +1,13 @@
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import prisma from "@calcom/prisma";
+import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import { TRPCError } from "@trpc/server";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import { distributedTracing } from "@calcom/lib/tracing/factory";
-import prisma from "@calcom/prisma";
-import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
-import { TRPCError } from "@trpc/server";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -26,16 +26,6 @@ async function getHandler(request: NextRequest) {
 
   try {
     const { action, token, bookingUid, userId } = querySchema.parse(queryParams);
-
-    if (action === DirectAction.REJECT) {
-      // Rejections should use POST method
-      return NextResponse.redirect(
-        new URL(
-          `/booking/${bookingUid}?error=${encodeURIComponent("Rejection requires POST method")}`,
-          request.url
-        )
-      );
-    }
 
     return await handleBookingAction(action, token, bookingUid, userId, request, undefined);
   } catch {
@@ -115,6 +105,8 @@ async function handleBookingAction(
         /** Ignored reason input unless we're rejecting */
         reason: action === DirectAction.REJECT ? reason : undefined,
         emailsEnabled: true,
+        actionSource: "MAGIC_LINK",
+        actor: makeUserActor(user.uuid),
       },
     });
   } catch (e) {

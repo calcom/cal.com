@@ -5,8 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -14,6 +16,7 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Credits } from "@calcom/ui/components/credits";
 import { ButtonOrLink } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -42,11 +45,13 @@ export type SideBarProps = {
 
 export function SideBarContainer({ bannersHeight, isPlatformUser = false }: SideBarContainerProps) {
   const { status, data } = useSession();
+  const isStandalone = useIsStandalone();
 
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
   if (status !== "loading" && status !== "authenticated") return null;
+  if (isStandalone) return null;
   return <SideBar isPlatformUser={isPlatformUser} bannersHeight={bannersHeight} user={data?.user} />;
 }
 
@@ -56,6 +61,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const flags = useFlagMap();
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
@@ -112,13 +118,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 color="minimal"
                 onClick={() => window.history.back()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon name="arrow-left" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
+                <ArrowLeftIcon className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
                 className="todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
-                <Icon name="arrow-right" className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
+                <ArrowRightIcon className="group-hover:text-emphasis text-subtle h-4 w-4 shrink-0" />
               </button>
               {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
@@ -137,9 +143,11 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
 
         {!isPlatformPages && (
           <div className="md:px-2 md:pb-4 lg:p-0">
-            <div className="overflow-hidden">
-              <Tips />
-            </div>
+            {flags["sidebar-tips"] && (
+              <div className="overflow-hidden">
+                <Tips />
+              </div>
+            )}
             {bottomNavItems.map((item, index) => (
               <Tooltip side="right" content={t(item.name)} className="lg:hidden" key={item.name}>
                 <ButtonOrLink

@@ -1,8 +1,13 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -19,22 +24,72 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
+import { v4 as uuidv4 } from "uuid";
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
-const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
+async function fireBookingAcceptedEvent({
+  actor,
+  organizationId,
+  actionSource,
+  acceptedBookings,
+  isBookingAuditEnabled,
+  tracingLogger,
+}: {
+  actor: Actor;
+  organizationId: number | null;
+  actionSource: ValidActionSource;
+  acceptedBookings: {
+    uid: string;
+    oldStatus: BookingStatus;
+  }[];
+  isBookingAuditEnabled: boolean;
+  tracingLogger: ISimpleLogger;
+}) {
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (acceptedBookings.length > 1) {
+      const operationId = uuidv4();
+      await bookingEventHandlerService.onBulkBookingsAccepted({
+        bookings: acceptedBookings.map((acceptedBooking) => ({
+          bookingUid: acceptedBooking.uid,
+          auditData: {
+            status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+        isBookingAuditEnabled,
+      });
+    } else if (acceptedBookings.length === 1) {
+      const acceptedBooking = acceptedBookings[0];
+      await bookingEventHandlerService.onBookingAccepted({
+        bookingUid: acceptedBooking.uid,
+        actor,
+        organizationId,
+        auditData: {
+          status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
+        },
+        source: actionSource,
+        isBookingAuditEnabled,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking accepted event", safeStringify(error));
+  }
+}
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -72,11 +127,14 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    status: BookingStatus;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
+  actionSource: ValidActionSource;
+  actor: Actor;
 }) {
   const {
     user,
@@ -89,13 +147,15 @@ export async function handleConfirmation(args: {
     emailsEnabled = true,
     platformClientParams,
     traceContext,
+    actionSource,
+    actor,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  const scheduleResult = await eventManager.create(evt, { skipCalendarEvent: !areCalendarEventsEnabled });
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
@@ -152,6 +212,7 @@ export async function handleConfirmation(args: {
   }
   let updatedBookings: {
     id: number;
+    status: BookingStatus;
     description: string | null;
     location: string | null;
     attendees: {
@@ -189,6 +250,10 @@ export async function handleConfirmation(args: {
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
   const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
+  let acceptedBookings: {
+    oldStatus: BookingStatus;
+    uid: string;
+  }[];
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
@@ -198,6 +263,11 @@ export async function handleConfirmation(args: {
         status: BookingStatus.PENDING,
       },
     });
+
+    acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
+      oldStatus: booking.status,
+      uid: booking.uid,
+    }));
 
     const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
       prisma.booking.update({
@@ -242,6 +312,7 @@ export async function handleConfirmation(args: {
               },
             },
           },
+          status: true,
           description: true,
           cancellationReason: true,
           attendees: true,
@@ -306,6 +377,7 @@ export async function handleConfirmation(args: {
           },
         },
         uid: true,
+        status: true,
         startTime: true,
         responses: true,
         title: true,
@@ -321,6 +393,12 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+    acceptedBookings = [
+      {
+        oldStatus: booking.status,
+        uid: booking.uid,
+      },
+    ];
   }
 
   const teamId = await getTeamIdFromEventType({
@@ -336,7 +414,21 @@ export async function handleConfirmation(args: {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
+
+  await fireBookingAcceptedEvent({
+    actor,
+    acceptedBookings,
+    organizationId: orgId ?? null,
+    actionSource,
+    isBookingAuditEnabled,
+    tracingLogger,
+  });
 
   //Workflows - set reminders for confirmed events
   try {
@@ -477,14 +569,15 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
 

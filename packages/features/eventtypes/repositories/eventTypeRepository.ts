@@ -1,3 +1,4 @@
+import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -9,8 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import type { EventType as PrismaEventType } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, EventType as PrismaEventType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -49,7 +49,7 @@ type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number |
 type HostWithLegacySelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
   THost,
-  TUser
+  TUser,
 > = THost & {
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
@@ -73,13 +73,29 @@ function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: num
 
 function usersWithSelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
-  TUser extends { selectedCalendars: TSelectedCalendar[] }
+  TUser extends { selectedCalendars: TSelectedCalendar[] },
 >(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
   return users.map((user) => withSelectedCalendars(user));
 }
 
-export class EventTypeRepository {
+export class EventTypeRepository implements IEventTypesRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  async findParentEventTypeId(eventTypeId: number): Promise<number | null> {
+    const managedChildEventType = await this.prismaClient.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        parentId: {
+          not: null,
+        },
+      },
+      select: {
+        parentId: true,
+      },
+    });
+
+    return managedChildEventType?.parentId ?? null;
+  }
 
   private generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
@@ -606,6 +622,7 @@ export class EventTypeRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -621,6 +638,13 @@ export class EventTypeRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -637,6 +661,8 @@ export class EventTypeRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
@@ -697,6 +723,16 @@ export class EventTypeRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -704,6 +740,7 @@ export class EventTypeRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -762,11 +799,6 @@ export class EventTypeRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -906,6 +938,7 @@ export class EventTypeRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -921,6 +954,13 @@ export class EventTypeRepository {
         select: {
           id: true,
           teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
         },
       },
       teamId: true,
@@ -937,6 +977,8 @@ export class EventTypeRepository {
           slug: true,
           parentId: true,
           rrTimestampBasis: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
           parent: {
             select: {
               slug: true,
@@ -997,6 +1039,16 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
           user: {
             select: {
               timeZone: true,
@@ -1004,6 +1056,7 @@ export class EventTypeRepository {
           },
         },
       },
+      enablePerHostLocations: true,
       userId: true,
       price: true,
       children: {
@@ -1062,11 +1115,6 @@ export class EventTypeRepository {
                       id: true,
                       title: true,
                       parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -1271,6 +1319,7 @@ export class EventTypeRepository {
       },
       select: {
         id: true,
+        userId: true,
         slug: true,
         minimumBookingNotice: true,
         length: true,
@@ -1405,16 +1454,6 @@ export class EventTypeRepository {
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
     };
-  }
-
-  static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
-    user,
-    eventTypeId,
-  }: {
-    user: UserWithSelectedCalendars<TSelectedCalendar>;
-    eventTypeId: number;
-  }) {
-    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 
   async findByIdForUserAvailability({ id }: { id: number }) {
@@ -1577,6 +1616,16 @@ export class EventTypeRepository {
         id,
       },
       select: {
+        teamId: true,
+      },
+    });
+  }
+
+  async findByIdWithTeamId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
         teamId: true,
       },
     });

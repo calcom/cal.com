@@ -23,24 +23,14 @@ export const InstallAppButtonChild = ({
   // Also, cal.ai(the only paid app at the moment) doesn't support team install either
   if (paid) {
     return (
-      <Button
-        data-testid="install-app-button"
-        {...props}
-        disabled={isDisabled}
-        color="primary"
-        size="base">
+      <Button data-testid="install-app-button" {...props} disabled={isDisabled} color="primary" size="base">
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
       </Button>
     );
   }
 
   return (
-    <Button
-      data-testid="install-app-button"
-      {...props}
-      disabled={isDisabled}
-      color="primary"
-      size="base">
+    <Button data-testid="install-app-button" {...props} disabled={isDisabled} color="primary" size="base">
       {multiInstall ? t("install_another") : t("install_app")}
     </Button>
   );

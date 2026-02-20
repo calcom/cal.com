@@ -34,8 +34,8 @@ import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { InfoIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
 
@@ -528,7 +528,9 @@ const ProfileForm = ({
       .trim()
       .min(1, t("you_need_to_add_a_name"))
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
-        message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
+        message: t("max_limit_allowed_hint", {
+          limit: FULL_NAME_LENGTH_MAX_LIMIT,
+        }),
       }),
     email: emailSchema.toLowerCase(),
     bio: z.string(),
@@ -642,7 +644,7 @@ const ProfileForm = ({
 
                       {showRemoveAvatarButton && (
                         <Button
-                          color="destructive"
+                          color="minimal"
                           onClick={() => {
                             onChange(null);
                           }}>
@@ -658,7 +660,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 shrink-0" />
+          <InfoIcon className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
@@ -707,9 +709,10 @@ const ProfileForm = ({
           <Editor
             getText={() => md.render(formMethods.getValues("bio") || "")}
             setText={(value: string) => {
-              formMethods.setValue("bio", turndown(value), { shouldDirty: true });
+              formMethods.setValue("bio", turndown(value), {
+                shouldDirty: true,
+              });
             }}
-            excludedToolbarItems={["blockType"]}
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}

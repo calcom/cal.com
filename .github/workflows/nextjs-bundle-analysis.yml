@@ -53,7 +53,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/dangerous-git-checkout
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-build
@@ -68,3 +70,9 @@ jobs:
         with:
           name: bundle
           path: apps/web/.next/analyze/__bundle_analysis.json
+
+      - name: Delete cached build
+        uses: useblacksmith/cache-delete@v1
+        with:
+          key: prod-build-main-
+          prefix: "true"

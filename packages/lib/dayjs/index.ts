@@ -177,7 +177,7 @@ export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefin
  * @returns Time Zone name
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+export const getTimeZone = (date: Dayjs): string => (date as any).$x.$timezone;
 
 /**
  * Verify if timeZone has Daylight Saving Time (DST).

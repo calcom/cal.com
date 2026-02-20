@@ -76,12 +76,12 @@ export function EditUserSheet({
             {!editMode ? (
               <>
                 <SheetHeader showCloseButton={false} className="w-full">
-                  <div className="border-sublte bg-default w-full rounded-xl border p-4">
+                  <div className="border-subtle bg-default w-full rounded-xl border p-4">
                     <OrganizationBanner />
                     <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
                       <Avatar asChild size="lg" alt={`${loadedUser?.name} avatar`} imageSrc={avatarURL} />
                     </div>
-                    <h2 className="text-emphasis font-sans text-2xl font-semibold">
+                    <h2 className="text-emphasis font-sans text-2xl font-semibold -mt-8">
                       {loadedUser?.name || "Nameless User"}
                     </h2>
                     <p className="text-subtle max-h-[3em] overflow-hidden text-ellipsis text-sm font-normal">

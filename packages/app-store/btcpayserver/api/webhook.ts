@@ -8,7 +8,7 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
+import { PrismaBookingPaymentRepository as BookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
@@ -91,7 +91,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const traceContext = distributedTracing.createTrace("btcpayserver_webhook", {
       meta: { paymentId: payment.id, bookingId: payment.bookingId },
     });
-    await handlePaymentSuccess(payment.id, payment.bookingId, traceContext);
+    await handlePaymentSuccess({
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+      appSlug: appConfig.slug,
+      traceContext,
+    });
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);

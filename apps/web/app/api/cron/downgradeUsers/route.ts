@@ -44,7 +44,7 @@ async function postHandler(request: NextRequest) {
 
     const teamBillingFactory = getTeamBillingServiceFactory();
     const teamsBilling = teamBillingFactory.initMany(teams);
-    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity("sync"));
     await Promise.allSettled(teamBillingPromises);
 
     pageNumber++;

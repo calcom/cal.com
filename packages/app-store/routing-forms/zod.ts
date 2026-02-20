@@ -92,6 +92,17 @@ export const zodNonRouterRoute = z.object({
     eventTypeId: z.number().optional(),
     value: z.string(),
   }),
+  /**
+   * Fallback action used when the main attributes query finds no matching team members
+   * and no CRM contact owner (if configured to check) exists.
+   */
+  fallbackAction: z
+    .object({
+      type: routeActionTypeSchema,
+      eventTypeId: z.number().optional(),
+      value: z.string(),
+    })
+    .optional(),
 });
 
 export const zodNonRouterRouteView = zodNonRouterRoute;

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/PriceIcon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -58,6 +58,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             // eslint-disable-next-line react/no-danger
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
             dangerouslySetInnerHTML={{
               __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}

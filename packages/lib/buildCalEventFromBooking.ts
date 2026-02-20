@@ -16,6 +16,7 @@ type DestinationCalendar = {
   domainWideDelegationCredentialId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+  customCalendarReminder: number | null;
 } | null;
 
 type Attendee = {
@@ -108,8 +109,8 @@ export const buildCalEventFromBooking = async ({
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
