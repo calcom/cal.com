@@ -33,7 +33,7 @@ const ORG_PROFILE_WRITE = 134217728; // 2^27
 
 export type NewAccessScope = Exclude<AccessScope, "READ_BOOKING" | "READ_PROFILE">;
 
-export const OAUTH_SCOPES: NewAccessScope[] = [
+export const INDIVIDUAL_SCOPES: NewAccessScope[] = [
   "EVENT_TYPE_READ",
   "EVENT_TYPE_WRITE",
   "BOOKING_READ",
@@ -44,6 +44,9 @@ export const OAUTH_SCOPES: NewAccessScope[] = [
   "APPS_WRITE",
   "PROFILE_READ",
   "PROFILE_WRITE",
+];
+
+export const TEAM_SCOPES: NewAccessScope[] = [
   "TEAM_EVENT_TYPE_READ",
   "TEAM_EVENT_TYPE_WRITE",
   "TEAM_BOOKING_READ",
@@ -54,6 +57,9 @@ export const OAUTH_SCOPES: NewAccessScope[] = [
   "TEAM_PROFILE_WRITE",
   "TEAM_MEMBERSHIP_READ",
   "TEAM_MEMBERSHIP_WRITE",
+];
+
+export const ORG_SCOPES: NewAccessScope[] = [
   "ORG_EVENT_TYPE_READ",
   "ORG_EVENT_TYPE_WRITE",
   "ORG_BOOKING_READ",
@@ -63,6 +69,19 @@ export const OAUTH_SCOPES: NewAccessScope[] = [
   "ORG_PROFILE_READ",
   "ORG_PROFILE_WRITE",
 ];
+
+export type ScopeCategory = {
+  labelKey: string;
+  scopes: NewAccessScope[];
+};
+
+export const OAUTH_SCOPE_CATEGORIES: ScopeCategory[] = [
+  { labelKey: "oauth_scope_category_user", scopes: INDIVIDUAL_SCOPES },
+  { labelKey: "oauth_scope_category_team", scopes: TEAM_SCOPES },
+  { labelKey: "oauth_scope_category_organization", scopes: ORG_SCOPES },
+];
+
+export const OAUTH_SCOPES: NewAccessScope[] = [...INDIVIDUAL_SCOPES, ...TEAM_SCOPES, ...ORG_SCOPES];
 
 export const SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR =
   "Requested scope exceeds the client's registered scopes";

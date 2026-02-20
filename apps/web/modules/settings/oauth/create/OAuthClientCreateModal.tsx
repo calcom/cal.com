@@ -1,7 +1,6 @@
 "use client";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
@@ -46,7 +45,7 @@ export function OAuthClientCreateDialog({
       websiteUrl: "",
       logo: "",
       enablePkce: false,
-      scopes: [...OAUTH_SCOPES],
+      scopes: [],
     },
   });
 

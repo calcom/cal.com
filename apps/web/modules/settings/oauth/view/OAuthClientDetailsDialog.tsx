@@ -1,14 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
-
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -18,11 +13,11 @@ import {
   DialogContent,
   DialogFooter,
 } from "@calcom/ui/components/dialog";
-
+import { Label, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Label, TextArea } from "@calcom/ui/components/form";
-
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
@@ -85,7 +80,7 @@ const OAuthClientDetailsDialog = ({
 
   const formEnablePkce =
     client?.isPkceEnabled ?? (client?.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
-  const formClientScopes = client?.scopes && client.scopes.length > 0 ? client.scopes : [...OAUTH_SCOPES];
+  const formClientScopes = client?.scopes ?? [];
 
   const form = useForm<OAuthClientCreateFormValues>({
     defaultValues: {
