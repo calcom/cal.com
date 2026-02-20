@@ -62,13 +62,13 @@ export const getUniqueAttendeesCountHandler = async ({ ctx }: GetUniqueAttendees
   const { user } = ctx;
 
   const userMetadata = user.metadata as {
-    isProUser?: { firstYearClaimDate?: string; formSubmittedForYear?: number; yearClaimed?: number };
+    isProUser?: { claimDate?: string; claimSubmittedForYear?: number; yearClaimed?: number };
   } | null;
   const yearClaimed = userMetadata?.isProUser?.yearClaimed ?? 0;
-  const firstYearClaimDate = userMetadata?.isProUser?.firstYearClaimDate;
-  const formSubmittedForYear = userMetadata?.isProUser?.formSubmittedForYear ?? 0;
+  const claimDate = userMetadata?.isProUser?.claimDate;
+  const claimSubmittedForYear = userMetadata?.isProUser?.claimSubmittedForYear ?? 0;
 
-  if (formSubmittedForYear >= 2 || yearClaimed > 1) {
+  if (claimSubmittedForYear >= 2 || yearClaimed > 1) {
     return {
       uniqueAttendeesCount: 3,
       requiredCount: 3,
@@ -79,9 +79,9 @@ export const getUniqueAttendeesCountHandler = async ({ ctx }: GetUniqueAttendees
   const whereClause: Prisma.BookingWhereInput = {
     userId: user.id,
     status: BookingStatus.ACCEPTED,
-    ...(firstYearClaimDate && {
+    ...(claimDate && {
       createdAt: {
-        gte: new Date(firstYearClaimDate),
+        gte: new Date(claimDate),
       },
     }),
   };

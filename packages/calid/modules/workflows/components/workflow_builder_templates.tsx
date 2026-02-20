@@ -50,7 +50,7 @@ export const TemplatesContent = ({ templates, onCreateWorkflow }: TemplatesConte
         {templates.map((template: WorkflowTemplate, idx: number) => (
           <div
             key={idx}
-            className="border-border bg-card flex flex-col items-center justify-center rounded-lg border p-4 hover:shadow-md">
+            className="border-border bg-default flex flex-col items-center justify-center rounded-lg border p-4 hover:shadow-md">
             <div className="bg-muted h-10 w-10 rounded-md">
               <Icon
                 name={getIcon(template.actionType)}

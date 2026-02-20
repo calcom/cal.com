@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { RAZORPAY_CLIENT_ID, RAZORPAY_REDIRECT_URL, RAZORPAY_STATE_KEY } from "@calcom/lib/constants";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+import { RAZORPAY_CLIENT_ID, RAZORPAY_REDIRECT_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import config from "../config.json";
@@ -11,12 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const appType = config.type;
   try {
-    if (!RAZORPAY_CLIENT_ID || !RAZORPAY_REDIRECT_URL || !RAZORPAY_STATE_KEY) {
+    if (!RAZORPAY_CLIENT_ID || !RAZORPAY_REDIRECT_URL) {
       throw new Error("Razorpay credentials not defined properly");
     }
 
     if (req.query.teamId) {
-      const teamOwner = await prisma.membership.findFirst({
+      const teamOwner = await prisma.calIdMembership.findFirst({
         where: {
           teamId: parseInt(req.query.teamId as string),
           role: "OWNER",
@@ -39,12 +40,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ url: "/apps/installed/payment" });
     }
 
+    const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state as string);
+
     const params = {
       client_id: RAZORPAY_CLIENT_ID as string,
       response_type: "code",
       redirect_uri: RAZORPAY_REDIRECT_URL as string,
       scope: "read_write",
-      state: RAZORPAY_STATE_KEY as string,
+      state: JSON.stringify(state),
     };
 
     const queryString = new URLSearchParams(params).toString();

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Form, FormField } from "@calid/features/ui/components/form";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";

@@ -1,5 +1,6 @@
 import { toDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
+import { doesHaveSmsAttendeeWorkflow } from "@calid/features/modules/workflows/config/utils";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -82,7 +83,12 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
@@ -554,6 +560,45 @@ async function handler(
       bookerEmail,
       offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
     });
+  }
+
+  if (eventType.showBusy && typeof eventType.showBusyPercent === "number") {
+    const requestedStartUtc = dayjs(reqBody.start).utc();
+    const formatter = new Intl.DateTimeFormat("fr-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: reqBody.timeZone,
+    });
+    const dateKey = formatter.format(requestedStartUtc.toDate());
+    const rawWindowDays = eventType.showBusyWindowDays;
+    const windowDays =
+      typeof rawWindowDays === "number" && Number.isFinite(rawWindowDays)
+        ? Math.min(30, Math.max(1, rawWindowDays))
+        : 7;
+    const windowType = eventType.showBusyWindowType === "calendar" ? "calendar" : "business";
+    const today = dayjs().tz(reqBody.timeZone).startOf("day");
+    const windowKeys: string[] = [];
+    let cursor = today;
+    while (windowKeys.length < windowDays) {
+      const isWeekend = cursor.day() === 0 || cursor.day() === 6;
+      if (windowType === "calendar" || !isWeekend) {
+        windowKeys.push(cursor.format("YYYY-MM-DD"));
+      }
+      cursor = cursor.add(1, "day");
+    }
+    const isWithinWindow = windowKeys.includes(dateKey);
+    if (isWithinWindow) {
+      const storedSlotsByDate = (eventType.showBusySlots || {}) as Record<string, string[]>;
+      const storedSlotsForDate = storedSlotsByDate[dateKey] || [];
+      const isVisibleSlot = storedSlotsForDate.some((slot) =>
+        dayjs(slot).utc().isSame(requestedStartUtc, "minute")
+      );
+
+      if (!isVisibleSlot) {
+        throw new Error(ErrorCode.NoAvailableUsersFound);
+      }
+    }
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
@@ -2098,7 +2143,12 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
-          // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          // Send rescheduled emails asynchronously via background worker to improve reschedule response time
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.RESCHEDULE_EVENT
+          );
+
           await triggerBookingEmails({
             calEvent: {
               ...copyEvent,
@@ -2110,6 +2160,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled: false,
             eventTypeMetadata: eventType?.metadata,
             emailType: "rescheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2242,7 +2293,11 @@ async function handler(
         );
 
         if (!isDryRun) {
-          // Send emails asynchronously via Inngest to improve booking response time
+          const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
+            workflows,
+            WorkflowTriggerEvents.NEW_EVENT
+          );
+          // Send emails asynchronously via background worker to improve booking response time
           await triggerBookingEmails({
             calEvent: {
               ...evt,
@@ -2255,6 +2310,7 @@ async function handler(
             isAttendeeConfirmationEmailDisabled,
             eventTypeMetadata: eventType.metadata,
             emailType: "scheduled",
+            hasRelevantSmsWorkflow,
           });
         }
       }
@@ -2285,7 +2341,7 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      // Send request emails asynchronously via Inngest for pending bookings
+      // Send request emails asynchronously via background worker for pending bookings
       await triggerBookingEmails({
         calEvent: { ...evt, additionalNotes },
         isHostConfirmationEmailsDisabled: false,
@@ -2293,6 +2349,7 @@ async function handler(
         eventTypeMetadata: eventType.metadata,
         emailType: "request",
         firstAttendee: attendeesList[0],
+        hasRelevantSmsWorkflow: false,
       });
     }
   }

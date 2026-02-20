@@ -355,10 +355,10 @@ export const userMetadata = z
     isProUser: z
       .object({
         yearClaimed: z.number().optional().default(0),
-        formSubmittedForYear: z.number().optional(),
+        claimSubmittedForYear: z.number().optional(),
         validTillDate: z.string().optional(),
-        verified: z.boolean().optional().default(false),
-        firstYearClaimDate: z.string().optional(),
+        claimDate: z.string().optional(),
+        claimProtocol: z.enum(["v1", "v2"]).optional(),
       })
       .optional(),
     sessionTimeout: z.number().optional(), // Minutes
@@ -395,6 +395,15 @@ export const userMetadata = z
         utm_medium: z.string().optional().nullable(),
         utm_campaign: z.string().optional().nullable(),
         utm_content: z.string().optional().nullable(),
+      })
+      .optional(),
+    deviceDetails: z
+      .object({
+        ip: z.string().optional(),
+        browser: z.string(),
+        deviceType: z.enum(["Mobile", "Desktop", "Tablet"]),
+        deviceOS: z.string(),
+        screenResolution: z.string(),
       })
       .optional(),
     google_signup_tracked: z.boolean().optional(),
@@ -795,6 +804,14 @@ export const signupSchema = z.object({
   }),
   language: z.string().optional(),
   token: z.string().optional(),
+  deviceDetails: z
+    .object({
+      browser: z.string().max(100),
+      deviceType: z.enum(["Mobile", "Desktop", "Tablet"]),
+      deviceOS: z.string().max(100),
+      screenResolution: z.string().max(50),
+    })
+    .optional(),
 });
 
 export const ZVerifyCodeInputSchema = z.object({

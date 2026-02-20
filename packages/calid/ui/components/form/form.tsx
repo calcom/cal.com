@@ -4,9 +4,8 @@ import { Controller, FormProvider, useFormContext } from "react-hook-form";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
-import { triggerToast } from "./toast";
+import { triggerToast } from "../toast";
 
-// Form wrapper that includes <form> tag and auto handleSubmit
 interface FormProps<TFieldValues extends FieldValues = FieldValues> {
   form: UseFormReturn<TFieldValues>;
   children: React.ReactNode;
@@ -21,12 +20,10 @@ function getFirstErrorMessage<T extends FieldValues>(errors: FieldErrors<T>): st
     const error = errors[key];
     if (!error) continue;
 
-    // Handle nested errors (e.g., nested objects or arrays)
     if (typeof error === "object" && "message" in error && typeof error.message === "string") {
       return error.message;
     }
 
-    // Recursively check nested field errors
     if (typeof error === "object") {
       const nestedMessage = getFirstErrorMessage(error as FieldErrors<T>);
       if (nestedMessage) return nestedMessage;
@@ -73,7 +70,6 @@ function Form<TFieldValues extends FieldValues = FieldValues>({
   );
 }
 
-// Context to track the current field
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>

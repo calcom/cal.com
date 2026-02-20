@@ -2,9 +2,11 @@ import { Button } from "@calid/features/ui/components/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTrigger,
   DialogClose,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@calid/features/ui/components/dialog";
 import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
@@ -142,7 +144,6 @@ const DateOverrideForm = ({
       }}
       className="p-6 sm:flex sm:p-0 xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
-        <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
           weekStart={weekStart}
@@ -161,7 +162,7 @@ const DateOverrideForm = ({
         {selectedDates[0] ? (
           <>
             <div className="mb-4 flex-grow space-y-4">
-              <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
+              <p className="text-default text-sm font-semibold">{t("date_overrides_dialog_which_hours")}</p>
               <div>
                 {datesUnavailable ? (
                   <p className="text-subtle border-default rounded border p-2 text-sm">
@@ -178,10 +179,10 @@ const DateOverrideForm = ({
                 data-testid="date-override-mark-unavailable"
               />
             </div>
-            <div className="mt-4 flex flex-row-reverse sm:mt-0">
+            <div className="mt-4 flex flex-row-reverse gap-2 sm:mt-0">
               <Button
-                className="ml-2"
                 color="primary"
+                StartIcon="check"
                 type="submit"
                 onClick={() => {
                   triggerToast(t("date_successfully_added"), "success", 500);
@@ -194,7 +195,7 @@ const DateOverrideForm = ({
             </div>
           </>
         ) : (
-          <div className="bottom-7 right-8 flex flex-row-reverse sm:absolute">
+          <div className="bottom-8 right-8 flex flex-row-reverse sm:absolute">
             <DialogClose />
           </div>
         )}
@@ -221,11 +222,16 @@ const DateOverrideInputDialog = ({
   className?: string;
 }) => {
   const [open, setOpen] = useState(false);
+  const { t } = useLocale();
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
       <DialogContent enableOverflow={true} size="md" className={cs("p-0", className)}>
+        <DialogHeader className="px-6 pt-6 sm:px-8 sm:pt-8">
+          <DialogTitle>{t("date_overrides_dialog_title")}</DialogTitle>
+          <DialogDescription>{t("date_overrides_subtitle")}</DialogDescription>
+        </DialogHeader>
         <DateOverrideForm
           excludedDates={excludedDates}
           weekStart={weekStart}

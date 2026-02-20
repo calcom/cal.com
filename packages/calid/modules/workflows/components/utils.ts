@@ -1,9 +1,3 @@
-// utils/whatsapp-template-utils.ts
-
-/**
- * Utility functions for WhatsApp template variable extraction and mapping
- */
-
 interface TemplateComponent {
   type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
   format?: "TEXT" | "IMAGE" | "VIDEO" | "DOCUMENT";
@@ -38,9 +32,6 @@ export interface VariableMapping {
   };
 }
 
-/**
- * Extracts variables from a WhatsApp template
- */
 export function extractTemplateVariables(template: WhatsAppTemplate): ExtractedVariable[] {
   const variables: ExtractedVariable[] = [];
 
@@ -85,37 +76,12 @@ export function extractTemplateVariables(template: WhatsAppTemplate): ExtractedV
   return variables;
 }
 
-/**
- * Checks if a template has variables that need mapping
- */
 export function templateNeedsMapping(template: WhatsAppTemplate | null): boolean {
   if (!template) return false;
   return extractTemplateVariables(template).length > 0;
 }
 
-/**
- * Validates that all template variables have been mapped
- */
-// export function isVariableMappingComplete(
-//   template: WhatsAppTemplate | null,
-//   mapping: VariableMapping
-// ): boolean {
-//   if (!template) return false;
-
-//   const variables = extractTemplateVariables(template);
-
-//   return variables.every((variable) => {
-//     const value = mapping[variable.component]?.[variable.variable];
-//     return value && value.trim() !== "";
-//   });
-// }
-
-/**
- * Gets the value for a variable from booking data at runtime
- * This would be used in your backend when sending the message
- */
 export function resolveVariableValue(mapping: string, bookingData: any): string {
-  // Handle custom values
   if (mapping.startsWith("custom:")) {
     return mapping.replace("custom:", "");
   }
@@ -135,63 +101,6 @@ export function resolveVariableValue(mapping: string, bookingData: any): string 
   return String(value || "");
 }
 
-/**
- * Builds the parameters array for WhatsApp API from mapping
- * This converts your stored mapping into the format WhatsApp expects
- */
-// export function buildWhatsAppParameters(
-//   template: WhatsAppTemplate,
-//   mapping: VariableMapping,
-//   bookingData: any
-// ): any[] {
-//   const components: any[] = [];
-
-//   template.components.forEach((component) => {
-//     if (component.type === "BUTTONS") return;
-
-//     const componentType = component.type.toLowerCase();
-//     const componentMapping = mapping[componentType];
-
-//     if (!componentMapping || Object.keys(componentMapping).length === 0) {
-//       return;
-//     }
-
-//     const parameters: any[] = [];
-
-//     if (template.parameter_format === "NAMED") {
-//       // Named parameters
-//       Object.entries(componentMapping).forEach(([varName, mappingPath]) => {
-//         parameters.push({
-//           type: "text",
-//           text: resolveVariableValue(mappingPath, bookingData),
-//         });
-//       });
-//     } else {
-//       // Positional parameters - sort by position number
-//       const sorted = Object.entries(componentMapping).sort(([a], [b]) => parseInt(a) - parseInt(b));
-
-//       sorted.forEach(([_, mappingPath]) => {
-//         parameters.push({
-//           type: "text",
-//           text: resolveVariableValue(mappingPath, bookingData),
-//         });
-//       });
-//     }
-
-//     if (parameters.length > 0) {
-//       components.push({
-//         type: component.type,
-//         parameters,
-//       });
-//     }
-//   });
-
-//   return components;
-// }
-
-/**
- * Initialize empty mapping structure for a template
- */
 export function initializeMapping(template: WhatsAppTemplate): VariableMapping {
   const mapping: VariableMapping = {};
   const variables = extractTemplateVariables(template);
@@ -206,10 +115,6 @@ export function initializeMapping(template: WhatsAppTemplate): VariableMapping {
   return mapping;
 }
 
-/**
- * Merge existing mapping with template requirements
- * Useful when switching templates or updating
- */
 export function mergeMapping(template: WhatsAppTemplate, existingMapping: VariableMapping): VariableMapping {
   const newMapping = initializeMapping(template);
 

@@ -54,11 +54,10 @@ const dialogContentVariants = cva(
     variants: {
       size: {
         sm: "max-w-sm p-5",
-        default: "max-w-lg p-6",
-        md: "max-w-2xl p-6",
-        lg: "max-w-4xl p-8",
-        xl: "max-w-6xl p-8",
-        full: "max-w-[95vw] max-h-[90vh] p-8",
+        default: "w-[95vw] sm:max-w-lg p-6",
+        md: "w-[95vw] sm:max-w-2xl p-6",
+        lg: "w-[95vw] sm:max-w-4xl p-8",
+        xl: "w-[95vw] sm:max-w-6xl p-8",
       },
     },
     defaultVariants: {
@@ -72,10 +71,25 @@ interface DialogContentProps
     VariantProps<typeof dialogContentVariants> {
   showCloseButton?: boolean;
   forceOverlayWhenNoModal?: boolean;
+  /**
+   * Use this prop when content inside DialogContent could overflow and require a scrollbar.
+   */
+  enableOverflow?: boolean;
 }
 
 const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
-  ({ className, children, size, showCloseButton = false, forceOverlayWhenNoModal, ...props }, ref) => (
+  (
+    {
+      className,
+      children,
+      size,
+      showCloseButton = false,
+      forceOverlayWhenNoModal,
+      enableOverflow = false,
+      ...props
+    },
+    ref
+  ) => (
     <DialogPortal>
       {forceOverlayWhenNoModal ? (
         <div className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-none fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
@@ -85,7 +99,12 @@ const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.C
 
       <DialogPrimitive.Content
         ref={ref}
-        className={cn(dialogContentVariants({ size }), className)}
+        className={cn(
+          dialogContentVariants({ size }),
+          "max-h-[95vh]",
+          enableOverflow ? "overflow-y-auto" : "overflow-visible",
+          className
+        )}
         onOpenAutoFocus={(e) => e.preventDefault()}
         {...props}>
         {children}
@@ -108,56 +127,56 @@ const iconVariantMap: Record<
   {
     bgColor: string;
     iconColor: string;
-    icon: IconName;
   }
 > = {
   warning: {
     bgColor: "bg-red-100 dark:bg-red-900/20",
     iconColor: "text-red-600 dark:text-red-400",
-    icon: "triangle-alert",
   },
   info: {
     bgColor: "bg-blue-100 dark:bg-blue-900/20",
     iconColor: "text-blue-600 dark:text-blue-400",
-    icon: "info",
   },
   success: {
     bgColor: "bg-green-100 dark:bg-green-900/20",
     iconColor: "text-green-600 dark:text-green-400",
-    icon: "check",
   },
 };
 
 interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   showIcon?: boolean;
-  variant?: IconVariant;
+  iconName?: IconName;
+  iconVariant?: IconVariant;
 }
 
-const DialogHeader = ({ className, showIcon = false, variant, children, ...props }: DialogHeaderProps) => {
-  const iconConfig = variant ? iconVariantMap[variant] : null;
-  const shouldShowIcon = showIcon && variant;
+const DialogHeader = ({
+  className,
+  showIcon = false,
+  iconName,
+  iconVariant,
+  children,
+  ...props
+}: DialogHeaderProps) => {
+  const iconConfig = iconVariant ? iconVariantMap[iconVariant] : null;
+  const shouldShowIcon = showIcon && iconName && iconConfig;
 
-  if (shouldShowIcon && variant && iconConfig) {
+  if (shouldShowIcon) {
     return (
-      <div
-        className={cn("flex flex-col items-center gap-3 sm:flex-row sm:items-start", className)}
-        {...props}>
+      <div className={cn("flex flex-row items-start gap-3", className)} {...props}>
         <div
           className={cn(
-            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full sm:h-10 sm:w-10",
+            "border-default flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border sm:h-10 sm:w-10",
             iconConfig.bgColor
           )}>
-          <Icon name={iconConfig.icon} className={cn("h-5 w-5", iconConfig.iconColor)} />
+          <Icon name={iconName} className={cn("h-5 w-5", iconConfig.iconColor)} />
         </div>
-        <div className={cn("flex w-full flex-col space-y-1 text-center sm:w-auto sm:text-left")}>
-          {children}
-        </div>
+        <div className={cn("flex w-full flex-col space-y-1 text-left sm:w-auto")}>{children}</div>
       </div>
     );
   }
 
   return (
-    <div className={cn("flex flex-col space-y-1 text-center sm:text-left", className)} {...props}>
+    <div className={cn("flex flex-col space-y-1 text-left", className)} {...props}>
       {children}
     </div>
   );
@@ -165,10 +184,7 @@ const DialogHeader = ({ className, showIcon = false, variant, children, ...props
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn("mt-4 flex flex-row justify-center gap-2 sm:mt-6 sm:justify-end", className)}
-    {...props}
-  />
+  <div className={cn("mt-6 flex flex-row justify-end gap-2", className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 

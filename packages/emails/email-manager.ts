@@ -119,7 +119,8 @@ const _sendScheduledEmailsAndSMS = async (
   hostEmailDisabled?: boolean,
   attendeeEmailDisabled?: boolean,
   eventTypeMetadata?: EventTypeMetadata,
-  curAttendee?: Person // In some places passing proper responses like the payment success, passing original responses field isn't possible so we pass the current attendee to get their email or phone number
+  curAttendee?: Person, // In some places passing proper responses like the payment success, passing original responses field isn't possible so we pass the current attendee to get their email or phone number
+  hasRelevantSmsWorkflow = false
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -176,6 +177,15 @@ const _sendScheduledEmailsAndSMS = async (
   }
 
   await Promise.all(emailsToSend);
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
+
   const successfullyScheduledSms = new EventSuccessfullyScheduledSMS(calEvent);
   await successfullyScheduledSms.sendSMSToAttendees();
 };
@@ -305,7 +315,8 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
 
 const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hasRelevantSmsWorkflow = false
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -330,6 +341,14 @@ const _sendRescheduledEmailsAndSMS = async (
     );
   }
 
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
   await Promise.all(emailsToSend);
   const successfullyReScheduledSms = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSms.sendSMSToAttendees();
@@ -457,7 +476,8 @@ export const sendOrganizerRequestEmail = withReporting(
 const _sendAttendeeRequestEmailAndSMS = async (
   calEvent: CalendarEvent,
   attendee: Person,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hasRelevantSmsWorkflow = false
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
 
@@ -488,6 +508,7 @@ export const sendDeclinedEmailsAndSMS = async (
   );
 
   await Promise.all(emailsToSend);
+
   const eventDeclindedSms = new EventDeclinedSMS(calEvent);
   await eventDeclindedSms.sendSMSToAttendees();
 };
@@ -495,7 +516,8 @@ export const sendDeclinedEmailsAndSMS = async (
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject: Pick<EventNameObjectType, "eventName">,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  hasRelevantSmsWorkflow = false
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
@@ -571,7 +593,14 @@ export const sendCancelledEmailsAndSMS = async (
       })
     );
   }
-
+  /// return early if SMS workflow already exists OR email field is enabled
+  if (
+    hasRelevantSmsWorkflow ||
+    (Array.isArray(calEvent.bookingFields) &&
+      calEvent.bookingFields.some((field) => field.type === "email" && !field.hidden))
+  ) {
+    return;
+  }
   await Promise.all(emailsToSend);
 
   const eventCancelledSms = new EventCancelledSMS(calEvent);

@@ -1,5 +1,13 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@calid/features/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+  DialogClose,
+} from "@calid/features/ui/components/dialog";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 
@@ -83,10 +91,12 @@ const TravelScheduleModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent description={t("travel_schedule_description")} type="creation">
-        <div>
+      <DialogContent>
+        <DialogHeader showIcon={true} iconName="plane" iconVariant="info">
           <DialogTitle>{t("travel_schedule")}</DialogTitle>
-
+          <DialogDescription>{t("travel_schedule_description")}</DialogDescription>
+        </DialogHeader>
+        <div>
           {!isNoEndDate ? (
             <>
               <Label className="mt-6">{t("time_range")}</Label>
@@ -135,12 +145,14 @@ const TravelScheduleModal = ({
             id="timeZone"
             value={selectedTimeZone}
             onChange={({ value }) => setSelectedTimeZone(value)}
-            className="mb-11 mt-2 w-full rounded-md text-sm"
+            className="mt-2 w-full rounded-md text-sm"
           />
         </div>
-        <DialogFooter showDivider className="relative">
+        <DialogFooter>
+          <DialogClose />
           <Button
             disabled={isNoEndDate ? !startDate : !startDate || !endDate}
+            StartIcon="check"
             onClick={() => {
               createNewSchedule();
             }}>

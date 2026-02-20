@@ -33,7 +33,8 @@ export async function checkRegularUsername(_username: string, currentOrgDomain?:
       where: {
         username,
         organizationId: null,
-        OR: [{ locked: false }, { locked: true }],
+        // TODO: It will be commented out later when the username/unavailable page will be created.
+        // OR: [{ locked: false }, { locked: true }],
       },
       select: {
         id: true,

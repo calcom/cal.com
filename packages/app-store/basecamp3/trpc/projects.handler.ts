@@ -21,6 +21,7 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
   const credential = await prisma.credential.findFirst({
     where: {
       userId: user?.id,
+      appId: "basecamp3",
     },
     select: credentialForCalendarServiceSelect,
   });
@@ -29,7 +30,7 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
   }
   let credentialKey = credential.key as BasecampToken;
   if (!credentialKey.account) {
-    return;
+    return { currentProject: null, projects: [] };
   }
 
   if (credentialKey.expires_at < Date.now()) {
@@ -41,6 +42,15 @@ export const projectHandler = async ({ ctx }: ProjectsHandlerOptions) => {
   const resp = await fetch(url, {
     headers: { "User-Agent": user_agent as string, Authorization: `Bearer ${credentialKey.access_token}` },
   });
+  if (!resp.ok) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to fetch Basecamp projects",
+    });
+  }
   const projects = await resp.json();
-  return { currentProject: credentialKey.projectId, projects };
+  return {
+    currentProject: credentialKey.projectId ?? null,
+    projects: Array.isArray(projects) ? projects : [],
+  };
 };

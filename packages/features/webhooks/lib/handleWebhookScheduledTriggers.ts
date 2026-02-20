@@ -25,7 +25,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
   const jobsToRun = await prisma.webhookScheduledTriggers.findMany({
     where: {
       startAfter: {
-        lte: dayjs().add(20, "minute").toISOString(),
+        lte: dayjs().add(1, "hour").toISOString(),
         gte: dayjs().subtract(1, "day").toDate(),
       },
       scheduled: false,

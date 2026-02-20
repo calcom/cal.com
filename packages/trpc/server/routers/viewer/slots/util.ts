@@ -1,4 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
+import { createHash } from "crypto";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -67,6 +68,32 @@ const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
+};
+
+const getStableSlotScore = (eventTypeId: number, time: string) => {
+  const hash = createHash("sha256").update(`${eventTypeId}:${time}`).digest("hex");
+  return parseInt(hash.slice(0, 8), 16);
+};
+
+const selectShowBusySlotsForDate = <T extends { time: string }>(
+  slots: T[],
+  eventTypeId: number,
+  percent: number
+) => {
+  const clampedPercent = Math.min(100, Math.max(0, percent));
+  const targetCount = Math.max(1, Math.ceil((slots.length * clampedPercent) / 100));
+  const scored = slots
+    .map((slot) => ({
+      time: slot.time,
+      score: getStableSlotScore(eventTypeId, slot.time),
+    }))
+    .sort((a, b) => a.score - b.score);
+
+  const keepTimes = scored.slice(0, targetCount).map((slot) => slot.time);
+  const keepSet = new Set(keepTimes);
+  const keptSlots = slots.filter((slot) => keepSet.has(slot.time));
+
+  return { keptSlots, keepTimes };
 };
 
 export interface IGetAvailableSlots {
@@ -1361,9 +1388,83 @@ export class AvailableSlotsService {
       "mapWithinBoundsSlotsToDate"
     );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
+    const showBusyPercent = eventType.showBusyPercent ?? undefined;
+    const storedShowBusySlots = (eventType.showBusySlots || {}) as Record<string, string[]>;
+    let didUpdateStoredSlots = false;
+
+    const resolveShowBusyWindow = () => {
+      const rawDays = eventType.showBusyWindowDays;
+      const windowDays =
+        typeof rawDays === "number" && Number.isFinite(rawDays) ? Math.min(30, Math.max(1, rawDays)) : 7;
+      const windowType = eventType.showBusyWindowType === "calendar" ? "calendar" : "business";
+      const tz = input.timeZone || eventType.timeZone || "Etc/GMT";
+      const today = dayjs().tz(tz).startOf("day");
+      const dateKeys: string[] = [];
+      let cursor = today;
+      while (dateKeys.length < windowDays) {
+        const isWeekend = cursor.day() === 0 || cursor.day() === 6;
+        if (windowType === "calendar" || !isWeekend) {
+          dateKeys.push(cursor.format("YYYY-MM-DD"));
+        }
+        cursor = cursor.add(1, "day");
+      }
+      return { dateKeys, windowType, windowDays };
+    };
+
+    const showBusyWindow = eventType.showBusy ? resolveShowBusyWindow() : null;
+    const showBusyWindowSet = showBusyWindow ? new Set(showBusyWindow.dateKeys) : null;
+
+    if (showBusyWindowSet) {
+      const nextStored: typeof storedShowBusySlots = {};
+      for (const [dateKey, times] of Object.entries(storedShowBusySlots)) {
+        if (showBusyWindowSet.has(dateKey)) {
+          nextStored[dateKey] = times;
+        } else {
+          didUpdateStoredSlots = true;
+        }
+      }
+      Object.keys(storedShowBusySlots).forEach((key) => {
+        if (!nextStored[key]) delete storedShowBusySlots[key];
+      });
+      Object.assign(storedShowBusySlots, nextStored);
+    }
+
+    const finalSlotsMappedToDate =
+      eventType.showBusy && typeof showBusyPercent === "number"
+        ? Object.entries(withinBoundsSlotsMappedToDate).reduce((acc, [date, slots]) => {
+            if (!slots.length) return acc;
+            if (showBusyWindowSet && !showBusyWindowSet.has(date)) {
+              acc[date] = slots;
+              return acc;
+            }
+
+            const storedTimes = storedShowBusySlots[date];
+            if (storedTimes?.length) {
+              const storedSet = new Set(storedTimes);
+              const keptSlots = slots.filter((slot) => storedSet.has(slot.time));
+              if (keptSlots.length) acc[date] = keptSlots;
+              return acc;
+            }
+
+            const { keptSlots, keepTimes } = selectShowBusySlotsForDate(slots, eventType.id, showBusyPercent);
+            storedShowBusySlots[date] = keepTimes;
+            didUpdateStoredSlots = true;
+            if (keptSlots.length) acc[date] = keptSlots;
+            return acc;
+          }, {} as typeof withinBoundsSlotsMappedToDate)
+        : withinBoundsSlotsMappedToDate;
+
+    if (didUpdateStoredSlots && ctx?.prisma) {
+      await ctx.prisma.eventType.update({
+        where: { id: eventType.id },
+        data: {
+          showBusySlots: storedShowBusySlots,
+        },
+      });
+    }
 
     // We only want to run this on single targeted events and not dynamic
-    if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    if (!Object.keys(finalSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
         // TODO: DI handleNotificationWhenNoSlots
         await handleNotificationWhenNoSlots({
@@ -1406,7 +1507,7 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: finalSlotsMappedToDate,
       ...troubleshooterData,
     };
   }

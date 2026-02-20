@@ -58,6 +58,7 @@ export const bookingSelect = {
   },
   eventType: {
     select: {
+      title: true,
       slug: true,
       id: true,
       schedulingType: true,
@@ -465,14 +466,14 @@ export async function scheduleCalIdWorkflowNotifications({
   const bookingsToScheduleNotifications = await getCalIdBookings(activeOn, alreadyScheduledActiveOnIds);
 
   await scheduleCalIdBookingReminders(
-    workflow,
     bookingsToScheduleNotifications,
     workflowSteps,
     time,
     timeUnit,
     trigger,
     userId,
-    calIdTeamId
+    calIdTeamId,
+    workflow
   );
 }
 
@@ -516,13 +517,23 @@ export async function scheduleCalIdBookingReminders(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  calIdTeamId: number | null
+  calIdTeamId: number | null,
+  workflow?: CalIdWorkflow
 ) {
   if (!bookings || !bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
 
   // For CalId workflows, we don't use organization concept
   const bookerUrl = await getBookerBaseUrl(null);
+
+  console.log("Scheduling CalId booking reminders for bookings:", {
+    bookingIds: bookings.map((b) => b.uid),
+    workflowId: workflow?.id,
+    trigger,
+    time,
+    timeUnit,
+    workflowSteps: workflowSteps.map((step) => JSON.stringify(step)),
+  });
 
   //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
@@ -554,6 +565,7 @@ export async function scheduleCalIdBookingReminders(
         language: { locale: booking?.user?.locale || defaultLocale },
         hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
         eventType: {
+          title: booking.eventType?.title || "",
           slug: booking.eventType?.slug || "",
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
@@ -703,6 +715,34 @@ export function isCalIdStepEdited(oldStep: CalIdWorkflowStep, newStep: CalIdWork
     }
   }
 
+  return false;
+}
+
+export function isCalIdStepFieldsEdited(oldStep: CalIdWorkflowStep, newStep: CalIdWorkflowStep) {
+  // Only compare fields that can actually be edited
+  const fieldsToCompare = [
+    "action",
+    "workflowId",
+    "sendTo",
+    "reminderBody",
+    "emailSubject",
+    "template",
+    "metaTemplateName",
+    "metaTemplatePhoneNumberId",
+    "numberRequired",
+    "sender",
+    "includeCalendarEvent",
+  ] as const;
+
+  for (const key of fieldsToCompare) {
+    if (key === "reminderBody" && newStep.template !== WorkflowTemplates.CUSTOM) {
+      continue;
+    }
+
+    if (oldStep[key] !== newStep[key]) {
+      return true;
+    }
+  }
   return false;
 }
 

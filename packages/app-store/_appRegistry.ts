@@ -62,7 +62,11 @@ export async function getAppRegistry() {
   return apps;
 }
 
-export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
+export async function getAppRegistryWithCredentials(
+  userId: number,
+  userAdminTeams: UserAdminTeams = [],
+  userCalIdAdminTeams: number[] = []
+) {
   // Get teamIds to grab existing credentials
 
   const dbApps = await prisma.app.findMany({
@@ -70,7 +74,9 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     select: {
       ...safeAppSelect,
       credentials: {
-        where: { OR: [{ userId }, { teamId: { in: userAdminTeams } }] },
+        where: {
+          OR: [{ userId }, { teamId: { in: userAdminTeams } }, { calIdTeamId: { in: userCalIdAdminTeams } }],
+        },
         select: safeCredentialSelect,
       },
     },

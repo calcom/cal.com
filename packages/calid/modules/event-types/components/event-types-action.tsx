@@ -13,12 +13,13 @@ import { Switch } from "@calid/features/ui/components/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 import type { DeleteDialogState } from "../types/event-types";
@@ -51,6 +52,9 @@ export const EventTypeActions = ({
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
+
+  const watchPeriodType = useWatch({ control: form.control, name: "periodType" });
+  const watchPeriodDates = useWatch({ control: form.control, name: "periodDates" });
 
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
     open: false,
@@ -116,6 +120,12 @@ export const EventTypeActions = ({
       const formIsDirty = form?.formState?.isDirty || false;
       if (!formIsDirty) return false;
 
+      const showBusy = form?.getValues("showBusy") === true;
+      const showBusyPercent = form?.getValues("showBusyPercent");
+      if (showBusy && (showBusyPercent === undefined || showBusyPercent === null)) {
+        return false;
+      }
+
       // Check if current values actually differ from default values
       const currentValues = form.getValues();
       const defaultValues = form.formState.defaultValues;
@@ -159,7 +169,13 @@ export const EventTypeActions = ({
         }
 
         // Special handling for Apps tab metadata to fix toggle reset issue
-        if (key === "metadata" && currentValue && defaultValue) {
+        if (key === "metadata") {
+          const metadata = (currentValue as Record<string, unknown>) || {};
+
+          if (!currentValue || !defaultValue) {
+            return JSON.stringify(currentValue) !== JSON.stringify(defaultValue);
+          }
+
           const currentMetadata = currentValue as Record<string, unknown>;
           const defaultMetadata = defaultValue as Record<string, unknown>;
           const currentApps = (currentMetadata?.apps as Record<string, unknown>) || {};
@@ -194,6 +210,15 @@ export const EventTypeActions = ({
       });
 
       return hasActualChanges;
+    } catch (error) {
+      return false;
+    }
+  })();
+
+  const isRangeMissingDates = (() => {
+    try {
+      if (watchPeriodType !== PeriodType.RANGE) return false;
+      return !watchPeriodDates?.startDate || !watchPeriodDates?.endDate;
     } catch (error) {
       return false;
     }
@@ -323,7 +348,7 @@ export const EventTypeActions = ({
         type="button"
         loading={isUpdatePending}
         onClick={() => handleSubmit(form.getValues())}
-        disabled={!isFormDirty || isUpdatePending}
+        disabled={!isFormDirty || isUpdatePending || isRangeMissingDates}
         form="event-type-form">
         {t("save")}
       </Button>

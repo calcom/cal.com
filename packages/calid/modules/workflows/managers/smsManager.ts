@@ -16,6 +16,7 @@ import * as smsService from "../providers/messaging/dispatcher";
 import type { VariablesType } from "../templates/customTemplate";
 import customTemplate from "../templates/customTemplate";
 import { getSenderId } from "../utils/getSenderId";
+import wordTruncate from "../utils/getTruncatedString";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
@@ -153,7 +154,7 @@ const buildMessageVariables = (
 
 const getEventTitleFromBookingTitle = (str: string) => {
   const match = str.match(/^(.*?)\s+between\b/i);
-  return match ? match[1].trim() : "";
+  return match ? match[1].trim() : str;
 };
 
 const generateMessageContent = (
@@ -193,7 +194,11 @@ const generateMessageContent = (
     const senderName =
       actionType === WorkflowActions.SMS_ATTENDEE ? eventDetails.organizer.name : targetParticipant.name;
     // const eventTitle = eventDetails.title;
-    const eventTitle = `${eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title)}`;
+    const eventTitle = wordTruncate(
+      (eventDetails.eventType.title ?? getEventTitleFromBookingTitle(eventDetails.title))
+        .trim()
+        .replace(/"/g, "")
+    );
 
     // Format date and time according to recipient's locale and timezone
     const eventMoment = dayjs(eventDetails.startTime).tz(recipientTimezone).locale(recipientLocale);
@@ -206,7 +211,7 @@ const generateMessageContent = (
       defaultTemplate,
       recipientName.split(" ")[0],
       senderName.split(" ")[0],
-      eventTitle.trim().replace(/"/g, ""),
+      eventTitle,
       formattedDate,
       formattedTime,
       localizedRecipientTimezone

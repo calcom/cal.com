@@ -1,11 +1,10 @@
 // meta.ts
+import type { Prisma } from "@prisma/client";
+import type { Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
-import type { Prisma } from "@prisma/client";
-
-
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -16,12 +15,11 @@ import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
+import wordTruncate from "../utils/getTruncatedString";
 import { defaultTemplateNamesMap, defaultTemplateComponentsMap } from "./meta_default_templates";
-
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 // Meta error is retriable, other errors shouldn't be retried by inngest else we risk spamming
 export class MetaError extends Error {
@@ -204,23 +202,21 @@ const extractTemplateVariables = (
   orderedParams.forEach((paramName) => {
     // Convert snake_case to camelCase for looking up in variableData
     const camelCaseKey = snakeToCamel(paramName);
-    const fieldValue = variableData[camelCaseKey as keyof VariablesType];
+    const fieldValue = variableData[camelCaseKey as keyof VariablesType] ?? "";
 
     // Only include if the value exists and is not undefined
-    if (fieldValue !== undefined) {
-      if (isNamedParams) {
-        // Keep snake_case for Meta API parameter_name
-        parameters.push({
-          type: "text",
-          parameter_name: paramName, // Use original snake_case name
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      } else {
-        parameters.push({
-          type: "text",
-          text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
-        });
-      }
+    if (isNamedParams) {
+      // Keep snake_case for Meta API parameter_name
+      parameters.push({
+        type: "text",
+        parameter_name: paramName, // Use original snake_case name
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
+    } else {
+      parameters.push({
+        type: "text",
+        text: String(fieldValue).trim() === "" ? "NA" : String(fieldValue),
+      });
     }
   });
 
@@ -318,7 +314,7 @@ const calculateSuffixLength = (templateText: string, variableName: string): numb
 const getCappedVariables = (
   component: TemplateComponent,
   expandedVariables: ExpandedVariablesType,
-  maxTotalLength: number = 60
+  maxTotalLength = 60
 ): ExpandedVariablesType => {
   if (!component.text) return expandedVariables;
 
@@ -342,48 +338,14 @@ const getCappedVariables = (
   };
 };
 
-function wordTruncate(text, maxLength) {
-  if (text.length <= maxLength + 3 /* exclude ellipsis when comparing original text length */) {
-    return text;
+function formatTimeInTimezone(value: string | Dayjs | undefined | null, timezone: string, format = "h:mma") {
+  if (!value) return undefined;
+
+  if (typeof value === "string") {
+    return dayjs.utc(value).tz(timezone).format(format);
   }
 
-  // Check if text contains spaces or hyphens
-  const hasSpaces = text.includes(" ");
-  const hasHyphens = text.includes("-");
-
-  if (!hasSpaces && !hasHyphens) {
-    // No delimiters, just truncate by character count
-    return text.slice(0, maxLength) + "...";
-  }
-
-  // Determine delimiter (prioritize spaces over hyphens)
-  const delimiter = hasSpaces ? " " : "-";
-
-  // Split by delimiter and build truncated string word by word
-  const words = text.split(delimiter);
-  let result = "";
-
-  for (let i = 0; i < words.length; i++) {
-    const candidate = i === 0 ? words[i] : result + delimiter + words[i];
-
-    if (candidate.length > maxLength) {
-      break;
-    }
-    result = candidate;
-  }
-
-  // If we couldn't fit even the first word, truncate by character
-  if (!result) {
-    return text.slice(0, maxLength) + "...";
-  }
-
-  // Remove trailing delimiter and any non-alphabetic characters at the end
-  result = result.replace(/[^a-zA-Z]+$/, "");
-
-  // Remove leading non-alphabetic characters at the beginning
-  result = result.replace(/^[^a-zA-Z]+/, "");
-
-  return result + "...";
+  return value.format(format);
 }
 
 // Update the buildMetaTemplateComponentsFromTemplate function
@@ -404,14 +366,20 @@ export const buildMetaTemplateComponentsFromTemplate = async (
 > => {
   const expandedVariables = {
     ...variableData,
-    eventStartTimeInAttendeeTimezone:
-      typeof variableData.eventStartTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
-        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
-    eventEndTimeInAttendeeTimezone:
-      typeof variableData.eventEndTimeInAttendeeTimezone === "string"
-        ? dayjs.utc(variableData.eventStartTimeInAttendeeTimezone).tz(variableData.attendeeTimezone).format("h:mma")
-        : variableData.eventStartTimeInAttendeeTimezone?.format("h:mma"),
+    eventStartTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventStartTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventEndTimeInAttendeeTimezone: formatTimeInTimezone(
+      variableData.eventEndTimeInAttendeeTimezone,
+      variableData.attendeeTimezone
+    ),
+
+    eventStartTime: formatTimeInTimezone(variableData.eventStartTime, variableData.timezone),
+
+    eventEndTime: formatTimeInTimezone(variableData.eventEndTime, variableData.timezone),
+
     recipientName:
       recieverType === "attendee" ? variableData.attendeeFirstName : variableData.organizerFirstName,
     senderName:
@@ -513,7 +481,6 @@ export const buildMetaTemplateComponentsFromTemplate = async (
     // Handle BODY component
     if (component.type === "BODY" && component.text) {
       const bodyParams = extractTemplateVariables(component, expandedVariables, isNamedParams);
-      console.log("body params: ", bodyParams);
       if (bodyParams.length > 0) {
         components.push({
           type: "body",
@@ -824,6 +791,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
       workflowStepId: config.workflowStepId,
       method: "WHATSAPP",
       seatReferenceId: config.seatReferenceUid || null,
+      OR: [{ cancelled: false }, { cancelled: null }],
     },
   });
 
@@ -877,10 +845,6 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
 
   // Schedule with Inngest
   try {
-    console.log(
-      "Sending Inngest scheduling event for WhatsApp reminder: ",
-      delay > 0 ? now.getTime() + delay : undefined
-    );
     const { ids } = await inngestClient.send({
       name: `whatsapp/reminder.scheduled-${key}`,
       data: {

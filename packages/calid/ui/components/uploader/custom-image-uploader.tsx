@@ -1,4 +1,3 @@
-// Custom Image Uploader
 "use client";
 
 import { useCallback, useState } from "react";
@@ -16,16 +15,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../dialog";
 import { triggerToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./common";
 import type { FileEvent, Area } from "./common";
-
-// Custom Image Uploader
-
-// Custom Image Uploader
-
-const MAX_IMAGE_SIZE = 512;
 
 type ImageUploaderProps = {
   id: string;
@@ -40,9 +34,9 @@ type ImageUploaderProps = {
   disabled?: boolean;
   testId?: string;
   startIcon?: ButtonProps["StartIcon"];
+  fileSize?: number;
 };
 
-// This is separate to prevent loading the component until file upload
 function CropContainer({
   onCropComplete,
   imageSrc,
@@ -96,6 +90,7 @@ export default function ImageUploader({
   testId,
   buttonSize,
   startIcon,
+  fileSize,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -109,7 +104,7 @@ export default function ImageUploader({
       return;
     }
 
-    const limit = 5 * 1000000; // max limit 5mb
+    const limit = fileSize ? fileSize * 1000000 : 5 * 1000000;
     const file = e.target.files[0];
 
     if (file.size > limit) {
@@ -123,10 +118,7 @@ export default function ImageUploader({
     async (croppedAreaPixels: Area | null) => {
       try {
         if (!croppedAreaPixels) return;
-        const croppedImage = await getCroppedImg(
-          result as string /* result is always string when using readAsDataUrl */,
-          croppedAreaPixels
-        );
+        const croppedImage = await getCroppedImg(result as string, croppedAreaPixels);
         handleAvatarChange(croppedImage);
       } catch (e) {
         console.error(e);
@@ -163,13 +155,18 @@ export default function ImageUploader({
         className="sm:w-[30rem] sm:max-w-[30rem]"
         title={t("upload_target", { fieldName })}
         enableOverflow={true}>
-        <DialogHeader>
+        <DialogHeader showIcon={true} iconName="wallpaper" iconVariant="info">
           <DialogTitle>{t("upload_target", { target: fieldName })}</DialogTitle>
+          <DialogDescription>
+            {t("image_limits_only_size", {
+              size: fileSize,
+            })}
+          </DialogDescription>
         </DialogHeader>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="bg-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
+              <div className="bg-subtle border-default flex h-20 max-h-20 w-20 items-center justify-start rounded-full border">
                 {!imageSrc || checkIfItFallbackImage(imageSrc) ? (
                   <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                     {t("no_target", { target })}
@@ -183,13 +180,13 @@ export default function ImageUploader({
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
               data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
-              className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              className="border-default bg-subtle hover:bg-muted hover:text-emphasis text-default mt-8 cursor-pointer rounded-md border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="text-default pointer-events-none absolute mt-4 opacity-0 "
+                className="text-default pointer-events-none absolute mt-4 opacity-0"
                 accept="image/*"
               />
               {t("choose_a_file")}
@@ -203,6 +200,7 @@ export default function ImageUploader({
           <DialogClose />
           <Button
             data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+            StartIcon="check"
             color="primary"
             onClick={() => {
               showCroppedImage(croppedAreaPixels);
@@ -217,12 +215,12 @@ export default function ImageUploader({
 }
 
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
+  const MAX_IMAGE_SIZE = 512;
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
-  // Detect original image format from data URL
   const originalFormat =
     imageSrc.startsWith("data:image/jpeg") || imageSrc.startsWith("data:image/jpg")
       ? "image/jpeg"
@@ -260,6 +258,5 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
     });
   }
 
-  // Use original format with quality setting for JPEG
   return canvas.toDataURL(originalFormat, originalFormat === "image/jpeg" ? 0.9 : undefined);
 }

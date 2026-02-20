@@ -30,12 +30,12 @@ const { Cell, ColumnTitle, Header, Row } = Table;
 
 const DEFAULT_PAGE_SIZE = 25;
 const ROLE_FILTER_OPTIONS = [
-  { value: "ALL", label: "All roles" },
+  { value: "ALL", label: "All" },
   { value: "USER", label: "User" },
   { value: "ADMIN", label: "Admin" },
 ];
 const STATUS_FILTER_OPTIONS = [
-  { value: "ALL", label: "All statuses" },
+  { value: "ALL", label: "All" },
   { value: "UNLOCKED", label: "Unlocked" },
   { value: "LOCKED", label: "Locked" },
 ];
@@ -200,7 +200,7 @@ export const AdminUsersTable = () => {
         }
       `}</style>
       <TextField
-        placeholder="username or email"
+        placeholder="Username or Email"
         label="Search"
         className="mb-3"
         onChange={(event) => setSearchTerm(event.target.value)}
@@ -210,14 +210,14 @@ export const AdminUsersTable = () => {
           <Header>
             <ColumnTitle widthClassNames="w-auto">
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-0">
                   <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                     User
                   </span>
                   <div className="relative" ref={userSortRef}>
                     <button
                       type="button"
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                      className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                         sortBy === "name" || sortBy === "email"
                           ? "text-default border-subtle"
                           : "text-subtle hover:text-default border-transparent"
@@ -233,43 +233,83 @@ export const AdminUsersTable = () => {
                       <div className="bg-default border-subtle absolute left-0 z-20 mt-2 w-44 rounded-md border p-1 shadow-md">
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("name");
-                            setSortDir("asc");
+                            if (sortBy === "name" && sortDir === "asc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("name");
+                              setSortDir("asc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Name - A to Z
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "name" && sortDir === "asc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Name - A to Z</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("email");
-                            setSortDir("asc");
+                            if (sortBy === "email" && sortDir === "asc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("email");
+                              setSortDir("asc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Email - A to Z
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "email" && sortDir === "asc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Email - A to Z</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("name");
-                            setSortDir("desc");
+                            if (sortBy === "name" && sortDir === "desc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("name");
+                              setSortDir("desc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Name - Z to A
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "name" && sortDir === "desc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Name - Z to A</span>
                         </button>
                         <button
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
-                            setSortBy("email");
-                            setSortDir("desc");
+                            if (sortBy === "email" && sortDir === "desc") {
+                              setSortBy(null);
+                              setSortDir("asc");
+                            } else {
+                              setSortBy("email");
+                              setSortDir("desc");
+                            }
                             setUserSortOpen(false);
                           }}>
-                          Email - Z to A
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {sortBy === "email" && sortDir === "desc" ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>Email - Z to A</span>
                         </button>
                       </div>
                     )}
@@ -283,14 +323,14 @@ export const AdminUsersTable = () => {
               </span>
             </ColumnTitle>
             <ColumnTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0">
                 <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                   Role
                 </span>
                 <div className="relative" ref={roleFilterRef}>
                   <button
                     type="button"
-                    className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                    className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                       roleFilter
                         ? "text-default border-subtle"
                         : "text-subtle hover:text-default border-transparent"
@@ -308,13 +348,19 @@ export const AdminUsersTable = () => {
                         <button
                           key={option.value}
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
                             const value = option.value ?? "ALL";
                             setRoleFilter(value === "ALL" ? null : (value as "ADMIN" | "USER"));
                             setRoleFilterOpen(false);
                           }}>
-                          {option.label}
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {(option.value === "ALL" && roleFilter === null) ||
+                            (option.value !== "ALL" && roleFilter === option.value) ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>{option.label}</span>
                         </button>
                       ))}
                     </div>
@@ -323,14 +369,14 @@ export const AdminUsersTable = () => {
               </div>
             </ColumnTitle>
             <ColumnTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0">
                 <span className="bg-subtle/60 text-muted inline-flex w-fit rounded px-2 py-1 text-[11px] font-semibold uppercase">
                   Status
                 </span>
                 <div className="relative" ref={statusFilterRef}>
                   <button
                     type="button"
-                    className={`inline-flex h-6 w-6 items-center justify-center rounded border text-[11px] ${
+                    className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
                       statusFilter
                         ? "text-default border-subtle"
                         : "text-subtle hover:text-default border-transparent"
@@ -348,13 +394,19 @@ export const AdminUsersTable = () => {
                         <button
                           key={option.value}
                           type="button"
-                          className="text-default hover:bg-subtle w-full rounded px-2 py-1 text-left text-xs"
+                          className="text-default hover:bg-subtle flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs"
                           onClick={() => {
                             const value = option.value ?? "ALL";
                             setStatusFilter(value === "ALL" ? null : (value as "LOCKED" | "UNLOCKED"));
                             setStatusFilterOpen(false);
                           }}>
-                          {option.label}
+                          <span className="flex h-4 w-4 items-center justify-center">
+                            {(option.value === "ALL" && statusFilter === null) ||
+                            (option.value !== "ALL" && statusFilter === option.value) ? (
+                              <Icon name="check" className="text-default h-3 w-3" />
+                            ) : null}
+                          </span>
+                          <span>{option.label}</span>
                         </button>
                       ))}
                     </div>
@@ -363,13 +415,24 @@ export const AdminUsersTable = () => {
               </div>
             </ColumnTitle>
             <ColumnTitle>
-              <button
-                type="button"
-                className="bg-subtle/60 text-muted inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-semibold uppercase"
-                onClick={() => toggleSort("createdDate")}>
-                Created
-                <Icon name={getSortIcon("createdDate")} className="h-3 w-3" />
-              </button>
+              <div className="flex items-center gap-0">
+                <button
+                  type="button"
+                  className="bg-subtle/60 text-muted inline-flex items-center gap-0 rounded px-2 py-1 text-[11px] font-semibold uppercase"
+                  onClick={() => toggleSort("createdDate")}>
+                  Created
+                </button>
+                <button
+                  type="button"
+                  className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded border text-[11px] ${
+                    sortBy === "createdDate"
+                      ? "text-default border-subtle"
+                      : "text-subtle hover:text-default border-transparent"
+                  }`}
+                  onClick={() => toggleSort("createdDate")}>
+                  <Icon name={getSortIcon("createdDate")} className="h-3 w-3" />
+                </button>
+              </div>
             </ColumnTitle>
             <ColumnTitle>
               <span className="bg-subtle/60 text-muted inline-flex rounded px-2 py-1 text-[11px] font-semibold uppercase">
@@ -413,7 +476,9 @@ export const AdminUsersTable = () => {
                 <Cell>
                   <span
                     className={
-                      user.role === "ADMIN" ? "font-semibold text-red-600" : "text-default font-medium"
+                      user.role === "ADMIN"
+                        ? "text-default rounded bg-red-100 px-2 py-1 text-xs font-semibold"
+                        : "text-default rounded bg-gray-100 px-2 py-1 text-xs font-semibold"
                     }>
                     {user.role === "ADMIN" ? "Admin" : "User"}
                   </span>

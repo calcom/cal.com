@@ -1,42 +1,54 @@
 import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+import { Form, FormField } from "@calid/features/ui/components/form/form";
+import { Icon } from "@calid/features/ui/components/icon";
+import { CheckboxField } from "@calid/features/ui/components/input/checkbox-field";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button } from "@calcom/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/dialog";
-import { CheckboxField } from "@calcom/ui/form/checkbox";
 
-// Add timezone support
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-interface CancelInstanceDate {
-  date: string;
-  isSelected: boolean;
-}
+type EventType = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number]["eventType"];
 
-interface CancelInstancesDialogProps {
-  isOpenDialog: boolean;
-  setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUid: string;
+export type RescheduleInstanceDialogProps = {
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
   recurringEvent: RecurringEvent;
   eventStartTime: Date;
+  eventType?: EventType;
+  bookingUid?: string;
   userTimeZone: string;
   userTimeFormat: number | null;
-  onSubmitCancelInstances: (selectedDates: Date[]) => void;
+};
+
+interface RescheduleInstanceDate {
+  date: string;
+  isSelected: boolean;
+  instanceIndex: number;
 }
 
-/**
- * Validate and sanitize date input
- */
 const validateDate = (dateInput: string | Date): Date | null => {
   try {
     const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
@@ -51,51 +63,39 @@ const validateDate = (dateInput: string | Date): Date | null => {
   }
 };
 
-/**
- * CancelInstancesDialog Component
- *
- * Allows users to select and cancel specific instances of a recurring booking.
- * The backend will handle merging the selected dates with existing exDates.
- */
-export const CancelInstancesDialog = ({
-  isOpenDialog,
-  setIsOpenDialog,
-  bookingUid,
-  recurringEvent, // NEW: Structured object instead of string pattern
+export function RescheduleInstanceDialog({
+  isOpen,
+  setIsOpen,
+  recurringEvent,
   eventStartTime,
+  eventType,
+  bookingUid,
   userTimeZone,
   userTimeFormat,
-  onSubmitCancelInstances, // NEW: Only receives selectedDates
-}: CancelInstancesDialogProps) => {
+}: RescheduleInstanceDialogProps) {
+  const { t } = useLocale();
+  const session = useSession();
+  const router = useRouter();
   const now = useMemo(() => new Date(), []);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Validate event start time
   const validatedEventStartTime = useMemo(() => {
     const validDate = validateDate(eventStartTime);
     if (!validDate) {
       console.error("Invalid eventStartTime provided:", eventStartTime);
-      return new Date(); // Fallback to current date
+      return new Date();
     }
     return validDate;
   }, [eventStartTime]);
 
-  // NEW: Generate all recurring dates from recurringEvent object
-  // This uses the same logic as the backend to ensure consistency
   const allRecurringDates = useMemo(() => {
     if (!recurringEvent || typeof recurringEvent.freq === "undefined") {
       console.warn("No valid recurringEvent provided");
       return [];
     }
-    console.log(
-      "Generating recurring instances for:",
-      JSON.stringify(recurringEvent),
-      validatedEventStartTime
-    );
     return generateRecurringInstances(recurringEvent, validatedEventStartTime);
   }, [recurringEvent, validatedEventStartTime]);
 
-  // Filter to only show future dates (that can be cancelled)
   const futureDates = useMemo(() => {
     return allRecurringDates
       .filter((date) => {
@@ -103,24 +103,24 @@ export const CancelInstancesDialog = ({
         return validDate && validDate > now;
       })
       .sort((a, b) => a.getTime() - b.getTime())
-      .map((date) => ({
+      .map((date, index) => ({
         date: date.toISOString(),
         isSelected: false,
+        instanceIndex: index,
       }));
   }, [allRecurringDates, now]);
 
-  // Form setup
-  const { control, handleSubmit, watch } = useForm<{ instances: CancelInstanceDate[] }>({
+  const form = useForm<{ instances: RescheduleInstanceDate[] }>({
     defaultValues: { instances: futureDates },
     mode: "onBlur",
   });
 
+  const { control, watch, setValue } = form;
   const watchedInstances = watch("instances");
   const isSubmitDisabled = !watchedInstances?.some((instance) => instance.isSelected);
 
   const { fields } = useFieldArray({ control, name: "instances" });
 
-  // Filter fields based on search query
   const filteredFields = useMemo(() => {
     if (!searchQuery.trim()) return fields;
 
@@ -134,78 +134,98 @@ export const CancelInstancesDialog = ({
     });
   }, [fields, searchQuery, userTimeZone, userTimeFormat]);
 
-  // Determine if we should show search and use scrollable area
   const shouldShowSearch = futureDates.length > 10;
   const shouldUseScrollArea = futureDates.length > 10;
 
-  // NEW: Simplified submit handler - only sends selectedDates
-  // Backend will handle merging with existing exDates internally
-  const handleCancel = (data: { instances: CancelInstanceDate[] }) => {
-    try {
-      const selectedDates = data.instances
-        .filter((item) => item.isSelected)
-        .map((item) => {
-          const date = validateDate(item.date);
-          if (!date) {
-            throw new Error(`Invalid date in selection: ${item.date}`);
-          }
-          return date;
-        })
-        .filter((date): date is Date => date !== null);
-
-      if (selectedDates.length === 0) {
-        console.warn("No valid dates selected for cancellation");
-        return;
-      }
-
-      // NEW: Only send selectedDates
-      // Backend will generate updated exDates by merging existing recurringEvent.exDates
-      // with the newly selected dates
-      onSubmitCancelInstances(selectedDates);
-      setIsOpenDialog(false);
-    } catch (error) {
-      console.error("Error in handleCancel:", error);
+  const handleCheckboxChange = (selectedIndex: number, checked: boolean) => {
+    if (checked) {
+      fields.forEach((_, index) => {
+        setValue(`instances.${index}.isSelected`, index === selectedIndex);
+      });
+    } else {
+      setValue(`instances.${selectedIndex}.isSelected`, false);
     }
   };
 
-  // Show warning if no future dates available to cancel
+  const handleReschedule = (data: { instances: RescheduleInstanceDate[] }) => {
+    try {
+      const selectedInstance = data.instances.find((item) => item.isSelected);
+
+      if (!selectedInstance) {
+        console.warn("No instance selected for rescheduling");
+        return;
+      }
+
+      const instanceDate = validateDate(selectedInstance.date);
+      if (!instanceDate) {
+        throw new Error(`Invalid date in selection: ${selectedInstance.date}`);
+      }
+
+      const params = new URLSearchParams();
+
+      params.set("rescheduleUid", bookingUid || "");
+
+      params.set("rescheduleInstanceDate", instanceDate.toISOString());
+
+      if (session?.data?.user?.email) {
+        params.set("rescheduledBy", session.data.user.email);
+      }
+
+      const queryString = params.toString();
+      const rescheduleUrl = `/reschedule/${bookingUid}?${queryString}`;
+
+      setIsOpen(false);
+
+      router.push(rescheduleUrl);
+    } catch (error) {
+      console.error("Error in handleReschedule:", error);
+    }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
   if (futureDates.length === 0) {
     return (
-      <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-        <DialogContent>
-          <DialogHeader title="Cancel Instance" subtitle="No future instances available to cancel" />
-          <DialogFooter>
-            <DialogClose className="border">Close</DialogClose>
-          </DialogFooter>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent showCloseButton={true}>
+          <DialogHeader>
+            <DialogTitle>Reschedule Instance</DialogTitle>
+            <DialogDescription>No future instances available to reschedule</DialogDescription>
+          </DialogHeader>
         </DialogContent>
       </Dialog>
     );
   }
 
   const renderCheckboxList = () => {
-    const checkboxes = filteredFields.map((field, index) => {
+    const checkboxes = filteredFields.map((field) => {
       const originalIndex = fields.findIndex((f) => f.id === field.id);
       const formatted = dayjs(field.date)
         .tz(userTimeZone)
         .format(userTimeFormat === 24 ? "dddd, D MMM YYYY HH:mm" : "dddd, D MMM YYYY h:mm A");
 
       return (
-        <Controller
+        <FormField
           key={field.id}
-          name={`instances.${originalIndex}.isSelected`}
           control={control}
-          render={({ field: { onChange, value } }) => (
-            <CheckboxField checked={value} description={formatted} onChange={() => onChange(!value)} />
+          name={`instances.${originalIndex}.isSelected`}
+          render={({ field: { value } }) => (
+            <CheckboxField
+              checked={value ?? false}
+              description={formatted}
+              onCheckedChange={(checked) => handleCheckboxChange(originalIndex, checked ?? false)}
+            />
           )}
         />
       );
     });
 
-    // Show a message when search returns no results
     if (searchQuery && filteredFields.length === 0) {
       return (
         <div className="py-8 text-center text-sm text-gray-500">
-          No instances found matching "{searchQuery}"
+          No instances found matching &quot;{searchQuery}&quot;
         </div>
       );
     }
@@ -214,12 +234,13 @@ export const CancelInstancesDialog = ({
   };
 
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent enableOverflow>
-        <DialogHeader title="Cancel Instance" subtitle="Select instances you want to cancel" />
-
-        <form>
-          {/* Search field - only show if list is long */}
+        <DialogHeader showIcon iconName="calendar-range" iconVariant="info">
+          <DialogTitle>{t("reschedule_instance")}</DialogTitle>
+          <DialogDescription>{t("reschedule_instance_description")}</DialogDescription>
+        </DialogHeader>
+        <Form id="reschedule-instance-form" form={form} onSubmit={handleReschedule}>
           {shouldShowSearch && (
             <div className="mb-4">
               <div className="relative">
@@ -241,24 +262,25 @@ export const CancelInstancesDialog = ({
             </div>
           )}
 
-          {/* Checkbox list - use ScrollArea if list is long */}
           {shouldUseScrollArea ? (
             <ScrollArea className="h-[400px] pr-3">{renderCheckboxList()}</ScrollArea>
           ) : (
             renderCheckboxList()
           )}
-        </form>
+        </Form>
 
         <DialogFooter>
+          <DialogClose />
           <Button
-            onClick={handleSubmit(handleCancel)}
+            type="submit"
+            form="reschedule-instance-form"
+            StartIcon="rotate-cw"
             disabled={isSubmitDisabled}
-            data-testid="delete-selected-instances">
-            Delete Selected
+            data-testid="reschedule-selected-instance">
+            {t("reschedule")}
           </Button>
-          <DialogClose className="border">Close</DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}

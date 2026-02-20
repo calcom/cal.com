@@ -22,7 +22,7 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField, PeriodType } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -108,6 +108,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       description: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      showBusy: true,
+      showBusyPercent: true,
+      showBusySlots: true,
+      showBusyWindowDays: true,
+      showBusyWindowType: true,
       maxActiveBookingsPerBooker: true,
       fieldTranslations: {
         select: {
@@ -206,6 +211,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
   }
 
+  const nextShowBusy = typeof rest.showBusy === "boolean" ? rest.showBusy : eventType.showBusy;
+  const nextShowBusyPercent =
+    typeof rest.showBusyPercent === "number" ? rest.showBusyPercent : eventType.showBusyPercent;
+  const nextShowBusyWindowDays =
+    typeof rest.showBusyWindowDays === "number" ? rest.showBusyWindowDays : eventType.showBusyWindowDays;
+  const nextShowBusyWindowType =
+    typeof rest.showBusyWindowType === "string" ? rest.showBusyWindowType : eventType.showBusyWindowType;
+  const shouldResetShowBusySlots =
+    nextShowBusy !== true ||
+    eventType.showBusy !== nextShowBusy ||
+    eventType.showBusyPercent !== nextShowBusyPercent ||
+    eventType.showBusyWindowDays !== nextShowBusyWindowDays ||
+    eventType.showBusyWindowType !== nextShowBusyWindowType;
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
@@ -226,10 +245,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //     : rest.maxLeadThreshold,
     calIdTeam: calIdTeamId ? { connect: { id: calIdTeamId } } : undefined,
   };
+  if (shouldResetShowBusySlots) {
+    data.showBusySlots = Prisma.DbNull;
+  }
   data.locations = locations ?? undefined;
 
   if (periodType) {
-    data.periodType = handlePeriodType(periodType);
+    const normalizedPeriodType = handlePeriodType(periodType);
+    data.periodType = normalizedPeriodType;
+    if (normalizedPeriodType === PeriodType.UNLIMITED) {
+      // Clear range-specific fields when future booking limit is turned off
+      data.periodStartDate = null;
+      data.periodEndDate = null;
+      data.periodDays = null;
+      data.periodCountCalendarDays = null;
+    }
   }
 
   if (recurringEvent) {

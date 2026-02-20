@@ -28,7 +28,6 @@ export const Profile = ({ small }: ProfileProps) => {
   const { t } = useLocale();
   const { data: user, isPending } = useMeQuery();
 
-  // Stop the dropdown from rendering if the user is not available.
   if (!user && !isPending) {
     return null;
   }

@@ -2,20 +2,15 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
-import { Checkbox } from "@calid/features/ui/components/input/checkbox-field";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
-
-import { MeetingNotesDialog } from "@components/dialog/MeetingNotesDialog";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][number];
 
@@ -26,12 +21,8 @@ export type BookingItemProps = BookingItem & {
 
 export function BookingExpandedCard(props: BookingItemProps) {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
-  const [showRTE, setShowRTE] = useState(false);
-  const { description: additionalNotes, id, startTime, endTime, responses } = props;
-
+  const { id, startTime, endTime, responses, rating, ratingFeedback } = props;
   const defaultFields = ["name", "email", "location", "title", "guests"];
-
   const bookingFields = props.eventType.bookingFields;
 
   const defaultLabels = {
@@ -62,12 +53,14 @@ export function BookingExpandedCard(props: BookingItemProps) {
     }
   }
 
-  const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
   const meetingNote =
     parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data.meetingNote : undefined;
   const [displayNotes, setDisplayNotes] = useState<string>(meetingNote || "");
-  const [editingNotes, setEditingNotes] = useState<string>(meetingNote || "");
+
+  useEffect(() => {
+    setDisplayNotes(meetingNote || "");
+  }, [meetingNote]);
 
   const hasMeetingNotesContent = (html: string | null | undefined): boolean => {
     if (!html) return false;
@@ -82,48 +75,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const spanRefs = useRef<{ [key: string]: HTMLSpanElement | null }>({});
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const saveNotesMutation = trpc.viewer.bookings.saveNote.useMutation({
-    onSuccess: async () => {
-      setDisplayNotes(editingNotes);
-      triggerToast(t("meeting_notes_saved"), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-  });
-
-  const handleMeetingNoteSave = async (): Promise<void> => {
-    await saveNotesMutation.mutate({ bookingId: props.id, meetingNote: editingNotes });
-  };
-
-  useEffect(() => {
-    if (showRTE) {
-      setEditingNotes(displayNotes);
-    }
-  }, [showRTE, displayNotes]);
-
-  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      triggerToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-    },
-    onError: (err) => {
-      triggerToast(err.message, "error");
-    },
-  });
-
   const { copyToClipboard } = useCopy();
-
-  const handleMarkNoShow = () => {
-    if (attendeeList.length === 1) {
-      const attendee = attendeeList[0];
-      noShowMutation.mutate({
-        bookingUid: props.uid,
-        attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-      });
-      return;
-    }
-    setIsNoShowDialogOpen(true);
-  };
 
   const firstAttendee = props.attendees[0];
 
@@ -139,27 +91,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   });
 
   const popupRef = useRef<HTMLDivElement>(null);
-
-  const attendeePhoneNo = isPrismaObjOrUndefined(responses)?.attendeePhoneNumber as string | undefined;
-  const openWhatsAppChat = (phoneNumber: string) => {
-    const width = 800;
-    const height = 600;
-    const left = (window.innerWidth - width) / 2;
-    const top = (window.innerHeight - height) / 2;
-    const options = `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes,status=1`;
-
-    const generateWhatsAppLink = (phoneNumber: string): string => {
-      const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
-      const urlEndcodedTextMessage = encodeURIComponent(
-        `Hi, I'm running late by 5 minutes. I'll be there soon.`
-      );
-
-      const whatsappLink = `https://api.whatsapp.com/send?phone=${cleanedPhoneNumber}&text=${urlEndcodedTextMessage}`;
-      return whatsappLink;
-    };
-    const url = generateWhatsAppLink(phoneNumber);
-    window.open(url, "_blank", options);
-  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -180,16 +111,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   return (
     <>
-      {isNoShowDialogOpen && (
-        <NoShowAttendeesDialog
-          bookingUid={props.uid}
-          closeNoShowDialog={() => setIsNoShowDialogOpen(false)}
-          attendees={attendeeList}
-        />
-      )}
-
       <div
-        className="animate-fade-in border-muted bg-muted rounded-b-lg border-t"
+        className="animate-fade-in bg-default border-default rounded-b-lg border-t"
         onClick={(e) => e.stopPropagation()}>
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2 lg:gap-8">
           <div className="space-y-4">
@@ -202,34 +125,36 @@ export function BookingExpandedCard(props: BookingItemProps) {
               </div>
             </div>
 
-            <div>
-              <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
-              <div className="text-default flex flex-wrap items-center gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="truncate sm:max-w-[200px]">{firstAttendee?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee?.timeZone}</span>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="inline">•</span>
-                  <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee?.email}</span>
-                  <Button
-                    StartIcon="copy"
-                    color="minimal"
-                    variant="icon"
-                    size="xs"
-                    onClick={() => {
-                      copyToClipboard(firstAttendee?.email || "");
-                      triggerToast(t("email_copied"), "success");
-                    }}
-                    aria-label="Copy email"
-                  />
+            {firstAttendee && (
+              <div>
+                <h3 className="text-default text-sm font-medium">{t("invitee_details")}</h3>
+                <div className="text-default flex flex-wrap items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="truncate sm:max-w-[200px]">{firstAttendee.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-words sm:max-w-[180px] sm:truncate">{firstAttendee.timeZone}</span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="inline">•</span>
+                    <span className="break-all sm:max-w-[240px] sm:truncate">{firstAttendee.email}</span>
+                    <Button
+                      StartIcon="copy"
+                      color="minimal"
+                      variant="icon"
+                      size="xs"
+                      onClick={() => {
+                        copyToClipboard(firstAttendee.email);
+                        triggerToast(t("email_copied"), "success");
+                      }}
+                      aria-label="Copy email"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {attendeeList?.length > 1 && (
               <div>
@@ -337,41 +262,23 @@ export function BookingExpandedCard(props: BookingItemProps) {
                 ))}
               </div>
             )}
+
+            {(rating || ratingFeedback) && (
+              <div>
+                <h3 className="text-default text-sm font-medium">{t("rating")}</h3>
+                <div className="text-default flex items-center gap-2 text-sm">
+                  {rating && (
+                    <span className="text-lg" role="img" aria-label={t("rating")}>
+                      {[undefined, "😠", "🙁", "😐", "😄", "😍"][rating]}
+                    </span>
+                  )}
+                  {ratingFeedback && (
+                    <span className="text-default text-sm font-normal">- {ratingFeedback}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-
-          {props.showExpandedActions && (
-            <div className="flex flex-col items-start space-y-2 lg:items-end">
-              <MeetingNotesDialog
-                notes={editingNotes}
-                setNotes={setEditingNotes}
-                isOpenDialog={showRTE}
-                setIsOpenDialog={setShowRTE}
-                handleMeetingNoteSave={handleMeetingNoteSave}
-              />
-
-              {isBookingInPast && (
-                <Button
-                  color="secondary"
-                  className="min-w-40 justify-center"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleMarkNoShow();
-                  }}>
-                  {attendeeList.length === 1 && attendeeList[0].noShow
-                    ? t("unmark_as_no_show")
-                    : t("mark_as_no_show")}
-                </Button>
-              )}
-              {attendeePhoneNo && (
-                <Button
-                  color="secondary"
-                  className="min-w-40 justify-center"
-                  onClick={() => openWhatsAppChat(attendeePhoneNo)}>
-                  {t("whatsapp_chat")}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -431,123 +338,3 @@ export function BookingExpandedCard(props: BookingItemProps) {
     </>
   );
 }
-
-const NoShowAttendeesDialog = ({
-  attendees,
-  bookingUid,
-  closeNoShowDialog,
-}: {
-  attendees: Array<{
-    name: string;
-    email: string;
-    id: number;
-    noShow: boolean;
-    phoneNumber: string | null;
-    timeZone?: string;
-  }>;
-  bookingUid: string;
-  closeNoShowDialog: () => void;
-}) => {
-  const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
-
-  const [loading, setLoading] = useState(false);
-
-  const utils = trpc.useUtils();
-  const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
-        )
-      );
-      triggerToast(t(data.message), "success");
-      await utils.viewer.bookings.invalidate();
-
-      setLoading(false);
-      closeNoShowDialog();
-    },
-    onError: (err) => {
-      triggerToast(err.message, "error");
-    },
-  });
-
-  const toggleAttendee = (email: string) => {
-    setNoShowAttendees((prev) => prev.map((a) => (a.email === email ? { ...a, noShow: !a.noShow } : a)));
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={() => closeNoShowDialog()}>
-      <div
-        className="bg-default w-full max-w-md rounded-lg p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-2 text-xl font-semibold">{t("mark_as_no_show_title")}</h2>
-        <p className="mb-6 text-sm text-gray-600">{t("no_show_description")}</p>
-
-        <div className="mb-6 space-y-4">
-          {noShowAttendees.map((attendee, index) => (
-            <div
-              key={index}
-              className="flex cursor-pointer items-center justify-between rounded-lg p-2 hover:bg-gray-50"
-              onClick={() => toggleAttendee(attendee.email)}>
-              <div className="flex items-center space-x-3">
-                <div className="bg-default flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full">
-                  <span className="text-default text-sm font-medium">
-                    {(attendee.name || attendee.email).charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{attendee.name || attendee.email}</span>
-                  {attendee.name && <span className="text-default text-xs">{attendee.email}</span>}
-                </div>
-              </div>
-
-              <Checkbox
-                checked={attendee.noShow}
-                onCheckedChange={(checked) => {
-                  setNoShowAttendees((prev) =>
-                    prev.map((a) => (a.email === attendee.email ? { ...a, noShow: checked === true } : a))
-                  );
-                }}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-end space-x-3">
-          <Button color="secondary" onClick={() => closeNoShowDialog()}>
-            Cancel
-          </Button>
-          <Button
-            loading={loading}
-            onClick={(e) => {
-              e.preventDefault();
-              setLoading(true);
-              noShowAttendees.forEach((attendee) => {
-                const originalAttendee = attendees.find((e) => e.email === attendee.email);
-                if (originalAttendee && originalAttendee.noShow !== attendee.noShow) {
-                  noShowMutation.mutate({
-                    bookingUid,
-                    attendees: [{ email: attendee.email, noShow: attendee.noShow }],
-                  });
-                }
-              });
-            }}>
-            {t("update_no_show_status")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};

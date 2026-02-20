@@ -307,7 +307,10 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
         teamMenuState &&
         teams.map((team, index: number) => {
           const href = `/settings/teams/${team.id}/profile`;
-          const isActive = pathname === href;
+          const teamBasePath = `/settings/teams/${team.id}`;
+          const isActive =
+            pathname === href ||
+            (pathname.startsWith(`${teamBasePath}/`) && pathname !== `/settings/teams/${team.id}/new`);
 
           return (
             <Link

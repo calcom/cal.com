@@ -340,11 +340,9 @@ const RangeLimitRadioItem = memo(
     watchPeriodTypeUiValue: IPeriodType;
   }) => {
     const { t } = useLocale();
-    const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date } | undefined>();
 
     const handleDateChange = useCallback(
       ({ startDate, endDate }: { startDate?: Date; endDate?: Date }, onChange: (value: any) => void) => {
-        setDateRange({ startDate, endDate });
         onChange({
           startDate,
           endDate,
@@ -364,10 +362,10 @@ const RangeLimitRadioItem = memo(
           <div className="ml-6 mt-2">
             <Controller
               name="periodDates"
-              render={({ field: { onChange } }) => (
+              render={({ field: { onChange, value } }) => (
                 <div className="w-fit">
                   <DateRangePicker
-                    dates={dateRange || { startDate: undefined, endDate: undefined }}
+                    dates={value || { startDate: undefined, endDate: undefined }}
                     onDatesChange={(dates) => handleDateChange(dates, onChange)}
                     disabled={isDisabled}
                     minDate={new Date()}
@@ -922,6 +920,12 @@ export const EventLimits = ({ eventType }: EventLimitsProps) => {
         }
         formMethods.setValue("periodType", PeriodType.ROLLING, { shouldDirty: true });
       } else {
+        // Clear saved range when turning off so next enable requires new selection
+        formMethods.setValue(
+          "periodDates",
+          { startDate: undefined, endDate: undefined },
+          { shouldDirty: true }
+        );
         // Reset periodDays to default when toggling OFF
         const defaultPeriodDays = formMethods.formState.defaultValues?.periodDays;
         formMethods.setValue("periodDays", defaultPeriodDays, { shouldDirty: true });

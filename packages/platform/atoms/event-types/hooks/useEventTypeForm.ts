@@ -40,8 +40,8 @@ export const useEventTypeForm = ({
   const { t } = useLocale();
   const periodDates = useMemo(
     () => ({
-      startDate: new Date(eventType.periodStartDate || Date.now()),
-      endDate: new Date(eventType.periodEndDate || Date.now()),
+      startDate: eventType.periodStartDate ?? undefined,
+      endDate: eventType.periodEndDate ?? undefined,
     }),
     [eventType.periodStartDate, eventType.periodEndDate]
   );
@@ -103,7 +103,14 @@ export const useEventTypeForm = ({
       minimumBookingNotice: eventType.minimumBookingNotice,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
-      metadata: eventType.metadata,
+      showBusy: eventType.showBusy ?? false,
+      showBusyPercent: eventType.showBusyPercent ?? null,
+      showBusySlots: (eventType.showBusySlots as Record<string, string[]> | null) ?? null,
+      showBusyWindowDays: eventType.showBusyWindowDays ?? null,
+      showBusyWindowType: (eventType.showBusyWindowType as "calendar" | "business" | null) ?? null,
+      metadata: {
+        ...(eventType.metadata ?? {}),
+      },
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,

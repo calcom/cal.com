@@ -16,6 +16,7 @@ export const updateUserMetadataAllowedKeys = z.object({
 export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
+
   email: z.string().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),

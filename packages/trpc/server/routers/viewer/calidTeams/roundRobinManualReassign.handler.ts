@@ -1,9 +1,10 @@
-import roundRobinManualUserReassign from "../../../../../calid/modules/teams/lib/roundRobinManualReassignment";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
 import { TRPCError } from "@trpc/server";
 
+import roundRobinManualUserReassign from "../../../../../calid/modules/teams/lib/roundRobinManualReassignment";
 import type { TRoundRobinManualReassignInputSchema } from "./roundRobinManualReassign.schema";
 
 type RoundRobinManualReassignOptions = {
@@ -17,9 +18,9 @@ export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobin
   const { bookingId, teamMemberId, reassignReason } = input;
 
   const bookingAccessRepo = new BookingRepository(prisma);
-  const hasPermission = await bookingAccessRepo.doesUserIdHaveAccessToBookingOrItsCalIdTeam({ 
-    userId: ctx.user.id, 
-    bookingId 
+  const hasPermission = await bookingAccessRepo.doesUserIdHaveAccessToBookingOrItsCalIdTeam({
+    userId: ctx.user.id,
+    bookingId,
   });
 
   if (!hasPermission) {

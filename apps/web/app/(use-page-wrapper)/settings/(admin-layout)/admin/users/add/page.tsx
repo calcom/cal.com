@@ -1,6 +1,8 @@
-import AdminUserAddPage from "@calid/features/modules/admin/pages/user-add";
+import AdminUserAddPage from "@calid/features/modules/admin/user/pages/user-add";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
+import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import UsersAddView from "@calcom/features/ee/users/pages/users-add-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -14,10 +16,17 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
+  const useEeAdmin = false;
 
   return (
     <SettingsHeader title={t("add_new_user")} description={t("admin_users_add_description")}>
-      <AdminUserAddPage />
+      {useEeAdmin ? (
+        <LicenseRequired>
+          <UsersAddView />
+        </LicenseRequired>
+      ) : (
+        <AdminUserAddPage />
+      )}
     </SettingsHeader>
   );
 };

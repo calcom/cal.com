@@ -226,7 +226,7 @@ export const InputField = forwardRef<
               onChange(e);
             }}
             onInput={(e) => {
-              onInput(e);
+              onInput?.(e);
             }}
             disabled={readOnly || disabled}
             ref={ref}

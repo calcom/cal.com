@@ -1,6 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
-import { Form } from "@calid/features/ui/components/form";
-import { PasswordField } from "@calid/features/ui/components/input/input";
+import { Form } from "@calid/features/ui/components/form/form";
 import { TextField } from "@calid/features/ui/components/input/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -8,10 +7,9 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { WhatsAppBusinessPhone } from "@calcom/prisma/client";
+import type { WhatsAppBusinessPhone } from "@calcom/prisma/client";
 import { Alert } from "@calcom/ui/components/alert";
 
 export function WhatsappManualAuth({ teamId }: { teamId?: number }) {

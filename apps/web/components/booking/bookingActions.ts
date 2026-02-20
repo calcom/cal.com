@@ -30,6 +30,7 @@ export interface BookingActionContext {
     phoneNumber: string | null;
   }>;
   getSeatReferenceUid: () => string | undefined;
+  attendeePhoneNumber?: string;
   t: (key: string) => string;
 }
 
@@ -122,11 +123,29 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     booking,
     isBookingInPast,
     isDisabledRescheduling,
+    isDisabledCancelling,
     isBookingFromRoutingForm,
     isRecurring,
+    isTabRecurring,
+    isConfirmed,
     getSeatReferenceUid,
+    attendeePhoneNumber,
+    attendeeList,
+    isCancelled,
+    isPending,
+    isRejected,
+    isOngoing,
     t,
   } = context;
+
+  const hasFutureInstances =
+    isRecurring &&
+    isConfirmed &&
+    isTabRecurring &&
+    !isCancelled &&
+    booking.recurringInfo?.bookings?.[BookingStatus.ACCEPTED]?.some(
+      (date) => new Date(date).getTime() > new Date().getTime()
+    );
 
   const actions: (ActionType | null)[] = [
     {
@@ -136,17 +155,21 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       href: `/reschedule/${booking.uid}${
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
       }`,
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+      disabled: hasFutureInstances ? false : isDisabledRescheduling,
     },
-    !isRecurring && {
-      id: "reschedule_request",
-      icon: "send",
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    },
+    !isRecurring
+      ? {
+          id: "reschedule_request",
+          icon: "send",
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("send_reschedule_request"),
+          disabled:
+            isRejected ||
+            isCancelled ||
+            (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+            isDisabledRescheduling,
+        }
+      : null,
     isBookingFromRoutingForm
       ? {
           id: "reroute",
@@ -159,7 +182,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       id: "change_location",
       label: t("edit_location"),
       icon: "map-pin",
-      disabled: false,
+      disabled: isBookingInPast || isCancelled || isRejected,
     },
     booking.eventType?.disableGuests
       ? null
@@ -167,7 +190,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           id: "add_members",
           label: t("additional_guests"),
           icon: "user-plus",
-          disabled: false,
+          disabled: isBookingInPast || isCancelled || isRejected,
         },
     // Reassign (if round robin)
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
@@ -178,6 +201,36 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           disabled: false,
         }
       : null,
+    {
+      id: "meeting_notes",
+      label: t("meeting_notes"),
+      icon: "square-pen",
+      disabled: false,
+    },
+    attendeePhoneNumber
+      ? {
+          id: "whatsapp_chat",
+          label: t("whatsapp"),
+          icon: "message-circle",
+          disabled: false,
+        }
+      : null,
+    {
+      id: "no_show",
+      label:
+        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
+      disabled: isCancelled || isRejected,
+    },
+    {
+      id: "cancel_event",
+      label: t("cancel_event"),
+      icon: "circle-x",
+      color: "destructive",
+      disabled: hasFutureInstances
+        ? false
+        : isBookingInPast || isCancelled || isRejected || isDisabledCancelling,
+    },
   ];
 
   return actions.filter(Boolean) as ActionType[];

@@ -29,6 +29,7 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
   const credential = await prisma.credential.findFirst({
     where: {
       userId: user?.id,
+      appId: "basecamp3",
     },
     select: credentialForCalendarServiceSelect,
   });

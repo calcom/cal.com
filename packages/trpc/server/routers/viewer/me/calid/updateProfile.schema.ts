@@ -12,10 +12,10 @@ export const updateUserMetadataAllowedKeys = z.object({
   isProUser: z
     .object({
       yearClaimed: z.number().optional(),
-      formSubmittedForYear: z.number().optional(),
+      claimSubmittedForYear: z.number().optional(),
       validTillDate: z.string().optional(),
-      verified: z.boolean().optional(),
-      firstYearClaimDate: z.string().optional(),
+      claimDate: z.string().optional(),
+      claimProtocol: z.enum(["v1", "v2"]).optional(),
     })
     .optional(),
   gettingStartedActions: z
@@ -32,7 +32,11 @@ export const updateUserMetadataAllowedKeys = z.object({
 
 export const ZCalIdUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
-  name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
+  name: z
+    .string()
+    .max(FULL_NAME_LENGTH_MAX_LIMIT)
+    .regex(/^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s.'-]+$/, "Invalid name")
+    .optional(),
   email: z.string().optional(),
   bio: z.string().optional(),
   avatarUrl: z.string().nullable().optional(),
