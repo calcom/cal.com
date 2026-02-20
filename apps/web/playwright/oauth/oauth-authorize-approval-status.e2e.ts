@@ -573,4 +573,36 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page.getByText("View organization bookings")).toBeVisible();
     await expect(page.getByText("View organization teams")).toBeVisible();
   });
+
+  test("legacy client with empty scopes shows all user-level permissions", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-legacy" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}legacy-${Date.now()}`,
+      status: "APPROVED",
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByText("View and edit personal info")).toBeVisible();
+    await expect(page.getByText("Create, read, update, and delete event types")).toBeVisible();
+    await expect(page.getByText("Create, read, update, and delete bookings")).toBeVisible();
+    await expect(page.getByText("Create, read, update, and delete availability")).toBeVisible();
+    await expect(page.getByText("View, connect, and disconnect apps")).toBeVisible();
+
+    await expect(page.getByTestId("scope-category-oauth_scope_category_user")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_team")).not.toBeVisible();
+    await expect(page.getByTestId("scope-category-oauth_scope_category_organization")).not.toBeVisible();
+  });
 });

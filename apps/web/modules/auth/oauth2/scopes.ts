@@ -1,4 +1,4 @@
-import { parseScopeParam } from "@calcom/features/oauth/constants";
+import { INDIVIDUAL_SCOPES, parseScopeParam } from "@calcom/features/oauth/constants";
 
 const USER_RESOURCE_PREFIXES = ["PROFILE", "EVENT_TYPE", "BOOKING", "SCHEDULE", "APPS"] as const;
 
@@ -31,7 +31,10 @@ export function resolveScopesForTokens(
   if (parsed.length > 0) {
     return parsed;
   }
-  return clientScopes;
+  if (clientScopes.length > 0) {
+    return clientScopes;
+  }
+  return [...INDIVIDUAL_SCOPES];
 }
 
 function resolveDisplayItems(
