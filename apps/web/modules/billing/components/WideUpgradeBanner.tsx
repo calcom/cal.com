@@ -73,11 +73,11 @@ export function WideUpgradeBanner({
   if (!visible) return null;
 
   return (
-    <div className="group relative flex w-full overflow-hidden rounded-xl bg-muted border-muted border">
+    <div className="relative flex w-full overflow-hidden rounded-xl bg-muted border-muted border">
       <Button
         variant="ghost"
         color="minimal"
-        className="absolute right-2 top-2 opacity-25 transition-opacity group-hover:opacity-100"
+        className="absolute right-2 top-2"
         onClick={() => {
           dismiss(tracking);
           setVisible(false);
