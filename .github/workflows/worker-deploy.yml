@@ -1,17 +1,6 @@
 name: Build, Push Worker Image, Deploy to EC2
 
 on:
-  # push:
-  #   branches:
-  #     - build
-  #   paths:
-  #     - 'apps/worker/**'
-  #     - 'packages/queue/**'
-  #     # Shared packages that workers depend on
-  #     - 'packages/tsconfig/**'
-  #     - 'packages/types/**'
-  #     - 'packages/prisma/**'
-  #     - 'packages/lib/**'
   pull_request:
     types:
       - closed
@@ -20,13 +9,7 @@ on:
       - develop
     paths:
       - 'apps/worker/**'
-      - 'packages/queue/**'
-      # Shared packages that workers depend on
-      - 'packages/tsconfig/**'
-      - 'packages/types/**'
-      - 'packages/prisma/**'
-      - 'packages/lib/**'
-      - '.github/workflows/worker-deploy.yml'
+      - 'packages/**'
   workflow_dispatch:
     inputs:
       branch:
