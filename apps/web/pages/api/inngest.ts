@@ -46,7 +46,6 @@ export const config = {
   },
 };
 
-//-------TESTED
 const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `sync-import-from-calendly-${key}`, retries: 2 },
   { event: `${JobName.CALENDLY_IMPORT}-${key}` },
@@ -119,7 +118,6 @@ export const handleBookingEmailsCancelled = inngestClient.createFunction(
   }
 );
 
-//---------TO BE TESTED
 export const handleRazorpayAppRevoked = inngestClient.createFunction(
   {
     id: `razorpay-app-revoked-${key}`,
@@ -145,6 +143,40 @@ export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
     const ctx = createInngestWorkflowContext(step, logger);
     const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
     return result;
+  }
+);
+
+export const triggerBookingPaymentReminder = inngestClient.createFunction(
+  {
+    id: `booking-payment-reminder-${key}`,
+    name: "Send Booking payment reminder",
+  },
+  {
+    event: `${JobName.BOOKING_PAYMENT_REMINDER}-${key}`,
+  },
+  async ({ event, step, logger }) => {
+    const data = event.data as BookingPaymentReminderData;
+
+    // Create workflow context from Inngest step + logger
+    const workflow = createInngestWorkflowContext(step, logger);
+
+    try {
+      const result = await bookingPaymentReminderService(data, prisma, workflow);
+      return result;
+    } catch (error) {
+      // ── Permanent failures ────────────────────────────────────────────
+      if (error instanceof BookingNotFoundError || error instanceof PaymentAppNotFoundError) {
+        throw new NonRetriableError(error.message);
+      }
+
+      // ── Transient failures ────────────────────────────────────────────
+      if (error instanceof PaymentReminderError) {
+        throw error;
+      }
+
+      // ── Unexpected errors ─────────────────────────────────────────────
+      throw error;
+    }
   }
 );
 
@@ -185,40 +217,13 @@ export const handleScheduledWebhookTrigger = inngestClient.createFunction(
   }
 );
 
-export const triggerBookingPaymentReminder = inngestClient.createFunction(
-  {
-    id: `booking-payment-reminder-${key}`,
-    name: "Send Booking payment reminder",
-  },
-  {
-    event: `${JobName.BOOKING_PAYMENT_REMINDER}-${key}`,
-  },
-  async ({ event, step, logger }) => {
-    const data = event.data as BookingPaymentReminderData;
-
-    // Create workflow context from Inngest step + logger
-    const workflow = createInngestWorkflowContext(step, logger);
-
-    try {
-      const result = await bookingPaymentReminderService(data, prisma, workflow);
-      return result;
-    } catch (error) {
-      // ── Permanent failures ────────────────────────────────────────────
-      if (error instanceof BookingNotFoundError || error instanceof PaymentAppNotFoundError) {
-        throw new NonRetriableError(error.message);
-      }
-
-      // ── Transient failures ────────────────────────────────────────────
-      if (error instanceof PaymentReminderError) {
-        throw error;
-      }
-
-      // ── Unexpected errors ─────────────────────────────────────────────
-      throw error;
-    }
-  }
-);
-
+// INNGEST-ONLY CRONS:
+//
+// These function are registered with a cron trigger directly in Inngest.
+// Once defined, Inngest automatically schedules and executes it.
+// Because Inngest owns the scheduling lifecycle here, we cannot route
+// this through BullMQ first with an Inngest fallback (as we do for
+// regular background jobs).
 const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
   { id: `whatsapp-template-sync-${key}`, retries: 2 },
   { cron: WHATSAPP_TEMPLATE_SYNC_CRON },
