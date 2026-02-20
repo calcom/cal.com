@@ -5,6 +5,7 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { HttpError } from "@calcom/lib/http-error";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
@@ -54,6 +55,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const [appName, apiEndpoint] = args;
+
+  if (apiEndpoint === "add" && !req.session?.user?.id) {
+    return res.status(401).json({ message: "You must be logged in to do this" });
+  }
+
   try {
     /* Absolute path didn't work */
     const handlerMap = (await import("@calcom/app-store/apps.server.generated")).apiHandlers;
@@ -75,13 +81,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return;
   } catch (error) {
     console.error(error);
-    if (error instanceof HttpError) {
-      return res.status(error.statusCode).json({ message: error.message });
-    }
-    if (error instanceof Error) {
-      return res.status(400).json({ message: error.message });
-    }
-    return res.status(404).json({ message: `API handler not found` });
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 };
 

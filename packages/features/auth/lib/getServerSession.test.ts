@@ -64,17 +64,14 @@ describe("getServerSession", () => {
   });
 
   describe("User ID Validation", () => {
-    it.each(["", "invalid", "0", "-1"])(
-      "returns null when token.sub is invalid (%s)",
-      async (sub) => {
-        setupGetTokenMock(createMockToken({ sub }));
+    it.each(["", "invalid", "0", "-1"])("returns null when token.sub is invalid (%s)", async (sub) => {
+      setupGetTokenMock(createMockToken({ sub }));
 
-        const result = await getServerSession({ req: createMockRequest() });
+      const result = await getServerSession({ req: createMockRequest() });
 
-        expect(result).toBeNull();
-        expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
-      }
-    );
+      expect(result).toBeNull();
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
   });
 
   describe("User Lookup", () => {

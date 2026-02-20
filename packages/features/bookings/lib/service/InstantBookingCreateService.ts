@@ -225,16 +225,19 @@ export async function handler(
     },
   ];
 
-  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
-    guestArray.push({
-      email: guest,
-      name: "",
-      timeZone: attendeeTimezone,
-      locale: "en",
-      phoneNumber: null,
-    });
-    return guestArray;
-  }, [] as typeof invitee);
+  const guests = (reqBody.guests || []).reduce(
+    (guestArray, guest) => {
+      guestArray.push({
+        email: guest,
+        name: "",
+        timeZone: attendeeTimezone,
+        locale: "en",
+        phoneNumber: null,
+      });
+      return guestArray;
+    },
+    [] as typeof invitee
+  );
 
   const attendeesList = [...invitee, ...guests];
   const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString());

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./contractVerification";
 import { NoShowUpdatedAuditActionService } from "../NoShowUpdatedAuditActionService";
@@ -63,9 +63,7 @@ describe("NoShowUpdatedAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          attendeesNoShow: [
-            { attendeeEmail: "alice@example.com", noShow: { old: false, new: true } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "alice@example.com", noShow: { old: false, new: true } }],
         },
       };
 

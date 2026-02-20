@@ -338,7 +338,13 @@ describe("ReassignmentAuditActionService", () => {
       const dbStore = createMockEnrichmentDataStore(
         {
           users: [
-            { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },
+            {
+              id: 1,
+              uuid: "organizer-old",
+              name: "Previous Host",
+              email: "old@example.com",
+              avatarUrl: null,
+            },
             { id: 2, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
           ],
         },
@@ -372,7 +378,13 @@ describe("ReassignmentAuditActionService", () => {
       const dbStore = createMockEnrichmentDataStore(
         {
           users: [
-            { id: 1, uuid: "organizer-old", name: "Previous Host", email: "old@example.com", avatarUrl: null },
+            {
+              id: 1,
+              uuid: "organizer-old",
+              name: "Previous Host",
+              email: "old@example.com",
+              avatarUrl: null,
+            },
             { id: 2, uuid: "organizer-new", name: "New Host", email: "new@example.com", avatarUrl: null },
           ],
         },

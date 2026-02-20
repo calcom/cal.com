@@ -65,6 +65,7 @@
 - [patterns-factory-pattern](rules/patterns-factory-pattern.md) - Factory pattern
 - [patterns-workflow-triggers](rules/patterns-workflow-triggers.md) - Workflow implementation
 - [patterns-app-store](rules/patterns-app-store.md) - App store integration patterns
+- [patterns-trigger-dev](rules/patterns-trigger-dev.md) - Trigger.dev task implementation
 
 ### Culture
 

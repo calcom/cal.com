@@ -1,21 +1,25 @@
-import { z } from "zod";
-
+import type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
 import type { EventLocationType } from "@calcom/app-store/locations";
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import type { customInputSchema } from "@calcom/prisma/zod-utils";
-import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import type { eventTypeColor } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
+import type { MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  BookerLayoutSettings,
+  CustomInputSchema,
+  customInputSchema,
+  EventTypeLocation,
+  EventTypeMetadata,
+  eventTypeBookingFields,
+  eventTypeColor,
+} from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
+import type { z } from "zod";
+import type { EventType } from "./getEventTypeById";
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -24,9 +28,9 @@ export type AvailabilityOption = {
   isDefault: boolean;
   isManaged?: boolean;
 };
-export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
-export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type EventTypeApps = RouterOutputs["viewer"]["apps"]["integrations"];
+export type EventTypeSetupProps = EventType;
+export type EventTypeSetup = EventType["eventType"];
+export type EventTypeApps = ConnectedApps;
 export type HostLocation = {
   id?: string;
   userId: number;
@@ -223,7 +227,223 @@ export type EventTypeHosts = {
   weight: number | null;
   groupId: string | null;
 }[];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
+
+// ============================================================================
+// EVENT TYPE UPDATE INPUT TYPES
+// ============================================================================
+// These types define the shape of event type update operations and should be
+// consumed by both the features package and tRPC routers.
+// ============================================================================
+
+export type HashedLinkInput = {
+  link: string;
+  expiresAt?: Date | null;
+  maxUsageCount?: number | null;
+  usageCount?: number | null;
+};
+
+export type AiPhoneCallConfig = {
+  generalPrompt: string;
+  enabled: boolean;
+  beginMessage: string | null;
+  yourPhoneNumber: string;
+  numberToCall: string;
+  guestName?: string | null;
+  guestEmail?: string | null;
+  guestCompany?: string | null;
+  templateType: TemplateType;
+};
+
+export type HostLocationInput = {
+  id?: string;
+  userId: number;
+  eventTypeId: number;
+  type: string;
+  credentialId?: number | null;
+  link?: string | null;
+  address?: string | null;
+  phoneNumber?: string | null;
+};
+
+export type HostInput = {
+  userId: number;
+  profileId?: number | null;
+  isFixed?: boolean;
+  priority?: number | null;
+  weight?: number | null;
+  scheduleId?: number | null;
+  groupId?: string | null;
+  location?: HostLocationInput | null;
+};
+
+export type HostGroupInput = {
+  id: string;
+  name: string;
+};
+
+export type ChildInput = {
+  owner: {
+    id: number;
+    name: string;
+    email: string;
+    eventTypeSlugs: string[];
+  };
+  hidden: boolean;
+};
+
+export type DestinationCalendarInput = {
+  integration: string;
+  externalId: string;
+} | null;
+
+export type RecurringEventInput = {
+  dtstart?: Date;
+  interval: number;
+  count: number;
+  freq: number;
+  until?: Date;
+  tzid?: string;
+} | null;
+
+export type EventTypeColorInput = {
+  lightEventTypeColor: string;
+  darkEventTypeColor: string;
+} | null;
+
+/**
+ * Booking field type - minimal type definition for fields that need to be accessed.
+ * Only includes properties that are actually read in server code.
+ * Does NOT use an index signature to maintain compatibility with API v2 DTO classes.
+ */
+export type BookingFieldInput = {
+  name: string;
+  hidden?: boolean;
+  required?: boolean;
+  type?: string;
+};
+
+/**
+ * RR Segment query value - using index signature for complex RAQB structure.
+ * The values need to be indexable (string keys) for downstream usage.
+ */
+export type RRSegmentQueryValueInput = {
+  [key: string]: unknown;
+} | null;
+
+/**
+ * Explicit type definition for event type update input.
+ *
+ * This type is defined explicitly rather than using z.infer<> on a complex
+ * schema chain to significantly reduce TypeScript type-checking time.
+ * The schema still validates all fields at runtime.
+ *
+ * All fields are optional (from .partial()) except `id` which is required.
+ */
+export type EventTypeUpdateInput = {
+  // Required field
+  id: number;
+
+  // Fields from EventTypeSchema (all optional due to .partial())
+  periodType?: PeriodType;
+  schedulingType?: SchedulingType | null;
+  title?: string;
+  slug?: string;
+  description?: string | null;
+  interfaceLanguage?: string | null;
+  position?: number;
+  locations?: EventTypeLocation[] | null;
+  length?: number;
+  offsetStart?: number;
+  hidden?: boolean;
+  userId?: number | null;
+  profileId?: number | null;
+  teamId?: number | null;
+  useEventLevelSelectedCalendars?: boolean;
+  eventName?: string | null;
+  parentId?: number | null;
+  bookingFields?: BookingFieldInput[] | null;
+  timeZone?: string | null;
+  periodStartDate?: Date | null;
+  periodEndDate?: Date | null;
+  periodDays?: number | null;
+  periodCountCalendarDays?: boolean | null;
+  lockTimeZoneToggleOnBookingPage?: boolean;
+  lockedTimeZone?: string | null;
+  requiresConfirmation?: boolean;
+  requiresConfirmationWillBlockSlot?: boolean;
+  requiresConfirmationForFreeEmail?: boolean;
+  requiresBookerEmailVerification?: boolean;
+  canSendCalVideoTranscriptionEmails?: boolean;
+  autoTranslateDescriptionEnabled?: boolean;
+  autoTranslateInstantMeetingTitleEnabled?: boolean;
+  recurringEvent?: RecurringEventInput;
+  disableGuests?: boolean;
+  hideCalendarNotes?: boolean;
+  hideCalendarEventDetails?: boolean;
+  minimumBookingNotice?: number;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
+  seatsPerTimeSlot?: number | null;
+  onlyShowFirstAvailableSlot?: boolean;
+  showOptimizedSlots?: boolean | null;
+  disableCancelling?: boolean | null;
+  disableRescheduling?: boolean | null;
+  minimumRescheduleNotice?: number | null;
+  seatsShowAttendees?: boolean | null;
+  seatsShowAvailabilityCount?: boolean | null;
+  scheduleId?: number | null;
+  allowReschedulingCancelledBookings?: boolean | null;
+  price?: number;
+  currency?: string;
+  slotInterval?: number | null;
+  metadata?: EventTypeMetadata;
+  successRedirectUrl?: string | null;
+  forwardParamsSuccessRedirect?: boolean | null;
+  redirectUrlOnNoRoutingFormResponse?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
+  isInstantEvent?: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds?: number;
+  instantMeetingScheduleId?: number | null;
+  instantMeetingParameters?: string[];
+  assignAllTeamMembers?: boolean;
+  assignRRMembersUsingSegment?: boolean;
+  rrSegmentQueryValue?: RRSegmentQueryValueInput;
+  useEventTypeDestinationCalendarEmail?: boolean;
+  isRRWeightsEnabled?: boolean;
+  maxLeadThreshold?: number | null;
+  includeNoShowInRRCalculation?: boolean;
+  allowReschedulingPastBookings?: boolean;
+  hideOrganizerEmail?: boolean;
+  maxActiveBookingsPerBooker?: number | null;
+  maxActiveBookingPerBookerOfferReschedule?: boolean;
+  customReplyToEmail?: string | null;
+  eventTypeColor?: EventTypeColorInput;
+  rescheduleWithSameRoundRobinHost?: boolean;
+  secondaryEmailId?: number | null;
+  useBookerTimezone?: boolean;
+  restrictionScheduleId?: number | null;
+  bookingRequiresAuthentication?: boolean;
+  rrHostSubsetEnabled?: boolean;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+
+  // Extended fields (all optional due to .partial())
+  aiPhoneCallConfig?: AiPhoneCallConfig;
+  calVideoSettings?: CalVideoSettings;
+  calAiPhoneScript?: string;
+  customInputs?: CustomInputSchema[];
+  destinationCalendar?: DestinationCalendarInput;
+  users?: number[];
+  children?: ChildInput[];
+  hosts?: HostInput[];
+  schedule?: number | null;
+  instantMeetingSchedule?: number | null;
+  multiplePrivateLinks?: (string | HashedLinkInput)[];
+  hostGroups?: HostGroupInput[];
+  enablePerHostLocations?: boolean;
+};
+
 export type TabMap = {
   advanced: React.ReactNode;
   ai?: React.ReactNode;
@@ -286,13 +506,13 @@ export interface EventTypePlatformWrapperRef {
   handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
 }
 
-export interface CalVideoSettings {
-  disableRecordingForOrganizer?: boolean;
-  disableRecordingForGuests?: boolean;
-  enableAutomaticTranscription?: boolean;
-  enableAutomaticRecordingForOrganizer?: boolean;
-  disableTranscriptionForGuests?: boolean;
-  disableTranscriptionForOrganizer?: boolean;
-  redirectUrlOnExit?: string;
-  requireEmailForGuests?: boolean;
-}
+export type CalVideoSettings = {
+  disableRecordingForGuests?: boolean | null;
+  disableRecordingForOrganizer?: boolean | null;
+  enableAutomaticTranscription?: boolean | null;
+  enableAutomaticRecordingForOrganizer?: boolean | null;
+  disableTranscriptionForGuests?: boolean | null;
+  disableTranscriptionForOrganizer?: boolean | null;
+  redirectUrlOnExit?: string | null;
+  requireEmailForGuests?: boolean | null;
+} | null;

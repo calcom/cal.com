@@ -1,17 +1,17 @@
 import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
-
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
+import type { UserWithMembership } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
+import {
+  getTeamOrThrow,
+  sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
+} from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
-
 import { assignValueToUserInOrgBulk } from "./assignValueToUser";
 import getAttributesFromScimPayload from "./getAttributesFromScimPayload";
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";

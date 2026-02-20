@@ -1,8 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import config from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,13 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!installation) {
-      throw new Error("Unable to create user credential for HitPay");
+      throw new Error("Unable to create user credential for hitpay");
     }
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
-
-    return res.status(500).json({ message });
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 
   return res.status(200).json({ url: `/apps/hitpay/setup${teamIdNumber ? `?teamId=${teamIdNumber}` : ""}` });
