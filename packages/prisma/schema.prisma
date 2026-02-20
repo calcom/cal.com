@@ -215,6 +215,9 @@ model EventType {
   seatsPerTimeSlot                         Int?
   onlyShowFirstAvailableSlot               Boolean                   @default(false)
   showOptimizedSlots                       Boolean?                  @default(false)
+  preferredTimes                           Json?
+  batchMeetingsEnabled                     Boolean                   @default(false)
+  batchMeetingsSize                        Int                       @default(2)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
   /// @zod.number.min(0)

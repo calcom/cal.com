@@ -9,6 +9,7 @@ import type {
   GetAvailabilityUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -16,14 +17,16 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
-import getSlots from "@calcom/features/schedules/lib/slots";
+import getSlots, { type PreferredTimeRule } from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/ISelectedSlotRepository";
 import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
@@ -48,7 +51,6 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -57,14 +59,32 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
-import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
-import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
+};
+
+const isPreferredTimeRule = (value: unknown): value is PreferredTimeRule => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as { days?: unknown; startTime?: unknown; endTime?: unknown };
+  return (
+    Array.isArray(candidate.days) &&
+    candidate.days.every((day) => typeof day === "number") &&
+    typeof candidate.startTime === "string" &&
+    typeof candidate.endTime === "string"
+  );
+};
+
+const parsePreferredTimeRules = (value: unknown): PreferredTimeRule[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter(isPreferredTimeRule);
 };
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -958,6 +978,7 @@ export class AvailableSlotsService {
       allUsersAvailability,
       usersWithCredentials,
       currentSeats,
+      currentBookingsAllUsers,
     };
   }
 
@@ -1159,7 +1180,7 @@ export class AvailableSlotsService {
     const hasFallbackRRHosts =
       eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
-    let { allUsersAvailability, usersWithCredentials, currentSeats } =
+    let { allUsersAvailability, usersWithCredentials, currentSeats, currentBookingsAllUsers } =
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
@@ -1230,7 +1251,7 @@ export class AvailableSlotsService {
 
       if (diff > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ allUsersAvailability, usersWithCredentials, currentSeats } =
+        ({ allUsersAvailability, usersWithCredentials, currentSeats, currentBookingsAllUsers } =
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
@@ -1260,6 +1281,7 @@ export class AvailableSlotsService {
       frequency: eventType.slotInterval || input.duration || eventType.length,
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
       showOptimizedSlots: eventType.showOptimizedSlots,
+      preferredTimes: parsePreferredTimeRules(eventType.preferredTimes),
       datesOutOfOfficeTimeZone: !isTeamEvent ? allUsersAvailability[0]?.timeZone : undefined,
     });
 
@@ -1395,15 +1417,40 @@ export class AvailableSlotsService {
               | {
                   time: dayjs.Dayjs;
                   userIds?: number[] | undefined;
+                  preferred?: boolean | undefined;
                 }
               | undefined
           ): item is {
             time: dayjs.Dayjs;
             userIds?: number[] | undefined;
+            preferred?: boolean | undefined;
           } => {
             return !!item;
           }
         );
+    }
+
+    if (eventType.batchMeetingsEnabled && currentBookingsAllUsers.length > 0) {
+      const eventLength = input.duration || eventType.length;
+      const batchSize = Math.max(eventType.batchMeetingsSize || 2, 1);
+      const preferredSlotStarts = new Set<string>();
+
+      for (const booking of currentBookingsAllUsers) {
+        const bookingStart = dayjs(booking.startTime);
+        const bookingEnd = dayjs(booking.endTime);
+
+        for (let step = 1; step < batchSize; step++) {
+          preferredSlotStarts.add(bookingStart.subtract(step * eventLength, "minute").toISOString());
+          preferredSlotStarts.add(bookingEnd.add((step - 1) * eventLength, "minute").toISOString());
+        }
+      }
+
+      availableTimeSlots = availableTimeSlots.map((slot) => {
+        if (preferredSlotStarts.has(slot.time.toISOString())) {
+          return { ...slot, preferred: true };
+        }
+        return slot;
+      });
     }
 
     // fr-CA uses YYYY-MM-DD
@@ -1429,7 +1476,7 @@ export class AvailableSlotsService {
 
       return availableTimeSlots.reduce(
         (
-          r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
+          r: Record<string, { time: string; preferred?: boolean; attendees?: number; bookingUid?: string }[]>,
           { time, ...passThroughProps }
         ) => {
           // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.

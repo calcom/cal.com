@@ -1,9 +1,11 @@
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type {
   EventTypeSetupProps,
   FormValues,
   InputClassNames,
+  PreferredTimeRule,
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
@@ -17,6 +19,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   DateRangePicker,
@@ -28,17 +31,14 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Badge } from "@calcom/ui/components/badge";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import Link from "next/link";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
-import Link from "next/link";
-
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
@@ -464,6 +464,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
+  const preferredTimesLocked = shouldLockDisableProps("preferredTimes");
+  const batchMeetingsLocked = shouldLockDisableProps("batchMeetingsEnabled");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
   const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
@@ -472,6 +474,28 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
     (formMethods.getValues("maxActiveBookingsPerBooker") ?? 0) > 0
   );
+  const preferredTimes = formMethods.watch("preferredTimes") ?? [];
+  const batchMeetingsEnabled = formMethods.watch("batchMeetingsEnabled") ?? false;
+
+  const setPreferredTimes = (nextRules: PreferredTimeRule[]) => {
+    formMethods.setValue("preferredTimes", nextRules.length > 0 ? nextRules : null, { shouldDirty: true });
+  };
+
+  const upsertPreferredTimeRule = (index: number, nextRule: PreferredTimeRule) => {
+    const updatedRules = [...preferredTimes];
+    updatedRules[index] = nextRule;
+    setPreferredTimes(updatedRules);
+  };
+
+  const dayOptions = [
+    { value: 0, label: t("sunday") },
+    { value: 1, label: t("monday") },
+    { value: 2, label: t("tuesday") },
+    { value: 3, label: t("wednesday") },
+    { value: 4, label: t("thursday") },
+    { value: 5, label: t("friday") },
+    { value: 6, label: t("saturday") },
+  ];
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -734,6 +758,130 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        labelClassName="text-sm"
+        title={t("preferred_times")}
+        description={t("preferred_times_description")}
+        checked={preferredTimes.length > 0}
+        {...preferredTimesLocked}
+        onCheckedChange={(active) => {
+          if (!active) {
+            setPreferredTimes([]);
+            return;
+          }
+          if (preferredTimes.length === 0) {
+            setPreferredTimes([{ days: [1], startTime: "09:00", endTime: "12:00" }]);
+          }
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6"
+        childrenClassName="lg:ml-0">
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+          <div className="stack-y-4">
+            {preferredTimes.map((rule, index) => (
+              <div
+                key={`${index}-${rule.startTime}-${rule.endTime}`}
+                className="rounded-md border border-subtle p-4">
+                <div className="mb-3 flex flex-wrap gap-3">
+                  {dayOptions.map((dayOption) => {
+                    const isChecked = rule.days.includes(dayOption.value);
+                    return (
+                      <label
+                        key={dayOption.value}
+                        className="text-default inline-flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          disabled={preferredTimesLocked.disabled}
+                          onChange={(event) => {
+                            const nextDays = event.target.checked
+                              ? [...rule.days, dayOption.value]
+                              : rule.days.filter((day) => day !== dayOption.value);
+                            upsertPreferredTimeRule(index, {
+                              ...rule,
+                              days: Array.from(new Set(nextDays)).sort((a, b) => a - b),
+                            });
+                          }}
+                        />
+                        {dayOption.label}
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <TextField
+                    type="time"
+                    label={t("start_time")}
+                    value={rule.startTime}
+                    disabled={preferredTimesLocked.disabled}
+                    onChange={(event) => {
+                      upsertPreferredTimeRule(index, { ...rule, startTime: event.target.value });
+                    }}
+                  />
+                  <TextField
+                    type="time"
+                    label={t("end_time")}
+                    value={rule.endTime}
+                    disabled={preferredTimesLocked.disabled}
+                    onChange={(event) => {
+                      upsertPreferredTimeRule(index, { ...rule, endTime: event.target.value });
+                    }}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  color="secondary"
+                  className="mt-3"
+                  disabled={preferredTimesLocked.disabled}
+                  onClick={() => {
+                    const nextRules = preferredTimes.filter(
+                      (_, preferredTimeIndex) => preferredTimeIndex !== index
+                    );
+                    setPreferredTimes(nextRules);
+                  }}>
+                  {t("remove")}
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              color="secondary"
+              disabled={preferredTimesLocked.disabled}
+              onClick={() => {
+                setPreferredTimes([...preferredTimes, { days: [1], startTime: "09:00", endTime: "12:00" }]);
+              }}>
+              {t("add")}
+            </Button>
+          </div>
+        </div>
+      </SettingsToggle>
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        labelClassName="text-sm"
+        title={t("batch_meetings")}
+        description={t("batch_meetings_description")}
+        checked={batchMeetingsEnabled}
+        {...batchMeetingsLocked}
+        onCheckedChange={(active) => {
+          formMethods.setValue("batchMeetingsEnabled", !!active, { shouldDirty: true });
+          if (active && !formMethods.getValues("batchMeetingsSize")) {
+            formMethods.setValue("batchMeetingsSize", 2, { shouldDirty: true });
+          }
+        }}
+        switchContainerClassName="border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6"
+        childrenClassName="lg:ml-0">
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+          <TextField
+            required
+            type="number"
+            min={2}
+            step={1}
+            label={t("batch_size")}
+            disabled={!batchMeetingsEnabled || batchMeetingsLocked.disabled}
+            {...formMethods.register("batchMeetingsSize", { valueAsNumber: true, min: 2 })}
+          />
+        </div>
+      </SettingsToggle>
       <Controller
         name="durationLimits"
         render={({ field: { onChange, value } }) => {

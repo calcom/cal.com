@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type {
@@ -18,9 +19,15 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  preferredTimes?: PreferredTimeRule[] | null;
   datesOutOfOfficeTimeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
+export type PreferredTimeRule = {
+  days: number[];
+  startTime: string;
+  endTime: string;
+};
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
@@ -77,6 +84,7 @@ function buildSlotsWithDateRanges({
   offsetStart,
   datesOutOfOffice,
   showOptimizedSlots,
+  preferredTimes,
   datesOutOfOfficeTimeZone,
 }: {
   dateRanges: DateRange[];
@@ -87,6 +95,7 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  preferredTimes?: PreferredTimeRule[] | null;
   datesOutOfOfficeTimeZone?: string;
 }) {
   // keep the old safeguards in; may be needed.
@@ -184,7 +193,7 @@ function buildSlotsWithDateRanges({
 
       slotBoundaries.set(slotStartTime.valueOf(), true);
 
-      let dateOutOfOfficeExists = undefined;
+      let dateOutOfOfficeExists;
       if (datesOutOfOffice) {
         const slotDateYYYYMMDD = datesOutOfOfficeTimeZone
           ? slotStartTime.tz(datesOutOfOfficeTimeZone).format("YYYY-MM-DD")
@@ -196,6 +205,7 @@ function buildSlotsWithDateRanges({
         time: Dayjs;
         userIds?: number[];
         away?: boolean;
+        preferred?: boolean;
         fromUser?: IFromUser;
         toUser?: IToUser;
         reason?: string;
@@ -221,6 +231,21 @@ function buildSlotsWithDateRanges({
         };
       }
 
+      const slotTime = slotStartTime;
+      const slotTimeHHMM = slotTime.format("HH:mm");
+      const isPreferred =
+        preferredTimes?.some((preferredTime) => {
+          return (
+            preferredTime.days.includes(slotTime.day()) &&
+            slotTimeHHMM >= preferredTime.startTime &&
+            slotTimeHHMM < preferredTime.endTime
+          );
+        }) ?? false;
+
+      if (isPreferred) {
+        slotData.preferred = true;
+      }
+
       slots.set(slotKey, slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
@@ -238,11 +263,13 @@ const getSlots = ({
   offsetStart = 0,
   datesOutOfOffice,
   showOptimizedSlots,
+  preferredTimes,
   datesOutOfOfficeTimeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
   away?: boolean;
+  preferred?: boolean;
   fromUser?: IFromUser;
   toUser?: IToUser;
   reason?: string;
@@ -257,6 +284,7 @@ const getSlots = ({
     offsetStart,
     datesOutOfOffice,
     showOptimizedSlots,
+    preferredTimes,
     datesOutOfOfficeTimeZone,
   });
 };

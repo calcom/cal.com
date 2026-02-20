@@ -1,23 +1,22 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { locationsResolver } from "@calcom/app-store/locations";
-import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/calAIPhone/promptTemplates";
+import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import type {
-  FormValues,
   EventTypeSetupProps,
   EventTypeUpdateInput,
+  FormValues,
 } from "@calcom/features/eventtypes/lib/types";
+import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
 
@@ -148,6 +147,9 @@ export const useEventTypeForm = ({
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       showOptimizedSlots: eventType.showOptimizedSlots ?? false,
+      preferredTimes: eventType.preferredTimes ?? null,
+      batchMeetingsEnabled: eventType.batchMeetingsEnabled ?? false,
+      batchMeetingsSize: eventType.batchMeetingsSize ?? 2,
       enablePerHostLocations: eventType.enablePerHostLocations ?? false,
     };
   }, [eventType, periodDates]);
@@ -287,13 +289,11 @@ export const useEventTypeForm = ({
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         updatedFields[typedKey] = values[typedKey];
       }
     });

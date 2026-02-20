@@ -94,6 +94,12 @@ export type PrivateLinkWithOptions = {
   usageCount?: number;
 };
 
+export type PreferredTimeRule = {
+  days: number[];
+  startTime: string;
+  endTime: string;
+};
+
 export type FormValues = {
   id: number;
   title: string;
@@ -169,6 +175,9 @@ export type FormValues = {
   bookingLimits?: IntervalLimit;
   onlyShowFirstAvailableSlot: boolean;
   showOptimizedSlots: boolean;
+  preferredTimes?: PreferredTimeRule[] | null;
+  batchMeetingsEnabled?: boolean;
+  batchMeetingsSize?: number;
   children: ChildrenEventType[];
   hosts: Host[];
   hostGroups: {
@@ -386,6 +395,9 @@ export type EventTypeUpdateInput = {
   seatsPerTimeSlot?: number | null;
   onlyShowFirstAvailableSlot?: boolean;
   showOptimizedSlots?: boolean | null;
+  preferredTimes?: PreferredTimeRule[] | null;
+  batchMeetingsEnabled?: boolean;
+  batchMeetingsSize?: number;
   disableCancelling?: boolean | null;
   disableRescheduling?: boolean | null;
   minimumRescheduleNotice?: number | null;
@@ -494,7 +506,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;

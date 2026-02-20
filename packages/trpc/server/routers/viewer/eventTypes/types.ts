@@ -108,6 +108,12 @@ const destinationCalendarInputSchema: z.ZodType<DestinationCalendarInput> = z
   })
   .nullable();
 
+const preferredTimeRuleSchema = z.object({
+  days: z.array(z.number().int().min(0).max(6)),
+  startTime: z.string(),
+  endTime: z.string(),
+});
+
 /**
  * Base schema for event type updates.
  *
@@ -163,6 +169,9 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
     onlyShowFirstAvailableSlot: z.boolean().optional(),
     showOptimizedSlots: z.boolean().nullable().optional(),
+    preferredTimes: z.array(preferredTimeRuleSchema).nullable().optional(),
+    batchMeetingsEnabled: z.boolean().optional(),
+    batchMeetingsSize: z.number().int().min(1).optional(),
     disableCancelling: z.boolean().nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),

@@ -1,14 +1,14 @@
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
-import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
+import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
+import { useMemo } from "react";
 
 export interface IGetAvailableSlots {
   slots: Record<
     string,
     {
       time: string;
+      preferred?: boolean | undefined;
       attendees?: number | undefined;
       bookingUid?: string | undefined;
       away?: boolean | undefined;

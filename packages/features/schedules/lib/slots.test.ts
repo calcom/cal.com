@@ -1184,4 +1184,56 @@ describe("Tests 40-minute duration slot generation", () => {
     // Second range: 14:00-15:20 = 80 minutes = 2 slots (14:00, 14:40)
     expect(slots).toHaveLength(4);
   });
+
+  describe("Tests preferred times highlighting", () => {
+    it("marks slots within preferred windows as preferred", async () => {
+      const monday = dayjs.utc("2021-06-21T00:00:00Z");
+      const slots = getSlots({
+        inviteeDate: monday,
+        frequency: 60,
+        minimumBookingNotice: 0,
+        eventLength: 60,
+        dateRanges: [{ start: monday.hour(9), end: monday.hour(15) }],
+        preferredTimes: [{ days: [1], startTime: "10:00", endTime: "12:00" }],
+      });
+
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "10:00")?.preferred).toBe(true);
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "11:00")?.preferred).toBe(true);
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "09:00")?.preferred).toBeUndefined();
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "14:00")?.preferred).toBeUndefined();
+    });
+
+    it("supports multiple preferred windows", async () => {
+      const monday = dayjs.utc("2021-06-21T00:00:00Z");
+      const slots = getSlots({
+        inviteeDate: monday,
+        frequency: 30,
+        minimumBookingNotice: 0,
+        eventLength: 30,
+        dateRanges: [{ start: monday.hour(9), end: monday.hour(13) }],
+        preferredTimes: [
+          { days: [1], startTime: "09:00", endTime: "10:00" },
+          { days: [1], startTime: "11:30", endTime: "12:30" },
+        ],
+      });
+
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "09:30")?.preferred).toBe(true);
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "12:00")?.preferred).toBe(true);
+      expect(slots.find((slot) => slot.time.format("HH:mm") === "10:30")?.preferred).toBeUndefined();
+    });
+
+    it("does not mark preferred when preferredTimes is null", async () => {
+      const monday = dayjs.utc("2021-06-21T00:00:00Z");
+      const slots = getSlots({
+        inviteeDate: monday,
+        frequency: 60,
+        minimumBookingNotice: 0,
+        eventLength: 60,
+        dateRanges: [{ start: monday.hour(9), end: monday.hour(12) }],
+        preferredTimes: null,
+      });
+
+      expect(slots.every((slot) => slot.preferred === undefined)).toBe(true);
+    });
+  });
 });

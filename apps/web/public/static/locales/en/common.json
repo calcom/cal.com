@@ -4662,5 +4662,11 @@
   "paypal_step_7": "You should be all set up after this.",
   "dashboard": "dashboard",
   "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
+  "preferred_times": "Preferred times",
+  "preferred_times_description": "Highlight specific time slots as preferred for bookers",
+  "batch_meetings": "Batch meetings",
+  "batch_meetings_description": "Group meetings into adjacent time blocks",
+  "batch_size": "Batch size",
+  "preferred_time_indicator": "Preferred",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

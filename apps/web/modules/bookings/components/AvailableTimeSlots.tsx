@@ -1,24 +1,22 @@
-import { useCallback, useMemo, useRef } from "react";
-
 import dayjs from "@calcom/dayjs";
-import {
-  AvailableTimes,
-  AvailableTimesSkeleton,
-} from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import type { IUseBookingLoadingStates } from "../hooks/useBookings";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "~/schedules/lib/types";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
-import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
-
+import {
+  AvailableTimes,
+  AvailableTimesSkeleton,
+} from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
+import { useCallback, useMemo, useRef } from "react";
+import type { Slot } from "~/schedules/lib/types";
+import type { IUseBookingLoadingStates } from "../hooks/useBookings";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -130,6 +128,16 @@ export const AvailableTimeSlots = ({
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(dates, scheduleData?.slots);
+  const sortedSlotsPerDay = useMemo(() => {
+    return slotsPerDay.map((daySlots) => {
+      const preferredSlots = daySlots.slots.filter((slot) => slot.preferred);
+      const regularSlots = daySlots.slots.filter((slot) => !slot.preferred);
+      return {
+        ...daySlots,
+        slots: [...preferredSlots, ...regularSlots],
+      };
+    });
+  }, [slotsPerDay]);
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
@@ -201,7 +209,7 @@ export const AvailableTimeSlots = ({
           <div className="mb-3 h-8" />
         ) : (
           slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => {
+          sortedSlotsPerDay.map((slots) => {
             // Check if this day is OOO - since OOO is date-level, just check the first slot
             const isOOODay = slots.slots.length > 0 && slots.slots[0]?.away;
             return (
@@ -235,8 +243,8 @@ export const AvailableTimeSlots = ({
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
         {!isLoading &&
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
+          sortedSlotsPerDay.length > 0 &&
+          sortedSlotsPerDay.map((slots) => (
             <div key={slots.date} className="no-scrollbar overflow-x-hidden! h-full w-full overflow-y-auto">
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}
