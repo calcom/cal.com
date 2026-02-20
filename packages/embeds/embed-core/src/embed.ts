@@ -39,8 +39,7 @@ export type Message = {
 };
 // HACK: Redefine and don't import WEBAPP_URL as it causes import statement to be present in built file.
 // This is happening because we are not able to generate an App and a lib using single Vite Config.
-const WEBAPP_URL =
-  import.meta.env.EMBED_PUBLIC_WEBAPP_URL || `https://${import.meta.env.EMBED_PUBLIC_VERCEL_URL}`;
+const WEBAPP_URL = process.env.EMBED_PUBLIC_WEBAPP_URL || `https://${process.env.EMBED_PUBLIC_VERCEL_URL}`;
 
 customElements.define("cal-modal-box", ModalBox);
 customElements.define("cal-floating-button", FloatingButton);
@@ -237,7 +236,7 @@ export class Cal {
   /**
    * Commands for which the queue persists across iframe resets
    */
-  commandsPersistAcrossIframeResets: DoInIframeArg['method'][] = ["ui"];
+  commandsPersistAcrossIframeResets: DoInIframeArg["method"][] = ["ui"];
 
   isPrerendering?: boolean;
 
@@ -375,7 +374,7 @@ export class Cal {
 
     // Very Important: Reset iframe ready flag and clear queue, as iframe might load a fresh URL and we need to check correctly when it is ready.
     this.iframeReset();
-    
+
     if (iframe.src === urlInstance.toString()) {
       // Ensure reload occurs even if the url is same - Though browser normally does it, but would be better to ensure it
       // This param has no other purpose except to ensure forced reload.
@@ -415,7 +414,7 @@ export class Cal {
 
   resetQueue() {
     // Only keep UI related instructions in the queue, as we want to ensure that newly loaded iframe has the same UI configuration applied automatically
-    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) => 
+    this.iframeDoQueue = this.iframeDoQueue.filter((doInIframeArg) =>
       this.commandsPersistAcrossIframeResets.includes(doInIframeArg.method)
     );
   }
@@ -1501,7 +1500,6 @@ class CalApi {
       },
     });
 
-
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
 }
@@ -1682,8 +1680,8 @@ function initializeGlobalCalProps() {
   // Store Commit Hash to know exactly what version of the code is running
   // TODO: Ideally it should be the version as per package.json and then it can be renamed to version.
   // But because it is built on local machine right now, it is much more reliable to have the commit hash.
-  globalCal.fingerprint = import.meta.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
-  globalCal.version = import.meta.env.EMBED_PUBLIC_EMBED_VERSION as string;
+  globalCal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT as string;
+  globalCal.version = process.env.EMBED_PUBLIC_EMBED_VERSION as string;
   globalCal.__css = tailwindCss;
 
   if (!globalCal.config) {
@@ -1701,7 +1699,7 @@ function log(...args: unknown[]) {
   const searchString = location.search;
   globalCal.__logQueue = globalCal.__logQueue || [];
   globalCal.__logQueue.push(args);
-  if (searchString.includes("cal.embed.logging=1") || import.meta.env.INTEGRATION_TEST_MODE === "true") {
+  if (searchString.includes("cal.embed.logging=1") || process.env.INTEGRATION_TEST_MODE === "true") {
     console.log("Parent:", ...args);
   }
 }
