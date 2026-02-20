@@ -151,6 +151,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       ...data,
       profileId: profile.id,
     });
+
+    // Gate 2: abuse scoring — async, fail-open
+    import("@calcom/features/abuse-scoring/lib/hooks")
+      .then(({ onEventTypeChange }) => onEventTypeChange(userId))
+      .catch((err) => console.error("abuse-scoring: onEventTypeChange failed to load", err));
+
     return { eventType };
   } catch (e) {
     console.warn(e);

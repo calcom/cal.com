@@ -21,7 +21,4 @@ export const abuseMetadataSchema = z.object({
       at: z.string().datetime(),
     })
   ),
-  lastAnalyzedAt: z.string().datetime().nullable(),
-  lockedAt: z.string().datetime().optional(),
-  lockedReason: z.enum(ABUSE_LOCKED_REASONS).optional(),
 });

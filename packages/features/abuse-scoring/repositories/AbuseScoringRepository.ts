@@ -1,4 +1,5 @@
-import type { PrismaClient, WatchlistType } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import type { WatchlistType } from "@calcom/prisma/enums";
 
 import type { UserForMonitoringDto, UserForScoringDto, WatchlistPatternDto } from "../dto/scoring.dto";
 import {

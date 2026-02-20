@@ -860,5 +860,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       logger.debug((e as Error)?.message);
     }
   }
+  // Gate 2: abuse scoring — async, fail-open
+  import("@calcom/features/abuse-scoring/lib/hooks")
+    .then(({ onEventTypeChange }) => onEventTypeChange(ctx.user.id))
+    .catch((err) => console.error("abuse-scoring: onEventTypeChange failed to load", err));
+
   return { eventType };
 };

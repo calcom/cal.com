@@ -3017,6 +3017,13 @@ export class RegularBookingService implements IBookingService {
             operationId: null,
             isBookingAuditEnabled,
           });
+
+          // Gate 3: abuse scoring — async, fail-open
+          if (booking.userId) {
+            import("@calcom/features/abuse-scoring/lib/hooks")
+              .then(({ onBookingCreated: onBookingCreatedHook }) => onBookingCreatedHook(booking.userId!))
+              .catch((err) => console.error("abuse-scoring: onBookingCreated failed to load", err));
+          }
         }
       }
     } catch (error) {

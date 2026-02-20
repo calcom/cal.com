@@ -54,7 +54,7 @@ export function calculateScore(
       }
     }
 
-    const uniqueDomains = [...new Set(matchedDomains)];
+    const uniqueDomains = Array.from(new Set(matchedDomains));
     if (uniqueDomains.length > 0) {
       signals.push({
         type: "redirect_malicious",
@@ -83,7 +83,7 @@ export function calculateScore(
         if (title.includes(kw)) matched.push(kw);
       }
     }
-    const unique = [...new Set(matched)];
+    const unique = Array.from(new Set(matched));
     if (unique.length > 0) {
       signals.push({
         type: "content_spam",
@@ -104,7 +104,7 @@ export function calculateScore(
       const hour = Math.floor(b.createdAt.getTime() / 3600000);
       hourBuckets.set(hour, (hourBuckets.get(hour) ?? 0) + 1);
     }
-    const peakPerHour = Math.max(...hourBuckets.values(), 0);
+    const peakPerHour = Math.max(...Array.from(hourBuckets.values()), 0);
 
     if (peakPerHour > 50) {
       signals.push({
@@ -166,5 +166,5 @@ function applySignalCaps(signals: AbuseSignal[]): AbuseSignal[] {
     }
   }
 
-  return [...seen.values()];
+  return Array.from(seen.values());
 }

@@ -174,14 +174,14 @@ describe("AbuseScoringService", () => {
     });
   });
 
-  // ── shouldCheckEventType ──
+  // ── shouldUsersCheckEventType ──
 
-  describe("shouldCheckEventType", () => {
+  describe("shouldUsersCheckEventType", () => {
     it("returns false when feature flag is OFF", async () => {
       featuresRepository = buildMockFeaturesRepository(false);
       service = new AbuseScoringService({ repository, featuresRepository, alerter });
 
-      expect(await service.shouldCheckEventType(1)).toBe(false);
+      expect(await service.shouldUsersCheckEventType(1)).toBe(false);
     });
 
     it("returns true for any user within 7-day window (no flag required)", async () => {
@@ -191,7 +191,7 @@ describe("AbuseScoringService", () => {
         locked: false,
       });
 
-      expect(await service.shouldCheckEventType(1)).toBe(true);
+      expect(await service.shouldUsersCheckEventType(1)).toBe(true);
     });
 
     it("returns false for account older than 7 days", async () => {
@@ -201,7 +201,7 @@ describe("AbuseScoringService", () => {
         locked: false,
       });
 
-      expect(await service.shouldCheckEventType(1)).toBe(false);
+      expect(await service.shouldUsersCheckEventType(1)).toBe(false);
     });
 
     it("returns false when user is locked", async () => {
@@ -211,7 +211,7 @@ describe("AbuseScoringService", () => {
         locked: true,
       });
 
-      expect(await service.shouldCheckEventType(1)).toBe(false);
+      expect(await service.shouldUsersCheckEventType(1)).toBe(false);
     });
   });
 

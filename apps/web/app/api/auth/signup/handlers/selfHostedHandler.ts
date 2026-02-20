@@ -72,6 +72,10 @@ export default async function handler(body: Record<string, string>) {
 
   const hashedPassword = await hashPassword(password);
 
+  // Gate 1: abuse scoring — synchronous pattern matching at signup (fail-open)
+  const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
+  const signupCheck = await onSignup(userEmail, correctedUsername);
+
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
       where: {
@@ -192,6 +196,14 @@ export default async function handler(body: Record<string, string>) {
           email: userEmail,
           password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
+          ...(signupCheck.flagged && {
+            userAbuseScore: {
+              create: {
+                score: signupCheck.initialScore,
+                abuseData: { flags: signupCheck.flags, signals: [] },
+              },
+            },
+          }),
         },
         select: { id: true },
       });
