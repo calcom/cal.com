@@ -46,6 +46,7 @@ export const config = {
   },
 };
 
+//-------TESTED
 const handleCalendlyImportFn = inngestClient.createFunction(
   { id: `sync-import-from-calendly-${key}`, retries: 2 },
   { event: `${JobName.CALENDLY_IMPORT}-${key}` },
@@ -63,34 +64,6 @@ export const handleBookingExportFn = inngestClient.createFunction(
     const ctx = createInngestWorkflowContext(step, logger);
     await bookingExportService(ctx, event.data as BookingExportJobData);
     return { message: `Export Booking mail sent for userID: ${event.data.user.id}` };
-  }
-);
-
-export const handleRazorpayAppRevoked = inngestClient.createFunction(
-  {
-    id: `razorpay-app-revoked-${key}`,
-    name: "Handle Razorpay App Revoked",
-    retries: 3,
-  },
-  { event: `${JobName.RAZORPAY_APP_REVOKED_WEBHOOK}-${key}` },
-  async ({ event, step, logger }) => {
-    const ctx = createInngestWorkflowContext(step, logger);
-    const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
-    return result;
-  }
-);
-
-export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
-  {
-    id: `razorpay-payment-link-paid-${key}`,
-    name: "Handle Razorpay Payment Link Paid",
-    retries: 3,
-  },
-  { event: `${JobName.RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK}-${key}` },
-  async ({ event, step, logger }) => {
-    const ctx = createInngestWorkflowContext(step, logger);
-    const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
-    return result;
   }
 );
 
@@ -143,6 +116,35 @@ export const handleBookingEmailsCancelled = inngestClient.createFunction(
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
     return await bookingEmailsService(ctx, event.data as BookingEmailsJobData);
+  }
+);
+
+//---------TO BE TESTED
+export const handleRazorpayAppRevoked = inngestClient.createFunction(
+  {
+    id: `razorpay-app-revoked-${key}`,
+    name: "Handle Razorpay App Revoked",
+    retries: 3,
+  },
+  { event: `${JobName.RAZORPAY_APP_REVOKED_WEBHOOK}-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayAppRevokedService(ctx, event.data as RazorpayAppRevokedJobData);
+    return result;
+  }
+);
+
+export const handleRazorpayPaymentLinkPaid = inngestClient.createFunction(
+  {
+    id: `razorpay-payment-link-paid-${key}`,
+    name: "Handle Razorpay Payment Link Paid",
+    retries: 3,
+  },
+  { event: `${JobName.RAZORPAY_PAYMENT_LINK_PAID_WEBHOOK}-${key}` },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+    const result = await razorpayPaymentLinkPaidService(ctx, event.data as RazorpayPaymentLinkPaidJobData);
+    return result;
   }
 );
 
