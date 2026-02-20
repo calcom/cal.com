@@ -1,8 +1,10 @@
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { expect } from "@playwright/test";
-
+import type { createUsersFixture } from "playwright/fixtures/users";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
+  doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -200,5 +202,97 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator('[data-testid="private-link-description"]')).toContainText(
       "Usage limit reached"
     );
+  });
+});
+
+const orgSlug = "example";
+
+async function createUserWithOrganization(users: ReturnType<typeof createUsersFixture>) {
+  const orgOwnerUsernamePrefix = "owner";
+  const orgOwnerEmail = users.trackEmail({
+    username: orgOwnerUsernamePrefix,
+    domain: `example.com`,
+  });
+  return users.create(
+    {
+      username: orgOwnerUsernamePrefix,
+      email: orgOwnerEmail,
+      role: "ADMIN",
+      roleInOrganization: "OWNER",
+    },
+    {
+      isOrg: true,
+      isUnpublished: true,
+      orgRequestedSlug: orgSlug,
+      hasTeam: true,
+    }
+  );
+}
+
+test.describe("private link slug validation and org user support", () => {
+  test.afterEach(async ({ orgs, users }) => {
+    orgs.deleteAll();
+    users.deleteAll();
+  });
+
+  test("should return 404 when private link hash is used with a mismatched event slug", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    const user = await users.create();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const firstEventType = eventTypes[0];
+    const secondEventType = eventTypes[1];
+
+    const eventWithPrivateLink = await prisma.eventType.update({
+      where: { id: firstEventType.id },
+      data: {
+        hashedLink: {
+          create: [{ link: generateHashedLink(firstEventType.id) }],
+        },
+      },
+      select: { hashedLink: { select: { link: true } } },
+    });
+
+    const hash = eventWithPrivateLink.hashedLink[0]?.link;
+
+    const mismatchedResponse= await page.goto(`/d/${hash}/${secondEventType.slug}`);
+    expect(mismatchedResponse?.status()).toBe(404);
+
+    const correctResponse = await page.goto(`/d/${hash}/${firstEventType.slug}`);
+    expect(correctResponse?.status()).not.toBe(404);
+  });
+
+  test("should not return 404 for org user with only profile username on private link", async ({
+    page,
+    users,
+    prisma,
+  }) => {
+    const orgOwner = await createUserWithOrganization(users);
+    const eventType = await orgOwner.getFirstEventAsOwner();
+
+    await prisma.user.update({
+      where: { id: orgOwner.id },
+      data: { username: null },
+    });
+
+    const eventWithPrivateLink = await prisma.eventType.update({
+      where: { id: eventType.id },
+      data: {
+        hashedLink: {
+          create: [{ link: generateHashedLink(eventType.id) }],
+        },
+      },
+      select: { hashedLink: { select: { link: true } } },
+    });
+
+    const hash = eventWithPrivateLink.hashedLink[0]?.link;
+
+    await doOnOrgDomain({ page, orgSlug }, async () => {
+      const response = await page.goto(`/d/${hash}/${eventType.slug}?orgRedirection=true`);
+      expect(response?.status()).not.toBe(404);
+      await expect(page.getByTestId("event-title")).toBeVisible();
+    });
   });
 });

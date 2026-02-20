@@ -17,6 +17,7 @@ export const hashedLinkSelect = {
   usageCount: true,
   eventType: {
     select: {
+      slug: true,
       userId: true,
       teamId: true,
       users: {
