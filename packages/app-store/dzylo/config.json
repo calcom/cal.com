@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dzylo",
+  "slug": "dzylo",
+  "type": "dzylo_crm",
+  "logo": "logo.png",
+  "url": "https://dzylo.ai",
+  "variant": "crm",
+  "categories": ["crm"],
+  "extendsFeature": "EventType",
+  "publisher": "dzylo.ai",
+  "email": "contact@dzylo.com",
+  "description": "Dzylo is an all-in-one, AI-powered software built for interior designers, architects, and contractors. From managing leads and generating quotations to tracking projects, approving expenses, handling vendor payments, and controlling inventory, Dzylo brings every part of your interior business into one powerful platform. With built-in automation and a Meta-verified WhatsApp API, Dzylo helps you save time, reduce costs, and deliver projects with confidence.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "isOAuth": true
+}
