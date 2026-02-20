@@ -25,6 +25,7 @@ export interface TriggerBookingEmailsOptions {
   curAttendee?: Person;
   emailType: "scheduled" | "request" | "rescheduled" | "cancelled";
   firstAttendee?: Person;
+  hasRelevantSmsWorkflow: boolean;
 }
 
 /**
@@ -73,6 +74,7 @@ export async function triggerBookingEmails(options: TriggerBookingEmailsOptions)
         : undefined,
       emailType: options.emailType,
       firstAttendee: serializedFirstAttendee,
+      hasRelevantSmsWorkflow: options.hasRelevantSmsWorkflow,
     };
 
     const { jobId } = await dispatcher.dispatch({
@@ -130,15 +132,21 @@ async function sendEmailsSynchronously(options: TriggerBookingEmailsOptions): Pr
         options.isHostConfirmationEmailsDisabled,
         options.isAttendeeConfirmationEmailDisabled,
         options.eventTypeMetadata,
-        options.curAttendee
+        options.curAttendee,
+        options.hasRelevantSmsWorkflow
       );
     } else if (options.emailType === "rescheduled") {
-      await sendRescheduledEmailsAndSMS(options.calEvent, options.eventTypeMetadata);
+      await sendRescheduledEmailsAndSMS(
+        options.calEvent,
+        options.eventTypeMetadata,
+        options.hasRelevantSmsWorkflow
+      );
     } else if (options.emailType === "cancelled") {
       await sendCancelledEmailsAndSMS(
         options.calEvent,
         options.eventNameObject ? { eventName: options.eventNameObject.eventName } : { eventName: undefined },
-        options.eventTypeMetadata
+        options.eventTypeMetadata,
+        options.hasRelevantSmsWorkflow
       );
     } else if (options.emailType === "request") {
       if (options.firstAttendee) {
@@ -146,7 +154,8 @@ async function sendEmailsSynchronously(options: TriggerBookingEmailsOptions): Pr
         await sendAttendeeRequestEmailAndSMS(
           options.calEvent,
           options.firstAttendee,
-          options.eventTypeMetadata
+          options.eventTypeMetadata,
+          options.hasRelevantSmsWorkflow
         );
       } else {
         logger.error("Cannot send request emails synchronously: firstAttendee is required", {
