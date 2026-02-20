@@ -21,6 +21,10 @@ import { TaskerService } from "@/lib/services/tasker.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module, Scope } from "@nestjs/common";
 
+import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
+
+import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
+
 @Module({
   imports: [PrismaModule],
   providers: [
@@ -37,6 +41,10 @@ import { Module, Scope } from "@nestjs/common";
       },
       scope: Scope.TRANSIENT,
     },
+    {
+      provide: WEBHOOK_PRODUCER,
+      useFactory: () => getWebhookProducer(),
+    },
     BookingAuditProducerService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
@@ -51,6 +59,6 @@ import { Module, Scope } from "@nestjs/common";
     TaskerService,
     RegularBookingService,
   ],
-  exports: [RegularBookingService],
+  exports: [RegularBookingService, WEBHOOK_PRODUCER],
 })
 export class RegularBookingModule {}
