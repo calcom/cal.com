@@ -1,12 +1,30 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
@@ -26,28 +44,19 @@ import {
   TeamVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/verified-resources",
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  PbacGuard,
+  RolesGuard,
+  IsTeamInOrg,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @ApiTags("Organization Team Verified Resources")
 export class OrgTeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
@@ -56,6 +65,7 @@ export class OrgTeamsVerifiedResourcesController {
     description: `Sends a verification code to the email`,
   })
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @Throttle({
     limit: 3,
     ttl: 60000,
@@ -87,6 +97,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @Throttle({
     limit: 3,
     ttl: 60000,
@@ -113,6 +124,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @PlatformPlan("ESSENTIALS")
   @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
@@ -139,6 +151,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @PlatformPlan("ESSENTIALS")
   @Post("/phones/verification-code/verify")
   @Throttle({
@@ -170,6 +183,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
@@ -195,6 +209,7 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/phones")
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -218,6 +233,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/emails/:id")
   @HttpCode(HttpStatus.OK)
@@ -237,6 +253,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)

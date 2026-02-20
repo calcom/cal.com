@@ -1,3 +1,29 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CreateScheduleInput_2024_06_11,
+  CreateScheduleOutput_2024_06_11,
+  DeleteScheduleOutput_2024_06_11,
+  GetScheduleOutput_2024_06_11,
+  GetSchedulesOutput_2024_06_11,
+  SkipTakePagination,
+  UpdateScheduleInput_2024_06_11,
+  UpdateScheduleOutput_2024_06_11,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -6,47 +32,22 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Param,
-  ParseIntPipe,
-  Body,
-  Patch,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Query,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CreateScheduleInput_2024_06_11,
-  CreateScheduleOutput_2024_06_11,
-  DeleteScheduleOutput_2024_06_11,
-  GetScheduleOutput_2024_06_11,
-  GetSchedulesOutput_2024_06_11,
-  UpdateScheduleInput_2024_06_11,
-  UpdateScheduleOutput_2024_06_11,
-} from "@calcom/platform-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
@@ -57,6 +58,7 @@ export class OrganizationsSchedulesController {
   ) {}
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
   @DocsTags("Orgs / Schedules")
@@ -76,6 +78,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.create"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
@@ -94,6 +97,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.read"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
@@ -112,6 +116,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.read"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
@@ -129,6 +134,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.update"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
@@ -148,6 +154,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["availability.delete"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")

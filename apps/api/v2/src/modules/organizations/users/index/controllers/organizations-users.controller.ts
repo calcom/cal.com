@@ -1,3 +1,21 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Team } from "@calcom/prisma/client";
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -7,49 +25,32 @@ import {
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import {
+  GetOrganizationUserOutput,
   GetOrganizationUsersResponseDTO,
   GetOrgUsersWithProfileOutput,
 } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
-import { GetOrganizationUserOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  ParseIntPipe,
-  Body,
-  UseInterceptors,
-  Query,
-} from "@nestjs/common";
-import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @UseGuards(IsOrgGuard)
 @DocsTags("Orgs / Users")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
@@ -60,6 +61,7 @@ export class OrganizationsUsersController {
 
   @Get()
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.listMembers"])
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all users" })
   async getOrganizationsUsers(
@@ -89,6 +91,7 @@ export class OrganizationsUsersController {
 
   @Post()
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.invite"])
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
   async createOrganizationUser(
@@ -113,6 +116,7 @@ export class OrganizationsUsersController {
 
   @Patch("/:userId")
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.attributes.editUsers"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Update a user" })
@@ -134,6 +138,7 @@ export class OrganizationsUsersController {
 
   @Delete("/:userId")
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.remove"])
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Delete a user" })
