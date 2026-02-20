@@ -7,11 +7,25 @@ import { ZSendWorkflowSMSSchema, sendWorkflowSMS } from "./sendWorkflowSMS";
 
 // --- Mocks ---
 
-const mockFindUnique = vi.fn();
+const mockFindByIdForSMSTask = vi.fn();
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
+  WorkflowReminderRepository: vi.fn().mockImplementation(function () {
+    return {
+      findByIdForSMSTask: (...args: unknown[]) => mockFindByIdForSMSTask(...args),
+    };
+  }),
+}));
+
+const mockIsOptedOut = vi.fn().mockResolvedValue(false);
+vi.mock("@calcom/features/ee/workflows/lib/repository/workflowOptOutContact", () => ({
+  WorkflowOptOutContactRepository: {
+    isOptedOut: (...args: unknown[]) => mockIsOptedOut(...args),
+  },
+}));
+
 const mockFindFirst = vi.fn();
 vi.mock("@calcom/prisma", () => ({
   default: {
-    workflowReminder: { findUnique: (...args: unknown[]) => mockFindUnique(...args) },
     profile: { findFirst: (...args: unknown[]) => mockFindFirst(...args) },
   },
 }));
@@ -111,6 +125,7 @@ function createMockReminder(overrides: Record<string, unknown> = {}) {
       sender: "CalSender",
       reminderBody: "Hello {attendee_name}!",
       template: WorkflowTemplates.CUSTOM,
+      verifiedAt: new Date("2025-01-01T00:00:00Z"),
       workflow: {
         userId: 1,
         teamId: null,
@@ -198,7 +213,7 @@ describe("sendWorkflowSMS", () => {
   });
 
   test("should return early when reminder is not found", async () => {
-    mockFindUnique.mockResolvedValue(null);
+    mockFindByIdForSMSTask.mockResolvedValue(null);
 
     await sendWorkflowSMS(
       JSON.stringify({ bookingUid: "booking-123", workflowReminderId: 1 })
@@ -208,7 +223,7 @@ describe("sendWorkflowSMS", () => {
   });
 
   test("should return early when workflowStep is missing", async () => {
-    mockFindUnique.mockResolvedValue({
+    mockFindByIdForSMSTask.mockResolvedValue({
       ...createMockReminder(),
       workflowStep: null,
     });
@@ -221,7 +236,7 @@ describe("sendWorkflowSMS", () => {
   });
 
   test("should return early when booking is missing", async () => {
-    mockFindUnique.mockResolvedValue({
+    mockFindByIdForSMSTask.mockResolvedValue({
       ...createMockReminder(),
       booking: null,
     });
@@ -235,7 +250,7 @@ describe("sendWorkflowSMS", () => {
 
   test("should send SMS for SMS_ATTENDEE action with custom template", async () => {
     const reminder = createMockReminder();
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null); // no org profile
 
     await sendWorkflowSMS(
@@ -270,10 +285,11 @@ describe("sendWorkflowSMS", () => {
         sender: "CalSender",
         reminderBody: "Hello!",
         template: WorkflowTemplates.CUSTOM,
+        verifiedAt: new Date("2025-01-01T00:00:00Z"),
         workflow: { userId: 1, teamId: null },
       },
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     await sendWorkflowSMS(
@@ -300,10 +316,11 @@ describe("sendWorkflowSMS", () => {
         sender: "CalSender",
         reminderBody: null,
         template: WorkflowTemplates.REMINDER,
+        verifiedAt: new Date("2025-01-01T00:00:00Z"),
         workflow: { userId: 1, teamId: null },
       },
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
 
     await sendWorkflowSMS(
       JSON.stringify({ bookingUid: "booking-123", workflowReminderId: 1 })
@@ -327,10 +344,11 @@ describe("sendWorkflowSMS", () => {
         sender: "CalSender",
         reminderBody: null,
         template: WorkflowTemplates.CUSTOM, // no body + not REMINDER template = null message
+        verifiedAt: new Date("2025-01-01T00:00:00Z"),
         workflow: { userId: 1, teamId: null },
       },
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
 
     await sendWorkflowSMS(
       JSON.stringify({ bookingUid: "booking-123", workflowReminderId: 1 })
@@ -346,12 +364,12 @@ describe("sendWorkflowSMS", () => {
       {
         name: "Attendee",
         email: "attendee@example.com",
-        phoneNumber: undefined as any,
+        phoneNumber: undefined as unknown as string,
         timeZone: "America/New_York",
         locale: "en",
       },
     ];
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     await sendWorkflowSMS(
@@ -366,7 +384,7 @@ describe("sendWorkflowSMS", () => {
     const reminder = createMockReminder({
       seatReferenceId: "seat-ref-123",
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     mockGetByReferenceUidWithAttendeeDetails.mockResolvedValue({
@@ -397,7 +415,7 @@ describe("sendWorkflowSMS", () => {
     const reminder = createMockReminder({
       seatReferenceId: "seat-ref-missing",
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     mockGetByReferenceUidWithAttendeeDetails.mockResolvedValue(null);
@@ -427,7 +445,7 @@ describe("sendWorkflowSMS", () => {
 
   test("should include opt-out message", async () => {
     const reminder = createMockReminder();
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     await sendWorkflowSMS(
@@ -452,10 +470,11 @@ describe("sendWorkflowSMS", () => {
         sender: "CalSender",
         reminderBody: "Team reminder",
         template: WorkflowTemplates.CUSTOM,
+        verifiedAt: new Date("2025-01-01T00:00:00Z"),
         workflow: { userId: null, teamId: 42 },
       },
     });
-    mockFindUnique.mockResolvedValue(reminder);
+    mockFindByIdForSMSTask.mockResolvedValue(reminder);
     mockFindFirst.mockResolvedValue(null);
 
     await sendWorkflowSMS(
@@ -482,13 +501,14 @@ describe("sendWorkflowSMS", () => {
         sender: "CalSender",
         reminderBody: null,
         template: WorkflowTemplates.REMINDER,
+        verifiedAt: new Date("2025-01-01T00:00:00Z"),
         workflow: { userId: 1, teamId: null },
       },
     });
     attendeeReminder.booking.attendees[0].timeZone = "Asia/Tokyo";
     attendeeReminder.booking.user.timeZone = "America/New_York";
 
-    mockFindUnique.mockResolvedValue(attendeeReminder);
+    mockFindByIdForSMSTask.mockResolvedValue(attendeeReminder);
 
     await sendWorkflowSMS(
       JSON.stringify({ bookingUid: "booking-123", workflowReminderId: 1 })
