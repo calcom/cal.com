@@ -184,7 +184,7 @@ describe("LeverCRMService", () => {
       expect(callBody.name).toBe("John");
     });
 
-    it("should return empty contact on API error", async () => {
+    it("should throw error on API failure", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -197,17 +197,10 @@ describe("LeverCRMService", () => {
         email: "error@example.com",
       };
 
-      const result = await service.createContact(contact);
-
-      expect(result).toEqual({
-        id: "",
-        email: "error@example.com",
-        firstName: "Error",
-        lastName: "Test",
-      });
+      await expect(service.createContact(contact)).rejects.toThrow("Lever API error: 500");
     });
 
-    it("should handle network errors gracefully", async () => {
+    it("should throw on network errors", async () => {
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
       const contact: ContactCreateInput = {
@@ -216,9 +209,7 @@ describe("LeverCRMService", () => {
         email: "network@example.com",
       };
 
-      const result = await service.createContact(contact);
-
-      expect(result.id).toBe("");
+      await expect(service.createContact(contact)).rejects.toThrow("Network error");
     });
   });
 

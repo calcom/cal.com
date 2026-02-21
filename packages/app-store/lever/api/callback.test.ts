@@ -263,8 +263,38 @@ describe("Lever OAuth Callback", () => {
       await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
 
       expect(mockRes.redirect).toHaveBeenCalledWith(
-        expect.stringContaining("?error=Error getting Lever access token")
+        expect.stringContaining("error=Error")
       );
+    });
+
+    it("should correctly append error query param when redirect URL already has params", async () => {
+      mockReq.query = { code: "invalid_code" };
+      mockDecodeOAuthState.mockReturnValue({
+        returnTo: "/settings?existing=param",
+        onErrorReturnTo: "/settings?existing=param",
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve("invalid_grant"),
+      });
+
+      const callbackModule = await import("./callback");
+      const handlers = callbackModule.default;
+      const getHandler = await handlers.GET;
+      const handler = await getHandler.default;
+
+      await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
+
+      const redirectCall = mockRes.redirect as ReturnType<typeof vi.fn>;
+      const redirectUrl = redirectCall.mock.calls[0][0];
+      
+      // Should use & instead of ? when URL already has query params
+      expect(redirectUrl).toContain("existing=param");
+      expect(redirectUrl).toContain("error=");
+      // Should NOT have ?...? pattern (invalid URL)
+      expect(redirectUrl).not.toMatch(/\?.*\?/);
     });
   });
 

@@ -84,7 +84,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.redirect(redirectAfterSuccess);
   } catch (error) {
     console.error("Error getting Lever access token", error);
-    return res.redirect(`${redirectAfterSuccessOrError}?error=Error getting Lever access token`);
+    const errorUrl = new URL(redirectAfterSuccessOrError, WEBAPP_URL);
+    errorUrl.searchParams.set("error", "Error getting Lever access token");
+    return res.redirect(errorUrl.pathname + errorUrl.search);
   }
 }
 

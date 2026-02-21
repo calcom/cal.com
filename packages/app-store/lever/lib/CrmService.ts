@@ -54,8 +54,8 @@ class LeverCRMService implements CRM {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      this.log.error(`Lever API error: ${response.status} ${errorText}`);
+      // Log only status code and endpoint to avoid leaking PII from error responses
+      this.log.error(`Lever API error: ${response.status} on ${endpoint}`);
       throw new Error(`Lever API error: ${response.status}`);
     }
 
@@ -63,34 +63,24 @@ class LeverCRMService implements CRM {
   }
 
   async createContact(contactInfo: ContactCreateInput): Promise<Contact> {
-    try {
-      // In Lever, we create a candidate
-      const candidate = await this.makeRequest("/candidates", {
-        method: "POST",
-        body: JSON.stringify({
-          name: `${contactInfo.firstName || ""} ${contactInfo.lastName || ""}`.trim(),
-          emails: contactInfo.email ? [contactInfo.email] : [],
-          phones: contactInfo.phone ? [{ type: "other", value: contactInfo.phone }] : [],
-          origin: "other",
-          tags: ["cal.com"],
-        }),
-      });
+    // In Lever, we create a candidate
+    const candidate = await this.makeRequest("/candidates", {
+      method: "POST",
+      body: JSON.stringify({
+        name: `${contactInfo.firstName || ""} ${contactInfo.lastName || ""}`.trim(),
+        emails: contactInfo.email ? [contactInfo.email] : [],
+        phones: contactInfo.phone ? [{ type: "other", value: contactInfo.phone }] : [],
+        origin: "other",
+        tags: ["cal.com"],
+      }),
+    });
 
-      return {
-        id: candidate.data.id,
-        email: contactInfo.email || "",
-        firstName: contactInfo.firstName || "",
-        lastName: contactInfo.lastName || "",
-      };
-    } catch (error) {
-      this.log.error("Error creating Lever candidate:", error);
-      return {
-        id: "",
-        email: contactInfo.email || "",
-        firstName: contactInfo.firstName || "",
-        lastName: contactInfo.lastName || "",
-      };
-    }
+    return {
+      id: candidate.data.id,
+      email: contactInfo.email || "",
+      firstName: contactInfo.firstName || "",
+      lastName: contactInfo.lastName || "",
+    };
   }
 
   async getContacts(emails: string | string[]): Promise<Contact[]> {
