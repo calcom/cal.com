@@ -18,7 +18,11 @@ export type TCreateClientInputSchema = {
   enablePkce: boolean;
 };
 
-export const ZCreateClientInputSchema: z.ZodType<TCreateClientInputSchema, z.ZodTypeDef, TCreateClientInputSchemaInput> = z.object({
+export const ZCreateClientInputSchema: z.ZodType<
+  TCreateClientInputSchema,
+  z.ZodTypeDef,
+  TCreateClientInputSchemaInput
+> = z.object({
   name: z.string(),
   purpose: z.string().min(1),
   redirectUri: z.string(),
