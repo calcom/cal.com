@@ -24,6 +24,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import CalVideoSettings from "./CalVideoSettings";
 import DefaultLocationSettings from "./DefaultLocationSettings";
 import LocationInput from "./LocationInput";
+import LocationScheduleSettings from "./LocationScheduleSettings";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
@@ -317,6 +318,7 @@ const Locations: React.FC<LocationsProps> = ({
                   </div>
                 </div>
               ) : null}
+              <LocationScheduleSettings index={index} disabled={disableLocationProp} />
             </li>
           );
         })}

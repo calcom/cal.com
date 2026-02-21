@@ -15,6 +15,7 @@ export type EventTypeLocation = {
   credentialId?: number;
   teamName?: string;
   customLabel?: string;
+  scheduleId?: number;
 };
 
 /**
@@ -33,6 +34,7 @@ export const eventTypeLocations: z.ZodType<EventTypeLocation[]> = z.array(
     credentialId: z.number().optional(),
     teamName: z.string().optional(),
     customLabel: z.string().optional(),
+    scheduleId: z.number().optional(),
   })
 );
 
