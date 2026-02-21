@@ -21,6 +21,34 @@ The Zapier app in Cal.com now functions as a redirect app that takes users direc
 
 This app uses the `link-as-an-app` template and requires no additional configuration beyond the redirect URL.
 
+## Supported Webhook Events
+
+The Zapier integration supports the following webhook trigger events:
+
+| Event | Description |
+|-------|-------------|
+| `BOOKING_CREATED` | When a new booking is made |
+| `BOOKING_RESCHEDULED` | When a booking is rescheduled |
+| `BOOKING_CANCELLED` | When a booking is cancelled |
+| `MEETING_ENDED` | When a meeting ends |
+| `BOOKING_NO_SHOW_UPDATED` | When attendee(s) are marked as no-show |
+
+### No-Show Event Payload
+
+The `BOOKING_NO_SHOW_UPDATED` event sends a specifically formatted payload for Zapier:
+
+```json
+{
+  "bookingUid": "booking-uid-123",
+  "bookingId": 456,
+  "message": "Attendee marked as no-show",
+  "attendees": [
+    { "email": "attendee@example.com", "noShow": true }
+  ],
+  "createdAt": "2024-01-15T10:00:00.000Z"
+}
+```
+
 ## Legacy API Endpoints
 
 The following API endpoints are maintained for backward compatibility with existing Zapier integrations:
@@ -30,6 +58,5 @@ The following API endpoints are maintained for backward compatibility with exist
 - `POST /api/integrations/zapier/addSubscription` - Subscribe to webhooks
 - `DELETE /api/integrations/zapier/deleteSubscription` - Unsubscribe from webhooks
 - `GET /api/integrations/zapier/me` - Get user/team information
-- `POST /api/integrations/zapier/no-show` - Trigger no-show event manually (Internal)
 
 **Note:** These endpoints support both API key and OAuth authentication for existing integrations. The endpoints are dynamically routed through `/api/integrations/[...args].ts`.
