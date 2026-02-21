@@ -1,5 +1,6 @@
 import type { NextApiRequest } from "next";
 
+import dayjs from "@calcom/dayjs";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
@@ -45,7 +46,7 @@ export const isAvailableHandler = async ({
   const reservedSlots = uid ? await slotsRepo.findManyReservedByOthers(slots, eventTypeId, uid) : [];
 
   // Map all slots to their availability status
-  const slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
+  let slotsWithStatus: TIsAvailableOutputSchema["slots"] = slots.map((slot) => {
     const isReserved = reservedSlots.some(
       (reservedSlot) =>
         reservedSlot.slotUtcStartDate.toISOString() === slot.utcStartIso &&
@@ -77,6 +78,62 @@ export const isAvailableHandler = async ({
       status: timeStatus.reason ?? "available",
     };
   });
+
+  // Apply onlyShowFirstAvailableSlot restriction if enabled
+  if (eventType.onlyShowFirstAvailableSlot) {
+    const slotsByDay: Record<string, TIsAvailableOutputSchema["slots"]> = {};
+    const eventTimeZone = eventType.timeZone || "UTC";
+
+    // First, group slots by their date in the event's timezone
+    slotsWithStatus.forEach((slot) => {
+      const slotInEventTimeZone = dayjs(slot.utcStartIso).tz(eventTimeZone);
+      const dateStr = slotInEventTimeZone.format("YYYY-MM-DD");
+
+      if (!slotsByDay[dateStr]) {
+        slotsByDay[dateStr] = [];
+      }
+      slotsByDay[dateStr].push(slot);
+    });
+
+    // For each day, find the first available slot considering slots from previous and next days
+    const filteredSlots: TIsAvailableOutputSchema["slots"] = [];
+
+    Object.keys(slotsByDay).forEach((date) => {
+      const currentDate = dayjs(date);
+      const prevDate = currentDate.subtract(1, "day").format("YYYY-MM-DD");
+      const nextDate = currentDate.add(1, "day").format("YYYY-MM-DD");
+
+      // Get all slots for the current day and adjacent days
+      const allRelevantSlots = [
+        ...(slotsByDay[prevDate] || []),
+        ...(slotsByDay[date] || []),
+        ...(slotsByDay[nextDate] || []),
+      ];
+
+      // Sort all slots by their UTC time
+      const sortedSlots = allRelevantSlots.sort((a, b) => a.utcStartIso.localeCompare(b.utcStartIso));
+
+      // Find the first available slot
+      const firstAvailableSlot = sortedSlots.find((slot) => slot.status === "available");
+
+      // Process all slots for the current day
+      slotsByDay[date].forEach((slot) => {
+        if (slot === firstAvailableSlot) {
+          filteredSlots.push(slot);
+        } else if (slot.status !== "available") {
+          filteredSlots.push(slot);
+        } else {
+          filteredSlots.push({
+            ...slot,
+            status: "reserved" as const,
+            realStatus: "available" as const,
+          });
+        }
+      });
+    });
+
+    slotsWithStatus = filteredSlots;
+  }
 
   return {
     slots: slotsWithStatus,

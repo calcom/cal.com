@@ -253,12 +253,15 @@ const BookerComponent = ({
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
-        return !isTimeSlotAvailable({
-          scheduleData: schedule?.data ?? null,
-          slotToCheckInIso: slot,
-          quickAvailabilityChecks: slots.quickAvailabilityChecks,
-        });
-      })
+      return !isTimeSlotAvailable({
+        scheduleData: schedule?.data ?? null,
+        slotToCheckInIso: slot,
+        quickAvailabilityChecks: slots.quickAvailabilityChecks,
+        eventType: event?.data
+          ? { onlyShowFirstAvailableSlot: event.data.onlyShowFirstAvailableSlot }
+          : undefined,
+      });
+    })
     : [];
 
   const slot = getQueryParam("slot");
@@ -325,28 +328,35 @@ const BookerComponent = ({
       </BookEventForm>
     );
   }, [
-    bookerFormErrorRef,
-    instantVideoMeetingUrl,
     bookerState,
-    bookingForm,
-    errors,
-    event,
-    expiryTime,
-    extraOptions,
+    key,
+    shouldRenderCaptcha,
+    bookerFormErrorRef,
     formErrors,
+    errors,
+    isInstantMeeting,
+    unavailableTimeSlots,
+    selectedTimeslot,
+    loadingStates,
+    renderConfirmNotVerifyEmailButtonCond,
+    bookingForm,
+    event,
+    extraOptions,
+    rescheduleUid,
+    isVerificationCodeSending,
+    confirmButtonDisabled,
+    customClassNames?.confirmStep?.confirmButton,
+    customClassNames?.confirmStep?.backButton,
+    isPlatform,
+    expiryTime,
+    instantVideoMeetingUrl,
+    setSelectedTimeslot,
+    seatedEventData,
+    schedule,
+    setSeatedEventData,
     handleBookEvent,
     handleVerifyEmail,
-    key,
-    loadingStates,
     onGoBackInstantMeeting,
-    renderConfirmNotVerifyEmailButtonCond,
-    seatedEventData,
-    setSeatedEventData,
-    setSelectedTimeslot,
-    isPlatform,
-    shouldRenderCaptcha,
-    isVerificationCodeSending,
-    unavailableTimeSlots,
   ]);
 
   /**

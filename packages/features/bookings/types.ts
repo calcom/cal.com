@@ -72,6 +72,7 @@ export type BookerEvent = Pick<
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
+  onlyShowFirstAvailableSlot?: boolean;
   enablePerHostLocations?: boolean;
 } & { profile: BookerEventProfile };
 

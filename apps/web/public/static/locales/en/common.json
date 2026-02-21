@@ -3074,6 +3074,7 @@
   "pay_and_book": "Pay to book",
   "cal_ai_event_tab_description": "Let AI Agents book you",
   "booking_not_found_error": "Could not find booking",
+  "booking_not_first_available_slot_error": "You can only book the first available time slot for this event type.",
   "booking_seats_full_error": "Booking seats are full",
   "missing_payment_credential_error": "Missing payment credentials",
   "missing_payment_app_id_error": "Missing payment app id",

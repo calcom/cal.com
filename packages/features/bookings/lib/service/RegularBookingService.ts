@@ -135,6 +135,7 @@ import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTrigge
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "../handleNewBooking/validateEventLength";
+import { validateOnlyShowFirstAvailableSlot } from "../handleNewBooking/validateOnlyShowFirstAvailableSlot";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
 import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
@@ -1109,6 +1110,15 @@ async function handler(
           throw new Error(ErrorCode.NoAvailableUsersFound);
         }
       }
+
+      // Validate that the requested slot is the first available slot when onlyShowFirstAvailableSlot is enabled
+      // This prevents users from bypassing the restriction via API or URL manipulation
+      await validateOnlyShowFirstAvailableSlot({
+        reqBodyStartTime: reqBody.start,
+        reqBodyTimeZone: reqBody.timeZone,
+        eventType: { ...eventType, users: availableUsers },
+        logger: tracingLogger,
+      });
 
       const fixedUserPool: IsFixedAwareUser[] = [];
       const nonFixedUsers: IsFixedAwareUser[] = [];
