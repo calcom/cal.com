@@ -68,6 +68,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
       label: "after_guests_cal_video_no_show",
     },
+    { value: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT, label: "wrong_assignment_report" },
   ],
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },

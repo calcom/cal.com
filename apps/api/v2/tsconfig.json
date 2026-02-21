@@ -32,7 +32,9 @@
       "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/bookings.ts"],
       "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"],
       "@calcom/platform-libraries/organizations": ["../../../packages/platform/libraries/organizations.ts"],
-      "@calcom/platform-libraries/errors": ["../../../packages/platform/libraries/errors.ts"]
+      "@calcom/platform-libraries/errors": ["../../../packages/platform/libraries/errors.ts"],
+      "@calcom/platform-libraries/calendars": ["../../../packages/platform/libraries/calendars.ts"],
+      "@calcom/platform-libraries/tasker": ["../../../packages/platform/libraries/tasker.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,

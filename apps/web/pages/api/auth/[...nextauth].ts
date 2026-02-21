@@ -11,7 +11,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse) =>
     res,
     getOptions({
       getDubId: () => req.cookies.dub_id || req.cookies.dclid,
-      getTrackingData: () => getTrackingFromCookies(req.cookies),
+      getTrackingData: () => getTrackingFromCookies(req.cookies, req.query),
     })
   );
 

@@ -56,6 +56,7 @@ const testCredential = {
   teamId: 1,
   delegatedTo: null,
   delegationCredentialId: null,
+  encryptedKey: null,
 };
 
 describe("createMeeting", () => {
