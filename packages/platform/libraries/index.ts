@@ -28,6 +28,8 @@ export {
   DEFAULT_WEBHOOK_VERSION,
   WebhookVersion,
 } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export {
   AttributeType,
   CreationSource,

@@ -30,11 +30,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ExternalLinkIcon, RepeatIcon } from "@coss/ui/icons";
 import { BookingHistory } from "@calcom/web/modules/booking-audit/components/BookingHistory";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 import Link from "next/link";
-import { useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { z } from "zod";
 import { AcceptBookingButton } from "../../../components/booking/AcceptBookingButton";
 import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
@@ -44,6 +45,10 @@ import type { BookingListingStatus } from "../../../components/booking/types";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
+import {
+  checkSheetActive,
+  createBookingSheetKeydownHandler,
+} from "../lib/bookingSheetKeyboardHandler";
 import { JoinMeetingButton } from "./JoinMeetingButton";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
@@ -103,10 +108,9 @@ interface BookingDetailsSheetInnerProps {
 }
 
 function useActiveSegment(bookingAuditEnabled: boolean) {
-  const [activeSegment, setActiveSegmentInStore] = useBookingDetailsSheetStore((state) => [
-    state.activeSegment,
-    state.setActiveSegment,
-  ]);
+  const [activeSegment, setActiveSegmentInStore] = useBookingDetailsSheetStore(
+    (state) => [state.activeSegment, state.setActiveSegment]
+  );
 
   const getDerivedActiveSegment = ({
     activeSegment,
@@ -121,10 +125,15 @@ function useActiveSegment(bookingAuditEnabled: boolean) {
     return activeSegment ?? "info";
   };
 
-  const derivedActiveSegment = getDerivedActiveSegment({ activeSegment, bookingAuditEnabled });
+  const derivedActiveSegment = getDerivedActiveSegment({
+    activeSegment,
+    bookingAuditEnabled,
+  });
 
   const setDerivedActiveSegment = (segment: "info" | "history") => {
-    setActiveSegmentInStore(getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled }));
+    setActiveSegmentInStore(
+      getDerivedActiveSegment({ activeSegment: segment, bookingAuditEnabled })
+    );
   };
 
   return [derivedActiveSegment, setDerivedActiveSegment] as const;
@@ -139,16 +148,18 @@ function BookingDetailsSheetInner({
   bookingAuditEnabled = false,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
-  const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
+  const [activeSegment, setActiveSegment] =
+    useActiveSegment(bookingAuditEnabled);
 
   // Fetch additional booking details for reschedule information
-  const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
-    { uid: booking.uid },
-    {
-      // Keep data fresh but don't refetch too aggressively
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }
-  );
+  const { data: bookingDetails } =
+    trpc.viewer.bookings.getBookingDetails.useQuery(
+      { uid: booking.uid },
+      {
+        // Keep data fresh but don't refetch too aggressively
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      }
+    );
 
   // Get navigation state from the store in a single selector
   const navigation = useBookingDetailsSheetStore((state) => {
@@ -163,23 +174,57 @@ function BookingDetailsSheetInner({
       isTransitioning: state.isTransitioning,
       setSelectedBookingUid: state.setSelectedBookingUid,
       setActiveSegment: state.setActiveSegment,
-      canGoNext: hasNextInArray || (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
-      canGoPrev: hasPreviousInArray || (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
+      canGoNext:
+        hasNextInArray ||
+        (isLastInArray && state.capabilities?.canNavigateToNextPeriod()),
+      canGoPrev:
+        hasPreviousInArray ||
+        (isFirstInArray && state.capabilities?.canNavigateToPreviousPeriod()),
     };
   });
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     navigation.setSelectedBookingUid(null);
     navigation.setActiveSegment(null);
-  };
+  }, [navigation.setSelectedBookingUid, navigation.setActiveSegment]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     navigation.navigateNext();
-  };
+  }, [navigation.navigateNext]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     navigation.navigatePrevious();
-  };
+  }, [navigation.navigatePrevious]);
+
+  const joinButtonWrapperRef = useRef<HTMLDivElement>(null);
+  const sheetContentRef = useRef<HTMLDivElement>(null);
+
+  const isSheetActive = useCallback(
+    () => checkSheetActive(sheetContentRef.current, document.activeElement),
+    []
+  );
+
+  useEffect(() => {
+    const handleKeyDown = createBookingSheetKeydownHandler({
+      isSheetActive,
+      canGoPrev: navigation.canGoPrev,
+      canGoNext: navigation.canGoNext,
+      isTransitioning: navigation.isTransitioning,
+      handlePrevious,
+      handleNext,
+      getJoinLink: () => joinButtonWrapperRef.current?.querySelector("a"),
+    });
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [
+    navigation.canGoPrev,
+    navigation.canGoNext,
+    navigation.isTransitioning,
+    handleNext,
+    handlePrevious,
+    isSheetActive,
+  ]);
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
@@ -208,7 +253,9 @@ function BookingDetailsSheetInner({
 
   const isPending = booking.status === BookingStatus.PENDING;
 
-  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
+  const parsedMetadata = bookingMetadataSchema.safeParse(
+    booking.metadata ?? null
+  );
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
 
   const recurringInfo =
@@ -232,6 +279,7 @@ function BookingDetailsSheetInner({
   return (
     <Sheet open={true} onOpenChange={handleClose} modal={false}>
       <SheetContent
+        ref={sheetContentRef}
         className="overflow-y-auto pb-0 sm:pb-0"
         hideOverlay
         onInteractOutside={(e) => {
@@ -254,38 +302,65 @@ function BookingDetailsSheetInner({
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="chevron-up"
-                disabled={!navigation.canGoPrev || navigation.isTransitioning}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handlePrevious();
-                }}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="chevron-down"
-                disabled={!navigation.canGoNext || navigation.isTransitioning}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNext();
-                }}
-              />
-              <Button
-                variant="icon"
-                size="sm"
-                color="secondary"
-                StartIcon="x"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleClose();
-                }}
-              />
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("previous_shortcut")}</span>
+                  </div>
+                }
+              >
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="chevron-up"
+                  tabIndex={-1}
+                  disabled={!navigation.canGoPrev || navigation.isTransitioning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePrevious();
+                  }}
+                />
+              </Tooltip>
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("next_shortcut")}</span>
+                  </div>
+                }
+              >
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="chevron-down"
+                  tabIndex={-1}
+                  disabled={!navigation.canGoNext || navigation.isTransitioning}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNext();
+                  }}
+                />
+              </Tooltip>
+              <Tooltip
+                content={
+                  <div className="flex items-center gap-1.5">
+                    <span>{t("close_shortcut")}</span>
+                  </div>
+                }
+              >
+                <Button
+                  variant="icon"
+                  size="sm"
+                  color="secondary"
+                  StartIcon="x"
+                  tabIndex={-1}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleClose();
+                  }}
+                />
+              </Tooltip>
             </div>
           </div>
         </SheetHeader>
@@ -293,9 +368,9 @@ function BookingDetailsSheetInner({
         <SheetBody className="-mt-3">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <SheetTitle className="text-emphasis flex items-center gap-3 text-xl font-semibold">
-                <div className="bg-emphasis w-0.5 shrink-0 self-stretch rounded-lg"></div>
-                <span>{booking.title}</span>
+              <SheetTitle className="flex items-center gap-3 font-semibold text-emphasis text-xl">
+                <div className="w-0.5 shrink-0 self-stretch rounded-lg bg-emphasis"></div>
+                <span data-testid="booking-sheet-title">{booking.title}</span>
               </SheetTitle>
             </div>
 
@@ -337,7 +412,12 @@ function BookingDetailsSheetInner({
 
                 <AssignmentReasonSection booking={booking} />
 
-                {booking.payment?.[0] && <PaymentSection booking={booking} payment={booking.payment[0]} />}
+                {booking.payment?.[0] && (
+                  <PaymentSection
+                    booking={booking}
+                    payment={booking.payment[0]}
+                  />
+                )}
 
                 <SlotsSection booking={booking} />
 
@@ -377,18 +457,29 @@ function BookingDetailsSheetInner({
               </>
             ) : (
               !booking.rescheduled && (
-                <JoinMeetingButton
-                  location={booking.location}
-                  metadata={booking.metadata}
-                  bookingStatus={booking.status}
-                />
+                <Tooltip
+                  content={
+                    <div className="flex items-center gap-1.5">
+                      <span>{t("join_shortcut")}</span>
+                    </div>
+                  }
+                >
+                  <div ref={joinButtonWrapperRef}>
+                    <JoinMeetingButton
+                      location={booking.location}
+                      metadata={booking.metadata}
+                      bookingStatus={booking.status}
+                    />
+                  </div>
+                </Tooltip>
               )
             )}
 
             <BookingActionsDropdown
               booking={{
                 ...booking,
-                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                listingStatus:
+                  booking.status.toLowerCase() as BookingListingStatus,
                 recurringInfo: undefined,
                 loggedInUser: {
                   userId,
@@ -426,7 +517,7 @@ function WhenSection({
   return (
     <Section title={t("when")}>
       {previousBooking?.startTime && previousBooking?.endTime && (
-        <div className="text-default flex flex-col text-sm line-through opacity-60">
+        <div className="flex flex-col text-default text-sm line-through opacity-60">
           <DisplayTimestamp
             startTime={previousBooking.startTime}
             endTime={previousBooking.endTime}
@@ -436,10 +527,15 @@ function WhenSection({
       )}
       <div
         className={classNames(
-          "text-emphasis flex flex-col text-sm font-medium",
+          "flex flex-col font-medium text-emphasis text-sm",
           rescheduled && "line-through"
-        )}>
-        <DisplayTimestamp startTime={startTime} endTime={endTime} timeZone={timeZone} />
+        )}
+      >
+        <DisplayTimestamp
+          startTime={startTime}
+          endTime={endTime}
+          timeZone={timeZone}
+        />
       </div>
     </Section>
   );
@@ -485,13 +581,16 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
               imageSrc={
                 booking.user.avatarUrl
                   ? getUserAvatarUrl(booking.user)
-                  : getPlaceholderAvatar(null, booking.user.name || booking.user.email)
+                  : getPlaceholderAvatar(
+                      null,
+                      booking.user.name || booking.user.email
+                    )
               }
               alt={booking.user.name || booking.user.email || ""}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-emphasis truncate text-sm leading-[1.2]">
+                <p className="truncate text-emphasis text-sm leading-[1.2]">
                   {booking.eventType?.hideOrganizerEmail
                     ? booking.user.name || t("organizer")
                     : booking.user.name || booking.user.email}
@@ -501,14 +600,20 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
                 </Badge>
               </div>
               {!booking.eventType?.hideOrganizerEmail && (
-                <p className="text-default truncate text-sm leading-[1.2]">{booking.user.email}</p>
+                <p className="truncate text-default text-sm leading-[1.2]">
+                  {booking.user.email}
+                </p>
               )}
             </div>
           </div>
         )}
 
         {booking.attendees.map((attendee, idx) => {
-          const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+          const name =
+            attendee.user?.name ||
+            attendee.name ||
+            attendee.user?.email ||
+            attendee.email;
           return (
             <div key={idx} className="flex items-center gap-4">
               <Avatar
@@ -535,7 +640,13 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
   );
 }
 
-function WhereSection({ booking, meta }: { booking: BookingOutput; meta: BookingMetaData | null }) {
+function WhereSection({
+  booking,
+  meta,
+}: {
+  booking: BookingOutput;
+  meta: BookingMetaData | null;
+}) {
   const { t } = useLocale();
 
   const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
@@ -573,12 +684,15 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
           />
         )}
         <div className="flex min-w-0 items-baseline gap-1">
-          <span className="text-emphasis shrink-0 font-medium">{provider?.label}:</span>
+          <span className="shrink-0 font-medium text-emphasis">
+            {provider?.label}:
+          </span>
           <a
             href={locationToDisplay}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate text-blue-600 hover:underline">
+            className="truncate text-blue-600 hover:underline"
+          >
             {locationToDisplay}
           </a>
         </div>
@@ -600,7 +714,7 @@ function RecurringInfoSection({
 
   return (
     <Section title={t("recurring_event")}>
-      <p className="text-emphasis text-sm font-medium">
+      <p className="font-medium text-emphasis text-sm">
         {getEveryFreqFor({
           t,
           recurringEvent: recurringInfo.recurringEvent,
@@ -614,19 +728,26 @@ function RecurringInfoSection({
 function AssignmentReasonSection({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
-  if (!booking.assignmentReasonSortedByCreatedAt || booking.assignmentReasonSortedByCreatedAt.length === 0) {
+  if (
+    !booking.assignmentReasonSortedByCreatedAt ||
+    booking.assignmentReasonSortedByCreatedAt.length === 0
+  ) {
     return null;
   }
 
   const reason =
-    booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1];
+    booking.assignmentReasonSortedByCreatedAt[
+      booking.assignmentReasonSortedByCreatedAt.length - 1
+    ];
   if (!reason.reasonString) {
     return null;
   }
 
   return (
     <Section title={t("assignment_reason")}>
-      <div className="text-emphasis text-sm font-medium">{reason.reasonString}</div>
+      <div className="font-medium text-emphasis text-sm">
+        {reason.reasonString}
+      </div>
     </Section>
   );
 }
@@ -644,7 +765,9 @@ function PaymentSection({
   const parsedEventTypeMetadata = booking.eventType?.metadata
     ? EventTypeMetaDataSchema.safeParse(booking.eventType.metadata)
     : null;
-  const eventTypeMetadata = parsedEventTypeMetadata?.success ? parsedEventTypeMetadata.data : null;
+  const eventTypeMetadata = parsedEventTypeMetadata?.success
+    ? parsedEventTypeMetadata.data
+    : null;
 
   const refundPolicy = eventTypeMetadata?.apps?.stripe?.refundPolicy;
   const refundDaysCount = eventTypeMetadata?.apps?.stripe?.refundDaysCount;
@@ -663,8 +786,10 @@ function PaymentSection({
 
   return (
     <Section title={t("payment")}>
-      <p className="text-emphasis text-sm font-medium">{formattedPrice}</p>
-      {paymentStatusMessage && <p className="text-subtle text-xs">{paymentStatusMessage}</p>}
+      <p className="font-medium text-emphasis text-sm">{formattedPrice}</p>
+      {paymentStatusMessage && (
+        <p className="text-subtle text-xs">{paymentStatusMessage}</p>
+      )}
     </Section>
   );
 }
@@ -685,7 +810,9 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("slots")}>
-      <p className="text-emphasis text-sm font-medium">{t("slots_taken", { takenSeats, totalSeats })}</p>
+      <p className="font-medium text-emphasis text-sm">
+        {t("slots_taken", { takenSeats, totalSeats })}
+      </p>
     </Section>
   );
 }
@@ -723,7 +850,11 @@ function CustomQuestionsSection({
 
     return new Map<string, string>(
       bookingFields.map(
-        (field) => [field.name, field.label || t(field.defaultLabel || field.name)] as [string, string]
+        (field) =>
+          [field.name, field.label || t(field.defaultLabel || field.name)] as [
+            string,
+            string
+          ]
       )
     );
   }, [bookingFields, t]);
@@ -739,7 +870,9 @@ function CustomQuestionsSection({
         const title: string = fieldLabels.get(fieldNameStr) ?? fieldNameStr;
         return (
           <Section key={idx} title={title}>
-            <p className="text-emphasis text-sm font-medium">{String(answer)}</p>
+            <p className="font-medium text-emphasis text-sm">
+              {String(answer)}
+            </p>
           </Section>
         );
       })}
@@ -762,7 +895,8 @@ function OldRescheduledBookingInfo({
     return null;
   }
 
-  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const cancellationReason =
+    booking.cancellationReason || booking.rejectionReason;
   const rescheduledBy = booking.rescheduledBy;
   const cancelledBy = booking.cancelledBy;
 
@@ -771,7 +905,7 @@ function OldRescheduledBookingInfo({
       {rescheduledToBooking?.uid && (
         <Section title={t("rescheduled")}>
           <Link href={`/booking/${rescheduledToBooking.uid}`}>
-            <div className="text-default flex items-center gap-1 text-sm underline">
+            <div className="flex items-center gap-1 text-default text-sm underline">
               {t("view_booking")}
               <ExternalLinkIcon className="h-4 w-4" />
             </div>
@@ -780,17 +914,19 @@ function OldRescheduledBookingInfo({
       )}
       {rescheduledBy && (
         <Section title={t("rescheduled_by")}>
-          <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{rescheduledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">
+            {cancellationReason}
+          </p>
         </Section>
       )}
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{cancelledBy}</p>
         </Section>
       )}
     </>
@@ -806,15 +942,18 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
     return null;
   }
 
-  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const cancellationReason =
+    booking.cancellationReason || booking.rejectionReason;
   const rescheduledBy = booking.rescheduler;
 
   return (
     <>
       <Section title={t("rescheduled_by")}>
-        {rescheduledBy && <p className="text-emphasis text-sm font-medium">{rescheduledBy}</p>}
+        {rescheduledBy && (
+          <p className="font-medium text-emphasis text-sm">{rescheduledBy}</p>
+        )}
         <Link href={`/booking/${booking.fromReschedule}`}>
-          <div className="text-default flex items-center gap-1 text-sm underline">
+          <div className="flex items-center gap-1 text-default text-sm underline">
             {t("original_booking")}
             <ExternalLinkIcon className="h-4 w-4" />
           </div>
@@ -822,7 +961,9 @@ function NewRescheduledBookingInfo({ booking }: { booking: BookingOutput }) {
       </Section>
       {cancellationReason && (
         <Section title={t("reschedule_reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">
+            {cancellationReason}
+          </p>
         </Section>
       )}
     </>
@@ -834,14 +975,17 @@ function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
   const { t } = useLocale();
 
   // Only show for cancelled/rejected bookings that were NOT rescheduled
-  const isCancelled = booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const isCancelled =
+    booking.status === BookingStatus.CANCELLED ||
+    booking.status === BookingStatus.REJECTED;
   const wasRescheduled = booking.rescheduled === true;
 
   if (!isCancelled || wasRescheduled) {
     return null;
   }
 
-  const cancellationReason = booking.cancellationReason || booking.rejectionReason;
+  const cancellationReason =
+    booking.cancellationReason || booking.rejectionReason;
   const cancelledBy = booking.cancelledBy;
 
   if (!cancellationReason && !cancelledBy) {
@@ -852,12 +996,14 @@ function CancelledBookingInfo({ booking }: { booking: BookingOutput }) {
     <>
       {cancelledBy && (
         <Section title={t("cancelled_by")}>
-          <p className="text-emphasis text-sm font-medium">{cancelledBy}</p>
+          <p className="font-medium text-emphasis text-sm">{cancelledBy}</p>
         </Section>
       )}
       {cancellationReason && (
         <Section title={t("reason")}>
-          <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{cancellationReason}</p>
+          <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">
+            {cancellationReason}
+          </p>
         </Section>
       )}
     </>
@@ -873,7 +1019,9 @@ function AdditionalNotesSection({ booking }: { booking: BookingOutput }) {
 
   return (
     <Section title={t("additional_notes")}>
-      <p className="text-emphasis whitespace-pre-wrap text-sm font-medium">{booking.description}</p>
+      <p className="whitespace-pre-wrap font-medium text-emphasis text-sm">
+        {booking.description}
+      </p>
     </Section>
   );
 }
@@ -902,7 +1050,9 @@ function BookingHeaderBadges({
           {reasonTitle}
         </Badge>
       )}
-      {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
+      {booking.eventType.team && (
+        <Badge variant="gray">{booking.eventType.team.name}</Badge>
+      )}
       {booking.paid && !payment ? (
         <Badge variant="orange">{t("error_collecting_card")}</Badge>
       ) : booking.paid ? (
@@ -937,7 +1087,9 @@ function TrackingSection({
     return null;
   }
 
-  const utmEntries = Object.entries(tracking).filter(([_, value]) => Boolean(value));
+  const utmEntries = Object.entries(tracking).filter(([_, value]) =>
+    Boolean(value)
+  );
 
   if (utmEntries.length === 0) {
     return null;
@@ -949,7 +1101,9 @@ function TrackingSection({
         {utmEntries.map(([key, value]) => (
           <div key={key} className="mb-1 last:mb-0">
             <span className="font-medium">{key}</span>:{" "}
-            <code className="bg-subtle text-default rounded px-1 py-0.5 font-mono text-xs">{value}</code>
+            <code className="rounded bg-subtle px-1 py-0.5 font-mono text-default text-xs">
+              {value}
+            </code>
           </div>
         ))}
       </div>
@@ -968,7 +1122,7 @@ function Section({
 }) {
   return (
     <div className={classNames("flex flex-col gap-1", className)}>
-      <h3 className="text-subtle text-xs font-medium">{title}</h3>
+      <h3 className="font-medium text-subtle text-xs">{title}</h3>
       {children}
     </div>
   );
