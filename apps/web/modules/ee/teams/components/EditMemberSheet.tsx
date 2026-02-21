@@ -196,7 +196,7 @@ export function EditMemberSheet({
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">
-              <div className="border-sublte bg-default w-full rounded-xl border p-4">
+              <div className="border-subtle bg-default w-full rounded-xl border p-4">
                 <div
                   className="block w-full rounded-lg ring-1 ring-[#0000000F]"
                   style={{

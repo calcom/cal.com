@@ -26,18 +26,18 @@ export class ErrorWithCode extends Error {
 
 /**
  * Converts unknown error types to Error objects.
- * 
+ *
  * @deprecated For server-side code, use `getServerErrorFromUnknown` from `@calcom/lib/server/getServerErrorFromUnknown` instead.
  * This function should only be used in client-side or isomorphic code (React components, shared utilities).
- * 
+ *
  * Use this function when:
  * - You're in a React component that runs on the client
  * - You're in shared/isomorphic code that cannot import server-only dependencies
  * - You only need a basic Error object without HTTP status code mapping
- * 
+ *
  * For server-side error handling (API routes, tRPC handlers, webhooks), use `getServerErrorFromUnknown`
  * which provides proper HTTP status code mapping, error redaction, and handles Zod/Prisma/Stripe errors.
- * 
+ *
  * @param cause - The unknown error to convert
  * @returns An Error object with optional statusCode and code properties
  */
@@ -46,8 +46,7 @@ export function getErrorFromUnknown(cause: unknown): Error & { statusCode?: numb
     return cause;
   }
   if (typeof cause === "string") {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore https://github.com/tc39/proposal-error-cause
+    // @ts-ignore https://github.com/tc39/proposal-error-cause - must use @ts-ignore because different packages have different TS lib targets
     return new Error(cause, { cause });
   }
 

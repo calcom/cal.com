@@ -1,6 +1,21 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
+import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
+import { randomString } from "test/utils/randomString";
 // Assuming this is your main app bootstrapper
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -14,13 +29,13 @@ import {
 } from "@/modules/workflows/inputs/create-form-workflow";
 import {
   ATTENDEE,
-  REMINDER,
-  PHONE_NUMBER,
   EMAIL,
-  WorkflowEmailAttendeeStepDto,
-  WorkflowEmailAddressStepDto,
+  PHONE_NUMBER,
+  REMINDER,
   UpdateEmailAddressWorkflowStepDto,
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
+  WorkflowEmailAddressStepDto,
+  WorkflowEmailAttendeeStepDto,
 } from "@/modules/workflows/inputs/workflow-step.input";
 import {
   AFTER_EVENT,
@@ -42,22 +57,6 @@ import {
   GetRoutingFormWorkflowOutput,
   GetRoutingFormWorkflowsOutput,
 } from "@/modules/workflows/outputs/routing-form-workflow.output";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { VerifiedResourcesRepositoryFixtures } from "test/fixtures/repository/verified-resources.repository.fixture";
-import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User, Team } from "@calcom/prisma/client";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;

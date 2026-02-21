@@ -1,18 +1,31 @@
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
-import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { PrismaClient } from "@calcom/prisma";
 import type { TConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
 
 type ConnectedCalendarsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    prisma: PrismaClient;
   };
   input: TConnectedCalendarsInputSchema;
 };
 
-export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
-  const { user } = ctx;
+type GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult = Awaited<
+  ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
+>;
+
+type ConnectedCalendarsHandlerResult = {
+  destinationCalendar: GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["destinationCalendar"];
+  connectedCalendars: (GetConnectedDestinationCalendarsAndEnsureDefaultsInDbResult["connectedCalendars"][number] & {
+    cacheUpdatedAt: null;
+  })[];
+};
+
+export const connectedCalendarsHandler = async ({
+  ctx: { user, prisma },
+  input,
+}: ConnectedCalendarsOptions): Promise<ConnectedCalendarsHandlerResult> => {
   const onboarding = input?.onboarding || false;
 
   const { connectedCalendars, destinationCalendar } =
@@ -20,6 +33,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       user,
       onboarding,
       eventTypeId: input?.eventTypeId ?? null,
+      skipSync: input?.skipSync ?? false,
       prisma,
     });
 

@@ -14,9 +14,9 @@ import {
   CommandSeparator,
   CommandGroup,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon } from "@coss/ui/icons";
 
-import { useDataTable, useFilterValue } from "@calcom/features/data-table/hooks";
+import { useDataTable, useFilterValue } from "~/data-table/hooks";
 import type {
   FacetedValue,
   FilterableColumn as _FilterableColumn,
@@ -24,21 +24,18 @@ import type {
 } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
 
-type FilterableColumn = Extract<
-  _FilterableColumn,
-  { type: Extract<FilterType, "ms" | "ss"> }
->;
+type FilterableColumn = Extract<_FilterableColumn, { type: Extract<FilterType, "ms" | "ss"> }>;
 
-type FilterableSelectColumn<T extends Extract<FilterType, "ms" | "ss">> =
-  Extract<FilterableColumn, { type: T }>;
+type FilterableSelectColumn<T extends Extract<FilterType, "ms" | "ss">> = Extract<
+  FilterableColumn,
+  { type: T }
+>;
 
 type FilterValue<T extends Extract<FilterType, "ms" | "ss">> = ReturnType<
   typeof useFilterValue<T, FilterValueSchema<T>>
 >;
 
-export type BaseSelectFilterOptionsProps<
-  T extends Extract<FilterType, "ms" | "ss">
-> = {
+export type BaseSelectFilterOptionsProps<T extends Extract<FilterType, "ms" | "ss">> = {
   column: FilterableSelectColumn<T>;
   filterValueSchema: FilterValueSchema<T>;
   isOptionSelected: (filterValue: FilterValue<T> | undefined, optionValue: string | number) => boolean;
@@ -87,9 +84,7 @@ function getSectionedOptions(options: FacetedValue[]) {
   return sectionedOptions;
 }
 
-export function BaseSelectFilterOptions<
-  T extends Extract<FilterType, "ms" | "ss">
->({
+export function BaseSelectFilterOptions<T extends Extract<FilterType, "ms" | "ss">>({
   column,
   filterValueSchema,
   isOptionSelected,
@@ -146,7 +141,7 @@ export function BaseSelectFilterOptions<
                     isOptionSelected(filterValue, optionValue) ? "bg-primary-default" : "border opacity-50"
                   )}>
                   {isOptionSelected(filterValue, optionValue) && (
-                    <Icon name="check" className="text-primary-foreground h-4 w-4" />
+                    <CheckIcon className="text-primary-foreground h-4 w-4" />
                   )}
                 </div>
                 {optionLabel}

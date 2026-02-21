@@ -41,8 +41,9 @@ function getPageInfo(pathname: string, host: string) {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${currentOrgDomain?.replace("/", "") ?? ""
-        }`,
+      url: `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${
+        currentOrgDomain?.replace("/", "") ?? ""
+      }`,
     };
   }
 }
@@ -92,7 +93,7 @@ export function NotFound({ host }: { host: string }) {
         <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
-            <h1 className="font-heading mt-2 text-4xl text-gray-900 sm:text-5xl">
+            <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
               {t("feature_currently_disabled") ?? "Feature is currently disabled"}
             </h1>
           </div>
@@ -114,7 +115,7 @@ export function NotFound({ host }: { host: string }) {
       <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
         <div className="text-center">
           <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
-          <h1 className="font-heading text-emphasis mt-2 text-4xl sm:text-5xl">
+          <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
             {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
           </h1>
           {isSubpage && pageType !== PageType.TEAM ? (
@@ -162,8 +163,9 @@ export function NotFound({ host }: { host: string }) {
                         <span className="focus:outline-none">
                           <span className="absolute inset-0" aria-hidden="true" />
                           {t("register")}{" "}
-                          <strong className="text-green-500">{`${pageType === PageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
-                            }${username}${pageType === PageType.ORG ? `.${subdomainSuffix()}` : ""}`}</strong>
+                          <strong className="text-green-500">{`${
+                            pageType === PageType.TEAM ? `${new URL(WEBSITE_URL).host}/team/` : ""
+                          }${username}${pageType === PageType.ORG ? `.${subdomainSuffix()}` : ""}`}</strong>
                         </span>
                       </span>
                     </h3>

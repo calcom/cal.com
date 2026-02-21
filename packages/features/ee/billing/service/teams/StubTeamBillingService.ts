@@ -1,3 +1,4 @@
+import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
 import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
 import type {
   ITeamBillingService,
@@ -23,7 +24,7 @@ export class StubTeamBillingService implements ITeamBillingService {
     // Stub implementation - no-op
   }
 
-  async updateQuantity(): Promise<void> {
+  async updateQuantity(_changeType: SeatChangeType): Promise<void> {
     // Stub implementation - no-op
   }
 

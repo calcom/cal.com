@@ -1,3 +1,33 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  ApiResponse,
+  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
+  GetSlotsInput_2024_09_04,
+  GetSlotsInputPipe,
+  ReserveSlotInput_2024_09_04,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiHeader,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse as DocsResponse,
+  ApiTags as DocsTags,
+} from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import { OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER, OPTIONAL_X_CAL_CLIENT_ID_HEADER } from "@/lib/docs/headers";
 import {
@@ -9,37 +39,6 @@ import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import {
-  Query,
-  Body,
-  Controller,
-  Get,
-  Delete,
-  Post,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Patch,
-  UseGuards,
-} from "@nestjs/common";
-import {
-  ApiOperation,
-  ApiTags as DocsTags,
-  ApiHeader,
-  ApiResponse as DocsResponse,
-  ApiQuery,
-} from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  GetSlotsInput_2024_09_04,
-  GetSlotsInputPipe,
-  ReserveSlotInput_2024_09_04,
-  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
-  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
-} from "@calcom/platform-types";
-import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/slots",
@@ -95,12 +94,14 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "timeZone",
+    type: String,
     required: false,
     description: "Time zone in which the available slots should be returned. Defaults to UTC.",
     example: "Europe/Rome",
   })
   @ApiQuery({
     name: "duration",
+    type: Number,
     required: false,
     description:
       "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
@@ -108,6 +109,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "format",
+    type: String,
     required: false,
     description:
       "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
@@ -115,6 +117,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "usernames",
+    type: String,
     required: false,
     description: `The usernames for which available slots should be checked separated by a comma.
 
@@ -125,12 +128,14 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "eventTypeId",
+    type: Number,
     required: false,
     description: "The ID of the event type for which available slots should be checked.",
     example: "100",
   })
   @ApiQuery({
     name: "eventTypeSlug",
+    type: String,
     required: false,
     description:
       "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
@@ -138,6 +143,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "username",
+    type: String,
     required: false,
     description:
       "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
@@ -145,6 +151,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "teamSlug",
+    type: String,
     required: false,
     description:
       "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
@@ -152,6 +159,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "organizationSlug",
+    type: String,
     required: false,
     description:
       "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
@@ -159,6 +167,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "end",
+    type: String,
     required: true,
     description: `
     Time until which available slots should be checked.
@@ -171,6 +180,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "start",
+    type: String,
     required: true,
     description: `
       Time starting from which available slots should be checked.
@@ -183,6 +193,7 @@ export class SlotsController_2024_09_04 {
   })
   @ApiQuery({
     name: "bookingUidToReschedule",
+    type: String,
     required: false,
     description:
       "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",

@@ -20,7 +20,6 @@ export default function HelpscoutMenuItem(props: HelpscoutMenuItemProps) {
     onHelpItemSelect();
   }
 
-   
   if (!process.env.NEXT_PUBLIC_HELPSCOUT_KEY) return null;
 
   return (
