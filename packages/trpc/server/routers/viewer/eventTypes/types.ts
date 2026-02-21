@@ -79,6 +79,7 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   userId: z.number(),
   profileId: z.number().or(z.null()).optional(),
   isFixed: z.boolean().optional(),
+  isOptional: z.boolean().optional(),
   priority: z.number().min(0).max(4).optional().nullable(),
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),

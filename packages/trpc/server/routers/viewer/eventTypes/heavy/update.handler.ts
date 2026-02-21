@@ -510,6 +510,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         const hostData: {
           userId: number;
           isFixed: boolean;
+          isOptional: boolean;
           priority: number;
           weight: number;
           groupId: string | null | undefined;
@@ -526,6 +527,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         } = {
           userId: host.userId,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
+          isOptional: host.isOptional || false,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           groupId: host.groupId,
@@ -547,6 +549,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       update: existingHosts.map((host) => {
         const updateData: {
           isFixed: boolean | undefined;
+          isOptional: boolean | undefined;
           priority: number;
           weight: number;
           scheduleId: number | null | undefined;
@@ -571,6 +574,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           };
         } = {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          isOptional: host.isOptional,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,

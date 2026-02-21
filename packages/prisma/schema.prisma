@@ -66,6 +66,7 @@ model Host {
   isFixed          Boolean       @default(false)
   priority         Int?
   weight           Int?
+  isOptional       Boolean       @default(false)
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
   schedule         Schedule?     @relation(fields: [scheduleId], references: [id])

@@ -26,7 +26,7 @@ export const getAggregatedAvailability = (
   userAvailability: {
     dateRanges: DateRange[];
     oooExcludedDateRanges: DateRange[];
-    user?: { isFixed?: boolean; groupId?: string | null };
+    user?: { isFixed?: boolean; groupId?: string | null; isOptional?: boolean };
   }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
@@ -36,14 +36,14 @@ export const getAggregatedAvailability = (
     userAvailability.length > 1;
 
   const fixedHosts = userAvailability.filter(
-    ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
+    ({ user }) => (!schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed) && !user?.isOptional
   );
 
   const fixedDateRanges = mergeOverlappingDateRanges(
     intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
   const dateRangesToIntersect = fixedDateRanges.length ? [fixedDateRanges] : [];
-  const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
+  const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true && !user?.isOptional);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId
     const hostsByGroup = roundRobinHosts.reduce(

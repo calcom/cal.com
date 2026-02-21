@@ -770,11 +770,12 @@ export class AvailableSlotsService {
   }: {
     hosts: {
       isFixed?: boolean;
+      isOptional?: boolean;
       groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
   }) {
-    return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
+    return hosts.map(({ isFixed, isOptional, groupId, user }) => ({ isFixed, isOptional, groupId, ...user }));
   }
 
   private getUsersWithCredentials = withReporting(

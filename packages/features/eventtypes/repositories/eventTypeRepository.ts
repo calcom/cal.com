@@ -1484,6 +1484,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         },
         hosts: {
           select: {
+            isOptional: true,
             user: {
               select: {
                 email: true,
