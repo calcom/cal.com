@@ -181,6 +181,22 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   return JSON.stringify(body);
 }
 
+function getZapierNoShowPayload(
+  data: BookingNoShowUpdatedPayload & { createdAt: string }
+): string {
+  const body = {
+    bookingUid: data.bookingUid,
+    bookingId: data.bookingId,
+    message: data.message,
+    attendees: data.attendees.map((attendee) => ({
+      email: attendee.email,
+      noShow: attendee.noShow,
+    })),
+    createdAt: data.createdAt,
+  };
+  return JSON.stringify(body);
+}
+
 function applyTemplate(
   template: string,
   data: WebhookDataType | Record<string, unknown>,
@@ -256,6 +272,8 @@ const sendPayload = async (
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
     }
+  } else if (isNoShowPayload(data) && appId === "zapier") {
+    body = getZapierNoShowPayload({ ...data, createdAt });
   }
 
   if (body === undefined) {
