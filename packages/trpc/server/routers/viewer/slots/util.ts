@@ -9,6 +9,7 @@ import type {
   GetAvailabilityUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -16,12 +17,14 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -48,7 +51,6 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -57,8 +59,6 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
-import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
-import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
@@ -1250,6 +1250,51 @@ export class AvailableSlotsService {
       eventType.schedulingType === SchedulingType.COLLECTIVE ||
       eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
       allUsersAvailability.length > 1;
+
+    // Check guest availability during rescheduling
+    if (input.rescheduleUid) {
+      try {
+        const booking = await this.dependencies.bookingRepo.findBookingByUid({
+          bookingUid: input.rescheduleUid,
+        });
+
+        if (booking && booking.attendees && booking.attendees.length > 0) {
+          const attendeeEmails = booking.attendees.map((a) => a.email);
+          const calUserGuests = await this.dependencies.userRepo.findManyByEmails({ emails: attendeeEmails });
+
+          if (calUserGuests.length > 0) {
+            loggerWithEventDetails.info(`Found ${calUserGuests.length} Cal.com user guests for reschedule`);
+
+            const guestAvailabilities = await this.dependencies.userAvailabilityService.getUsersAvailability({
+              users: calUserGuests.map((guest) => ({
+                id: guest.id,
+                email: guest.email,
+                username: guest.username,
+                timeZone: guest.timeZone,
+              })),
+              query: {
+                dateFrom: startTime.toISOString(),
+                dateTo: endTime.toISOString(),
+                duration: input.duration || eventType.length,
+                returnDateOverrides: false,
+                bypassBusyCalendarTimes: false,
+              },
+            });
+
+            if (guestAvailabilities.length > 0) {
+              const combinedAvailability = [...allUsersAvailability, ...guestAvailabilities];
+              aggregatedAvailability = getAggregatedAvailability(
+                combinedAvailability,
+                SchedulingType.COLLECTIVE
+              );
+              loggerWithEventDetails.info(`Applied guest availability intersection for reschedule`);
+            }
+          }
+        }
+      } catch (error) {
+        loggerWithEventDetails.error(`Failed to fetch guest availability: ${error}`);
+      }
+    }
 
     const timeSlots = getSlots({
       inviteeDate: startTime,
