@@ -357,9 +357,6 @@ const buildVTimezone = (timezone: string, eventStart: string): string => {
 
 /**
  * Injects a VTIMEZONE block and rewrites DTSTART/DTEND from UTC to timezone-local.
- * The `ics` library generates UTC times with no VTIMEZONE — CalDAV servers like
- * Fastmail read this as UTC, showing wrong times to attendees.
- * RFC 5545 §3.6.5: DTSTART with TZID requires a matching VTIMEZONE component.
  */
 const injectVTimezone = (
   iCalString: string,
