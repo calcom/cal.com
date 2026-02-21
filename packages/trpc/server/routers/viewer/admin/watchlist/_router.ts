@@ -23,12 +23,10 @@ export const watchlistRouter = router({
     const { deleteWatchlistEntryHandler: handler } = await import("./delete.handler");
     return handler(opts);
   }),
-  bulkDelete: authedAdminProcedure
-    .input(ZBulkDeleteWatchlistEntriesInputSchema)
-    .mutation(async (opts) => {
-      const { bulkDeleteWatchlistEntriesHandler: handler } = await import("./bulkDelete.handler");
-      return handler(opts);
-    }),
+  bulkDelete: authedAdminProcedure.input(ZBulkDeleteWatchlistEntriesInputSchema).mutation(async (opts) => {
+    const { bulkDeleteWatchlistEntriesHandler: handler } = await import("./bulkDelete.handler");
+    return handler(opts);
+  }),
   getDetails: authedAdminProcedure.input(ZGetWatchlistEntryDetailsInputSchema).query(async (opts) => {
     const { getWatchlistEntryDetailsHandler: handler } = await import("./getDetails.handler");
     return handler(opts);

@@ -160,8 +160,9 @@ export async function handlePaymentSuccess(params: {
       length: booking.eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
@@ -256,6 +257,7 @@ export async function handlePaymentSuccess(params: {
       await handleBookingRequested({
         evt,
         booking,
+        oAuthClientId: platformClientParams?.platformClientId,
       });
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
