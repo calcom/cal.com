@@ -6,6 +6,7 @@ import { z } from "zod";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import { encodeOAuthState } from "@calcom/app-store/_utils/oauth/encodeOAuthState";
 import { getStripeAppKeys } from "../lib/getStripeAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       },
       redirect_uri,
-      state: typeof req.query.state === "string" ? req.query.state : undefined,
+      state: encodeOAuthState(req),
     };
     /** stringify is being dumb here */
     const params = z.record(z.any()).parse(stripeConnectParams);

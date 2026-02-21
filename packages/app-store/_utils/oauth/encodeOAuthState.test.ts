@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { describe, expect, it, vi, afterEach } from "vitest";
 
-import { encodeOAuthState } from "./encodeOAuthState";
+import { encodeOAuthState, signOAuthState } from "./encodeOAuthState";
 
 const TEST_SECRET = "test-nextauth-secret";
 const TEST_USER_ID = 42;
@@ -100,5 +100,45 @@ describe("encodeOAuthState", () => {
     const result2 = JSON.parse(encodeOAuthState(req2)!);
     expect(result1.nonce).not.toBe(result2.nonce);
     expect(result1.nonceHash).not.toBe(result2.nonceHash);
+  });
+});
+
+describe("signOAuthState", () => {
+  it("signs state with nonce and nonceHash when secret is present", () => {
+    vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
+    const state = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true as const };
+    const result = JSON.parse(signOAuthState(state, TEST_USER_ID));
+    expect(result.nonce).toBeDefined();
+    expect(typeof result.nonce).toBe("string");
+    expect(result.nonceHash).toBeDefined();
+    expect(typeof result.nonceHash).toBe("string");
+    expect(result.returnTo).toBe("/apps");
+  });
+
+  it("returns JSON without nonce when NEXTAUTH_SECRET is empty", () => {
+    vi.stubEnv("NEXTAUTH_SECRET", "");
+    const state = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true as const };
+    const result = JSON.parse(signOAuthState(state, TEST_USER_ID));
+    expect(result.nonce).toBeUndefined();
+    expect(result.nonceHash).toBeUndefined();
+    expect(result.returnTo).toBe("/apps");
+  });
+
+  it("produces HMAC that matches manual computation", () => {
+    vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
+    const state = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true as const };
+    const result = JSON.parse(signOAuthState(state, TEST_USER_ID));
+    const expectedHash = createHmac("sha256", TEST_SECRET)
+      .update(`${result.nonce}:${TEST_USER_ID}`)
+      .digest("hex");
+    expect(result.nonceHash).toBe(expectedHash);
+  });
+
+  it("does not mutate the input state object", () => {
+    vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
+    const state = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true as const };
+    signOAuthState(state, TEST_USER_ID);
+    expect((state as Record<string, unknown>).nonce).toBeUndefined();
+    expect((state as Record<string, unknown>).nonceHash).toBeUndefined();
   });
 });
