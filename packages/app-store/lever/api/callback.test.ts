@@ -270,8 +270,8 @@ describe("Lever OAuth Callback", () => {
     it("should correctly append error query param when redirect URL already has params", async () => {
       mockReq.query = { code: "invalid_code" };
       mockDecodeOAuthState.mockReturnValue({
-        returnTo: "/settings?existing=param",
-        onErrorReturnTo: "/settings?existing=param",
+        returnTo: "https://app.cal.com/settings?existing=param",
+        onErrorReturnTo: "https://app.cal.com/settings?existing=param",
       });
 
       mockFetch.mockResolvedValueOnce({
@@ -295,6 +295,34 @@ describe("Lever OAuth Callback", () => {
       expect(redirectUrl).toContain("error=");
       // Should NOT have ?...? pattern (invalid URL)
       expect(redirectUrl).not.toMatch(/\?.*\?/);
+    });
+
+    it("should preserve full URL origin in error redirect for split-domain deployments", async () => {
+      mockReq.query = { code: "invalid_code" };
+      mockDecodeOAuthState.mockReturnValue({
+        returnTo: "https://custom-domain.cal.com/settings",
+        onErrorReturnTo: "https://custom-domain.cal.com/error-page",
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve("invalid_grant"),
+      });
+
+      const callbackModule = await import("./callback");
+      const handlers = callbackModule.default;
+      const getHandler = await handlers.GET;
+      const handler = await getHandler.default;
+
+      await handler(mockReq as NextApiRequest, mockRes as NextApiResponse);
+
+      const redirectCall = mockRes.redirect as ReturnType<typeof vi.fn>;
+      const redirectUrl = redirectCall.mock.calls[0][0];
+      
+      // Should preserve the full URL including custom domain origin
+      expect(redirectUrl).toContain("https://custom-domain.cal.com");
+      expect(redirectUrl).toContain("error=");
     });
   });
 
