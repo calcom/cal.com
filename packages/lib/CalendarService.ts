@@ -430,10 +430,6 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      // Use the booking's canonical UID when available to prevent duplicate
-      // calendar entries. CalDAV servers use UID as the event identifier —
-      // different UIDs for the same booking cause duplicates.
-      // RFC 5545 §3.8.4.7: UID must be consistent across all representations.
       const uid = event.uid || uuidv4();
 
       // We create local ICS files
