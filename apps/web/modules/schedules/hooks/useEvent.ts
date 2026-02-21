@@ -97,8 +97,8 @@ export const useScheduleForEvent = ({
   restrictionSchedule?: { id: number | null; useBookerTimezone: boolean };
 }) => {
   const { timezone: rawTimezone } = useBookerTime();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStoreContext(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, selectedLocationFromStore] = useBookerStoreContext(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.selectedLocation],
     shallow
   );
 
@@ -117,6 +117,7 @@ export const useScheduleForEvent = ({
     rescheduleUid,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
+    location: selectedLocationFromStore,
     isTeamEvent,
     orgSlug,
     teamMemberEmail,

@@ -22,6 +22,7 @@ export type UseScheduleWithCacheArgs = {
   duration?: number | null;
   dayCount?: number | null;
   rescheduleUid?: string | null;
+  location?: string | null;
   isTeamEvent?: boolean;
   orgSlug?: string;
   teamMemberEmail?: string | null;
@@ -60,6 +61,7 @@ export const useSchedule = ({
   duration,
   dayCount,
   rescheduleUid,
+  location,
   isTeamEvent,
   orgSlug,
   teamMemberEmail,
@@ -108,6 +110,7 @@ export const useSchedule = ({
     timeZone: timezone ?? "PLACEHOLDER_TIMEZONE",
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
+    location,
     orgSlug,
     teamMemberEmail,
     routedTeamMemberIds,

@@ -1351,6 +1351,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
+        locations: true,
         useBookerTimezone: true,
         rrHostSubsetEnabled: true,
         hostGroups: {

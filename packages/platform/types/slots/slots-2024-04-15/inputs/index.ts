@@ -104,6 +104,11 @@ export class GetAvailableSlotsInput_2024_04_15 {
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({ description: "Location type for location-specific availability." })
+  location?: string;
+
+  @IsString()
+  @IsOptional()
   @ApiPropertyOptional({ description: "Organization slug." })
   orgSlug?: string;
 

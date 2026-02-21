@@ -42,6 +42,7 @@ import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
 import { DatePicker } from "./DatePicker";
+import { LocationSelector } from "./LocationSelector";
 import { DryRunMessage } from "./DryRunMessage";
 import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
@@ -106,6 +107,11 @@ const BookerComponent = ({
 
   const [isSlotSelectionModalVisible, setIsSlotSelectionModalVisible] = useBookerStoreContext(
     (state) => [state.isSlotSelectionModalVisible, state.setIsSlotSelectionModalVisible],
+    shallow
+  );
+
+  const [selectedLocation, setSelectedLocation] = useBookerStoreContext(
+    (state) => [state.selectedLocation, state.setSelectedLocation],
     shallow
   );
 
@@ -235,6 +241,10 @@ const BookerComponent = ({
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
+
+    const requiresLocationSelection = event.data?.locations?.some((loc) => !!loc.scheduleId);
+    if (requiresLocationSelection && !selectedLocation) return setBookerState("selecting_location");
+
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
@@ -243,6 +253,8 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [
     event.isPending,
+    event.data?.locations,
+    selectedLocation,
     selectedDate,
     selectedTimeslot,
     setBookerState,
@@ -468,7 +480,8 @@ const BookerComponent = ({
                   </EventMeta>
                 )}
                 {layout !== BookerLayouts.MONTH_VIEW &&
-                  !(layout === "mobile" && bookerState === "booking") && (
+                  !(layout === "mobile" && bookerState === "booking") &&
+                  bookerState !== "selecting_location" && (
                     <div className="mt-auto px-5 py-3">
                       <DatePicker
                         classNames={customClassNames?.datePickerCustomClassNames}
@@ -498,9 +511,22 @@ const BookerComponent = ({
             </BookerSection>
 
             <BookerSection
+              key="location-selector"
+              area="main"
+              visible={bookerState === "selecting_location"}
+              {...fadeInLeft}
+              initial="visible"
+              className={classNames(
+                "md:border-subtle -ml-px h-full shrink lg:w-(--booker-main-width)",
+                hideEventTypeDetails ? "" : "md:border-l"
+              )}>
+              <LocationSelector locations={event.data?.locations || []} />
+            </BookerSection>
+
+            <BookerSection
               key="datepicker"
               area="main"
-              visible={bookerState !== "booking" && layout === BookerLayouts.MONTH_VIEW}
+              visible={bookerState !== "booking" && bookerState !== "selecting_location" && layout === BookerLayouts.MONTH_VIEW}
               {...fadeInLeft}
               initial="visible"
               className={classNames(

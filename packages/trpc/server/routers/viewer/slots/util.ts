@@ -24,6 +24,7 @@ import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/Pris
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
+import { eventTypeLocations } from "@calcom/lib/zod/eventType";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/ISelectedSlotRepository";
 import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
@@ -1324,6 +1325,55 @@ export class AvailableSlotsService {
       }
     } else {
       availableTimeSlots = timeSlots;
+    }
+
+    // Location-specific schedule filtering
+    let locationScheduleId: number | null = null;
+    if (input.location && eventType.locations) {
+      const parsedLocations = eventTypeLocations.safeParse(eventType.locations);
+      if (parsedLocations.success) {
+        const selectedLoc = parsedLocations.data.find((l) => l.type === input.location);
+        if (selectedLoc?.scheduleId) {
+          locationScheduleId = selectedLoc.scheduleId;
+        }
+      }
+    }
+
+    if (locationScheduleId) {
+      const locationSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
+        scheduleId: locationScheduleId,
+      });
+
+      if (locationSchedule) {
+        const locationTimezone = locationSchedule.timeZone || "UTC";
+        const eventLength = input.duration || eventType.length;
+
+        const locationAvailability = locationSchedule.availability.map((rule) => ({
+          days: rule.days,
+          startTime: rule.startTime,
+          endTime: rule.endTime,
+          date: rule.date,
+        }));
+
+        const { dateRanges: locationRanges } = buildDateRanges({
+          availability: locationAvailability,
+          timeZone: locationTimezone,
+          dateFrom: startTime,
+          dateTo: endTime,
+          travelSchedules: [],
+        });
+
+        availableTimeSlots = availableTimeSlots.filter((slot) => {
+          const slotStart = slot.time;
+          const slotEnd = slot.time.add(eventLength, "minute");
+
+          return locationRanges.some(
+            (range) =>
+              (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+              (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+          );
+        });
+      }
     }
 
     const reservedSlots = await this._getReservedSlotsAndCleanupExpired({

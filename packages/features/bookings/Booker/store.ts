@@ -372,6 +372,11 @@ export type BookerStore = {
   tentativeSelectedTimeslots: string[];
   setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
+   * The location the booker has selected containing a schedule limitation 
+   */
+  selectedLocation: string | null;
+  setSelectedLocation: (location: string | null) => void;
+  /**
    * Number of recurring events to create.
    */
   recurringEventCount: number | null;
@@ -701,6 +706,13 @@ export const createBookerStore = () =>
     tentativeSelectedTimeslots: [],
     setTentativeSelectedTimeslots: (tentativeSelectedTimeslots: string[]) => {
       set({ tentativeSelectedTimeslots });
+    },
+    selectedLocation: getQueryParam("location") || null,
+    setSelectedLocation: (selectedLocation: string | null) => {
+      set({ selectedLocation });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("location", selectedLocation ?? "", false);
+      }
     },
     setSelectedTimeslot: (selectedTimeslot: string | null) => {
       set({ selectedTimeslot });

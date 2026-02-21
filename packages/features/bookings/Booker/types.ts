@@ -103,7 +103,7 @@ export type ToggledConnectedCalendars = {
 
 export type VIEW_TYPE = "MONTH_VIEW" | "WEEK_VIEW" | "COLUMN_VIEW";
 
-export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
+export type BookerState = "loading" | "selecting_location" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = "month_view" | "week_view" | "column_view" | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 

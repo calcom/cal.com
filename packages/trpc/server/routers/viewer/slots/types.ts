@@ -18,6 +18,8 @@ export const getScheduleSchemaObject = z.object({
   eventTypeSlug: z.string().optional(),
   // invitee timezone
   timeZone: timeZoneSchema.optional(),
+  // selected location type for location-specific availability
+  location: z.string().optional(),
   // or list of users (for dynamic events)
   usernameList: z.array(z.string()).min(1).optional(),
   debug: z.boolean().optional(),
