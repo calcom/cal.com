@@ -58,6 +58,8 @@ async function postHandler(request: NextRequest) {
         }
       });
     }
+    const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity("sync"));
+    await Promise.allSettled(teamBillingPromises);
 
     pageNumber++;
   }

@@ -28,6 +28,8 @@ export {
   DEFAULT_WEBHOOK_VERSION,
   WebhookVersion,
 } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export {
   AttributeType,
   CreationSource,
@@ -130,4 +132,4 @@ export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
-export type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
+export type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
