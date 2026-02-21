@@ -1,0 +1,15 @@
+{
+  "name": "Lever",
+  "description": "Lever is a leading Talent Acquisition Suite that makes it easy for talent teams to reach their hiring goals and to connect companies with top talent.",
+  "type": "lever_other",
+  "variant": "other",
+  "logo": "icon.svg",
+  "publisher": "Cal.com",
+  "url": "https://lever.co",
+  "categories": [
+    "other"
+  ],
+  "slug": "lever",
+  "email": "help@cal.com",
+  "isOAuth": true
+}
