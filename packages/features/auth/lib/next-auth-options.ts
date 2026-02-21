@@ -1,3 +1,4 @@
+import process from "node:process";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import { updateProfilePhotoMicrosoft } from "@calcom/app-store/_utils/oauth/updateProfilePhotoMicrosoft";
 import {
@@ -496,11 +497,11 @@ if (isSAMLLoginEnabled) {
   );
 }
 
-if (IS_OUTLOOK_LOGIN_ENABLED) {
+if (IS_OUTLOOK_LOGIN_ENABLED && OUTLOOK_CLIENT_ID && OUTLOOK_CLIENT_SECRET) {
   providers.push(
     AzureADProvider({
-      clientId: OUTLOOK_CLIENT_ID!,
-      clientSecret: OUTLOOK_CLIENT_SECRET!,
+      clientId: OUTLOOK_CLIENT_ID,
+      clientSecret: OUTLOOK_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -882,7 +883,9 @@ export const getOptions = ({
           }
 
           // Update profile photo for Microsoft/Azure AD sign-in
-          await updateProfilePhotoMicrosoft(account.access_token!, Number(user.id));
+          if (account.access_token) {
+            await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
+          }
         } else if (account.provider === "azure-ad" && account.access_token) {
           // Update profile photo even if calendar wasn't installed
           await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
@@ -1016,17 +1019,21 @@ export const getOptions = ({
       if (account?.provider) {
         const idP = getIdentityProvider(account.provider);
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
-        const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
+        // OAuth profiles can contain additional claims beyond the base Profile type.
+        // Azure AD includes email_verified and xms_edov; Google includes email_verified.
+        const oauthProfile = profile as Record<string, unknown> | undefined;
+        const isEmailVerified = user.emailVerified || !!oauthProfile?.email_verified;
 
         // For Azure AD, check xms_edov (Email Domain Owner Verified) claim
         // xms_edov returns inconsistent types: boolean for work/school, string "1" for personal accounts
-        const xmsEdov = (profile as any)?.xms_edov;
+        const xmsEdov = oauthProfile?.xms_edov;
         const isAzureEmailDomainVerified = xmsEdov === true || xmsEdov === "1" || xmsEdov === 1;
 
         // Azure AD never sets email_verified in the token profile, so isEmailVerified is always
         // falsy for AZUREAD logins. Use isAzureEmailDomainVerified (xms_edov) as the equivalent
         // proof of ownership so the auto-merge path treats Azure AD the same as other verified IdPs.
-        const isVerified = isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
+        const isVerified =
+          isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
 
         if (idP === IdentityProvider.AZUREAD && !isAzureEmailDomainVerified) {
           log.error(
@@ -1165,11 +1172,7 @@ export const getOptions = ({
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (
-            !hostedCal &&
-            isVerified &&
-            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
-          ) {
+          if (!hostedCal && isVerified && existingUserWithEmail.identityProvider !== IdentityProvider.CAL) {
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
