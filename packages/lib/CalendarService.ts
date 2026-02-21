@@ -199,7 +199,11 @@ const findDSTTransition = (
     }
   }
 
-  return dayjs(high).tz(timezone);
+  // RFC 5545 requires DTSTART to be the local time interpreted with the
+  // pre-transition offset (TZOFFSETFROM). Apply the pre-transition offset
+  // to the UTC transition moment to get this local time.
+  const preTransitionOffsetMs = lowOffset * 60 * 1000;
+  return dayjs.utc(high + preTransitionOffsetMs);
 };
 
 /** Formats a transition moment as iCal DTSTART (e.g., 20260308T020000). */

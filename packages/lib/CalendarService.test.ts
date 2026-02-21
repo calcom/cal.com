@@ -332,6 +332,53 @@ describe("CalendarService - VTIMEZONE Generation", () => {
     }
   });
 
+  it("should use pre-transition local time for VTIMEZONE DTSTART (RFC 5545)", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T12:00:00Z",
+      endTime: "2023-06-15T13:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/New_York",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+
+    // America/New_York 2023: spring forward March 12 at 2:00 AM EST,
+    // fall back November 5 at 2:00 AM EDT.
+    // RFC 5545 requires DTSTART to use pre-transition local time (02:00),
+    // not the post-transition time (03:00 for spring forward, 01:00 for fall back).
+    const daylightBlock = vtimezoneBlock.slice(
+      vtimezoneBlock.indexOf("BEGIN:DAYLIGHT"),
+      vtimezoneBlock.indexOf("END:DAYLIGHT")
+    );
+    expect(daylightBlock).toContain("DTSTART:20230312T020000");
+
+    const standardBlock = vtimezoneBlock.slice(
+      vtimezoneBlock.indexOf("BEGIN:STANDARD"),
+      vtimezoneBlock.indexOf("END:STANDARD")
+    );
+    expect(standardBlock).toContain("DTSTART:20231105T020000");
+  });
+
   it("should use correct DST rules for Southern Hemisphere (Australia/Sydney)", async () => {
     const service = new TestCalendarService();
     const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230115T020000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
