@@ -30,5 +30,6 @@ The following API endpoints are maintained for backward compatibility with exist
 - `POST /api/integrations/zapier/addSubscription` - Subscribe to webhooks
 - `DELETE /api/integrations/zapier/deleteSubscription` - Unsubscribe from webhooks
 - `GET /api/integrations/zapier/me` - Get user/team information
+- `POST /api/integrations/zapier/no-show` - Trigger no-show event manually (Internal)
 
 **Note:** These endpoints support both API key and OAuth authentication for existing integrations. The endpoints are dynamically routed through `/api/integrations/[...args].ts`.
