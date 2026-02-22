@@ -151,7 +151,7 @@ describe("OAuth Callback Handler", () => {
 
       expect(prismaMock.credential.deleteMany).toHaveBeenCalledWith({
         where: {
-          type: "kyzonspace_video",
+          type: "kyzonspacevideo_video",
           userId: 1,
           appId: "kyzonspacevideo",
         },
@@ -556,14 +556,14 @@ describe("OAuth Callback Handler", () => {
 
       expect(prismaMock.credential.deleteMany).toHaveBeenCalledWith({
         where: {
-          type: "kyzonspace_video",
+          type: "kyzonspacevideo_video",
           userId: 1,
           appId: "kyzonspacevideo",
         },
       });
 
       expect(createOAuthAppCredential).toHaveBeenCalledWith(
-        { appId: "kyzonspacevideo", type: "kyzonspace_video" },
+        { appId: "kyzonspacevideo", type: "kyzonspacevideo_video" },
         expect.objectContaining({
           access_token: "access_token_123",
           user_id: "user_123",
