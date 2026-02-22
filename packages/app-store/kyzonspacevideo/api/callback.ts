@@ -76,7 +76,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof code !== "string") {
     console.error("KYZON OAuth callback missing authorization code:", {
       codeType: typeof code,
-      codeValue: code,
       hasState: !!(state?.onErrorReturnTo || state?.returnTo),
     });
 
@@ -163,7 +162,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status: axiosError?.response?.status,
       message: axiosError?.message,
       code: axiosError?.code,
-      data: axiosError?.response?.data,
       hasState: !!(state?.onErrorReturnTo || state?.returnTo),
     });
 
