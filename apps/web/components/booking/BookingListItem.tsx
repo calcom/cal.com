@@ -55,47 +55,9 @@ import {
   shouldShowPendingActions,
   shouldShowRecurringCancelAction,
 } from "./actions/bookingActions";
+import { isUserHostOfBooking } from "./lib/isUserHostOfBooking";
 import { RejectBookingButton } from "./RejectBookingButton";
 import type { BookingItemProps } from "./types";
-
-/**
- * Determines if the logged-in user is a host for the booking.
- * A user is considered a host if they are:
- * - The booking owner (booking.user.id)
- * - An event type host assigned to this booking (in eventType.hosts AND booking attendees)
- * - The event type owner (eventType.owner.id)
- */
-export function isUserHostOfBooking(booking: BookingItemProps): boolean {
-  const loggedInUserId = booking.loggedInUser.userId;
-
-  if (!loggedInUserId) {
-    return false;
-  }
-
-  // Check if user is the booking owner
-  if (booking.user?.id === loggedInUserId) {
-    return true;
-  }
-
-  // Check if user is an event type host AND assigned to this booking via attendee email
-  const userHost = booking.eventType?.hosts?.find((host) => host.userId === loggedInUserId);
-  if (userHost) {
-    // Verify the host is assigned to this booking by checking attendee emails
-    const isAssignedToBooking = booking.attendees?.some(
-      (attendee) => attendee.email === userHost.user?.email
-    );
-    if (isAssignedToBooking) {
-      return true;
-    }
-  }
-
-  // Check if user is the event type owner
-  if (booking.eventType?.owner?.id === loggedInUserId) {
-    return true;
-  }
-
-  return false;
-}
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;

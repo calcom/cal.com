@@ -31,8 +31,8 @@ import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog"
 import { useState } from "react";
 import type { z } from "zod";
 import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
-import { isUserHostOfBooking } from "../BookingListItem";
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
+import { isUserHostOfBooking } from "../lib/isUserHostOfBooking";
 import { RoutingTraceSheet } from "../RoutingTraceSheet";
 import type { BookingItemProps } from "../types";
 import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
