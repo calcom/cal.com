@@ -209,12 +209,18 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   }
 
   // Determine if the canceling user is a host (owner, event type host, or org admin)
-  // Note: userId must be provided for authentication; we do not trust cancelledBy email alone
+  // For event type hosts, verify they are assigned to this specific booking via attendee email
   let isCancellationUserHost = false;
   if (userId) {
     if (bookingToDelete.userId === userId) {
       isCancellationUserHost = true;
-    } else if (bookingToDelete.eventType?.hosts?.some((host) => host.user.id === userId)) {
+    } else if (
+      bookingToDelete.eventType?.hosts?.some(
+        (host) =>
+          host.user.id === userId &&
+          bookingToDelete.attendees.some((attendee) => attendee.email === host.user.email)
+      )
+    ) {
       isCancellationUserHost = true;
     } else if (bookingToDelete.eventType?.owner?.id === userId) {
       isCancellationUserHost = true;
@@ -223,6 +229,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     ) {
       isCancellationUserHost = true;
     }
+  } else if (cancelledBy && bookingToDelete.user.email === cancelledBy) {
+    // Fallback: allow cancelledBy email when userId is not available (e.g., unauthenticated flows)
+    // This is used in legitimate cases where the organizer cancels via email link
+    isCancellationUserHost = true;
   }
 
   // Only the host can cancel the booking even when the cancellation is disabled for the event

@@ -1174,6 +1174,10 @@ describe("Cancel Booking", () => {
                 email: booker.email,
                 timeZone: "Asia/Kolkata",
               },
+              {
+                email: eventTypeHost.email, // Host is assigned to this booking
+                timeZone: "Asia/Kolkata",
+              },
             ],
           },
         ],
@@ -1198,7 +1202,7 @@ describe("Cancel Booking", () => {
       },
     });
 
-    // Event type host (not the booking owner) should be able to cancel
+    // Event type host assigned to this booking should be able to cancel
     const result = await handleCancelBooking({
       bookingData: {
         id: idOfBookingToBeCancelled,
@@ -1206,11 +1210,118 @@ describe("Cancel Booking", () => {
         cancelledBy: eventTypeHost.email,
         cancellationReason: "Event type host cancelling despite disableCancelling",
       },
-      userId: eventTypeHost.id, // Event type host, not booking owner
+      userId: eventTypeHost.id, // Event type host assigned to booking
     });
 
     expect(result.success).toBe(true);
     expect(result.bookingId).toBe(idOfBookingToBeCancelled);
+  });
+
+  test("Should not allow non-assigned event type hosts to cancel bookings when disableCancelling is enabled", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const eventTypeHost = getOrganizer({
+      name: "Event Type Host",
+      email: "host@example.com",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const nonAssignedHost = getOrganizer({
+      name: "Non-Assigned Host",
+      email: "nonassigned@example.com",
+      id: 103,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "disable-cancelling-non-assigned-host-test";
+    const idOfBookingToBeCancelled = 8093;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: true,
+            users: [{ id: 101 }],
+            hosts: [
+              {
+                userId: 102,
+                isFixed: false,
+              },
+              {
+                userId: 103, // Non-assigned host on event type
+                isFixed: false,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+              {
+                email: eventTypeHost.email, // Only this host is assigned
+                timeZone: "Asia/Kolkata",
+              },
+              // nonAssignedHost is NOT in attendees
+            ],
+          },
+        ],
+        organizer,
+        usersApartFromOrganizer: [eventTypeHost, nonAssignedHost],
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // Non-assigned host (userId 103) should NOT be able to cancel
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: nonAssignedHost.email,
+          cancellationReason: "Non-assigned host trying to cancel",
+        },
+        userId: nonAssignedHost.id, // Host on event type but not assigned to booking
+      })
+    ).rejects.toThrow("This event type does not allow cancellations");
   });
 
   test("Should charge cancellation fee when attendee cancels within time threshold", async () => {
