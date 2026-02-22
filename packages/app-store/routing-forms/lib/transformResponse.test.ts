@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { getFieldResponseForJsonLogic } from "./transformResponse";
 
 describe("getFieldResponseForJsonLogic", () => {
@@ -139,6 +138,102 @@ describe("getFieldResponseForJsonLogic", () => {
       const value = 1;
       const result = getFieldResponseForJsonLogic({ field, value });
       expect(result).toBe("1");
+    });
+  });
+
+  describe("checkbox", () => {
+    it("should transform array values using option ids like multiselect", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "a1", label: "Alpha" },
+          { id: "b2", label: "Beta" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: ["a1", "b2"] });
+      expect(result).toEqual(["a1", "b2"]);
+    });
+
+    it("should resolve labels to ids for checkbox fields", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "a1", label: "Alpha" },
+          { id: "b2", label: "Beta" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: ["Alpha", "Beta"] });
+      expect(result).toEqual(["a1", "b2"]);
+    });
+
+    it("should handle comma-separated string value for checkbox", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "a1", label: "Alpha" },
+          { id: "b2", label: "Beta" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: "a1,b2" });
+      expect(result).toEqual(["a1", "b2"]);
+    });
+  });
+
+  describe("radio", () => {
+    it("should transform single value using option id like select", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "x1", label: "Yes" },
+          { id: "x2", label: "No" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: "x1" });
+      expect(result).toBe("x1");
+    });
+
+    it("should resolve label to id for radio fields", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "x1", label: "Yes" },
+          { id: "x2", label: "No" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: "Yes" });
+      expect(result).toBe("x1");
+    });
+
+    it("should handle number value for radio fields", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const result = getFieldResponseForJsonLogic({ field, value: 1 });
+      expect(result).toBe("1");
+    });
+  });
+
+  describe("passthrough types", () => {
+    it("should pass through boolean field value unchanged", () => {
+      const field = { type: "boolean", options: undefined };
+      const result = getFieldResponseForJsonLogic({ field, value: "true" });
+      expect(result).toBe("true");
+    });
+
+    it("should pass through address field value unchanged", () => {
+      const field = { type: "address", options: undefined };
+      const result = getFieldResponseForJsonLogic({ field, value: "123 Main St" });
+      expect(result).toBe("123 Main St");
+    });
+
+    it("should pass through url field value unchanged", () => {
+      const field = { type: "url", options: undefined };
+      const result = getFieldResponseForJsonLogic({ field, value: "https://cal.com" });
+      expect(result).toBe("https://cal.com");
     });
   });
 });

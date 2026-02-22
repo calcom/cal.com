@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
+import { FIELD_TYPES_WITH_OPTIONS, FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -98,6 +98,28 @@ function Field({
         <FormCardBody>
           <div className="mb-3 w-full">
             <TextField
+              disabled={!!router}
+              label={t("identifier_url_parameter")}
+              hint={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="identifier_url_parameter_hint"
+                  href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
+                />
+              }
+              name={`${hookFieldNamespace}.identifier`}
+              required
+              placeholder={t("identifies_name_field")}
+              value={identifier || routerField?.identifier || ""}
+              onChange={(e) => {
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
+                  shouldDirty: true,
+                });
+              }}
+            />
+          </div>
+          <div className="mb-3 w-full">
+            <TextField
               data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
               label="Label"
@@ -130,28 +152,6 @@ function Field({
             />
           </div>
           <div className="mb-3 w-full">
-            <TextField
-              disabled={!!router}
-              label={t("identifier_url_parameter")}
-              hint={
-                <LearnMoreLink
-                  t={t}
-                  i18nKey="identifier_url_parameter_hint"
-                  href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
-                />
-              }
-              name={`${hookFieldNamespace}.identifier`}
-              required
-              placeholder={t("identifies_name_field")}
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
-              onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
-                  shouldDirty: true,
-                });
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
@@ -171,7 +171,9 @@ function Field({
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
                           )}>
-                          <span className="text-default">{defaultValue?.label || t("select_field_type")}</span>
+                          <span className="text-default">
+                            {defaultValue?.label || t("select_field_type")}
+                          </span>
                           <ChevronDownIcon className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
@@ -208,7 +210,7 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(fieldType) ? (
+          {(FIELD_TYPES_WITH_OPTIONS as readonly string[]).includes(fieldType) ? (
             <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput

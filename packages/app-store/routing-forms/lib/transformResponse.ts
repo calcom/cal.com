@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import type { Field, FormResponse } from "../types/types";
 import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 
@@ -69,7 +68,7 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
-  if (field.type === "multiselect") {
+  if (field.type === "multiselect" || field.type === "checkbox") {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
@@ -80,7 +79,7 @@ export function getFieldResponseForJsonLogic({
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  if (field.type === "select" || field.type === "radio") {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array

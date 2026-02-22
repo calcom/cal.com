@@ -1,4 +1,4 @@
-export const enum RoutingFormFieldType {
+export enum RoutingFormFieldType {
   TEXT = "text",
   NUMBER = "number",
   TEXTAREA = "textarea",
@@ -6,6 +6,11 @@ export const enum RoutingFormFieldType {
   MULTI_SELECT = "multiselect",
   PHONE = "phone",
   EMAIL = "email",
+  CHECKBOX = "checkbox",
+  RADIO = "radio",
+  BOOLEAN = "boolean",
+  ADDRESS = "address",
+  URL = "url",
 }
 
 export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
@@ -17,8 +22,21 @@ export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFi
     RoutingFormFieldType.MULTI_SELECT,
     RoutingFormFieldType.PHONE,
     RoutingFormFieldType.EMAIL,
+    RoutingFormFieldType.CHECKBOX,
+    RoutingFormFieldType.RADIO,
+    RoutingFormFieldType.BOOLEAN,
+    RoutingFormFieldType.ADDRESS,
+    RoutingFormFieldType.URL,
   ].includes(type as RoutingFormFieldType);
 };
+
+/** Field types with options that need a listValues config in RAQB */
+export const FIELD_TYPES_WITH_OPTIONS: readonly RoutingFormFieldType[] = [
+  RoutingFormFieldType.SINGLE_SELECT,
+  RoutingFormFieldType.MULTI_SELECT,
+  RoutingFormFieldType.CHECKBOX,
+  RoutingFormFieldType.RADIO,
+];
 
 export const FieldTypes = [
   {
@@ -48,5 +66,25 @@ export const FieldTypes = [
   {
     label: "Email",
     value: RoutingFormFieldType.EMAIL,
+  },
+  {
+    label: "Checkbox group",
+    value: RoutingFormFieldType.CHECKBOX,
+  },
+  {
+    label: "Radio group",
+    value: RoutingFormFieldType.RADIO,
+  },
+  {
+    label: "Yes/No",
+    value: RoutingFormFieldType.BOOLEAN,
+  },
+  {
+    label: "Address",
+    value: RoutingFormFieldType.ADDRESS,
+  },
+  {
+    label: "URL",
+    value: RoutingFormFieldType.URL,
   },
 ] as const;
