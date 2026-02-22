@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronRightIcon, KeyIcon } from "@coss/ui/icons";
 
 import type { OAuthClientDetails } from "./view/OAuthClientDetailsDialog";
 
@@ -34,7 +34,7 @@ export const OAuthClientsList = ({
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle rounded-lg border" data-testid="oauth-clients-list">
+    <div data-testid="oauth-clients-list">
       {clients.map((client, index) => (
         <div
           key={client.clientId}
@@ -55,16 +55,17 @@ export const OAuthClientsList = ({
             <Avatar
               alt={client.name}
               imageSrc={client.logo || undefined}
-              fallback={<Icon name="key" className="text-subtle h-6 w-6" />}
+              fallback={<KeyIcon className="text-subtle h-6 w-6" />}
               size="md"
             />
             <div>
               <div className="text-emphasis font-medium">{client.name}</div>
+              {client.user?.email && <div className="text-subtle text-sm">{client.user.email}</div>}
             </div>
           </div>
           <div className="flex items-center gap-4">
             {showStatus && client.status ? getStatusBadge(client.status, t) : null}
-            <Icon name="chevron-right" className="text-subtle h-5 w-5" />
+            <ChevronRightIcon className="text-subtle h-5 w-5" />
           </div>
         </div>
       ))}

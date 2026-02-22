@@ -10,11 +10,12 @@ import {
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/hooks/useLocalSet";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -243,7 +244,13 @@ const BookerPlatformWrapperComponent = (
     return restFormValues;
   }, [restFormValues]);
 
-  const { timezone } = useTimePreferences();
+  const { timezone: rawTimezone } = useTimePreferences();
+  const timezone = useStableTimezone(
+    rawTimezone,
+    event?.data?.restrictionScheduleId != null
+      ? { id: event.data.restrictionScheduleId, useBookerTimezone: event.data.useBookerTimezone }
+      : undefined
+  );
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
@@ -292,10 +299,10 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
-          teamId: teamId,
-          rrHostSubsetIds: rrHostSubsetIds,
-        }
+        isTeamEvent: props.isTeamEvent,
+        teamId: teamId,
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
       : {}),
     enabled:
       Boolean(teamId || username) &&
@@ -445,8 +452,8 @@ const BookerPlatformWrapperComponent = (
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
     ...(props.isTeamEvent
       ? {
-          rrHostSubsetIds: rrHostSubsetIds,
-        }
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
       : {}),
   });
 

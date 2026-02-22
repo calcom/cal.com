@@ -36,10 +36,10 @@ export class HashedLinkService {
     return typeof input === "string"
       ? { link: input, expiresAt: null }
       : {
-        link: input.link,
-        expiresAt: input.expiresAt ?? null,
-        maxUsageCount: input.maxUsageCount,
-      };
+          link: input.link,
+          expiresAt: input.expiresAt ?? null,
+          maxUsageCount: input.maxUsageCount,
+        };
   }
 
   /**
