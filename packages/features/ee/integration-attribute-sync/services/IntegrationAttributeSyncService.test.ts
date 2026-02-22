@@ -180,14 +180,21 @@ describe("IntegrationAttributeSyncService", () => {
       };
 
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-2"]);
+      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([
+        "attr-1",
+        "attr-2",
+      ]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
-      expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalledWith({
+      expect(
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+      ).toHaveBeenCalledWith({
         integrationAttributeSync: {
           id: formData.id,
           name: formData.name,
@@ -215,17 +222,24 @@ describe("IntegrationAttributeSyncService", () => {
       };
 
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-2"]);
+      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([
+        "attr-1",
+        "attr-2",
+      ]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([
         { id: "mapping-1", integrationFieldName: "field1", attributeId: "attr-1", enabled: true },
         { id: "mapping-2", integrationFieldName: "field2", attributeId: "attr-2", enabled: true },
       ]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
-      expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalledWith({
+      expect(
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+      ).toHaveBeenCalledWith({
         integrationAttributeSync: {
           id: formData.id,
           name: formData.name,
@@ -258,12 +272,16 @@ describe("IntegrationAttributeSyncService", () => {
         { id: "mapping-2", integrationFieldName: "field2", attributeId: "attr-2", enabled: true },
         { id: "mapping-3", integrationFieldName: "field3", attributeId: "attr-3", enabled: true },
       ]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
-      expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalledWith({
+      expect(
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+      ).toHaveBeenCalledWith({
         integrationAttributeSync: {
           id: formData.id,
           name: formData.name,
@@ -291,17 +309,24 @@ describe("IntegrationAttributeSyncService", () => {
       };
 
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-new"]);
+      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([
+        "attr-1",
+        "attr-new",
+      ]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([
         { id: "mapping-1", integrationFieldName: "field1", attributeId: "attr-1", enabled: true },
         { id: "mapping-2", integrationFieldName: "field2", attributeId: "attr-2", enabled: true },
       ]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await service.updateIncludeRulesAndMappings(formData);
 
-      expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalledWith({
+      expect(
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+      ).toHaveBeenCalledWith({
         integrationAttributeSync: {
           id: formData.id,
           name: formData.name,
@@ -343,11 +368,15 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
 
       await service.updateIncludeRulesAndMappings(formData);
 
-      expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalledWith(
+      expect(
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+      ).toHaveBeenCalledWith(
         expect.objectContaining({
           attributeSyncRule: {
             id: formData.ruleId,
@@ -391,7 +420,9 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1"]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
 
-      await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toThrow(UnauthorizedAttributeError);
+      await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toThrow(
+        UnauthorizedAttributeError
+      );
     });
 
     it("should include invalid attribute ids in the error", async () => {
@@ -410,7 +441,10 @@ describe("IntegrationAttributeSyncService", () => {
 
       await expect(service.updateIncludeRulesAndMappings(formData)).rejects.toSatisfy((error) => {
         expect(error).toBeInstanceOf(UnauthorizedAttributeError);
-        expect((error as UnauthorizedAttributeError).attributeIds).toEqual(["attr-invalid-1", "attr-invalid-2"]);
+        expect((error as UnauthorizedAttributeError).attributeIds).toEqual([
+          "attr-invalid-1",
+          "attr-invalid-2",
+        ]);
         return true;
       });
     });
@@ -425,9 +459,14 @@ describe("IntegrationAttributeSyncService", () => {
       };
 
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue(["attr-1", "attr-2"]);
+      mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([
+        "attr-1",
+        "attr-2",
+      ]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await expect(service.updateIncludeRulesAndMappings(formData)).resolves.not.toThrow();
@@ -442,7 +481,9 @@ describe("IntegrationAttributeSyncService", () => {
       mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
       mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+      mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+        undefined
+      );
       mockTeamRepository.findTeamsNotBelongingToOrgByIds.mockResolvedValue([]);
 
       await expect(service.updateIncludeRulesAndMappings(formData)).resolves.not.toThrow();
@@ -520,7 +561,9 @@ describe("IntegrationAttributeSyncService", () => {
         mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+          undefined
+        );
 
         await service.updateIncludeRulesAndMappings(formData);
 
@@ -546,7 +589,9 @@ describe("IntegrationAttributeSyncService", () => {
         mockIntegrationAttributeSyncRepository.getMappedAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getAttributeIdsByOrganization.mockResolvedValue([]);
         mockIntegrationAttributeSyncRepository.getSyncFieldMappings.mockResolvedValue([]);
-        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(undefined);
+        mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings.mockResolvedValue(
+          undefined
+        );
 
         await service.updateIncludeRulesAndMappings(formData);
 
@@ -554,7 +599,9 @@ describe("IntegrationAttributeSyncService", () => {
           teamIds: [1, 2],
           orgId: 123,
         });
-        expect(mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings).toHaveBeenCalled();
+        expect(
+          mockIntegrationAttributeSyncRepository.updateTransactionWithRuleAndMappings
+        ).toHaveBeenCalled();
       });
     });
   });

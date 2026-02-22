@@ -27,14 +27,13 @@ export function EventTypeSelectComponent({
   isPending,
 }: EventTypeSelectComponentProps): JSX.Element {
   const { t } = useLocale();
-  const { event: selectedEventType, setEvent: setSelectedEventType } =
-    useTroubleshooterStore(
-      (state) => ({
-        event: state.event,
-        setEvent: state.setEvent,
-      }),
-      shallow
-    );
+  const { event: selectedEventType, setEvent: setSelectedEventType } = useTroubleshooterStore(
+    (state) => ({
+      event: state.event,
+      setEvent: state.setEvent,
+    }),
+    shallow
+  );
 
   const options = useMemo(() => {
     if (!eventTypes) return [];
@@ -51,9 +50,7 @@ export function EventTypeSelectComponent({
     if (!eventTypes || eventTypes.length === 0) return;
 
     const selectedEventIdParam = getQueryParam("eventTypeId");
-    const eventTypeId = selectedEventIdParam
-      ? parseInt(selectedEventIdParam, 10)
-      : null;
+    const eventTypeId = selectedEventIdParam ? parseInt(selectedEventIdParam, 10) : null;
 
     // If we already have a selected event that matches the query param, don't do anything
     if (selectedEventType?.id === eventTypeId) return;
@@ -93,10 +90,7 @@ export function EventTypeSelectComponent({
       label={t("event_type")}
       options={options}
       isDisabled={isPending || options.length === 0}
-      value={
-        options.find((option) => option.id === selectedEventType?.id) ||
-        options[0]
-      }
+      value={options.find((option) => option.id === selectedEventType?.id) || options[0]}
       onChange={(option) => {
         if (!option) return;
         const foundEventType = eventTypes?.find((et) => et.id === option.id);

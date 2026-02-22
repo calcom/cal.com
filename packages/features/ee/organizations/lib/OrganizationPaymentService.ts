@@ -219,11 +219,21 @@ export class OrganizationPaymentService {
       })
     );
 
-    if (!process.env.STRIPE_ORG_PRODUCT_ID || !process.env.STRIPE_ORG_MONTHLY_PRICE_ID) {
-      throw new Error("STRIPE_ORG_PRODUCT_ID or STRIPE_ORG_MONTHLY_PRICE_ID is not set");
+    if (!process.env.STRIPE_ORG_PRODUCT_ID) {
+      throw new Error("STRIPE_ORG_PRODUCT_ID is not set");
     }
 
-    const fixedPriceId = process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
+    const fixedPriceId =
+      config.billingPeriod === "ANNUALLY"
+        ? process.env.STRIPE_ORG_ANNUAL_PRICE_ID
+        : process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
+
+    if (!fixedPriceId) {
+      const envVar =
+        config.billingPeriod === "ANNUALLY" ? "STRIPE_ORG_ANNUAL_PRICE_ID" : "STRIPE_ORG_MONTHLY_PRICE_ID";
+      throw new Error(`${envVar} is not set`);
+    }
+
     if (!shouldCreateCustomPrice) {
       return {
         priceId: fixedPriceId,

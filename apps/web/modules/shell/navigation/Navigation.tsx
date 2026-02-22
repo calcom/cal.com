@@ -135,6 +135,11 @@ const getNavigationItems = (
             // icon: "phone",
             isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
           },
+          {
+            name: "wrong_routing",
+            href: "/insights/wrong-routing",
+            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/wrong-routing") ?? false,
+          },
         ]
       : [
           {

@@ -338,12 +338,7 @@ describe("scanWorkflowUrls", () => {
         vi.mocked(urlScanner.isUrlScanningEnabled).mockReturnValue(true);
         vi.mocked(urlScanner.extractUrlsFromHtml).mockReturnValue(["https://example.com"]);
 
-        await submitWorkflowStepForUrlScanning(
-          100,
-          '<a href="https://example.com">Link</a>',
-          1,
-          false
-        );
+        await submitWorkflowStepForUrlScanning(100, '<a href="https://example.com">Link</a>', 1, false);
 
         expect(tasker.create).toHaveBeenCalledWith(
           "scanWorkflowUrls",
@@ -360,12 +355,7 @@ describe("scanWorkflowUrls", () => {
         vi.mocked(urlScanner.isUrlScanningEnabled).mockReturnValue(true);
         vi.mocked(urlScanner.extractUrlsFromHtml).mockReturnValue(["https://example.com"]);
 
-        await submitWorkflowStepForUrlScanning(
-          100,
-          '<a href="https://example.com">Link</a>',
-          1,
-          true
-        );
+        await submitWorkflowStepForUrlScanning(100, '<a href="https://example.com">Link</a>', 1, true);
 
         expect(tasker.create).toHaveBeenCalledWith(
           "scanWorkflowUrls",
@@ -391,12 +381,7 @@ describe("scanWorkflowUrls", () => {
           },
         });
 
-        await submitWorkflowStepForUrlScanning(
-          104,
-          '<a href="https://example.com">Link</a>',
-          1,
-          false
-        );
+        await submitWorkflowStepForUrlScanning(104, '<a href="https://example.com">Link</a>', 1, false);
 
         // Should mark workflow step as verified
         const workflowStep = await prismock.workflowStep.findUnique({
