@@ -11,6 +11,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const PersonalSettingsView = ({
 }: PersonalSettingsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
+  const { update: updateSession } = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const { personalDetails, setPersonalDetails } = useOnboardingStore();
 
@@ -97,11 +99,20 @@ export const PersonalSettingsView = ({
       bio: data.bio || "",
     });
 
-    // Save to backend
+    // Save to backend and mark onboarding as completed.
+    // We set completedOnboarding here (before the calendar step) because the calendar
+    // integration is optional. If a user closes the tab before reaching/completing the
+    // calendar step, they would otherwise be stuck in a redirect loop back to onboarding.
     await mutation.mutateAsync({
       name: data.name,
       bio: data.bio || "",
+      completedOnboarding: true,
     });
+
+    // Refresh the NextAuth session so server-side checks see completedOnboarding: true.
+    // Without this, the LRU-cached session may still have the old value and redirect
+    // the user back to onboarding if they refresh or navigate away.
+    await updateSession();
 
     router.push("/onboarding/personal/calendar");
   });

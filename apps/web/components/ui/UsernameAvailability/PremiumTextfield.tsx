@@ -1,11 +1,4 @@
-import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { RefCallback } from "react";
-import { useEffect, useState } from "react";
-
+import process from "node:process";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,12 +10,18 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label, Input } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Input, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { CheckIcon, ExternalLinkIcon } from "@coss/ui/icons";
-
 import type { TRPCClientErrorLike } from "@trpc/client";
+import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { RefCallback } from "react";
+import { useEffect, useState } from "react";
 
 export enum UsernameChangeStatusEnum {
   UPGRADE = "UPGRADE",
@@ -125,9 +124,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   const usernameFromStripe = stripeCustomer?.username;
 
+  // Preserve query params (e.g. fromTeamOnboarding=true) in the callback URL
+  // so the user returns to the correct onboarding context after Stripe checkout
+  const callbackSearchParams = searchParams?.toString();
+  const callbackUrl = `${WEBAPP_URL}${pathname}${callbackSearchParams ? `?${callbackSearchParams}` : ""}`;
   const paymentLink = `/api/integrations/stripepayment/subscription?intentUsername=${
     inputUsernameValue || usernameFromStripe
-  }&action=${usernameChangeCondition}&callbackUrl=${WEBAPP_URL}${pathname}`;
+  }&action=${usernameChangeCondition}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   const ActionButtons = () => {
     if (paymentRequired) {

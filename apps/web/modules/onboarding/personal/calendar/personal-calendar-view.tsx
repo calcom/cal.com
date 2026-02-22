@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
@@ -25,6 +23,13 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showFadeGradient, setShowFadeGradient] = useState(false);
+
+  // Clear stale return-to cookie on mount. This cookie is set before OAuth redirect
+  // for calendar integration. If the user navigated back without completing OAuth,
+  // the cookie would persist (1-hour TTL) and cause unexpected redirects later.
+  useEffect(() => {
+    document.cookie = "return-to=;path=/;max-age=0;SameSite=Lax";
+  }, []);
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
