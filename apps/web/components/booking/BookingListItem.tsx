@@ -58,6 +58,38 @@ import {
 import { RejectBookingButton } from "./RejectBookingButton";
 import type { BookingItemProps } from "./types";
 
+/**
+ * Determines if the logged-in user is a host for the booking.
+ * A user is considered a host if they are:
+ * - The booking owner (booking.user.id)
+ * - An event type host (in eventType.hosts)
+ * - The event type owner (eventType.owner.id)
+ */
+export function isUserHostOfBooking(booking: BookingItemProps): boolean {
+  const loggedInUserId = booking.loggedInUser.userId;
+
+  if (!loggedInUserId) {
+    return false;
+  }
+
+  // Check if user is the booking owner
+  if (booking.user?.id === loggedInUserId) {
+    return true;
+  }
+
+  // Check if user is an event type host
+  if (booking.eventType?.hosts?.some((host) => host.userId === loggedInUserId)) {
+    return true;
+  }
+
+  // Check if user is the event type owner
+  if (booking.eventType?.owner?.id === loggedInUserId) {
+    return true;
+  }
+
+  return false;
+}
+
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
 type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
@@ -204,11 +236,8 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   const cardCharged = booking?.payment[0]?.success;
 
-  // Check if the logged-in user is the host/owner of the booking
-  const isHost =
-    booking.user?.id != null &&
-    booking.loggedInUser.userId != null &&
-    booking.loggedInUser.userId === booking.user.id;
+  // Check if the logged-in user is a host (owner, event type host, or event type owner)
+  const isHost = isUserHostOfBooking(booking);
 
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;

@@ -209,6 +209,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   }
 
   // Determine if the canceling user is a host (owner, event type host, or org admin)
+  // Note: userId must be provided for authentication; we do not trust cancelledBy email alone
   let isCancellationUserHost = false;
   if (userId) {
     if (bookingToDelete.userId === userId) {
@@ -222,9 +223,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     ) {
       isCancellationUserHost = true;
     }
-  } else if (cancelledBy && bookingToDelete.user.email === cancelledBy) {
-    // Also check if cancelledBy email matches the booking owner
-    isCancellationUserHost = true;
   }
 
   // Only the host can cancel the booking even when the cancellation is disabled for the event

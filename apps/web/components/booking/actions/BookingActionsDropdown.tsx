@@ -31,6 +31,7 @@ import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog"
 import { useState } from "react";
 import type { z } from "zod";
 import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
+import { isUserHostOfBooking } from "../BookingListItem";
 import { useBookingConfirmation } from "../hooks/useBookingConfirmation";
 import { RoutingTraceSheet } from "../RoutingTraceSheet";
 import type { BookingItemProps } from "../types";
@@ -194,12 +195,8 @@ export function BookingActionsDropdown({
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
 
-  // Check if the logged-in user is the host/owner of the booking
-  // This includes: booking owner, event type hosts, event type owner
-  const isHost =
-    booking.user?.id != null &&
-    booking.loggedInUser.userId != null &&
-    booking.loggedInUser.userId === booking.user.id;
+  // Check if the logged-in user is a host (booking owner, event type host, or event type owner)
+  const isHost = isUserHostOfBooking(booking);
 
   const isCalVideoLocation =
     !booking.location ||
