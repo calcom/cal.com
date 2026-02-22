@@ -11,8 +11,14 @@ export const kyzonCredentialKeySchema = z.object({
   scope: z.string().optional(),
   /* store ms since epoch, > now */
   expiry_date: z.number().int().positive(),
-  user_id: z.coerce.string().min(1),
-  team_id: z.coerce.string().min(1),
+  user_id: z
+    .union([z.string(), z.number()])
+    .transform((val) => String(val))
+    .pipe(z.string().min(1)),
+  team_id: z
+    .union([z.string(), z.number()])
+    .transform((val) => String(val))
+    .pipe(z.string().min(1)),
 });
 
 export type KyzonCredentialKey = z.infer<typeof kyzonCredentialKeySchema>;
