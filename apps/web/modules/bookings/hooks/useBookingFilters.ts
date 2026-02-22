@@ -2,7 +2,6 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
-  ZSingleSelectFilterValue,
 } from "@calcom/features/data-table";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
