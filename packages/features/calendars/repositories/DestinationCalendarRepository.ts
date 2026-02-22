@@ -1,11 +1,49 @@
 import logger from "@calcom/lib/logger";
 import { buildCredentialPayloadForPrisma } from "@calcom/lib/server/buildCredentialPayloadForCalendar";
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["DestinationCalendarRepository"] });
 
 export class DestinationCalendarRepository {
+  private prismaClient: PrismaClient;
+
+  constructor(prismaClient?: PrismaClient) {
+    this.prismaClient = prismaClient ?? prisma;
+  }
+
+  async getCustomReminderByCredentialId(credentialId: number): Promise<number | null> {
+    const destinationCalendar = await this.prismaClient.destinationCalendar.findFirst({
+      where: { credentialId },
+      select: { customCalendarReminder: true },
+    });
+    return destinationCalendar?.customCalendarReminder ?? null;
+  }
+
+  async updateCustomReminder({
+    userId,
+    credentialId,
+    integration,
+    customCalendarReminder,
+  }: {
+    userId: number;
+    credentialId: number;
+    integration: string;
+    customCalendarReminder: number | null;
+  }) {
+    return await this.prismaClient.destinationCalendar.updateMany({
+      where: {
+        userId,
+        credentialId,
+        integration,
+      },
+      data: {
+        customCalendarReminder,
+      },
+    });
+  }
+
   static async create(data: Prisma.DestinationCalendarCreateInput) {
     return await prisma.destinationCalendar.create({
       data,

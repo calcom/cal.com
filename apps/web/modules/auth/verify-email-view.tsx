@@ -18,7 +18,7 @@ const EMAIL_CLIENTS = [
   {
     name: "Gmail",
     icon: "/email-clients/gmail.svg",
-    href: 'https://mail.google.com/mail/u/0/#search/%22api%2Fauth%2Fverify-email%22',
+    href: "https://mail.google.com/mail/u/0/#search/%22api%2Fauth%2Fverify-email%22",
   },
   {
     name: "Outlook",
