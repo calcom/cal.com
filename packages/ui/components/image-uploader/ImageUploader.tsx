@@ -88,20 +88,7 @@ export default function ImageUploader({
     method: "readAsDataURL",
   });
 
-  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) {
-      return;
-    }
-
-    const limit = 5 * 1000000; // max limit 5mb
-    const file = e.target.files[0];
-
-    if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
-    } else {
-      setFile(file);
-    }
-  };
+ 
 
   const showCroppedImage = useCallback(
     async (croppedAreaPixels: Area | null) => {
