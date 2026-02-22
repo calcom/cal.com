@@ -3,7 +3,11 @@ import { z } from "zod";
 export const kyzonCredentialKeySchema = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string().min(1).optional(),
-  token_type: z.literal("Bearer").optional(),
+  token_type: z
+    .string()
+    .regex(/^bearer$/i)
+    .transform(() => "Bearer" as const)
+    .optional(),
   scope: z.string().optional(),
   /* store ms since epoch, > now */
   expiry_date: z.number().int().positive(),
