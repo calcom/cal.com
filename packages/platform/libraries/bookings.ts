@@ -23,3 +23,5 @@ export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repos
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 export { BookingDataPreparationService } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
 export type { PreparedBookingData } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
+export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
