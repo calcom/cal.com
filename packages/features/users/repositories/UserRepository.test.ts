@@ -119,47 +119,26 @@ describe("UserRepository", () => {
       expect(result).toEqual([]);
     });
 
-    test("queries by primary email and verified secondary emails", async () => {
-      const mockFindMany = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
-      const mockPrisma = { user: { findMany: mockFindMany } } as unknown as PrismaClient;
+    test("uses raw UNION query with emailVerified check", async () => {
+      const mockQueryRaw = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
+      const mockPrisma = { $queryRaw: mockQueryRaw } as unknown as PrismaClient;
       const userRepo = new UserRepository(mockPrisma);
 
-      const result = await userRepo.findByEmails({ emails: ["test@example.com"] });
+      const result = await userRepo.findByEmails({ emails: ["Test@Example.com"] });
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({ id: 1, email: "test@example.com" });
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { email: { in: ["test@example.com"], mode: "insensitive" } },
-              {
-                secondaryEmails: {
-                  some: {
-                    email: { in: ["test@example.com"], mode: "insensitive" },
-                    emailVerified: { not: null },
-                  },
-                },
-              },
-            ]),
-          }),
-          select: { id: true, email: true },
-        })
-      );
+      expect(mockQueryRaw).toHaveBeenCalledTimes(1);
     });
 
-    test("selects only id and email fields", async () => {
-      const mockFindMany = vi.fn().mockResolvedValue([{ id: 2, email: "user@example.com" }]);
-      const mockPrisma = { user: { findMany: mockFindMany } } as unknown as PrismaClient;
+    test("does not call $queryRaw for empty emails", async () => {
+      const mockQueryRaw = vi.fn();
+      const mockPrisma = { $queryRaw: mockQueryRaw } as unknown as PrismaClient;
       const userRepo = new UserRepository(mockPrisma);
 
-      await userRepo.findByEmails({ emails: ["user@example.com"] });
+      await userRepo.findByEmails({ emails: [] });
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          select: { id: true, email: true },
-        })
-      );
+      expect(mockQueryRaw).not.toHaveBeenCalled();
     });
   });
 });

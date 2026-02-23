@@ -1462,24 +1462,23 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
-  async findByEmails({ emails }: { emails: string[] }) {
+  async findByEmails({ emails }: { emails: string[] }): Promise<Array<{ id: number; email: string }>> {
     if (!emails.length) return [];
-    return this.prismaClient.user.findMany({
-      where: {
-        OR: [
-          { email: { in: emails, mode: "insensitive" } },
-          {
-            secondaryEmails: {
-              some: {
-                email: { in: emails, mode: "insensitive" },
-                emailVerified: { not: null },
-              },
-            },
-          },
-        ],
-      },
-      select: { id: true, email: true },
-    });
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    const emailListSql = Prisma.join(normalizedEmails.map((e) => Prisma.sql`${e}`));
+    return this.prismaClient.$queryRaw<Array<{ id: number; email: string }>>(Prisma.sql`
+      SELECT u."id", u."email"
+      FROM "public"."users" AS u
+      WHERE LOWER(u."email") IN (${emailListSql})
+        AND u."emailVerified" IS NOT NULL
+      UNION
+      SELECT u."id", u."email"
+      FROM "public"."users" AS u
+      INNER JOIN "public"."SecondaryEmail" AS t0
+        ON t0."userId" = u."id"
+      WHERE LOWER(t0."email") IN (${emailListSql})
+        AND t0."emailVerified" IS NOT NULL
+    `);
   }
 
   async findByEmailAndTeamId({ email, teamId }: { email: string; teamId: number }) {
