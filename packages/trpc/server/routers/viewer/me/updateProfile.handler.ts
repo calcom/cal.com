@@ -1,6 +1,3 @@
-import { keyBy } from "lodash";
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -8,23 +5,24 @@ import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { getTranslation } from "@calcom/i18n/server";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/i18n/server";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { JsonValue } from "@calcom/types/Json";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { JsonValue } from "@calcom/types/Json";
 import { TRPCError } from "@trpc/server";
-
-import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
+import { keyBy } from "lodash";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
+import { type TUpdateProfileInputSchema, updateUserMetadataAllowedKeys } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
 type UpdateProfileOptions = {
@@ -41,6 +39,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const featuresRepository = new FeaturesRepository(prisma);
+  const scheduleRepository = new ScheduleRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;
@@ -184,6 +183,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         })
       );
     }
+
+    const hasExistingSchedule = await scheduleRepository.hasAnyByUserId({ userId: user.id });
+
+    if (!hasExistingSchedule) {
+      const t = await getTranslation(locale, "common");
+      const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+      const defaultSchedule = await scheduleRepository.createWithAvailability({
+        userId: user.id,
+        name: t("default_schedule_name"),
+        timeZone: user.timeZone,
+        availability,
+      });
+
+      data.defaultScheduleId = defaultSchedule.id;
+    }
   }
 
   if (travelSchedules) {
@@ -279,28 +294,16 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
     // on timezone change update timezone of default schedule
-    const scheduleRepository = new ScheduleRepository(prisma);
     const defaultScheduleId = await scheduleRepository.getDefaultScheduleId(user.id);
 
     if (!user.defaultScheduleId) {
       // set default schedule if not already set
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          defaultScheduleId,
-        },
-      });
+      await scheduleRepository.setupDefaultSchedule(user.id, defaultScheduleId);
     }
 
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: data.timeZone,
-      },
+    await scheduleRepository.updateTimeZoneById({
+      id: defaultScheduleId,
+      timeZone: data.timeZone as string,
     });
   }
 

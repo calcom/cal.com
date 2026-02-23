@@ -258,4 +258,52 @@ export class ScheduleRepository {
       },
     });
   }
+
+  async hasAnyByUserId({ userId }: { userId: number }): Promise<boolean> {
+    const schedule = await this.prismaClient.schedule.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+    return !!schedule;
+  }
+
+  async createWithAvailability({
+    userId,
+    name,
+    timeZone,
+    availability,
+  }: {
+    userId: number;
+    name: string;
+    timeZone: string;
+    availability: Array<{
+      days: number[];
+      startTime: Date;
+      endTime: Date;
+    }>;
+  }) {
+    return this.prismaClient.schedule.create({
+      data: {
+        name,
+        user: { connect: { id: userId } },
+        timeZone,
+        availability: {
+          createMany: {
+            data: availability.map((schedule) => ({
+              days: schedule.days,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+            })),
+          },
+        },
+      },
+    });
+  }
+
+  async updateTimeZoneById({ id, timeZone }: { id: number; timeZone: string }) {
+    return this.prismaClient.schedule.update({
+      where: { id },
+      data: { timeZone },
+    });
+  }
 }
