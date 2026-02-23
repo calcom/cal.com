@@ -485,7 +485,13 @@ function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   );
 }
 
-function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
+function CrowFallback({
+  searchQuery,
+  onEnterChatMode,
+}: {
+  searchQuery: string;
+  onEnterChatMode: () => void;
+}): JSX.Element {
   const { t } = useLocale();
   const router = useRouter();
   const { query } = useKBar();
@@ -550,6 +556,7 @@ function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
           const data = line.slice(6);
           if (data === "[DONE]") {
             setState((s) => ({ ...s, mode: "chat", streaming: false, conversationId: capturedConvId }));
+            onEnterChatMode();
             return;
           }
           try {
@@ -585,12 +592,13 @@ function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
       }
 
       setState((s) => ({ ...s, mode: "chat", streaming: false, conversationId: capturedConvId }));
+      onEnterChatMode();
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         setState((s) => ({ ...s, streaming: false, error: s.mode === "search" }));
       }
     }
-  }, []);
+  }, [onEnterChatMode]);
 
   // Initial query: fire Crow when searchQuery changes (search mode only)
   useEffect(() => {
@@ -692,12 +700,13 @@ function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
   const { t } = useLocale();
+  const [inChatMode, setInChatMode] = useState(false);
 
   useEventTypesAction();
   useUpcomingBookingsAction();
 
-  if (results.length === 0 && searchQuery.trim().length > 0) {
-    return <CrowFallback searchQuery={searchQuery} />;
+  if (inChatMode || (results.length === 0 && searchQuery.trim().length > 0)) {
+    return <CrowFallback searchQuery={searchQuery} onEnterChatMode={() => setInChatMode(true)} />;
   }
 
   return (
