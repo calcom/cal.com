@@ -1,0 +1,25 @@
+{
+  "name": "@calcom/cli",
+  "version": "0.0.1",
+  "description": "CLI for Cal.com API v2",
+  "license": "MIT",
+  "bin": {
+    "cal": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node --transpile-only src/index.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "4.1.2",
+    "commander": "12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.23",
+    "typescript": "5.9.3"
+  }
+}
