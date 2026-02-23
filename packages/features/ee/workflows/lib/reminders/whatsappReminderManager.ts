@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import {
   WorkflowTriggerEvents,
