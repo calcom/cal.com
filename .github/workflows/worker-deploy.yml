@@ -428,7 +428,7 @@ jobs:
                 --env-file "/home/onehash/.env" \
                 --add-host=host.docker.internal:host-gateway \
                 --memory="512m" \
-                --cpus="0.5" \
+                # --cpus="0.5" \
                 "$WORKER_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
 
                 log_message "INFO" "Container $NEW_NAME created, waiting for initialization..."
