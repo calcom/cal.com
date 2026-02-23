@@ -1,11 +1,12 @@
 import { generateSecret } from "@calcom/platform-libraries";
 import type { Membership, Team, User } from "@calcom/prisma/client";
-import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test, TestingModule } from "@nestjs/testing";
-import { getToken } from "next-auth/jwt";
+import { AccessScope, OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
+import type { INestApplication } from "@nestjs/common";
+import type { NestExpressApplication } from "@nestjs/platform-express";
+import type { TestingModule } from "@nestjs/testing";
+import { Test } from "@nestjs/testing";
 import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuth2ClientRepositoryFixture } from "test/fixtures/repository/oauth2-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -21,20 +22,16 @@ import { AuthModule } from "@/modules/auth/auth.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 
-// Mock next-auth/jwt getToken for ApiAuthStrategy NEXT_AUTH authentication
+// Mock next-auth/jwt getToken so the NextAuth fallback in ApiAuthStrategy doesn't crash in tests
 jest.mock("next-auth/jwt", () => ({
-  getToken: jest.fn(),
+  getToken: jest.fn().mockResolvedValue(null),
 }));
-const mockGetToken = getToken as jest.MockedFunction<typeof getToken>;
 
 describe("OAuth2 Controller Endpoints", () => {
   describe("User Not Authenticated", () => {
     let appWithoutAuth: INestApplication;
 
     beforeAll(async () => {
-      // Mock getToken to return null for unauthenticated tests
-      mockGetToken.mockResolvedValue(null);
-
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
         imports: [AppModule, UsersModule, AuthModule, PrismaModule],
@@ -69,20 +66,23 @@ describe("OAuth2 Controller Endpoints", () => {
     });
   });
 
-  describe("User Authenticated", () => {
+  describe("User Authenticated (non-owner)", () => {
     let app: INestApplication;
     let moduleRef: TestingModule;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let oAuthClientFixture: OAuth2ClientRepositoryFixture;
     let oAuthService: OAuthService;
 
-    let user: User;
+    let clientOwner: User;
+    let authenticatedUser: User;
     let team: Team;
     let membership: Membership;
     let oAuthClient: { clientId: string };
+    let apiKeyString: string;
     let refreshToken: string;
 
     const testClientId = `test-oauth-client-${randomString()}`;
@@ -96,7 +96,7 @@ describe("OAuth2 Controller Endpoints", () => {
     ): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         testClientId,
-        user.id,
+        authenticatedUser.id,
         testRedirectUri,
         scopes,
         undefined,
@@ -107,12 +107,6 @@ describe("OAuth2 Controller Endpoints", () => {
     }
 
     beforeAll(async () => {
-      const userEmail = `oauth2-e2e-user-${randomString()}@api.com`;
-
-      // Mock getToken to return the user email for authenticated tests
-      // This is needed because ApiAuthGuard uses ApiAuthStrategy which calls getToken from next-auth/jwt
-      mockGetToken.mockResolvedValue({ email: userEmail });
-
       moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
         imports: [AppModule, UsersModule, AuthModule, PrismaModule],
@@ -125,12 +119,20 @@ describe("OAuth2 Controller Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       oAuthClientFixture = new OAuth2ClientRepositoryFixture(moduleRef);
       oAuthService = moduleRef.get(OAuthService);
 
-      user = await userRepositoryFixture.create({
-        email: userEmail,
+      clientOwner = await userRepositoryFixture.create({
+        email: `oauth2-e2e-owner-${randomString()}@api.com`,
       });
+
+      authenticatedUser = await userRepositoryFixture.create({
+        email: `oauth2-e2e-user-${randomString()}@api.com`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(authenticatedUser.id, null);
+      apiKeyString = keyString;
 
       team = await teamRepositoryFixture.create({
         name: `oauth2-e2e-team-${randomString()}`,
@@ -138,7 +140,7 @@ describe("OAuth2 Controller Endpoints", () => {
       });
 
       membership = await membershipRepositoryFixture.create({
-        user: { connect: { id: user.id } },
+        user: { connect: { id: authenticatedUser.id } },
         team: { connect: { id: team.id } },
         role: "OWNER",
         accepted: true,
@@ -151,6 +153,7 @@ describe("OAuth2 Controller Endpoints", () => {
         redirectUri: testRedirectUri,
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
+        userId: clientOwner.id,
       });
     });
 
@@ -159,6 +162,7 @@ describe("OAuth2 Controller Endpoints", () => {
         it("should return OAuth client info for valid client ID", async () => {
           const response = await request(app.getHttpServer())
             .get(`/api/v2/auth/oauth2/clients/${testClientId}`)
+            .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
             .expect(200);
 
           expect(response.body.status).toBe("success");
@@ -174,6 +178,7 @@ describe("OAuth2 Controller Endpoints", () => {
         it("should return 404 for non-existent client ID", async () => {
           await request(app.getHttpServer())
             .get("/api/v2/auth/oauth2/clients/non-existent-client-id")
+            .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
             .expect(404);
         });
       });
@@ -434,7 +439,238 @@ describe("OAuth2 Controller Endpoints", () => {
       await oAuthClientFixture.delete(oAuthClient.clientId);
       await membershipRepositoryFixture.delete(membership.id);
       await teamRepositoryFixture.delete(team.id);
-      await userRepositoryFixture.delete(user.id);
+      await userRepositoryFixture.delete(authenticatedUser.id);
+      await userRepositoryFixture.delete(clientOwner.id);
+      await app.close();
+    });
+  });
+
+  describe("Owner can use non-approved OAuth client", () => {
+    let app: INestApplication;
+    let moduleRef: TestingModule;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let oAuthClientFixture: OAuth2ClientRepositoryFixture;
+    let oAuthService: OAuthService;
+
+    let owner: User;
+    let team: Team;
+    let membership: Membership;
+    let pendingClient: { clientId: string };
+    let rejectedClient: { clientId: string };
+    let apiKeyString: string;
+
+    const pendingClientId = `test-pending-client-${randomString()}`;
+    const rejectedClientId = `test-rejected-client-${randomString()}`;
+    const testClientSecret = "test-secret-456";
+    const testRedirectUri = "https://example.com/callback";
+
+    /** Generate a user-scoped authorization code (no teamSlug) so the owner's userId is in the token. */
+    async function generateAuthCodeForClient(
+      clientId: string,
+      scopes: AccessScope[] = [AccessScope.READ_BOOKING]
+    ): Promise<string> {
+      const result = await oAuthService.generateAuthorizationCode(
+        clientId,
+        owner.id,
+        testRedirectUri,
+        scopes
+      );
+      const redirectUrl = new URL(result.redirectUrl);
+      return redirectUrl.searchParams.get("code") as string;
+    }
+
+    beforeAll(async () => {
+      moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
+        imports: [AppModule, UsersModule, AuthModule, PrismaModule],
+      }).compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+      await app.init();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+      oAuthClientFixture = new OAuth2ClientRepositoryFixture(moduleRef);
+      oAuthService = moduleRef.get(OAuthService);
+
+      owner = await userRepositoryFixture.create({
+        email: `oauth2-owner-e2e-${randomString()}@api.com`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(owner.id, null);
+      apiKeyString = keyString;
+
+      team = await teamRepositoryFixture.create({
+        name: `oauth2-owner-team-${randomString()}`,
+        slug: `oauth2-owner-team-${randomString()}`,
+      });
+
+      membership = await membershipRepositoryFixture.create({
+        user: { connect: { id: owner.id } },
+        team: { connect: { id: team.id } },
+        role: "OWNER",
+        accepted: true,
+      });
+
+      const [hashedSecret] = generateSecret(testClientSecret);
+
+      pendingClient = await oAuthClientFixture.create({
+        clientId: pendingClientId,
+        name: "Pending OAuth Client",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+        status: OAuthClientStatus.PENDING,
+        userId: owner.id,
+      });
+
+      rejectedClient = await oAuthClientFixture.create({
+        clientId: rejectedClientId,
+        name: "Rejected OAuth Client",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+        status: OAuthClientStatus.REJECTED,
+        userId: owner.id,
+      });
+    });
+
+    it("should return PENDING client info when authenticated as owner", async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/auth/oauth2/clients/${pendingClientId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .expect(200);
+
+      expect(response.body.status).toBe("success");
+      expect(response.body.data.client_id).toBe(pendingClientId);
+      expect(response.body.data.name).toBe("Pending OAuth Client");
+    });
+
+    it("should exchange authorization code for tokens with PENDING client owned by user", async () => {
+      const code = await generateAuthCodeForClient(pendingClientId);
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(200);
+
+      expect(response.body.access_token).toBeDefined();
+      expect(response.body.refresh_token).toBeDefined();
+      expect(response.body.token_type).toBe("bearer");
+    });
+
+    it("should refresh tokens with PENDING client owned by user", async () => {
+      const code = await generateAuthCodeForClient(pendingClientId);
+
+      const tokenResponse = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "refresh_token",
+          refresh_token: tokenResponse.body.refresh_token,
+          client_secret: testClientSecret,
+        })
+        .expect(200);
+
+      expect(response.body.access_token).toBeDefined();
+      expect(response.body.refresh_token).toBeDefined();
+      expect(response.body.token_type).toBe("bearer");
+    });
+
+    it("should reject authorization code generation for REJECTED client even as owner", async () => {
+      await expect(generateAuthCodeForClient(rejectedClientId)).rejects.toThrow();
+    });
+
+    it("should reject token exchange when client becomes rejected", async () => {
+      const code = await generateAuthCodeForClient(pendingClientId);
+
+      await oAuthClientFixture.updateStatus(pendingClientId, OAuthClientStatus.REJECTED);
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(401);
+
+      expect(response.body.error).toBe("unauthorized_client");
+      expect(response.body.error_description).toBe("client_rejected");
+
+      await oAuthClientFixture.updateStatus(pendingClientId, OAuthClientStatus.PENDING);
+    });
+
+    it("should reject token refresh when client becomes rejected", async () => {
+      const code = await generateAuthCodeForClient(pendingClientId);
+
+      const tokenResponse = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(200);
+
+      await oAuthClientFixture.updateStatus(pendingClientId, OAuthClientStatus.REJECTED);
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: pendingClientId,
+          grant_type: "refresh_token",
+          refresh_token: tokenResponse.body.refresh_token,
+          client_secret: testClientSecret,
+        })
+        .expect(401);
+
+      expect(response.body.error).toBe("unauthorized_client");
+      expect(response.body.error_description).toBe("client_rejected");
+
+      await oAuthClientFixture.updateStatus(pendingClientId, OAuthClientStatus.PENDING);
+    });
+
+    afterAll(async () => {
+      await oAuthClientFixture.delete(pendingClient.clientId);
+      await oAuthClientFixture.delete(rejectedClient.clientId);
+      await membershipRepositoryFixture.delete(membership.id);
+      await teamRepositoryFixture.delete(team.id);
+      await userRepositoryFixture.delete(owner.id);
       await app.close();
     });
   });
