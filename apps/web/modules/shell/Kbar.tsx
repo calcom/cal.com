@@ -585,7 +585,7 @@ function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
         {state.text}
         {state.status === "streaming" && <span className="ml-0.5 animate-pulse">▋</span>}
       </p>
-      {state.href && state.status === "done" && (
+      {state.href && (state.status === "streaming" || state.status === "done") && (
         <button
           onClick={() => {
             query.toggle();
