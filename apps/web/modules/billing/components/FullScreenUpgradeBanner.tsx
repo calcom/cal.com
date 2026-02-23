@@ -95,7 +95,7 @@ function BannerImage({
         alt={name}
         width={image.width}
         height={image.height}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover object-top"
       />
       {youtubeId && (
         <button
@@ -125,6 +125,7 @@ export function FullScreenUpgradeBanner({
   youtubeId,
 }: FullScreenUpgradeBannerProps): JSX.Element {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [showFeatures, setShowFeatures] = useState(false);
   const deviceSpecificOffset = useResponsiveOffset(extraOffset);
   const { t } = useLocale();
   const ref = useFillRemainingHeight(deviceSpecificOffset);
@@ -142,8 +143,8 @@ export function FullScreenUpgradeBanner({
     <div ref={ref} className="flex w-full shrink-0 items-center justify-center rounded-xl bg-subtle p-8">
       <div className="flex w-full h-full md:h-auto max-w-3xl gap-2 overflow-hidden rounded-3xl bg-default p-5 md:py-8 md:pl-8 md:pr-0 shadow-sm">
         {/* Left Content */}
-        <div className="flex flex-1 flex-col justify-between">
-          <div>
+        <div className="flex flex-1 flex-col justify-between overflow-hidden">
+          <div className={`${showFeatures ? "overflow-y-auto" : ""} md:overflow-visible`}>
             <div>
               <Badge
                 variant="outline"
@@ -156,24 +157,53 @@ export function FullScreenUpgradeBanner({
 
             {/* Features List */}
             {features && (
-              <ul className="mt-4 space-y-2">
-                {features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-subtle">
-                    <span className="text-subtle">•</span>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="mt-4 space-y-2 hidden md:block">
+                  {features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-sm text-subtle">
+                      <span className="text-subtle">•</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <div className="md:hidden mt-4">
+                  {showFeatures ? (
+                    <>
+                      <ul className="space-y-2">
+                        {features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-sm text-subtle">
+                            <span className="text-subtle">•</span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        type="button"
+                        className="mt-2 text-sm text-emphasis font-medium cursor-pointer underline"
+                        onClick={() => setShowFeatures(false)}>
+                        {t("hide")}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm text-emphasis font-medium cursor-pointer underline"
+                      onClick={() => setShowFeatures(true)}>
+                      {t("show_more")}
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
-          {/* Image - mobile only */}
-          <div className="md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted relative">
+          {/* Image - mobile only, hidden when features are expanded */}
+          <div className={`${showFeatures ? "hidden" : ""} md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden relative`}>
             <BannerImage {...bannerImageProps} />
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 mt-4">
               <p className="text-sm font-medium text-subtle">{t("available_on")}</p>
               {target === "team" && <TeamBadge />}
               {(target === "team" || target === "organization") && <OrgBadge />}
