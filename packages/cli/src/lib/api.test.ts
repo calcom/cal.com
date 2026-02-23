@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./config", () => ({
+  getAuthToken: vi.fn().mockReturnValue("cal_test_key"),
   getApiKey: vi.fn().mockReturnValue("cal_test_key"),
   getApiUrl: vi.fn().mockReturnValue("https://api.cal.com"),
 }));
 
-const mockFetch = vi.fn();
+const mockFetch: ReturnType<typeof vi.fn> = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
 import { apiRequest } from "./api";

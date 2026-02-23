@@ -1,7 +1,13 @@
+import process from "node:process";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockHomedir = "/tmp/test-home";
-const mockFs = {
+const mockFs: {
+  existsSync: ReturnType<typeof vi.fn>;
+  mkdirSync: ReturnType<typeof vi.fn>;
+  readFileSync: ReturnType<typeof vi.fn>;
+  writeFileSync: ReturnType<typeof vi.fn>;
+} = {
   existsSync: vi.fn().mockReturnValue(false),
   mkdirSync: vi.fn(),
   readFileSync: vi.fn(),
@@ -33,10 +39,7 @@ describe("config", () => {
       mockFs.existsSync.mockReturnValue(false);
       const { readConfig } = await import("./config");
       readConfig();
-      expect(mockFs.mkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining(".calcom"),
-        { recursive: true }
-      );
+      expect(mockFs.mkdirSync).toHaveBeenCalledWith(expect.stringContaining(".calcom"), { recursive: true });
     });
 
     it("returns empty object if config file does not exist", async () => {
@@ -77,7 +80,7 @@ describe("config", () => {
       expect(mockFs.writeFileSync).toHaveBeenCalledWith(
         expect.stringContaining("config.json"),
         JSON.stringify({ apiKey: "cal_test456" }, null, 2),
-        "utf-8"
+        { encoding: "utf-8", mode: 0o600 }
       );
     });
   });
@@ -93,9 +96,7 @@ describe("config", () => {
 
     it("returns API key from config file", async () => {
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readFileSync.mockReturnValue(
-        JSON.stringify({ apiKey: "cal_config_key" })
-      );
+      mockFs.readFileSync.mockReturnValue(JSON.stringify({ apiKey: "cal_config_key" }));
       const { getApiKey } = await import("./config");
       expect(getApiKey()).toBe("cal_config_key");
     });
@@ -103,9 +104,7 @@ describe("config", () => {
     it("prefers env var over config file", async () => {
       process.env.CAL_API_KEY = "cal_env_key";
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readFileSync.mockReturnValue(
-        JSON.stringify({ apiKey: "cal_config_key" })
-      );
+      mockFs.readFileSync.mockReturnValue(JSON.stringify({ apiKey: "cal_config_key" }));
       const { getApiKey } = await import("./config");
       expect(getApiKey()).toBe("cal_env_key");
     });
@@ -142,9 +141,7 @@ describe("config", () => {
 
     it("returns API URL from config file", async () => {
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readFileSync.mockReturnValue(
-        JSON.stringify({ apiUrl: "https://config.api.com" })
-      );
+      mockFs.readFileSync.mockReturnValue(JSON.stringify({ apiUrl: "https://config.api.com" }));
       const { getApiUrl } = await import("./config");
       expect(getApiUrl()).toBe("https://config.api.com");
     });

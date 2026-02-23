@@ -1,31 +1,33 @@
 import { Command } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockApiRequest: ReturnType<typeof vi.fn> = vi.fn();
 vi.mock("../lib/api", () => ({
-  apiRequest: vi.fn(),
+  apiRequest: mockApiRequest,
 }));
+
+const mockReadConfig: ReturnType<typeof vi.fn> = vi.fn().mockReturnValue({});
+const mockWriteConfig: ReturnType<typeof vi.fn> = vi.fn();
+const mockGetAuthToken: ReturnType<typeof vi.fn> = vi.fn().mockReturnValue("cal_test_key");
+const mockGetApiUrl: ReturnType<typeof vi.fn> = vi.fn().mockReturnValue("https://api.cal.com");
 
 vi.mock("../lib/config", () => ({
-  readConfig: vi.fn().mockReturnValue({}),
-  writeConfig: vi.fn(),
-  getApiKey: vi.fn().mockReturnValue("cal_test_key"),
-  getApiUrl: vi.fn().mockReturnValue("https://api.cal.com"),
+  readConfig: mockReadConfig,
+  writeConfig: mockWriteConfig,
+  getAuthToken: mockGetAuthToken,
+  getApiKey: mockGetAuthToken,
+  getApiUrl: mockGetApiUrl,
 }));
-
-import { apiRequest } from "../lib/api";
-import { writeConfig } from "../lib/config";
-
-const mockApiRequest = vi.mocked(apiRequest);
-const mockWriteConfig = vi.mocked(writeConfig);
 
 describe("commands", () => {
   let logSpy: ReturnType<typeof vi.spyOn>;
-  let errorSpy: ReturnType<typeof vi.spyOn>;
+  let _errorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    _errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mockApiRequest.mockReset();
+    mockWriteConfig.mockReset();
   });
 
   afterEach(() => {
@@ -213,9 +215,7 @@ describe("commands", () => {
       registerLoginCommand(program);
       await program.parseAsync(["login", "--api-key", "cal_test123"], { from: "user" });
 
-      expect(mockWriteConfig).toHaveBeenCalledWith(
-        expect.objectContaining({ apiKey: "cal_test123" })
-      );
+      expect(mockWriteConfig).toHaveBeenCalledWith(expect.objectContaining({ apiKey: "cal_test123" }));
     });
 
     it("saves API URL via --api-url option", async () => {
@@ -412,9 +412,12 @@ describe("commands", () => {
       registerEventTypesCommand(program);
       await program.parseAsync(["event-types", "list"], { from: "user" });
 
-      expect(mockApiRequest).toHaveBeenCalledWith("/v2/event-types", expect.objectContaining({
-        headers: { "cal-api-version": "2024-06-14" },
-      }));
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types",
+        expect.objectContaining({
+          headers: { "cal-api-version": "2024-06-14" },
+        })
+      );
     });
 
     it("deletes an event type", async () => {
@@ -426,10 +429,13 @@ describe("commands", () => {
       registerEventTypesCommand(program);
       await program.parseAsync(["event-types", "delete", "42"], { from: "user" });
 
-      expect(mockApiRequest).toHaveBeenCalledWith("/v2/event-types/42", expect.objectContaining({
-        method: "DELETE",
-        headers: { "cal-api-version": "2024-06-14" },
-      }));
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types/42",
+        expect.objectContaining({
+          method: "DELETE",
+          headers: { "cal-api-version": "2024-06-14" },
+        })
+      );
     });
   });
 
@@ -463,9 +469,12 @@ describe("commands", () => {
       registerSchedulesCommand(program);
       await program.parseAsync(["schedules", "list"], { from: "user" });
 
-      expect(mockApiRequest).toHaveBeenCalledWith("/v2/schedules", expect.objectContaining({
-        headers: { "cal-api-version": "2024-06-11" },
-      }));
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/schedules",
+        expect.objectContaining({
+          headers: { "cal-api-version": "2024-06-11" },
+        })
+      );
     });
   });
 
@@ -516,9 +525,7 @@ describe("commands", () => {
           {
             credentialId: 1,
             integration: { type: "google_calendar", title: "Google Calendar" },
-            calendars: [
-              { externalId: "cal1", name: "Work", isSelected: true, readOnly: false },
-            ],
+            calendars: [{ externalId: "cal1", name: "Work", isSelected: true, readOnly: false }],
           },
         ],
       });

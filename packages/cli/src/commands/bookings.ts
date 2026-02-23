@@ -59,10 +59,7 @@ function formatBookingDetail(booking: Booking): void {
     console.log(`  Meeting:    ${booking.meetingUrl}`);
   }
   if (booking.attendees?.length) {
-    console.log(`  Attendees:`);
-    for (const a of booking.attendees) {
-      console.log(`    - ${a.name} <${a.email}> (${a.timeZone})`);
-    }
+    console.log(`  Attendees:  ${booking.attendees.length} attendee(s)`);
   }
   console.log();
 }

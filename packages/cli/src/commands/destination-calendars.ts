@@ -38,7 +38,6 @@ export function registerDestinationCalendarsCommand(program: Command): void {
           console.log(chalk.bold(`\nDestination Calendar #${cal.id}`));
           console.log(`  Integration:  ${cal.integration}`);
           console.log(`  External ID:  ${cal.externalId}`);
-          if (cal.primaryEmail) console.log(`  Email:        ${cal.primaryEmail}`);
           if (cal.credentialId) console.log(`  Credential:   ${cal.credentialId}`);
         }
         console.log();

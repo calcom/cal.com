@@ -1,4 +1,4 @@
-import { getApiKey, getApiUrl } from "./config";
+import { getApiUrl, getAuthToken } from "./config";
 
 interface ApiRequestOptions {
   method?: string;
@@ -24,7 +24,7 @@ export async function apiRequest<T = unknown>(
   options: ApiRequestOptions = {}
 ): Promise<ApiResponse<T>> {
   const apiUrl = getApiUrl();
-  const apiKey = getApiKey();
+  const apiKey = getAuthToken();
   const { method = "GET", body, query, headers = {} } = options;
 
   let url = `${apiUrl}${path}`;

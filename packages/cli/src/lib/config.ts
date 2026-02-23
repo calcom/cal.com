@@ -9,6 +9,13 @@ const CONFIG_FILE: string = path.join(CONFIG_DIR, "config.json");
 interface CalConfig {
   apiKey?: string;
   apiUrl?: string;
+  oauth?: {
+    clientId: string;
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpiresAt: string;
+    refreshTokenExpiresAt: string;
+  };
 }
 
 function ensureConfigDir(): void {
@@ -32,19 +39,33 @@ export function readConfig(): CalConfig {
 
 export function writeConfig(config: CalConfig): void {
   ensureConfigDir();
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), "utf-8");
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), { encoding: "utf-8", mode: 0o600 });
+}
+
+export function getAuthToken(): string {
+  const config = readConfig();
+
+  const envKey = process.env.CAL_API_KEY;
+  if (envKey) {
+    return envKey;
+  }
+
+  if (config.oauth?.accessToken) {
+    return config.oauth.accessToken;
+  }
+
+  if (config.apiKey) {
+    return config.apiKey;
+  }
+
+  console.error(
+    'No credentials found. Run "cal login" to authenticate with an API key or "cal login --oauth" for OAuth.'
+  );
+  process.exit(1);
 }
 
 export function getApiKey(): string {
-  const config = readConfig();
-  const key = process.env.CAL_API_KEY || config.apiKey;
-  if (!key) {
-    console.error(
-      'No API key found. Run "cal login" to set your API key or set the CAL_API_KEY environment variable.'
-    );
-    process.exit(1);
-  }
-  return key;
+  return getAuthToken();
 }
 
 export function getApiUrl(): string {

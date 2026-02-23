@@ -70,8 +70,11 @@ export function registerConferencingCommand(program: Command): void {
       const body: Record<string, unknown> = {};
       if (options.credentialId) body.id = Number(options.credentialId);
 
-      const hasBody = Object.keys(body).length > 0;
-      const requestBody = hasBody ? body : undefined;
+      let requestBody: Record<string, unknown> | undefined;
+      if (Object.keys(body).length > 0) {
+        requestBody = body;
+      }
+
       await apiRequest<void>(`/v2/conferencing/${app}/disconnect`, {
         method: "DELETE",
         body: requestBody,
