@@ -285,7 +285,7 @@ export class ManagedEventManualReassignmentService {
       throw new Error("Original booking not found");
     }
 
-    const { getTranslation } = await import("@calcom/lib/server/i18n");
+    const { getTranslation } = await import("@calcom/i18n/server");
     const newUserT = await getTranslation(newUser.locale ?? "en", "common");
     const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
 
@@ -351,7 +351,7 @@ export class ManagedEventManualReassignmentService {
     originalBookingFull: NonNullable<
       Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
     >;
-    originalUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    originalUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     apps: ReturnType<typeof eventTypeAppMetadataOptionalSchema.parse>;
     logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
@@ -405,7 +405,7 @@ export class ManagedEventManualReassignmentService {
     logger,
   }: {
     newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    newUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
     newBooking: ManagedEventReassignmentCreatedBooking;
     originalBookingFull: NonNullable<
@@ -656,9 +656,9 @@ export class ManagedEventManualReassignmentService {
     targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
     parentEventType: Awaited<ReturnType<typeof findTargetChildEventType>>["parentEventType"];
     newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    newUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     originalUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    originalUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    originalUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     bookingLocation: string | null;
     videoCallData: CalendarEvent["videoCallData"];
     additionalInformation: AdditionalInformation;
