@@ -93,13 +93,16 @@ Adapters normalize APIs (e.g., `sleep`, `run`) so business logic works with both
 ```mermaid
 flowchart TD
 
-    A["apps/web (Next.js)"] -->|dispatchJob| B["job-dispatcher"]
+    A["apps/web (Next.js)"] -->|dispatchJob| B["job-dispatcher
+    [@calid/job-dispatcher]"]
 
     B --> C{"BullMQ available?"}
 
     %% PATH 1 — BULLMQ
-    C -->|YES| D["Queue (BullMQ)"]
-    D --> E["apps/worker (BullMQ worker)"]
+    C -->|YES| D["Queue (BullMQ)
+    [@calid/queue]"]
+    D --> E["apps/worker (BullMQ worker)
+    [@calid/worker]"]
     E --> F["jobName.processor.ts (thin layer that uses bullmq adapter)"]
     F --> G["job-engine (shared business logic)"]
     G --> H["External APIs / DB"]
@@ -107,7 +110,8 @@ flowchart TD
     %% PATH 2 — INNGEST
     C -->|NO - fallback| I["Inngest Client"]
     I --> J["Next.js Inngest endpoint using inngest adapter"]
-    J --> G["job-engine (same logic)"]
+    J --> G["job-engine (same logic)
+    [@calid/job-engine]"]
 
 ```
 
