@@ -55,9 +55,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.redirect("/guest-verification/error?reason=booking_cancelled");
     }
 
+    const organizerId = pendingGuest.booking.userId;
+    if (organizerId === null) {
+      return res.redirect("/guest-verification/error?reason=booking_cancelled");
+    }
+
     // Get organizer details
     const organizer = await prisma.user.findUniqueOrThrow({
-      where: { id: pendingGuest.booking.userId || 0 },
+      where: { id: organizerId },
       select: {
         id: true,
         name: true,
@@ -69,37 +74,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Add guest as attendee
-    const updatedBooking = await prisma.booking.update({
-      where: { id: pendingGuest.bookingId },
-      data: {
-        attendees: {
-          create: {
-            email: pendingGuest.email,
-            name: "",
-            timeZone: organizer.timeZone,
-            locale: organizer.locale,
+    // Atomically claim the pending guest and create the attendee so concurrent requests cannot create duplicates
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+      const updated = await tx.pendingGuest.updateMany({
+        where: { id: pendingGuest.id, verified: false },
+        data: { verified: true },
+      });
+      if (updated.count === 0) {
+        return null;
+      }
+      return tx.booking.update({
+        where: { id: pendingGuest.bookingId },
+        data: {
+          attendees: {
+            create: {
+              email: pendingGuest.email,
+              name: "",
+              timeZone: organizer.timeZone,
+              locale: organizer.locale,
+            },
           },
         },
-      },
-      include: {
-        attendees: true,
-        eventType: true,
-        references: true,
-        destinationCalendar: true,
-        user: {
-          include: {
-            destinationCalendar: true,
+        include: {
+          attendees: true,
+          eventType: true,
+          references: true,
+          destinationCalendar: true,
+          user: {
+            include: {
+              destinationCalendar: true,
+            },
           },
         },
-      },
+      });
     });
 
-    // Mark as verified
-    await prisma.pendingGuest.update({
-      where: { id: pendingGuest.id },
-      data: { verified: true },
-    });
+    if (updatedBooking === null) {
+      return res.redirect("/guest-verification/error?reason=already_verified");
+    }
 
     // Prepare calendar event
     const attendeesListPromises = updatedBooking.attendees.map(async (attendee) => ({
