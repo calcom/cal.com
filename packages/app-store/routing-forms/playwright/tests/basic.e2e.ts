@@ -272,7 +272,7 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstfield=456&test-field-number=456&test-field-single-choice-selection=456&test-field-multiple-choice-selection=456&test-field-multiple-choice-selection=789&test-field-phone=456&test-field-email=456@example.com";
+        "firstfield=456&test-field-number=456&test-field-select=456&test-field-multiselect=456&test-field-multiselect=789&test-field-phone=456&test-field-email=456@example.com";
 
       await gotoRoutingLink({ page, queryString });
 
@@ -303,8 +303,8 @@ test.describe("Routing Forms", () => {
       // All other params come from prefill URL
       expect(url.searchParams.get("test-field-number")).toBe("456");
       expect(url.searchParams.get("test-field-long-text")).toBe("manual-fill");
-      expect(url.searchParams.get("test-field-multiple-choice-selection")).toBe("456");
-      expect(url.searchParams.getAll("test-field-multiple-choice-selection")).toMatchObject(["456", "789"]);
+      expect(url.searchParams.get("test-field-multiselect")).toBe("456");
+      expect(url.searchParams.getAll("test-field-multiselect")).toMatchObject(["456", "789"]);
       expect(url.searchParams.get("test-field-phone")).toBe("456");
       expect(url.searchParams.get("test-field-email")).toBe("456@example.com");
     });
@@ -1062,9 +1062,24 @@ async function addAllTypesOfFieldsAndSaveForm(
   await page.click('[data-testid="add-field"]');
   await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
 
+  const expectedFieldTypes = [
+    "Address",
+    "Checkbox",
+    "Checkbox Group",
+    "Email",
+    "Long Text",
+    "MultiSelect",
+    "Multiple Emails",
+    "Number",
+    "Phone",
+    "Radio Group",
+    "Select",
+    "Short Text",
+    "URL",
+  ];
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: FIELD_TYPE_SELECTOR, nth: 0 },
-    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
+    expectedFieldTypes,
     page
   );
 
@@ -1085,7 +1100,12 @@ async function addAllTypesOfFieldsAndSaveForm(
     await dialog.locator('[name="label"]').fill(label);
     await dialog.locator('[name="name"]').fill(identifier);
 
-    if (fieldTypeLabel === "Multiple choice selection" || fieldTypeLabel === "Single-choice selection") {
+    const needsOptions =
+      fieldTypeLabel === "MultiSelect" ||
+      fieldTypeLabel === "Select" ||
+      fieldTypeLabel === "Radio Group" ||
+      fieldTypeLabel === "Checkbox Group";
+    if (needsOptions) {
       const optionsContainer = dialog.locator('[data-testid="options-container"]');
       await optionsContainer.locator('[data-testid="add-option"]').click();
       await optionsContainer.locator('[data-testid="add-option"]').click();

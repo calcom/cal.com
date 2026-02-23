@@ -48,7 +48,21 @@ export async function addOneFieldAndDescriptionAndSaveForm(
 
   const { optionsInUi: types } = await verifySelectOptions(
     { selector: FIELD_TYPE_SELECTOR, nth: 0 },
-    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
+    [
+      "Address",
+      "Checkbox",
+      "Checkbox Group",
+      "Email",
+      "Long Text",
+      "MultiSelect",
+      "Multiple Emails",
+      "Number",
+      "Phone",
+      "Radio Group",
+      "Select",
+      "Short Text",
+      "URL",
+    ],
     page
   );
 
