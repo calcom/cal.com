@@ -238,5 +238,34 @@ describe("formBuilderAdapters", () => {
       });
       expect(result[0].type).toBe("select");
     });
+
+    it("deduplicates by name so duplicate-name rows collapse to one (avoids duplicate question in UI)", () => {
+      const map = new Map([
+        ["question-1", "id-1"],
+        ["question-2", "id-2"],
+      ]);
+      const builderFields: FormBuilderField[] = [
+        { name: "question-1", label: "Question 1", type: "text" },
+        { name: "question-2", label: "Question 2", type: "text" },
+        { name: "question-2", label: "Question 2 duplicate", type: "text" },
+      ];
+      const result = transformToRouting(builderFields, map);
+      expect(result).toHaveLength(2);
+      expect(result[0].id).toBe("id-1");
+      expect(result[1].id).toBe("id-2");
+      expect(result[1].label).toBe("Question 2");
+    });
+
+    it("same name in two positions yields single field (first occurrence kept)", () => {
+      const map = new Map([["same-name", "id-only"]]);
+      const builderFields: FormBuilderField[] = [
+        { name: "same-name", label: "First", type: "text" },
+        { name: "same-name", label: "Second", type: "text" },
+      ];
+      const result = transformToRouting(builderFields, map);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe("id-only");
+      expect(result[0].label).toBe("First");
+    });
   });
 });

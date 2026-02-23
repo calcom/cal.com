@@ -39,6 +39,9 @@ const FormEdit = ({
   const fieldIdMapRef = useRef(new Map<string, string>());
   const originalTypeRegistryRef = useRef(new Map<string, string>());
   const lastParentFieldsRef = useRef<RoutingField[]>([]);
+  const lastFormFieldIdsRef = useRef<string[]>(
+    (form.fields ?? []).map((f) => f.id ?? "")
+  );
 
   const builderForm = useForm<FormBuilderFormValues>({
     defaultValues: {
@@ -47,56 +50,99 @@ const FormEdit = ({
     mode: "onChange",
   });
 
-  // Sync from parent to local (initial load, reset, or parent cleared)
+  const syncRefsFromParent = (parentFields: RoutingField[]) => {
+    lastParentFieldsRef.current = parentFields;
+    fieldIdMapRef.current = new Map(
+      parentFields.map((rf: RoutingField) => {
+        const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
+        return [name, rf.id ?? ""];
+      })
+    );
+    originalTypeRegistryRef.current = new Map(
+      parentFields.map((rf: RoutingField) => {
+        const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
+        return [name, rf.type ?? "text"];
+      })
+    );
+  };
+
+  const parentMatchesLast = (parentFields: RoutingField[]) => {
+    const last = lastParentFieldsRef.current;
+    return (
+      last.length === parentFields.length &&
+      parentFields.every((p, i) => p.id === last[i]?.id)
+    );
+  };
+
+  const dedupeParentFieldsById = (fields: RoutingField[]): RoutingField[] => {
+    const seen = new Set<string>();
+    return fields.filter((f) => {
+      const id = f.id ?? "";
+      if (id && seen.has(id)) return false;
+      if (id) seen.add(id);
+      return true;
+    });
+  };
+
+  const formFieldIdsChanged = () => {
+    const current = (form.fields ?? []).map((f) => f.id ?? "");
+    const last = lastFormFieldIdsRef.current;
+    return (
+      current.length !== last.length ||
+      current.some((id, i) => id !== last[i])
+    );
+  };
+
+  // Sync from parent to local only when parent is source of truth (initial load, server update, or empty).
+  // Do not reset when parent matches what we last wrote (edit/reorder) to avoid overwriting user changes.
   useEffect(() => {
-    const parentFields = hookForm.getValues("fields") ?? [];
+    const rawParent = (hookForm.getValues("fields") ?? []) as RoutingField[];
+    const parentFields = dedupeParentFieldsById(rawParent);
+    if (parentFields.length < rawParent.length) {
+      syncRefsFromParent(parentFields);
+      hookForm.setValue("fields", parentFields, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+      builderForm.reset({
+        fields: transformToBuilder(parentFields, hasResponses),
+      });
+      return;
+    }
     const localFields = builderForm.getValues("fields") ?? [];
+    const last = lastParentFieldsRef.current;
+    const formFieldsChanged = formFieldIdsChanged();
+    const matchesLast = parentMatchesLast(parentFields);
 
     if (parentFields.length === 0) {
       builderForm.reset({ fields: [] });
       fieldIdMapRef.current.clear();
       originalTypeRegistryRef.current.clear();
       lastParentFieldsRef.current = [];
+      lastFormFieldIdsRef.current = (form.fields ?? []).map((f) => f.id ?? "");
+      return;
+    }
+
+    if (formFieldsChanged) {
+      lastFormFieldIdsRef.current = (form.fields ?? []).map((f) => f.id ?? "");
+      const nextBuilderFields = transformToBuilder(parentFields, hasResponses);
+      builderForm.reset({ fields: nextBuilderFields });
+      syncRefsFromParent(parentFields);
+      return;
+    }
+
+    if (matchesLast) {
       return;
     }
 
     if (localFields.length === 0 || parentFields.length !== localFields.length) {
       const nextBuilderFields = transformToBuilder(parentFields, hasResponses);
       builderForm.reset({ fields: nextBuilderFields });
-      lastParentFieldsRef.current = parentFields as RoutingField[];
-      fieldIdMapRef.current = new Map(
-        parentFields.map((rf: RoutingField) => {
-          const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
-          return [name, rf.id ?? ""];
-        })
-      );
-      originalTypeRegistryRef.current = new Map(
-        parentFields.map((rf: RoutingField) => {
-          const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
-          return [name, rf.type ?? "text"];
-        })
-      );
-      return;
+      syncRefsFromParent(parentFields);
+    } else {
+      lastParentFieldsRef.current = parentFields;
     }
-
-    if (parentFields[0]?.id !== localFields[0]?.id) {
-      const nextBuilderFields = transformToBuilder(parentFields, hasResponses);
-      builderForm.reset({ fields: nextBuilderFields });
-      lastParentFieldsRef.current = parentFields as RoutingField[];
-      fieldIdMapRef.current = new Map(
-        parentFields.map((rf: RoutingField) => {
-          const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
-          return [name, rf.id ?? ""];
-        })
-      );
-      originalTypeRegistryRef.current = new Map(
-        parentFields.map((rf: RoutingField) => {
-          const name = rf.identifier || getFieldIdentifier(rf.label ?? "").toLowerCase();
-          return [name, rf.type ?? "text"];
-        })
-      );
-    }
-  }, [hookForm, builderForm, form, hasResponses]);
+  }, [hookForm, builderForm, form, form.fields, hasResponses]);
 
   // Sync from local to parent (on FormBuilder change)
   useEffect(() => {
@@ -122,8 +168,8 @@ const FormEdit = ({
     <div className="p-4 w-full">
       <FormProvider {...builderForm}>
         <FormBuilder
-          title={t("questions")}
-          description={t("add_questions_to_routing_form")}
+          title={""}
+          description={""}
           addFieldLabel={t("add_a_booking_question")}
           formProp="fields"
           dataStore={{ options: {} }}

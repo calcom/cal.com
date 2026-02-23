@@ -124,7 +124,17 @@ export function transformToRouting(
       f != null && typeof f === "object" && (f.name != null || f.label != null)
   );
 
-  return definedFields.map((f) => {
+  const idsUsedInThisRun = new Set<string>();
+  const namesSeen = new Set<string>();
+
+  const dedupedByName = definedFields.filter((f) => {
+    const name = (f.name ?? f.label ?? "").trim().toLowerCase();
+    if (name && namesSeen.has(name)) return false;
+    if (name) namesSeen.add(name);
+    return true;
+  });
+
+  return dedupedByName.map((f) => {
     const name = f.name ?? f.label ?? "";
     let fieldId = fieldIdMap.get(name) ?? f.id;
     if (!fieldId) {
@@ -133,6 +143,10 @@ export function transformToRouting(
     } else if (!fieldIdMap.has(name)) {
       fieldIdMap.set(name, fieldId);
     }
+    if (idsUsedInThisRun.has(fieldId)) {
+      fieldId = uuidv4();
+    }
+    idsUsedInThisRun.add(fieldId);
 
     let resolvedType = f.type ?? "text";
     if (hasResponses && originalTypeRegistry?.has(name)) {
