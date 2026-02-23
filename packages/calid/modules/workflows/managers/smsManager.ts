@@ -22,7 +22,7 @@ const moduleLogger = logger.getSubLogger({ prefix: ["[smsReminderManager]"] });
 
 /**
  * Mapping of workflow templates to their default message templates
- * Uses numbered placeholders: {{1}}, {{2}}, {{3}}, {{4}}, {{5}}
+ * Uses numbered placeholders: {{1}}, {{2}}, {{3}}, {{4}}, {{5}}, {{6}}
  * {{1}} - Recipient's Name
  * {{2}} - Meeting Title
  * {{3}} - Sender's Name
