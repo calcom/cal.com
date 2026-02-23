@@ -123,6 +123,50 @@ describe("config", () => {
     });
   });
 
+  describe("getAuthToken with OAuth expiry", () => {
+    it("returns OAuth access token when not expired", async () => {
+      const futureDate = new Date(Date.now() + 3600000).toISOString();
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          oauth: {
+            clientId: "test-client",
+            accessToken: "oauth_token_valid",
+            refreshToken: "refresh_token",
+            accessTokenExpiresAt: futureDate,
+            refreshTokenExpiresAt: futureDate,
+          },
+        })
+      );
+      const { getAuthToken } = await import("./config");
+      expect(getAuthToken()).toBe("oauth_token_valid");
+    });
+
+    it("exits when OAuth access token is expired", async () => {
+      const pastDate = new Date(Date.now() - 3600000).toISOString();
+      mockFs.existsSync.mockReturnValue(true);
+      mockFs.readFileSync.mockReturnValue(
+        JSON.stringify({
+          oauth: {
+            clientId: "test-client",
+            accessToken: "oauth_token_expired",
+            refreshToken: "refresh_token",
+            accessTokenExpiresAt: pastDate,
+            refreshTokenExpiresAt: pastDate,
+          },
+        })
+      );
+      const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+        throw new Error("process.exit");
+      });
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { getAuthToken } = await import("./config");
+      expect(() => getAuthToken()).toThrow("process.exit");
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("expired"));
+    });
+  });
+
   describe("getApiUrl", () => {
     it("returns default API URL", async () => {
       mockFs.existsSync.mockReturnValue(true);

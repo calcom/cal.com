@@ -31,6 +31,11 @@ function buildAuthorizeUrl(clientId: string, redirectUri: string): string {
 
 function startCallbackServer(port: number): Promise<string> {
   return new Promise((resolve, reject) => {
+    const timeoutHandle = setTimeout(() => {
+      server.close();
+      reject(new Error("OAuth authorization timed out after 5 minutes."));
+    }, 300000);
+
     const server = http.createServer((req, res) => {
       if (!req.url) {
         res.writeHead(400);
@@ -52,22 +57,19 @@ function startCallbackServer(port: number): Promise<string> {
         "<html><body><h2>Authorization successful!</h2><p>You can close this window and return to the terminal.</p></body></html>"
       );
 
+      clearTimeout(timeoutHandle);
       server.close();
       resolve(code);
     });
 
     server.on("error", (err) => {
+      clearTimeout(timeoutHandle);
       reject(new Error(`Failed to start callback server: ${err.message}`));
     });
 
     server.listen(port, "127.0.0.1", () => {
       /* server is listening */
     });
-
-    setTimeout(() => {
-      server.close();
-      reject(new Error("OAuth authorization timed out after 5 minutes."));
-    }, 300000);
   });
 }
 
@@ -166,7 +168,7 @@ function openBrowser(url: string): void {
   if (platform === "darwin") {
     cmd = `open "${url}"`;
   } else if (platform === "win32") {
-    cmd = `start "${url}"`;
+    cmd = `start "" "${url}"`;
   } else {
     cmd = `xdg-open "${url}"`;
   }

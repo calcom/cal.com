@@ -51,6 +51,13 @@ export function getAuthToken(): string {
   }
 
   if (config.oauth?.accessToken) {
+    if (config.oauth.accessTokenExpiresAt) {
+      const expiresAt = new Date(config.oauth.accessTokenExpiresAt).valueOf();
+      if (Date.now() >= expiresAt) {
+        console.warn("OAuth access token has expired. Please run 'cal login --oauth' to re-authenticate.");
+        process.exit(1);
+      }
+    }
     return config.oauth.accessToken;
   }
 
