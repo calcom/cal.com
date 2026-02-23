@@ -226,10 +226,6 @@ const _handleResponse = async ({
             crmRecordId = contactOwnerQuery?.recordId ?? null;
           })(),
           (async () => {
-            // Determine when to use fallbackAttributesQueryValue:
-            // 1. If fallbackAction is EventTypeRedirectUrl → use it (attribute routing applies to event redirect)
-            // 2. If fallbackAction is not set → use it (backwards compatibility)
-            // 3. If fallbackAction is CustomPageMessage or ExternalRedirectUrl → don't use it (attribute routing doesn't apply)
             const hasFallbackAction = "fallbackAction" in chosenRoute && chosenRoute.fallbackAction;
             const shouldUseFallbackAttributesQuery =
               !hasFallbackAction || chosenRoute.fallbackAction?.type === RouteActionType.EventTypeRedirectUrl;
@@ -278,6 +274,38 @@ const _handleResponse = async ({
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
+    const getFallbackAction = () => {
+      if (!chosenRoute || !("fallbackAction" in chosenRoute)) {
+        return null;
+      }
+
+      const hasCrmContactOwner = crmContactOwnerEmail !== null;
+      if (hasCrmContactOwner) {
+        return null;
+      }
+
+      if (checkedFallback) {
+        return chosenRoute.fallbackAction;
+      }
+
+      const attributesQueryValue =
+        "attributesQueryValue" in chosenRoute ? chosenRoute.attributesQueryValue : null;
+      const hasAttributeRoutingConfigured =
+        attributesQueryValue &&
+        typeof attributesQueryValue === "object" &&
+        "children1" in attributesQueryValue &&
+        attributesQueryValue.children1 &&
+        Object.keys(attributesQueryValue.children1 as Record<string, unknown>).length > 0;
+
+      if (hasAttributeRoutingConfigured && teamMemberIdsMatchingAttributeLogic === null) {
+        return chosenRoute.fallbackAction;
+      }
+
+      return null;
+    };
+
+    const fallbackAction = getFallbackAction();
+
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
       const formResponseRepo = new RoutingFormResponseRepository(prisma);
@@ -286,6 +314,7 @@ const _handleResponse = async ({
           formId: form.id,
           response,
           chosenRouteId,
+          fallbackAction: fallbackAction as Prisma.InputJsonValue | null,
         });
         dbFormResponse = null;
       } else {
@@ -300,6 +329,7 @@ const _handleResponse = async ({
           form: serializableFormWithFields,
           formResponseInDb: dbFormResponse,
           chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+          fallbackAction,
         });
       }
     } else {
@@ -322,36 +352,6 @@ const _handleResponse = async ({
         };
       }
     }
-    const getFallbackAction = () => {
-      if (!chosenRoute || !("fallbackAction" in chosenRoute)) {
-        return null;
-      }
-
-      const hasCrmContactOwner = crmContactOwnerEmail !== null;
-      if (hasCrmContactOwner) {
-        return null;
-      }
-
-      if (checkedFallback) {
-        return chosenRoute.fallbackAction;
-      }
-
-      // Handle case where attribute routing was configured but couldn't run (e.g., missing orgId)
-      const attributesQueryValue =
-        "attributesQueryValue" in chosenRoute ? chosenRoute.attributesQueryValue : null;
-      const hasAttributeRoutingConfigured =
-        attributesQueryValue &&
-        typeof attributesQueryValue === "object" &&
-        "children1" in attributesQueryValue &&
-        attributesQueryValue.children1 &&
-        Object.keys(attributesQueryValue.children1 as Record<string, unknown>).length > 0;
-
-      if (hasAttributeRoutingConfigured && teamMemberIdsMatchingAttributeLogic === null) {
-        return chosenRoute.fallbackAction;
-      }
-
-      return null;
-    };
 
     return {
       isPreview: !!isPreview,
@@ -370,7 +370,7 @@ const _handleResponse = async ({
         : null,
       checkedFallback,
       timeTaken,
-      fallbackAction: getFallbackAction(),
+      fallbackAction,
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
