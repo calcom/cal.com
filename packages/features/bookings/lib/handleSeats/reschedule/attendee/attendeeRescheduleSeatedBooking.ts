@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 

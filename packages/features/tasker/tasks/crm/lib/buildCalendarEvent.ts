@@ -2,7 +2,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

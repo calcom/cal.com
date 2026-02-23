@@ -154,9 +154,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
-          name: "admin_api",
-          href: "/settings/organizations/admin-api",
-          trackingMetadata: { section: "developer", page: "admin_api" },
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
+          isExternalLink: true,
+          trackingMetadata: { section: "developer", page: "api_docs" },
         },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -206,10 +207,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "organization", page: "directory_sync" },
         },
         {
-          name: "admin_api",
-          href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
           isExternalLink: true,
-          trackingMetadata: { section: "organization", page: "admin_api" },
+          trackingMetadata: { section: "organization", page: "api_docs" },
         },
         ...(HAS_ORG_OPT_IN_FEATURES
           ? [
@@ -450,7 +451,7 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
+          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "api_docs"
         );
         return { ...tab, children: filtered };
       }

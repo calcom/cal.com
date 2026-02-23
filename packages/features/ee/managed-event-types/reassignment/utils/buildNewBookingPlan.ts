@@ -16,7 +16,7 @@ interface BuildNewBookingPlanParams {
   >;
   targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
   newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-  newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+  newUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
   reassignedById: number;
 }
 

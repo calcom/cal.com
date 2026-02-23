@@ -57,6 +57,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
   cancelNoShowTasksForBooking,
   deleteWebhookScheduledTriggers,
@@ -77,7 +78,7 @@ import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -456,6 +457,7 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   featuresRepository: FeaturesRepository;
   bookingEventHandler: BookingEventHandlerService;
+  webhookProducer: IWebhookProducerService;
 }
 
 async function validateRescheduleRestrictions({
@@ -2670,18 +2672,6 @@ async function handler(
       isDryRun,
       traceContext,
     });
-  } else {
-    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
-    subscriberOptions.triggerEvent = eventTrigger;
-    webhookData.status = "PENDING";
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
@@ -2705,6 +2695,27 @@ async function handler(
     }
   } catch (error) {
     tracingLogger.error("Error while creating booking references", JSON.stringify({ error }));
+  }
+
+  // Queue BOOKING_REQUESTED webhook after booking update so consumer fetches booking with location, metadata, references
+  if (booking && booking.status === BookingStatus.PENDING && !isDryRun) {
+    try {
+      await deps.webhookProducer.queueBookingRequestedWebhook({
+        bookingUid: booking.uid,
+        userId: subscriberOptions.userId ?? undefined,
+        eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+        teamId: Array.isArray(subscriberOptions.teamId)
+          ? subscriberOptions.teamId[0]
+          : (subscriberOptions.teamId ?? undefined),
+        orgId: subscriberOptions.orgId ?? undefined,
+        oAuthClientId: platformClientId ?? undefined,
+      });
+    } catch (webhookError) {
+      tracingLogger.error(
+        `Error queueing BOOKING_REQUESTED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+        safeStringify(webhookError)
+      );
+    }
   }
 
   const evtWithMetadata = {
