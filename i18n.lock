@@ -6481,6 +6481,10 @@ checksums:
     navigate: d656021ba5f485fa1a82f8aac6ecc5de
     open: 9a8c3b16091ea6cef3f771fc6715ab67
     close: 2c2e22f8424a1031de89063bd0022e16
+    close_shortcut: 6524d86469c0e7091cce30b6ec95ead9
+    previous_shortcut: a9c032804129760fa31afbe7ace9b706
+    next_shortcut: 1a1f73adefbe1eb44fec540d2f7cad3a
+    join_shortcut: 6a2166bef50a1515a6864edcf5d0c5c8
     upgrade: 63c3b52882e0d779859307d672c178c2
     buy_us_number_button: d1f6b705acd204ae99dc954757a93536
     upgrade_to_access_recordings_title: a420f9c3646522460bd6536b5d884394
@@ -7213,7 +7217,7 @@ checksums:
     this_is_what_your_users_would_see: 0b6b3e6d5200414b33856a3a9fe1bfba
     identifies_name_field: a8d5da9cc1f1fd21b3b493604a059a52
     identifier_url_parameter: 9e8ed8445c2507ba0f9deac1260dafce
-    identifier_url_parameter_hint: e6eb33c569c601104d350d114d8dab48
+    identifier_url_parameter_hint: b2adb53249a51a0ae4aeb6f413dd6ca3
     add_1_option_per_line: a32405b9b923c039c1abbc91433aa162
     select_a_router: bd68d775026f2a9c0cefc621c1bd1c20
     add_a_new_route: ed51173fc11cf2d65ef4bc80c666bde5
@@ -9222,6 +9226,13 @@ checksums:
     booking_audit_action/actor_impersonated_by: 1c3e65f03e0e224a791fab266b45e5a2
     booking_audit_action/source: 6e87903ef260da661b2bf6d858ba68ca
     booking_audit_action/error_processing: 0811f7d8ac2594c48fa5fdf2d4300b47
+    booking_audit_action/attendees: 44796e0b664cc408404b1bc3bb32752b
+    booking_audit_action/host: 446dbda915fcdfb9a6befce0c2a8752b
+    booking_audit_action/attendee_no_show_status_yes: a10aaee2c5bd5cc9f128d971ed49db0d
+    booking_audit_action/attendee_no_show_status_no: db006fcd3b30b0061ae8053f223cfda4
+    booking_audit_action/host_no_show_status_yes: 54ab3fe679758a16f158288846166f6b
+    booking_audit_action/host_no_show_status_no: 285ca0d1765bfd9ebf66a98ec535d85e
+    booking_audit_action/unknown_user: 5cd12b882fe90320f93130c1b50e2e32
     error_loading_booking_logs: feda9ea6cc7e2a363c10d473e71d4dc5
     no_audit_logs_found: 394ad0c0a33bcf8cd2819b2b9cdc5ab2
     hide_details: 51086404511c662af46ac4e54838f38f
