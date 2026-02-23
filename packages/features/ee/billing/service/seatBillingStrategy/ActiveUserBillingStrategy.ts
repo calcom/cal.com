@@ -1,11 +1,10 @@
 import logger from "@calcom/lib/logger";
-
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 import type { SeatChangeContext } from "./ISeatBillingStrategy";
+import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 
 const log = logger.getSubLogger({ prefix: ["ActiveUserBillingStrategy"] });
 
@@ -17,6 +16,8 @@ export interface IActiveUserBillingStrategyDeps {
 }
 
 export class ActiveUserBillingStrategy extends BaseSeatBillingStrategy {
+  readonly strategyName = "ActiveUserBilling";
+
   constructor(private readonly deps: IActiveUserBillingStrategyDeps) {
     super();
   }
