@@ -1,6 +1,7 @@
 import path from "node:path";
 import { Worker } from "node:worker_threads";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { GetScheduleOptions } from "@calcom/trpc/server/routers/viewer/slots/types";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

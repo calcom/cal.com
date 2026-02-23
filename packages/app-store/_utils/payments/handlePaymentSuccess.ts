@@ -1,23 +1,39 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import tasker from "@calcom/features/tasker";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";

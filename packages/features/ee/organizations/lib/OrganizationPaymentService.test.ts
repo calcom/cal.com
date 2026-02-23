@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { prisma } from "@calcom/prisma";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { OrganizationPaymentService } from "./OrganizationPaymentService";

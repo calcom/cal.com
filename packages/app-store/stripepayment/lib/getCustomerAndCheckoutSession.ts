@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 
 export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {

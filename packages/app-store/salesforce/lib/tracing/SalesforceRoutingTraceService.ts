@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
 
 const DOMAIN = "salesforce";

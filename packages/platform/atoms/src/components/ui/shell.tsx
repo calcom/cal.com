@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { LayoutProps } from "@calcom/web/modules/shell/Shell";
 
 import { cn } from "../../lib/utils";

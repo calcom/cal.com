@@ -1,5 +1,6 @@
 import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {

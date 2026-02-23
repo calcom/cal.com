@@ -1,6 +1,7 @@
 import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client, JWT } from "googleapis-common";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,

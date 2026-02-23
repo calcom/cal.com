@@ -1,4 +1,6 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

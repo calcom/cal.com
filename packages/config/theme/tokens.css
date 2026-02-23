@@ -14,6 +14,7 @@
 @variant linux (html.todesktop-platform-linux &);
 
 @theme inline {
+  /* biome-ignore lint/correctness/noUnknownPseudoClass: Tailwind v4 @theme directive */
   --font-sans: var(--font-sans);
   --font-cal: var(--font-cal);
 

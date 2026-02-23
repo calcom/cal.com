@@ -1,6 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAllDelegationCredentialsForUser } from "@calcom/app-store/delegationCredential";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";

@@ -3,7 +3,9 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { createGoogleCalendarServiceWithGoogleType } from "@calcom/app-store/googlecalendar/lib/CalendarService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {

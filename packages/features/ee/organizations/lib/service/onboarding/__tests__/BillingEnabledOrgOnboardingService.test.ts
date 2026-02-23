@@ -5,7 +5,9 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import type { CreateOnboardingIntentInput } from "../../onboarding/types";

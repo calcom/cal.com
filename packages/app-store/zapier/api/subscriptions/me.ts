@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import prisma from "@calcom/prisma";
 

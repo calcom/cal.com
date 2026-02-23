@@ -1,4 +1,6 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";

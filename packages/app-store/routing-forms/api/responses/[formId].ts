@@ -4,6 +4,7 @@ import { getSession } from "next-auth/react";
 import {
   entityPrismaWhereClause,
   canEditEntity,
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { sanitizeValue } from "@calcom/lib/csvUtils";
 import prisma from "@calcom/prisma";

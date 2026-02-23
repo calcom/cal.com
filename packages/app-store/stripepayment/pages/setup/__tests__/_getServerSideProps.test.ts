@@ -22,6 +22,7 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "https://app.cal.com",
 }));
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 

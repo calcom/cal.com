@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -6,7 +7,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";

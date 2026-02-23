@@ -71,18 +71,26 @@ vi.mock("@calcom/app-store/routing-forms/lib/findFieldValueByIdentifier", () => 
   findFieldValueByIdentifier: vi.fn(),
 }));
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import prisma from "@calcom/prisma";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import type { TraceContext } from "@calcom/lib/tracing";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 describe("handlePaymentSuccess", () => {

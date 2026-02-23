@@ -3,9 +3,13 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   buildNonDelegationCredential,

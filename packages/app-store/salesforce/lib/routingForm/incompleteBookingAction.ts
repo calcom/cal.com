@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import logger from "@calcom/lib/logger";
 

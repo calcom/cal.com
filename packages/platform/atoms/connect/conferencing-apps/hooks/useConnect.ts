@@ -152,6 +152,7 @@ export const useConnect = (props: UseConnectGoogleMeetProps) => {
         break;
       case GOOGLE_MEET:
         connectNonOauthApp.mutate(app);
+        break;
 
       default:
         break;

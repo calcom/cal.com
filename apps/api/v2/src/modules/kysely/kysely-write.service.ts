@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { Kysely, ParseJSONResultsPlugin, PostgresDialect, DeduplicateJoinsPlugin } from "kysely";
 import { Pool } from "pg";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { DB } from "@calcom/kysely/types";
 
 @Injectable()

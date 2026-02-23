@@ -3,6 +3,7 @@ import type { Kysely } from "kysely";
 import type { TextFilterValue } from "@calcom/features/data-table/lib/types";
 import type { DB } from "@calcom/kysely";
 import type { PrismaClient } from "@calcom/prisma";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBookings } from "@calcom/trpc/server/routers/viewer/bookings/get.handler";
 
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";

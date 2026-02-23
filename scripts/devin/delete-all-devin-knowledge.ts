@@ -14,7 +14,7 @@
  */
 
 import process from "node:process";
-import * as readline from "readline";
+import * as readline from "node:readline";
 
 interface ApiKnowledgeEntry {
   id: string;

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
 
 import { RoutingFormResponseDataFactory } from "./RoutingFormResponseDataFactory";

@@ -4,6 +4,7 @@ import type {
   EventTypeForAppCard,
 } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import useAppsData from "@calcom/web/modules/apps/hooks/useAppsData";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";

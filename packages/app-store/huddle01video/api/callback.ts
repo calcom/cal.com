@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 

@@ -2,7 +2,9 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { FeatureId } from "@calcom/features/flags/config";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { Prisma } from "@calcom/prisma/client";
 

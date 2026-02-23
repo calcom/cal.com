@@ -1,6 +1,8 @@
 import type { NextApiRequest } from "next";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import isAuthorized from "@calcom/features/auth/lib/oAuthAuthorization";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import findValidApiKey from "@calcom/features/ee/api-keys/lib/findValidApiKey";
 import { HttpError } from "@calcom/lib/http-error";
 

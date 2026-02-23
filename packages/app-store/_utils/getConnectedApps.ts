@@ -1,4 +1,5 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";

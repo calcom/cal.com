@@ -1,4 +1,6 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { IAvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { createModule } from "../di";

@@ -1,7 +1,11 @@
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getEmailFromIdentifierKeyedResponse } from "@calcom/features/routing-forms/lib/getEmailFromIdentifierKeyedResponse";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/CrmRoutingTraceService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";

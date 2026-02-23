@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";

@@ -6,10 +6,15 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { WebhookSubscriber } from "@calcom/features/webhooks/lib/dto/types";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import {
   WebhookTriggerEvents,
@@ -18,6 +23,7 @@ import {
   WorkflowTemplates,
   TimeUnit,
 } from "@calcom/prisma/enums";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WebhookVersion as WebhookVersionEnum } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
 import type { FormResponse, Field } from "../types/types";

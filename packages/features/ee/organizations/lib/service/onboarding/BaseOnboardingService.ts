@@ -24,7 +24,9 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
 import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { userMetadata, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { OrganizationPaymentService } from "../../OrganizationPaymentService";

@@ -16,6 +16,7 @@ import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "re
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type {
   BulkUpdatParams,
@@ -27,6 +28,7 @@ import DateOverrideList from "@calcom/features/schedules/components/DateOverride
 import {
   ScheduleComponent as PlatformSchedule,
 } from "@calcom/features/schedules/components/ScheduleComponent";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -44,6 +46,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import WebShell from "@calcom/web/modules/shell/Shell";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";

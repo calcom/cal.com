@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { randomString } from "@calcom/lib/random";
 import {
   CAL_API_VERSION_HEADER,

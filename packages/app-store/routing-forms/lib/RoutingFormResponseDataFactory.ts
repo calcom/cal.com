@@ -1,4 +1,5 @@
 import type logger from "@calcom/lib/logger";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
 
 import { parseRoutingFormResponse } from "./responseData/parseRoutingFormResponse";

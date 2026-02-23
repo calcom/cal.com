@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type { EventTypeAppMetadataSchema } from "@calcom/app-store/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import CrmManager from "@calcom/features/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";

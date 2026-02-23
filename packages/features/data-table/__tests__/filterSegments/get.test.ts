@@ -3,6 +3,7 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { describe, expect, it } from "vitest";
 
 import { MembershipRole } from "@calcom/prisma/enums";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { FilterSegmentRepository } from "../../repositories/filterSegment";

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { MeetLocationType } from "@calcom/app-store/constants";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getDestinationCalendarRepository } from "@calcom/features/di/containers/DestinationCalendar";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";

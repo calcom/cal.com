@@ -2,7 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";

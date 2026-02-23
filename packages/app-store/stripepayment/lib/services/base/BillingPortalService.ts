@@ -1,6 +1,8 @@
 import type { NextApiResponse } from "next";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";

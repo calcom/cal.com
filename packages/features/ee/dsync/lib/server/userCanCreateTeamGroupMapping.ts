@@ -1,5 +1,6 @@
 import { canAccessOrganization } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";

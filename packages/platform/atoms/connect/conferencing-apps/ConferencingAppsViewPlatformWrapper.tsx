@@ -4,6 +4,7 @@ import AccountDialog from "@calcom/app-store/office365video/components/AccountDi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
@@ -16,6 +17,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { AppList } from "@calcom/web/modules/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useQueryClient } from "@tanstack/react-query";

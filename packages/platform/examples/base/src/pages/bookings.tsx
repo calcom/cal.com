@@ -35,8 +35,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         (Boolean(upcomingBookings?.length) || Boolean(pastBookings?.length)) &&
         [...pastBookings, ...upcomingBookings].map((booking) => {
           const date = dayjs(booking.start).toDate();
-          const startTime = dayjs(booking?.start).format(12 === 12 ? "h:mma" : "HH:mm");
-          const endTime = dayjs(booking?.end).format(12 === 12 ? "h:mma" : "HH:mm");
+          const startTime = dayjs(booking?.start).format("h:mma");
+          const endTime = dayjs(booking?.end).format("h:mma");
           const day = dayjs(date).format("dddd");
           const month = dayjs(date).format("MMMM");
 

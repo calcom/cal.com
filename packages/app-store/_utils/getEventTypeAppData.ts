@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { BookerEventForAppData } from "@calcom/features/bookings/types.server";
 
 export type EventTypeApps = NonNullable<

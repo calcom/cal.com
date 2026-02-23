@@ -1,6 +1,7 @@
 import { oauth2_v2 } from "@googleapis/oauth2";
 import type { OAuth2Client } from "googleapis-common";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 

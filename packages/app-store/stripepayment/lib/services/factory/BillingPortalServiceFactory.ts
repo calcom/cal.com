@@ -1,3 +1,4 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
 

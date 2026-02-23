@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";

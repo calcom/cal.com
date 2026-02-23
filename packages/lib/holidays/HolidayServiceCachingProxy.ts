@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
 
 import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";

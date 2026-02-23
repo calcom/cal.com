@@ -4,6 +4,7 @@ import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser
 import { HttpError } from "@calcom/lib/http-error";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { z } from "zod";
 import { ScheduleRepository } from "../repositories/ScheduleRepository";

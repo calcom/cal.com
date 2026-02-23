@@ -19,6 +19,7 @@ import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesFo
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
 import { useQueryClient } from "@tanstack/react-query";
 import debounce from "lodash/debounce";

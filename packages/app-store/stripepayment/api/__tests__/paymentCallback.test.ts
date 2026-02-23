@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import sendVerificationRequest from "@calcom/features/auth/lib/sendVerificationRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import { VerificationTokenService } from "../../lib/VerificationTokenService";

@@ -665,7 +665,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       expect(booking).toBeDefined();
       expect(booking?.userId).toBeDefined();
-      const initialHostId = booking?.userId!;
+      const initialHostId = booking!.userId!;
       rescheduleReasonBookingInitialHostId = initialHostId;
 
       const expectedInitialTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${
@@ -707,7 +707,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toBeDefined();
 
-      const currentHostId = booking?.userId!;
+      const currentHostId = booking!.userId!;
       const initialHostId = rescheduleReasonBookingInitialHostId;
       const initialHostName = initialHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
 

@@ -3,7 +3,9 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import dayjs from "@calcom/dayjs";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import tasker from "@calcom/features/tasker";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";

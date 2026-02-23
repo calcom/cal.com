@@ -1,8 +1,11 @@
 import type { z } from "zod";
 
 import type { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNameFromSlug";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

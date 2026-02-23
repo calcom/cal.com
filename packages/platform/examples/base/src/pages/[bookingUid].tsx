@@ -20,8 +20,8 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   });
 
   if (!Array.isArray(booking)) {
-    const startTime = dayjs(booking?.start).format(12 === 12 ? "h:mma" : "HH:mm");
-    const endTime = dayjs(booking?.end).format(12 === 12 ? "h:mma" : "HH:mm");
+    const startTime = dayjs(booking?.start).format("h:mma");
+    const endTime = dayjs(booking?.end).format("h:mma");
     const date = dayjs(booking?.start).toDate();
     const dateToday = dayjs(booking?.start).date();
     const year = dayjs(booking?.start).year();

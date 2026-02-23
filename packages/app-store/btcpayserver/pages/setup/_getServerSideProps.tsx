@@ -1,7 +1,9 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";

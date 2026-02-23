@@ -4,7 +4,9 @@ import type z from "zod";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { IBookingPaymentRepository } from "@calcom/features/bookings/repositories/BookingPaymentRepository.interface";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PrismaBookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 import type { Booking, Payment, PaymentOption } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";

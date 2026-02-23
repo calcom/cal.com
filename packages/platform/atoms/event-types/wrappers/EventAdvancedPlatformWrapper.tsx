@@ -1,4 +1,6 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventAdvancedBaseProps } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { EventAdvancedTab } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
 
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";

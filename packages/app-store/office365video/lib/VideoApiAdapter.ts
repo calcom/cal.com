@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialConfigurationError,

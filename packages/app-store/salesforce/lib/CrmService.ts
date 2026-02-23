@@ -4,6 +4,7 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -11,13 +12,16 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "./repositories/PrismaAssignmentReasonRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getRedisService } from "@calcom/features/di/containers/Redis";
 
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";

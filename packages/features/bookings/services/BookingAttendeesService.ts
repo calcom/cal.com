@@ -5,6 +5,7 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import logger from "@calcom/lib/logger";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
   buildCalendarEvent,
@@ -16,7 +17,9 @@ import {
   updateCalendarEvent,
   validateGuestsFieldEnabled,
   validateUserPermissions,
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TAddGuestsInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.schema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

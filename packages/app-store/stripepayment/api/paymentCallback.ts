@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import sendVerificationRequest from "@calcom/features/auth/lib/sendVerificationRequest";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";

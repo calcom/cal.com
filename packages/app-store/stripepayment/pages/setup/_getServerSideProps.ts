@@ -3,6 +3,7 @@ import stringify from "qs-stringify";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";

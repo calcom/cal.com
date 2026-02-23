@@ -1,10 +1,15 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAttributeSyncRuleService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncRuleService.container";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAttributeSyncFieldMappingService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncFieldMappingService.container";
 
 const log = logger.getSubLogger({ prefix: ["[salesforce/user-sync]"] });

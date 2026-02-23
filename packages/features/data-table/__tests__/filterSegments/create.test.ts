@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { FilterSegmentRepository } from "../../repositories/filterSegment";

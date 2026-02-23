@@ -1,8 +1,14 @@
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";

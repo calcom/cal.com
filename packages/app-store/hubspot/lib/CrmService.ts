@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PrismaTrackingRepository } from "@calcom/features/bookings/repositories/PrismaTrackingRepository";
 import prisma from "@calcom/prisma";
 import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";

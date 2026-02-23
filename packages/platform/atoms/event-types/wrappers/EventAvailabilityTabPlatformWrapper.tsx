@@ -2,8 +2,11 @@ import { useFormContext } from "react-hook-form";
 
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { EventAvailabilityTab } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { ScheduleQueryData } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
 
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
