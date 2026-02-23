@@ -46,7 +46,13 @@ async function handler(req: NextRequest) {
     );
   } catch (err) {
     if (err instanceof ErrorWithCode) {
-      return NextResponse.json({ error: err.message }, { status: getHttpStatusCode(err) });
+      return NextResponse.json(
+        {
+          error: err.message,
+          error_description: (err.data?.reason as string | undefined) ?? err.message,
+        },
+        { status: getHttpStatusCode(err) }
+      );
     }
     return NextResponse.json({ error: "server_error" }, { status: 500 });
   }

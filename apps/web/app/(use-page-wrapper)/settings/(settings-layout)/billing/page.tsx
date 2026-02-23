@@ -21,7 +21,7 @@ const Page = async () => {
     <SettingsHeader
       title={t("billing")}
       description={t("manage_billing_description")}
-      borderInShellHeader={false}>
+      borderInShellHeader={true}>
       <BillingView />
     </SettingsHeader>
   );

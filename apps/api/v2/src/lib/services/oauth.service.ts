@@ -20,10 +20,10 @@ export class OAuthService extends BaseOAuthService {
     teamsRepository: PrismaTeamRepository
   ) {
     super({
-      accessCodeRepository,
-      oAuthClientRepository,
-      oAuthRefreshTokenRepository,
-      teamsRepository,
+      accessCodeRepository: accessCodeRepository,
+      oAuthClientRepository: oAuthClientRepository,
+      oAuthRefreshTokenRepository: oAuthRefreshTokenRepository,
+      teamsRepository: teamsRepository,
     });
   }
 

@@ -30,6 +30,10 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   userId: z.number().optional(),
   orgId: z.number().optional(),
   oAuthClientId: z.string().nullable().optional(),
+  platformClientId: z.string().nullable().optional(),
+  platformRescheduleUrl: z.string().nullable().optional(),
+  platformCancelUrl: z.string().nullable().optional(),
+  platformBookingUrl: z.string().nullable().optional(),
 });
 
 /**
