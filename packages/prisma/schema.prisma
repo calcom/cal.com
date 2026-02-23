@@ -270,7 +270,7 @@ model EventType {
   /// @zod.import(["import { eventTypeColor } from '../../zod-utils'"]).custom.use(eventTypeColor)
   eventTypeColor                   Json?
   rescheduleWithSameRoundRobinHost Boolean @default(false)
-  disableRoundRobinReassignment    Boolean @default(false)
+  disableReassignment              Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)

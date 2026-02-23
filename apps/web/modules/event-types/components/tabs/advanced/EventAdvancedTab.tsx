@@ -1476,41 +1476,41 @@ export const EventAdvancedTab = ({
         }}
       />
       {isRoundRobinEventType && (
-        <>
-          <Controller
-            name="rescheduleWithSameRoundRobinHost"
-            render={({ field: { value, onChange } }) => (
-              <SettingsToggle
-                labelClassName={classNames("text-sm", customClassNames?.roundRobinReschedule?.label)}
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName={classNames(
-                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                  customClassNames?.roundRobinReschedule?.container
-                )}
-                title={t("reschedule_with_same_round_robin_host_title")}
-                description={t("reschedule_with_same_round_robin_host_description")}
-                descriptionClassName={customClassNames?.roundRobinReschedule?.description}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-              />
-            )}
-          />
-          <Controller
-            name="disableRoundRobinReassignment"
-            render={({ field: { value, onChange } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_round_robin_reassignment_title")}
-                description={t("disable_round_robin_reassignment_description")}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-                data-testid="disable-round-robin-reassignment"
-              />
-            )}
-          />
-        </>
+        <Controller
+          name="rescheduleWithSameRoundRobinHost"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.roundRobinReschedule?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.roundRobinReschedule?.container
+              )}
+              title={t("reschedule_with_same_round_robin_host_title")}
+              description={t("reschedule_with_same_round_robin_host_description")}
+              descriptionClassName={customClassNames?.roundRobinReschedule?.description}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+      {(isRoundRobinEventType || isManagedEventType) && (
+        <Controller
+          name="disableReassignment"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+              title={t("disable_reassignment_title")}
+              description={t("disable_reassignment_description")}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              data-testid="disable-reassignment"
+            />
+          )}
+        />
       )}
       {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <Controller

@@ -108,10 +108,10 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
 
   const isReassignableRoundRobin =
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1) &&
-    !booking.eventType.disableRoundRobinReassignment;
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
   const isManagedChildEvent = booking.eventType.parentId != null;
-  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
+  const isReassignable =
+    (isReassignableRoundRobin || isManagedChildEvent) && !booking.eventType.disableReassignment;
 
   const actions: (ActionType | null)[] = [
     {

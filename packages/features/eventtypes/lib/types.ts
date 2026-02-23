@@ -184,7 +184,7 @@ export type FormValues = {
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
-  disableRoundRobinReassignment: boolean;
+  disableReassignment: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
@@ -421,7 +421,7 @@ export type EventTypeUpdateInput = {
   customReplyToEmail?: string | null;
   eventTypeColor?: EventTypeColorInput;
   rescheduleWithSameRoundRobinHost?: boolean;
-  disableRoundRobinReassignment?: boolean;
+  disableReassignment?: boolean;
   secondaryEmailId?: number | null;
   useBookerTimezone?: boolean;
   restrictionScheduleId?: number | null;
