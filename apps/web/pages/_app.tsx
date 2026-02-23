@@ -1,18 +1,24 @@
 import type { IncomingMessage } from "node:http";
 import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
-import React from "react";
+import React, { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/web/modules/notifications/components/WebPushContext";
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
+import { applyDailyColor } from "@lib/daily-color";
 
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
+
+  // Apply daily color system on client-side mount
+  useEffect(() => {
+    applyDailyColor();
+  }, []);
 
   return (
     <SessionProvider session={pageProps.session ?? undefined}>
