@@ -1,4 +1,3 @@
-import { getNextAuthProviderName } from "@calcom/features/auth/lib/identityProviders";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -62,7 +61,10 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     const account = await prisma.account.findUnique({
       where: {
         provider_providerAccountId: {
-          provider: getNextAuthProviderName(user.identityProvider),
+          provider:
+            user.identityProvider === IdentityProvider.AZUREAD
+              ? "azure-ad"
+              : user.identityProvider.toLowerCase(),
           providerAccountId: user.identityProviderId,
         },
       },

@@ -1,15 +1,12 @@
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import { updateProfilePhotoMicrosoft } from "@calcom/app-store/_utils/oauth/updateProfilePhotoMicrosoft";
-import {
-  createGoogleCalendarServiceWithGoogleType,
-  type GoogleCalendar,
-} from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { createGoogleCalendarServiceWithGoogleType } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getIdentityProvider } from "@calcom/features/auth/lib/identityProviders";
 import {
-  IS_OUTLOOK_LOGIN_ENABLED,
   OUTLOOK_CLIENT_ID,
   OUTLOOK_CLIENT_SECRET,
+  OUTLOOK_LOGIN_ENABLED,
 } from "@calcom/features/auth/lib/outlook";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
@@ -70,6 +67,11 @@ import { verifyPassword } from "./verifyPassword";
 type UserWithProfiles = NonNullable<
   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
 >;
+
+interface ExtendedOAuthProfile extends Profile {
+  email_verified?: boolean; // Google/OIDC standard
+  xms_edov?: boolean | string | number; // Azure AD specific
+}
 
 // This adapts our internal user model to what NextAuth expects
 // NextAuth core requires id to be a string, so we handle that here
@@ -496,11 +498,11 @@ if (isSAMLLoginEnabled) {
   );
 }
 
-if (IS_OUTLOOK_LOGIN_ENABLED) {
+if (OUTLOOK_LOGIN_ENABLED && OUTLOOK_CLIENT_ID && OUTLOOK_CLIENT_SECRET) {
   providers.push(
     AzureADProvider({
-      clientId: OUTLOOK_CLIENT_ID!,
-      clientSecret: OUTLOOK_CLIENT_SECRET!,
+      clientId: OUTLOOK_CLIENT_ID,
+      clientSecret: OUTLOOK_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
@@ -882,7 +884,9 @@ export const getOptions = ({
           }
 
           // Update profile photo for Microsoft/Azure AD sign-in
-          await updateProfilePhotoMicrosoft(account.access_token!, Number(user.id));
+          if (account.access_token) {
+            await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
+          }
         } else if (account.provider === "azure-ad" && account.access_token) {
           // Update profile photo even if calendar wasn't installed
           await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
@@ -1016,17 +1020,18 @@ export const getOptions = ({
       if (account?.provider) {
         const idP = getIdentityProvider(account.provider);
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
-        const isEmailVerified = user.emailVerified || (profile as any)?.email_verified;
+        const isEmailVerified = user.emailVerified || (profile as ExtendedOAuthProfile)?.email_verified;
 
         // For Azure AD, check xms_edov (Email Domain Owner Verified) claim
         // xms_edov returns inconsistent types: boolean for work/school, string "1" for personal accounts
-        const xmsEdov = (profile as any)?.xms_edov;
+        const xmsEdov = (profile as ExtendedOAuthProfile)?.xms_edov;
         const isAzureEmailDomainVerified = xmsEdov === true || xmsEdov === "1" || xmsEdov === 1;
 
         // Azure AD never sets email_verified in the token profile, so isEmailVerified is always
         // falsy for AZUREAD logins. Use isAzureEmailDomainVerified (xms_edov) as the equivalent
         // proof of ownership so the auto-merge path treats Azure AD the same as other verified IdPs.
-        const isVerified = isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
+        const isVerified =
+          isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
 
         if (idP === IdentityProvider.AZUREAD && !isAzureEmailDomainVerified) {
           log.error(
@@ -1165,11 +1170,7 @@ export const getOptions = ({
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (
-            !hostedCal &&
-            isVerified &&
-            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
-          ) {
+          if (!hostedCal && isVerified && existingUserWithEmail.identityProvider !== IdentityProvider.CAL) {
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
