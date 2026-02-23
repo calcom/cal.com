@@ -148,6 +148,7 @@ class BaseUpdateEventTypeInput {
   @IsInt({ each: true })
   @Min(1, { each: true })
   @DocsPropertyOptional({
+    type: [Number],
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",

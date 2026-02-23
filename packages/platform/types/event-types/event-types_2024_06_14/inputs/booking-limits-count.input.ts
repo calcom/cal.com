@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
 import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
@@ -49,7 +49,7 @@ export class BaseBookingLimitsCount_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
+  @ApiHideProperty()
   disabled?: boolean = false;
 }
 
