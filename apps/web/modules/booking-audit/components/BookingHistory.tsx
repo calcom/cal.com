@@ -29,6 +29,17 @@ type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
+type DisplayFieldValue =
+    | { type: "translationKey"; valueKey: string }
+    | { type: "rawValue"; value: string }
+    | { type: "rawValues"; values: string[] }
+    | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
+
+type DisplayField = {
+    labelKey: string;
+    fieldValue: DisplayFieldValue;
+};
+
 type AuditLog = {
   id: string;
   action: string;
@@ -37,7 +48,7 @@ type AuditLog = {
   source: string;
   displayJson?: Record<string, unknown> | null;
   actionDisplayTitle: TranslationWithParams;
-  displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
+  displayFields?: DisplayField[] | null;
   actor: {
     type: AuditActorType;
     displayName: string | null;
@@ -188,30 +199,39 @@ function JsonViewer({ data }: JsonViewerProps) {
   );
 }
 
-interface DisplayFieldValueProps {
-  field: {
-    valueKey?: string;
-    value?: string;
-    values?: string[];
-  };
+interface DisplayFieldValueComponentProps {
+  fieldValue: DisplayFieldValue;
 }
 
-function DisplayFieldValue({ field }: DisplayFieldValueProps) {
+function DisplayFieldValueComponent({ fieldValue }: DisplayFieldValueComponentProps) {
   const { t } = useLocale();
 
-  if (field.values) {
-    return (
-      <span className="flex flex-col">
-        {field.values.map((v, i) => (
-          <span className="p-0.5" key={i}>
-            {v}
-          </span>
-        ))}
-      </span>
-    );
+  switch (fieldValue.type) {
+    case "translationsWithParams":
+      return (
+        <span className="flex flex-col">
+          {fieldValue.valuesWithParams.map((v, i) => (
+            <span className="p-0.5" key={i}>
+              {t(v.key, v.params)}
+            </span>
+          ))}
+        </span>
+      );
+    case "rawValues":
+      return (
+        <span className="flex flex-col">
+          {fieldValue.values.map((v, i) => (
+            <span className="p-0.5" key={i}>
+              {v}
+            </span>
+          ))}
+        </span>
+      );
+    case "rawValue":
+      return <>{fieldValue.value}</>;
+    case "translationKey":
+      return <>{t(fieldValue.valueKey)}</>;
   }
-
-  return <>{field.value ?? (field.valueKey ? t(field.valueKey) : "")}</>;
 }
 
 function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
@@ -318,7 +338,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                             className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                             <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
                             <span className="font-medium">
-                              <DisplayFieldValue field={field} />
+                              <DisplayFieldValueComponent fieldValue={field.fieldValue} />
                             </span>
                           </div>
                         ))
@@ -384,18 +404,27 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
       return (
         log.displayFields?.some((field) => {
           const searchLower = searchTerm.toLowerCase();
-
           const translatedLabel = field.labelKey ? t(field.labelKey) : "";
-          const translatedValue = field.valueKey ? t(field.valueKey) : "";
-          const displayValue = field.value ?? "";
-          const displayValues = field.values ?? [];
-
-          return (
-            translatedLabel.toLowerCase().includes(searchLower) ||
-            translatedValue.toLowerCase().includes(searchLower) ||
-            displayValue.toLowerCase().includes(searchLower) ||
-            displayValues.some((v) => v.toLowerCase().includes(searchLower))
-          );
+          if (translatedLabel.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+          const { fieldValue } = field;
+          switch (fieldValue.type) {
+            case "translationKey":
+              return t(fieldValue.valueKey).toLowerCase().includes(searchLower);
+            case "rawValue":
+              return fieldValue.value.toLowerCase().includes(searchLower);
+            case "rawValues":
+              return fieldValue.values.some((v) => v.toLowerCase().includes(searchLower));
+            case "translationsWithParams":
+              return fieldValue.valuesWithParams.some(
+                (v) =>
+                  t(v.key, v.params).toLowerCase().includes(searchLower) ||
+                  Object.values(v.params ?? {}).some((param) =>
+                    param?.toString().toLowerCase().includes(searchLower)
+                  )
+              );
+          }
         }) ?? false
       );
     };
