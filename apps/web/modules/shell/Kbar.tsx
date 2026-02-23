@@ -1,5 +1,4 @@
-import { useSession } from "next-auth/react";
-
+import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,8 +26,12 @@ import {
   useRegisterActions,
 } from "kbar";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
+const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -431,7 +434,20 @@ function renderResultItem(item: string | Action, active: boolean, t: (key: strin
   );
 }
 
-function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
+type CrowSSEEvent = {
+  type: string;
+  content?: string;
+  tool_name?: string;
+  arguments?: Record<string, unknown>;
+};
+
+type CrowFallbackState = {
+  status: "idle" | "loading" | "streaming" | "done" | "error";
+  text: string;
+  href: string | null;
+};
+
+function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
   const helpUrl = `https://cal.com/help/welcome?search=${encodeURIComponent(searchQuery)}`;
 
@@ -441,11 +457,8 @@ function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
         window.open(helpUrl, "_blank", "noopener,noreferrer");
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [helpUrl]);
 
   return (
@@ -464,6 +477,130 @@ function NoResultsFound({ searchQuery }: { searchQuery: string }): JSX.Element {
   );
 }
 
+function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
+  const { t } = useLocale();
+  const router = useRouter();
+  const { query } = useKBar();
+  const [state, setState] = useState<CrowFallbackState>({ status: "idle", text: "", href: null });
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!searchQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
+
+    const timer = setTimeout(async () => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setState({ status: "loading", text: "", href: null });
+
+      try {
+        const res = await fetch(`${CROW_API_URL}/api/chat/message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            product_id: CROW_PRODUCT_ID,
+            message: searchQuery,
+            conversation_id: null,
+            context: { page: window.location.pathname },
+          }),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          setState({ status: "error", text: "", href: null });
+          return;
+        }
+
+        setState((s) => ({ ...s, status: "streaming" }));
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let accText = "";
+        let navHref: string | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              setState({ status: "done", text: accText, href: navHref });
+              return;
+            }
+            try {
+              const event = JSON.parse(data) as CrowSSEEvent;
+              if (event.type === "content" && event.content) {
+                accText += event.content;
+                setState({ status: "streaming", text: accText, href: navHref });
+              } else if (event.type === "client_tool_call" && event.tool_name === "navigateToPage") {
+                navHref = (event.arguments?.url as string) ?? null;
+              }
+            } catch {
+              // ignore malformed SSE frames
+            }
+          }
+        }
+
+        setState({ status: "done", text: accText, href: navHref });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setState({ status: "error", text: "", href: null });
+        }
+      }
+    }, 600);
+
+    return () => {
+      clearTimeout(timer);
+      abortRef.current?.abort();
+    };
+  }, [searchQuery]);
+
+  // Crow not configured — fall back to help desk link
+  if (!CROW_API_URL || !CROW_PRODUCT_ID) {
+    return <HelpDeskLink searchQuery={searchQuery} />;
+  }
+
+  if (state.status === "error") {
+    return <HelpDeskLink searchQuery={searchQuery} />;
+  }
+
+  if (state.status === "idle" || state.status === "loading") {
+    return (
+      <div className="flex items-center justify-center px-4 py-6">
+        <span className="animate-pulse text-sm text-subtle">{t("kbar_crow_thinking")}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 py-4">
+      <p className="mb-2 font-medium text-subtle text-xs uppercase tracking-wide">
+        {t("kbar_crow_ai_label")}
+      </p>
+      <p className="text-default text-sm">
+        {state.text}
+        {state.status === "streaming" && <span className="ml-0.5 animate-pulse">▋</span>}
+      </p>
+      {state.href && state.status === "done" && (
+        <button
+          onClick={() => {
+            query.toggle();
+            router.push(state.href!);
+          }}
+          className="mt-3 flex items-center gap-1.5 text-emphasis text-sm transition hover:underline">
+          <CornerDownLeftIcon className="h-3 w-3" />
+          {t("kbar_crow_navigate")}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
@@ -473,7 +610,7 @@ function RenderResults(): JSX.Element {
   useUpcomingBookingsAction();
 
   if (results.length === 0 && searchQuery.trim().length > 0) {
-    return <NoResultsFound searchQuery={searchQuery} />;
+    return <CrowFallback searchQuery={searchQuery} />;
   }
 
   return (
