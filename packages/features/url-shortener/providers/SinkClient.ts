@@ -60,6 +60,7 @@ export class SinkClient {
           url,
           ...options,
         }),
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!response.ok) {

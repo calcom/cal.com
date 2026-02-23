@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { UrlShortenerFactory } from "@calcom/features/url-shortener";
+import { UrlShortenerFactory } from "@calcom/features/url-shortener/UrlShortenerFactory";
 import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";

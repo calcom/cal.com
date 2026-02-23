@@ -3,7 +3,7 @@ import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/pri
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockShortenMany = vi.fn();
-vi.mock("@calcom/features/url-shortener", () => ({
+vi.mock("@calcom/features/url-shortener/UrlShortenerFactory", () => ({
   UrlShortenerFactory: {
     create: () => ({
       shortenMany: (...args: unknown[]) => mockShortenMany(...args),
@@ -42,7 +42,7 @@ vi.mock("@calcom/features/bookings/lib/getCalEventResponses", () => ({
   getCalEventResponses: vi.fn().mockReturnValue({ responses: {} }),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue(((key: string) => key) as unknown),
 }));
 

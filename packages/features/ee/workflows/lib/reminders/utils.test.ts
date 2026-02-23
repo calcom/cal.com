@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 
 const mockShortenMany = vi.fn();
-vi.mock("@calcom/features/url-shortener", () => ({
+vi.mock("@calcom/features/url-shortener/UrlShortenerFactory", () => ({
   UrlShortenerFactory: {
     create: () => ({
       shortenMany: (...args: unknown[]) => mockShortenMany(...args),

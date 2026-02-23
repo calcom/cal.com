@@ -7,7 +7,7 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { UrlShortenerFactory } from "@calcom/features/url-shortener";
+import { UrlShortenerFactory } from "@calcom/features/url-shortener/UrlShortenerFactory";
 import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -53,6 +53,8 @@ export async function handler(req: NextRequest) {
   if (!unscheduledReminders.length) {
     return NextResponse.json({ ok: true });
   }
+
+  const shortener = UrlShortenerFactory.create();
 
   for (const reminder of unscheduledReminders) {
     if (!reminder.workflowStep || !reminder.booking) {
@@ -136,7 +138,6 @@ export async function handler(req: NextRequest) {
           }`,
         };
 
-        const shortener = UrlShortenerFactory.create();
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
           await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
             domain: DUB_SMS_DOMAIN,
