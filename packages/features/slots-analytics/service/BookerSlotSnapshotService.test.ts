@@ -22,13 +22,10 @@ describe("BookerSlotSnapshotService", () => {
     });
   });
 
-  it("clamps negative firstSlotLeadTime to 0", async () => {
+  it("skips recording when firstSlotLeadTime is negative", async () => {
     await service.recordSnapshot({ eventTypeId: 123, firstSlotLeadTime: -5 });
 
-    expect(mockRepo.create).toHaveBeenCalledWith({
-      eventTypeId: 123,
-      firstSlotLeadTime: 0,
-    });
+    expect(mockRepo.create).not.toHaveBeenCalled();
   });
 
   it("passes through zero firstSlotLeadTime unchanged", async () => {

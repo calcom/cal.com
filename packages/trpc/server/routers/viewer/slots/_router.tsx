@@ -42,10 +42,12 @@ export const slotsRouter = router({
         input,
       });
     }),
-  recordSlotSnapshot: publicProcedure.input(ZRecordSlotSnapshotInputSchema).mutation(async ({ input }) => {
-    const { recordSlotSnapshotHandler } = await import("./recordSlotSnapshot.handler");
-    return recordSlotSnapshotHandler({ input });
-  }),
+  recordSlotSnapshot: publicProcedure
+    .input(ZRecordSlotSnapshotInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { recordSlotSnapshotHandler } = await import("./recordSlotSnapshot.handler");
+      return recordSlotSnapshotHandler({ input, ctx });
+    }),
   // This endpoint has no dependencies, it doesn't need its own file
   removeSelectedSlotMark: publicProcedure
     .input(ZRemoveSelectedSlotInputSchema)

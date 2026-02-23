@@ -44,7 +44,7 @@ describe("computeSlotSnapshot", () => {
     expect(computeSlotSnapshot({}, 123, 0.3)).toBeNull();
   });
 
-  it("returns null when first date has no slots", () => {
+  it("returns null when first date has no slots and no subsequent dates", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const slots = {
@@ -52,6 +52,20 @@ describe("computeSlotSnapshot", () => {
     };
 
     expect(computeSlotSnapshot(slots, 123, 0.3)).toBeNull();
+  });
+
+  it("scans subsequent dates if first date has empty slots", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+
+    const slots = {
+      "2026-02-24": [],
+      "2026-02-25": [{ time: "2026-02-25T09:00:00Z" }],
+    };
+
+    const result = computeSlotSnapshot(slots, 123, 0.3);
+    expect(result).not.toBeNull();
+    // 2026-02-25 09:00 is 45 hours from 2026-02-23 12:00 = 2700 minutes
+    expect(result?.firstSlotLeadTime).toBe(2700);
   });
 
   it("returns null when first slot has no time", () => {
@@ -64,14 +78,16 @@ describe("computeSlotSnapshot", () => {
     expect(computeSlotSnapshot(slots, 123, 0.3)).toBeNull();
   });
 
-  it("returns null when lead time is negative (slot in the past)", () => {
+  it("clamps negative lead time to 0 (slot in the past)", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
     const slots = {
       "2026-02-22": [{ time: "2026-02-22T09:00:00Z" }],
     };
 
-    expect(computeSlotSnapshot(slots, 123, 0.3)).toBeNull();
+    const result = computeSlotSnapshot(slots, 123, 0.3);
+    expect(result).not.toBeNull();
+    expect(result?.firstSlotLeadTime).toBe(0);
   });
 
   it("sorts dates to find the earliest slot", () => {

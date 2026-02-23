@@ -9,11 +9,11 @@ export class BookerSlotSnapshotService implements IBookerSlotSnapshotService {
   constructor(private deps: IBookerSlotSnapshotServiceDeps) {}
 
   async recordSnapshot(input: { eventTypeId: number; firstSlotLeadTime: number }): Promise<void> {
-    const leadTime = Math.max(input.firstSlotLeadTime, 0);
+    if (input.firstSlotLeadTime < 0) return;
 
     await this.deps.bookerSlotSnapshotRepo.create({
       eventTypeId: input.eventTypeId,
-      firstSlotLeadTime: leadTime,
+      firstSlotLeadTime: input.firstSlotLeadTime,
     });
   }
 }

@@ -6,6 +6,7 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
+import { isSlotAnalyticsEnabled } from "@calcom/features/slots-analytics/lib/slot-analytics-config";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
@@ -24,13 +25,6 @@ const paramsSchema = z.object({
 
 function hasApiV2RouteInEnv() {
   return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
-}
-
-function isSlotAnalyticsEnabled(eventTypeId: number): boolean {
-  const allowedIds = process.env.SLOT_ANALYTICS_EVENT_TYPE_IDS;
-  if (!allowedIds) return false;
-  const idSet = new Set(allowedIds.split(",").map((id) => Number(id.trim())));
-  return idSet.has(eventTypeId);
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {

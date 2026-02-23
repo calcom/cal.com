@@ -15,15 +15,18 @@ export function computeSlotSnapshot(
   const sortedDates = Object.keys(slots).sort();
   if (sortedDates.length === 0) return null;
 
-  const firstDate = sortedDates[0];
-  const firstDateSlots = slots[firstDate];
-  if (!firstDateSlots || firstDateSlots.length === 0) return null;
+  let firstSlotTime: string | undefined;
+  for (const date of sortedDates) {
+    const dateSlots = slots[date];
+    if (dateSlots && dateSlots.length > 0 && dateSlots[0].time) {
+      firstSlotTime = dateSlots[0].time;
+      break;
+    }
+  }
 
-  const firstSlotTime = firstDateSlots[0].time;
   if (!firstSlotTime) return null;
 
   const leadTimeMinutes = Math.round((new Date(firstSlotTime).getTime() - Date.now()) / 60000);
-  if (leadTimeMinutes < 0) return null;
 
-  return { eventTypeId, firstSlotLeadTime: leadTimeMinutes };
+  return { eventTypeId, firstSlotLeadTime: Math.max(leadTimeMinutes, 0) };
 }

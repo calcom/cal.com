@@ -1,4 +1,3 @@
-import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
@@ -7,6 +6,7 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
+import { isSlotAnalyticsEnabled } from "@calcom/features/slots-analytics/lib/slot-analytics-config";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -30,13 +30,6 @@ type Props = {
   orgBannerUrl: null;
   enableSlotAnalytics?: boolean;
 };
-
-function isSlotAnalyticsEnabled(eventTypeId: number): boolean {
-  const allowedIds = process.env.SLOT_ANALYTICS_EVENT_TYPE_IDS;
-  if (!allowedIds) return false;
-  const idSet = new Set(allowedIds.split(",").map((id) => Number(id.trim())));
-  return idSet.has(eventTypeId);
-}
 
 async function processReschedule({
   props,
