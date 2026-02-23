@@ -4,8 +4,10 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { computeTeamData } from "../../service/RegularBookingService";
 
+const mockTranslate = vi.fn((key: string) => key);
+
 vi.mock("@calcom/lib/server/i18n", () => ({
-  getTranslation: vi.fn().mockResolvedValue("translated"),
+  getTranslation: vi.fn().mockResolvedValue(mockTranslate),
 }));
 
 vi.mock("@calcom/prisma", () => {
@@ -156,7 +158,7 @@ describe("computeTeamData", () => {
       lastName: "",
       timeZone: "Europe/Paris",
       language: {
-        translate: "translated",
+        translate: expect.any(Function),
         locale: "fr",
       },
     });
