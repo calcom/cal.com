@@ -11,7 +11,7 @@ import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizat
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
-import { loadTranslations } from "@calcom/lib/server/i18n";
+import { loadTranslations } from "@calcom/i18n/server";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
