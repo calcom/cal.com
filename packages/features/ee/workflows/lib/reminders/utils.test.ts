@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 
 const mockShortenMany = vi.fn();
-vi.mock("@calcom/lib/urlShortener", () => ({
-  urlShortener: {
-    shortenMany: (...args: unknown[]) => mockShortenMany(...args),
+vi.mock("@calcom/features/url-shortener", () => ({
+  UrlShortenerFactory: {
+    create: () => ({
+      shortenMany: (...args: unknown[]) => mockShortenMany(...args),
+    }),
   },
 }));
 
@@ -30,7 +30,7 @@ vi.mock("../../getWorkflowReminders", () => ({
   getWorkflowRecipientEmail: (...args: unknown[]) => mockGetWorkflowRecipientEmail(...args),
 }));
 
-import { getSMSMessageWithVariables, getAttendeeToBeUsedInSMS, shouldUseTwilio } from "./utils";
+import { getAttendeeToBeUsedInSMS, getSMSMessageWithVariables, shouldUseTwilio } from "./utils";
 
 function buildMockAttendee(overrides: Partial<AttendeeInBookingInfo> = {}): AttendeeInBookingInfo {
   return {
@@ -84,7 +84,6 @@ describe("utils", () => {
     ]);
     mockCustomTemplate.mockReturnValue({ text: "Final SMS text", html: "<p>Final SMS text</p>" });
     mockGetWorkflowRecipientEmail.mockReturnValue("attendee@example.com");
-    delete process.env.DUB_API_KEY;
   });
 
   describe("getSMSMessageWithVariables", () => {
@@ -181,8 +180,7 @@ describe("utils", () => {
         expect(mockShortenMany.mock.calls[0][0]).toHaveLength(3);
       });
 
-      it("passes Dub options when DUB_API_KEY is set", async () => {
-        process.env.DUB_API_KEY = "test-dub-key";
+      it("always passes domain and folderId options", async () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
@@ -192,16 +190,6 @@ describe("utils", () => {
           domain: "sms.example.com",
           folderId: "folder-123",
         });
-      });
-
-      it("passes undefined options when DUB_API_KEY is not set", async () => {
-        delete process.env.DUB_API_KEY;
-        const evt = buildMockBookingInfo();
-        const attendee = buildMockAttendee();
-
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
-
-        expect(mockShortenMany.mock.calls[0][1]).toBeUndefined();
       });
 
       it("uses shortened URLs in the variables passed to customTemplate", async () => {

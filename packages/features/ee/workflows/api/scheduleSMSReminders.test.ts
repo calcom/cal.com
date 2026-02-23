@@ -1,13 +1,13 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockShortenMany = vi.fn();
-vi.mock("@calcom/lib/urlShortener", () => ({
-  urlShortener: {
-    shortenMany: (...args: unknown[]) => mockShortenMany(...args),
+vi.mock("@calcom/features/url-shortener", () => ({
+  UrlShortenerFactory: {
+    create: () => ({
+      shortenMany: (...args: unknown[]) => mockShortenMany(...args),
+    }),
   },
 }));
 
@@ -102,7 +102,11 @@ function createMockRequest({
   apiKeyParam = MOCK_CRON_API_KEY,
   authorizationHeader,
   skipAuth = false,
-}: { apiKeyParam?: string; authorizationHeader?: string; skipAuth?: boolean } = {}) {
+}: {
+  apiKeyParam?: string;
+  authorizationHeader?: string;
+  skipAuth?: boolean;
+} = {}) {
   const url = new URL("https://app.cal.com/api/workflows/scheduleSMSReminders");
   if (!skipAuth && !authorizationHeader && apiKeyParam) {
     url.searchParams.set("apiKey", apiKeyParam);
@@ -187,11 +191,10 @@ function buildMockReminder(overrides: Record<string, unknown> = {}) {
 }
 
 describe("scheduleSMSReminders handler", () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv, CRON_API_KEY: MOCK_CRON_API_KEY };
+    vi.unstubAllEnvs();
+    vi.stubEnv("CRON_API_KEY", MOCK_CRON_API_KEY);
     mockShortenMany.mockResolvedValue([
       { shortLink: "https://short.link/meet" },
       { shortLink: "https://short.link/cancel" },
@@ -202,10 +205,6 @@ describe("scheduleSMSReminders handler", () => {
     mockAddOptOutMessage.mockResolvedValue("message with opt-out footer");
     mockScheduleSmsOrFallbackEmail.mockResolvedValue({ sid: "SM123456", emailReminderId: null });
     prismaMock.profile.findFirst.mockResolvedValue(null);
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
   });
 
   describe("authentication", () => {
@@ -304,10 +303,7 @@ describe("scheduleSMSReminders handler", () => {
       const req = createMockRequest();
       const invalidReminder = buildMockReminder({ id: 1, workflowStep: null });
       const validReminder = buildMockReminder({ id: 2 });
-      prismaMock.workflowReminder.findMany.mockResolvedValue([
-        invalidReminder as any,
-        validReminder as any,
-      ]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([invalidReminder as any, validReminder as any]);
 
       await handler(req as any);
 
@@ -434,7 +430,6 @@ describe("scheduleSMSReminders handler", () => {
       expect(variables.cancelLink).toBe("https://short.link/cancel");
       expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
     });
-
 
     it("fetches organizer profile for booker URL", async () => {
       const req = createMockRequest();

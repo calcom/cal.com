@@ -110,5 +110,3 @@ export class SinkClient {
     }
   }
 }
-
-export const sink = new SinkClient();

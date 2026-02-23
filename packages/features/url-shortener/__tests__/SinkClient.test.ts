@@ -1,13 +1,10 @@
 import type { Mock } from "vitest";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SinkClient } from "../providers/SinkClient";
 
-import { SinkClient } from "../sink";
-
-// Mock fetch globally
 const mockFetch = vi.fn() as Mock;
 global.fetch = mockFetch;
 
-// Mock logger to avoid console noise
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     getSubLogger: () => ({
@@ -21,21 +18,16 @@ vi.mock("@calcom/lib/logger", () => ({
 describe("SinkClient", () => {
   const mockSinkUrl = "https://sink.test.com";
   const mockApiKey = "test-api-key";
-  const originalEnv = process.env;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   describe("createLink", () => {
     beforeEach(() => {
-      process.env.SINK_API_URL = mockSinkUrl;
-      process.env.SINK_API_KEY = mockApiKey;
+      vi.stubEnv("SINK_API_URL", mockSinkUrl);
+      vi.stubEnv("SINK_API_KEY", mockApiKey);
     });
 
     it("should successfully create a shortened link", async () => {
@@ -74,7 +66,7 @@ describe("SinkClient", () => {
     });
 
     it("should return null when Sink is not configured", async () => {
-      process.env.SINK_API_URL = "";
+      vi.stubEnv("SINK_API_URL", "");
 
       const testSink = new SinkClient();
       const result = await testSink.createLink("https://example.com");
@@ -145,8 +137,8 @@ describe("SinkClient", () => {
 
   describe("createMany", () => {
     beforeEach(() => {
-      process.env.SINK_API_URL = mockSinkUrl;
-      process.env.SINK_API_KEY = mockApiKey;
+      vi.stubEnv("SINK_API_URL", mockSinkUrl);
+      vi.stubEnv("SINK_API_KEY", mockApiKey);
     });
 
     it("should successfully shorten multiple links", async () => {
@@ -192,7 +184,7 @@ describe("SinkClient", () => {
     });
 
     it("should return original URLs when Sink is not configured", async () => {
-      process.env.SINK_API_URL = "";
+      vi.stubEnv("SINK_API_URL", "");
 
       const testSink = new SinkClient();
       const results = await testSink.createMany(["https://example1.com", "https://example2.com"]);

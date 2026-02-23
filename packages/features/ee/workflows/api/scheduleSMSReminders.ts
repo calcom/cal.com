@@ -1,25 +1,24 @@
 /* Schedule any workflow reminder that falls within the next 2 hours for SMS */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { urlShortener } from "@calcom/lib/urlShortener";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
+import { UrlShortenerFactory } from "@calcom/features/url-shortener";
 import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select, getWorkflowRecipientEmail } from "../lib/getWorkflowReminders";
+import { getWorkflowRecipientEmail, select } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -137,16 +136,12 @@ export async function handler(req: NextRequest) {
           }`,
         };
 
+        const shortener = UrlShortenerFactory.create();
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-          await urlShortener.shortenMany(
-            [urls.meetingUrl, urls.cancelLink, urls.rescheduleLink],
-            process.env.DUB_API_KEY
-              ? {
-                  domain: DUB_SMS_DOMAIN,
-                  folderId: DUB_SMS_FOLDER_ID,
-                }
-              : undefined
-          );
+          await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+            domain: DUB_SMS_DOMAIN,
+            folderId: DUB_SMS_FOLDER_ID,
+          });
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
