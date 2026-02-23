@@ -1,51 +1,47 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
+  BookingLocations,
   createBookingScenario,
+  getBooker,
   getDate,
+  getDefaultBookingFields,
   getGoogleCalendarCredential,
   getGoogleMeetCredential,
-  getStripeAppCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
-  mockCalendarToCrashOnUpdateEvent,
-  BookingLocations,
-  getMockBookingReference,
   getMockBookingAttendee,
+  getMockBookingReference,
   getMockFailingAppStatus,
   getMockPassingAppStatus,
-  getDefaultBookingFields,
+  getOrganizer,
+  getScenarioData,
+  getStripeAppCredential,
+  mockCalendarToCrashOnUpdateEvent,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import {
-  expectWorkflowToBeTriggered,
-  expectBookingToBeInDatabase,
-  expectBookingRescheduledWebhookToHaveBeenFired,
-  expectSuccessfulBookingRescheduledEmails,
-  expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulVideoMeetingUpdationInCalendar,
-  expectBookingInDBToBeRescheduledFromTo,
-  expectBookingRequestedEmails,
-  expectBookingRequestedWebhookToHaveBeenFired,
-  expectSuccessfulCalendarEventDeletionInCalendar,
-  expectSuccessfulVideoMeetingDeletionInCalendar,
-  expectSuccessfulRoundRobinReschedulingEmails,
-} from "@calcom/testing/lib/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect, beforeEach } from "vitest";
-
+import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { resetTestSMS } from "@calcom/lib/testSMS";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import {
+  expectBookingInDBToBeRescheduledFromTo,
+  expectBookingRequestedEmails,
+  expectBookingRescheduledWebhookToHaveBeenFired,
+  expectBookingToBeInDatabase,
+  expectSuccessfulBookingRescheduledEmails,
+  expectSuccessfulCalendarEventDeletionInCalendar,
+  expectSuccessfulCalendarEventUpdationInCalendar,
+  expectSuccessfulRoundRobinReschedulingEmails,
+  expectSuccessfulVideoMeetingDeletionInCalendar,
+  expectSuccessfulVideoMeetingUpdationInCalendar,
+  expectWorkflowToBeTriggered,
+} from "@calcom/testing/lib/bookingScenario/expects";
+import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { beforeEach, describe, expect } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 // Local test runs sometime gets too slow
@@ -1458,10 +1454,7 @@ describe("handleNewBooking", () => {
               email: "organizer@example.com",
               id: 101,
               schedules: [TestData.schedules.IstWorkHours],
-              credentials: [
-                getGoogleCalendarCredential(),
-                getStripeAppCredential(),
-              ],
+              credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
             });
 
@@ -1658,10 +1651,7 @@ describe("handleNewBooking", () => {
               email: "organizer@example.com",
               id: 101,
               schedules: [TestData.schedules.IstWorkHours],
-              credentials: [
-                getGoogleCalendarCredential(),
-                getStripeAppCredential(),
-              ],
+              credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
               selectedCalendars: [TestData.selectedCalendars.google],
             });
 
@@ -1812,13 +1802,8 @@ describe("handleNewBooking", () => {
             });
 
             expectBookingRequestedEmails({ booker, organizer, emails });
-            expectBookingRequestedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl,
-              eventType: scenarioData.eventTypes[0],
-            });
+            // NOTE: BOOKING_REQUESTED webhook assertion removed — this trigger now uses the producer/consumer
+            // architecture and is tested in webhook-producer-booking-requested.test.ts
             expectSuccessfulVideoMeetingDeletionInCalendar(videoMock, {
               bookingRef: {
                 type: appStoreMetadata.dailyvideo.type,
