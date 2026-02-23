@@ -1,12 +1,11 @@
+import { dataSyncWorker } from "./workers/dataSync.worker.js";
+import { defaultWorker } from "./workers/default.worker.js";
+import { scheduledWorker } from "./workers/scheduled.worker.js";
+
+const workers = [defaultWorker, scheduledWorker, dataSyncWorker];
+
 async function start() {
   console.log("🚀 Starting worker process...");
-
-  // Import workers (side-effect imports)
-  //as soon as they are imported in the entrypoint they start consuming the jobs enqueued
-  await import("./workers/default.worker.js");
-  await import("./workers/scheduled.worker.js");
-  await import("./workers/dataSync.worker.js");
-  // responsible for health checks
   console.log("Workers are up");
 }
 
@@ -15,13 +14,18 @@ start().catch((err) => {
   process.exit(1);
 });
 
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("🛑 SIGTERM received. Shutting down workers...");
-  process.exit(0);
-});
+async function shutdown(signal: string) {
+  console.log(`🛑 ${signal} received. Gracefully shutting down...`);
 
-process.on("SIGINT", async () => {
-  console.log("🛑 SIGINT received. Shutting down workers...");
-  process.exit(0);
-});
+  try {
+    await Promise.all(workers.map((w) => w.close()));
+    console.log("✅ All workers closed gracefully");
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Error during shutdown", err);
+    process.exit(1);
+  }
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

@@ -237,7 +237,7 @@ jobs:
           script_stop: false
           script: |
             #!/bin/bash
-            
+
             LOG_FILE="/home/onehash/worker-deployment.log"
             : > "$LOG_FILE"
 
@@ -248,10 +248,33 @@ jobs:
               echo "[$timestamp][VPC][$level] $message" | tee -a "$LOG_FILE"
             }
 
+            # ─────────────────────────────────────────────────────────────────────────────
+            # CONFIGURABLE SHUTDOWN TIMEOUT
+            #
+            # WHY: BullMQ workers call worker.close() on SIGTERM, which waits for active
+            # jobs to finish before exiting. If docker stop's timeout is shorter than the
+            # running job, Docker sends SIGKILL, which hard-kills the process mid-job.
+            # BullMQ then sees a stalled lock and either retries or marks the job failed.
+            #
+            # Set this to >= your longest expected job duration (in seconds).
+            # 180s is a safe default; raise to 300s for very long jobs.
+            # ─────────────────────────────────────────────────────────────────────────────
+            GRACEFUL_STOP_TIMEOUT=180
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # HEALTH CHECK CONFIG
+            #
+            # WHY: We need new workers to be fully initialized and actively processing
+            # before we drain old ones. Rushing this window risks a gap in processing capacity.
+            # ─────────────────────────────────────────────────────────────────────────────
+            HEALTH_CHECK_ATTEMPTS=12        # 12 × 5s = 60s max wait per container
+            HEALTH_CHECK_INTERVAL=5         # seconds between each check
+
             log_message "INFO" "==== WORKER DEPLOYMENT STARTED ===="
             log_message "INFO" "Git Hash: $GIT_HASH"
             log_message "INFO" "Worker Replicas: $WORKER_REPLICAS"
             log_message "INFO" "Repository: $WORKER_REPO_NAME"
+            log_message "INFO" "Graceful stop timeout: ${GRACEFUL_STOP_TIMEOUT}s"
 
             # Configure AWS
             log_message "INFO" "Configuring AWS credentials..."
@@ -280,7 +303,6 @@ jobs:
               log_message "INFO" "Disk space after pruning: ${AVAILABLE_SPACE}GB"
             fi
 
-            # Worker image
             WORKER_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${WORKER_REPO_NAME}:${GIT_HASH}"
             log_message "INFO" "Worker image: $WORKER_IMAGE"
 
@@ -292,31 +314,29 @@ jobs:
             fi
             log_message "INFO" "✅ Worker image pulled successfully"
 
-            # Health check function
+            # ─────────────────────────────────────────────────────────────────────────────
+            # HEALTH CHECK FUNCTION (unchanged logic, extracted for reuse)
+            # ─────────────────────────────────────────────────────────────────────────────
             check_worker_health() {
               local container=$1
-              local max_attempts=12
               local attempt=1
 
-              while [ $attempt -le $max_attempts ]; do
-                log_message "INFO" "Health check attempt $attempt/$max_attempts for $container"
+              while [ $attempt -le $HEALTH_CHECK_ATTEMPTS ]; do
+                log_message "INFO" "Health check attempt $attempt/$HEALTH_CHECK_ATTEMPTS for $container"
 
-                # Check if container is running
                 STATUS=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null | tr -d '[:space:]' || echo "not_found")
-                
+
                 if [ "$STATUS" != "running" ]; then
                   log_message "ERROR" "❌ $container is not running (status: $STATUS)"
                   return 1
                 fi
 
-                # Check for success message in logs
                 LOGS=$(docker logs "$container" 2>&1)
-                # Matches the log output from worker entrypoint: "Workers are up"
+
                 if echo "$LOGS" | grep -q "Workers are up"; then
-                  # Also check for errors
                   if echo "$LOGS" | grep -qi "fatal\|panic\|error.*failed\|ECONNREFUSED"; then
                     log_message "WARN" "⚠️ $container started but has errors"
-                    if [ $attempt -eq $max_attempts ]; then
+                    if [ $attempt -eq $HEALTH_CHECK_ATTEMPTS ]; then
                       return 1
                     fi
                   else
@@ -324,42 +344,86 @@ jobs:
                     return 0
                   fi
                 else
-                  log_message "INFO" "Container $container still starting (attempt $attempt/$max_attempts)"
+                  log_message "INFO" "Container $container still starting (attempt $attempt/$HEALTH_CHECK_ATTEMPTS)"
                 fi
 
-                sleep 5
+                sleep $HEALTH_CHECK_INTERVAL
                 attempt=$((attempt + 1))
               done
 
-              log_message "ERROR" "❌ $container did not become healthy after $max_attempts attempts"
+              log_message "ERROR" "❌ $container did not become healthy after $HEALTH_CHECK_ATTEMPTS attempts"
               docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
               return 1
             }
 
-            # Stop existing worker containers
-            log_message "INFO" "Stopping existing worker containers..."
-            EXISTING_WORKERS=$(docker ps -a --filter "name=worker-" --format "{{.Names}}" | sort -V || echo "")
+            # ─────────────────────────────────────────────────────────────────────────────
+            # GRACEFUL STOP FUNCTION
+            #
+            # WHY: `docker stop` defaults to 10 seconds before sending SIGKILL.
+            # BullMQ's worker.close() needs time to:
+            #   1. Stop accepting new jobs from the queue
+            #   2. Wait for in-flight jobs to call their process() handler's resolve/reject
+            #   3. Cleanly release the BullMQ job lock
+            #
+            # Using -t $GRACEFUL_STOP_TIMEOUT ensures Docker waits long enough.
+            # Without this, SIGKILL hits mid-job → lock expires → job retried or stalled.
+            # ─────────────────────────────────────────────────────────────────────────────
+            graceful_stop_container() {
+              local container=$1
 
-            if [ -n "$EXISTING_WORKERS" ]; then
-              for container in $EXISTING_WORKERS; do
-                log_message "INFO" "Stopping $container..."
-                docker stop "$container" 2>/dev/null || true
-                docker rm -f "$container" 2>/dev/null || true
+              log_message "INFO" "Sending SIGTERM to $container (timeout: ${GRACEFUL_STOP_TIMEOUT}s)..."
+
+              # docker stop sends SIGTERM, then waits -t seconds before SIGKILL
+              # This gives worker.close() its full budget to drain in-flight jobs
+              if docker stop -t "$GRACEFUL_STOP_TIMEOUT" "$container" 2>/dev/null; then
+                log_message "INFO" "✅ $container stopped gracefully"
+              else
+                log_message "WARN" "⚠️ $container did not stop within ${GRACEFUL_STOP_TIMEOUT}s — SIGKILL was sent by Docker"
+              fi
+
+              docker rm -f "$container" 2>/dev/null || true
+              log_message "INFO" "🗑️ $container removed"
+            }
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # CAPTURE EXISTING WORKERS BEFORE WE START ANYTHING NEW
+            #
+            # WHY: We snapshot the old worker list now so that even if naming overlaps
+            # occur (unlikely but defensive), we operate on a fixed, known set.
+            # ─────────────────────────────────────────────────────────────────────────────
+            OLD_WORKERS=$(docker ps -a --filter "name=worker-" --format "{{.Names}}" | sort -V || echo "")
+
+            if [ -n "$OLD_WORKERS" ]; then
+              log_message "INFO" "Existing worker containers detected:"
+              for w in $OLD_WORKERS; do
+                log_message "INFO" "  → $w"
               done
+            else
+              log_message "INFO" "No existing worker containers found — fresh deployment"
             fi
-            log_message "INFO" "✅ Existing workers stopped"
 
-            # Start new worker containers
-            log_message "INFO" "Starting $WORKER_REPLICAS worker container(s)..."
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 1: START NEW WORKERS UNDER TEMPORARY NAMES (worker-new-*)
+            #
+            # WHY: We spin up new containers BEFORE touching old ones. This ensures at
+            # no point is the queue left with zero active consumers. BullMQ jobs that
+            # arrive during deployment will be picked up by the new containers immediately.
+            #
+            # Using a "worker-new-*" naming convention avoids colliding with the running
+            # "worker-*" containers and makes the rollback path clear.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 1: Starting new worker containers ===="
+
             WORKERS_STARTED=0
             WORKERS_FAILED=0
+            HEALTHY_NEW_WORKERS=""
 
             for i in $(seq 1 "$WORKER_REPLICAS"); do
-              WORKER_NAME="worker-$i"
-              log_message "INFO" "Starting $WORKER_NAME..."
+              NEW_NAME="worker-new-$i"
+              log_message "INFO" "Starting $NEW_NAME..."
 
               if docker run -d \
-                --name "$WORKER_NAME" \
+                --name "$NEW_NAME" \
                 --restart unless-stopped \
                 --env-file "/home/onehash/.env" \
                 --add-host=host.docker.internal:host-gateway \
@@ -367,44 +431,132 @@ jobs:
                 --cpus="0.5" \
                 "$WORKER_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
 
-                log_message "INFO" "Container $WORKER_NAME created, waiting for initialization..."
+                log_message "INFO" "Container $NEW_NAME created, waiting for initialization..."
                 sleep 5
 
-                # Health check
-                if check_worker_health "$WORKER_NAME"; then
+                if check_worker_health "$NEW_NAME"; then
                   WORKERS_STARTED=$((WORKERS_STARTED + 1))
-                  log_message "INFO" "✅ $WORKER_NAME started and healthy"
+                  HEALTHY_NEW_WORKERS="$HEALTHY_NEW_WORKERS $NEW_NAME"
+                  log_message "INFO" "✅ $NEW_NAME is healthy and consuming from queue"
                 else
                   WORKERS_FAILED=$((WORKERS_FAILED + 1))
-                  log_message "ERROR" "❌ $WORKER_NAME failed health check"
-                  # Keep the failed container for debugging, don't remove it
+                  log_message "ERROR" "❌ $NEW_NAME failed health check — keeping for debug, will not promote"
+                  # Do NOT rename or proceed with a broken container.
+                  # Old workers are still running, so queue is still being served.
                 fi
               else
                 WORKERS_FAILED=$((WORKERS_FAILED + 1))
-                log_message "ERROR" "❌ Failed to start $WORKER_NAME"
+                log_message "ERROR" "❌ Failed to start $NEW_NAME"
               fi
             done
 
-            # Summary
-            log_message "INFO" "==== DEPLOYMENT SUMMARY ===="
-            log_message "INFO" "Workers requested: $WORKER_REPLICAS"
-            log_message "INFO" "Workers started: $WORKERS_STARTED"
-            log_message "INFO" "Workers failed: $WORKERS_FAILED"
+            log_message "INFO" "New workers healthy: $WORKERS_STARTED / $WORKER_REPLICAS"
 
-            # List running workers
+            # ─────────────────────────────────────────────────────────────────────────────
+            # ABORT GUARD: Don't drain old workers if no new ones are healthy
+            #
+            # WHY: If all new containers failed (bad image, OOM, config error), we must
+            # NOT touch the old workers. They are still serving jobs. Aborting here
+            # preserves the running system and avoids an outage.
+            # ─────────────────────────────────────────────────────────────────────────────
+            if [ "$WORKERS_STARTED" -eq 0 ]; then
+              log_message "ERROR" "❌ All new workers failed to start. Old workers left untouched. Deployment ABORTED."
+              log_message "ERROR" "   Investigate new container logs before retrying."
+              exit 1
+            fi
+
+            if [ "$WORKERS_FAILED" -gt 0 ]; then
+              log_message "WARN" "⚠️ $WORKERS_FAILED new worker(s) failed health check — proceeding with $WORKERS_STARTED healthy replacement(s)"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 2: GRACEFULLY DRAIN AND STOP OLD WORKERS
+            #
+            # WHY: Now that new workers are healthy and consuming jobs, we can safely
+            # drain the old ones. We stop them one at a time with the full graceful
+            # timeout, ensuring any job the old container is mid-processing gets to finish.
+            #
+            # Draining one-by-one (rather than parallel stop) means at any moment
+            # we always have at least (WORKERS_STARTED - 1) new + some old workers
+            # serving the queue. Smoother capacity curve during rollover.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 2: Gracefully stopping old worker containers ===="
+
+            if [ -n "$OLD_WORKERS" ]; then
+              for old_container in $OLD_WORKERS; do
+                log_message "INFO" "Draining old container: $old_container"
+                graceful_stop_container "$old_container"
+              done
+              log_message "INFO" "✅ All old workers drained and removed"
+            else
+              log_message "INFO" "No old workers to drain"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 3: RENAME worker-new-* → worker-*
+            #
+            # WHY: Rename to canonical names so the next deployment correctly identifies
+            # these as "old" containers to drain. Also keeps monitoring/alerting that
+            # filters by container name (e.g. "worker-1") working correctly.
+            #
+            # `docker rename` is atomic and does not restart the container.
+            # The --restart unless-stopped policy is preserved through rename.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 3: Renaming new workers to canonical names ===="
+
+            for i in $(seq 1 "$WORKER_REPLICAS"); do
+              NEW_NAME="worker-new-$i"
+              FINAL_NAME="worker-$i"
+
+              # Only rename containers that are in our healthy set
+              if echo "$HEALTHY_NEW_WORKERS" | grep -qw "$NEW_NAME"; then
+                if docker rename "$NEW_NAME" "$FINAL_NAME" 2>/dev/null; then
+                  log_message "INFO" "✅ Renamed $NEW_NAME → $FINAL_NAME"
+                else
+                  log_message "WARN" "⚠️ Failed to rename $NEW_NAME → $FINAL_NAME (may already exist or container exited)"
+                fi
+              else
+                log_message "WARN" "Skipping rename for $NEW_NAME — it was not healthy"
+              fi
+            done
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 4: CLEANUP — Remove any leftover worker-new-* containers
+            #
+            # WHY: Failed new containers (those that didn't pass health checks) are
+            # still named worker-new-*. We remove them now that old workers are gone
+            # and the system is stable. They were kept alive until now for log inspection.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 4: Cleaning up failed new containers ===="
+
+            LEFTOVER_NEW=$(docker ps -a --filter "name=worker-new-" --format "{{.Names}}" || echo "")
+            if [ -n "$LEFTOVER_NEW" ]; then
+              for container in $LEFTOVER_NEW; do
+                log_message "WARN" "Removing failed new container: $container"
+                docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
+                docker rm -f "$container" 2>/dev/null || true
+              done
+            else
+              log_message "INFO" "No leftover new containers to clean up"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # FINAL STATUS
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== DEPLOYMENT SUMMARY ===="
+            log_message "INFO" "Workers requested:  $WORKER_REPLICAS"
+            log_message "INFO" "Workers started:    $WORKERS_STARTED"
+            log_message "INFO" "Workers failed:     $WORKERS_FAILED"
+
             log_message "INFO" "Running worker containers:"
             docker ps --filter "name=worker-" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | tee -a "$LOG_FILE"
 
-            # Cleanup old images
+            # Cleanup old images (72h filter avoids removing the image we just deployed)
             log_message "INFO" "Pruning old Docker images..."
             docker image prune -af --filter "until=72h" 2>&1 | tee -a "$LOG_FILE" || true
 
-            # Final status
-            if [ "$WORKERS_STARTED" -eq 0 ]; then
-              log_message "ERROR" "❌ No workers started successfully - deployment FAILED"
-              exit 1
-            elif [ "$WORKERS_FAILED" -gt 0 ]; then
-              log_message "WARN" "⚠️ Some workers failed, but $WORKERS_STARTED are running"
+            if [ "$WORKERS_FAILED" -gt 0 ]; then
+              log_message "WARN" "⚠️ Deployment completed with $WORKERS_FAILED failed worker(s)"
             fi
 
             log_message "INFO" "✅ ==== WORKER DEPLOYMENT COMPLETED ===="
