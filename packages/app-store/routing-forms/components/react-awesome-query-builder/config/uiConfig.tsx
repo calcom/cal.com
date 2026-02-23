@@ -108,6 +108,11 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.text,
       factory: EmailFactory,
     },
+    multiemail: {
+      ...widgets.text,
+      factory: TextFactory,
+      valuePlaceholder: "Enter emails",
+    },
     address: {
       ...widgets.text,
       factory: TextFactory,

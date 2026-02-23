@@ -217,6 +217,23 @@ describe("getFieldResponseForJsonLogic", () => {
     });
   });
 
+  describe("multiemail", () => {
+    it("should pass through multiemail field value unchanged", () => {
+      const field = { type: "multiemail", options: undefined };
+      const result = getFieldResponseForJsonLogic({ field, value: "test@example.com" });
+      expect(result).toBe("test@example.com");
+    });
+
+    it("should pass through multiemail array value unchanged", () => {
+      const field = { type: "multiemail", options: undefined };
+      const result = getFieldResponseForJsonLogic({
+        field,
+        value: ["a@example.com", "b@example.com"],
+      });
+      expect(result).toEqual(["a@example.com", "b@example.com"]);
+    });
+  });
+
   describe("passthrough types", () => {
     it("should pass through boolean field value unchanged", () => {
       const field = { type: "boolean", options: undefined };

@@ -12,6 +12,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
     address: {
       ...BasicConfig.widgets.text,
     },
@@ -49,6 +52,12 @@ function getTypes(configFor: ConfigFor) {
       },
     },
     email: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+      },
+    },
+    multiemail: {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
