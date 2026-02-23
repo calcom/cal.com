@@ -1,8 +1,7 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TSearchTeamMembersInputSchema } from "./searchTeamMembers.schema";
 
@@ -35,67 +34,22 @@ export const searchTeamMembersHandler = async ({
   input,
 }: SearchTeamMembersInput): Promise<SearchTeamMembersResponse> => {
   const { teamId, cursor, limit, search, memberUserIds } = input;
+  const membershipRepo = new MembershipRepository(ctx.prisma);
 
-  // Verify the requesting user is a member of this team
-  const callerMembership = await ctx.prisma.membership.findFirst({
-    where: { teamId, userId: ctx.user.id },
-    select: { id: true },
-  });
-
-  if (!callerMembership) {
+  const isMember = await membershipRepo.hasMembership({ teamId, userId: ctx.user.id });
+  if (!isMember) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
   }
 
-  const where: Record<string, unknown> = {
+  const { memberships, nextCursor, hasMore } = await membershipRepo.searchMembers({
     teamId,
-    accepted: true,
-  };
-
-  const userFilter: Record<string, unknown> = {};
-
-  if (search) {
-    userFilter.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { email: { contains: search, mode: "insensitive" } },
-    ];
-  }
-
-  if (memberUserIds?.length && cursor) {
-    userFilter.id = { in: memberUserIds, gt: cursor };
-  } else if (memberUserIds?.length) {
-    userFilter.id = { in: memberUserIds };
-  } else if (cursor) {
-    userFilter.id = { gt: cursor };
-  }
-
-  if (Object.keys(userFilter).length > 0) {
-    where.user = userFilter;
-  }
-
-  const memberships = await ctx.prisma.membership.findMany({
-    where,
-    take: limit + 1,
-    orderBy: { user: { id: "asc" } },
-    select: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          avatarUrl: true,
-          username: true,
-          defaultScheduleId: true,
-        },
-      },
-      role: true,
-    },
+    search,
+    cursor,
+    limit,
+    memberUserIds,
   });
 
-  const hasMore = memberships.length > limit;
-  const items = hasMore ? memberships.slice(0, limit) : memberships;
-  const nextCursor = items.length > 0 ? items[items.length - 1].user.id : undefined;
-
-  const members: TeamMemberSearchResult[] = items.map((membership) => ({
+  const members: TeamMemberSearchResult[] = memberships.map((membership) => ({
     userId: membership.user.id,
     name: membership.user.name,
     email: membership.user.email,

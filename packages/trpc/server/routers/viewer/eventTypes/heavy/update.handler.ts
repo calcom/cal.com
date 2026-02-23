@@ -1,5 +1,3 @@
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
-
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -10,6 +8,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -23,20 +22,19 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
-  WorkflowTriggerEvents,
-  SchedulingType,
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
+  SchedulingType,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
-  ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
+  ensureUniqueBookingFields,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
@@ -522,7 +520,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       // Validate that all new/updated host userIds are valid team members
       const allUserIds = [...hostsToAdd.map((h) => h.userId), ...hostsToUpdate.map((h) => h.userId)];
-      if (allUserIds.length > 0 && !allUserIds.every((uid) => teamMemberIds.includes(uid)) && !eventType.team?.parentId) {
+      if (
+        allUserIds.length > 0 &&
+        !allUserIds.every((uid) => teamMemberIds.includes(uid)) &&
+        !eventType.team?.parentId
+      ) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
@@ -986,7 +988,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // - If calVideoSettings provided in input, sync to children
   // - If Cal Video location removed, delete from children (pass null)
   // - Otherwise, leave children's settings untouched (pass undefined)
-  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined = undefined;
+  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined;
   if (calVideoSettings !== undefined) {
     calVideoSettingsForChildren = calVideoSettings;
   } else if (eventType.calVideoSettings && !isCalVideoLocationActive) {
@@ -996,21 +998,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // Reconstruct children array from pendingChildrenChanges or preserve existing children
   let resolvedChildren = children;
   if (!children) {
-    const existingChildren = await ctx.prisma.eventType.findMany({
-      where: { parentId: id },
-      select: {
-        hidden: true,
-        slug: true,
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            eventTypes: { select: { slug: true } },
-          },
-        },
-      },
-    });
+    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+    const existingChildren = await eventTypeRepo.findChildrenByParentId(id);
 
     if (pendingChildrenChanges?.clearAllChildren) {
       resolvedChildren = pendingChildrenChanges.childrenToAdd.map((c) => ({
@@ -1024,9 +1013,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       }));
     } else {
       const removeSet = new Set(pendingChildrenChanges?.childrenToRemove ?? []);
-      const updateMap = new Map(
-        (pendingChildrenChanges?.childrenToUpdate ?? []).map((u) => [u.userId, u])
-      );
+      const updateMap = new Map((pendingChildrenChanges?.childrenToUpdate ?? []).map((u) => [u.userId, u]));
 
       resolvedChildren = existingChildren
         .filter((c) => c.owner && !removeSet.has(c.owner.id))
@@ -1037,8 +1024,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               id: c.owner!.id,
               name: c.owner!.name ?? "",
               email: c.owner!.email,
-              eventTypeSlugs: c.owner!.eventTypes
-                .map((et) => et.slug)
+              eventTypeSlugs: c
+                .owner!.eventTypes.map((et) => et.slug)
                 .filter((slug) => slug !== updatedEventType.slug),
             },
             hidden: update?.hidden ?? c.hidden,

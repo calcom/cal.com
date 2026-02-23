@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-
 import type { FormValues, Host, HostLocation, HostUpdate, PendingHostChanges } from "./types";
 
 /**
@@ -56,11 +55,12 @@ export function useHostsForEventType() {
   );
 
   // Use useWatch for better performance - only re-renders when this specific field changes
-  const pendingChanges = useWatch({
-    control,
-    name: "pendingHostChanges",
-    defaultValue: DEFAULT_PENDING_CHANGES,
-  }) ?? DEFAULT_PENDING_CHANGES;
+  const pendingChanges =
+    useWatch({
+      control,
+      name: "pendingHostChanges",
+      defaultValue: DEFAULT_PENDING_CHANGES,
+    }) ?? DEFAULT_PENDING_CHANGES;
 
   // Add a new host
   const addHost = useCallback(
@@ -206,6 +206,7 @@ export function useHostsForEventType() {
       const hostsToAdd = newHosts.filter((h) => !serverHostMap.has(h.userId));
 
       // Hosts to update: in both, check for changes
+      const COMPARABLE_FIELDS = ["isFixed", "priority", "weight", "scheduleId", "groupId"] as const;
       const hostsToUpdate: HostUpdate[] = [];
       for (const newHost of newHosts) {
         const serverHost = serverHostMap.get(newHost.userId);
@@ -213,25 +214,11 @@ export function useHostsForEventType() {
           const changes: HostUpdate = { userId: newHost.userId };
           let hasChanges = false;
 
-          if (newHost.isFixed !== serverHost.isFixed) {
-            changes.isFixed = newHost.isFixed;
-            hasChanges = true;
-          }
-          if (newHost.priority !== serverHost.priority) {
-            changes.priority = newHost.priority;
-            hasChanges = true;
-          }
-          if (newHost.weight !== serverHost.weight) {
-            changes.weight = newHost.weight;
-            hasChanges = true;
-          }
-          if (newHost.scheduleId !== serverHost.scheduleId) {
-            changes.scheduleId = newHost.scheduleId;
-            hasChanges = true;
-          }
-          if (newHost.groupId !== serverHost.groupId) {
-            changes.groupId = newHost.groupId;
-            hasChanges = true;
+          for (const field of COMPARABLE_FIELDS) {
+            if (newHost[field] !== serverHost[field]) {
+              (changes[field] as (typeof newHost)[typeof field]) = newHost[field];
+              hasChanges = true;
+            }
           }
           if (!areLocationsEqual(newHost.location, serverHost.location)) {
             changes.location = newHost.location;

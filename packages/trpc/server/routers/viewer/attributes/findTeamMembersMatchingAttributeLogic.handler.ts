@@ -1,11 +1,9 @@
 import type { ServerResponse } from "node:http";
-import type { NextApiResponse } from "next";
-
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { NextApiResponse } from "next";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
@@ -56,48 +54,22 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await new UserRepository(ctx.prisma).findByIds({ ids: matchingTeamMembersIds });
+  const userRepo = new UserRepository(ctx.prisma);
 
-  const sortedMembers = matchingTeamMembers
-    .map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    }))
-    .sort((a, b) => a.id - b.id);
-
-  const searchLower = search?.toLowerCase();
-  const filteredMembers = searchLower
-    ? sortedMembers.filter(
-        (m) =>
-          m.name?.toLowerCase().includes(searchLower) || m.email.toLowerCase().includes(searchLower)
-      )
-    : sortedMembers;
-
-  // When limit is not provided, return all results (backward compatible)
-  if (!limit) {
-    return {
-      mainWarnings,
-      fallbackWarnings,
-      troubleshooter,
-      result: filteredMembers,
-      nextCursor: undefined,
-      total: filteredMembers.length,
-    };
-  }
-
-  // Paginate using cursor-based keyset pagination on user ID
-  const startIndex = cursor ? filteredMembers.findIndex((m) => m.id > cursor) : 0;
-  const page = startIndex >= 0 ? filteredMembers.slice(startIndex, startIndex + limit) : [];
-  const nextCursor = page.length === limit ? page[page.length - 1].id : undefined;
+  const { users, nextCursor, total } = await userRepo.findByIdsWithPagination({
+    ids: matchingTeamMembersIds,
+    search,
+    cursor,
+    limit,
+  });
 
   return {
     mainWarnings,
     fallbackWarnings,
     troubleshooter,
-    result: page,
+    result: users,
     nextCursor,
-    total: filteredMembers.length,
+    total,
   };
 };
 
