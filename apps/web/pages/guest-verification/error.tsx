@@ -8,7 +8,7 @@ type Props = {
   message: string;
 };
 
-export default function GuestVerificationError({ title, message }: Props) {
+export default function GuestVerificationError({ title, message }: Props): JSX.Element {
   return (
     <>
       <IconSprites />
@@ -25,18 +25,22 @@ export default function GuestVerificationError({ title, message }: Props) {
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+): Promise<{ props: { title: string; message: string } }> => {
   const { reason } = context.query;
   const session = await getServerSession(context);
   const locale = session?.user?.locale ?? "en";
 
   // Load translations
-  const fs = await import("fs");
-  const path = await import("path");
-  const translationsPath = path.join(process.cwd(), "public", "static", "locales", locale, "common.json");
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const availableLocales = fs.readdirSync(path.join(process.cwd(), "public", "static", "locales"));
+  const safeLocale = availableLocales.includes(locale) ? locale : "en";
+  const translationsPath = path.join(process.cwd(), "public", "static", "locales", safeLocale, "common.json");
   const translations = JSON.parse(fs.readFileSync(translationsPath, "utf8"));
 
-  const getErrorMessage = () => {
+  const getErrorMessage = (): string => {
     switch (reason) {
       case "expired":
         return translations.guest_verification_link_expired;

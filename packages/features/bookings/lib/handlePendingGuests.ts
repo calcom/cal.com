@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import GuestVerificationEmailTemplate from "@calcom/emails/templates/guest-verification-email";
@@ -9,13 +9,19 @@ export async function createPendingGuestsAndSendEmails({
   booking,
   bookerUrl,
   language = "en",
+  timeZone,
 }: {
   guestsToVerify: string[];
   booking: { id: number; uid: string; title: string; startTime: Date };
   bookerUrl: string;
   language?: string;
-}) {
+  timeZone: string;
+}): Promise<void> {
   const t = await getTranslation(language, "common");
+
+  const bookingDateFormatted = dayjs(booking.startTime)
+    .tz(timeZone)
+    .format("MMMM D, YYYY [at] h:mm A");
 
   for (const guestEmail of guestsToVerify) {
     const token = generateToken();
@@ -49,7 +55,7 @@ export async function createPendingGuestsAndSendEmails({
       to: guestEmail,
       guestEmail,
       bookingTitle: booking.title,
-      bookingDate: dayjs(booking.startTime).format("MMMM D, YYYY [at] h:mm A"),
+      bookingDate: bookingDateFormatted,
       verificationLink,
     });
 

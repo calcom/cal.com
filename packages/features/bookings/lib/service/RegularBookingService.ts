@@ -2876,6 +2876,7 @@ async function handler(
           },
           bookerUrl,
           language: attendeeLanguage ?? "en",
+          timeZone: attendeeTimezone,
         });
         tracingLogger.info("Sent verification emails to pending guests", { count: guestsToVerify.length });
       } catch (error) {
