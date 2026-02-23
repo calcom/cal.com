@@ -1,8 +1,7 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
-import prisma from "@calcom/prisma";
+import { updateUserAvatarUrl } from "@calcom/lib/server/updateUserAvatarUrl";
 
 export async function updateProfilePhotoMicrosoft(accessToken: string, userId: number) {
   logger.info("updateProfilePhotoMicrosoft called", { hasToken: !!accessToken });
@@ -36,8 +35,7 @@ export async function updateProfilePhotoMicrosoft(accessToken: string, userId: n
       userId,
     });
 
-    const userRepo = new UserRepository(prisma);
-    await userRepo.updateAvatar({ id: userId, avatarUrl: resizedAvatarUrl });
+    await updateUserAvatarUrl({ id: userId, avatarUrl: resizedAvatarUrl });
     logger.info("Microsoft profile photo updated successfully");
   } catch (error) {
     logger.error("Error updating avatarUrl from Microsoft sign-in", error);

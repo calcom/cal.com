@@ -230,6 +230,7 @@ export default function Login({
                       }}>
                       <GoogleIcon />
                       <span>{t("signin_with_google")}</span>
+                      {lastUsed === "google" && <LastUsed />}
                     </Button>
                   )}
                   {isOutlookLoginEnabled && (
@@ -246,6 +247,7 @@ export default function Login({
                       }}>
                       <MicrosoftIcon />
                       <span>{t("signin_with_microsoft")}</span>
+                      {lastUsed === "microsoft" && <LastUsed />}
                     </Button>
                   )}
                 </div>
