@@ -1,4 +1,5 @@
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -82,7 +83,7 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
 
   const attendeeList = await Promise.all(attendeePromises);
 
-  let calendarEvent: Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string } = {
+  let calendarEvent: BuiltCalendarEvent = {
     uid: bookingUid,
     type: booking.eventType.slug,
     title: booking.title,

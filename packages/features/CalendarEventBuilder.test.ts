@@ -62,14 +62,7 @@ describe("CalendarEventBuilder", () => {
     });
 
   it("should create a basic calendar event", () => {
-    const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        additionalNotes: "Some notes",
-      })
+    const event = createBuilder({ additionalNotes: "Some notes" })
       .withEventType({
         description: "Test description",
         id: 123,
@@ -88,12 +81,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with event type details", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         description: "Test description",
         id: 123,
@@ -126,12 +113,6 @@ describe("CalendarEventBuilder", () => {
     };
 
     const event = createBuilder({ organizer })
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -165,13 +146,7 @@ describe("CalendarEventBuilder", () => {
       },
     ];
 
-    const event = createBuilder({ attendees })
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
+    const event = createBuilder({ attendees, bookerUrl: "https://cal.com/user" })
       .withEventType({
         id: 123,
       })
@@ -196,12 +171,6 @@ describe("CalendarEventBuilder", () => {
     const userFieldsResponses = {};
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -224,12 +193,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with location", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -262,12 +225,6 @@ describe("CalendarEventBuilder", () => {
     };
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -282,12 +239,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with identifiers", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -306,12 +257,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with confirmation settings", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -330,12 +275,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should set oneTimePassword to null when isConfirmedByDefault is true", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -354,12 +293,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with platform variables", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -401,12 +334,6 @@ describe("CalendarEventBuilder", () => {
     ];
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -428,12 +355,6 @@ describe("CalendarEventBuilder", () => {
     };
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -464,12 +385,6 @@ describe("CalendarEventBuilder", () => {
     };
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -490,12 +405,6 @@ describe("CalendarEventBuilder", () => {
     };
 
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -510,12 +419,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with attendee seat ID", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -530,12 +433,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with UID", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -550,12 +447,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with one-time password", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -570,12 +461,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with recurring event ID", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -592,12 +477,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with assignment reason", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -618,12 +497,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with assignment reason without details", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -644,12 +517,6 @@ describe("CalendarEventBuilder", () => {
 
   it("should create an event with null assignment reason", () => {
     const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
       .withEventType({
         id: 123,
       })
@@ -687,14 +554,13 @@ describe("CalendarEventBuilder", () => {
       },
     ];
 
-    const event = createBuilder({ type: "complete-test", organizer, attendees })
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Complete Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        additionalNotes: "Complete test notes",
-      })
+    const event = createBuilder({
+      type: "complete-test",
+      organizer,
+      attendees,
+      title: "Complete Test Event",
+      additionalNotes: "Complete test notes",
+    })
       .withEventType({
         description: "Complete test description",
         id: 123,
@@ -804,14 +670,7 @@ describe("CalendarEventBuilder", () => {
       attendees: defaultAttendees,
     };
 
-    const event = CalendarEventBuilder.fromEvent(existingEvent)
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Updated Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
-      .build();
+    const event = CalendarEventBuilder.fromEvent({ ...existingEvent, title: "Updated Event" }).build();
 
     expect(event).not.toBeNull();
     if (event) {
@@ -821,14 +680,7 @@ describe("CalendarEventBuilder", () => {
   });
 
   it("should propagate disableCancelling and disableRescheduling", () => {
-    const event = createBuilder()
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Test Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-        additionalNotes: "Some notes",
-      })
+    const event = createBuilder({ additionalNotes: "Some notes" })
       .withEventType({
         description: "Test description",
         id: 123,
@@ -1529,16 +1381,14 @@ describe("CalendarEventBuilder", () => {
         type: "match-event",
         organizer: organizerPerson,
         attendees: [attendeePerson],
+        bookerUrl: "https://cal.com",
+        title: "Match Test",
+        startTime: new Date(mockStartTime).toISOString(),
+        endTime: new Date(mockEndTime).toISOString(),
+        additionalNotes: "Match test description",
       });
 
       const manualEvent = manualBuilder
-        .withBasicDetails({
-          bookerUrl: "https://cal.com",
-          title: "Match Test",
-          startTime: new Date(mockStartTime).toISOString(),
-          endTime: new Date(mockEndTime).toISOString(),
-          additionalNotes: "Match test description",
-        })
         .withEventType({
           id: 700,
           description: "Match event type",

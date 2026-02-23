@@ -36,6 +36,7 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
+import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -1500,9 +1501,7 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
-  let evt: Omit<CalendarEvent, "bookerUrl"> & {
-    bookerUrl: string;
-  } = new CalendarEventBuilder({
+  let evt: BuiltCalendarEvent = new CalendarEventBuilder({
     bookerUrl,
     title: eventName,
     startTime: dayjs(reqBody.start).utc().format(),

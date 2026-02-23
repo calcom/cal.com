@@ -60,6 +60,7 @@ async function _buildPersonFromAttendee(
   } satisfies Person;
 }
 
+export type BuiltCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string };
 export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
@@ -281,30 +282,6 @@ export class CalendarEventBuilder {
     }
 
     return builder;
-  }
-
-  withBasicDetails({
-    bookerUrl,
-    title,
-    startTime,
-    endTime,
-    additionalNotes,
-  }: {
-    bookerUrl: string;
-    title: string;
-    startTime: string;
-    endTime: string;
-    additionalNotes?: string;
-  }) {
-    this.event = {
-      ...this.event,
-      bookerUrl,
-      title,
-      startTime,
-      endTime,
-      additionalNotes,
-    };
-    return this;
   }
 
   withEventType(eventType: {
@@ -542,7 +519,7 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  build(): Omit<CalendarEvent, "bookerUrl"> & { bookerUrl: string } {
+  build(): BuiltCalendarEvent {
     return this.event;
   }
 }
