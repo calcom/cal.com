@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: true,
         timeZone: true,
         locale: true,
-        credentials: true,
+        credentials: { select: { id: true, type: true } },
         destinationCalendar: true,
       },
     });
