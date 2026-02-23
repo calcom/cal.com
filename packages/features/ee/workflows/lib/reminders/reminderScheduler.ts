@@ -14,7 +14,7 @@ import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/t
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -222,31 +222,20 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
 
     for (const step of workflow.steps) {
       if (
+        // These tasks currently write the entire payload in the task
         (workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
           workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
+        isEmailAction(step.action) &&
         evt
       ) {
-        if (isEmailAction(step.action)) {
-          await WorkflowService.scheduleLazyEmailWorkflow({
-            evt,
-            workflowStepId: step.id,
-            workflowTriggerEvent: workflow.trigger,
-            workflow,
-            seatReferenceId: args.seatReferenceUid,
-          });
-          continue;
-        }
-
-        if (isSMSAction(step.action)) {
-          await WorkflowService.scheduleLazySMSWorkflow({
-            evt,
-            workflowStepId: step.id,
-            workflowTriggerEvent: workflow.trigger,
-            workflow,
-            seatReferenceId: args.seatReferenceUid,
-          });
-          continue;
-        }
+        await WorkflowService.scheduleLazyEmailWorkflow({
+          evt,
+          workflowStepId: step.id,
+          workflowTriggerEvent: workflow.trigger,
+          workflow,
+          seatReferenceId: args.seatReferenceUid,
+        });
+        continue;
       }
 
       await processWorkflowStep(

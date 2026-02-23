@@ -25,7 +25,6 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
   sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
-  sendWorkflowSMS: () => import("./sendWorkflowSMS").then((module) => module.sendWorkflowSMS),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
   scanWorkflowUrls: () => import("./scanWorkflowUrls").then((module) => module.scanWorkflowUrls),
   sendAnalyticsEvent: () =>
