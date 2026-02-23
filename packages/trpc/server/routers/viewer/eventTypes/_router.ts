@@ -148,31 +148,22 @@ export const eventTypesRouter = router({
     });
   }),
 
-  getHostsWithLocationOptions: createEventPbacProcedure("eventType.update", [
-    MembershipRole.ADMIN,
-    MembershipRole.OWNER,
-  ])
-    .input(ZGetHostsWithLocationOptionsInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
-
-      return getHostsWithLocationOptionsHandler({
-        ctx,
-        input,
-      });
-    }),
-
-  massApplyHostLocation: createEventPbacProcedure("eventType.update", [
-    MembershipRole.ADMIN,
-    MembershipRole.OWNER,
-  ])
-    .input(ZMassApplyHostLocationInputSchema)
+  // Toggle event type favorite for the current user
+  toggleFavorite: authedProcedure
+    .input(
+      z.object({
+        eventTypeId: z.number(),
+        favorite: z.boolean(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
-
-      return massApplyHostLocationHandler({
-        ctx,
-        input,
-      });
+      const { toggleFavoriteHandler } = await import("./toggleFavorite.handler");
+      return toggleFavoriteHandler({ ctx, input });
     }),
+
+  // List favorite event type ids for current user
+  listFavorites: authedProcedure.query(async ({ ctx }) => {
+    const { listFavoritesHandler } = await import("./listFavorites.handler");
+    return listFavoritesHandler({ ctx });
+  }),
 });
