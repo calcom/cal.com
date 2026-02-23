@@ -115,11 +115,16 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
 
   const { data: activeTeamPlan } = trpc.viewer.teams.hasActiveTeamPlan.useQuery();
 
-  const teamPrice = `$${BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]}`;
-  const orgPrice = `$${BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]}`;
+  const formatCents = (cents: number) => {
+    const dollars = cents / 100;
+    return `$${cents % 100 === 0 ? dollars : dollars.toFixed(2)}`;
+  };
+
+  const teamPrice = formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]);
+  const orgPrice = formatCents(BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]);
 
   const currentPlanPricingKey = activeTeamPlan?.billingPeriod === "ANNUALLY" ? "annual" : "monthly";
-  const currentTeamPrice = `$${BILLING_PRICING[BILLING_PLANS.TEAMS][currentPlanPricingKey]}`;
+  const currentTeamPrice = formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][currentPlanPricingKey]);
 
   const bpParam = billingPeriod === "annual" ? "a" : "m";
   const teamHref = `/settings/teams/new?bp=${bpParam}`;
