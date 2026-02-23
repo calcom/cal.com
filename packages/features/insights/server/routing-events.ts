@@ -1,6 +1,4 @@
- 
 import mapKeys from "lodash/mapKeys";
- 
 import startCase from "lodash/startCase";
 
 import {
@@ -132,28 +130,31 @@ class RoutingEventsInsights {
     const dataWithFlatResponse = data.data.map((item) => {
       const bookingAttendees = item.bookingAttendees || [];
 
-      const fields = (headers || []).reduce((acc, header) => {
-        const id = header.id;
-        const field = item.fields.find((field) => field.fieldId === id);
-        if (!field) {
-          acc[header.label] = "";
+      const fields = (headers || []).reduce(
+        (acc, header) => {
+          const id = header.id;
+          const field = item.fields.find((field) => field.fieldId === id);
+          if (!field) {
+            acc[header.label] = "";
+            return acc;
+          }
+          if (header.type === "select") {
+            acc[header.label] = header.options?.find((option) => option.id === field.valueString)?.label;
+          } else if (header.type === "multiselect" && Array.isArray(field.valueStringArray)) {
+            acc[header.label] = field.valueStringArray
+              .map((value) => header.options?.find((option) => option.id === value)?.label)
+              .filter((label): label is string => label !== undefined)
+              .sort()
+              .join(", ");
+          } else if (header.type === "number") {
+            acc[header.label] = field.valueNumber?.toString() || "";
+          } else {
+            acc[header.label] = field.valueString || "";
+          }
           return acc;
-        }
-        if (header.type === "select") {
-          acc[header.label] = header.options?.find((option) => option.id === field.valueString)?.label;
-        } else if (header.type === "multiselect" && Array.isArray(field.valueStringArray)) {
-          acc[header.label] = field.valueStringArray
-            .map((value) => header.options?.find((option) => option.id === value)?.label)
-            .filter((label): label is string => label !== undefined)
-            .sort()
-            .join(", ");
-        } else if (header.type === "number") {
-          acc[header.label] = field.valueNumber?.toString() || "";
-        } else {
-          acc[header.label] = field.valueString || "";
-        }
-        return acc;
-      }, {} as Record<string, string | undefined>);
+        },
+        {} as Record<string, string | undefined>
+      );
 
       return {
         "Booking UID": item.bookingUid,
@@ -197,10 +198,13 @@ class RoutingEventsInsights {
         utm_content: item.utm_content || "",
         ...((bookingAttendees || [])
           .filter((attendee) => typeof attendee.name === "string" && typeof attendee.email === "string")
-          .reduce((acc, attendee, index) => {
-            acc[`Attendee ${index + 1}`] = `${attendee.name} (${attendee.email})`;
-            return acc;
-          }, {} as Record<string, string>) || {}),
+          .reduce(
+            (acc, attendee, index) => {
+              acc[`Attendee ${index + 1}`] = `${attendee.name} (${attendee.email})`;
+              return acc;
+            },
+            {} as Record<string, string>
+          ) || {}),
       };
     });
 
@@ -265,6 +269,7 @@ class RoutingEventsInsights {
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
     const ids = new Set<string>();
     const headers = (fields || [])
+      .filter((f) => !f.deleted)
       .map((f) => {
         return {
           id: f.id,

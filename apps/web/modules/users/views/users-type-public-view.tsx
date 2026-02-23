@@ -3,7 +3,7 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
-import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
+import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";

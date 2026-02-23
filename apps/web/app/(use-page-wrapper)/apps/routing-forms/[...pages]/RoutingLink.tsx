@@ -19,6 +19,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -177,7 +178,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           <>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
+                <div className="main border-booker md:border-booker-width dark:bg-cal-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
                   <Toaster position="bottom-right" />
 
                   <form onSubmit={handleOnSubmit}>
@@ -208,7 +209,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
               <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
-                <div className="text-emphasis">{customPageMessage}</div>
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient */}
+                <div
+                  className="text-emphasis prose prose-sm dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(customPageMessage) }}
+                />
               </div>
             </div>
           </div>

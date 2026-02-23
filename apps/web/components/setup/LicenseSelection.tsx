@@ -13,7 +13,7 @@ import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
 
 type LicenseSelectionFormValues = {
   licenseKey: string;
@@ -101,7 +101,7 @@ const LicenseSelection = (
   return (
     <form
       {...rest}
-      className="space-y-6"
+      className="stack-y-6"
       onSubmit={(e) => {
         e.preventDefault();
         if (value === "FREE") {
@@ -119,7 +119,7 @@ const LicenseSelection = (
         <RadioGroup.Item value="FREE" className="h-full">
           <div
             className={classNames(
-              "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "FREE" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-emphasis text-xl">{t("agplv3_license")}</h2>
@@ -136,7 +136,7 @@ const LicenseSelection = (
         <RadioGroup.Item value="EXISTING" className="h-full">
           <div
             className={classNames(
-              "bg-default h-full cursor-pointer space-y-2 rounded-md border p-4 hover:border-black",
+              "bg-default h-full cursor-pointer stack-y-2 rounded-md border p-4 hover:border-black",
               value === "EXISTING" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-emphasis text-xl">{t("enter_license_key")}</h2>
@@ -158,8 +158,8 @@ const LicenseSelection = (
 
       {value === "EXISTING" && (
         <FormProvider {...formMethods}>
-          <div className="bg-muted space-y-4 rounded-md px-4 py-3">
-            <div className="space-y-4">
+          <div className="bg-cal-muted stack-y-4 rounded-md px-4 py-3">
+            <div className="stack-y-4">
               <div>
                 <Controller
                   name="licenseKey"
@@ -180,9 +180,9 @@ const LicenseSelection = (
                       )}
                       addOnSuffix={
                         checkLicenseLoading ? (
-                          <Icon name="loader" className="h-5 w-5 animate-spin" />
+                          <LoaderIcon className="h-5 w-5 animate-spin" />
                         ) : licenseValidation?.valid && licenseTouched ? (
-                          <Icon name="check" className="h-5 w-5 text-green-700" />
+                          <CheckIcon className="h-5 w-5 text-green-700" />
                         ) : undefined
                       }
                       color={errors.licenseKey ? "warn" : ""}

@@ -1,4 +1,4 @@
-import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -213,7 +213,8 @@ export const Handler = async ({ ctx, input }: Options) => {
     eventTypeId: eventType?.id,
     videoCallData,
     customReplyToEmail: eventType?.customReplyToEmail,
-    team: !!updatedBooking.eventType?.team
+    organizationId: user?.organizationId ?? null,
+    team: updatedBooking.eventType?.team
       ? {
           name: updatedBooking.eventType.team.name,
           id: updatedBooking.eventType.team.id,

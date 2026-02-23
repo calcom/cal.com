@@ -35,16 +35,20 @@ import type {
 } from "./languages";
 import { EN } from "./languages";
 
-export type CalProviderProps = {
+export type BaseCalProviderProps = {
   children?: ReactNode;
   clientId: string;
   accessToken?: string;
   options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
+  onTokenRefreshStart?: () => void;
+  onTokenRefreshSuccess?: () => void;
+  onTokenRefreshError?: (error: string) => void;
   version?: API_VERSIONS_ENUM;
   organizationId?: number;
   isEmbed?: boolean;
+  isOAuth2?: boolean;
 } & i18nProps;
 
 export function BaseCalProvider({
@@ -57,8 +61,12 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  onTokenRefreshStart,
+  onTokenRefreshSuccess,
+  onTokenRefreshError,
   isEmbed,
-}: CalProviderProps) {
+  isOAuth2
+}: BaseCalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
 
@@ -83,6 +91,7 @@ export function BaseCalProvider({
 
   const { isInit } = useOAuthClient({
     isEmbed,
+    isOAuth2,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -100,6 +109,9 @@ export function BaseCalProvider({
     onSuccess: () => {
       setError("");
     },
+    onTokenRefreshStart,
+    onTokenRefreshSuccess,
+    onTokenRefreshError,
     clientId,
   });
 
@@ -157,6 +169,7 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
+
 
   return isInit ? (
     <AtomsContext.Provider

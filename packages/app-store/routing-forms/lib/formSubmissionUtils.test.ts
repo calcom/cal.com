@@ -1,9 +1,14 @@
+/**
+ * @vitest-environment node
+ */
 import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import type { WebhookSubscriber } from "@calcom/features/webhooks/lib/dto/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import {
@@ -11,8 +16,11 @@ import {
   WorkflowTriggerEvents,
   WorkflowActions,
   WorkflowTemplates,
+  TimeUnit,
 } from "@calcom/prisma/enums";
+import { WebhookVersion as WebhookVersionEnum } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 
+import type { FormResponse, Field } from "../types/types";
 import { _onFormSubmission } from "./formSubmissionUtils";
 
 vi.mock("@calcom/prisma", () => ({
@@ -59,16 +67,27 @@ describe("_onFormSubmission", () => {
   const mockForm = {
     id: "form-1",
     name: "Test Form",
+    disabled: false,
+    userId: 1,
+    position: 0,
+    description: null,
+    updatedById: null,
     fields: [
-      { id: "field-1", identifier: "email", label: "Email", type: "email" },
-      { id: "field-2", identifier: "name", label: "Name", type: "text" },
-    ],
+      { id: "field-1", identifier: "email", label: "Email", type: "email", required: false },
+      { id: "field-2", identifier: "name", label: "Name", type: "text", required: false },
+    ] as Field[],
     user: { id: 1, email: "test@example.com", timeFormat: 12, locale: "en" },
     teamId: null,
     settings: { emailOwnerOnSubmission: true },
+    routes: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    connectedForms: [],
+    routers: [],
+    teamMembers: [],
   };
 
-  const mockResponse = {
+  const mockResponse: FormResponse = {
     "field-1": { label: "Email", value: "test@response.com" },
     "field-2": { label: "Name", value: "Test Name" },
   };
@@ -85,9 +104,20 @@ describe("_onFormSubmission", () => {
 
   describe("Webhooks", () => {
     it("should call FORM_SUBMITTED webhooks", async () => {
-      vi.mocked(getWebhooks).mockResolvedValueOnce([{ id: "wh-1", secret: "secret" } as any]);
+      const mockWebhook: WebhookSubscriber = {
+        id: "wh-1",
+        secret: "secret",
+        subscriberUrl: "https://example.com/webhook",
+        payloadTemplate: null,
+        appId: null,
+        eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
+        time: null,
+        timeUnit: null,
+        version: WebhookVersionEnum.V_2021_10_20,
+      };
+      vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
 
-      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+      await _onFormSubmission(mockForm, mockResponse, responseId);
 
       expect(getWebhooks).toHaveBeenCalledWith({
         userId: 1,
@@ -97,11 +127,53 @@ describe("_onFormSubmission", () => {
       });
       expect(sendGenericWebhookPayload).toHaveBeenCalledTimes(1);
     });
+
+    it("should normalize identifiers with spaces to hyphens in rootData for webhook templates", async () => {
+      const formWithSpaces = {
+        ...mockForm,
+        fields: [
+          {
+            id: "field-1",
+            identifier: "attendee name",
+            label: "Attendee Name",
+            type: "text",
+            required: false,
+          },
+        ] as Field[],
+      };
+
+      const responseWithSpaces: FormResponse = {
+        "field-1": { label: "Attendee Name", value: "John Doe" },
+      };
+
+      const mockWebhook: WebhookSubscriber = {
+        id: "wh-1",
+        secret: "secret",
+        subscriberUrl: "https://example.com/webhook",
+        payloadTemplate: null,
+        appId: null,
+        eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED],
+        time: null,
+        timeUnit: null,
+        version: WebhookVersionEnum.V_2021_10_20,
+      };
+      vi.mocked(getWebhooks).mockResolvedValueOnce([mockWebhook]);
+
+      await _onFormSubmission(formWithSpaces, responseWithSpaces, responseId);
+
+      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rootData: expect.objectContaining({
+            "attendee-name": "John Doe", // Spaces replaced with hyphens for template access
+          }),
+        })
+      );
+    });
   });
 
   describe("Workflows", () => {
     it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED workflows", async () => {
-      const mockWorkflows = [
+      const mockWorkflows: Workflow[] = [
         {
           id: 1,
           name: "Form Submitted Workflow",
@@ -115,6 +187,7 @@ describe("_onFormSubmission", () => {
               id: 1,
               action: WorkflowActions.EMAIL_ATTENDEE,
               sendTo: null,
+              sender: null,
               reminderBody: "Thank you for your submission!",
               emailSubject: "Form Received",
               template: WorkflowTemplates.CUSTOM,
@@ -127,33 +200,37 @@ describe("_onFormSubmission", () => {
         },
       ];
 
-      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows);
 
-      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+      await _onFormSubmission(mockForm, mockResponse, responseId);
 
       expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
           },
-          name: { value: "Test Name", response: "Test Name" },
-        },
-        responseId,
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
+          responseId,
+          routedEventTypeId: null,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
     });
 
     it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED_NO_EVENT workflows", async () => {
-      const mockWorkflows = [
+      const mockWorkflows: Workflow[] = [
         {
           id: 2,
           name: "Form Follow-up Workflow",
@@ -161,12 +238,13 @@ describe("_onFormSubmission", () => {
           teamId: null,
           trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
           time: 30,
-          timeUnit: "MINUTE",
+          timeUnit: TimeUnit.MINUTE,
           steps: [
             {
               id: 2,
               action: WorkflowActions.EMAIL_ATTENDEE,
               sendTo: null,
+              sender: null,
               reminderBody: "Follow up on your form submission",
               emailSubject: "Follow Up",
               template: WorkflowTemplates.CUSTOM,
@@ -179,29 +257,95 @@ describe("_onFormSubmission", () => {
         },
       ];
 
-      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
+      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows);
 
-      await _onFormSubmission(mockForm as any, mockResponse, responseId);
+      await _onFormSubmission(mockForm, mockResponse, responseId);
 
       expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
           },
-          name: { value: "Test Name", response: "Test Name" },
+          routedEventTypeId: null,
+          responseId,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
+    });
+
+    it("should pass routedEventTypeId when chosenAction is eventTypeRedirectUrl", async () => {
+      const mockWorkflows: Workflow[] = [
+        {
+          id: 3,
+          name: "Event Type Workflow",
+          userId: 1,
+          teamId: null,
+          trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
+          time: null,
+          timeUnit: null,
+          steps: [
+            {
+              id: 3,
+              action: WorkflowActions.CAL_AI_PHONE_CALL,
+              sendTo: null,
+              sender: null,
+              reminderBody: null,
+              emailSubject: null,
+              template: WorkflowTemplates.CUSTOM,
+              verifiedAt: new Date(),
+              includeCalendarEvent: false,
+              numberVerificationPending: false,
+              numberRequired: false,
+            },
+          ],
         },
-        responseId,
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
+      ];
+
+      const chosenAction = {
+        type: "eventTypeRedirectUrl" as const,
+        value: "/team/test-team/test-event",
+        eventTypeId: 42,
+      };
+
+      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows);
+
+      await _onFormSubmission(mockForm, mockResponse, responseId, chosenAction);
+
+      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflows: mockWorkflows,
+          responses: {
+            email: {
+              value: "test@response.com",
+              response: "test@response.com",
+            },
+            name: { value: "Test Name", response: "Test Name" },
+          },
+          routedEventTypeId: 42,
+          responseId,
+          form: {
+            ...mockForm,
+            fields: mockForm.fields.map((field) => ({
+              type: field.type,
+              identifier: field.identifier,
+            })),
+          },
+          creditCheckFn: expect.any(Function),
+        })
+      );
     });
   });
 
@@ -214,7 +358,7 @@ describe("_onFormSubmission", () => {
         user: { id: 1, email: "test@example.com", timeFormat: 12, locale: "en" },
       };
 
-      await _onFormSubmission(teamForm as any, mockResponse, responseId);
+      await _onFormSubmission(teamForm, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).toHaveBeenCalledWith({
         form: teamForm,
@@ -230,7 +374,7 @@ describe("_onFormSubmission", () => {
         settings: { emailOwnerOnSubmission: true },
       };
 
-      await _onFormSubmission(ownerForm as any, mockResponse, responseId);
+      await _onFormSubmission(ownerForm, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).toHaveBeenCalledWith({
         form: ownerForm,
@@ -246,7 +390,7 @@ describe("_onFormSubmission", () => {
         settings: { emailOwnerOnSubmission: false },
       };
 
-      await _onFormSubmission(ownerForm as any, mockResponse, responseId);
+      await _onFormSubmission(ownerForm, mockResponse, responseId);
 
       expect(mockResponseEmailConstructor).not.toHaveBeenCalled();
       expect(mockSendEmail).not.toHaveBeenCalled();

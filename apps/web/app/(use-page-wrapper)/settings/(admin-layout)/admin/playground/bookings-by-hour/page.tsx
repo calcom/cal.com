@@ -1,7 +1,7 @@
 "use client";
 
-import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { BookingsByHourChartContent } from "@calcom/features/insights/components/booking/BookingsByHourChart";
+import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
+import { BookingsByHourChartContent } from "@calcom/web/modules/insights/components/booking/BookingsByHourChart";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Sample data for playground testing
@@ -35,7 +35,7 @@ const sampleBookingsByHourStats = [
 export default function BookingsByHourPlayground() {
   const { t } = useLocale();
   return (
-    <div className="space-y-6 p-6">
+    <div className="stack-y-6 p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Bookings by Hour Playground</h1>
         <p className="mt-2 text-gray-600">

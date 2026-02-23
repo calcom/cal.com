@@ -10,6 +10,6 @@
   },
   "devDependencies": {
     "@calcom/types": "workspace:*",
-    "@types/node-schedule": "^2.1.0"
+    "@types/node-schedule": "2.1.0"
   }
 }

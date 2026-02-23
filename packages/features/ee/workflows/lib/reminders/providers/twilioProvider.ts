@@ -2,16 +2,16 @@ import type { NextRequest } from "next/server";
 import TwilioClient from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_API_V2_E2E, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
-const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || process.env.IS_E2E;
+const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || IS_API_V2_E2E;
 
 function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
@@ -85,6 +85,7 @@ export const sendSMS = async ({
   }
 
   if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
@@ -172,6 +173,7 @@ export const scheduleSMS = async ({
   }
 
   if (isWhatsapp) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messageOptions: any = {
       contentSid: contentSid,
       to: getSMSNumber(phoneNumber, isWhatsapp),
@@ -225,7 +227,7 @@ export const verifyNumber = async (phoneNumber: string, code: string) => {
         .services(process.env.TWILIO_VERIFY_SID)
         .verificationChecks.create({ to: phoneNumber, code: code });
       return verification_check.status;
-    } catch (e) {
+    } catch {
       return "failed";
     }
   }
@@ -265,7 +267,7 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       (membership) => membership.team.smsLockState === SMSLockState.LOCKED
     );
 
-    if (!!memberOfLockedTeam) {
+    if (memberOfLockedTeam) {
       return true;
     }
 

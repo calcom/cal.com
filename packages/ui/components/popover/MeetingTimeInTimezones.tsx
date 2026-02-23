@@ -1,5 +1,3 @@
-import * as Popover from "@radix-ui/react-popover";
-
 import {
   formatTime,
   isNextDayInTimezone,
@@ -7,8 +5,8 @@ import {
   isSupportedTimeZone,
   sortByTimezone,
 } from "@calcom/lib/dayjs";
-
-import { Icon } from "../icon";
+import { GlobeIcon } from "@coss/ui/icons";
+import * as Popover from "@radix-ui/react-popover";
 
 type Attendee = {
   id: number;
@@ -68,7 +66,7 @@ const MeetingTimeInTimezones = ({
       <Popover.Trigger
         onClick={preventBubbling}
         className="popover-button text-emphasis hover:bg-emphasis focus:bg-emphasis invisible ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm transition-colors group-hover:visible">
-        <Icon name="globe" className="h-3.5 w-3.5" />
+        <GlobeIcon className="h-3.5 w-3.5" />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
@@ -80,7 +78,7 @@ const MeetingTimeInTimezones = ({
               <span className="inline-flex align-baseline">
                 {time.startTime} - {time.endTime}
                 {(time.isNextDay || time.isPreviousDay) && (
-                  <span className="text-medium bg-muted text-emphasis ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]">
+                  <span className="text-medium bg-cal-muted text-emphasis ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]">
                     {time.isNextDay ? "+1" : "-1"}
                   </span>
                 )}

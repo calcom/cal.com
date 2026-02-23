@@ -1,4 +1,4 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
@@ -6,6 +6,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
 import {
+  generateTeamCheckoutSession,
   getTeamWithPaymentMetadata,
   purchaseTeamOrOrgSubscription,
   updateQuantitySubscriptionFromStripe,
@@ -13,7 +14,9 @@ import {
 
 beforeEach(async () => {
   vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+  vi.stubEnv("STRIPE_ORG_ANNUAL_PRICE_ID", "STRIPE_ORG_ANNUAL_PRICE_ID");
   vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
+  vi.stubEnv("STRIPE_TEAM_ANNUAL_PRICE_ID", "STRIPE_TEAM_ANNUAL_PRICE_ID");
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -36,9 +39,9 @@ vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
   };
 });
 
-vi.mock("@calcom/lib/constant", () => {
+vi.mock("@calcom/features/auth/lib/dub", () => {
   return {
-    MINIMUM_NUMBER_OF_ORG_SEATS: 30,
+    getDubCustomer: vi.fn().mockResolvedValue(null),
   };
 });
 
@@ -62,6 +65,74 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => {
       },
     },
   };
+});
+
+describe("generateTeamCheckoutSession", () => {
+  it("should use monthly price by default", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price: "STRIPE_TEAM_MONTHLY_PRICE_ID",
+          }),
+        ],
+      })
+    );
+  });
+
+  it("should use annual price when billingPeriod is ANNUALLY", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      billingPeriod: BillingPeriod.ANNUALLY,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price: "STRIPE_TEAM_ANNUAL_PRICE_ID",
+          }),
+        ],
+      })
+    );
+  });
+
+  it("should store billingPeriod in checkout session metadata", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      billingPeriod: BillingPeriod.ANNUALLY,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          billingPeriod: "ANNUALLY",
+        }),
+      })
+    );
+  });
 });
 
 describe("purchaseTeamOrOrgSubscription", () => {
@@ -274,6 +345,116 @@ describe("purchaseTeamOrOrgSubscription", () => {
     );
   });
 
+  it("should use annual fixed price when billingPeriod is ANNUALLY and no custom price", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: {
+        name: "test",
+        email: "test@email.com",
+      },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve(
+      {
+        currency: "USD",
+        product: {
+          id: "PRODUCT_ID",
+        },
+      },
+      [FAKE_PAYMENT_ID]
+    );
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: {
+          paymentId: FAKE_PAYMENT_ID,
+        },
+      },
+    });
+
+    expect(
+      await purchaseTeamOrOrgSubscription({
+        teamId: team.id,
+        seatsUsed: 10,
+        userId: user.id,
+        isOrg: false,
+        pricePerSeat: null,
+        billingPeriod: BillingPeriod.ANNUALLY,
+      })
+    ).toEqual({ url: "SESSION_URL" });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          {
+            price: "STRIPE_TEAM_ANNUAL_PRICE_ID",
+            quantity: 10,
+          },
+        ],
+      })
+    );
+  });
+
+  it("should use annual fixed price for org when billingPeriod is ANNUALLY and no custom price", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: {
+        name: "test",
+        email: "test@email.com",
+      },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve(
+      {
+        currency: "USD",
+        product: {
+          id: "PRODUCT_ID",
+        },
+      },
+      [FAKE_PAYMENT_ID]
+    );
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: {
+          paymentId: FAKE_PAYMENT_ID,
+        },
+      },
+    });
+
+    expect(
+      await purchaseTeamOrOrgSubscription({
+        teamId: team.id,
+        seatsUsed: 5,
+        userId: user.id,
+        isOrg: true,
+        pricePerSeat: null,
+        billingPeriod: BillingPeriod.ANNUALLY,
+      })
+    ).toEqual({ url: "SESSION_URL" });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          {
+            price: "STRIPE_ORG_ANNUAL_PRICE_ID",
+            quantity: 5,
+          },
+        ],
+      })
+    );
+  });
+
   it("It should not create a custom price if price_per_seat is not set", async () => {
     const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
     const user = await prismock.user.create({
@@ -336,19 +517,19 @@ describe("purchaseTeamOrOrgSubscription", () => {
 
 describe("updateQuantitySubscriptionFromStripe", () => {
   describe("For an organization", () => {
-    it("should not update subscription when team members are less than metadata.orgSeats", async () => {
+    it("should update subscription based on actual member count (orgSeats no longer enforced)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
-      const consoleInfoSpy = vi.spyOn(console, "info");
+      const membersInTeam = 2;
 
       const organization = await createOrgWithMembersAndPaymentData({
         paymentId: FAKE_PAYMENT_ID,
         subscriptionId: FAKE_SUB_ID,
         subscriptionItemId: FAKE_SUBITEM_ID,
-        membersInTeam: 2,
-        orgSeats: 5,
+        membersInTeam,
+        orgSeats: 5, // Even though orgSeats is 5, we should update to actual member count (2)
       });
 
       mockStripeCheckoutSessionRetrieve(
@@ -375,11 +556,14 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
 
       await updateQuantitySubscriptionFromStripe(organization.id);
-      // Ensure that we reached the flow we are expecting to
-      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
 
-      // orgSeats is more than the current number of members - So, no update in stripe
-      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+      // Should update subscription to actual member count, regardless of orgSeats
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(
+        FAKE_SUB_ID,
+        expect.objectContaining({
+          items: [{ quantity: membersInTeam, id: FAKE_SUBITEM_ID }],
+        })
+      );
     });
 
     it("should update subscription when team members are more than metadata.orgSeats", async () => {
@@ -432,13 +616,12 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       });
     });
 
-    it("should not update subscription when team members are less than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+    it("should update subscription regardless of member count", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
-      const membersInTeam = 2;
-      const consoleInfoSpy = vi.spyOn(console, "info");
+      const membersInTeam = 2; // Even with just 2 members, should update
 
       const organization = await createOrgWithMembersAndPaymentData({
         paymentId: FAKE_PAYMENT_ID,
@@ -472,13 +655,16 @@ describe("updateQuantitySubscriptionFromStripe", () => {
       const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
 
       await updateQuantitySubscriptionFromStripe(organization.id);
-      // Ensure that we reached the flow we are expecting to
-      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
-      // orgSeats is more than the current number of members - So, no update in stripe
-      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+      // Should update subscription even with low member count (no minimum enforcement)
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(
+        FAKE_SUB_ID,
+        expect.objectContaining({
+          items: [{ quantity: membersInTeam, id: FAKE_SUBITEM_ID }],
+        })
+      );
     });
 
-    it("should update subscription when team members are more than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+    it("should update subscription when team members count changes (no minimum enforcement)", async () => {
       const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
       const FAKE_SUB_ID = "FAKE_SUB_ID";
       const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";

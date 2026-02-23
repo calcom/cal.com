@@ -1,10 +1,9 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Microsoft 365/Teams (Requires work/school account)",
-  description: _package.description,
+  description:
+    "Microsoft Teams is a business communication platform and collaborative workspace included in Microsoft 365. It offers workspace chat and video conferencing, file storage, and application integration. Both web versions and desktop/mobile applications are available. NOTE: MUST HAVE A WORK / SCHOOL ACCOUNT",
   appData: {
     location: {
       linkType: "dynamic",
@@ -21,7 +20,6 @@ export const metadata = {
   publisher: "Cal.com",
   slug: "msteams",
   dirName: "office365video",
-  dependencies: ["office365-calendar"],
   url: "https://www.microsoft.com/en-ca/microsoft-teams/group-chat-software",
   email: "help@cal.com",
   isOAuth: true,

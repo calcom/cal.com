@@ -1,8 +1,8 @@
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
-import * as os from "os";
-import * as path from "path";
+import * as os from "node:os";
+import * as path from "node:path";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -13,8 +13,9 @@ const outputDir = path.join(__dirname, "test-results");
 // Dev Server on local can be slow to start up and process requests. So, keep timeouts really high on local, so that tests run reliably locally
 
 // So, if not in CI, keep the timers high, if the test is stuck somewhere and there is unnecessary wait developer can see in browser that it's stuck
-const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 30000 : 120000;
-const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
+const DEFAULT_NAVIGATION_TIMEOUT = process.env.CI ? 10000 : 120000;
+const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 10000 : 120000;
+const DEFAULT_ACTION_TIMEOUT = process.env.CI ? 10000 : 120000;
 
 // Test Timeout can hit due to slow expect, slow navigation.
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
@@ -25,13 +26,16 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
 
+// Suppress all webServer logs to reduce noise during E2E tests
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
     command:
-      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
+      "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
+    stdout: "ignore",
+    stderr: "ignore",
   },
 ];
 
@@ -43,6 +47,8 @@ if (IS_EMBED_TEST) {
     port: 3100,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
+    stdout: "ignore",
+    stderr: "ignore",
   });
 }
 
@@ -54,6 +60,8 @@ if (IS_EMBED_REACT_TEST) {
     port: 3101,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
+    stdout: "ignore",
+    stderr: "ignore",
   });
 }
 
@@ -75,6 +83,8 @@ const DEFAULT_CHROMIUM: NonNullable<PlaywrightTestConfig["projects"]>[number]["u
   locale: "en-US",
   /** If navigation takes more than this, then something's wrong, let's fail fast. */
   navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
+  /** Global timeout for page actions (click, fill, etc.) on CI */
+  actionTimeout: DEFAULT_ACTION_TIMEOUT,
   // chromium-specific permissions - Chromium seems to be the only browser type that requires perms
   contextOptions: {
     permissions: ["clipboard-read", "clipboard-write"],

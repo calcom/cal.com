@@ -1,5 +1,22 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+
+import process from "node:process";
+import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type {
+  Person as AttendeeInCalendarEvent,
+  Calendar,
+  CalendarEvent,
+  CalendarEventType,
+  CalendarServiceEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  TeamMember,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -14,22 +31,6 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
-import type {
-  Calendar,
-  CalendarServiceEvent,
-  CalendarEvent,
-  CalendarEventType,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  TeamMember,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
@@ -97,6 +98,290 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
+/** Folds lines per RFC 5545 (max 75 octets, UTF-8 aware) */
+const foldLine = (line: string): string => {
+  const encoder = new TextEncoder();
+  if (encoder.encode(line).length <= 75) return line;
+
+  const result: string[] = [];
+  let segment = "";
+  let byteCount = 0;
+
+  for (const char of line) {
+    const charBytes = encoder.encode(char).length;
+    const limit = result.length === 0 ? 75 : 74;
+
+    if (byteCount + charBytes > limit) {
+      result.push(segment);
+      segment = char;
+      byteCount = charBytes;
+    } else {
+      segment += char;
+      byteCount += charBytes;
+    }
+  }
+  if (segment) result.push(segment);
+  return result.join("\r\n ");
+};
+
+/** Finds the value separator colon, skipping colons inside quoted strings */
+const findValueColon = (str: string): number => {
+  let inQuotes = false;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '"') inQuotes = !inQuotes;
+    if (str[i] === ":" && !inQuotes) return i;
+  }
+  return -1;
+};
+
+/** Checks if SCHEDULE-AGENT parameter exists in the params portion */
+const hasScheduleAgent = (params: string): boolean =>
+  /;SCHEDULE-AGENT=/i.test(params) || /^SCHEDULE-AGENT=/i.test(params);
+
+/**
+ * Injects SCHEDULE-AGENT=CLIENT into ORGANIZER and ATTENDEE properties.
+ * Prevents CalDAV servers from sending duplicate invitation emails (RFC 6638).
+ */
+const injectScheduleAgent = (iCalString: string): string => {
+  // Remove METHOD:PUBLISH per RFC 4791 Section 4.1
+  let result = iCalString.replace(/METHOD:[^\r\n]+[\r\n]+/g, "");
+
+  // Process ORGANIZER and ATTENDEE lines (handles folded lines)
+  result = result.replace(
+    /^(ORGANIZER|ATTENDEE)((?:[^\r\n]|\r?\n[ \t])*)(\r?\n(?![ \t]))/gim,
+    (match, property, rest, lineEnding) => {
+      const unfolded = rest.replace(/\r?\n[ \t]/g, "");
+
+      // Try to find colon via :mailto:/:http: pattern first
+      const valueMatch = unfolded.match(/:(mailto:|http:|https:|urn:)/i);
+      const colonIndex = valueMatch?.index ?? findValueColon(unfolded);
+
+      if (colonIndex === -1) return match;
+
+      const params = unfolded.slice(0, colonIndex);
+      const value = unfolded.slice(colonIndex);
+
+      if (hasScheduleAgent(params)) {
+        return foldLine(property + unfolded) + lineEnding;
+      }
+
+      return foldLine(property + params + ";SCHEDULE-AGENT=CLIENT" + value) + lineEnding;
+    }
+  );
+
+  return result;
+};
+
+/**
+ * Finds the DST transition moment for a given year by binary-searching
+ * when the UTC offset changes between two months.
+ */
+const findDSTTransition = (
+  timezone: string,
+  year: number,
+  fromMonth: number,
+  toMonth: number
+): ReturnType<typeof dayjs> | null => {
+  let low = dayjs.utc(new Date(year, fromMonth, 1)).valueOf();
+  let high = dayjs.utc(new Date(year, toMonth, 1)).valueOf();
+  const lowOffset = dayjs(low).tz(timezone).utcOffset();
+  const highOffset = dayjs(high).tz(timezone).utcOffset();
+
+  if (lowOffset === highOffset) return null;
+
+  while (high - low > 60 * 1000) {
+    const mid = Math.floor((low + high) / 2);
+    const midOffset = dayjs(mid).tz(timezone).utcOffset();
+    if (midOffset === lowOffset) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  // RFC 5545 requires DTSTART to be the local time interpreted with the
+  // pre-transition offset (TZOFFSETFROM). Apply the pre-transition offset
+  // to the UTC transition moment to get this local time.
+  const preTransitionOffsetMs = lowOffset * 60 * 1000;
+  return dayjs.utc(high + preTransitionOffsetMs);
+};
+
+/** Formats a transition moment as iCal DTSTART (e.g., 20260308T020000). */
+const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string => {
+  const year = String(transition.year());
+  const month = String(transition.month() + 1).padStart(2, "0");
+  const day = String(transition.date()).padStart(2, "0");
+  const hour = String(transition.hour()).padStart(2, "0");
+  const minute = String(transition.minute()).padStart(2, "0");
+  return `${year}${month}${day}T${hour}${minute}00`;
+};
+
+/** Generates BYDAY RRULE value (e.g., "2SU") for nth weekday occurrence in month. */
+const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
+  const dayNames = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const dayOfWeek = dayNames[d.day()];
+  const dayOfMonth = d.date();
+  const weekNum = Math.ceil(dayOfMonth / 7);
+  const daysInMonth = d.daysInMonth();
+  if (dayOfMonth > daysInMonth - 7) {
+    return `-1${dayOfWeek}`;
+  }
+  return `${weekNum}${dayOfWeek}`;
+};
+
+/**
+ * Builds a VTIMEZONE component for the given IANA timezone.
+ * Uses the event's year to compute actual DST transitions (not 1970),
+ * ensuring correct BYDAY/BYMONTH for zones that changed rules post-1970.
+ * RFC 5545 §3.6.5 requires VTIMEZONE when DTSTART uses TZID.
+ */
+const buildVTimezone = (timezone: string, eventStart: string): string => {
+  const eventYear = dayjs(eventStart).tz(timezone).year();
+  // Construct dates from scratch in the target timezone to get correct offsets.
+  // Using .month() on an existing dayjs object may not recalculate the tz offset.
+  const winterMoment = dayjs.tz(`${eventYear}-01-15T12:00:00`, timezone);
+  const summerMoment = dayjs.tz(`${eventYear}-07-15T12:00:00`, timezone);
+
+  const formatOffset = (d: ReturnType<typeof dayjs>): string => {
+    const offsetMinutes = d.utcOffset();
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const abs = Math.abs(offsetMinutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, "0");
+    const mins = String(abs % 60).padStart(2, "0");
+    return `${sign}${hours}${mins}`;
+  };
+
+  const standardOffset = formatOffset(winterMoment);
+  const daylightOffset = formatOffset(summerMoment);
+  const hasDST = standardOffset !== daylightOffset;
+
+  const lines: string[] = ["BEGIN:VTIMEZONE", `TZID:${timezone}`];
+
+  if (hasDST) {
+    const springTransition = findDSTTransition(timezone, eventYear, 0, 6);
+    const fallTransition = findDSTTransition(timezone, eventYear, 6, 11);
+
+    const winterUtcOffset = winterMoment.utcOffset();
+    const summerUtcOffset = summerMoment.utcOffset();
+    const trueStandardOffset = winterUtcOffset < summerUtcOffset ? standardOffset : daylightOffset;
+    const trueDaylightOffset = winterUtcOffset < summerUtcOffset ? daylightOffset : standardOffset;
+    const springIsDaylight = summerUtcOffset > winterUtcOffset;
+
+    if (springTransition) {
+      const dtstart = formatTransitionDtstart(springTransition);
+      const byday = getBydayRule(springTransition);
+      const bymonth = springTransition.month() + 1;
+
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      } else {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      }
+    } else {
+      lines.push(
+        "BEGIN:DAYLIGHT",
+        `TZOFFSETFROM:${trueStandardOffset}`,
+        `TZOFFSETTO:${trueDaylightOffset}`,
+        "TZNAME:DST",
+        "DTSTART:19700101T000000",
+        "END:DAYLIGHT"
+      );
+    }
+
+    if (fallTransition) {
+      const dtstart = formatTransitionDtstart(fallTransition);
+      const byday = getBydayRule(fallTransition);
+      const bymonth = fallTransition.month() + 1;
+
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      } else {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      }
+    } else {
+      lines.push(
+        "BEGIN:STANDARD",
+        `TZOFFSETFROM:${trueDaylightOffset}`,
+        `TZOFFSETTO:${trueStandardOffset}`,
+        "TZNAME:ST",
+        "DTSTART:19700101T000000",
+        "END:STANDARD"
+      );
+    }
+  } else {
+    lines.push(
+      "BEGIN:STANDARD",
+      `TZOFFSETFROM:${standardOffset}`,
+      `TZOFFSETTO:${standardOffset}`,
+      `TZNAME:${timezone}`,
+      "DTSTART:19700101T000000",
+      "END:STANDARD"
+    );
+  }
+
+  lines.push("END:VTIMEZONE");
+  return lines.join("\r\n");
+};
+
+/**
+ * Injects a VTIMEZONE block and rewrites DTSTART/DTEND from UTC to timezone-local.
+ */
+const injectVTimezone = (
+  iCalString: string,
+  timezone: string,
+  startTime: string,
+  endTime: string
+): string => {
+  const formatLocalDateTime = (isoString: string, tz: string): string => {
+    const local = dayjs(isoString).tz(tz);
+    return local.format("YYYYMMDDTHHmmss");
+  };
+
+  const localStart = formatLocalDateTime(startTime, timezone);
+  const localEnd = formatLocalDateTime(endTime, timezone);
+
+  let result = iCalString
+    .replace(/^DTSTART:[^\r\n]+/m, `DTSTART;TZID=${timezone}:${localStart}`)
+    .replace(/^DTEND:[^\r\n]+/m, `DTEND;TZID=${timezone}:${localEnd}`);
+
+  const vtimezone = buildVTimezone(timezone, startTime);
+  result = result.replace(/^BEGIN:VEVENT/m, `${vtimezone}\r\nBEGIN:VEVENT`);
+
+  return result;
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -142,7 +427,7 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+      const uid = event.uid || uuidv4();
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
@@ -167,9 +452,14 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      // Inject VTIMEZONE and rewrite DTSTART/DTEND to organizer's local timezone.
+      // Without this, CalDAV servers send scheduling emails with UTC times.
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = injectVTimezone(iCalString, timezone, event.startTime, event.endTime);
+
       const mainHostDestinationCalendar = event.destinationCalendar
-        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-          event.destinationCalendar[0]
+        ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0])
         : undefined;
 
       // We create the event directly on iCal
@@ -186,8 +476,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              iCalString: injectScheduleAgent(iCalStringWithTimezone),
               headers: this.headers,
             })
           )
@@ -246,6 +535,12 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+      // Apply timezone fix to updated events as well
+      const updateTimezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = iCalString
+        ? injectVTimezone(iCalString, updateTimezone, event.startTime, event.endTime)
+        : "";
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -254,8 +549,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
-              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              data: injectScheduleAgent(iCalStringWithTimezone ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -352,17 +646,14 @@ export default abstract class BaseCalendarService implements Calendar {
     const allowedExtensions = ["eml", "ics"];
     const urlExtension = getFileExtension(url);
     if (!allowedExtensions.includes(urlExtension)) {
-      console.error(`Unsupported calendar object format: ${urlExtension}`);
+      logger.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
     }
     return true;
   };
 
-  async getAvailability(
-    dateFrom: string,
-    dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
+  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+    const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
 
     const objects = await this.fetchObjectsWithOptionalExpand({
@@ -383,7 +674,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const jcalData = ICAL.parse(sanitizeCalendarObject(object));
         vcalendar = new ICAL.Component(jcalData);
       } catch (e) {
-        console.error("Error parsing calendar object: ", e);
+        logger.error("Error parsing calendar object: ", e);
         return;
       }
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -395,6 +686,7 @@ export default abstract class BaseCalendarService implements Calendar {
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+        // biome-ignore lint/complexity/useLiteralKeys: accessing dynamic property from ICAL.js object
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";
@@ -424,10 +716,10 @@ export default abstract class BaseCalendarService implements Calendar {
               vcalendar.addSubcomponent(timezoneComp);
             } catch (e) {
               // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
-              console.log("error in adding vtimezone", e);
+              logger.warn("error in adding vtimezone", e);
             }
           } else {
-            console.error("No timezone found");
+            logger.warn("No timezone found");
           }
         }
 
@@ -447,7 +739,7 @@ export default abstract class BaseCalendarService implements Calendar {
         if (event.isRecurring()) {
           let maxIterations = 365;
           if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-            console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
+            logger.warn(`Won't handle [${event.getRecurrenceTypes()}] recurrence`);
             return;
           }
 
@@ -459,9 +751,9 @@ export default abstract class BaseCalendarService implements Calendar {
           startDate.second = event.startDate.second;
           const iterator = event.iterator(startDate);
           let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
+          let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
+          let currentStart: ReturnType<typeof dayjs> | null = null;
+          let currentError: string | undefined;
 
           while (
             maxIterations > 0 &&
@@ -500,7 +792,7 @@ export default abstract class BaseCalendarService implements Calendar {
             }
           }
           if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
+            logger.warn("Could not find any occurrence for recurring event in 365 iterations");
           }
           return;
         }
@@ -624,10 +916,7 @@ export default abstract class BaseCalendarService implements Calendar {
       (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
         promise.status === "fulfilled"
     );
-    const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
-      .filter((obj) => obj !== null);
+    const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
 
@@ -700,7 +989,7 @@ export default abstract class BaseCalendarService implements Calendar {
         });
       return events;
     } catch (reason) {
-      console.error(reason);
+      logger.error(reason);
       throw reason;
     }
   }

@@ -61,7 +61,10 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (function () {
       if (event.team) {
-        return event.team.members.map((member) => member.userId).includes(ctx.user.id);
+        const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
+        const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
+
+        return isOwnerOrAdmin;
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();
@@ -173,9 +176,9 @@ export const createEventPbacProcedure = (
         const isAllowed = (function () {
           if (event.team) {
             const allTeamMembers = event.team.members.map((member) => member.userId);
-            return input.users!.every((userId: number) => allTeamMembers.includes(userId));
+            return input.users?.every((userId: number) => allTeamMembers.includes(userId)) ?? true;
           }
-          return input.users!.every((userId: number) => userId === ctx.user.id);
+          return input.users?.every((userId: number) => userId === ctx.user.id) ?? true;
         })();
 
         if (!isAllowed) {
@@ -248,18 +251,21 @@ export function ensureUniqueBookingFields(fields: TUpdateInputSchema["bookingFie
     return;
   }
 
-  fields.reduce((discoveredFields, field) => {
-    if (discoveredFields[field.name]) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Duplicate booking field name: ${field.name}`,
-      });
-    }
+  fields.reduce(
+    (discoveredFields, field) => {
+      if (discoveredFields[field.name]) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Duplicate booking field name: ${field.name}`,
+        });
+      }
 
-    discoveredFields[field.name] = true;
+      discoveredFields[field.name] = true;
 
-    return discoveredFields;
-  }, {} as Record<string, true>);
+      return discoveredFields;
+    },
+    {} as Record<string, true>
+  );
 }
 
 export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bookingFields"]) {
@@ -297,29 +303,14 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   }
 }
 
-type Host = {
-  userId: number;
-  isFixed?: boolean | undefined;
-  priority?: number | null | undefined;
-  weight?: number | null | undefined;
-  scheduleId?: number | null | undefined;
-  groupId: string | null;
-};
-
-type User = {
-  id: number;
-  email: string;
-};
-
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
   users: await Promise.all(
-    (eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-      async (u) =>
-        await new UserRepository(prisma).enrichUserWithItsProfile({
-          user: u,
-        })
+    (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>
+      new UserRepository(prisma).enrichUserWithItsProfile({
+        user: u,
+      })
     )
   ),
   metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,

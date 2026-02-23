@@ -1,6 +1,6 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
-import { encode } from "querystring";
+import { encode } from "node:querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -144,8 +144,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     theme: branding.theme,
     brandColor: branding.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor:
-      branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor: branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,

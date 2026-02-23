@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 
 export default function AddToHomescreen() {
   const { t } = useLocale();
@@ -18,7 +18,7 @@ export default function AddToHomescreen() {
         <div className="rounded-lg p-2 shadow-lg sm:p-3" style={{ background: "#2F333D" }}>
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex w-0 flex-1 items-center">
-              <span className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast flex rounded-lg bg-opacity-30 p-2">
+              <span className="text-brandcontrast dark:bg-darkmodebrand/30 dark:text-darkmodebrandcontrast flex rounded-lg p-2">
                 <svg
                   className="h-7 w-7 fill-current text-[#5B93F9]"
                   xmlns="http://www.w3.org/2000/svg"
@@ -34,13 +34,13 @@ export default function AddToHomescreen() {
               </p>
             </div>
 
-            <div className="order-2 flex-shrink-0 sm:order-3">
+            <div className="order-2 shrink-0 sm:order-3">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"
                 className="-mr-1 flex rounded-md p-2 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white">
                 <span className="sr-only">{t("dismiss")}</span>
-                <Icon name="x" className="text-inverted h-6 w-6 dark:text-white" aria-hidden="true" />
+                <XIcon className="text-inverted h-6 w-6 dark:text-white" />
               </button>
             </div>
           </div>

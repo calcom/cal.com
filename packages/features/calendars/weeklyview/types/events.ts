@@ -11,8 +11,10 @@ export interface CalendarEvent {
     status?: BookingStatus;
     hideTime?: boolean;
     allDay?: boolean;
-    borderColor?: string;
+    color?: string;
     className?: string;
+    bookingUid?: string;
     "data-test-id"?: string;
+    borderOnly?: boolean;
   };
 }

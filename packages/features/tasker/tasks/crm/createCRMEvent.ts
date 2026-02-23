@@ -111,52 +111,72 @@ export async function createCRMEvent(payload: string): Promise<void> {
     });
 
     const errorPerApp: Record<AppSlug, UnknownError> = {};
-    // Find enabled CRM apps for the event type
+
+    // Parse apps and collect credential IDs for enabled CRM apps
+    const appInfoMap = new Map<string, { app: any; credentialId: number }>();
+    const credentialIds = new Set<number>();
+
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
+      const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
+      const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+
+      if (!appData || !appDataSchema) {
+        throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
+      }
+
+      const appParse = appDataSchema.safeParse(appData);
+
+      if (!appParse.success) {
+        log.error(`Error parsing event type app data for bookingUid ${bookingUid}`, appParse?.error);
+        continue;
+      }
+
+      const app = appParse.data;
+      const hasCrmCategory =
+        app.appCategories && app.appCategories.some((category: string) => category === "crm");
+
+      if (!app.enabled || !app.credentialId || !hasCrmCategory) {
+        log.info(`Skipping CRM app ${appSlug}`, {
+          enabled: app.enabled,
+          credentialId: app.credentialId,
+          hasCrmCategory,
+        });
+        continue;
+      }
+
+      appInfoMap.set(appSlug, { app, credentialId: app.credentialId });
+      credentialIds.add(app.credentialId);
+    }
+
+    const crmCredentials = await prisma.credential.findMany({
+      where: {
+        id: {
+          in: Array.from(credentialIds),
+        },
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    const crmCredentialMap = new Map<number, (typeof crmCredentials)[number]>();
+    for (const credential of crmCredentials) {
+      crmCredentialMap.set(credential.id, credential);
+    }
+    //Find enabled CRM apps for the event type
+    for (const appSlug of Array.from(appInfoMap.keys())) {
+      const { app, credentialId } = appInfoMap.get(appSlug)!;
       // Try Catch per app to ensure all apps are tried even if any of them throws an error
       // If we want to retry for an error from this try catch, then that error must be thrown as a RetryableError
       try {
-        const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
-        const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
-        if (!appData || !appDataSchema) {
-          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
-        }
-
-        const appParse = appDataSchema.safeParse(appData);
-
-        if (!appParse.success) {
-          log.error(`Error parsing event type app data for bookingUid ${bookingUid}`, appParse?.error);
-          continue;
-        }
-
-        const app = appParse.data;
-        const hasCrmCategory =
-          app.appCategories && app.appCategories.some((category: string) => category === "crm");
-
-        if (!app.enabled || !app.credentialId || !hasCrmCategory) {
-          log.info(`Skipping CRM app ${appSlug}`, {
-            enabled: app.enabled,
-            credentialId: app.credentialId,
-            hasCrmCategory,
-          });
-          continue;
-        }
-
-        const crmCredential = await prisma.credential.findUnique({
-          where: {
-            id: app.credentialId,
-          },
-          include: {
-            user: {
-              select: {
-                email: true,
-              },
-            },
-          },
-        });
+        const crmCredential = crmCredentialMap.get(credentialId);
 
         if (!crmCredential) {
-          throw new Error(`Credential not found for credentialId: ${app.credentialId}`);
+          throw new Error(`Credential not found for credentialId: ${credentialId}`);
         }
 
         const existingBookingReferenceForTheCredential = existingBookingReferences.find(

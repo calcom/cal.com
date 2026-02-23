@@ -1,0 +1,10 @@
+export type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+export { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+export { getAllPermissionStringsForScope } from "@calcom/features/pbac/domain/types/permission-registry";
+export { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+export { FeaturesRepository } from "@calcom/features/flags/features.repository";
+export { RoleService } from "@calcom/features/pbac/services/role.service";
+export type { Role } from "@calcom/features/pbac/domain/models/Role";
+export type { CreateRoleData, UpdateRolePermissionsData } from "@calcom/features/pbac/domain/models/Role";
+export { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+export { isValidPermissionStringForScope } from "@calcom/features/pbac/domain/types/permission-registry";

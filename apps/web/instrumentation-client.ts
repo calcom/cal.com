@@ -50,12 +50,18 @@ export function onRouterTransitionStart(url: string, navigationType: "push" | "r
   }
 }
 
-process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+if (
+  process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+  typeof window !== "undefined" &&
+  typeof window.crypto?.getRandomValues === "function" &&
+  typeof window.crypto?.randomUUID === "function"
+) {
   initBotId({
     protect: [
       {
-        path: "/api/book/event",
+        path: "*/api/book/event",
         method: "POST",
       },
     ],
   });
+}

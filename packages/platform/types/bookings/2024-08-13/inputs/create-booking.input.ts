@@ -1,26 +1,31 @@
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import {
+  ApiExtraModels,
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+  getSchemaPath,
+} from "@nestjs/swagger";
+import { Transform, Type } from "class-transformer";
 import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
-  IsInt,
-  IsDateString,
-  IsTimeZone,
-  IsEnum,
-  ValidateNested,
   IsArray,
-  IsString,
-  isEmail,
-  IsOptional,
-  IsUrl,
-  IsObject,
   IsBoolean,
+  IsDateString,
+  IsDefined,
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  IsUrl,
+  isEmail,
   Min,
   registerDecorator,
   Validate,
-  IsDefined,
+  ValidateNested,
 } from "class-validator";
-import { isValidPhoneNumber } from "libphonenumber-js";
-
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
 import type { BookingInputLocation_2024_08_13 } from "./location.input";
@@ -31,8 +36,8 @@ import {
   BookingInputAttendeePhoneLocation_2024_08_13,
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
-  BookingInputPhoneLocation_2024_08_13,
   BookingInputOrganizersDefaultAppLocation_2024_08_13,
+  BookingInputPhoneLocation_2024_08_13,
   ValidateBookingLocation_2024_08_13,
 } from "./location.input";
 import { ValidateMetadata } from "./validators/validate-metadata";
@@ -42,7 +47,7 @@ export const FAILED_EVENT_TYPE_IDENTIFICATION_ERROR_MESSAGE =
 
 function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "requireEventTypeIdentification",
       target: object,
@@ -71,7 +76,7 @@ function RequireEventTypeIdentification(validationOptions?: ValidationOptions) {
 
 function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any) {
+  return (object: any) => {
     registerDecorator({
       name: "requireEmailOrPhone",
       target: object,
@@ -94,8 +99,7 @@ function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
   };
 }
 
-@RequireEmailOrPhone()
-class CreateBookingAttendee {
+export class BaseBookingAttendee {
   @ApiProperty({
     type: String,
     description: "The name of the attendee.",
@@ -103,17 +107,6 @@ class CreateBookingAttendee {
   })
   @IsString()
   name!: string;
-
-  @ApiPropertyOptional({
-    type: String,
-    description: "The email of the attendee.",
-    example: "john.doe@example.com",
-  })
-  @IsOptional()
-  @Validate((value: string) => !value || isEmail(value), {
-    message: "Invalid email format",
-  })
-  email?: string;
 
   @ApiProperty({
     type: String,
@@ -143,6 +136,20 @@ class CreateBookingAttendee {
   @IsEnum(BookingLanguage)
   @IsOptional()
   language?: BookingLanguageType;
+}
+
+@RequireEmailOrPhone()
+export class CreateBookingAttendee extends BaseBookingAttendee {
+  @ApiPropertyOptional({
+    type: String,
+    description: "The email of the attendee.",
+    example: "john.doe@example.com",
+  })
+  @IsOptional()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid email format",
+  })
+  email?: string;
 }
 
 class Routing {
@@ -239,6 +246,14 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsObject()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (!value || typeof value !== "object") return value;
+    const transformed: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(value)) {
+      transformed[key] = val === null ? "" : val;
+    }
+    return transformed;
+  })
   bookingFieldsResponses?: Record<string, unknown>;
 
   @ApiPropertyOptional({
@@ -380,6 +395,18 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   emailVerificationCode?: string;
+
+  /* @ApiPropertyOptional({
+    type: [Number],
+    description:
+      "For round robin event types, filter available hosts to only consider the specified subset of host user IDs. This allows you to book with specific hosts within a round robin event type.",
+    example: [1, 2, 3],
+  }) */
+  @ApiHideProperty()
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  rrHostSubsetIds?: number[];
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { z } from "zod";
@@ -44,6 +44,7 @@ function expectFormSubmittedNoEventWorkflowToBeCalled(payload: WorkflowPayload) 
           timeFormat: payload.form.user.timeFormat,
           locale: payload.form.user.locale ?? "en",
         },
+        routedEventTypeId: payload.routedEventTypeId ?? null,
       },
       hideBranding: payload.hideBranding,
       smsReminderNumber: payload.smsReminderNumber,
@@ -78,6 +79,7 @@ describe("Form submitted, no event booked workflow trigger", () => {
           response: "Test input 1",
         },
       },
+      routedEventTypeId: null,
       hideBranding: false,
       smsReminderNumber: null,
       submittedAt: new Date("2024-01-01T10:00:00Z"),
@@ -136,6 +138,7 @@ describe("Form submitted, no event booked workflow trigger", () => {
           response: "Test input 2",
         },
       },
+      routedEventTypeId: null,
       hideBranding: false,
       smsReminderNumber: null,
       submittedAt: new Date("2024-01-01T11:00:00Z"),

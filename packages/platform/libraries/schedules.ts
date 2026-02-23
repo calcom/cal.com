@@ -1,9 +1,12 @@
 export {
   ScheduleRepository,
   type FindDetailedScheduleByIdReturnType,
-} from "@calcom/lib/server/repository/schedule";
+} from "@calcom/features/schedules/repositories/ScheduleRepository";
 
-export { updateSchedule, type UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
+export {
+  updateSchedule,
+  type UpdateScheduleResponse,
+} from "@calcom/features/schedules/services/ScheduleService";
 export { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
 
 export {
@@ -20,3 +23,5 @@ export {
   duplicateHandler as duplicateScheduleHandler,
   type DuplicateScheduleHandlerReturn,
 } from "@calcom/trpc/server/routers/viewer/availability/schedule/duplicate.handler";
+
+export { getScheduleByEventSlugHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/getScheduleByEventTypeSlug.handler";

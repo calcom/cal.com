@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type z from "zod";
-
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
+import { SalesforceFieldType, WhenToWriteToRecord } from "@calcom/app-store/salesforce/lib/enums";
 import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
 import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,15 +9,13 @@ import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { GlobeIcon } from "@coss/ui/icons";
+import { useEffect, useState } from "react";
+import type z from "zod";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
@@ -88,8 +83,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
 
       setSelectedCredential(
         credentialOptions
-          ? credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
-              selectedCredential
+          ? (credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
+              selectedCredential)
           : selectedCredential
       );
     }
@@ -105,7 +100,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-0.5">
               <div className="border-subtle rounded-lg border p-1">
-                <Icon name="globe" className="text-subtle h-4 w-4" />
+                <GlobeIcon className="text-subtle h-4 w-4" />
               </div>
               <div className="flex flex-col">
                 <span className="text-emphasis ml-2 text-sm font-medium">
@@ -122,7 +117,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
             />
           </div>
           {salesforceActionEnabled ? (
-            <div className="bg-muted mt-1 rounded-xl p-2">
+            <div className="bg-cal-muted mt-1 rounded-xl p-2">
               {form.team && (
                 <>
                   <div className="bg-default mt-2 rounded-xl px-2 py-2">
@@ -143,7 +138,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
               )}
 
               <div className="bg-default mt-2 rounded-xl px-2 py-2">
-                <div className="grid grid-cols-5 gap-4">
+                <div className="hidden md:grid md:grid-cols-5 md:gap-4">
                   <Label>{t("field_name")}</Label>
                   <Label>{t("field_type")}</Label>
                   <Label>{t("value")}</Label>
@@ -155,22 +150,25 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       salesforceWriteToRecordObject[key as keyof typeof salesforceWriteToRecordObject];
                     return (
                       <div
-                        className="mt-2 grid gap-4"
-                        style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
+                        className="mt-2 border-subtle flex flex-col gap-3 rounded-lg border p-3 md:mt-2 md:grid md:grid-cols-5 md:gap-4 md:border-0 md:p-0"
                         key={key}>
                         <div className="w-full">
+                          <Label className="md:hidden">{t("field_name")}</Label>
                           <InputField value={key} readOnly />
                         </div>
                         <div className="w-full">
+                          <Label className="md:hidden">{t("field_type")}</Label>
                           <Select
                             value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
                             isDisabled={true}
                           />
                         </div>
                         <div className="w-full">
+                          <Label className="md:hidden">{t("value")}</Label>
                           <InputField value={action.value as string} readOnly />
                         </div>
                         <div className="w-full">
+                          <Label className="md:hidden">{t("when_to_write")}</Label>
                           <Select
                             value={whenToWriteToRecordOptions.find(
                               (option) => option.value === action.whenToWrite
@@ -178,7 +176,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                             isDisabled={true}
                           />
                         </div>
-                        <div>
+                        <div className="flex justify-end md:justify-start">
                           <Button
                             StartIcon="trash"
                             variant="icon"
@@ -193,8 +191,9 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       </div>
                     );
                   })}
-                  <div className="mt-2 grid grid-cols-5 gap-4">
+                  <div className="mt-2 border-subtle flex flex-col gap-4 rounded-lg border p-3 md:mt-2 md:grid md:grid-cols-5 md:gap-4 md:border-0 md:p-0">
                     <div>
+                      <Label className="md:hidden">{t("field_name")}</Label>
                       <InputField
                         size="sm"
                         value={newSalesforceAction.field}
@@ -207,6 +206,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       />
                     </div>
                     <div>
+                      <Label className="md:hidden">{t("field_type")}</Label>
                       <Select
                         size="sm"
                         options={fieldTypeOptions}
@@ -223,6 +223,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       />
                     </div>
                     <div>
+                      <Label className="md:hidden">{t("value")}</Label>
                       <InputField
                         size="sm"
                         value={newSalesforceAction.value}
@@ -235,6 +236,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                       />
                     </div>
                     <div>
+                      <Label className="md:hidden">{t("when_to_write")}</Label>
                       <Select
                         size="sm"
                         options={whenToWriteToRecordOptions}

@@ -19,7 +19,7 @@ Create your chart component in `packages/features/insights/components/booking/`:
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Line, ResponsiveContainer } from "recharts";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
@@ -29,16 +29,19 @@ export const MyNewChart = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.myNewChartData.useQuery(insightsBookingParams, {
-    staleTime: 180000, // 3 minutes
-    refetchOnWindowFocus: false,
-    trpc: { context: { skipBatch: true } },
-  });
+  const { data, isSuccess, isPending, isError } = trpc.viewer.insights.myNewChartData.useQuery(
+    insightsBookingParams,
+    {
+      staleTime: 180000, // 3 minutes
+      refetchOnWindowFocus: false,
+      trpc: { context: { skipBatch: true } },
+    }
+  );
 
   if (isPending) return <LoadingInsight />;
 
   return (
-    <ChartCard title={t("my_new_chart_title")}>
+    <ChartCard title={t("my_new_chart_title")} isPending={isPending} isError={isError}>
       {isSuccess && data?.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
@@ -177,7 +180,28 @@ export class InsightsBookingBaseService {
 2. **Raw SQL for Performance**: Use `$queryRaw` for complex aggregations and better performance
 3. **Base Conditions**: Always use `await this.getBaseConditions()` for proper filtering and permissions
 4. **Error Handling**: Wrap service calls in try-catch blocks with `TRPCError`
-5. **Loading States**: Always show loading indicators with `LoadingInsight`
-6. **Consistent Styling**: Use `recharts` for new charts
-7. **Date Handling**: Use `getDateRanges()` and `getTimeView()` for time-based charts
-8. **Prisma v6 Compatibility**: Use `Prisma.sql` for the entire query instead of mixing template literals with SQL fragments
+5. **Loading States**: Always destructure `isPending` and `isError` from the query and pass them to `ChartCard`
+6. **ChartCard Props**: Pass `isPending` and `isError` to `ChartCard` - it will automatically calculate the loading state
+7. **Consistent Styling**: Use `recharts` for new charts
+8. **Date Handling**: Use `getDateRanges()` and `getTimeView()` for time-based charts
+9. **Prisma v6 Compatibility**: Use `Prisma.sql` for the entire query instead of mixing template literals with SQL fragments
+
+## Loading State Management
+
+`ChartCard` automatically handles loading states. Simply pass `isPending` and `isError`:
+
+```typescript
+const { data, isPending, isError } = trpc.viewer.insights.myData.useQuery(...);
+
+// ChartCard will automatically show:
+// - "loading" state when isPending is true
+// - "error" state when isError is true
+// - "loaded" state when both are false
+return (
+  <ChartCard title={t("my_chart")} isPending={isPending} isError={isError}>
+    {/* Your chart content */}
+  </ChartCard>
+);
+```
+
+This enables E2E tests to verify that all charts load successfully by checking the `data-loading-state` attribute.

@@ -29,7 +29,7 @@ import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
-import { Icon } from "../../icon";
+import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
 import type { TextEditorProps } from "../types";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
@@ -54,8 +54,31 @@ function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
     editor.style.left = "-1000px";
   } else {
     editor.style.opacity = "1";
-    editor.style.top = `${rect.top + rect.height + window.pageYOffset + 10}px`;
-    editor.style.left = `${rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2}px`;
+
+    let top = rect.top + rect.height + window.pageYOffset + 10;
+    let left = rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const editorWidth = editor.offsetWidth || 300;
+    const editorHeight = editor.offsetHeight || 100;
+
+    if (left < 10) {
+      left = 10;
+    } else if (left + editorWidth > viewportWidth - 10) {
+      left = viewportWidth - editorWidth - 10;
+    }
+
+    if (top + editorHeight > window.pageYOffset + viewportHeight - 10) {
+      top = rect.top + window.pageYOffset - editorHeight - 10;
+
+      if (top < window.pageYOffset + 10) {
+        top = window.pageYOffset + 10;
+      }
+    }
+
+    editor.style.top = `${top}px`;
+    editor.style.left = `${left}px`;
   }
 }
 
@@ -224,7 +247,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
-
+  const [isOpen, setIsOpen] = useState(false);
   const formatParagraph = () => {
     if (blockType !== "paragraph") {
       editor.update(() => {
@@ -418,40 +441,48 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     );
   }, [editor, updateToolbar]);
 
-  const insertLink = useCallback(() => {
-    if (!isLink) {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
-    } else {
-      editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
-    }
-  }, [editor, isLink]);
+  const insertLink = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!isLink) {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, "https://");
+      } else {
+        editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+      }
+    },
+    [editor, isLink]
+  );
 
   if (!props.editable) return null;
   return (
-    <div className="toolbar flex" ref={toolbarRef}>
+    <div className="toolbar flex gap-1" ref={toolbarRef}>
       <>
         {!props.excludedToolbarItems?.includes("blockType") && (
           <>
-            <Dropdown>
+            <Dropdown onOpenChange={setIsOpen} open={isOpen}>
               <DropdownMenuTrigger className="text-subtle">
                 <>
                   <span className={`icon${blockType}`} />
                   <span className="text text-default hidden sm:flex">
                     {blockTypeToBlockName[blockType as keyof BlockType]}
                   </span>
-                  <Icon name="chevron-down" className="text-default ml-2 h-4 w-4" />
+                  {
+                    isOpen ? (<ChevronUpIcon className="text-default ml-2 h-4 w-4" />) : (<ChevronDownIcon className="text-default ml-2 h-4 w-4" />)
+                  }
                 </>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="flex flex-col gap-1">
                 {Object.keys(blockTypeToBlockName).map((key) => {
                   return (
-                    <DropdownMenuItem key={key} className="outline-none hover:ring-0 focus:ring-0">
+                    <DropdownMenuItem
+                      key={key}
+                      className="outline-none hover:ring-0 focus:ring-0 rounded-md">
                       <Button
                         color="minimal"
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "w-full rounded-none focus:ring-0",
+                          "w-full rounded-md focus:ring-0",
                           blockType === key ? "bg-subtle w-full" : ""
                         )}>
                         <>

@@ -1,9 +1,11 @@
+import { Logger, Module } from "@nestjs/common";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
 import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
@@ -36,9 +38,10 @@ import { OrganizationsRepository } from "@/modules/organizations/index/organizat
 import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { OrganizationsMembershipsController } from "@/modules/organizations/memberships/organizations-membership.controller";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
-import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
+import { OrganizationsRolesModule } from "@/modules/organizations/roles/organizations-roles.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
 import { OrganizationsStripeModule } from "@/modules/organizations/stripe/organizations-stripe.module";
@@ -50,6 +53,7 @@ import { OrganizationsTeamsInviteController } from "@/modules/organizations/team
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
+import { OrganizationsTeamsRolesModule } from "@/modules/organizations/teams/roles/organizations-teams-roles.module";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
@@ -81,7 +85,6 @@ import { TeamRoutingFormWorkflowsService } from "@/modules/workflows/services/te
 import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
 import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
 import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -96,6 +99,8 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
+    OrganizationsRolesModule,
+    OrganizationsTeamsRolesModule,
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,
@@ -104,6 +109,7 @@ import { Module } from "@nestjs/common";
   ],
   providers: [
     OrganizationsRepository,
+    OrganizationMembershipService,
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
@@ -156,6 +162,7 @@ import { Module } from "@nestjs/common";
     TeamsMembershipsService,
     TeamsMembershipsRepository,
     OAuthClientRepository,
+    Logger,
   ],
   exports: [
     OrganizationsService,
@@ -178,6 +185,7 @@ import { Module } from "@nestjs/common";
     OrganizationsEventTypesService,
     OrganizationsConferencingService,
     OrganizationsStripeService,
+    OrganizationMembershipService,
   ],
   controllers: [
     OrganizationsTeamsController,

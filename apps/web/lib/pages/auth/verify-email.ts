@@ -1,16 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
+import { IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { z } from "zod";
 
 const verifySchema = z.object({
   token: z.string(),
@@ -20,7 +18,8 @@ const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const org = await OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
+  const organizationRepository = getOrganizationRepository();
+  const org = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
 
   if (!org) {
     return;
@@ -43,7 +42,6 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
-  const billingService = new StripeBillingService();
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -131,6 +129,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
+      const billingService = getBillingProviderService();
       await billingService.updateCustomer({
         customerId: userMetadataParsed.stripeCustomerId,
         email: updatedEmail,
@@ -172,7 +171,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   await moveUserToMatchingOrg({ email: user.email });
 
-  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath();
+
+  return res.redirect(`${WEBAPP_URL}${hasCompletedOnboarding ? "/event-types" : gettingStartedPath}`);
 }
 
 export async function cleanUpVerificationTokens(id: number) {

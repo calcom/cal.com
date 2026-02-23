@@ -8,18 +8,26 @@ import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
-import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import DisconnectIntegration from "@calcom/web/modules/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  BookOpenIcon,
+  CircleAlertIcon,
+  ExternalLinkIcon,
+  FileIcon,
+  FlagIcon,
+  MailIcon,
+  ShieldIcon,
+} from "@coss/ui/icons";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -115,8 +123,8 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
-      setIsLoading(true);
-      mutation.mutate({ type, variant, slug });
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
       return;
     }
     setIsLoading(true);
@@ -145,9 +153,9 @@ export const AppPage = ({
     useGrouping: false,
   }).format(price);
 
-  const [existingCredentials, setExistingCredentials] = useState<
-    NonNullable<typeof appDbQuery.data>["credentials"]
-  >([]);
+  type Credentials = RouterOutputs["viewer"]["apps"]["appCredentialsByType"]["credentials"];
+
+  const [existingCredentials, setExistingCredentials] = useState<Credentials>([]);
 
   /**
    * Marks whether the app is installed for all possible teams and the user.
@@ -184,8 +192,9 @@ export const AppPage = ({
     enabled: !!dependencies,
   });
 
-  const disableInstall =
-    dependencyData.data && dependencyData.data.some((dependency) => !dependency.installed);
+  const disableInstall = dependencyData.data
+    ? dependencyData.data.some((dependency) => !dependency.installed)
+    : false;
 
   // const disableInstall = requiresGCal && !gCalInstalled.data;
 
@@ -197,6 +206,7 @@ export const AppPage = ({
     if (searchParams?.get("defaultInstall") === "true") {
       mutation.mutate({ type, variant, slug, defaultInstall: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only once on mount
   }, []);
 
   const installOrDisconnectAppButton = () => {
@@ -315,6 +325,7 @@ export const AppPage = ({
                   <iframe allowFullScreen {...descriptionItem.iframe} />
                 </div>
               ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- external app screenshots with unknown dimensions
                 <img
                   key={descriptionItem}
                   src={descriptionItem}
@@ -336,6 +347,7 @@ export const AppPage = ({
         <div className="mb-8 flex pt-4">
           <header>
             <div className="mb-4 flex items-center">
+              {/* eslint-disable-next-line @next/next/no-img-element -- external app logo with unknown dimensions */}
               <img
                 className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
                 src={logo}
@@ -375,6 +387,21 @@ export const AppPage = ({
           </header>
         </div>
         {installOrDisconnectAppButton()}
+
+        {slug === "msteams" && (
+          <div className="bg-info mt-4 rounded-md px-4 py-3">
+            <div className="items-start space-x-2.5">
+              <div className="text-info flex items-start">
+                <div>
+                  <CircleAlertIcon className="mr-2 mt-1 font-semibold" />
+                </div>
+                <div>
+                  <span className="font-semibold">{t("msteams_calendar_warning_body")}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {dependencies &&
           (!dependencyData.isPending ? (
@@ -426,7 +453,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <Icon name="book-open" className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
+                <BookOpenIcon className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -438,7 +465,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <Icon name="external-link" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <ExternalLinkIcon className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -450,7 +477,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={`mailto:${email}`}>
-                <Icon name="mail" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <MailIcon className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -463,7 +490,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <Icon name="file" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <FileIcon className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -475,18 +502,18 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <ShieldIcon className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
           )}
         </ul>
         <hr className="border-subtle my-8 border" />
-        <span className="leading-1 text-subtle block text-xs">
+        <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
+          <FlagIcon className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>

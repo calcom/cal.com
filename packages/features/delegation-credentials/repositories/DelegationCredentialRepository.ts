@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import logger from "@calcom/lib/logger";
 import {
   serviceAccountKeySchema,
@@ -137,7 +137,8 @@ export class DelegationCredentialRepository {
       prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
     log.debug("called with", { email });
-    const organization = await OrganizationRepository.findByMemberEmail({ email });
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.findByMemberEmail({ email });
     if (!organization) {
       log.debug("Email not found in any organization:", email);
       return null;

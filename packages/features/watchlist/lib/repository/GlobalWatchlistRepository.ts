@@ -1,6 +1,5 @@
 import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
-
+import { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
 
 /**
@@ -85,6 +84,41 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     });
   }
 
+  /**
+   * Bulk find blocking entries for multiple emails and domains.
+   * Single query for N emails and domains - eliminates N+1.
+   */
+  async findBlockingEntriesForEmailsAndDomains(params: {
+    emails: string[];
+    domains: string[];
+  }): Promise<Watchlist[]> {
+    const { emails, domains } = params;
+
+    if (emails.length === 0 && domains.length === 0) {
+      return [];
+    }
+
+    const conditions: Array<{ type: WatchlistType; value: { in: string[] } }> = [];
+
+    if (emails.length > 0) {
+      conditions.push({ type: WatchlistType.EMAIL, value: { in: emails } });
+    }
+
+    if (domains.length > 0) {
+      conditions.push({ type: WatchlistType.DOMAIN, value: { in: domains } });
+    }
+
+    return this.prisma.watchlist.findMany({
+      select: this.selectFields,
+      where: {
+        organizationId: null,
+        isGlobal: true,
+        action: WatchlistAction.BLOCK,
+        OR: conditions,
+      },
+    });
+  }
+
   // Write operations for global entries
   async createEntry(data: {
     type: WatchlistType;
@@ -129,7 +163,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async deleteEntry(id: string): Promise<void> {
-    this.prisma.watchlist.delete({
+    await this.prisma.watchlist.delete({
       where: { id },
     });
   }

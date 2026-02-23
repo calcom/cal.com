@@ -14,10 +14,10 @@ import type { IBTCPaySetupProps } from "@calcom/app-store/btcpayserver/pages/set
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { LoaderIcon } from "@coss/ui/icons";
 
 export default function BTCPaySetup(props: IBTCPaySetupProps) {
   const params = useCompatSearchParams();
@@ -249,13 +249,13 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
     <>
       <div className="bg-default flex h-screen items-center justify-center">
         {showContent ? (
-          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
-            <form className="w-full space-y-4" onSubmit={onSubmit}>
+          <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center stack-y-4 p-4 lg:stack-y-5">
+            <form className="w-full stack-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
+                <div className="border-subtle flex items-center justify-between border-b p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">BTCPay Server Information</h2>
                 </div>
-                <div className="w-full space-y-4 p-4 md:p-5">
+                <div className="w-full stack-y-4 p-4 md:p-5">
                   <div className="w-full">
                     <KeyField
                       {...register("serverUrl", { required: true })}
@@ -324,7 +324,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
                       disabled={loading || validating || !updatable}>
                       {loading ? (
                         <>
-                          <Icon name="loader" className="mr-2 animate-spin" />
+                          <LoaderIcon className="mr-2 animate-spin" />
                           {t("connecting")}
                         </>
                       ) : (

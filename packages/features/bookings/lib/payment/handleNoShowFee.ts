@@ -1,7 +1,7 @@
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -31,6 +31,9 @@ export const handleNoShowFee = async ({
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      profiles: {
+        organizationId: number | null;
+      }[];
     } | null;
     eventType: {
       title: string;
@@ -97,10 +100,12 @@ export const handleNoShowFee = async ({
       currency: payment.currency,
       paymentOption: payment.paymentOption,
     },
+    organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
   };
 
   if (teamId) {
-    const userIsInTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    const membershipRepository = new MembershipRepository();
+    const userIsInTeam = await membershipRepository.findUniqueByUserIdAndTeamId({
       userId,
       teamId,
     });
@@ -141,12 +146,12 @@ export const handleNoShowFee = async ({
     throw new Error("Payment app not implemented");
   }
   const paymentApp = await paymentAppImportFn;
-  if (!paymentApp?.PaymentService) {
+  if (!paymentApp?.BuildPaymentService) {
     log.error(`Payment service not found for app ${key}`);
     throw new Error("Payment service not found");
   }
-  const PaymentService = paymentApp.PaymentService;
-  const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
+  const createPaymentService = paymentApp.BuildPaymentService;
+  const paymentInstance = createPaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
     const paymentData = await paymentInstance.chargeCard(payment, booking.id);
@@ -160,11 +165,12 @@ export const handleNoShowFee = async ({
 
     return paymentData;
   } catch (err) {
-    let errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
-      errorMessage = err.message;
+      log.error(err.message);
+      throw err;
     }
 
+    const errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     log.error(errorMessage);
     throw new Error(tOrganizer(errorMessage));
   }
