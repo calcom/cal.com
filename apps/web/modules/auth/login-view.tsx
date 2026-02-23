@@ -191,7 +191,6 @@ export default function Login({
   };
 
   const showSocialLogin = isGoogleLoginEnabled || isOutlookLoginEnabled;
-  const socialProviderCount = [isGoogleLoginEnabled, isOutlookLoginEnabled].filter(Boolean).length;
   const showSignupLink =
     process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false";
 

@@ -1457,11 +1457,6 @@ export const getOptions = ({
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && isNewUser) {
-        // Null check for user properties
-        const safeUserId = user.id ? user.id.toString() : "unknown";
-        const safeUserName = user.name ?? "Unknown User";
-        const safeUserEmail = user.email ?? "unknown@example.com";
-        const safeUserImage = user.image ?? undefined;
 
         if (process.env.DUB_API_KEY) {
           const clickId = getDubId();

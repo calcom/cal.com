@@ -17,5 +17,9 @@ export const NEXTAUTH_TO_IDENTITY_PROVIDER: Record<string, IdentityProvider> = {
  * Falls back to GOOGLE if not found (maintains existing behavior).
  */
 export const getIdentityProvider = (nextAuthProvider: string): IdentityProvider => {
-  return NEXTAUTH_TO_IDENTITY_PROVIDER[nextAuthProvider] ?? IdentityProvider.GOOGLE;
+  const idP = NEXTAUTH_TO_IDENTITY_PROVIDER[nextAuthProvider];
+  if (!idP) {
+    throw new Error(`Unknown NextAuth provider: "${nextAuthProvider}"`);
+  }
+  return idP;
 };
