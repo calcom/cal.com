@@ -4,6 +4,7 @@ import type { PrismaClient } from "@calcom/prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { getBookingHistoryViewerService } from "@calcom/features/booking-audit/di/BookingHistoryViewerService.container";
+import type { DisplayBookingAuditLog } from "@calcom/features/booking-audit/lib/service/BookingAuditViewerService";
 import {
   BookingAuditErrorCode,
   BookingAuditPermissionError,
@@ -38,7 +39,13 @@ const getErrorMessage = (code: BookingAuditErrorCode, t: TFunction): string => {
   }
 };
 
-export const getBookingHistoryHandler = async ({ ctx, input }: GetBookingHistoryOptions) => {
+export const getBookingHistoryHandler = async ({
+  ctx,
+  input,
+}: GetBookingHistoryOptions): Promise<{
+  bookingUid: string;
+  auditLogs: DisplayBookingAuditLog[];
+}> => {
   const { user } = ctx;
   const { bookingUid } = input;
 
