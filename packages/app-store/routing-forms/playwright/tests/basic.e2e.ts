@@ -988,11 +988,11 @@ async function expectCurrentFormToHaveFields(
   },
   types: string[]
 ) {
+  const fieldRows = page.locator('li[data-testid^="field-"]');
   for (const [index, field] of Object.entries(fields)) {
-    expect(await page.inputValue(`[data-testid="fields.${index}.label"]`)).toBe(field.label);
-    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
-      types[field.typeIndex]
-    );
+    const row = fieldRows.nth(+index);
+    await expect(row.locator(".font-semibold").first()).toHaveText(field.label);
+    await expect(row.locator("p.text-subtle")).toHaveText(types[field.typeIndex]);
   }
 }
 
@@ -1051,6 +1051,8 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   }
 }
 
+const FIELD_TYPE_SELECTOR = '[data-testid="test-field-type"]';
+
 async function addAllTypesOfFieldsAndSaveForm(
   formId: string,
   page: Page,
@@ -1058,9 +1060,10 @@ async function addAllTypesOfFieldsAndSaveForm(
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
+  await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
-    { selector: ".data-testid-field-type", nth: 0 },
+    { selector: FIELD_TYPE_SELECTOR, nth: 0 },
     ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
     page
   );
@@ -1068,39 +1071,36 @@ async function addAllTypesOfFieldsAndSaveForm(
   const fields = [];
   for (let index = 0; index < fieldTypesList.length; index++) {
     const fieldTypeLabel = fieldTypesList[index];
-    const nth = index;
     const label = `${form.label} ${fieldTypeLabel}`;
-    let identifier = "";
+    const identifier = index === 0 ? "firstField" : label;
 
-    if (index !== 0) {
-      identifier = label;
-      // Click on the field type dropdown.
-      await page.locator(".data-testid-field-type").nth(nth).click();
-      // Click on the dropdown option.
-      await page.locator(`[data-testid^="select-option-"]`).filter({ hasText: fieldTypeLabel }).click();
-    } else {
-      // Set the identifier manually for the first field to test out a case when identifier isn't computed from label automatically
-      // First field type is by default selected. So, no need to choose from dropdown
-      identifier = "firstField";
+    if (index > 0) {
+      await page.click('[data-testid="add-field"]');
+      await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
+      await page.locator(FIELD_TYPE_SELECTOR).click();
+      await page.locator('[data-testid^="select-option-"]').filter({ hasText: fieldTypeLabel }).click();
     }
+
+    const dialog = page.locator('[data-testid="edit-field-dialog"]');
+    await dialog.locator('[name="label"]').fill(label);
+    await dialog.locator('[name="name"]').fill(identifier);
 
     if (fieldTypeLabel === "Multiple choice selection" || fieldTypeLabel === "Single-choice selection") {
-      await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
-      await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
-      await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");
-      await page.fill(`[data-testid="fields.${nth}.options.3-input"]`, "10-11-12");
+      const optionsContainer = dialog.locator('[data-testid="options-container"]');
+      await optionsContainer.locator('[data-testid="add-option"]').click();
+      await optionsContainer.locator('[data-testid="add-option"]').click();
+      const optionInputs = optionsContainer.locator("ul li input");
+      await optionInputs.nth(0).fill("123");
+      await optionInputs.nth(1).fill("456");
+      await optionInputs.nth(2).fill("789");
+      await optionInputs.nth(3).fill("10-11-12");
     }
 
-    await page.fill(`[name="fields.${nth}.label"]`, label);
-
-    if (identifier !== label) {
-      await page.fill(`[name="fields.${nth}.identifier"]`, identifier);
+    await page.locator('[data-testid="field-add-save"]').click();
+    if (index < fieldTypesList.length - 1) {
+      await page.waitForSelector('[data-testid="edit-field-dialog"]', { state: "hidden" });
     }
-
-    if (index !== fieldTypesList.length - 1) {
-      await page.click('[data-testid="add-field"]');
-    }
-    fields.push({ identifier: identifier, label, type: fieldTypeLabel });
+    fields.push({ identifier, label, type: fieldTypeLabel });
   }
 
   await page.locator('[data-testid="settings-button"]').scrollIntoViewIfNeeded();
@@ -1117,9 +1117,10 @@ async function addAllTypesOfFieldsAndSaveForm(
 async function addShortTextFieldAndSaveForm({ page, formId }: { page: Page; formId: string }) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
-  await page.locator(".data-testid-field-type").nth(0).click();
-  await page.fill(`[name="fields.0.label"]`, "Short Text");
-  await page.fill(`[name="fields.0.identifier"]`, "short-text");
+  await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
+  await page.locator('[data-testid="edit-field-dialog"]').locator('[name="label"]').fill("Short Text");
+  await page.locator('[data-testid="edit-field-dialog"]').locator('[name="name"]').fill("short-text");
+  await page.locator('[data-testid="field-add-save"]').click();
   await saveCurrentForm(page);
 }
 

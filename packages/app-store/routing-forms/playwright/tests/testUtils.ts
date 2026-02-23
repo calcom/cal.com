@@ -31,6 +31,8 @@ export async function addForm(
   return formId;
 }
 
+const FIELD_TYPE_SELECTOR = '[data-testid="test-field-type"]';
+
 export async function addOneFieldAndDescriptionAndSaveForm(
   formId: string,
   page: Page,
@@ -39,33 +41,28 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await expect(page.locator('[name="name"]')).toHaveValue(form.name);
   await page.click('[data-testid="add-field"]');
+  await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
   if (form.description) {
     await page.fill('[data-testid="description"]', form.description);
   }
 
-  // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
-    { selector: ".data-testid-field-type", nth: 0 },
+    { selector: FIELD_TYPE_SELECTOR, nth: 0 },
     ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
     page
   );
 
-  const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
-
+  const dialog = page.locator('[data-testid="edit-field-dialog"]');
   if (form.field) {
-    await page.fill(`[data-testid="fields.${nextFieldIndex}.label"]`, form.field.label);
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator(".data-testid-field-type")
-      .click();
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator('[id*="react-select-"][aria-disabled]')
-      .nth(form.field.typeIndex)
-      .click();
+    await page.locator(FIELD_TYPE_SELECTOR).click();
+    await page.locator('[data-testid^="select-option-"]').nth(form.field.typeIndex).click();
+    await dialog.locator('[name="label"]').fill(form.field.label);
+    await dialog.locator('[name="name"]').fill(form.field.label);
+  } else {
+    await dialog.locator('[name="label"]').fill("Field");
+    await dialog.locator('[name="name"]').fill("field");
   }
+  await page.locator('[data-testid="field-add-save"]').click();
   await saveCurrentForm(page);
   return {
     types,
@@ -83,11 +80,7 @@ export async function verifySelectOptions(
   page: Page
 ) {
   await page.locator(selector.selector).nth(selector.nth).click();
-  const selectOptions = await page
-    .locator(selector.selector)
-    .nth(selector.nth)
-    .locator('[id*="react-select-"][aria-disabled]')
-    .allInnerTexts();
+  const selectOptions = await page.locator('[data-testid^="select-option-"]').allInnerTexts();
 
   const sortedSelectOptions = [...selectOptions].sort();
   const sortedExpectedOptions = [...expectedOptions].sort();
