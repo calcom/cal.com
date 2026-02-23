@@ -330,7 +330,7 @@ const getCappedVariables = (
   const suffixLength = calculateSuffixLength(component.text, "event_type_name");
 
   // Calculate max length for event_type_name (accounting for ellipsis)
-  const maxLengthForEventTypeName = maxTotalLength - (suffixLength + 3); /* for ellipsis */
+  const maxLengthForEventTypeName = maxTotalLength - (suffixLength); /* for ellipsis */
 
   return {
     ...expandedVariables,
