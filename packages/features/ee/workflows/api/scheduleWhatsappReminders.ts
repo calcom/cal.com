@@ -66,10 +66,15 @@ export async function handler(req: NextRequest) {
         }
       }
 
+      const attendeePhoneNumber =
+        reminder.seatReferenceId && targetAttendee?.phoneNumber
+          ? targetAttendee.phoneNumber
+          : reminder.booking?.smsReminderNumber || targetAttendee?.phoneNumber;
+
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_NUMBER
           ? reminder.workflowStep.sendTo
-          : targetAttendee?.phoneNumber;
+          : attendeePhoneNumber;
 
       const userName =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE ? targetAttendee?.name || "" : "";
