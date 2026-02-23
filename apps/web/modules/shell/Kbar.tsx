@@ -699,14 +699,20 @@ function CrowFallback({
 function RenderResults(): JSX.Element {
   const { results } = useMatches();
   const { searchQuery } = useKBar((state) => ({ searchQuery: state.searchQuery }));
+  const { query } = useKBar();
   const { t } = useLocale();
   const [inChatMode, setInChatMode] = useState(false);
 
   useEventTypesAction();
   useUpcomingBookingsAction();
 
+  const handleEnterChatMode = useCallback(() => {
+    setInChatMode(true);
+    query.setSearch("");
+  }, [query]);
+
   if (inChatMode || (results.length === 0 && searchQuery.trim().length > 0)) {
-    return <CrowFallback searchQuery={searchQuery} onEnterChatMode={() => setInChatMode(true)} />;
+    return <CrowFallback searchQuery={searchQuery} onEnterChatMode={handleEnterChatMode} />;
   }
 
   return (
