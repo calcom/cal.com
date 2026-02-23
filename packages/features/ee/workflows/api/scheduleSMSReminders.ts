@@ -7,13 +7,9 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-<<<<<<< feat/sink_shortner_for_sms_reminders_workflows
 import { UrlShortenerFactory } from "@calcom/features/url-shortener";
 import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
-import { getTranslation } from "@calcom/lib/server/i18n";
-=======
 import { getTranslation } from "@calcom/i18n/server";
->>>>>>> main
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
