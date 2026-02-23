@@ -2283,6 +2283,7 @@
   "kbar_crow_thinking": "Thinking...",
   "kbar_crow_ai_label": "AI Answer",
   "kbar_crow_navigate": "Take me there",
+  "kbar_crow_follow_up_hint": "Type a follow-up and press Enter",
   "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
   "invalid_credential_action": "Reinstall app",
   "reschedule_reason": "Reschedule reason",

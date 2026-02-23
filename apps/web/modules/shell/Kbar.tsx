@@ -27,7 +27,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
 const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
@@ -438,12 +438,21 @@ type CrowSSEEvent = {
   content?: string;
   tool_name?: string;
   arguments?: Record<string, unknown>;
+  conversation_id?: string;
+};
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  text: string;
+  href: string | null;
 };
 
 type CrowFallbackState = {
-  status: "idle" | "loading" | "streaming" | "done" | "error";
-  text: string;
-  href: string | null;
+  mode: "search" | "chat";
+  messages: ChatMessage[];
+  conversationId: string | null;
+  streaming: boolean;
+  error: boolean;
 };
 
 function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
@@ -480,95 +489,156 @@ function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
   const router = useRouter();
   const { query } = useKBar();
-  const [state, setState] = useState<CrowFallbackState>({ status: "idle", text: "", href: null });
+  const [state, setState] = useState<CrowFallbackState>({
+    mode: "search",
+    messages: [],
+    conversationId: null,
+    streaming: false,
+    error: false,
+  });
   const abortRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    if (!searchQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
+  const sendMessage = useCallback(async (message: string, convId: string | null) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
-    const timer = setTimeout(async () => {
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-      setState({ status: "loading", text: "", href: null });
+    setState((s) => ({
+      ...s,
+      streaming: true,
+      error: false,
+      messages: [
+        ...s.messages,
+        { role: "user", text: message, href: null },
+        { role: "assistant", text: "", href: null },
+      ],
+    }));
 
-      try {
-        const res = await fetch(`${CROW_API_URL}/api/chat/message`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            product_id: CROW_PRODUCT_ID,
-            message: searchQuery,
-            conversation_id: null,
-            context: { page: window.location.pathname },
-          }),
-          signal: controller.signal,
-        });
+    try {
+      const res = await fetch(`${CROW_API_URL}/api/chat/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: CROW_PRODUCT_ID,
+          message,
+          conversation_id: convId,
+          context: { page: window.location.pathname },
+        }),
+        signal: controller.signal,
+      });
 
-        if (!res.ok || !res.body) {
-          setState({ status: "error", text: "", href: null });
-          return;
-        }
+      if (!res.ok || !res.body) {
+        setState((s) => ({ ...s, streaming: false, error: s.mode === "search" }));
+        return;
+      }
 
-        setState((s) => ({ ...s, status: "streaming" }));
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let accText = "";
-        let navHref: string | null = null;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let capturedConvId = convId;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              setState({ status: "done", text: accText, href: navHref });
-              return;
-            }
-            try {
-              const event = JSON.parse(data) as CrowSSEEvent;
-              if (event.type === "content" && event.content) {
-                accText += event.content;
-                setState({ status: "streaming", text: accText, href: navHref });
-              } else if (event.type === "client_tool_call" && event.tool_name === "navigateToPage") {
-                navHref = (event.arguments?.url as string) ?? null;
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") {
+            setState((s) => ({ ...s, mode: "chat", streaming: false, conversationId: capturedConvId }));
+            return;
+          }
+          try {
+            const event = JSON.parse(data) as CrowSSEEvent;
+            if (event.type === "conversation_id" && event.conversation_id) {
+              capturedConvId = event.conversation_id;
+            } else if (event.type === "content" && event.content) {
+              setState((s) => {
+                const msgs = [...s.messages];
+                const last = msgs[msgs.length - 1];
+                if (last?.role === "assistant") {
+                  msgs[msgs.length - 1] = { ...last, text: last.text + event.content! };
+                }
+                return { ...s, messages: msgs };
+              });
+            } else if (event.type === "client_tool_call" && event.tool_name === "navigateToPage") {
+              const href = (event.arguments?.url as string) ?? null;
+              if (href) {
+                setState((s) => {
+                  const msgs = [...s.messages];
+                  const last = msgs[msgs.length - 1];
+                  if (last?.role === "assistant") {
+                    msgs[msgs.length - 1] = { ...last, href };
+                  }
+                  return { ...s, messages: msgs };
+                });
               }
-            } catch {
-              // ignore malformed SSE frames
             }
+          } catch {
+            // ignore malformed SSE frames
           }
         }
-
-        setState({ status: "done", text: accText, href: navHref });
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setState({ status: "error", text: "", href: null });
-        }
       }
+
+      setState((s) => ({ ...s, mode: "chat", streaming: false, conversationId: capturedConvId }));
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        setState((s) => ({ ...s, streaming: false, error: s.mode === "search" }));
+      }
+    }
+  }, []);
+
+  // Initial query: fire Crow when searchQuery changes (search mode only)
+  useEffect(() => {
+    if (!searchQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
+    if (state.mode === "chat") return;
+
+    const timer = setTimeout(() => {
+      sendMessage(searchQuery, null);
     }, 600);
 
     return () => {
       clearTimeout(timer);
       abortRef.current?.abort();
     };
-  }, [searchQuery]);
+  }, [searchQuery, state.mode, sendMessage]);
 
-  // Crow not configured — fall back to help desk link
+  // Enter key: send follow-up when in chat mode
+  useEffect(() => {
+    if (state.mode !== "chat") return;
+
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === "Enter" && searchQuery.trim() && !state.streaming) {
+        e.preventDefault();
+        e.stopPropagation();
+        const msg = searchQuery.trim();
+        query.setSearch("");
+        sendMessage(msg, state.conversationId);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [state.mode, state.streaming, state.conversationId, searchQuery, query, sendMessage]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.messages]);
+
   if (!CROW_API_URL || !CROW_PRODUCT_ID) {
     return <HelpDeskLink searchQuery={searchQuery} />;
   }
 
-  if (state.status === "error") {
+  if (state.error) {
     return <HelpDeskLink searchQuery={searchQuery} />;
   }
 
-  if (state.status === "idle" || state.status === "loading") {
+  if (state.messages.length === 0) {
     return (
       <div className="flex items-center justify-center px-4 py-6">
         <span className="animate-pulse text-sm text-subtle">{t("kbar_crow_thinking")}</span>
@@ -577,25 +647,43 @@ function CrowFallback({ searchQuery }: { searchQuery: string }): JSX.Element {
   }
 
   return (
-    <div className="px-4 py-4">
-      <p className="mb-2 font-medium text-subtle text-xs uppercase tracking-wide">
-        {t("kbar_crow_ai_label")}
-      </p>
-      <p className="text-default text-sm">
-        {state.text}
-        {state.status === "streaming" && <span className="ml-0.5 animate-pulse">▋</span>}
-      </p>
-      {state.href && (state.status === "streaming" || state.status === "done") && (
-        <button
-          onClick={() => {
-            query.toggle();
-            router.push(state.href!);
-          }}
-          className="mt-3 flex items-center gap-1.5 text-emphasis text-sm transition hover:underline">
-          <CornerDownLeftIcon className="h-3 w-3" />
-          {t("kbar_crow_navigate")}
-        </button>
+    <div className="max-h-80 overflow-y-auto px-4 py-3">
+      {state.messages.map((msg, i) => (
+        <div key={i} className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+          {msg.role === "user" ? (
+            <div className="max-w-[75%] rounded-lg bg-subtle px-3 py-2 text-default text-sm">
+              {msg.text}
+            </div>
+          ) : (
+            <div className="max-w-[85%]">
+              <p className="mb-1 font-medium text-subtle text-xs uppercase tracking-wide">
+                {t("kbar_crow_ai_label")}
+              </p>
+              <p className="text-default text-sm">
+                {msg.text}
+                {i === state.messages.length - 1 && state.streaming && (
+                  <span className="ml-0.5 animate-pulse">▋</span>
+                )}
+              </p>
+              {msg.href && !state.streaming && (
+                <button
+                  onClick={() => {
+                    query.toggle();
+                    router.push(msg.href!);
+                  }}
+                  className="mt-2 flex items-center gap-1.5 text-emphasis text-sm transition hover:underline">
+                  <CornerDownLeftIcon className="h-3 w-3" />
+                  {t("kbar_crow_navigate")}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+      {state.mode === "chat" && !state.streaming && (
+        <p className="pb-1 text-center text-subtle text-xs">{t("kbar_crow_follow_up_hint")}</p>
       )}
+      <div ref={messagesEndRef} />
     </div>
   );
 }
