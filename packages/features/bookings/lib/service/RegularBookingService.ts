@@ -2875,6 +2875,7 @@ async function handler(
             startTime: booking.startTime,
           },
           bookerUrl,
+          language: attendeeLanguage ?? "en",
         });
         tracingLogger.info("Sent verification emails to pending guests", { count: guestsToVerify.length });
       } catch (error) {
