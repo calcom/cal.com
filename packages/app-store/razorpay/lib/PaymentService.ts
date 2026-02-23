@@ -22,7 +22,8 @@ export const razorpayCredentialKeysSchema = z.object({
   refresh_token: z.string(),
   public_token: z.string(),
   account_id: z.string(),
-  userId: z.number(),
+  userId: z.number().optional(),
+  calIdTeamId: z.number().optional(),
 });
 export class PaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof razorpayCredentialKeysSchema> | null;
@@ -36,6 +37,7 @@ export class PaymentService implements IAbstractPaymentService {
         access_token: this.credentials.access_token,
         refresh_token: this.credentials.refresh_token,
         user_id: this.credentials.userId,
+        team_id: this.credentials.calIdTeamId,
       });
     } else {
       throw new Error("Razorpay: Credentials Invalid");

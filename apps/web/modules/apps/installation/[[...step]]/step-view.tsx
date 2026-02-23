@@ -81,6 +81,7 @@ export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> &
 })[];
 
 export type OnboardingPageProps = {
+  noTeamsOnAccountsPage?: boolean;
   appMetadata: AppMeta;
   step: StepType;
   teams?: TTeams;
