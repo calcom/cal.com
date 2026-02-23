@@ -599,6 +599,7 @@ describe("scheduleSMSReminders handler", () => {
       const req = createMockRequest();
       const reminder = buildMockReminder();
       (reminder.booking as any).attendees[0].phoneNumber = undefined;
+      (reminder.booking as any).smsReminderNumber = null;
       prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
 
       await handler(req as any);
