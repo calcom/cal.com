@@ -1,7 +1,6 @@
 import { isWithinMinimumRescheduleNotice } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
-
 import type { BookingItemProps } from "../types";
 
 export interface BookingActionContext {
@@ -109,7 +108,8 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
 
   const isReassignableRoundRobin =
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1) &&
+    !booking.eventType.disableRoundRobinReassignment;
   const isManagedChildEvent = booking.eventType.parentId != null;
   const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
 
@@ -249,7 +249,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
 
   switch (actionId) {
     case "reschedule":
-    case "reschedule_request":
+    case "reschedule_request": {
       // Only apply minimum reschedule notice restriction if user is NOT the organizer
       // If user is an attendee (or not authenticated), apply the restriction
       const isUserOrganizer =
@@ -270,6 +270,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
         isDisabledRescheduling ||
         isWithinMinimumNotice
       );
+    }
     case "cancel":
       return isDisabledCancelling || isBookingInPast || isCancelled || isRejected;
     case "view_recordings":
