@@ -1093,7 +1093,10 @@ async function addAllTypesOfFieldsAndSaveForm(
       await page.click('[data-testid="add-field"]');
       await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
       await page.locator(FIELD_TYPE_SELECTOR).click();
-      await page.locator('[data-testid^="select-option-"]').filter({ hasText: fieldTypeLabel }).click();
+      await page
+        .locator('[data-testid^="select-option-"]')
+        .filter({ hasText: new RegExp(`^${fieldTypeLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) })
+        .click();
     }
 
     const dialog = page.locator('[data-testid="edit-field-dialog"]');
