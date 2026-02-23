@@ -32,7 +32,7 @@ const REJECTION_REASON_RAW = "  we dont support your usecase ";
 
 vi.mock("@calcom/features/oauth/repositories/OAuthClientRepository", () => ({
   OAuthClientRepository: class {
-    constructor() {}
+    constructor() { }
     findByClientId = mocks.findByClientId;
     findByClientIdIncludeUser = mocks.findByClientIdIncludeUser;
   },
@@ -481,6 +481,64 @@ describe("updateClientHandler", () => {
         where: { clientId: CLIENT_ID },
         data: {
           redirectUri: updatedRedirectUri,
+          status: "PENDING",
+          rejectionReason: null,
+        },
+      })
+    );
+  });
+
+  it("sets status to PENDING when an owner updates a field of a REJECTED client", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      status: "REJECTED",
+      user: null,
+    });
+
+    const newPurpose = "Updated purpose to fix rejection issues";
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: newPurpose,
+      status: "PENDING",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        purpose: newPurpose,
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          purpose: newPurpose,
           status: "PENDING",
           rejectionReason: null,
         },
