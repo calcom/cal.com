@@ -108,45 +108,47 @@ const BillingView = () => {
 
   return (
     <>
-      <div className="bg-cal-muted border-muted mt-5 rounded-xl border p-1">
-        <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
-          <div className="flex w-full flex-col gap-1">
-            <h3 className="text-emphasis text-sm font-semibold leading-none">{t("manage_billing")}</h3>
-            <p className="text-subtle text-sm font-medium leading-tight">
-              {t("view_and_manage_billing_details")}
-            </p>
-          </div>
-          <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
-            {t("billing_portal")}
-          </Button>
-        </div>
-        {isTrialing && (
-          <div className="bg-default border-muted mt-1 flex rounded-[10px] border px-5 py-4">
+      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-8 sm:px-6">
+        <div className="bg-cal-muted border-muted rounded-xl border p-1">
+          <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
             <div className="flex w-full flex-col gap-1">
-              <h3 className="text-emphasis text-sm font-semibold leading-none">{t("skip_trial")}</h3>
-              <p className="text-subtle text-sm font-medium leading-tight">{t("skip_trial_description")}</p>
+              <h3 className="text-emphasis text-sm font-semibold leading-none">{t("manage_billing")}</h3>
+              <p className="text-subtle text-sm font-medium leading-tight">
+                {t("view_and_manage_billing_details")}
+              </p>
             </div>
-            <Button
-              color="secondary"
-              size="sm"
-              onClick={() => setShowSkipTrialDialog(true)}
-              loading={isLoadingStatus}>
-              {t("skip_trial")}
+            <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
+              {t("billing_portal")}
             </Button>
           </div>
-        )}
-        <div className="flex items-center justify-between px-4 py-5">
-          <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
-          <Button color="secondary" size="sm" onClick={onContactSupportClick}>
-            {t("contact_support")}
-          </Button>
+          {isTrialing && (
+            <div className="bg-default border-muted mt-1 flex rounded-[10px] border px-5 py-4">
+              <div className="flex w-full flex-col gap-1">
+                <h3 className="text-emphasis text-sm font-semibold leading-none">{t("skip_trial")}</h3>
+                <p className="text-subtle text-sm font-medium leading-tight">{t("skip_trial_description")}</p>
+              </div>
+              <Button
+                color="secondary"
+                size="sm"
+                onClick={() => setShowSkipTrialDialog(true)}
+                loading={isLoadingStatus}>
+                {t("skip_trial")}
+              </Button>
+            </div>
+          )}
+          <div className="flex items-center justify-between px-4 py-5">
+            <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
+            <Button color="secondary" size="sm" onClick={onContactSupportClick}>
+              {t("contact_support")}
+            </Button>
+          </div>
         </div>
+        <BillingCredits />
+        {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
+          <ActiveUserBreakdown teamId={teamIdNumber} />
+        )}
+        <InvoicesTable />
       </div>
-      <BillingCredits />
-      {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
-        <ActiveUserBreakdown teamId={teamIdNumber} />
-      )}
-      <InvoicesTable />
 
       <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
         <DialogContent>
