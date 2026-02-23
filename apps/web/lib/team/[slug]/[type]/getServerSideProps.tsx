@@ -1,22 +1,21 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import logger from "@calcom/lib/logger";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -25,6 +24,13 @@ const paramsSchema = z.object({
 
 function hasApiV2RouteInEnv() {
   return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
+}
+
+function isSlotAnalyticsEnabled(eventTypeId: number): boolean {
+  const allowedIds = process.env.SLOT_ANALYTICS_EVENT_TYPE_IDS;
+  if (!allowedIds) return false;
+  const idSet = new Set(allowedIds.split(",").map((id) => Number(id.trim())));
+  return idSet.has(eventTypeId);
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -217,6 +223,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       crmAppSlug,
       crmRecordId,
       isSEOIndexable: allowSEOIndexing,
+      enableSlotAnalytics: isSlotAnalyticsEnabled(eventTypeId),
     },
   };
 };

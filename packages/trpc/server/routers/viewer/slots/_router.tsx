@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZIsAvailableInputSchema, ZIsAvailableOutputSchema } from "./isAvailable.schema";
+import { ZRecordSlotSnapshotInputSchema } from "./recordSlotSnapshot.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 import { ZGetScheduleInputSchema } from "./types";
@@ -42,6 +42,10 @@ export const slotsRouter = router({
         input,
       });
     }),
+  recordSlotSnapshot: publicProcedure.input(ZRecordSlotSnapshotInputSchema).mutation(async ({ input }) => {
+    const { recordSlotSnapshotHandler } = await import("./recordSlotSnapshot.handler");
+    return recordSlotSnapshotHandler({ input });
+  }),
   // This endpoint has no dependencies, it doesn't need its own file
   removeSelectedSlotMark: publicProcedure
     .input(ZRemoveSelectedSlotInputSchema)

@@ -3305,3 +3305,13 @@ model RoutingTrace {
   assignmentReasonId Int?              @unique
   assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
 }
+
+model BookerSlotSnapshot {
+  id                Int      @id @default(autoincrement())
+  eventTypeId       Int
+  firstSlotLeadTime Int
+  createdAt         DateTime @default(now())
+
+  @@index([eventTypeId])
+  @@index([createdAt])
+}

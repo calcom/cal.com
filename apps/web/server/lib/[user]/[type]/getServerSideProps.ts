@@ -1,7 +1,4 @@
-import { type GetServerSidePropsContext } from "next";
-import type { Session } from "next-auth";
-import { z } from "zod";
-
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
@@ -14,10 +11,11 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
-
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
-
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
+import type { GetServerSidePropsContext } from "next";
+import type { Session } from "next-auth";
+import { z } from "zod";
 
 type Props = {
   eventData: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
@@ -30,7 +28,15 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  enableSlotAnalytics?: boolean;
 };
+
+function isSlotAnalyticsEnabled(eventTypeId: number): boolean {
+  const allowedIds = process.env.SLOT_ANALYTICS_EVENT_TYPE_IDS;
+  if (!allowedIds) return false;
+  const idSet = new Set(allowedIds.split(",").map((id) => Number(id.trim())));
+  return idSet.has(eventTypeId);
+}
 
 async function processReschedule({
   props,
@@ -203,6 +209,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: null,
+    enableSlotAnalytics: isSlotAnalyticsEnabled(eventData.id),
   };
 
   if (rescheduleUid) {
@@ -317,6 +324,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    enableSlotAnalytics: isSlotAnalyticsEnabled(eventData.id),
   };
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({

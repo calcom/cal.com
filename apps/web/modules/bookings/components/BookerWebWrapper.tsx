@@ -10,26 +10,28 @@ import {
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { localStorage } from "@calcom/lib/webstorage";
+import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
+import { useRecordSlotSnapshot } from "@calcom/web/modules/slots-analytics/hooks/useRecordSlotSnapshot";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useCallback, useEffect, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { useBookings } from "../hooks/useBookings";
 import { useCalendars } from "../hooks/useCalendars";
 import { useSlots } from "../hooks/useSlots";
 import { useVerifyCode } from "../hooks/useVerifyCode";
 import { useVerifyEmail } from "../hooks/useVerifyEmail";
-import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
-import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { localStorage } from "@calcom/lib/webstorage";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo } from "react";
-import { shallow } from "zustand/shallow";
 import { Booker as BookerComponent } from "./Booker";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+  enableSlotAnalytics?: boolean;
 };
 
 const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Element => {
@@ -42,11 +44,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
   });
   const event = props.eventData
     ? {
-      data: props.eventData,
-      isSuccess: true,
-      isError: false,
-      isPending: false,
-    }
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
@@ -165,6 +167,16 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     eventId: event.data?.id,
     eventSlug: event.data?.slug,
     schedule,
+  });
+
+  const connectVersion = Number(searchParams?.get("cal.embed.connectVersion") || "0");
+
+  useRecordSlotSnapshot({
+    slots: schedule.data?.slots,
+    eventTypeId: event.data?.id,
+    isEmbed: !!isEmbed,
+    connectVersion,
+    enableSlotAnalytics: props.enableSlotAnalytics ?? false,
   });
 
   const verifyCode = useVerifyCode({
