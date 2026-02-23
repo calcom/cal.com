@@ -1,7 +1,8 @@
-import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { NextRequest } from "next/server";
 import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
@@ -91,8 +92,10 @@ function expectErrorRedirect(res: Response, path: string, error: string) {
   expect(redirectUrl.searchParams.get("error")).toBe(error);
 }
 
+import process from "node:process";
 // Import after mocks are set up
 import { GET, POST } from "../route";
+
 const DB = {
   bookings: {} as Record<
     string,

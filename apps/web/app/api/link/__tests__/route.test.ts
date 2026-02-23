@@ -1,7 +1,7 @@
-import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { NextRequest } from "next/server";
 import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
@@ -82,9 +82,9 @@ vi.mock("@calcom/features/booking-audit/lib/makeActor", () => ({
   makeUserActor: vi.fn().mockReturnValue({ type: "user", id: "test-uuid" }),
 }));
 
+import prisma from "@calcom/prisma";
 // Import after mocks are set up
 import { GET } from "../route";
-import prisma from "@calcom/prisma";
 
 const createMockRequest = (url: string): NextRequest => {
   const urlObj = new URL(url);
