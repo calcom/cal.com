@@ -38,6 +38,7 @@ interface ISetLocationDialog {
   selection?: LocationOption;
   booking: {
     location: string | null;
+    userId?: number;
   };
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -92,7 +93,14 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     teamId,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery({ teamId });
+  const hasOrganizer = !!booking.userId;
+  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery(
+    {
+      teamId,
+      organizerUserId: booking.userId ?? undefined,
+    },
+    { enabled: hasOrganizer }
+  );
 
   useEffect(() => {
     if (selection) {

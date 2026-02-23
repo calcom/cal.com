@@ -6,6 +6,83 @@
 // "Closing rpc while fetch was pending" errors from watchlist module imports)
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+// Mocks for "admin uses host credentials" test (below)
+const mockEventManagerUser = vi.fn();
+const mockUpdateLocation = vi.fn();
+const mockUserRepoFindByIdOrThrow = vi.fn();
+
+vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
+  default: class MockEventManager {
+    constructor(user: { id: number; email: string; credentials: unknown[] }) {
+      mockEventManagerUser(user);
+    }
+
+    updateLocation = mockUpdateLocation;
+  },
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
+  UserRepository: class MockUserRepository {
+    findByIdOrThrow = mockUserRepoFindByIdOrThrow;
+  },
+}));
+
+vi.mock("@calcom/lib/buildCalEventFromBooking", () => ({
+  buildCalEventFromBooking: vi.fn().mockResolvedValue({
+    location: "integrations:zoom",
+    type: "test",
+    title: "Test",
+    startTime: new Date(),
+    endTime: new Date(),
+    organizer: { id: 101, email: "host@example.com", name: "Host" },
+    attendees: [],
+    additionalInformation: {},
+  }),
+}));
+
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
+  BookingRepository: class MockBookingRepository {
+    updateLocationById = vi.fn().mockResolvedValue(undefined);
+  },
+}));
+
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendLocationChangeEmailsAndSMS: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
+  getBookingEventHandlerService: vi.fn().mockReturnValue({
+    onLocationChanged: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
+  getFeaturesRepository: vi.fn().mockReturnValue({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  }),
+}));
+
+vi.mock("@calcom/lib/server/i18n", () => ({
+  getTranslation: vi.fn().mockResolvedValue((key: string) => key),
+}));
+
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    info: vi.fn(),
+    error: vi.fn(),
+    silly: vi.fn(),
+    getSubLogger: () => ({
+      info: vi.fn(),
+      error: vi.fn(),
+      silly: vi.fn(),
+    }),
+  },
+}));
+
 describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   const mockTranslate = vi.fn((key: string) => key);
 
@@ -244,5 +321,75 @@ describe.skip("editLocation.handler", () => {
         },
       });
     });
+  });
+});
+
+describe("editLocation.handler - admin uses host credentials", () => {
+  const HOST_ID = 101;
+  const ADMIN_ID = 999;
+
+  const hostUser = {
+    id: HOST_ID,
+    email: "host@example.com",
+    name: "Host User",
+    locale: "en",
+    metadata: null,
+    destinationCalendar: null,
+  };
+
+  const adminUser = {
+    id: ADMIN_ID,
+    email: "admin@example.com",
+    name: "Admin User",
+    uuid: "admin-uuid",
+    locale: "en",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateLocation.mockResolvedValue({
+      results: [{ success: true, updatedEvent: {} }],
+      referencesToCreate: [],
+    });
+    mockUserRepoFindByIdOrThrow.mockResolvedValue(hostUser);
+  });
+
+  test("uses host (organizer) credentials when admin edits location, not admin credentials", async () => {
+    const { editLocationHandler } = await import("./editLocation.handler");
+
+    const booking = {
+      id: 1,
+      uid: "booking-1",
+      userId: HOST_ID,
+      location: "integrations:zoom",
+      metadata: {},
+      responses: {},
+      references: [],
+      user: { ...hostUser, profiles: [], destinationCalendar: null },
+      eventType: { metadata: {}, team: null },
+    };
+
+    await editLocationHandler({
+      ctx: {
+        booking: booking as never,
+        user: adminUser as never,
+      },
+      input: {
+        bookingId: 1,
+        newLocation: "integrations:zoom",
+        credentialId: null,
+      },
+      actionSource: "WEBAPP",
+    });
+
+    expect(mockEventManagerUser).toHaveBeenCalledTimes(1);
+    const eventManagerUserArg = mockEventManagerUser.mock.calls[0][0] as {
+      id: number;
+      email: string;
+      credentials: unknown[];
+    };
+    expect(eventManagerUserArg.id).toBe(HOST_ID);
+    expect(eventManagerUserArg.email).toBe("host@example.com");
+    expect(eventManagerUserArg.id).not.toBe(ADMIN_ID);
   });
 });

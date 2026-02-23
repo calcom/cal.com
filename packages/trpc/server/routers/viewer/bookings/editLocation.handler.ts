@@ -161,14 +161,14 @@ async function getAllCredentialsIncludeServiceAccountKey({
 async function getLocationInEvtFormatOrThrow({
   location,
   organizer,
-  loggedInUserTranslate,
+  organizerTranslate,
 }: {
   location: string;
   organizer: {
     name: string | null;
     metadata: UserMetadata;
   };
-  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
+  organizerTranslate: Awaited<ReturnType<typeof getTranslation>>;
 }) {
   if (location !== OrganizerDefaultConferencingAppType) {
     return location;
@@ -180,7 +180,7 @@ async function getLocationInEvtFormatOrThrow({
         name: organizer.name ?? "Organizer",
         metadata: organizer.metadata,
       },
-      loggedInUserTranslate,
+      organizerTranslate,
     });
   } catch (e) {
     if (e instanceof UserError) {
@@ -214,7 +214,7 @@ export class SystemError extends Error {
 
 export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   organizer,
-  loggedInUserTranslate: translate,
+  organizerTranslate: translate,
 }: {
   organizer: {
     name: string;
@@ -225,7 +225,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   /**
    * translate is used to translate if any error is thrown
    */
-  loggedInUserTranslate: Awaited<ReturnType<typeof getTranslation>>;
+  organizerTranslate: Awaited<ReturnType<typeof getTranslation>>;
 }) {
   const organizerMetadata = organizer.metadata;
   const defaultConferencingApp = organizerMetadata?.defaultConferencingApp;
@@ -274,7 +274,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
     organizer,
-    loggedInUserTranslate: await getTranslation(loggedInUser.locale ?? "en", "common"),
+    organizerTranslate: await getTranslation(organizer.locale ?? "en", "common"),
   });
 
   const evt = await buildCalEventFromBooking({
@@ -285,13 +285,15 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
     organizationId,
   });
 
+  const organizerCredentials = await getAllCredentialsIncludeServiceAccountKey({
+    user: { id: organizer.id, email: organizer.email },
+    conferenceCredentialId,
+    bookingOwnerId: booking.userId,
+  });
+
   const eventManager = new EventManager({
-    ...ctx.user,
-    credentials: await getAllCredentialsIncludeServiceAccountKey({
-      user: ctx.user,
-      conferenceCredentialId,
-      bookingOwnerId: booking.userId,
-    }),
+    ...organizer,
+    credentials: organizerCredentials,
   });
 
   const updatedResult = await updateLocationInConnectedAppForBooking({

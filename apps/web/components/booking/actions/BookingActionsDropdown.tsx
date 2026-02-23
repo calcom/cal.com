@@ -433,7 +433,7 @@ export function BookingActionsDropdown({
         />
       )}
       <EditLocationDialog
-        booking={booking}
+        booking={{ ...booking, userId: booking.user?.id}}
         saveLocation={saveLocation}
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}

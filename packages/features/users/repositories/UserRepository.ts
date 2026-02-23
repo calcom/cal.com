@@ -119,6 +119,7 @@ const userSelect = {
   identityProvider: true,
   teams: true,
   profiles: true,
+  destinationCalendar: true,
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
