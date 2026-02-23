@@ -541,7 +541,7 @@ export default function Signup({
                         <PasswordField
                           id="signup-password"
                           data-testid="signup-passwordfield"
-                          autoComplete="new-password"
+                          autoComplete="false"
                           label={t("password")}
                           {...register("password")}
                           hintErrors={["caplow", "min", "num"]}
