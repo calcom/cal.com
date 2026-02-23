@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { renderEmail } from "../";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export type GuestVerificationEmail = {

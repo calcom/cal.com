@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
-import { sendAddGuestsEmails } from "@calcom/emails";
+import { sendAddGuestsEmails } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getTranslation } from "@calcom/lib/server/i18n";
