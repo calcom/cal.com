@@ -1,7 +1,11 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isEmailAction,
+  isFormTrigger,
+  isWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
@@ -35,9 +39,10 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone"> & {
-      organization?: { id: number | null } | null;
-    };
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organizationId"
+    >;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -481,13 +486,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           includeCalendarEvent: newStep.includeCalendarEvent,
           agentId: newStep.agentId || null,
           verifiedAt: nextVerifiedAt,
-          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
+          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
           sourceLocale: newStep.sourceLocale || ctx.user.locale,
         });
 
         const shouldTranslate =
-          ctx.user.organization?.id &&
+          ctx.user.organizationId &&
           newStep.autoTranslateEnabled &&
+          !isWhatsappAction(newStep.action) &&
           (newStep.reminderBody || newStep.emailSubject) &&
           (didBodyChange || didSubjectChange || didSourceLocaleChange || didAutoTranslateEnable);
 
@@ -558,7 +564,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }),
           id: undefined,
           senderName: undefined,
-          autoTranslateEnabled: ctx.user.organization?.id ? (newStep.autoTranslateEnabled ?? false) : false,
+          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
           sourceLocale: newStep.sourceLocale || ctx.user.locale,
         };
       })
@@ -589,10 +595,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       );
     }
 
-    if (ctx.user.organization?.id) {
+    if (ctx.user.organizationId) {
       await Promise.all(
         createdSteps
-          .filter((step) => step.autoTranslateEnabled && (step.reminderBody || step.emailSubject))
+          .filter(
+            (step) =>
+              step.autoTranslateEnabled && !isWhatsappAction(step.action) && (step.reminderBody || step.emailSubject)
+          )
           .map((step) =>
             tasker.create("translateWorkflowStepData", {
               workflowStepId: step.id,

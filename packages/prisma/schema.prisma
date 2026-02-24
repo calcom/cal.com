@@ -289,7 +289,7 @@ model EventType {
   bookingRequiresAuthentication Boolean                        @default(false)
   rrHostSubsetEnabled           Boolean                        @default(false)
   requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
-  enablePerHostLocations        Boolean @default(false)
+  enablePerHostLocations        Boolean                        @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt

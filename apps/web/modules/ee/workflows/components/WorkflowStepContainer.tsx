@@ -784,6 +784,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                           setIsEmailSubjectNeeded(false);
                           form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
+                          form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, false, {
+                            shouldDirty: true,
+                          });
                         } else if (isCalAIAction(val.value)) {
                           setIsPhoneNumberNeeded(false);
                           setIsSenderIsNeeded(false);
@@ -1434,8 +1437,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               {(step.action === WorkflowActions.EMAIL_ATTENDEE ||
-                step.action === WorkflowActions.SMS_ATTENDEE ||
-                step.action === WorkflowActions.WHATSAPP_ATTENDEE) && (
+                step.action === WorkflowActions.SMS_ATTENDEE) && (
                 <div className="mt-2">
                   <div className="flex items-center gap-2">
                     <Controller
