@@ -6,6 +6,7 @@ import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
 import { OAUTH_DI_TOKENS } from "@calcom/features/oauth/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
+import { TRANSLATION_DI_TOKENS } from "@calcom/features/translation/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 import { WEBHOOK_TOKENS } from "./webhooks/Webhooks.tokens";
 
@@ -86,5 +87,6 @@ export const DI_TOKENS = {
   ...WATCHLIST_DI_TOKENS,
   ...ACTIVE_USER_BILLING_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
+  ...TRANSLATION_DI_TOKENS,
   ...WEBHOOK_TOKENS,
 };

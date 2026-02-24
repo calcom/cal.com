@@ -1497,6 +1497,7 @@ export class BookingRepository implements IBookingRepository {
         AND "endTime" <= ${endDate};
     `;
     }
+
     return totalBookingTime.totalMinutes ?? 0;
   }
 
