@@ -4,6 +4,7 @@ import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -20,10 +21,12 @@ export const OAuthClientFormFields = ({
   form,
   isClientReadOnly,
   isPkceLocked,
+  isLegacyOAuthClient,
 }: {
   form: UseFormReturn<OAuthClientCreateFormValues>;
   isClientReadOnly?: boolean;
   isPkceLocked?: boolean;
+  isLegacyOAuthClient?: boolean;
 }) => {
   const { t } = useLocale();
   const isFormDisabled = Boolean(isClientReadOnly);
@@ -129,7 +132,7 @@ export const OAuthClientFormFields = ({
         </div>
       </div>
 
-      <OAuthScopeCheckboxes form={form} disabled={isFormDisabled} />
+      <OAuthScopeCheckboxes form={form} disabled={isFormDisabled} isLegacy={isLegacyOAuthClient} />
 
       <div>
         <Label className="text-emphasis mb-2 block text-sm font-medium">{t("logo")}</Label>
@@ -164,11 +167,24 @@ export const OAuthClientFormFields = ({
 function OAuthScopeCheckboxes({
   form,
   disabled,
+  isLegacy,
 }: {
   form: UseFormReturn<OAuthClientCreateFormValues>;
   disabled: boolean;
+  isLegacy?: boolean;
 }) {
   const { t } = useLocale();
+
+  if (isLegacy) {
+    return (
+      <div>
+        <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
+          {t("oauth_scopes")}
+        </Label>
+        <Alert severity="warning" title={t("legacy_oauth_client_scopes_warning")} />
+      </div>
+    );
+  }
 
   return (
     <Controller

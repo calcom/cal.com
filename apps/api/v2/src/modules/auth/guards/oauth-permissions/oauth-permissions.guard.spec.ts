@@ -122,6 +122,39 @@ describe("OAuthPermissionsGuard", () => {
 
         expect(guard.canActivate(mockContext)).toBe(true);
       });
+
+      it("should allow token with APPS_READ scope", () => {
+        const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+        getDecodedThirdPartyAccessToken.mockReturnValue({
+          scope: ["APPS_READ"],
+          token_type: "Access Token",
+        });
+        oauthPermissionsDecorator.mockReturnValue(["APPS_READ"]);
+
+        expect(guard.canActivate(mockContext)).toBe(true);
+      });
+
+      it("should allow token with APPS_WRITE scope", () => {
+        const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+        getDecodedThirdPartyAccessToken.mockReturnValue({
+          scope: ["APPS_WRITE"],
+          token_type: "Access Token",
+        });
+        oauthPermissionsDecorator.mockReturnValue(["APPS_WRITE"]);
+
+        expect(guard.canActivate(mockContext)).toBe(true);
+      });
+
+      it("should allow token with PROFILE_WRITE scope", () => {
+        const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+        getDecodedThirdPartyAccessToken.mockReturnValue({
+          scope: ["PROFILE_WRITE"],
+          token_type: "Access Token",
+        });
+        oauthPermissionsDecorator.mockReturnValue(["PROFILE_WRITE"]);
+
+        expect(guard.canActivate(mockContext)).toBe(true);
+      });
     });
 
     describe("negative", () => {
@@ -296,6 +329,41 @@ describe("OAuthPermissionsGuard", () => {
 
         expect(() => guard.canActivate(mockContext)).toThrow("insufficient_scope");
       });
+    });
+  });
+
+  describe("Legacy OAuth client backward compatibility", () => {
+    it("should allow token with empty scopes even when handler requires BOOKING_READ", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      getDecodedThirdPartyAccessToken.mockReturnValue({
+        scope: [],
+        token_type: "Access Token",
+      });
+      oauthPermissionsDecorator.mockReturnValue(["BOOKING_READ"]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
+    });
+
+    it("should allow token with legacy scope names even when handler requires BOOKING_READ", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      getDecodedThirdPartyAccessToken.mockReturnValue({
+        scope: ["READ_BOOKING", "READ_PROFILE"],
+        token_type: "Access Token",
+      });
+      oauthPermissionsDecorator.mockReturnValue(["BOOKING_READ"]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
+    });
+
+    it("should allow token with no scope field at all (pre-scope tokens)", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      getDecodedThirdPartyAccessToken.mockReturnValue({
+        scope: undefined,
+        token_type: "Access Token",
+      });
+      oauthPermissionsDecorator.mockReturnValue(["BOOKING_READ"]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
     });
   });
 });

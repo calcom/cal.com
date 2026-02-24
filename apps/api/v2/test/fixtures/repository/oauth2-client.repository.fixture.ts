@@ -1,4 +1,4 @@
-import { OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
+import { AccessScope, OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
 import { TestingModule } from "@nestjs/testing";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -22,6 +22,7 @@ export class OAuth2ClientRepositoryFixture {
     logo?: string;
     isTrusted?: boolean;
     userId?: number;
+    scopes?: AccessScope[];
   }) {
     return this.prismaWriteClient.oAuthClient.create({
       data: {
@@ -34,6 +35,7 @@ export class OAuth2ClientRepositoryFixture {
         logo: data.logo,
         isTrusted: data.isTrusted || false,
         ...(data.userId && { user: { connect: { id: data.userId } } }),
+        ...(data.scopes !== undefined && { scopes: data.scopes }),
       },
     });
   }

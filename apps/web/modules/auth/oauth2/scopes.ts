@@ -79,11 +79,6 @@ export function getGroupedScopeDisplayItems(
   return nonEmptyCategories.map((c) => ({ categoryKey: c.key, items: c.items }));
 }
 
-export function getScopeDisplayItems(scopes: string[], t: (key: string) => string): string[] {
-  const scopeSet = new Set(scopes);
-  return resolveDisplayItems(SCOPE_RESOURCE_PREFIXES, scopeSet, t);
-}
-
 export function scopeTranslationKey(scope: string): string {
   return `oauth_scope_${scope.toLowerCase()}`;
 }

@@ -218,7 +218,7 @@ export function Authorize() {
           {t("allow_client_to", { clientName: client.name })}
         </div>
         {isLegacy ? (
-          <ul className="text-sm stack-y-3">
+          <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
             <li className="relative pl-5">
               <span className="absolute left-0">&#10003;</span>{" "}
               {t("associate_with_cal_account", { clientName: client.name })}
@@ -255,7 +255,7 @@ export function Authorize() {
                 {group.categoryKey ? (
                   <div className="text-emphasis mb-1 font-semibold" data-testid={`scope-category-${group.categoryKey}`}>{t(group.categoryKey)}</div>
                 ) : null}
-                <ul className="stack-y-3">
+                <ul className="stack-y-3" data-testid="scope-permissions-list">
                   {group.items.map((label, idx) => (
                     <li key={idx} className="relative pl-5">
                       <span className="absolute left-0">&#10003;</span>
