@@ -1469,15 +1469,17 @@ export class UserRepository {
     return this.prismaClient.$queryRaw<Array<{ id: number; email: string }>>(Prisma.sql`
       SELECT u."id", u."email"
       FROM "public"."users" AS u
-      WHERE LOWER(u."email") IN (${emailListSql})
+      WHERE u."email" IN (${emailListSql})
         AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
       UNION
       SELECT u."id", u."email"
       FROM "public"."users" AS u
       INNER JOIN "public"."SecondaryEmail" AS t0
         ON t0."userId" = u."id"
-      WHERE LOWER(t0."email") IN (${emailListSql})
+      WHERE t0."email" IN (${emailListSql})
         AND t0."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
     `);
   }
 
