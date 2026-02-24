@@ -202,6 +202,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
+  if (rest.successRedirectUrl) {
+    const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({
+      userId: ctx.user.id,
+      eventTypeId: id,
+    });
+    if (!redirectUrlCheck.allowed) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: redirectUrlCheck.reason,
+      });
+    }
+  }
+
   const finalSeatsPerTimeSlot =
     seatsPerTimeSlot === undefined ? eventType.seatsPerTimeSlot : seatsPerTimeSlot;
   const finalRecurringEvent = recurringEvent === undefined ? eventType.recurringEvent : recurringEvent;
@@ -842,19 +855,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
     });
-  }
-
-  if (rest.successRedirectUrl) {
-    const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({
-      userId: ctx.user.id,
-      eventTypeId: id,
-    });
-    if (!redirectUrlCheck.allowed) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: redirectUrlCheck.reason,
-      });
-    }
   }
 
   // Scan redirect URL for malicious content if URL scanning is enabled
