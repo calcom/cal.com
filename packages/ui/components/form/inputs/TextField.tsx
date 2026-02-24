@@ -148,7 +148,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
           {showAsteriskIndicator && !readOnly && passThrough.required ? (
-            <span className="text-default ml-1 font-medium">*</span>
+            <span className="text-default ltr:ml-1 rtl:mr-1 font-medium">*</span>
           ) : null}
           {LockedIcon}
         </Label>

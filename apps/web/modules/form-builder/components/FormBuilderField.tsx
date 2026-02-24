@@ -173,7 +173,7 @@ const WithLabel = ({
             <div className="mb-2 flex items-center">
               <Label className="mb-0! flex items-center" htmlFor={htmlFor}>
                 {renderLabel(field)}
-                <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
+                <span className="text-emphasis -mb-1 ltr:ml-1 rtl:mr-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}
                 </span>
                 {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
