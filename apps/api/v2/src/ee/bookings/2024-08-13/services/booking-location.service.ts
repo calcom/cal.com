@@ -144,7 +144,7 @@ export class BookingLocationService_2024_08_13 {
     if (!location) {
       return "";
     }
-    if (location.startsWith("https://")) {
+    if (location.startsWith("http://") || location.startsWith("https://")) {
       return location;
     }
     return "";
