@@ -36,7 +36,6 @@ import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
-import { parseAsBoolean, useQueryState } from "nuqs";
 import type React from "react";
 import type { BaseSyntheticEvent } from "react";
 import { useRef, useState } from "react";
@@ -72,7 +71,7 @@ const ProfileView = ({ user }: Props) => {
   const utils = trpc.useUtils();
   const session = useSession();
   const { update } = session;
-  const [addEmail, setAddEmail] = useQueryState("add-email", parseAsBoolean.withDefault(false));
+  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -114,7 +113,7 @@ const ProfileView = ({ user }: Props) => {
 
   const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
-      setAddEmail(null);
+      setShowSecondaryEmailModalOpen(false);
       setNewlyAddedSecondaryEmail(res?.data?.email);
       utils.viewer.me.invalidate();
       revalidateSettingsProfile();
@@ -278,7 +277,7 @@ const ProfileView = ({ user }: Props) => {
             updateProfileMutation.mutate(values);
           }
         }}
-        handleAddSecondaryEmail={() => setAddEmail(true)}
+        handleAddSecondaryEmail={() => setShowSecondaryEmailModalOpen(true)}
         handleResendVerifyEmail={(email) => {
           resendVerifyEmailMutation.mutate({ email });
           showToast(t("email_sent"), "success");
@@ -449,7 +448,7 @@ const ProfileView = ({ user }: Props) => {
         </DialogContent>
       </Dialog>
 
-      {addEmail && (
+      {showSecondaryEmailModalOpen && (
         <SecondaryEmailModal
           isLoading={addSecondaryEmailMutation.isPending}
           errorMessage={secondaryEmailAddErrorMessage}
@@ -459,7 +458,7 @@ const ProfileView = ({ user }: Props) => {
           }}
           onCancel={() => {
             setSecondaryEmailAddErrorMessage("");
-            setAddEmail(null);
+            setShowSecondaryEmailModalOpen(false);
           }}
           clearErrorMessage={() => {
             addSecondaryEmailMutation.reset();
