@@ -48,7 +48,11 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       this.pool = new Pool({
         connectionString: dbUrl,
         max: maxReadConnections,
-        idleTimeoutMillis: 300000,
+        idleTimeoutMillis: 30000,
+      });
+
+      this.pool.on("error", (err) => {
+        this.logger.warn(`Idle read pool client encountered an error: ${err.message}`);
       });
 
       const adapter = new PrismaPg(this.pool);
