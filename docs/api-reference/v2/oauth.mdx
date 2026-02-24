@@ -62,7 +62,7 @@ To initiate the OAuth flow, direct users to the following authorization URL:
 | `client_id` | Yes | Your OAuth client ID |
 | `redirect_uri` | Yes | Where users will be redirected after authorization. Must exactly match the registered redirect URI. |
 | `state` | Recommended | A securely generated random string to mitigate CSRF attacks |
-| `scope` | Optional | Space-separated list of scopes to request (e.g. `BOOKING_READ BOOKING_WRITE`). Must be a subset of scopes enabled on the OAuth client. If omitted, all client scopes are used. |
+| `scope` | Yes | Space or comma-separated list of scopes to request (e.g. `BOOKING_READ BOOKING_WRITE` or `BOOKING_READ,BOOKING_WRITE`). Must be a subset of scopes enabled on the OAuth client. |
 | `code_challenge` | For public clients | PKCE code challenge (S256 method) |
 
 After users click **Allow**, they will be redirected to the `redirect_uri` with `code` (authorization code) and `state` as URL parameters:
@@ -81,6 +81,7 @@ Errors during the authorization step are displayed directly to the user on the C
 
 If an error occurs after the client is validated, the user is redirected to the `redirect_uri` with an error:
 
+- **Scope required**: If the `scope` parameter is missing, the error `scope parameter is required for this OAuth client` is displayed on the authorization page.
 - **Invalid scope**: If the `scope` parameter includes scopes not enabled on the OAuth client, the user is redirected with `error=invalid_request` and `error_description=Requested scope exceeds the client's registered scopes`.
 - **Access denied**: If the user denies access or has insufficient permissions, the user is redirected with an error.
 
