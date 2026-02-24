@@ -40,7 +40,6 @@ export const Handler = async ({ ctx, input }: Options) => {
       hideBranding: true,
       profiles: {
         select: {
-          organizationId: true,
           organization: { select: { hideBranding: true } },
         },
       },
