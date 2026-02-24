@@ -77,7 +77,7 @@ export function WideUpgradeBanner({
       <Button
         variant="ghost"
         color="minimal"
-        className="absolute right-2 top-2"
+        className="absolute right-2 top-2 z-10"
         onClick={() => {
           dismiss(tracking);
           setVisible(false);
@@ -131,13 +131,13 @@ export function WideUpgradeBanner({
       </div>
 
       {/* Right Content - Image */}
-      <div className={`hidden flex-1 items-end justify-center md:flex${size === "sm" ? " max-w-64" : ""}`}>
+      <div
+        className={`relative hidden flex-1 overflow-hidden md:block${size === "sm" ? " max-w-64" : ""}`}>
         <Image
           src={image.src}
           alt={title}
-          width={image.width}
-          height={image.height}
-          className="object-contain"
+          fill
+          className="object-cover object-left"
         />
       </div>
     </div>
