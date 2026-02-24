@@ -784,9 +784,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                           setIsEmailSubjectNeeded(false);
                           form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
-                          form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, false, {
-                            shouldDirty: true,
-                          });
                         } else if (isCalAIAction(val.value)) {
                           setIsPhoneNumberNeeded(false);
                           setIsSenderIsNeeded(false);
@@ -801,6 +798,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
                           setIsEmailSubjectNeeded(true);
                           form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
+                        }
+
+                        if (
+                          val.value !== WorkflowActions.EMAIL_ATTENDEE &&
+                          val.value !== WorkflowActions.SMS_ATTENDEE
+                        ) {
+                          form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, false, {
+                            shouldDirty: true,
+                          });
                         }
 
                         form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);

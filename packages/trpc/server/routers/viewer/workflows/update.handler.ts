@@ -2,6 +2,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
+  isAttendeeAction,
   isEmailAction,
   isFormTrigger,
   isWhatsappAction,
@@ -493,6 +494,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         const shouldTranslate =
           ctx.user.organizationId &&
           newStep.autoTranslateEnabled &&
+          isAttendeeAction(newStep.action) &&
           !isWhatsappAction(newStep.action) &&
           (newStep.reminderBody || newStep.emailSubject) &&
           (didBodyChange || didSubjectChange || didSourceLocaleChange || didAutoTranslateEnable);
@@ -600,7 +602,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         createdSteps
           .filter(
             (step) =>
-              step.autoTranslateEnabled && !isWhatsappAction(step.action) && (step.reminderBody || step.emailSubject)
+              step.autoTranslateEnabled &&
+              isAttendeeAction(step.action) &&
+              !isWhatsappAction(step.action) &&
+              (step.reminderBody || step.emailSubject)
           )
           .map((step) =>
             tasker.create("translateWorkflowStepData", {
