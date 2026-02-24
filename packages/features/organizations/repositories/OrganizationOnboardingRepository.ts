@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { BillingPeriod } from "@calcom/prisma/enums";
+import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
 
 type OnboardingId = string;
 
@@ -9,8 +9,10 @@ export type CreateOrganizationOnboardingInput = {
   createdById: number;
   organizationId?: number | null;
   billingPeriod: BillingPeriod;
+  billingMode?: BillingMode;
   pricePerSeat: number;
   seats: number;
+  minSeats?: number | null;
   orgOwnerEmail: string;
   name: string;
   slug: string;
@@ -33,11 +35,12 @@ export class OrganizationOnboardingRepository {
     logger.debug("Creating organization onboarding", safeStringify(data));
 
     return await prisma.organizationOnboarding.create({
-      // HEKOP
       data: {
         billingPeriod: data.billingPeriod,
+        billingMode: data.billingMode,
         pricePerSeat: data.pricePerSeat,
         seats: data.seats,
+        minSeats: data.minSeats ?? null,
         orgOwnerEmail: data.orgOwnerEmail,
         name: data.name,
         slug: data.slug,

@@ -19,8 +19,9 @@
  *   npx tsx packages/features/ee/billing/active-user/seed-active-user-test.ts
  *
  * Options:
- *   --skip-stripe    Skip Stripe API calls (use fake IDs)
- *   --cleanup        Clean up test data before seeding
+ *   --skip-stripe        Skip Stripe API calls (use fake IDs)
+ *   --cleanup            Clean up test data before seeding
+ *   --min-seats <N>      Set minSeats floor on OrganizationBilling (e.g. --min-seats 50)
  */
 
 import "dotenv/config";
@@ -39,6 +40,18 @@ import { ActiveUserBillingService } from "./services/ActiveUserBillingService";
 
 const SKIP_STRIPE = process.argv.includes("--skip-stripe");
 const CLEANUP_FIRST = process.argv.includes("--cleanup");
+
+function parseMinSeats(): number | null {
+  const idx = process.argv.indexOf("--min-seats");
+  if (idx === -1) return null;
+  const val = parseInt(process.argv[idx + 1], 10);
+  if (Number.isNaN(val) || val < 1) {
+    console.error("--min-seats requires a positive integer");
+    process.exit(1);
+  }
+  return val;
+}
+const MIN_SEATS = parseMinSeats();
 
 const TOTAL_MEMBERS = 99;
 const ACTIVE_HOSTS = 20;
@@ -193,6 +206,7 @@ interface SeedResult {
   periodStart: Date;
   periodEnd: Date;
   totalMembers: number;
+  minSeats: number | null;
   expectedActiveHosts: string[];
   expectedActiveAttendees: string[];
   expectedInactive: string[];
@@ -435,6 +449,7 @@ async function seed(): Promise<SeedResult> {
       billingMode: BillingMode.ACTIVE_USERS,
       pricePerSeat: pricePerSeatCents,
       paidSeats: totalMembers,
+      minSeats: MIN_SEATS,
       subscriptionStart: periodStart,
       subscriptionEnd: periodEnd,
       subscriptionTrialEnd: null,
@@ -450,6 +465,7 @@ async function seed(): Promise<SeedResult> {
       billingMode: BillingMode.ACTIVE_USERS,
       pricePerSeat: pricePerSeatCents,
       paidSeats: totalMembers,
+      minSeats: MIN_SEATS,
       subscriptionStart: periodStart,
       subscriptionEnd: periodEnd,
       subscriptionTrialEnd: null,
@@ -467,7 +483,7 @@ async function seed(): Promise<SeedResult> {
   });
 
   console.log(
-    `\n  OrganizationBilling created (MONTHLY, billingMode=ACTIVE_USERS, $${pricePerSeatCents / 100}/seat, ${totalMembers} paid seats)`
+    `\n  OrganizationBilling created (MONTHLY, billingMode=ACTIVE_USERS, $${pricePerSeatCents / 100}/seat, ${totalMembers} paid seats, minSeats=${MIN_SEATS ?? "none"})`
   );
 
   return {
@@ -476,6 +492,7 @@ async function seed(): Promise<SeedResult> {
     periodStart,
     periodEnd,
     totalMembers,
+    minSeats: MIN_SEATS,
     expectedActiveHosts,
     expectedActiveAttendees,
     expectedInactive,
@@ -487,6 +504,7 @@ async function main() {
   console.log("Options:");
   console.log(`  --skip-stripe: ${SKIP_STRIPE}`);
   console.log(`  --cleanup: ${CLEANUP_FIRST}`);
+  console.log(`  --min-seats: ${MIN_SEATS ?? "not set"}`);
   console.log("");
 
   try {
@@ -505,6 +523,7 @@ async function main() {
 
     const expectedTotal =
       result.expectedActiveHosts.length + result.expectedActiveAttendees.length;
+    const effectiveBilled = Math.max(serviceCount, result.minSeats ?? 0);
 
     // Print summary
     console.log("=== Summary ===\n");
@@ -514,6 +533,7 @@ async function main() {
       `  Billing period:     ${result.periodStart.toISOString()} - ${result.periodEnd.toISOString()}`
     );
     console.log(`  Total members:      ${result.totalMembers}`);
+    console.log(`  minSeats:           ${result.minSeats ?? "none"}`);
     console.log("");
 
     console.log(`  Active hosts (${result.expectedActiveHosts.length}):`);
@@ -530,22 +550,30 @@ async function main() {
     console.log(`    (${result.expectedInactive.length} members with no in-period bookings)`);
 
     console.log("");
-    console.log("  +--------------------------+---------+");
-    console.log("  | Category                 | Count   |");
-    console.log("  +--------------------------+---------+");
-    console.log(`  | Total org members        | ${String(result.totalMembers).padStart(7)} |`);
-    console.log(`  | Active hosts (created)   | ${String(result.expectedActiveHosts.length).padStart(7)} |`);
-    console.log(`  | Active attendees (created)| ${String(result.expectedActiveAttendees.length).padStart(6)} |`);
-    console.log(`  | Total active (created)   | ${String(expectedTotal).padStart(7)} |`);
-    console.log(`  | Inactive (created)       | ${String(result.expectedInactive.length).padStart(7)} |`);
-    console.log(`  | Service counted          | ${String(serviceCount).padStart(7)} |`);
-    console.log("  +--------------------------+---------+");
+    console.log("  +-----------------------------+---------+");
+    console.log("  | Category                    | Count   |");
+    console.log("  +-----------------------------+---------+");
+    console.log(`  | Total org members           | ${String(result.totalMembers).padStart(7)} |`);
+    console.log(`  | Active hosts (created)      | ${String(result.expectedActiveHosts.length).padStart(7)} |`);
+    console.log(`  | Active attendees (created)  | ${String(result.expectedActiveAttendees.length).padStart(7)} |`);
+    console.log(`  | Total active (created)      | ${String(expectedTotal).padStart(7)} |`);
+    console.log(`  | Inactive (created)          | ${String(result.expectedInactive.length).padStart(7)} |`);
+    console.log(`  | Service counted             | ${String(serviceCount).padStart(7)} |`);
+    console.log(`  | minSeats floor              | ${String(result.minSeats ?? "-").padStart(7)} |`);
+    console.log(`  | Effective billed seats      | ${String(effectiveBilled).padStart(7)} |`);
+    console.log("  +-----------------------------+---------+");
 
     if (serviceCount === expectedTotal) {
       console.log("\n  [PASS] Service count matches expected count.");
     } else {
       console.log(
         `\n  [MISMATCH] Expected ${expectedTotal}, service returned ${serviceCount}.`
+      );
+    }
+
+    if (result.minSeats && effectiveBilled > serviceCount) {
+      console.log(
+        `  [INFO] minSeats floor applied: billing ${effectiveBilled} seats instead of ${serviceCount} active users.`
       );
     }
 

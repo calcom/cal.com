@@ -75,6 +75,7 @@ const baseBillingInfo: BillingPeriodInfo = {
   trialEnd: null,
   isInTrial: false,
   pricePerSeat: 1500,
+  minSeats: null,
   isOrganization: false,
 };
 

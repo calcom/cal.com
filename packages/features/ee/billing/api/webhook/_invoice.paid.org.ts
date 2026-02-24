@@ -166,8 +166,10 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       subscriptionEnd: subscriptionEnd ?? undefined,
       subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
       billingPeriod,
+      billingMode: organizationOnboarding.billingMode,
       pricePerSeat,
       paidSeats,
+      minSeats: organizationOnboarding.minSeats,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

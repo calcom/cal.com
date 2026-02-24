@@ -64,15 +64,25 @@ export const getActiveUserBreakdownHandler = async ({ ctx, input }: GetActiveUse
       return null;
     }
 
-    if (!billingInfo.subscriptionStart || !billingInfo.subscriptionEnd) {
+    if (!billingInfo.subscriptionStart) {
       return null;
+    }
+
+    let subscriptionEnd = billingInfo.subscriptionEnd;
+    if (!subscriptionEnd) {
+      subscriptionEnd = new Date(billingInfo.subscriptionStart);
+      if (billingInfo.billingPeriod === "ANNUALLY") {
+        subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+      } else {
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+      }
     }
 
     const activeUserBillingService = getActiveUserBillingService();
     const breakdown = await activeUserBillingService.getActiveUsersForOrg(
       teamId,
       billingInfo.subscriptionStart,
-      billingInfo.subscriptionEnd
+      subscriptionEnd
     );
 
     return {
@@ -81,8 +91,9 @@ export const getActiveUserBreakdownHandler = async ({ ctx, input }: GetActiveUse
       activeHosts: breakdown.activeHosts,
       activeAttendees: breakdown.activeAttendees,
       periodStart: billingInfo.subscriptionStart.toISOString(),
-      periodEnd: billingInfo.subscriptionEnd.toISOString(),
+      periodEnd: subscriptionEnd.toISOString(),
       pricePerSeat: billingInfo.pricePerSeat,
+      minSeats: billingInfo.minSeats,
     };
   } catch (error) {
     if (error instanceof TRPCError) {

@@ -46,6 +46,7 @@ export class SeatBillingStrategyFactory {
       activeUserBillingService: deps.activeUserBillingService,
       billingProviderService: deps.billingProviderService,
       teamBillingDataRepository: deps.teamBillingDataRepository,
+      billingPeriodService: deps.billingPeriodService,
     });
   }
 

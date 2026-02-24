@@ -13,8 +13,9 @@
  *   npx tsx packages/features/ee/billing/seed.ts --cleanup
  *
  * Flags (combinable with above):
- *   --skip-stripe   Skip Stripe API calls (use fake IDs)
- *   --cleanup       Clean up before seeding
+ *   --skip-stripe       Skip Stripe API calls (use fake IDs)
+ *   --cleanup           Clean up before seeding
+ *   --min-seats <N>     Set minSeats floor for active-user billing
  */
 
 import { spawn } from "node:child_process";
@@ -28,6 +29,14 @@ const ACTIVE_USER_SCRIPT =
   "packages/features/ee/billing/active-user/seed-active-user-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
+
+function parseMinSeatsFromArgs(): number | null {
+  const idx = process.argv.indexOf("--min-seats");
+  if (idx === -1) return null;
+  const val = parseInt(process.argv[idx + 1], 10);
+  if (Number.isNaN(val) || val < 1) return null;
+  return val;
+}
 
 function run(script: string, extraArgs: string[] = []): Promise<number> {
   const args = ["tsx", script, ...passthrough, ...extraArgs];
@@ -49,9 +58,10 @@ async function seedProration(cleanup: boolean) {
   return run(PRORATION_SCRIPT, extra);
 }
 
-async function seedActiveUser(cleanup: boolean) {
+async function seedActiveUser(cleanup: boolean, minSeats?: number | null) {
   console.log("\n--- Seeding Active User Billing test data ---\n");
   const extra = cleanup ? ["--cleanup"] : [];
+  if (minSeats) extra.push("--min-seats", String(minSeats));
   return run(ACTIVE_USER_SCRIPT, extra);
 }
 
@@ -109,6 +119,19 @@ async function interactive() {
     cleanup = ans.toLowerCase() === "y";
   }
 
+  let minSeats: number | null = null;
+  if (choice === "3") {
+    const ans = await prompt("Set minSeats floor? (enter a number, or leave blank for none): ");
+    if (ans !== "") {
+      const parsed = parseInt(ans, 10);
+      if (Number.isNaN(parsed) || parsed < 1) {
+        console.log("Invalid minSeats value, must be a positive integer.");
+        process.exit(1);
+      }
+      minSeats = parsed;
+    }
+  }
+
   let code = 0;
   switch (choice) {
     case "1":
@@ -118,7 +141,7 @@ async function interactive() {
       code = await seedProration(cleanup);
       break;
     case "3":
-      code = await seedActiveUser(cleanup);
+      code = await seedActiveUser(cleanup, minSeats);
       break;
     case "4":
       code = await seedAll(cleanup);
@@ -146,7 +169,7 @@ async function main() {
     process.exit(await seedProration(args.includes("--cleanup")));
   }
   if (args.includes("--active-user")) {
-    process.exit(await seedActiveUser(args.includes("--cleanup")));
+    process.exit(await seedActiveUser(args.includes("--cleanup"), parseMinSeatsFromArgs()));
   }
   if (args.includes("--all")) {
     process.exit(await seedAll(args.includes("--cleanup")));

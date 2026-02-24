@@ -31,7 +31,9 @@ export interface IBillingRepositoryUpdateArgs {
   subscriptionEnd?: Date | null;
   subscriptionTrialEnd?: Date | null;
   billingPeriod?: "MONTHLY" | "ANNUALLY" | null;
+  billingMode?: "SEATS" | "ACTIVE_USERS";
   pricePerSeat?: number | null;
+  minSeats?: number | null;
 }
 
 export interface IBillingRepository {
@@ -56,6 +58,8 @@ export interface IBillingRepositoryCreateArgs {
   subscriptionTrialEnd?: Date;
   subscriptionEnd?: Date;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
+  billingMode?: "SEATS" | "ACTIVE_USERS";
   pricePerSeat?: number;
   paidSeats?: number;
+  minSeats?: number | null;
 }

@@ -6,13 +6,15 @@ import { persist, StorageValue } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
-import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
+import { BillingMode, BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 interface OnboardingAdminStoreState {
   billingPeriod?: BillingPeriod;
+  billingMode?: BillingMode;
   pricePerSeat?: number | null;
   seats?: number | null;
+  minSeats?: number | null;
   orgOwnerEmail?: string;
 }
 
@@ -31,8 +33,10 @@ interface OnboardingUserStoreState {
 interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUserStoreState {
   // Actions for admin state
   setBillingPeriod: (billingPeriod: BillingPeriod) => void;
+  setBillingMode: (billingMode: BillingMode) => void;
   setPricePerSeat: (price: number | null) => void;
   setSeats: (seats: number | null) => void;
+  setMinSeats: (minSeats: number | null) => void;
   setOrgOwnerEmail: (email: string) => void;
 
   // Actions for user state
@@ -65,6 +69,8 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   seats: null,
   pricePerSeat: null,
   billingPeriod: undefined,
+  billingMode: undefined,
+  minSeats: null,
   onboardingId: null,
   invitedMembers: [],
   teams: [],
@@ -77,8 +83,10 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
 
       // Admin actions
       setBillingPeriod: (billingPeriod) => set({ billingPeriod }),
+      setBillingMode: (billingMode) => set({ billingMode }),
       setPricePerSeat: (pricePerSeat) => set({ pricePerSeat }),
       setSeats: (seats) => set({ seats }),
+      setMinSeats: (minSeats) => set({ minSeats }),
       setOrgOwnerEmail: (orgOwnerEmail) => set({ orgOwnerEmail }),
 
       // User actions
@@ -156,8 +164,10 @@ export const useOnboarding = () => {
       reset({
         onboardingId: organizationOnboarding.id,
         billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
+        billingMode: organizationOnboarding.billingMode as BillingMode,
         pricePerSeat: organizationOnboarding.pricePerSeat,
         seats: organizationOnboarding.seats,
+        minSeats: organizationOnboarding.minSeats,
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
         name: organizationOnboarding.name,
         slug: organizationOnboarding.slug,

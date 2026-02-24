@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
+import { UserPermissionRole, type BillingMode, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
@@ -31,8 +31,10 @@ type CreateOnboardingInput = {
   slug: string;
   orgOwnerEmail: string;
   billingPeriod?: BillingPeriod;
+  billingMode?: BillingMode;
   seats?: number | null;
   pricePerSeat?: number | null;
+  minSeats?: number | null;
   createdByUserId: number;
   logo?: string | null;
   bio?: string | null;
@@ -57,6 +59,7 @@ type OrganizationOnboardingForPaymentIntent = Pick<
   | "pricePerSeat"
   | "billingPeriod"
   | "seats"
+  | "minSeats"
   | "isComplete"
   | "orgOwnerEmail"
   | "slug"
@@ -193,8 +196,10 @@ export class OrganizationPaymentService {
       slug: input.slug,
       orgOwnerEmail: input.orgOwnerEmail,
       billingPeriod: config.billingPeriod,
+      billingMode: input.billingMode,
       seats: config.seats,
       pricePerSeat: config.pricePerSeat,
+      minSeats: input.minSeats ?? null,
       createdById: input.createdByUserId,
       logo: input.logo ?? null,
       bio: input.bio ?? null,
@@ -322,7 +327,7 @@ export class OrganizationPaymentService {
     const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
     const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
 
-    const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
+    const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats, minSeats } = organizationOnboarding;
 
     if (this.user.role === UserPermissionRole.ADMIN) {
       log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
@@ -361,7 +366,7 @@ export class OrganizationPaymentService {
     // Create new config with updated seats if necessary
     const updatedConfig = {
       ...paymentConfigFromOnboarding,
-      seats: Math.max(paymentConfigFromOnboarding.seats, uniqueMembersCount),
+      seats: Math.max(paymentConfigFromOnboarding.seats, uniqueMembersCount, minSeats ?? 0),
     };
 
     log.debug(

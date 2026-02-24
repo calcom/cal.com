@@ -132,6 +132,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       seats: input.seats,
       pricePerSeat: input.pricePerSeat,
       billingPeriod: input.billingPeriod,
+      billingMode: input.billingMode,
+      minSeats: input.minSeats,
       createdByUserId: this.user.id,
       logo: processedAssets.logo ?? null,
       bio: input.bio ?? null,

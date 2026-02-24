@@ -1,5 +1,5 @@
 import type { Prisma } from "@calcom/prisma/client";
-import type { BillingPeriod, CreationSource } from "@calcom/prisma/enums";
+import type { BillingMode, BillingPeriod, CreationSource } from "@calcom/prisma/enums";
 
 export type TeamInput = {
   id: number;
@@ -23,6 +23,8 @@ export type CreateOnboardingIntentInput = {
   seats?: number | null;
   pricePerSeat?: number | null;
   billingPeriod?: BillingPeriod;
+  billingMode?: BillingMode;
+  minSeats?: number | null;
   isPlatform: boolean;
   creationSource: CreationSource;
   logo?: string | null;

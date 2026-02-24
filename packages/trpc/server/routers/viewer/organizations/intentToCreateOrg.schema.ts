@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
-import { BillingPeriod, CreationSource } from "@calcom/prisma/enums";
+import { BillingMode, BillingPeriod, CreationSource } from "@calcom/prisma/enums";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
 export const ZIntentToCreateOrgInputSchema = z.object({
@@ -14,6 +14,8 @@ export const ZIntentToCreateOrgInputSchema = z.object({
   pricePerSeat: z.number().nullish(),
   isPlatform: z.boolean().default(false),
   billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY),
+  billingMode: z.nativeEnum(BillingMode).default(BillingMode.SEATS),
+  minSeats: z.number().int().positive().nullish(),
   creationSource: z.nativeEnum(CreationSource),
   // Brand fields
   logo: z.string().nullish(),

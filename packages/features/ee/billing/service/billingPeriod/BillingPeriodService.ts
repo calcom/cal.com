@@ -18,6 +18,7 @@ export interface BillingPeriodInfo {
   trialEnd: Date | null;
   isInTrial: boolean;
   pricePerSeat: number | null;
+  minSeats: number | null;
   isOrganization: boolean;
 }
 
@@ -100,6 +101,7 @@ export class BillingPeriodService {
             subscriptionTrialEnd: true,
             pricePerSeat: true,
             paidSeats: true,
+            minSeats: true,
             subscriptionId: true,
           },
         },
@@ -113,6 +115,7 @@ export class BillingPeriodService {
             subscriptionTrialEnd: true,
             pricePerSeat: true,
             paidSeats: true,
+            minSeats: true,
             subscriptionId: true,
           },
         },
@@ -133,6 +136,7 @@ export class BillingPeriodService {
         trialEnd: null,
         isInTrial: false,
         pricePerSeat: null,
+        minSeats: null,
         isOrganization,
       };
     }
@@ -167,6 +171,7 @@ export class BillingPeriodService {
             trialEnd: billing.subscriptionTrialEnd,
             isInTrial,
             pricePerSeat: billing.pricePerSeat,
+            minSeats: billing.minSeats,
             isOrganization,
           };
         }
@@ -199,6 +204,7 @@ export class BillingPeriodService {
           trialEnd: billing.subscriptionTrialEnd,
           isInTrial,
           pricePerSeat: pricePerSeat ?? null,
+          minSeats: billing.minSeats,
           isOrganization,
         };
       } catch (error) {
@@ -217,6 +223,7 @@ export class BillingPeriodService {
       trialEnd: billing.subscriptionTrialEnd,
       isInTrial,
       pricePerSeat: billing.pricePerSeat,
+      minSeats: billing.minSeats,
       isOrganization,
     };
   }

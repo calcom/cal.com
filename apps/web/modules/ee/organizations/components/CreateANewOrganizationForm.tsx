@@ -5,7 +5,7 @@ import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
+import { BillingMode, BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -45,7 +45,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
   const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
   const { useOnboardingStore, isBillingEnabled } = useOnboarding();
-  const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
+  const { slug, name, orgOwnerEmail, billingPeriod, billingMode, pricePerSeat, seats, minSeats, onboardingId, reset } =
     useOnboardingStore();
 
   // For non-admin users, always use the current session email to prevent stale cached email issues.
@@ -57,19 +57,25 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     name: string;
     seats: number | null;
     billingPeriod: BillingPeriod;
+    billingMode: BillingMode;
     pricePerSeat: number | null;
+    minSeats: number | null;
     slug: string;
     orgOwnerEmail: string;
   }>({
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
+      billingMode: billingMode ?? BillingMode.SEATS,
       slug: slug ?? (!isAdmin ? deriveSlugFromEmail(effectiveOrgOwnerEmail) : undefined),
       orgOwnerEmail: effectiveOrgOwnerEmail,
       name: name ?? (!isAdmin ? deriveOrgNameFromEmail(effectiveOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
+      minSeats: minSeats ?? null,
     },
   });
+
+  const watchedBillingMode = newOrganizationFormMethods.watch("billingMode");
 
   const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
@@ -137,31 +143,32 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         className="stack-y-5"
         id="createOrg"
         handleSubmit={async (v) => {
-          if (!needToCreateOnboarding) {
+          // Check if this is admin handover flow based on the submitted form value
+          const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
+
+          if (isAdminHandoverFlow) {
+            // Admin creating for someone else - always submit to get handover URL
+            // (ignore existing onboardingId which may belong to admin's own onboarding)
+            if (!intentToCreateOrgMutation.isPending) {
+              setServerErrorMessage(null);
+              intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+            }
+          } else if (!needToCreateOnboarding) {
             // Resuming existing onboarding - just navigate to next step
             router.push("/settings/organizations/new/about");
           } else {
-            // Check if this is admin handover flow based on the submitted form value
-            const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
-
-            if (isAdminHandoverFlow) {
-              // Admin creating for someone else - submit immediately with just Step 1 data
-              if (!intentToCreateOrgMutation.isPending) {
-                setServerErrorMessage(null);
-                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
-              }
-            } else {
-              // Regular user or admin creating for self - store locally and continue
-              reset({
-                billingPeriod: v.billingPeriod,
-                pricePerSeat: v.pricePerSeat,
-                seats: v.seats,
-                orgOwnerEmail: v.orgOwnerEmail,
-                name: v.name,
-                slug: v.slug,
-              });
-              router.push("/settings/organizations/new/about");
-            }
+            // Regular user or admin creating for self - store locally and continue
+            reset({
+              billingPeriod: v.billingPeriod,
+              billingMode: v.billingMode,
+              pricePerSeat: v.pricePerSeat,
+              seats: v.seats,
+              minSeats: v.minSeats,
+              orgOwnerEmail: v.orgOwnerEmail,
+              name: v.name,
+              slug: v.slug,
+            });
+            router.push("/settings/organizations/new/about");
           }
         }}>
         <div>
@@ -171,7 +178,36 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
             </div>
           )}
           {isBillingEnabled && isAdmin && (
-            <div className="mb-5">
+            <div className="mb-5 space-y-5">
+              <Controller
+                name="billingMode"
+                control={newOrganizationFormMethods.control}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <Label htmlFor="billingMode">Billing Mode</Label>
+                    <ToggleGroup
+                      isFullWidth
+                      id="billingMode"
+                      value={value}
+                      onValueChange={(e: BillingMode) => {
+                        if ([BillingMode.SEATS, BillingMode.ACTIVE_USERS].includes(e)) {
+                          onChange(e);
+                        }
+                      }}
+                      options={[
+                        {
+                          value: "SEATS",
+                          label: "Seats",
+                        },
+                        {
+                          value: "ACTIVE_USERS",
+                          label: "Active Users",
+                        },
+                      ]}
+                    />
+                  </>
+                )}
+              />
               <Controller
                 name="billingPeriod"
                 control={newOrganizationFormMethods.control}
@@ -201,6 +237,27 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                   </>
                 )}
               />
+              {watchedBillingMode === BillingMode.ACTIVE_USERS && (
+                <Controller
+                  name="minSeats"
+                  control={newOrganizationFormMethods.control}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      placeholder="10"
+                      name="minSeats"
+                      type="number"
+                      label="Minimum seats (optional)"
+                      min={1}
+                      defaultValue={value ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value ? +e.target.value : null;
+                        onChange(val);
+                      }}
+                      autoComplete="off"
+                    />
+                  )}
+                />
+              )}
             </div>
           )}
           <Controller
@@ -290,34 +347,45 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
 
         {isBillingEnabled && isAdmin && (
           <>
-            <section className="grid grid-cols-2 gap-2">
-              <div className="w-full">
-                <Controller
-                  name="seats"
-                  control={newOrganizationFormMethods.control}
-                  render={({ field: { value, onChange } }) => (
-                    <div className="flex">
-                      <TextField
-                        containerClassName="w-full"
-                        placeholder="1"
-                        name="seats"
-                        type="number"
-                        label="Seats (optional)"
-                        min={1}
-                        defaultValue={value || 1}
-                        onChange={(e) => {
-                          onChange(+e.target.value);
-                        }}
-                        autoComplete="off"
-                      />
-                    </div>
-                  )}
-                />
-              </div>
+            <section
+              className={classNames(
+                "grid gap-2",
+                watchedBillingMode === BillingMode.ACTIVE_USERS ? "grid-cols-1" : "grid-cols-2"
+              )}>
+              {watchedBillingMode !== BillingMode.ACTIVE_USERS && (
+                <div className="w-full">
+                  <Controller
+                    name="seats"
+                    control={newOrganizationFormMethods.control}
+                    render={({ field: { value, onChange } }) => (
+                      <div className="flex">
+                        <TextField
+                          containerClassName="w-full"
+                          placeholder="1"
+                          name="seats"
+                          type="number"
+                          label="Seats (optional)"
+                          min={1}
+                          defaultValue={value || 1}
+                          onChange={(e) => {
+                            onChange(+e.target.value);
+                          }}
+                          autoComplete="off"
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
               <div className="w-full">
                 <Controller
                   name="pricePerSeat"
                   control={newOrganizationFormMethods.control}
+                  rules={
+                    watchedBillingMode === BillingMode.ACTIVE_USERS
+                      ? { required: "Price per seat is required for active users billing" }
+                      : undefined
+                  }
                   render={({ field: { value, onChange } }) => (
                     <div className="flex">
                       <TextField
@@ -326,7 +394,12 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                         name="pricePerSeat"
                         type="number"
                         addOnSuffix="$"
-                        label="Price per seat (optional)"
+                        label={
+                          watchedBillingMode === BillingMode.ACTIVE_USERS
+                            ? "Price per seat"
+                            : "Price per seat (optional)"
+                        }
+                        required={watchedBillingMode === BillingMode.ACTIVE_USERS}
                         defaultValue={value ?? ""}
                         onChange={(e) => {
                           onChange(+e.target.value);

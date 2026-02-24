@@ -2,6 +2,7 @@ import logger from "@calcom/lib/logger";
 
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { BillingPeriodService } from "../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 import type { SeatChangeContext } from "./ISeatBillingStrategy";
@@ -12,6 +13,7 @@ export interface IActiveUserBillingStrategyDeps {
   activeUserBillingService: ActiveUserBillingService;
   billingProviderService: IBillingProviderService;
   teamBillingDataRepository: ITeamBillingDataRepository;
+  billingPeriodService: BillingPeriodService;
 }
 
 export class ActiveUserBillingStrategy extends BaseSeatBillingStrategy {
@@ -45,6 +47,9 @@ export class ActiveUserBillingStrategy extends BaseSeatBillingStrategy {
       periodEnd
     );
 
+    const billingInfo = await this.deps.billingPeriodService.getBillingPeriodInfo(team.id);
+    const billedCount = Math.max(activeUserCount, billingInfo.minSeats ?? 0);
+
     const subscriptionItem = subscription.items[0];
     if (!subscriptionItem) {
       log.warn(`No subscription item found for ${subscriptionId}`);
@@ -54,11 +59,13 @@ export class ActiveUserBillingStrategy extends BaseSeatBillingStrategy {
     await this.deps.billingProviderService.handleSubscriptionUpdate({
       subscriptionId,
       subscriptionItemId: subscriptionItem.id,
-      membershipCount: activeUserCount,
+      membershipCount: billedCount,
       prorationBehavior: "none",
     });
 
-    log.info(`Updated subscription ${subscriptionId} to ${activeUserCount} active users for team ${team.id}`);
+    log.info(
+      `Updated subscription ${subscriptionId} to ${billedCount} seats (${activeUserCount} active users, minSeats=${billingInfo.minSeats ?? "none"}) for team ${team.id}`
+    );
     return { applied: true };
   }
 }

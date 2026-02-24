@@ -293,6 +293,7 @@ describe("BillingPeriodService", () => {
         trialEnd: null,
         isInTrial: false,
         pricePerSeat: 10000,
+        minSeats: undefined,
         isOrganization: false,
       });
     });
@@ -340,6 +341,7 @@ describe("BillingPeriodService", () => {
         trialEnd: null,
         isInTrial: false,
         pricePerSeat: null,
+        minSeats: null,
         isOrganization: false,
       });
     });

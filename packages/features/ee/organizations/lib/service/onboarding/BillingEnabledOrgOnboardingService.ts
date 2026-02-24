@@ -121,6 +121,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
         pricePerSeat: organizationOnboarding.pricePerSeat,
         billingPeriod: organizationOnboarding.billingPeriod,
         seats: organizationOnboarding.seats,
+        minSeats: organizationOnboarding.minSeats,
         isComplete: organizationOnboarding.isComplete,
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
         slug: organizationOnboarding.slug,

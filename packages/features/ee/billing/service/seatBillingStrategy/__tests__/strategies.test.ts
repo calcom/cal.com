@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ActiveUserBillingService } from "../../../active-user/services/ActiveUserBillingService";
 import type { ITeamBillingDataRepository } from "../../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { BillingPeriodService } from "../../billingPeriod/BillingPeriodService";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import type { HighWaterMarkService } from "../../highWaterMark/HighWaterMarkService";
 import type { MonthlyProrationService } from "../../proration/MonthlyProrationService";
@@ -358,21 +359,40 @@ function createMockTeamBillingDataRepository(): ITeamBillingDataRepository {
   };
 }
 
+function createMockBillingPeriodService(overrides?: Partial<{ minSeats: number | null }>): BillingPeriodService {
+  return {
+    getBillingPeriodInfo: vi.fn().mockResolvedValue({
+      billingPeriod: "MONTHLY",
+      billingMode: "ACTIVE_USERS",
+      subscriptionStart: new Date(),
+      subscriptionEnd: new Date(),
+      trialEnd: null,
+      isInTrial: false,
+      pricePerSeat: 1500,
+      minSeats: overrides?.minSeats ?? null,
+      isOrganization: true,
+    }),
+  } as unknown as BillingPeriodService;
+}
+
 describe("ActiveUserBillingStrategy", () => {
-  function createStrategy() {
+  function createStrategy(opts?: { minSeats?: number | null }) {
     const activeUserService = createMockActiveUserBillingService();
     const billingProvider = createMockBillingProviderService();
     const teamBillingDataRepo = createMockTeamBillingDataRepository();
+    const billingPeriodService = createMockBillingPeriodService({ minSeats: opts?.minSeats ?? null });
     const strategy = new ActiveUserBillingStrategy({
       activeUserBillingService: activeUserService,
       billingProviderService: billingProvider,
       teamBillingDataRepository: teamBillingDataRepo,
+      billingPeriodService,
     });
     return {
       strategy,
       activeUserService,
       billingProvider,
       teamBillingDataRepo,
+      billingPeriodService,
     };
   }
 
@@ -527,6 +547,94 @@ describe("ActiveUserBillingStrategy", () => {
     expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ subscriptionItemId: "si_first" })
     );
+  });
+
+  it("applies minSeats floor when active users are below minimum", async () => {
+    const {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    } = createStrategy({ minSeats: 10 });
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [
+        {
+          id: "si_456",
+          quantity: 5,
+          price: { unit_amount: 1500, recurring: { interval: "month" } },
+        },
+      ],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    vi.mocked(activeUserService.getActiveUserCountForOrg).mockResolvedValue(3);
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: true });
+    expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 10,
+      prorationBehavior: "none",
+    });
+  });
+
+  it("uses active user count when it exceeds minSeats", async () => {
+    const {
+      strategy,
+      activeUserService,
+      billingProvider,
+      teamBillingDataRepo,
+    } = createStrategy({ minSeats: 5 });
+
+    vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue({
+      id: 42,
+      metadata: {},
+      isOrganization: false,
+      parentId: null,
+      name: "Test Team",
+    });
+
+    vi.mocked(billingProvider.getSubscription).mockResolvedValue({
+      items: [
+        {
+          id: "si_456",
+          quantity: 5,
+          price: { unit_amount: 1500, recurring: { interval: "month" } },
+        },
+      ],
+      customer: "cus_123",
+      status: "active",
+      current_period_start: Math.floor(new Date("2025-06-01").getTime() / 1000),
+      current_period_end: Math.floor(new Date("2025-07-01").getTime() / 1000),
+      trial_end: null,
+    });
+
+    vi.mocked(activeUserService.getActiveUserCountForOrg).mockResolvedValue(12);
+
+    const result = await strategy.onInvoiceUpcoming("sub_123");
+
+    expect(result).toEqual({ applied: true });
+    expect(billingProvider.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 12,
+      prorationBehavior: "none",
+    });
   });
 
   it("does not query active users when team lookup fails", async () => {
