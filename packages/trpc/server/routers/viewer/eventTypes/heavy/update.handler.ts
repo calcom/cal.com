@@ -1,5 +1,3 @@
-import type { NextApiResponse, GetServerSidePropsContext } from "next";
-
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -10,6 +8,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
+import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -23,20 +22,19 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
-  WorkflowTriggerEvents,
-  SchedulingType,
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
+  SchedulingType,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
-  ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
+  ensureUniqueBookingFields,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
@@ -844,6 +842,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       },
     });
+  }
+
+  if (rest.successRedirectUrl) {
+    const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({
+      userId: ctx.user.id,
+      eventTypeId: id,
+    });
+    if (!redirectUrlCheck.allowed) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: redirectUrlCheck.reason,
+      });
+    }
   }
 
   // Scan redirect URL for malicious content if URL scanning is enabled

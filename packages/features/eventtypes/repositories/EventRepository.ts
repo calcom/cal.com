@@ -22,4 +22,12 @@ export class EventRepository {
     );
     return event;
   }
+
+  static async hasSuccessRedirectUrl(eventTypeId: number): Promise<boolean> {
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { successRedirectUrl: true },
+    });
+    return !!eventType?.successRedirectUrl;
+  }
 }

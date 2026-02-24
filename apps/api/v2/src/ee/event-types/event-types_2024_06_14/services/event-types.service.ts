@@ -1,4 +1,4 @@
-import { dynamicEvent } from "@calcom/platform-libraries";
+import { checkSuccessRedirectUrlAllowed, dynamicEvent } from "@calcom/platform-libraries";
 import {
   createEventType,
   EventTypesPublic,
@@ -42,7 +42,12 @@ export class EventTypesService_2024_06_14 {
       this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
     }
     await this.checkCanCreateEventType(user.id, body);
-    await this.checkSuccessRedirectUrlAllowed(user.id, body.successRedirectUrl);
+    if (body.successRedirectUrl) {
+      const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({ userId: user.id });
+      if (!redirectUrlCheck.allowed) {
+        throw new ForbiddenException(redirectUrlCheck.reason);
+      }
+    }
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
@@ -310,11 +315,10 @@ export class EventTypesService_2024_06_14 {
       this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
     }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
-    if (body.successRedirectUrl !== undefined) {
-      const existing = await this.eventTypesRepository.getSuccessRedirectUrl(eventTypeId);
-      const isGrandfathered = !!existing?.successRedirectUrl;
-      if (!isGrandfathered) {
-        await this.checkSuccessRedirectUrlAllowed(user.id, body.successRedirectUrl);
+    if (body.successRedirectUrl) {
+      const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({ userId: user.id, eventTypeId });
+      if (!redirectUrlCheck.allowed) {
+        throw new ForbiddenException(redirectUrlCheck.reason);
       }
     }
     const eventTypeUser = await this.getUserToUpdateEvent(user);
@@ -378,16 +382,6 @@ export class EventTypesService_2024_06_14 {
   checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
     if (userId !== eventType.userId) {
       throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
-    }
-  }
-
-  async checkSuccessRedirectUrlAllowed(userId: number, successRedirectUrl: string | undefined | null) {
-    if (!successRedirectUrl) return;
-    const hasTeamPlan = await this.membershipsRepository.hasAcceptedPublishedTeamMembership(userId);
-    if (!hasTeamPlan) {
-      throw new ForbiddenException(
-        "Redirect on booking is a feature for team plan users. Please upgrade to a team plan to use this feature."
-      );
     }
   }
 

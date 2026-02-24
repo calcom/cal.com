@@ -66,6 +66,7 @@ export { getBookingInfo };
 export { handleCancelBooking };
 
 export { dynamicEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+export { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { bookingMetadataSchema, teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";

@@ -213,13 +213,6 @@ export class EventTypesRepository_2024_06_14 {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
   }
 
-  async getSuccessRedirectUrl(eventTypeId: number) {
-    return this.dbRead.prisma.eventType.findUnique({
-      where: { id: eventTypeId },
-      select: { successRedirectUrl: true },
-    });
-  }
-
   async isUserHostOfEventType(userId: number, eventTypeId: number) {
     const eventType = await this.dbRead.prisma.eventType.findFirst({
       where: {
