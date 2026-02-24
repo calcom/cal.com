@@ -202,7 +202,7 @@ const OAuthClientDetailsDialog = ({
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => {
               if (!canEdit) return;
-              if (!values.scopes || values.scopes.length === 0) {
+              if (!isLegacy && (!values.scopes || values.scopes.length === 0)) {
                 showToast(t("oauth_client_scope_required"), "error");
                 return;
               }
@@ -213,7 +213,7 @@ const OAuthClientDetailsDialog = ({
                 redirectUri: values.redirectUri.trim() || "",
                 websiteUrl: values.websiteUrl.trim() || "",
                 logo: values.logo,
-                scopes: values.scopes,
+                scopes: isLegacy ? undefined : values.scopes,
               });
             })}>
             {status ? (
