@@ -146,6 +146,13 @@ model VideoCallGuest {
   @@index([email])
 }
 
+enum CancellationReasonRequirement {
+  MANDATORY_BOTH
+  MANDATORY_HOST_ONLY
+  MANDATORY_ATTENDEE_ONLY
+  OPTIONAL_BOTH
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.string.min(1)
@@ -279,8 +286,9 @@ model EventType {
   restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
   hostGroups            HostGroup[]
 
-  bookingRequiresAuthentication Boolean @default(false)
-  rrHostSubsetEnabled           Boolean @default(false)
+  bookingRequiresAuthentication Boolean                        @default(false)
+  rrHostSubsetEnabled           Boolean                        @default(false)
+  requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
   enablePerHostLocations        Boolean @default(false)
 
   createdAt DateTime? @default(now())
