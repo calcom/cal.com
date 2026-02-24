@@ -3863,6 +3863,8 @@
   "reschedule_cta_short": "Reschedule here.",
   "hide_organizer_email": "Hide organizer's email",
   "platform_customer_cant_create_organization": "You are already part of a platform organization which is why you can't create a new organization. Each user can only belong to one organization. Please, create a new cal.com account with a different email and use that account to subscribe to the organizations plan.",
+  "org_requires_company_email": "Creating an organization requires a company email. You can add a company email as your primary email in your profile settings.",
+  "add_company_email": "Add company email",
   "organization_customer_cant_create_platform": "You are already part of an organization which is why you can't create a platform organization. Each user can only belong to one organization. Please, create a new cal.com account with a different email and use that account to subscribe to the platform plan.",
   "hide_organizer_email_description": "Hide organizer's email address from the booking screen, email notifications, and calendar events. <0>Learn more</0>",
   "you_and_conjunction": "You &",
@@ -4710,6 +4712,6 @@
   "paypal_step_7": "You should be all set up after this.",
   "dashboard": "dashboard",
   "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
-  "discount_20": "-20%",
+  "discount_25": "-25%",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
