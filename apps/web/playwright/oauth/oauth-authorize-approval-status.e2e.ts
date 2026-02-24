@@ -359,6 +359,9 @@ test.describe("OAuth authorize - client approval status", () => {
 
     await page.waitForSelector('[data-testid="allow-button"]');
 
+    await expect(page.getByTestId("scope-permissions-list")).toBeVisible();
+    await expect(page.getByTestId("legacy-permissions-list")).not.toBeVisible();
+
     await expect(page.getByText("View bookings")).toBeVisible();
     await expect(page.getByText("View availability")).toBeVisible();
 
@@ -373,6 +376,31 @@ test.describe("OAuth authorize - client approval status", () => {
 
     const url = new URL(page.url());
     expect(url.searchParams.get("code")).toBeTruthy();
+  });
+
+  test("legacy OAuth client renders legacy permissions list", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-legacy-permissions" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}legacy-${Date.now()}`,
+      status: "APPROVED",
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByTestId("legacy-permissions-list")).toBeVisible();
+    await expect(page.getByTestId("scope-permissions-list")).not.toBeVisible();
   });
 
   test("new OAuth client without scope param renders error on authorize page (no redirect)", async ({
@@ -420,6 +448,9 @@ test.describe("OAuth authorize - client approval status", () => {
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
+
+    await expect(page.getByTestId("scope-permissions-list")).toBeVisible();
+    await expect(page.getByTestId("legacy-permissions-list")).not.toBeVisible();
 
     await expect(page.getByText("Create, read, update, and delete bookings")).toBeVisible();
 

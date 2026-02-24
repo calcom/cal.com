@@ -178,4 +178,39 @@ describe("ThirdPartyPermissionsGuard", () => {
       expect(guard.canActivate(mockContext)).toBe(true);
     });
   });
+
+  describe("Legacy OAuth client backward compatibility", () => {
+    it("should allow token with empty scopes even when handler requires BOOKING_READ", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      jest.spyOn(tokensService, "getDecodedThirdPartyAccessToken").mockReturnValue({
+        scope: [],
+        token_type: "Access Token",
+      });
+      jest.spyOn(reflector, "get").mockReturnValue([BOOKING_READ]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
+    });
+
+    it("should allow token with legacy scope names even when handler requires BOOKING_READ", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      jest.spyOn(tokensService, "getDecodedThirdPartyAccessToken").mockReturnValue({
+        scope: ["READ_BOOKING", "READ_PROFILE"],
+        token_type: "Access Token",
+      });
+      jest.spyOn(reflector, "get").mockReturnValue([BOOKING_READ]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
+    });
+
+    it("should allow token with no scope field at all (pre-scope tokens)", () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      jest.spyOn(tokensService, "getDecodedThirdPartyAccessToken").mockReturnValue({
+        scope: undefined,
+        token_type: "Access Token",
+      });
+      jest.spyOn(reflector, "get").mockReturnValue([BOOKING_READ]);
+
+      expect(guard.canActivate(mockContext)).toBe(true);
+    });
+  });
 });

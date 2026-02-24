@@ -216,47 +216,47 @@ export function Authorize() {
         <div className="mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        <ul className="text-sm stack-y-3">
-          {isLegacy ? (
-            <>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>{" "}
-                {t("associate_with_cal_account", { clientName: client.name })}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("see_personal_info")}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("see_primary_email_address")}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("connect_installed_apps")}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("access_event_type")}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("access_availability")}
-              </li>
-              <li className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {t("access_bookings")}
-              </li>
-            </>
-          ) : (
-            getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
+        {isLegacy ? (
+          <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>{" "}
+              {t("associate_with_cal_account", { clientName: client.name })}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_personal_info")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_primary_email_address")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("connect_installed_apps")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_event_type")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_availability")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_bookings")}
+            </li>
+          </ul>
+        ) : (
+          <ul className="text-sm stack-y-3" data-testid="scope-permissions-list">
+            {getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
               <li key={idx} className="relative pl-5">
                 <span className="absolute left-0">&#10003;</span>
                 {label}
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ul>
+        )}
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>
             <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
