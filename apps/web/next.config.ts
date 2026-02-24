@@ -236,7 +236,9 @@ const nextConfig = (phase: string): NextConfig => {
     experimental: {
       optimizePackageImports: ["@calcom/ui"],
     },
-    productionBrowserSourceMaps: true,
+    // Only generate browser source maps when Sentry is configured to upload them.
+    // Generating source maps without uploading them exposes source code and wastes build time.
+    productionBrowserSourceMaps: Boolean(process.env.SENTRY_AUTH_TOKEN),
     transpilePackages: [
       "@calcom/app-store",
       "@calcom/dayjs",

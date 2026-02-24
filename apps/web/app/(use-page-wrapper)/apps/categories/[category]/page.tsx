@@ -8,6 +8,13 @@ import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
 import CategoryPage from "~/apps/categories/[category]/category-view";
 
+// Pre-render all known categories at build time and revalidate every hour
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  return Object.values(AppCategories).map((category) => ({ category }));
+}
+
 const querySchema = z.object({
   category: z.enum(Object.values(AppCategories) as [AppCategories, ...AppCategories[]]),
 });

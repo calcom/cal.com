@@ -3,6 +3,9 @@ import { generateAppMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
+// Cache app store pages for 1 hour — app metadata changes infrequently
+export const revalidate = 3600;
+
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 
 import AppView from "~/apps/[slug]/slug-view";
