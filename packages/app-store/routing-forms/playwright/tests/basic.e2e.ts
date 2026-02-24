@@ -171,7 +171,7 @@ test.describe("Routing Forms", () => {
 
       await page.click('[data-testid="settings-button"]');
       await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
-      await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
+      await expect(page.locator('[data-testid^="field-"]')).toHaveCount(types.length);
       await page.click('[data-testid="settings-slider-over-cancel"]');
 
       fields.forEach((item, index) => {
@@ -186,7 +186,7 @@ test.describe("Routing Forms", () => {
       await page.click('[data-testid="add-route-button"]');
       await page.click('[data-testid="add-rule"]');
 
-      const options = Object.values(createdFields).map((item) => item.label);
+      const options = fields.map((item) => item.label);
       await verifyFieldOptionsInRule(options, page);
     });
 
@@ -272,13 +272,15 @@ test.describe("Routing Forms", () => {
         label: "Test Field",
       });
       const queryString =
-        "firstfield=456&test-field-number=456&test-field-select=456&test-field-multiselect=456&test-field-multiselect=789&test-field-phone=456&test-field-email=456@example.com";
+        "test-field-email=456@example.com&test-field-number=456&test-field-select=456&test-field-multiselect=456&test-field-multiselect=789&test-field-phone=456";
 
       await gotoRoutingLink({ page, queryString });
 
       await page.fill('[data-testid="form-field-test-field-long-text"]', "manual-fill");
 
-      await expect(page.locator('[data-testid="form-field-firstfield"]')).toHaveValue("456");
+      await expect(page.locator('[data-testid="form-field-test-field-email"]')).toHaveValue(
+        "456@example.com"
+      );
       await expect(page.locator('[data-testid="form-field-test-field-number"]')).toHaveValue("456");
 
       // TODO: Verify select and multiselect has prefilled values.
@@ -286,9 +288,6 @@ test.describe("Routing Forms", () => {
       // expect(await page.locator(`[data-testid="form-field-test-field-multiselect"]`).inputValue()).toBe("456");
 
       await expect(page.locator('[data-testid="form-field-test-field-phone"]')).toHaveValue("456");
-      await expect(page.locator('[data-testid="form-field-test-field-email"]')).toHaveValue(
-        "456@example.com"
-      );
 
       await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
@@ -297,16 +296,13 @@ test.describe("Routing Forms", () => {
 
       const url = new URL(page.url());
 
-      // Coming from the response filled by booker
-      expect(url.searchParams.get("firstfield")).toBe("456");
-
-      // All other params come from prefill URL
+      // Params from prefill URL are forwarded to the redirect target
+      expect(url.searchParams.get("test-field-email")).toBe("456@example.com");
       expect(url.searchParams.get("test-field-number")).toBe("456");
       expect(url.searchParams.get("test-field-long-text")).toBe("manual-fill");
       expect(url.searchParams.get("test-field-multiselect")).toBe("456");
       expect(url.searchParams.getAll("test-field-multiselect")).toMatchObject(["456", "789"]);
       expect(url.searchParams.get("test-field-phone")).toBe("456");
-      expect(url.searchParams.get("test-field-email")).toBe("456@example.com");
     });
 
     // TODO: How to install the app just once?
@@ -1087,20 +1083,32 @@ async function addAllTypesOfFieldsAndSaveForm(
   for (let index = 0; index < fieldTypesList.length; index++) {
     const fieldTypeLabel = fieldTypesList[index];
     const label = `${form.label} ${fieldTypeLabel}`;
-    const identifier = index === 0 ? "firstField" : label;
+    const identifier = label.toLowerCase().replace(/\s+/g, "-");
 
     if (index > 0) {
       await page.click('[data-testid="add-field"]');
       await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: "visible" });
       await page.locator(FIELD_TYPE_SELECTOR).click();
-      await page
-        .locator('[data-testid^="select-option-"]')
-        .filter({ hasText: new RegExp(`^${fieldTypeLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) })
-        .click();
     }
+    // For index=0 the dropdown is already open from verifySelectOptions above.
+    // For index>0 we just opened it. Select the field type in both cases.
+    await page
+      .locator('[data-testid^="select-option-"]')
+      .filter({ hasText: new RegExp(`^${fieldTypeLabel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`) })
+      .click();
 
     const dialog = page.locator('[data-testid="edit-field-dialog"]');
-    await dialog.locator('[name="label"]').fill(label);
+
+    // The "Checkbox" (boolean) field type uses a rich text editor for the label
+    // instead of a standard input, so we need a different interaction approach.
+    const isCheckboxField = fieldTypeLabel === "Checkbox";
+    if (isCheckboxField) {
+      const editor = dialog.locator('[contenteditable="true"]');
+      await editor.click();
+      await editor.fill(label);
+    } else {
+      await dialog.locator('[name="label"]').fill(label);
+    }
     await dialog.locator('[name="name"]').fill(identifier);
 
     const needsOptions =

@@ -1,7 +1,7 @@
 import { AttributeType } from "@calcom/prisma/enums";
 
 import type { RoutingForm, Attribute } from "../types/types";
-import { FieldTypes, RoutingFormFieldType } from "./FieldTypes";
+import { FieldTypes, RoutingFormFieldType, isValidRoutingFormFieldType } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
 
@@ -50,26 +50,32 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     if ("routerField" in field) {
       field = field.routerField;
     }
-    // We can assert the type because otherwise we throw 'Unsupported field type' error
-    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
-    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
-      const options = getUIOptionsForSelect(field);
-
-      const widget = FormFieldsInitialConfig.widgets[fieldType];
-      const widgetType = widget.type;
-
-      fields[field.id] = {
-        label: field.label,
-        type: widgetType,
-        valueSources: ["value"],
-        fieldSettings: {
-          // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
-        },
-      };
-    } else {
-      throw new Error(`Unsupported field type:${field.type}`);
+    if (!isValidRoutingFormFieldType(field.type)) {
+      return;
     }
+
+    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
+    const options = getUIOptionsForSelect(field);
+
+    const widget = FormFieldsInitialConfig.widgets[fieldType];
+    const widgetType = widget.type;
+
+    fields[field.id] = {
+      label: field.label,
+      type: widgetType,
+      valueSources: ["value"],
+      fieldSettings: {
+        // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
+        listValues:
+          fieldType === "select" ||
+          fieldType === "multiselect" ||
+          fieldType === "checkbox" ||
+          fieldType === "radio" ||
+          fieldType === "radioInput"
+            ? options
+            : undefined,
+      },
+    };
   });
 
   const initialConfigCopy = {

@@ -114,21 +114,20 @@ describe("getQueryBuilderConfig", () => {
     });
   });
 
-  it("should throw an error for unsupported field types", () => {
+  it("should skip unsupported field types", () => {
     const formWithUnsupportedField: MockedForm = {
       ...mockForm,
       fields: [
         {
           id: "unsupportedField",
           label: "Unsupported Field",
-          type: "unsupported" as any,
+          type: "unsupported" as never,
         },
       ],
     };
 
-    expect(() => getQueryBuilderConfigForFormFields(formWithUnsupportedField)).toThrow(
-      "Unsupported field type:unsupported"
-    );
+    const config = getQueryBuilderConfigForFormFields(formWithUnsupportedField);
+    expect(config.fields).not.toHaveProperty("unsupportedField");
   });
 
   it("should remove specific operators when forReporting is true", () => {
