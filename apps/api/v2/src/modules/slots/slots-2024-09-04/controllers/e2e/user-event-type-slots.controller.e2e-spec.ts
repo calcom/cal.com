@@ -787,7 +787,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-${eventTypeId}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -832,7 +832,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-${seatedEventType.id}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -866,7 +866,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: randomString(),
+        referenceUid: "100",
         data: {},
         booking: {
           connect: {
@@ -961,7 +961,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-${seatedEventType.id}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -995,7 +995,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: randomString(),
+        referenceUid: "100",
         data: {},
         booking: {
           connect: {
@@ -1348,7 +1348,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         advanceTo(newDate);
 
         const slotDuration = 60;
-        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        const slotStartTime = "2050-09-05T09:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
           .post(`/v2/slots/reservations`)
           .send({
@@ -1409,7 +1409,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("request slot contains already existing reserved slot", async () => {
-        // Try to reserve 9:45-12:45 when 10:00-11:00 is taken
+        // Try to reserve 8:45-11:45 when 09:00-10:00 is taken
         const newSlotStart = DateTime.fromISO(responseReservedVariableSlot.slotStart)
           .minus({ minutes: 15 })
           .toISO();
