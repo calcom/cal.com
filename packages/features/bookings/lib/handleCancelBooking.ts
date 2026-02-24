@@ -10,7 +10,7 @@ import {
   makeGuestActor,
   makeUserActor,
 } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
@@ -41,7 +41,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -81,7 +81,7 @@ export type CancelBookingInput = {
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
-  actionSource?: ActionSource;
+  actionSource: ValidActionSource;
 } & PlatformParams;
 
 type Dependencies = {
@@ -173,17 +173,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const userUuid = input.userUuid ?? null;
 
-  // Extract action source once for reuse
-  const actionSource = input.actionSource ?? "UNKNOWN";
-  if (actionSource === "UNKNOWN") {
-    log.warn(
-      "Booking cancellation with unknown actionSource",
-      safeStringify({
-        bookingUid: bookingToDelete.uid,
-        userUuid,
-      })
-    );
-  }
+  const actionSource = input.actionSource;
 
   const actorToUse = getAuditActor({
     userUuid,
@@ -724,10 +714,15 @@ type BookingCancelServiceDependencies = {
 export class BookingCancelService implements IBookingCancelService {
   constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
-  async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
+  async cancelBooking(input: {
+    bookingData: CancelRegularBookingData;
+    bookingMeta?: CancelBookingMeta;
+    actionSource: ValidActionSource;
+  }) {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
+      actionSource: input.actionSource,
     };
 
     return handler(cancelBookingInput, this.deps);

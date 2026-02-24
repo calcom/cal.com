@@ -6,7 +6,7 @@ import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib
 import { Task } from "@calcom/features/tasker/repository";
 import { URL_SCANNING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 
