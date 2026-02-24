@@ -93,7 +93,7 @@ const updateOrganizationSettings = async ({
   if (input.hasOwnProperty("disableAutofillOnBookingPage")) {
     data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
   }
-  
+
   // eslint-disable-next-line no-prototype-builtins
   if (input.hasOwnProperty("orgAutoJoinOnSignup")) {
     data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;

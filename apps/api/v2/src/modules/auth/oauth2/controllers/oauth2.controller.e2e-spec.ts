@@ -92,8 +92,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
     /** Generate an authorization code directly via the service (bypasses HTTP layer). */
     async function generateAuthCode(
-      scopes: AccessScope[] = [AccessScope.READ_BOOKING],
-      teamSlug?: string
+      scopes: AccessScope[] = [AccessScope.READ_BOOKING]
     ): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         testClientId,
@@ -101,7 +100,7 @@ describe("OAuth2 Controller Endpoints", () => {
         testRedirectUri,
         scopes,
         undefined,
-        teamSlug ?? team.slug
+        team.slug ?? undefined
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;

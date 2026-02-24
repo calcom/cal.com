@@ -375,6 +375,30 @@ test.describe("OAuth authorize - client approval status", () => {
     expect(url.searchParams.get("code")).toBeTruthy();
   });
 
+  test("new OAuth client without scope param renders error on authorize page (no redirect)", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-scope-required" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}scope-required-${Date.now()}`,
+      status: "APPROVED",
+      scopes: ["BOOKING_READ"],
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+    );
+
+    await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
+    await expect(page.getByText(OAUTH_ERROR_REASONS["scope_required"])).toBeVisible();
+  });
+
   test("consent screen displays merged scope labels when both read and write are requested", async ({
     page,
     users,

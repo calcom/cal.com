@@ -1,6 +1,6 @@
 "use client";
 
-import { SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { getGroupedScopeDisplayItems, resolveScopesForTokens } from "./scopes";
+import { getGroupedScopeDisplayItems } from "./scopes";
 
 export function Authorize() {
   const { t } = useLocale();
@@ -91,10 +91,10 @@ export function Authorize() {
     }
   }, [isPendingProfiles, show_account_selector]);
 
-  const effectiveScopes = resolveScopesForTokens(scope, client?.scopes ?? []);
+  const isLegacy = isLegacyClient(client?.scopes ?? []);
+  const effectiveScopes = parseScopeParam(scope);
   const scopeGroups = getGroupedScopeDisplayItems(effectiveScopes, t);
 
-  // Auto-authorize trusted clients
   useEffect(() => {
     if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
@@ -217,23 +217,56 @@ export function Authorize() {
         <div className="mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        <div className="space-y-4 text-sm">
-          {scopeGroups.map((group) => (
-            <div key={group.categoryKey ?? "all"}>
-              {group.categoryKey ? (
-                <div className="text-emphasis mb-1 font-semibold" data-testid={`scope-category-${group.categoryKey}`}>{t(group.categoryKey)}</div>
-              ) : null}
-              <ul className="stack-y-3">
-                {group.items.map((label, idx) => (
-                  <li key={idx} className="relative pl-5">
-                    <span className="absolute left-0">&#10003;</span>
-                    {label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+        {isLegacy ? (
+          <ul className="text-sm stack-y-3">
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>{" "}
+              {t("associate_with_cal_account", { clientName: client.name })}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_personal_info")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_primary_email_address")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("connect_installed_apps")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_event_type")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_availability")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_bookings")}
+            </li>
+          </ul>
+        ) : (
+          <div className="space-y-4 text-sm">
+            {scopeGroups.map((group) => (
+              <div key={group.categoryKey ?? "all"}>
+                {group.categoryKey ? (
+                  <div className="text-emphasis mb-1 font-semibold" data-testid={`scope-category-${group.categoryKey}`}>{t(group.categoryKey)}</div>
+                ) : null}
+                <ul className="stack-y-3">
+                  {group.items.map((label, idx) => (
+                    <li key={idx} className="relative pl-5">
+                      <span className="absolute left-0">&#10003;</span>
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>
             <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
