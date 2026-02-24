@@ -20,18 +20,19 @@ export const generateMetadata = async () => {
 
 const ServerPage = async (props: { searchParams: Promise<{ sessionClear?: string }> }) => {
   const searchParams = await props.searchParams;
-
-  if (searchParams.sessionClear) {
-    clearSessionCache();
-  }
-
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = buildLegacyRequest(await headers(), await cookies());
+  let session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
 
-  const userEmail = session.user.email || "";
+  if (searchParams.sessionClear) {
+    clearSessionCache();
+    session = await getServerSession({ req });
+  }
+
+  const userEmail = session?.user?.email || "";
 
   if (!isCompanyEmail(userEmail)) {
     return <CompanyEmailRequired userEmail={userEmail} />;
