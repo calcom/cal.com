@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
+import { isLegacyClient, OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
@@ -85,7 +85,8 @@ const OAuthClientDetailsDialog = ({
 
   const formEnablePkce =
     client?.isPkceEnabled ?? (client?.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
-  const formClientScopes = client?.scopes && client.scopes.length > 0 ? client.scopes : [...OAUTH_SCOPES];
+  const isLegacy = isLegacyClient(client?.scopes ?? []);
+  const formClientScopes = client?.scopes ?? [];
 
   const form = useForm<OAuthClientCreateFormValues>({
     defaultValues: {
@@ -281,7 +282,7 @@ const OAuthClientDetailsDialog = ({
               </div>
             ) : null}
 
-            <OAuthClientFormFields form={form} isClientReadOnly={isFormDisabled} isPkceLocked />
+            <OAuthClientFormFields form={form} isClientReadOnly={isFormDisabled} isPkceLocked isLegacyOAuthClient={isLegacy} />
 
             {canDelete ? (
               <div className="pt-2">
