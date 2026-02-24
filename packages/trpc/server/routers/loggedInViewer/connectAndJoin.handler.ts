@@ -6,7 +6,7 @@ import {
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";

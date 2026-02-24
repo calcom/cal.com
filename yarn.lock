@@ -2065,6 +2065,7 @@ __metadata:
     "@calcom/dailyvideo": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/features": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/office365video": "workspace:*"
     "@calcom/testing": "workspace:*"
@@ -2096,6 +2097,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@1.0.4"
     "@radix-ui/react-popover-atoms": "npm:@radix-ui/react-popover@1.0.6"
     "@radix-ui/react-slot": "npm:1.1.2"
@@ -2309,6 +2311,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/ee@workspace:packages/features/ee"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/ui": "workspace:*"
@@ -2496,6 +2499,7 @@ __metadata:
   resolution: "@calcom/feature-auth@workspace:packages/features/auth"
   dependencies:
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/trpc": "workspace:*"
@@ -2517,6 +2521,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/testing": "workspace:*"
     "@calcom/trpc": "workspace:*"
@@ -2649,6 +2654,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/i18n@workspace:*, @calcom/i18n@workspace:packages/i18n":
+  version: 0.0.0-use.local
+  resolution: "@calcom/i18n@workspace:packages/i18n"
+  dependencies:
+    "@calcom/tsconfig": "workspace:*"
+    i18next: "npm:23.2.3"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
@@ -2727,6 +2742,7 @@ __metadata:
     "@biomejs/biome": "npm:2.3.10"
     "@calcom/config": "workspace:*"
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     "@faker-js/faker": "npm:7.6.0"
@@ -2883,6 +2899,7 @@ __metadata:
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
     "@calcom/features": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@types/node": "npm:20.17.23"
     "@vitejs/plugin-react": "npm:5.1.2"
@@ -3130,6 +3147,7 @@ __metadata:
   resolution: "@calcom/testing@workspace:packages/testing"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
@@ -3143,6 +3161,7 @@ __metadata:
   resolution: "@calcom/trpc@workspace:packages/trpc"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@calcom/i18n": "workspace:*"
     "@formbricks/api": "npm:3.0.0"
     "@tanstack/react-query": "npm:5.17.19"
     "@trpc/client": "npm:11.0.0-next-beta.222"
@@ -3264,6 +3283,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/vital@workspace:packages/app-store/vital"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/types": "workspace:*"
     "@tryvital/vital-node": "npm:1.4.6"
@@ -17127,6 +17147,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "WipeMyCal@workspace:packages/app-store/wipemycalother"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/types": "workspace:*"
     queue: "npm:6.0.2"

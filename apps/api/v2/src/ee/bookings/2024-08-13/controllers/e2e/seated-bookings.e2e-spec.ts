@@ -1053,7 +1053,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .set("Authorization", `Bearer ${apiKeyString}`)
             .expect(400);
 
-          expect(response.body.message).toEqual("Cancellation reason is required when you are the host");
+          expect(response.body.message).toEqual("Cancellation reason is required");
         });
 
         it("should cancel seated booking", async () => {

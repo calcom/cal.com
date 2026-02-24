@@ -6,7 +6,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 
@@ -26,7 +26,7 @@ vi.mock("@calcom/emails/billing-email-service", () => ({
   sendNoShowFeeChargedEmail: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
