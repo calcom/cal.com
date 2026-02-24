@@ -1,5 +1,5 @@
 import { JobName, dispatcher } from "@calid/job-dispatcher";
-import type { BookingExportJobData } from "@calid/job-engine/types";
+import type { BookingExportJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -29,6 +29,7 @@ export const exportHandler = async ({ ctx, input }: ExportOptions) => {
   const t = await getTranslation(locale ?? "en", "common");
 
   const payload: BookingExportJobData = {
+    name: JobName.BOOKING_EXPORT,
     user: { id, name, email, timeFormat, timeZone },
     filters: input.filters,
   };
@@ -37,7 +38,7 @@ export const exportHandler = async ({ ctx, input }: ExportOptions) => {
     queue: QueueName.DATA_SYNC,
     name: JobName.BOOKING_EXPORT,
     data: payload,
-    options: {
+    bullmqOptions: {
       attempts: 3,
       backoff: {
         type: "exponential",

@@ -32,6 +32,8 @@ export type DispatchJobInput<T = unknown> = {
    * Used when job falls back to Inngest and needs to preserve delay.
    */
   inngestTs?: number;
+
+  forceInngest?: boolean;
 };
 
 // ---------------------------------------------------------------------------

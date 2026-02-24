@@ -12,7 +12,7 @@
       "outputs": ["node_modules/.prisma/**", "node_modules/@prisma/client/**"]
     },
     "@calcom/web#build": {
-      "dependsOn": ["@calcom/prisma#generate-schemas", "@calid/queue#build"],
+      "dependsOn": ["@calcom/prisma#generate-schemas"],
       "outputs": [".next/**"]
     },
     "@calcom/prisma#db-deploy": {
@@ -73,10 +73,6 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
-    "@calid/queue#build": {
-      "cache": false,
-      "outputs": ["dist/**"]
-    },
     "@calid/job-engine#build": {
       "dependsOn": ["@calcom/prisma#generate-schemas"],
       "outputs": ["dist/**"],
@@ -84,7 +80,7 @@
     },
 
     "@calid/worker#build": {
-      "dependsOn": ["@calid/queue#build", "@calid/job-engine#build"],
+      "dependsOn": [ "@calid/job-engine#build"],
       "outputs": ["dist/**"],
       "cache": false
     },

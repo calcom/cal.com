@@ -170,7 +170,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       queue: QueueName.DATA_SYNC,
       name: JobName.CALENDLY_IMPORT,
       data: payload,
-      options: {
+      bullmqOptions: {
         attempts: 3,
         backoff: {
           type: "exponential",
@@ -185,6 +185,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
           count: 1000,
         },
       },
+      forceInngest: true,
     });
 
     console.log(`Calendly import job dispatched for user ${userIntID} with jobId: ${jobId}`);
