@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -9,10 +7,15 @@ import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
+import { DeploymentInfoSheet } from "./components/DeploymentInfoSheet";
 
 export default function LicenseView() {
   const { t } = useLocale();
   const [billingEmail, setBillingEmail] = useState("");
+  const [searchEmail, setSearchEmail] = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetEmail, setSheetEmail] = useState("");
 
   const resendEmailMutation = trpc.viewer.admin.resendPurchaseCompleteEmail.useMutation({
     onSuccess: () => {
@@ -39,8 +42,41 @@ export default function LicenseView() {
 
   const showResendSection = IS_CALCOM;
 
+  const handleSearch = () => {
+    const trimmed = searchEmail.trim();
+    if (!trimmed) return;
+    setSheetEmail(trimmed);
+    setSheetOpen(true);
+  };
+
   return (
     <div className="flex flex-col gap-4">
+      {showResendSection && (
+        <PanelCard
+          title={t("admin_deployment_search_title")}
+          subtitle={t("admin_deployment_search_description")}>
+          <div className="p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <TextField
+                containerClassName="w-full"
+                label={t("admin_deployment_billing_email")}
+                name="searchEmail"
+                type="email"
+                placeholder={t("admin_license_billing_email_placeholder")}
+                value={searchEmail}
+                onChange={(event) => setSearchEmail(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleSearch();
+                }}
+              />
+              <Button type="button" disabled={!searchEmail.trim()} onClick={handleSearch}>
+                {t("search")}
+              </Button>
+            </div>
+          </div>
+        </PanelCard>
+      )}
+
       {showResendSection && (
         <PanelCard title={t("admin_license_resend_title")} subtitle={t("admin_license_resend_description")}>
           <div className="p-4">
@@ -80,6 +116,16 @@ export default function LicenseView() {
           </Button>
         </div>
       </PanelCard>
+
+      <DeploymentInfoSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        email={sheetEmail}
+        onEmailChange={(newEmail) => {
+          setSheetEmail(newEmail);
+          setSearchEmail(newEmail);
+        }}
+      />
     </div>
   );
 }

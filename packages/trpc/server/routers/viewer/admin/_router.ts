@@ -4,6 +4,7 @@ import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
 import { ZCreateCouponSchema } from "./createCoupon.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZGetDeploymentInfoSchema } from "./getDeploymentInfo.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
@@ -13,15 +14,16 @@ import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
+import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
+import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
+  workspacePlatformToggleEnabledSchema,
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
-  workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
 
@@ -73,6 +75,16 @@ export const adminRouter = router({
     const { default: handler } = await import("./billingPortalLink.handler");
     return handler(opts);
   }),
+  getDeploymentInfo: authedAdminProcedure.input(ZGetDeploymentInfoSchema).query(async (opts) => {
+    const { default: handler } = await import("./getDeploymentInfo.handler");
+    return handler(opts);
+  }),
+  updateDeploymentBilling: authedAdminProcedure
+    .input(ZUpdateDeploymentBillingSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./updateDeploymentBilling.handler");
+      return handler(opts);
+    }),
   verifyWorkflows: authedAdminProcedure.input(ZAdminVerifyWorkflowsSchema).mutation(async (opts) => {
     const { default: handler } = await import("./verifyWorkflows.handler");
     return handler(opts);
