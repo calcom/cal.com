@@ -30,7 +30,7 @@ export async function checkSuccessRedirectUrlAllowed({
   }
 
   // Check if user has a team plan
-  const hasTeamPlan = await MembershipRepository.findFirstAcceptedMembershipByUserId(userId);
+  const hasTeamPlan = await MembershipRepository.hasAcceptedPublishedTeamMembership(userId);
   if (hasTeamPlan) {
     return { allowed: true };
   }
