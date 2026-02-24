@@ -36,11 +36,9 @@ function setCORSHeaders(req: NextApiRequest, res: NextApiResponse): boolean {
 
   if (allowed) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    // credentials: "include" is required so the session cookie travels back
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-    // Cache the preflight result for 10 minutes to reduce round-trips
     res.setHeader("Access-Control-Max-Age", "600");
   }
 
@@ -63,11 +61,24 @@ function extractNextAuthError(location: string, baseUrl: string): string | null 
     const url = new URL(location, baseUrl);
     const error = url.searchParams.get("error");
     if (!error) return null;
-    // The wrong-provider error is encoded as "wrong-provider&provider=GOOGLE"
     const base = error.split("&")[0];
     return NEXTAUTH_ERROR_MAP[base] ?? base;
   } catch {
     return null;
+  }
+}
+
+function extractCookieValue(setCookieHeader: string): string {
+  return setCookieHeader.split(";")[0].trim();
+}
+
+function isSameOrigin(url: string, baseUrl: string): boolean {
+  try {
+    const target = new URL(url);
+    const base = new URL(baseUrl);
+    return target.origin === base.origin;
+  } catch {
+    return false;
   }
 }
 
@@ -99,7 +110,7 @@ export default async function handler(
   const baseUrl = process.env.NEXTAUTH_URL ?? "";
 
   const useSecureCookies = baseUrl.startsWith("https://");
-  const csrfCookieName = useSecureCookies ? "__Host-next-auth.csrf-token" : "next-auth.csrf-token";
+  const csrfCookieName = useSecureCookies ? "__Secure-next-auth.csrf-token" : "next-auth.csrf-token";
 
   const browserCookiesWithoutCsrf = (req.headers.cookie ?? "")
     .split(";")
@@ -108,7 +119,7 @@ export default async function handler(
     .join("; ");
 
   let csrfToken: string;
-  let freshCsrfCookie: string;
+  let freshCsrfCookieValue: string;
 
   try {
     const csrfRes = await fetch(`${baseUrl}/api/auth/csrf`, {
@@ -129,17 +140,19 @@ export default async function handler(
 
     csrfToken = body.csrfToken;
 
-    const rawCsrfCookie = csrfRes.headers.get("set-cookie") ?? "";
-    if (!rawCsrfCookie) {
+    const rawCsrfSetCookie = csrfRes.headers.get("set-cookie") ?? "";
+    if (!rawCsrfSetCookie) {
       throw new Error("CSRF response missing Set-Cookie header");
     }
-    freshCsrfCookie = rawCsrfCookie;
+    freshCsrfCookieValue = extractCookieValue(rawCsrfSetCookie);
   } catch (err) {
     console.error("[google-one-tap] Failed to fetch CSRF token:", err);
     return void res.status(500).json({ ok: false, error: "Could not obtain CSRF token" });
   }
 
-  const cookieHeader = [browserCookiesWithoutCsrf, freshCsrfCookie].filter(Boolean).join("; ");
+  const cookieHeader = [browserCookiesWithoutCsrf, freshCsrfCookieValue]
+    .filter(Boolean)
+    .join("; ");
 
   let callbackRes: Response;
   try {
@@ -194,6 +207,10 @@ export default async function handler(
   if (callbackUrl.includes("/auth/login") && callbackUrl.includes("totp=true")) {
     forwardCookies(callbackRes, res);
     const absoluteUrl = callbackUrl.startsWith("http") ? callbackUrl : `${baseUrl}${callbackUrl}`;
+    if (!isSameOrigin(absoluteUrl, baseUrl)) {
+      console.error("[google-one-tap] Rejected non-same-origin TOTP redirect:", absoluteUrl);
+      return void res.status(400).json({ ok: false, error: "Invalid redirect" });
+    }
     return void res.status(200).json({
       ok: false,
       error: "two-factor-required",
@@ -221,13 +238,23 @@ export default async function handler(
   forwardCookies(callbackRes, res);
 
   let redirectUrl = `${baseUrl}/home`;
+
   if (callbackUrl && !callbackUrl.includes("/api/auth")) {
-    redirectUrl = callbackUrl.startsWith("http") ? callbackUrl : `${baseUrl}${callbackUrl}`;
+    const absolute = callbackUrl.startsWith("http") ? callbackUrl : `${baseUrl}${callbackUrl}`;
+    if (isSameOrigin(absolute, baseUrl)) {
+      redirectUrl = absolute;
+    } else {
+      console.warn("[google-one-tap] Ignoring non-same-origin callbackUrl:", absolute);
+    }
   }
 
   try {
     const payloadB64 = credential.split(".")[1];
-    const { email } = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8")) as { email?: string };
+    if (!payloadB64) throw new Error("Malformed JWT: missing payload segment");
+
+    const { email } = JSON.parse(
+      Buffer.from(payloadB64, "base64url").toString("utf8")
+    ) as { email?: string };
 
     if (email) {
       const user = await prisma.user.findFirst({
