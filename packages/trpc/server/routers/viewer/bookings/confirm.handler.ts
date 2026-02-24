@@ -16,10 +16,13 @@ import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRe
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -361,22 +364,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
-    hideBranding: shouldHideBrandingForEventUsingProfile({
-      eventTypeId: booking.eventType?.id ?? 0,
-      team: booking.eventType?.team
-        ? {
-            hideBranding: booking.eventType.team.hideBranding,
-            parent: booking.eventType.team.parent,
-          }
-        : null,
-      owner: {
-        id: user.id,
-        hideBranding: user.hideBranding,
-        profile: user.profiles?.[0]
-          ? { organization: user.profiles[0].organization }
-          : null,
-      },
-    }),
+    hideBranding: booking.eventType?.id
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
+          team: booking.eventType.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: user.hideBranding,
+            profiles: user.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);

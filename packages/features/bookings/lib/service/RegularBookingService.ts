@@ -45,12 +45,15 @@ import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/book
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
@@ -1578,22 +1581,18 @@ async function handler(
     .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
     .withHideBranding(
-      shouldHideBrandingForEventUsingProfile({
-        eventTypeId: eventType.id,
+      await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
         team: eventType.team
-          ? {
-              hideBranding: eventType.team.hideBranding,
-              parent: eventType.team.parent,
-            }
+          ? { hideBranding: eventType.team.hideBranding, parent: eventType.team.parent }
           : null,
         owner: {
           id: organizerUser.id,
           hideBranding: organizerUser.hideBranding,
-          profile: organizerOrganizationProfile
-            ? { organization: organizerOrganizationProfile.organization }
-            : null,
+          profiles: organizerOrganizationProfile
+            ? [{ organization: organizerOrganizationProfile.organization }]
+            : [],
         },
-      })
+      } satisfies EventTypeBrandingData)
     )
     .build();
 

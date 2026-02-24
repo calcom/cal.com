@@ -1,7 +1,10 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -235,22 +238,21 @@ export const Handler = async ({ ctx, input }: Options) => {
           members: [],
         }
       : undefined,
-    hideBranding: shouldHideBrandingForEventUsingProfile({
-      eventTypeId: updatedBooking.eventTypeId as number,
-      team: updatedBooking.eventType?.team
-        ? {
-            hideBranding: updatedBooking.eventType.team.hideBranding,
-            parent: updatedBooking.eventType.team.parent,
-          }
-        : null,
-      owner: {
-        id: user.id,
-        hideBranding: userBrandingInfo?.hideBranding ?? null,
-        profile: userBrandingInfo?.profiles?.[0]
-          ? { organization: userBrandingInfo.profiles[0].organization }
-          : null,
-      },
-    }),
+    hideBranding: updatedBooking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(updatedBooking.eventTypeId, {
+          team: updatedBooking.eventType?.team
+            ? {
+                hideBranding: updatedBooking.eventType.team.hideBranding,
+                parent: updatedBooking.eventType.team.parent,
+              }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: userBrandingInfo?.hideBranding ?? null,
+            profiles: userBrandingInfo?.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(updatedBooking?.eventType?.metadata);

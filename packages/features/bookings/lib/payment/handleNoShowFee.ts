@@ -4,8 +4,11 @@ import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -111,20 +114,20 @@ export const handleNoShowFee = async ({
       paymentOption: payment.paymentOption,
     },
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
-    hideBranding: shouldHideBrandingForEventUsingProfile({
-      eventTypeId: booking.eventTypeId as number,
-      team: booking.eventType?.team
-        ? {
-            hideBranding: booking.eventType.team.hideBranding,
-            parent: booking.eventType.team.parent,
-          }
-        : null,
-      owner: {
-        id: booking.user?.id ?? 0,
-        hideBranding: booking.user?.hideBranding ?? null,
-        profile: booking.user?.profiles?.[0] ? { organization: booking.user.profiles[0].organization } : null,
-      },
-    }),
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: booking.user
+            ? {
+                id: booking.user.id,
+                hideBranding: booking.user.hideBranding,
+                profiles: booking.user.profiles ?? [],
+              }
+            : null,
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   if (teamId) {

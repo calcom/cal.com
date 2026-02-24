@@ -21,3 +21,4 @@ export const moduleLoader = {
 } satisfies ModuleLoader;
 
 export type { EventTypeService };
+export type { EventTypeBrandingData } from "../service/EventTypeService";

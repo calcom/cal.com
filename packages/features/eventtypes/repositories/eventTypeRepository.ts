@@ -1771,7 +1771,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     });
   }
 
-  async findByIdWithBrandingInfo({ id }: { id: number }) {
+  async findByIdIncludeBrandingInfo({ id }: { id: number }) {
     return await this.prismaClient.eventType.findUnique({
       where: { id },
       select: {
