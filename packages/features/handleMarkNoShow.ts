@@ -8,16 +8,19 @@ import {
 } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -361,24 +364,24 @@ const handleMarkNoShow = async ({
                 }
               : undefined;
 
-            const hideBranding = shouldHideBrandingForEventUsingProfile({
-              eventTypeId: booking.eventType.id,
-              team: booking.eventType.team
-                ? {
-                    hideBranding: booking.eventType.team.hideBranding,
-                    parent: booking.eventType.team.parent,
-                  }
-                : null,
-              owner: booking.eventType.owner
-                ? {
-                    id: booking.eventType.owner.id,
-                    hideBranding: booking.eventType.owner.hideBranding,
-                    profile: booking.eventType.owner.profiles?.[0]
-                      ? { organization: booking.eventType.owner.profiles[0].organization }
-                      : null,
-                  }
-                : null,
-            });
+            const hideBranding = await getEventTypeService().shouldHideBrandingForEventType(
+              booking.eventType.id,
+              {
+                team: booking.eventType.team
+                  ? {
+                      hideBranding: booking.eventType.team.hideBranding,
+                      parent: booking.eventType.team.parent,
+                    }
+                  : null,
+                owner: booking.eventType.owner
+                  ? {
+                      id: booking.eventType.owner.id,
+                      hideBranding: booking.eventType.owner.hideBranding,
+                      profiles: booking.eventType.owner.profiles ?? [],
+                    }
+                  : null,
+              } satisfies EventTypeBrandingData
+            );
 
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,

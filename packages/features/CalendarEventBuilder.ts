@@ -3,7 +3,10 @@ import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAs
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
@@ -200,20 +203,16 @@ export class CalendarEventBuilder {
           : null
       )
       .withHideBranding(
-        shouldHideBrandingForEventUsingProfile({
-          eventTypeId: eventType.id,
+        await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
           team: eventType.team
-            ? {
-                hideBranding: eventType.team.hideBranding,
-                parent: eventType.team.parent,
-              }
+            ? { hideBranding: eventType.team.hideBranding, parent: eventType.team.parent }
             : null,
           owner: {
             id: user.id,
             hideBranding: user.hideBranding,
-            profile: user.profiles?.[0] ? { organization: user.profiles[0].organization } : null,
+            profiles: user.profiles ?? [],
           },
-        })
+        } satisfies EventTypeBrandingData)
       );
 
     // Seats

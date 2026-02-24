@@ -1,7 +1,13 @@
 import { createContainer } from "@calcom/features/di/di";
-import { type EventTypeService, moduleLoader as eventTypeServiceModule } from "./EventTypeService.module";
+import {
+  type EventTypeBrandingData,
+  type EventTypeService,
+  moduleLoader as eventTypeServiceModule,
+} from "./EventTypeService.module";
 
 const eventTypeServiceContainer = createContainer();
+
+export type { EventTypeBrandingData };
 
 export function getEventTypeService(): EventTypeService {
   eventTypeServiceModule.loadModule(eventTypeServiceContainer);

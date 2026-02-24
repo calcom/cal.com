@@ -2,7 +2,10 @@ import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegatio
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { shouldHideBrandingForEventUsingProfile } from "@calcom/features/profile/lib/hideBranding";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -211,22 +214,18 @@ export async function getBooking(bookingId: number) {
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
-    hideBranding: shouldHideBrandingForEventUsingProfile({
-      eventTypeId: booking.eventTypeId as number,
-      team: booking.eventType?.team
-        ? {
-            hideBranding: booking.eventType.team.hideBranding,
-            parent: booking.eventType.team.parent,
-          }
-        : null,
-      owner: {
-        id: user.id,
-        hideBranding: userWithoutDelegationCredentials.hideBranding,
-        profile: userWithoutDelegationCredentials.profiles?.[0]
-          ? { organization: userWithoutDelegationCredentials.profiles[0].organization }
-          : null,
-      },
-    }),
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: userWithoutDelegationCredentials.hideBranding,
+            profiles: userWithoutDelegationCredentials.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
     disableCancelling: booking.eventType?.disableCancelling ?? false,
     disableRescheduling: booking.eventType?.disableRescheduling ?? false,
   };
