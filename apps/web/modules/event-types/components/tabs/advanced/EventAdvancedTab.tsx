@@ -1,6 +1,16 @@
+import { useState, Suspense, useMemo, useEffect } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import {
+  SelectedCalendarsSettingsWebWrapper,
+  SelectedCalendarSettingsScope,
+  SelectedCalendarsSettingsWebWrapperSkeleton,
+} from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
@@ -10,57 +20,50 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
+import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
-  CheckboxClassNames,
-  EventTypeSetupProps,
   FormValues,
-  InputClassNames,
+  EventTypeSetupProps,
   SelectClassNames,
+  CheckboxClassNames,
+  InputClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import { FormBuilder } from "./FormBuilder";
 import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
-  DEFAULT_DARK_BRAND_COLOR,
   DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
-import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
+import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import { CancellationReasonRequirement, SchedulingType } from "@calcom/prisma/enums";
-import type { EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
+import { SchedulingType } from "@calcom/prisma/enums";
+import type { EditableSchema } from "@calcom/prisma/zod-utils";
+import type { fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
-  CheckboxField,
-  ColorPicker,
-  Label,
-  Select,
   SelectField,
-  SettingsToggle,
-  Switch,
+  ColorPicker,
   TextField,
+  Label,
+  CheckboxField,
+  Switch,
+  SettingsToggle,
+  Select,
 } from "@calcom/ui/components/form";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
-import {
-  SelectedCalendarSettingsScope,
-  SelectedCalendarsSettingsWebWrapper,
-  SelectedCalendarsSettingsWebWrapperSkeleton,
-} from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
-import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
-import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import type { Dispatch, SetStateAction } from "react";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { z } from "zod";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
@@ -68,7 +71,6 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
-import { FormBuilder } from "./FormBuilder";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -560,13 +562,7 @@ export const EventAdvancedTab = ({
     }
   );
 
-  const userTimeZone = extractHostTimezone({
-    userId: eventType.userId,
-    teamId: eventType.teamId,
-    hosts: eventType.hosts,
-    owner: eventType.owner,
-    team: eventType.team,
-  });
+  const userTimeZone = eventType.owner?.timeZone ?? user?.timeZone ?? dayjs.tz.guess();
 
   let verifiedSecondaryEmails = [
     {
@@ -674,43 +670,6 @@ export const EventAdvancedTab = ({
           />
         </div>
       </div>
-      {!isPlatform && (
-        <Controller
-          name="requiresCancellationReason"
-          render={({ field: { value, onChange } }) => {
-            const cancellationReasonOptions = [
-              { value: CancellationReasonRequirement.MANDATORY_BOTH, label: t("mandatory_for_both") },
-              {
-                value: CancellationReasonRequirement.MANDATORY_HOST_ONLY,
-                label: t("mandatory_for_host_only"),
-              },
-              {
-                value: CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY,
-                label: t("mandatory_for_attendee_only"),
-              },
-              { value: CancellationReasonRequirement.OPTIONAL_BOTH, label: t("optional_for_both") },
-            ];
-            return (
-              <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-default text-sm font-semibold">{t("require_cancellation_reason")}</p>
-                    <p className="text-default text-sm">{t("require_cancellation_reason_description")}</p>
-                  </div>
-                  <Select
-                    value={cancellationReasonOptions.find(
-                      (opt) => opt.value === (value || CancellationReasonRequirement.MANDATORY_HOST_ONLY)
-                    )}
-                    options={cancellationReasonOptions}
-                    onChange={(selected) => onChange(selected?.value)}
-                    className="w-52"
-                  />
-                </div>
-              </div>
-            );
-          }}
-        />
-      )}
       <RequiresConfirmationController
         eventType={eventType}
         seatsEnabled={seatsEnabled}

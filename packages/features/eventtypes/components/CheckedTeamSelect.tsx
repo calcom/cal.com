@@ -1,17 +1,18 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useCallback, useRef, useState } from "react";
 import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
+import { useFetchMoreOnScroll } from "@calcom/features/eventtypes/lib/useFetchMoreOnScroll";
+import type { Host, SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
+import { Select, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -55,6 +56,13 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  hosts = [],
+  onSearchChange,
+  onMenuScrollToBottom,
+  isLoadingMore,
+  hasNextPageSelected,
+  isFetchingNextPageSelected,
+  fetchNextPageSelected,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,6 +71,13 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  hosts?: Host[];
+  onSearchChange?: (search: string) => void;
+  onMenuScrollToBottom?: () => void;
+  isLoadingMore?: boolean;
+  hasNextPageSelected?: boolean;
+  isFetchingNextPageSelected?: boolean;
+  fetchNextPageSelected?: () => void;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -71,9 +86,25 @@ export const CheckedTeamSelect = ({
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
   const { t } = useLocale();
-  const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const stableFetchNextPage = useCallback(() => {
+    fetchNextPageSelected?.();
+  }, [fetchNextPageSelected]);
+  useFetchMoreOnScroll(
+    scrollContainerRef,
+    hasNextPageSelected ?? false,
+    isFetchingNextPageSelected ?? false,
+    stableFetchNextPage
+  );
+  const rowVirtualizer = useVirtualizer({
+    count: valueFromGroup.length,
+    estimateSize: () => 44,
+    getScrollElement: () => scrollContainerRef.current,
+    overscan: 5,
+  });
 
   const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
     const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
@@ -98,93 +129,118 @@ export const CheckedTeamSelect = ({
           ...customClassNames?.hostsSelect?.innerClassNames,
           control: "rounded-md",
         }}
+        {...(onSearchChange
+          ? {
+              filterOption: null,
+              onInputChange: (value: string, actionMeta: { action: string }) => {
+                if (actionMeta.action === "input-change") onSearchChange(value);
+              },
+            }
+          : {})}
+        onMenuScrollToBottom={onMenuScrollToBottom}
+        isLoading={isLoadingMore}
       />
-      {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
-       - Slides down from the top instead of just teleporting in from nowhere*/}
-      <ul
-        className={classNames(
-          "mb-4 mt-3 rounded-md",
-          valueFromGroup.length >= 1 && "border-subtle border",
-          customClassNames?.selectedHostList?.container
-        )}
-        ref={animationRef}>
-        {valueFromGroup.map((option, index) => (
-          <>
-            <li
-              key={option.value}
-              className={classNames(
-                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
-                customClassNames?.selectedHostList?.listItem?.container
-              )}>
-              {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && (
-                <Icon
-                  name="user"
+      {valueFromGroup.length >= 1 && (
+        <div
+          ref={scrollContainerRef}
+          className={classNames(
+            "mb-4 mt-3 overflow-y-auto rounded-md",
+            "border-subtle border",
+            customClassNames?.selectedHostList?.container
+          )}
+          style={{ maxHeight: Math.min(valueFromGroup.length * 44, 400) }}>
+          <ul className="relative w-full" style={{ height: rowVirtualizer.getTotalSize() }}>
+            {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+              const option = valueFromGroup[virtualItem.index];
+              const index = virtualItem.index;
+              return (
+                <li
+                  key={option.value}
+                  data-index={virtualItem.index}
+                  ref={(node) => rowVirtualizer.measureElement(node)}
                   className={classNames(
-                    "mt-0.5 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.avatar
+                    `absolute left-0 flex w-full px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
+                    customClassNames?.selectedHostList?.listItem?.container
                   )}
-                />
-              )}
-              <p
-                className={classNames(
-                  "text-emphasis my-auto ms-3 text-sm",
-                  customClassNames?.selectedHostList?.listItem?.name
-                )}>
-                {option.label}
-              </p>
-              <div className="ml-auto flex items-center">
-                {option && !option.isFixed ? (
-                  <>
-                    <Tooltip content={t("change_priority")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          setPriorityDialogOpen(true);
-                          setCurrentOption(option);
-                        }}
-                        className={classNames(
-                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color,
-                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
-                        )}>
-                        {t(getPriorityTextAndColor(option.priority).text)}
-                      </Button>
-                    </Tooltip>
-                    {isRRWeightsEnabled ? (
-                      <Button
-                        color="minimal"
-                        className={classNames(
-                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
-                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                  style={{
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}>
+                  {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
+                  {isPlatform && (
+                    <Icon
+                      name="user"
+                      className={classNames(
+                        "mt-0.5 h-4 w-4",
+                        customClassNames?.selectedHostList?.listItem?.avatar
+                      )}
+                    />
+                  )}
+                  <p
+                    className={classNames(
+                      "text-emphasis my-auto ms-3 text-sm",
+                      customClassNames?.selectedHostList?.listItem?.name
+                    )}>
+                    {option.label}
+                  </p>
+                  <div className="ml-auto flex items-center">
+                    {option && !option.isFixed ? (
+                      <>
+                        <Tooltip content={t("change_priority")}>
+                          <Button
+                            color="minimal"
+                            onClick={() => {
+                              setPriorityDialogOpen(true);
+                              setCurrentOption(option);
+                            }}
+                            className={classNames(
+                              "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                              getPriorityTextAndColor(option.priority).color,
+                              customClassNames?.selectedHostList?.listItem?.changePriorityButton
+                            )}>
+                            {t(getPriorityTextAndColor(option.priority).text)}
+                          </Button>
+                        </Tooltip>
+                        {isRRWeightsEnabled ? (
+                          <Button
+                            color="minimal"
+                            className={classNames(
+                              "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                              customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                            )}
+                            onClick={() => {
+                              setWeightDialogOpen(true);
+                              setCurrentOption(option);
+                            }}>
+                            {option.weight ?? 100}%
+                          </Button>
+                        ) : (
+                          <></>
                         )}
-                        onClick={() => {
-                          setWeightDialogOpen(true);
-                          setCurrentOption(option);
-                        }}>
-                        {option.weight ?? 100}%
-                      </Button>
+                      </>
                     ) : (
                       <></>
                     )}
-                  </>
-                ) : (
-                  <></>
-                )}
 
-                <Icon
-                  name="x"
-                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className={classNames(
-                    "my-auto ml-2 h-4 w-4",
-                    customClassNames?.selectedHostList?.listItem?.removeButton
-                  )}
-                />
-              </div>
-            </li>
-          </>
-        ))}
-      </ul>
+                    <Icon
+                      name="x"
+                      onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                      className={classNames(
+                        "my-auto ml-2 h-4 w-4",
+                        customClassNames?.selectedHostList?.listItem?.removeButton
+                      )}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {isFetchingNextPageSelected && (
+            <div className="flex justify-center py-2">
+              <Icon name="loader" className="text-subtle h-4 w-4 animate-spin" />
+            </div>
+          )}
+        </div>
+      )}
       {currentOption && !currentOption.isFixed ? (
         <>
           <PriorityDialog
@@ -193,6 +249,7 @@ export const CheckedTeamSelect = ({
             option={currentOption}
             options={options}
             onChange={props.onChange}
+            hosts={hosts}
             customClassNames={customClassNames?.priorityDialog}
           />
           <WeightDialog
@@ -201,6 +258,7 @@ export const CheckedTeamSelect = ({
             option={currentOption}
             options={options}
             onChange={props.onChange}
+            hosts={hosts}
             customClassNames={customClassNames?.weightDialog}
           />
         </>

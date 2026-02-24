@@ -33,13 +33,23 @@ const mockGetMatchingTeamMembers = (
         isPending: true;
       }
 ) => {
+  const infiniteData = arg.data
+    ? {
+        pages: [{ ...arg.data, nextCursor: undefined, total: arg.data.result?.length ?? 0 }],
+        pageParams: [undefined],
+      }
+    : undefined;
   (
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery as Mock<
-      typeof trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery
-    >
+    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useInfiniteQuery as Mock
   )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValue(arg as any);
+    .mockReturnValue({
+      data: infiniteData,
+      isPending: arg.isPending,
+      fetchNextPage: vi.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+    } as any);
 };
 
 const mockAttributesWithSingleSelect = () => {
@@ -72,7 +82,7 @@ vi.mock("@calcom/trpc/react", () => ({
       },
       attributes: {
         findTeamMembersMatchingAttributeLogic: {
-          useQuery: vi.fn(),
+          useInfiniteQuery: vi.fn(),
         },
       },
     },
@@ -118,6 +128,8 @@ describe("Segment", () => {
         mainWarnings: null,
         fallbackWarnings: null,
         troubleshooter: undefined,
+        nextCursor: undefined,
+        total: 1,
         result: [
           {
             id: 1,
@@ -174,6 +186,8 @@ describe("Segment", () => {
         mainWarnings: null,
         fallbackWarnings: null,
         troubleshooter: undefined,
+        nextCursor: undefined,
+        total: 1,
         result: [
           {
             id: 1,
@@ -197,6 +211,8 @@ describe("Segment", () => {
         mainWarnings: null,
         fallbackWarnings: null,
         troubleshooter: undefined,
+        nextCursor: undefined,
+        total: 0,
         result: [] as MatchingTeamMembersData["result"],
       },
       isPending: false,

@@ -6,12 +6,17 @@ import {
   withRaqbSettingsAndWidgets,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+import { useFetchMoreOnScroll } from "@calcom/features/eventtypes/lib/useFetchMoreOnScroll";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { type RouterOutputs, trpc } from "@calcom/trpc/react";
+import { AssignedSearchInput } from "@calcom/features/eventtypes/components/AssignedSearchInput";
 import cn from "@calcom/ui/classNames";
-import { useCallback, useState } from "react";
+import { Icon } from "@calcom/ui/components/icon";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { BuilderProps, ImmutableTree, JsonTree } from "react-awesome-query-builder";
 import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
 
@@ -32,14 +37,12 @@ function SegmentWithAttributes({
   queryValue: initialQueryValue,
   onQueryValueChange,
   className,
-  filterMemberIds,
 }: {
   attributes: Attributes;
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
-  filterMemberIds?: number[];
 }) {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
@@ -91,22 +94,26 @@ function SegmentWithAttributes({
         />
       </div>
       <div className="mt-4 text-sm">
-        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} filterMemberIds={filterMemberIds} />
+        <MatchingTeamMembers teamId={teamId} queryValue={queryValue} />
       </div>
     </div>
   );
 }
 
+const MATCHING_MEMBERS_PAGE_SIZE = 20;
+
 function MatchingTeamMembers({
   teamId,
   queryValue,
-  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
-  filterMemberIds?: number[];
 }) {
   const { t } = useLocale();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   // Check if queryValue has valid children properties value
   const hasValidValue = queryValue?.children1
@@ -115,23 +122,46 @@ function MatchingTeamMembers({
       )
     : false;
 
-  const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+  const { data, isPending, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage, isError } =
+    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useInfiniteQuery(
       {
         teamId,
         attributesQueryValue: queryValue,
         _enablePerf: true,
+        limit: MATCHING_MEMBERS_PAGE_SIZE,
+        search: debouncedSearch || undefined,
       },
       {
         enabled: hasValidValue,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
       }
     );
+
+  useFetchMoreOnScroll(scrollContainerRef, hasNextPage ?? false, isFetchingNextPage, fetchNextPage);
+
+  const allMatchingTeamMembers = useMemo(
+    () => data?.pages.flatMap((page) => page.result ?? []) ?? [],
+    [data]
+  );
+
+  const total = data?.pages[0]?.total ?? 0;
 
   if (!hasValidValue) {
     return (
       <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
         <div className="text-subtle flex items-center text-sm font-medium">
           <span>{t("no_filter_set")}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
+        <div className="text-error flex items-center text-sm font-medium">
+          <span>{t("something_went_wrong")}</span>
         </div>
       </div>
     );
@@ -159,28 +189,33 @@ function MatchingTeamMembers({
     );
   }
 
-  if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
-  const { result: allMatchingTeamMembers } = matchingTeamMembersWithResult;
-
-  const matchingTeamMembers = filterMemberIds
-    ? allMatchingTeamMembers?.filter((member) => filterMemberIds.includes(member.id))
-    : allMatchingTeamMembers;
-
   return (
     <div className="border-subtle bg-cal-muted mt-4 stack-y-3 rounded-md border p-4">
       <div className="text-emphasis flex items-center text-sm font-medium">
-        <span>{t("x_matching_members", { x: matchingTeamMembers?.length ?? 0 })}</span>
+        <span>{t("x_matching_members", { x: total })}</span>
       </div>
-      <ul className="divide-subtle divide-y">
-        {matchingTeamMembers?.map((member) => (
-          <li key={member.id} className="flex items-center py-2">
-            <div className="flex flex-1 items-center space-x-2 text-sm">
-              <span className="font-medium">{member.name}</span>
-              <span className="text-subtle">({member.email})</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <AssignedSearchInput
+        value={search}
+        onChange={setSearch}
+        isSearching={isFetching && !!debouncedSearch}
+      />
+      <div ref={scrollContainerRef} className="max-h-[400px] overflow-y-auto">
+        <ul className="divide-subtle divide-y">
+          {allMatchingTeamMembers.map((member) => (
+            <li key={member.id} className="flex items-center py-2">
+              <div className="flex flex-1 items-center space-x-2 text-sm">
+                <span className="font-medium">{member.name}</span>
+                <span className="text-subtle">({member.email})</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-2">
+            <Icon name="loader" className="text-subtle h-4 w-4 animate-spin" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -190,13 +225,11 @@ export function Segment({
   queryValue,
   onQueryValueChange,
   className,
-  filterMemberIds,
 }: {
   teamId: number;
   queryValue: AttributesQueryValue | null;
   onQueryValueChange: ({ queryValue }: { queryValue: AttributesQueryValue }) => void;
   className?: string;
-  filterMemberIds?: number[];
 }) {
   const { attributes, isPending } = useAttributes(teamId);
   const { t } = useLocale();
@@ -213,7 +246,6 @@ export function Segment({
       queryValue={queryValue}
       onQueryValueChange={onQueryValueChange}
       className={className}
-      filterMemberIds={filterMemberIds}
     />
   );
 }

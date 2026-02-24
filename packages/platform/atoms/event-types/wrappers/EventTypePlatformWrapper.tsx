@@ -92,7 +92,7 @@ const EventType = forwardRef<
   const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = restProps;
+  const { eventType, locationOptions, team, destinationCalendar } = restProps;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
 
@@ -134,10 +134,12 @@ const EventType = forwardRef<
     onSuccess: async () => {
       const currentValues = form.getValues();
 
-      currentValues.children = currentValues.children.map((child) => ({
-        ...child,
-        created: true,
-      }));
+      // Reset pending children changes after successful save
+      currentValues.pendingChildrenChanges = {
+        childrenToAdd: [],
+        childrenToRemove: [],
+        childrenToUpdate: [],
+      };
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
@@ -178,6 +180,13 @@ const EventType = forwardRef<
     },
     onFormStateChange: onFormStateChange,
   });
+
+  const pendingHostChanges = form.watch("pendingHostChanges");
+  const effectiveHostCount = pendingHostChanges?.clearAllHosts
+    ? pendingHostChanges.hostsToAdd.length
+    : eventType._count.hosts +
+      (pendingHostChanges?.hostsToAdd.length ?? 0) -
+      (pendingHostChanges?.hostsToRemove.length ?? 0);
 
   // Create a ref for the save button to trigger its click
   const saveButtonRef = useRef<HTMLButtonElement>(null);
@@ -230,75 +239,81 @@ const EventType = forwardRef<
     }
   };
 
+  // Use functions to lazily render tabs - only the active tab is instantiated
   const tabMap = {
-    setup: tabs.includes("setup") ? (
-      <SetupTab
-        eventType={eventType}
-        locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
-        destinationCalendar={destinationCalendar}
-        customClassNames={customClassNames?.eventSetupTab}
-      />
-    ) : (
-      <></>
-    ),
-    availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper
-        eventType={eventType}
-        isTeamEvent={!!team}
-        user={user?.data}
-        teamId={team?.id}
-        customClassNames={customClassNames?.eventAvailabilityTab}
-      />
-    ) : (
-      <></>
-    ),
-    team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper
-        team={team}
-        eventType={eventType}
-        teamMembers={teamMembers}
-        customClassNames={customClassNames?.eventAssignmentTab}
-        orgId={organizationId}
-      />
-    ) : (
-      <></>
-    ),
-    advanced: tabs.includes("advanced") ? (
-      <EventAdvancedPlatformWrapper
-        eventType={eventType}
-        team={team}
-        user={user?.data}
-        isUserLoading={isUserLoading}
-        showToast={showToast}
-        customClassNames={customClassNames?.eventAdvancedTab}
-      />
-    ) : (
-      <></>
-    ),
-    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? (
-      <EventLimitsTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventLimitsTab}
-      />
-    ) : (
-      <></>
-    ),
-    instant: <></>,
-    recurring: tabs.includes("recurring") ? (
-      <EventRecurringTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventRecurringTab}
-      />
-    ) : (
-      <></>
-    ),
-    apps: <></>,
-    workflows: <></>,
-    webhooks: <></>,
-    ai: <></>,
+    setup: () =>
+      tabs.includes("setup") ? (
+        <SetupTab
+          eventType={eventType}
+          locationOptions={locationOptions}
+          team={team}
+          destinationCalendar={destinationCalendar}
+          customClassNames={customClassNames?.eventSetupTab}
+        />
+      ) : (
+        <></>
+      ),
+    availability: () =>
+      tabs.includes("availability") ? (
+        <EventAvailabilityTabPlatformWrapper
+          eventType={eventType}
+          isTeamEvent={!!team}
+          user={user?.data}
+          teamId={team?.id}
+          customClassNames={customClassNames?.eventAvailabilityTab}
+        />
+      ) : (
+        <></>
+      ),
+    team: () =>
+      tabs.includes("team") ? (
+        <EventTeamAssignmentTabPlatformWrapper
+          team={team}
+          eventType={eventType}
+          customClassNames={customClassNames?.eventAssignmentTab}
+          orgId={organizationId}
+        />
+      ) : (
+        <></>
+      ),
+    advanced: () =>
+      tabs.includes("advanced") ? (
+        <EventAdvancedPlatformWrapper
+          eventType={eventType}
+          team={team}
+          user={user?.data}
+          isUserLoading={isUserLoading}
+          showToast={showToast}
+          customClassNames={customClassNames?.eventAdvancedTab}
+        />
+      ) : (
+        <></>
+      ),
+    payments: () =>
+      tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
+    limits: () =>
+      tabs.includes("limits") ? (
+        <EventLimitsTabPlatformWrapper
+          eventType={eventType}
+          customClassNames={customClassNames?.eventLimitsTab}
+        />
+      ) : (
+        <></>
+      ),
+    instant: () => <></>,
+    recurring: () =>
+      tabs.includes("recurring") ? (
+        <EventRecurringTabPlatformWrapper
+          eventType={eventType}
+          customClassNames={customClassNames?.eventRecurringTab}
+        />
+      ) : (
+        <></>
+      ),
+    apps: () => <></>,
+    workflows: () => <></>,
+    webhooks: () => <></>,
+    ai: () => <></>,
   } as const;
 
   useHandleRouteChange({
@@ -306,8 +321,8 @@ const EventType = forwardRef<
     isTeamEventTypeDeleted: isTeamEventTypeDeleted.current,
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
-    assignedUsers: eventType.children,
-    hosts: eventType.hosts,
+    childrenCount: eventType.childrenCount,
+    hostCount: effectiveHostCount,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
     onError: () => {

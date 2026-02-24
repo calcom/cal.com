@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { CSSObjectWithLabel } from "react-select";
 import { components } from "react-select";
@@ -32,6 +32,9 @@ import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import type { FormValues, Host, HostLocation } from "@calcom/features/eventtypes/lib/types";
+import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
+import { usePaginatedAssignmentHosts } from "@calcom/features/eventtypes/lib/usePaginatedAssignmentHosts";
+import { useFetchMoreOnScroll } from "@calcom/features/eventtypes/lib/useFetchMoreOnScroll";
 import type { TLocationOptions } from "./Locations";
 
 type HostWithLocationOptions = {
@@ -581,30 +584,6 @@ const LocationInputField = ({ eventLocationType, inputValue, setInputValue }: Lo
   );
 };
 
-const useFetchMoreOnScroll = (
-  containerRef: React.RefObject<HTMLDivElement>,
-  hasNextPage: boolean | undefined,
-  isFetchingNextPage: boolean,
-  fetchNextPage: () => void
-) => {
-  const handleScroll = useCallback(() => {
-    const container = containerRef.current;
-    if (!container || !hasNextPage || isFetchingNextPage) return;
-
-    const { scrollHeight, scrollTop, clientHeight } = container;
-    if (scrollHeight - scrollTop - clientHeight < 100) {
-      fetchNextPage();
-    }
-  }, [containerRef, hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [handleScroll, containerRef]);
-};
 
 const buildFullLocationOptions = (
   locationOptions: TLocationOptions,
@@ -751,25 +730,22 @@ const normalizeHostLocation = (host: Host, eventTypeId: number): Host => {
 const useHostLocationHandlers = (
   formMethods: ReturnType<typeof useFormContext<FormValues>>,
   hosts: Host[],
+  serverHosts: Host[],
+  setHosts: (serverHosts: Host[], newHosts: Host[]) => void,
   eventTypeId: number
 ) => {
   const handleToggle = (checked: boolean) => {
     formMethods.setValue("enablePerHostLocations", checked, { shouldDirty: true });
     if (!checked) {
-      formMethods.setValue(
-        "hosts",
-        hosts.map((host) => ({ ...host, location: null })),
-        { shouldDirty: true }
-      );
+      // Use setHosts from context instead of form setValue for performance
+      setHosts(serverHosts, hosts.map((host) => ({ ...host, location: null })));
     }
   };
 
   const handleLocationChange = (userId: number, location: HostLocation | null) => {
-    formMethods.setValue(
-      "hosts",
-      hosts.map((h) => normalizeHostLocation(h.userId === userId ? { ...h, location } : h, eventTypeId)),
-      { shouldDirty: true }
-    );
+    setHosts(serverHosts, hosts.map((h) =>
+      normalizeHostLocation(h.userId === userId ? { ...h, location } : h, eventTypeId)
+    ));
   };
 
   return { handleToggle, handleLocationChange };
@@ -777,8 +753,9 @@ const useHostLocationHandlers = (
 
 const useMassApplyMutation = (
   eventTypeId: number,
-  formMethods: ReturnType<typeof useFormContext<FormValues>>,
   hosts: Host[],
+  serverHosts: Host[],
+  setHosts: (serverHosts: Host[], newHosts: Host[]) => void,
   onSuccess: () => void
 ) => {
   const { t } = useLocale();
@@ -810,7 +787,8 @@ const useMassApplyMutation = (
               phoneNumber: phoneNumber ?? null,
             },
           }));
-          formMethods.setValue("hosts", updatedHosts, { shouldDirty: true });
+          // Use setHosts from context instead of form setValue for performance
+          setHosts(serverHosts, updatedHosts);
 
           showToast(t("location_applied_to_hosts", { count: result.updatedCount }), "success");
           onSuccess();
@@ -840,12 +818,19 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
 
   const isOrg = !!session.data?.user?.org?.id;
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
-  const hosts = formMethods.watch("hosts");
+  // Use hosts from context for mutations, paginated query for data
+  const { setHosts, pendingChanges } = useHosts();
+
+  const { hosts, serverHosts } = usePaginatedAssignmentHosts({
+    eventTypeId,
+    pendingChanges,
+    search: "",
+  });
 
   const { hostDataMap, fullLocationOptions, containerRef, isLoading, isFetchingNextPage } =
     useHostLocationsData(eventTypeId, enablePerHostLocations, locationOptions);
-  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, eventTypeId);
-  const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, formMethods, hosts, () =>
+  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, serverHosts, setHosts, eventTypeId);
+  const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, hosts, serverHosts, setHosts, () =>
     setIsMassApplyDialogOpen(false)
   );
 

@@ -1,16 +1,15 @@
 "use client";
 
-import { useTeamMembersWithSegmentPlatform } from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
+import { useHosts } from "@calcom/features/eventtypes/lib/HostsContext";
+import type { Host } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import {
   Sheet,
   SheetBody,
@@ -21,12 +20,20 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
+import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type WeightMember = {
+  value: string;
+  label: string;
+  avatar: string;
+  email: string;
+  weight?: number;
+};
 
 type TeamMemberItemProps = {
-  member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
+  member: WeightMember;
   onWeightChange: (memberId: string, weight: number) => void;
 };
 
@@ -94,19 +101,21 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
 };
 
 interface Props {
-  teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
+  assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
+  eventTypeId: number;
   teamId?: number;
   queryValue?: AttributesQueryValue | null;
 }
 
 export const EditWeightsForAllTeamMembers = ({
-  teamMembers: initialTeamMembers,
   value,
   onChange,
+  assignAllTeamMembers,
   assignRRMembersUsingSegment,
+  eventTypeId,
   teamId,
   queryValue,
 }: Props) => {
@@ -114,61 +123,130 @@ export const EditWeightsForAllTeamMembers = ({
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isPlatform = useIsPlatform();
+  // Single query that loads all members — handles assignAllTeamMembers, segment filtering, and assigned hosts
+  const { data, isPending: isLoading } = trpc.viewer.eventTypes.exportHostsForWeights.useQuery(
+    {
+      eventTypeId,
+      teamId,
+      assignAllTeamMembers,
+      assignRRMembersUsingSegment,
+      attributesQueryValue: queryValue,
+    },
+    { enabled: isOpen }
+  );
+  const allMembers = data?.members ?? [];
 
-  const useTeamMembersHook = isPlatform ? useTeamMembersWithSegmentPlatform : useTeamMembersWithSegment;
+  // Build a map of current RR host weights from form state for quick lookup
+  const hostWeightsMap = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const host of value) {
+      if (!host.isFixed) {
+        map.set(host.userId, host.weight ?? 100);
+      }
+    }
+    return map;
+  }, [value]);
 
-  const { teamMembers, localWeightsInitialValues } = useTeamMembersHook({
-    initialTeamMembers,
-    assignRRMembersUsingSegment,
-    teamId,
-    queryValue,
-    value,
-  });
-
-  const [localWeights, setLocalWeights] = useState<Record<string, number>>(localWeightsInitialValues);
+  const [localWeights, setLocalWeights] = useState<Record<string, number>>({});
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
+
+  // Initialize local weights from host data when sheet opens
+  useEffect(() => {
+    if (isOpen) {
+      const initial: Record<string, number> = {};
+      for (const host of value) {
+        if (!host.isFixed) {
+          initial[String(host.userId)] = host.weight ?? 100;
+        }
+      }
+      setLocalWeights(initial);
+    }
+  }, [isOpen, value]);
 
   const handleWeightChange = (memberId: string, weight: number) => {
     setLocalWeights((prev) => ({ ...prev, [memberId]: weight }));
   };
 
+  const { updateHost } = useHosts();
+
   const handleSave = () => {
-    // Create a map of existing hosts for easy lookup
-    const existingHostsMap = new Map(
-      value.filter((host) => !host.isFixed).map((host) => [host.userId.toString(), host])
-    );
+    const originalWeightMap = new Map<number, number>();
+    for (const host of value) {
+      if (!host.isFixed) {
+        originalWeightMap.set(host.userId, host.weight ?? 100);
+      }
+    }
+    for (const m of allMembers) {
+      if (!originalWeightMap.has(m.userId)) {
+        originalWeightMap.set(m.userId, m.weight ?? 100);
+      }
+    }
 
-    // Create the updated value by processing all team members
-    const updatedValue = teamMembers
-      .map((member) => {
-        const existingHost = existingHostsMap.get(member.value);
-        if (!existingHost) return null;
-        return {
-          ...existingHost,
-          userId: parseInt(member.value, 10),
-          isFixed: existingHost?.isFixed ?? false,
-          priority: existingHost?.priority ?? 0,
-          weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
-          groupId: existingHost?.groupId ?? null,
-        };
-      })
-      .filter(Boolean) as Host[];
+    for (const [userIdStr, newWeight] of Object.entries(localWeights)) {
+      const userId = parseInt(userIdStr, 10);
+      const originalWeight = originalWeightMap.get(userId) ?? 100;
+      if (newWeight !== originalWeight) {
+        updateHost(userId, { weight: newWeight });
+      }
+    }
 
-    onChange(updatedValue);
     setIsOpen(false);
   };
 
-  const handleDownloadCsv = () => {
-    const csvData = teamMembers.map((member) => ({
-      id: member.value,
-      name: member.label,
-      email: member.email,
-      weight: localWeights[member.value] ?? 100,
+  const displayMembers = useMemo((): WeightMember[] => {
+    let members = allMembers.map((m) => ({
+      value: String(m.userId),
+      label: m.name || m.email || "",
+      avatar: m.avatarUrl || "",
+      email: m.email,
+      weight: localWeights[String(m.userId)] ?? m.weight ?? hostWeightsMap.get(m.userId) ?? 100,
     }));
-    downloadAsCsv(csvData, "team-members-weights.csv");
-  };
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      members = members.filter((m) => m.label.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+    }
+
+    return members;
+  }, [allMembers, localWeights, hostWeightsMap, searchQuery]);
+
+  const utils = trpc.useUtils();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadCsv = useCallback(async () => {
+    setIsDownloading(true);
+    try {
+      const { members } = await utils.viewer.eventTypes.exportHostsForWeights.fetch({
+        eventTypeId,
+        teamId,
+        assignAllTeamMembers,
+        assignRRMembersUsingSegment,
+        attributesQueryValue: queryValue,
+      });
+
+      downloadAsCsv(
+        members.map((m) => ({
+          id: m.userId,
+          name: m.name || m.email || "",
+          email: m.email,
+          weight: localWeights[String(m.userId)] ?? m.weight ?? hostWeightsMap.get(m.userId) ?? 100,
+        })),
+        "team-members-weights.csv"
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [
+    utils,
+    eventTypeId,
+    teamId,
+    assignAllTeamMembers,
+    assignRRMembersUsingSegment,
+    queryValue,
+    localWeights,
+    hostWeightsMap,
+  ]);
 
   const handleUploadCsv = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
@@ -192,7 +270,7 @@ export const EditWeightsForAllTeamMembers = ({
         const [, , email, weightStr] = line.split(",");
         if (!email || !weightStr) continue;
 
-        const member = teamMembers.find((m) => m.email === email);
+        const member = allMembers.find((m) => m.email === email);
         if (!member) {
           newErrors.push({ email, error: t("member_not_found") });
           continue;
@@ -204,7 +282,7 @@ export const EditWeightsForAllTeamMembers = ({
           continue;
         }
 
-        newWeights[member.value] = weight;
+        newWeights[String(member.userId)] = weight;
       }
 
       setLocalWeights(newWeights);
@@ -221,22 +299,6 @@ export const EditWeightsForAllTeamMembers = ({
     reader.readAsText(file);
   };
 
-  const filteredMembers = useMemo(() => {
-    return teamMembers
-      .map((member) => ({
-        ...member,
-        weight: localWeights[member.value],
-      }))
-      .filter(
-        (member) =>
-          member.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          member.email.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      .filter((member) => {
-        return value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10));
-      });
-  }, [teamMembers, localWeights, searchQuery, value]);
-
   return (
     <>
       <Button
@@ -248,7 +310,7 @@ export const EditWeightsForAllTeamMembers = ({
         {t("edit_team_member_weights")}
       </Button>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <form className="flex h-full flex-col">
+        <div className="flex h-full flex-col">
           <SheetContent>
             <SheetHeader>
               <SheetTitle>{t("edit_team_member_weights")}</SheetTitle>
@@ -269,31 +331,35 @@ export const EditWeightsForAllTeamMembers = ({
               </div>
             </SheetHeader>
 
-            <SheetBody className="mt-4 flex h-full flex-col stack-y-6 p-1">
+            <SheetBody className="mt-4 flex flex-col stack-y-6 p-1">
               <div className="flex justify-start gap-2">
                 <label className={buttonClasses({ color: "secondary" })}>
                   <UploadIcon className="mr-2 h-4 w-4" />
                   <input type="file" accept=".csv" className="hidden" onChange={handleUploadCsv} />
                   {t("upload")}
                 </label>
-                <Button color="secondary" StartIcon="download" onClick={handleDownloadCsv}>
+                <Button
+                  color="secondary"
+                  StartIcon="download"
+                  onClick={handleDownloadCsv}
+                  loading={isDownloading}
+                  disabled={isDownloading}>
                   {t("download")}
                 </Button>
               </div>
               <TextField
                 placeholder={t("search")}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                addOnLeading={
-                  <SearchIcon className="text-subtle h-4 w-4" />
-                }
+                onChange={(e) => setSearchQuery(e.target.value)}
+                addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
               />
 
-              <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">
-                {filteredMembers.map((member) => (
+              <div className="flex flex-col rounded-md border">
+                {displayMembers.map((member) => (
                   <TeamMemberItem key={member.value} member={member} onWeightChange={handleWeightChange} />
                 ))}
-                {filteredMembers.length === 0 && (
+                {isLoading && <div className="text-subtle py-2 text-center text-sm">{t("loading")}</div>}
+                {displayMembers.length === 0 && !isLoading && (
                   <div className="text-subtle py-4 text-center text-sm">{t("no_members_found")}</div>
                 )}
               </div>
@@ -329,8 +395,6 @@ export const EditWeightsForAllTeamMembers = ({
                 <Button
                   color="minimal"
                   onClick={() => {
-                    // Restore to default weights from the original value
-                    setLocalWeights(localWeightsInitialValues);
                     setSearchQuery("");
                   }}>
                   {t("cancel")}
@@ -339,7 +403,7 @@ export const EditWeightsForAllTeamMembers = ({
               <Button onClick={handleSave}>{t("done")}</Button>
             </SheetFooter>
           </SheetContent>
-        </form>
+        </div>
       </Sheet>
     </>
   );

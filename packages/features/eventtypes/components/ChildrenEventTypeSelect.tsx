@@ -11,8 +11,10 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { AssignedSearchInput } from "@calcom/features/eventtypes/components/AssignedSearchInput";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
@@ -44,11 +46,23 @@ export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
   customClassNames,
+  onSearchChange,
+  onMenuScrollToBottom,
+  isLoadingMore,
+  assignedSearchValue,
+  onAssignedSearchChange,
+  isSearchingAssigned,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  onSearchChange?: (value: string) => void;
+  onMenuScrollToBottom?: () => void;
+  isLoadingMore?: boolean;
+  assignedSearchValue?: string;
+  onAssignedSearchChange?: (value: string) => void;
+  isSearchingAssigned?: boolean;
 }) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
@@ -63,8 +77,26 @@ export const ChildrenEventTypeSelect = ({
         innerClassNames={customClassNames?.assignToSelect?.innerClassNames}
         value={value}
         isMulti
+        {...(onSearchChange
+          ? {
+              filterOption: null,
+              onInputChange: (value: string, actionMeta: { action: string }) => {
+                if (actionMeta.action === "input-change") onSearchChange(value);
+              },
+            }
+          : {})}
+        onMenuScrollToBottom={onMenuScrollToBottom}
+        isLoading={isLoadingMore}
         {...props}
       />
+      {onAssignedSearchChange && (
+        <AssignedSearchInput
+          value={assignedSearchValue ?? ""}
+          onChange={onAssignedSearchChange}
+          isSearching={isSearchingAssigned}
+          className="mt-3"
+        />
+      )}
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul

@@ -6,18 +6,9 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return true if managed event type has no assigned users", () => {
     expect(
       checkForEmptyAssignment({
-        assignedUsers: [],
+        childrenCount: 0,
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: true,
       })
     ).toBe(true);
@@ -25,32 +16,9 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return true if non-managed event type has no hosts assigned", () => {
     expect(
       checkForEmptyAssignment({
-        assignedUsers: [
-          {
-            created: true,
-            owner: {
-              id: 101,
-              avatar: "avatar.svg",
-              email: "firstuser@cal.com",
-              membership: "OWNER",
-              name: "First user",
-              username: "firstuser",
-              profile: {
-                username: "firstuser",
-                upId: "usr-101",
-                id: null,
-                organization: null,
-                organizationId: null,
-              },
-              avatarUrl: null,
-              nonProfileUsername: null,
-            },
-            slug: "managedevent",
-            hidden: false,
-          },
-        ],
+        childrenCount: 1,
         assignAllTeamMembers: false,
-        hosts: [],
+        hostCount: 0,
         isManagedEventType: false,
       })
     ).toBe(true);
@@ -58,9 +26,9 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return false if assignAllTeamMembers is selected", () => {
     expect(
       checkForEmptyAssignment({
-        assignedUsers: [],
+        childrenCount: 0,
         assignAllTeamMembers: true,
-        hosts: [],
+        hostCount: 0,
         isManagedEventType: false,
       })
     ).toBe(false);
@@ -68,18 +36,9 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return false if non-managed event type has hosts assigned", () => {
     expect(
       checkForEmptyAssignment({
-        assignedUsers: [],
+        childrenCount: 0,
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: false,
       })
     ).toBe(false);
@@ -87,41 +46,9 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return false if managed event type has assigned users", () => {
     expect(
       checkForEmptyAssignment({
-        assignedUsers: [
-          {
-            created: true,
-            owner: {
-              id: 101,
-              avatar: "avatar.svg",
-              email: "firstuser@cal.com",
-              membership: "OWNER",
-              name: "First user",
-              username: "firstuser",
-              profile: {
-                username: "firstuser",
-                upId: "usr-101",
-                id: null,
-                organization: null,
-                organizationId: null,
-              },
-              avatarUrl: null,
-              nonProfileUsername: null,
-            },
-            slug: "managedevent",
-            hidden: false,
-          },
-        ],
+        childrenCount: 1,
         assignAllTeamMembers: false,
-        hosts: [
-          {
-            userId: 101,
-            isFixed: false,
-            priority: 2,
-            weight: 100,
-            scheduleId: null,
-            user: { timeZone: "America/New_York" },
-          },
-        ],
+        hostCount: 1,
         isManagedEventType: true,
       })
     ).toBe(false);

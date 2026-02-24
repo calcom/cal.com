@@ -12,6 +12,7 @@ import type {
   FormValues,
   EventTypeApps,
 } from "@calcom/features/eventtypes/lib/types";
+import { HostsProvider } from "@calcom/features/eventtypes/lib/HostsContext";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
@@ -46,7 +47,6 @@ const tabs = [
 ] as const;
 
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export type EventTypeComponentProps = EventTypeSetupProps & {
   allActiveWorkflows?: Workflow[];
@@ -105,7 +105,9 @@ export const EventType = ({
         tabsNavigation={tabsNavigation}
         saveButtonRef={saveButtonRef}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
-          <div ref={animationParentRef}>{tabMap[tabName]}</div>
+          <HostsProvider>
+            <div ref={animationParentRef}>{tabMap[tabName]?.()}</div>
+          </HostsProvider>
         </Form>
       </EventTypeSingleLayout>
       {children}

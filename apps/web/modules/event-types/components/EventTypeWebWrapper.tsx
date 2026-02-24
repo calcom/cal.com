@@ -146,7 +146,7 @@ const EventTypeWeb = ({
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
+  const { eventType, locationOptions, team, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
@@ -159,15 +159,16 @@ const EventTypeWeb = ({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
-      currentValues.children = currentValues.children.map((child) => ({
-        ...child,
-        created: true,
-      }));
+      // Reset pending children changes after successful save
+      currentValues.pendingChildrenChanges = {
+        childrenToAdd: [],
+        childrenToRemove: [],
+        childrenToUpdate: [],
+      };
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-      revalidateEventTypeEditPage(eventType.id);
       if (eventType.team?.slug) {
         // When an event-type is updated,
         // guests could still hit a stale cache and see the old page.
@@ -182,6 +183,7 @@ const EventTypeWeb = ({
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
+      revalidateEventTypeEditPage(eventType.id);
     },
     onError: (err) => {
       let message = "";
@@ -208,6 +210,12 @@ const EventTypeWeb = ({
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
+  const pendingHostChanges = form.watch("pendingHostChanges");
+  const effectiveHostCount = pendingHostChanges?.clearAllHosts
+    ? pendingHostChanges.hostsToAdd.length
+    : eventType._count.hosts +
+      (pendingHostChanges?.hostsToAdd.length ?? 0) -
+      (pendingHostChanges?.hostsToRemove.length ?? 0);
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
@@ -226,34 +234,33 @@ const EventTypeWeb = ({
     eventType.slug
   }`;
 
+  // Use functions to lazily render tabs - only the active tab is instantiated
+  // This prevents all tab hooks (including watch("hosts") with 700 hosts) from running on every render
   const tabMap = {
-    setup: (
+    setup: () => (
       <EventSetupTab
         eventType={eventType}
         locationOptions={locationOptions}
         team={team}
-        teamMembers={teamMembers}
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: (
+    availability: () => (
       <EventAvailabilityTab
         eventType={eventType}
         isTeamEvent={!!team}
         user={user}
-        teamMembers={teamMembers}
       />
     ),
-    team: (
+    team: () => (
       <EventTeamAssignmentTab
         orgId={orgBranding?.id ?? null}
-        teamMembers={teamMembers}
         team={team}
         eventType={eventType}
       />
     ),
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: (
+    limits: () => <EventLimitsTab eventType={eventType} />,
+    advanced: () => (
       <EventAdvancedTab
         eventType={eventType}
         team={team}
@@ -263,23 +270,23 @@ const EventTypeWeb = ({
         orgId={orgBranding?.id ?? null}
       />
     ),
-    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: (
+    instant: () => <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
+    recurring: () => <EventRecurringTab eventType={eventType} />,
+    apps: () => (
       <EventAppsTab
         eventType={{ ...eventType, URL: permalink }}
         eventTypeApps={eventTypeApps}
         isPendingApps={isPendingApps}
       />
     ),
-    workflows:
+    workflows: () =>
       allActiveWorkflows && canReadWorkflows ? (
         <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
       ) : (
         <></>
       ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
-    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
+    webhooks: () => <EventWebhooksTab eventType={eventType} />,
+    ai: () => <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
 
   useHandleRouteChange({
@@ -287,8 +294,8 @@ const EventTypeWeb = ({
     isTeamEventTypeDeleted: isTeamEventTypeDeleted.current,
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
-    assignedUsers: eventType.children,
-    hosts: eventType.hosts,
+    childrenCount: eventType.childrenCount,
+    hostCount: effectiveHostCount,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
     onError: (url) => {
