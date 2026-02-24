@@ -85,18 +85,19 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
 
         if (primaryUser) {
-          await prisma.user.update({
-            where: { id: primaryUser.id },
-            data: { email: secondaryEmail.email, emailVerified: new Date() },
-          });
-
-          await prisma.secondaryEmail.update({
-            where: { id: foundToken.secondaryEmailId },
-            data: {
-              email: primaryUser.email,
-              emailVerified: primaryUser.emailVerified,
-            },
-          });
+          await prisma.$transaction([
+            prisma.user.update({
+              where: { id: primaryUser.id },
+              data: { email: secondaryEmail.email, emailVerified: new Date() },
+            }),
+            prisma.secondaryEmail.update({
+              where: { id: foundToken.secondaryEmailId },
+              data: {
+                email: primaryUser.email,
+                emailVerified: primaryUser.emailVerified,
+              },
+            }),
+          ]);
         }
       }
 
