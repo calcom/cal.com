@@ -340,6 +340,48 @@ export class MembershipRepository {
     });
   }
 
+  async findRoleByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+  }
+
+  async findMembershipsWithUserByTeamId({ teamId }: { teamId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: { teamId },
+      select: {
+        role: true,
+        accepted: true,
+        user: {
+          select: {
+            name: true,
+            avatarUrl: true,
+            username: true,
+            id: true,
+            email: true,
+            locale: true,
+            defaultScheduleId: true,
+            isPlatformManaged: true,
+            timeZone: true,
+            eventTypes: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findAllMembershipsByUserIdForBilling({ userId }: { userId: number }) {
     return this.prismaClient.membership.findMany({
       where: { userId },
@@ -592,6 +634,71 @@ export class MembershipRepository {
       },
     });
     return !!pendingInvite;
+  }
+
+  async searchMembers({
+    teamId,
+    search,
+    cursor,
+    limit,
+    memberUserIds,
+  }: {
+    teamId: number;
+    search?: string | null;
+    cursor?: number | null;
+    limit: number;
+    memberUserIds?: number[] | null;
+  }) {
+    const where: Record<string, unknown> = {
+      teamId,
+      accepted: true,
+    };
+
+    const userFilter: Record<string, unknown> = {};
+
+    if (search) {
+      userFilter.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (memberUserIds?.length && cursor) {
+      userFilter.id = { in: memberUserIds, gt: cursor };
+    } else if (memberUserIds?.length) {
+      userFilter.id = { in: memberUserIds };
+    } else if (cursor) {
+      userFilter.id = { gt: cursor };
+    }
+
+    if (Object.keys(userFilter).length > 0) {
+      where.user = userFilter;
+    }
+
+    const memberships = await this.prismaClient.membership.findMany({
+      where,
+      take: limit + 1,
+      orderBy: { user: { id: "asc" } },
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            username: true,
+            defaultScheduleId: true,
+          },
+        },
+        role: true,
+      },
+    });
+
+    const hasMore = memberships.length > limit;
+    const items = hasMore ? memberships.slice(0, limit) : memberships;
+    const nextCursor = items.length > 0 ? items[items.length - 1].user.id : undefined;
+
+    return { memberships: items, nextCursor, hasMore };
   }
 
   /**

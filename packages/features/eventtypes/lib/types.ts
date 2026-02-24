@@ -6,7 +6,7 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/children
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { CancellationReasonRequirement, MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type { MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type {
   BookerLayoutSettings,
   CustomInputSchema,
@@ -20,6 +20,7 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
 import type { EventType } from "./getEventTypeById";
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -50,6 +51,33 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
+};
+
+// Delta-based host tracking for performance optimization
+// Instead of storing 700+ hosts in form state, we track only changes
+export type HostUpdate = {
+  userId: number;
+  isFixed?: boolean;
+  priority?: number;
+  weight?: number;
+  scheduleId?: number | null;
+  groupId?: string | null;
+  location?: HostLocation | null;
+};
+
+export type PendingHostChanges = {
+  hostsToAdd: Host[];
+  hostsToUpdate: HostUpdate[];
+  hostsToRemove: number[]; // userIds
+  clearAllHosts?: boolean; // When true, backend computes delta: keeps hosts in hostsToAdd, removes all others
+};
+
+// Delta-based children tracking for managed event types
+export type PendingChildrenChanges = {
+  childrenToAdd: ChildrenEventType[];
+  childrenToRemove: number[]; // owner userIds
+  childrenToUpdate: { userId: number; hidden?: boolean }[];
+  clearAllChildren?: boolean;
 };
 export type TeamMember = {
   value: string;
@@ -170,7 +198,10 @@ export type FormValues = {
   onlyShowFirstAvailableSlot: boolean;
   showOptimizedSlots: boolean;
   children: ChildrenEventType[];
-  hosts: Host[];
+  // Delta-based host changes for performance - only track changes, not all 700+ hosts
+  pendingHostChanges?: PendingHostChanges;
+  // Delta-based children changes for managed event types
+  pendingChildrenChanges?: PendingChildrenChanges;
   hostGroups: {
     id: string;
     name: string;
@@ -198,23 +229,6 @@ export type FormValues = {
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
-
-export type EventTypeAssignedUsers = {
-  owner: {
-    avatar: string;
-    email: string;
-    name: string;
-    username: string;
-    membership: MembershipRole;
-    id: number;
-    avatarUrl: string | null;
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  };
-  created: boolean;
-  hidden: boolean;
-  slug: string;
-}[];
 
 export type EventTypeHosts = {
   user: {
@@ -274,6 +288,30 @@ export type HostInput = {
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;
+};
+
+export type HostUpdateInput = {
+  userId: number;
+  isFixed?: boolean;
+  priority?: number | null;
+  weight?: number | null;
+  scheduleId?: number | null;
+  groupId?: string | null;
+  location?: HostLocationInput | null;
+};
+
+export type PendingHostChangesInput = {
+  hostsToAdd: HostInput[];
+  hostsToUpdate: HostUpdateInput[];
+  hostsToRemove: number[];
+  clearAllHosts?: boolean;
+};
+
+export type PendingChildrenChangesInput = {
+  childrenToAdd: { owner: { id: number; name: string; email: string }; hidden: boolean }[];
+  childrenToRemove: number[];
+  childrenToUpdate: { userId: number; hidden?: boolean }[];
+  clearAllChildren?: boolean;
 };
 
 export type HostGroupInput = {
@@ -388,7 +426,6 @@ export type EventTypeUpdateInput = {
   showOptimizedSlots?: boolean | null;
   disableCancelling?: boolean | null;
   disableRescheduling?: boolean | null;
-  requiresCancellationReason?: CancellationReasonRequirement | null;
   minimumRescheduleNotice?: number | null;
   seatsShowAttendees?: boolean | null;
   seatsShowAvailabilityCount?: boolean | null;
@@ -443,21 +480,23 @@ export type EventTypeUpdateInput = {
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
+  pendingHostChanges?: PendingHostChangesInput;
+  pendingChildrenChanges?: PendingChildrenChangesInput;
 };
 
 export type TabMap = {
-  advanced: React.ReactNode;
-  ai?: React.ReactNode;
-  apps?: React.ReactNode;
-  availability: React.ReactNode;
-  instant?: React.ReactNode;
-  limits: React.ReactNode;
-  recurring: React.ReactNode;
-  setup: React.ReactNode;
-  team?: React.ReactNode;
-  webhooks?: React.ReactNode;
-  workflows?: React.ReactNode;
-  payments?: React.ReactNode;
+  advanced: () => React.ReactNode;
+  ai?: () => React.ReactNode;
+  apps?: () => React.ReactNode;
+  availability: () => React.ReactNode;
+  instant?: () => React.ReactNode;
+  limits: () => React.ReactNode;
+  recurring: () => React.ReactNode;
+  setup: () => React.ReactNode;
+  team?: () => React.ReactNode;
+  webhooks?: () => React.ReactNode;
+  workflows?: () => React.ReactNode;
+  payments?: () => React.ReactNode;
 };
 
 export type SettingsToggleClassNames = {

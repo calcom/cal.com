@@ -8,6 +8,7 @@ import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -15,10 +16,10 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/i18n/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
@@ -75,37 +76,6 @@ export const getEventTypeById = async ({
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
-  const userRepo = new UserRepository(prisma);
-  const eventTeamMembershipsWithUserProfile = [];
-  for (const eventTeamMembership of rawEventType.team?.members || []) {
-    eventTeamMembershipsWithUserProfile.push({
-      ...eventTeamMembership,
-      user: await userRepo.enrichUserWithItsProfile({
-        user: eventTeamMembership.user,
-      }),
-    });
-  }
-
-  const childrenWithUserProfile = [];
-  for (const child of rawEventType.children || []) {
-    childrenWithUserProfile.push({
-      ...child,
-      owner: child.owner
-        ? await userRepo.enrichUserWithItsProfile({
-            user: child.owner,
-          })
-        : null,
-    });
-  }
-
-  const eventTypeUsersWithUserProfile = [];
-  for (const eventTypeUser of rawEventType.users) {
-    eventTypeUsersWithUserProfile.push(
-      await userRepo.enrichUserWithItsProfile({
-        user: eventTypeUser,
-      })
-    );
-  }
 
   newMetadata.apps = {
     ...apps,
@@ -140,24 +110,7 @@ export const getEventTypeById = async ({
       : restEventType.owner
         ? await getBookerBaseUrl(currentOrganizationId)
         : WEBSITE_URL,
-    children: childrenWithUserProfile.flatMap((ch) =>
-      ch.owner !== null
-        ? {
-            ...ch,
-            owner: {
-              ...ch.owner,
-              avatar: getUserAvatarUrl(ch.owner),
-              email: ch.owner.email,
-              name: ch.owner.name ?? "",
-              username: ch.owner.username ?? "",
-              membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
-            },
-            created: true,
-          }
-        : []
-    ),
+    childrenCount: rawEventType._count?.children ?? 0,
   };
 
   // backwards compat
@@ -182,7 +135,7 @@ export const getEventTypeById = async ({
   }
 
   const eventTypeUsers: ((typeof eventType.users)[number] & { avatar: string })[] =
-    eventTypeUsersWithUserProfile.map((user) => ({
+    rawEventType.users.map((user) => ({
       ...user,
       avatar: getUserAvatarUrl(user),
     }));
@@ -224,26 +177,16 @@ export const getEventTypeById = async ({
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;
-  const teamMembers = eventTypeObject.team
-    ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.accepted || isOrgEventType)
-        .map((member) => {
-          const user: typeof member.user & { avatar: string } = {
-            ...member.user,
-            avatar: getUserAvatarUrl(member.user),
-          };
-          return {
-            ...user,
-            profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-            membership: member.role,
-          };
-        })
-    : [];
 
-  // Find the current users membership so we can check role to enable/disable deletion.
-  // Sets to null if no membership is found - this must mean we are in a none team event type
-  const currentUserMembership = eventTypeObject.team?.members.find((el) => el.user.id === userId) ?? null;
+  // Find the current user's membership role to enable/disable deletion in the UI.
+  // Null when not a team event type.
+  const membershipRepo = new MembershipRepository(prisma);
+  const currentUserMembership = rawEventType.team
+    ? await membershipRepo.findRoleByUserIdAndTeamId({
+        userId,
+        teamId: rawEventType.team.id,
+      })
+    : null;
 
   let destinationCalendar = eventTypeObject.destinationCalendar;
   if (!destinationCalendar) {
@@ -260,7 +203,6 @@ export const getEventTypeById = async ({
     locationOptions,
     destinationCalendar,
     team: eventTypeObject.team || null,
-    teamMembers,
     currentUserMembership,
     isUserOrganizationAdmin,
   };
@@ -295,5 +237,45 @@ export async function getRawEventType({
     userId,
   });
 }
+
+export const getEventTypeByIdWithTeamMembers = async (props: getEventTypeByIdProps) => {
+  const result = await getEventTypeById(props);
+
+  const { prisma } = props;
+  const userRepo = new UserRepository(prisma);
+  const membershipRepo = new MembershipRepository(prisma);
+
+  const isOrgEventType = !!result.team?.parentId;
+
+  const memberships = result.team
+    ? await membershipRepo.findMembershipsWithUserByTeamId({ teamId: result.team.id })
+    : [];
+
+  const enrichedMembers = await Promise.all(
+    memberships.map(async (membership) => ({
+      ...membership,
+      user: await userRepo.enrichUserWithItsProfile({
+        user: membership.user,
+      }),
+    }))
+  );
+
+  const teamMembers = enrichedMembers
+    .filter((member) => member.accepted || isOrgEventType)
+    .map((member) => {
+      const user: typeof member.user & { avatar: string } = {
+        ...member.user,
+        avatar: getUserAvatarUrl(member.user),
+      };
+      return {
+        ...user,
+        profileId: user.profile.id,
+        eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+        membership: member.role,
+      };
+    });
+
+  return { ...result, teamMembers };
+};
 
 export default getEventTypeById;

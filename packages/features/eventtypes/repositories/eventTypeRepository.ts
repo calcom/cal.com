@@ -673,22 +673,6 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  ...userSelect,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       },
       restrictionScheduleId: true,
@@ -715,49 +699,15 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      hosts: {
+      _count: {
         select: {
-          isFixed: true,
-          userId: true,
-          priority: true,
-          weight: true,
-          scheduleId: true,
-          groupId: true,
-          location: {
-            select: {
-              id: true,
-              type: true,
-              credentialId: true,
-              link: true,
-              address: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              timeZone: true,
-            },
-          },
+          hosts: true,
+          children: true,
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
-      children: {
-        select: {
-          owner: {
-            select: {
-              avatarUrl: true,
-              name: true,
-              username: true,
-              email: true,
-              id: true,
-            },
-          },
-          hidden: true,
-          slug: true,
-        },
-      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -989,22 +939,6 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  ...userSelect,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
       },
       restrictionScheduleId: true,
@@ -1031,49 +965,15 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      hosts: {
+      _count: {
         select: {
-          isFixed: true,
-          userId: true,
-          groupId: true,
-          priority: true,
-          weight: true,
-          scheduleId: true,
-          location: {
-            select: {
-              id: true,
-              type: true,
-              credentialId: true,
-              link: true,
-              address: true,
-              phoneNumber: true,
-            },
-          },
-          user: {
-            select: {
-              timeZone: true,
-            },
-          },
+          hosts: true,
+          children: true,
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
-      children: {
-        select: {
-          owner: {
-            select: {
-              avatarUrl: true,
-              name: true,
-              username: true,
-              email: true,
-              id: true,
-            },
-          },
-          hidden: true,
-          slug: true,
-        },
-      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -1741,6 +1641,24 @@ export class EventTypeRepository implements IEventTypesRepository {
       hasMore,
       nextCursor: hasMore ? items[items.length - 1].id : null,
     };
+  }
+
+  async findChildrenByParentId(parentId: number) {
+    return this.prismaClient.eventType.findMany({
+      where: { parentId },
+      select: {
+        hidden: true,
+        slug: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            eventTypes: { select: { slug: true } },
+          },
+        },
+      },
+    });
   }
 
   async findByIdWithParentAndUserId(eventTypeId: number) {
