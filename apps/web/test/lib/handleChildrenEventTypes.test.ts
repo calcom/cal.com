@@ -47,7 +47,7 @@ vi.mock("@calcom/emails/integration-email-service", () => {
   };
 });
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   return {
     getTranslation: async (locale: string, namespace: string) => {
       const t = (key: string) => key;
