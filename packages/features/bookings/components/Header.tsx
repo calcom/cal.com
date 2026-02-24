@@ -1,10 +1,8 @@
-import { useCallback, useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
 import { useInitializeWeekStart } from "@calcom/features/bookings/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatDateTime } from "@calcom/lib/dateTimeFormatter";
@@ -15,9 +13,8 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { CalendarIcon, Columns3Icon, Grid3x3Icon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
-import type { BookerLayout } from "@calcom/features/bookings/Booker/types";
+import { useCallback, useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 export function Header({
   extraDays,
@@ -28,6 +25,7 @@ export function Header({
   isMyLink,
   renderOverlay,
   isCalendarView,
+  isPlatform = false,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -37,10 +35,10 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
   isCalendarView?: boolean;
+  isPlatform?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  const isPlatform = useIsPlatform();
   const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
@@ -85,6 +83,7 @@ export function Header({
           layout={layout}
           enabledLayouts={enabledLayouts}
           onLayoutToggle={onLayoutToggle}
+          isPlatform={isPlatform}
         />
       </div>
     );
@@ -155,6 +154,7 @@ export function Header({
             layout={layout}
             enabledLayouts={enabledLayouts}
             onLayoutToggle={onLayoutToggle}
+            isPlatform={isPlatform}
           />
         </div>
         {/*
@@ -169,6 +169,7 @@ export function Header({
             layout={layout}
             enabledLayouts={enabledLayouts}
             onLayoutToggle={onLayoutToggle}
+            isPlatform={isPlatform}
           />
         </div>
       </div>
@@ -180,13 +181,14 @@ const LayoutToggle = ({
   onLayoutToggle,
   layout,
   enabledLayouts,
+  isPlatform = false,
 }: {
   onLayoutToggle: (layout: string) => void;
   layout: string;
   enabledLayouts?: BookerLayouts[];
+  isPlatform?: boolean;
 }) => {
   const isEmbed = useIsEmbed();
-  const isPlatform = useIsPlatform();
   const { t } = useLocale();
 
   const layoutOptions = useMemo(() => {
@@ -248,12 +250,19 @@ const LayoutToggleWithData = ({
   enabledLayouts,
   onLayoutToggle,
   layout,
+  isPlatform = false,
 }: {
   enabledLayouts: BookerLayouts[];
   onLayoutToggle: (layout: string) => void;
   layout: string;
+  isPlatform?: boolean;
 }) => {
   return enabledLayouts.length <= 1 ? null : (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    <LayoutToggle
+      onLayoutToggle={onLayoutToggle}
+      layout={layout}
+      enabledLayouts={enabledLayouts}
+      isPlatform={isPlatform}
+    />
   );
 };

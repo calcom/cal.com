@@ -1,50 +1,72 @@
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+"use client";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { Dialog as BaseDialog } from "@calcom/ui/components/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
   clearQueryParamsOnClose?: string[];
+  isPlatform?: boolean;
 };
 
-const enum DIALOG_STATE {
-  // Dialog is there in the DOM but not visible.
+enum DIALOG_STATE {
   CLOSED = "CLOSED",
-  // State from the time b/w the Dialog is dismissed and the time the "dialog" query param is removed from the URL.
   CLOSING = "CLOSING",
-  // Dialog is visible.
   OPEN = "OPEN",
 }
 
 export function Dialog(props: DialogProps) {
-  const isPlatform = useIsPlatform();
-  return !isPlatform ? <ControlledDialog {...props} /> : <DialogPrimitive.Dialog {...props} />;
+  const { isPlatform = false, ...rest } = props;
+
+  // Simple mode for platform/atoms - no URL state management
+  if (isPlatform) {
+    return <DialogPrimitive.Root {...rest} />;
+  }
+
+  // URL-managed mode for web
+  return <ControlledDialogInternal {...rest} />;
 }
 
-function ControlledDialog(props: DialogProps) {
+// Private - URL state management logic for web
+// Will be exported as ControlledDialog in follow-up PR
+function ControlledDialogInternal(props: Omit<DialogProps, "isPlatform">) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const newSearchParams = new URLSearchParams(searchParams.toString());
   const { children, name, ...dialogProps } = props;
 
-  // only used if name is set
   const [dialogState, setDialogState] = useState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
-  const shouldOpenDialog = newSearchParams.get("dialog") === name;
+
+  const shouldOpenDialog = new URLSearchParams(searchParams.toString()).get("dialog") === name;
+
+  useEffect(() => {
+    if (!name) return;
+
+    if (dialogState === DIALOG_STATE.CLOSED && shouldOpenDialog) {
+      setDialogState(DIALOG_STATE.OPEN);
+    }
+
+    if (dialogState === DIALOG_STATE.CLOSING && !shouldOpenDialog) {
+      setDialogState(DIALOG_STATE.CLOSED);
+    }
+  }, [name, dialogState, shouldOpenDialog]);
+
   if (name) {
     const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
+
     dialogProps.onOpenChange = (open) => {
       if (props.onOpenChange) {
         props.onOpenChange(open);
       }
 
-      // toggles "dialog" query param
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+
       if (open) {
         newSearchParams.set("dialog", name);
+        router.push(`${pathname}?${newSearchParams.toString()}`);
       } else {
         clearQueryParamsOnClose.forEach((queryParam) => {
           newSearchParams.delete(queryParam);
@@ -54,17 +76,8 @@ function ControlledDialog(props: DialogProps) {
       setDialogState(open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSING);
     };
 
-    if (dialogState === DIALOG_STATE.CLOSED && shouldOpenDialog) {
-      setDialogState(DIALOG_STATE.OPEN);
-    }
-
-    if (dialogState === DIALOG_STATE.CLOSING && !shouldOpenDialog) {
-      setDialogState(DIALOG_STATE.CLOSED);
-    }
-
-    // allow overriding
     if (!("open" in dialogProps)) {
-      dialogProps.open = dialogState === DIALOG_STATE.OPEN ? true : false;
+      dialogProps.open = dialogState === DIALOG_STATE.OPEN;
     }
   }
 

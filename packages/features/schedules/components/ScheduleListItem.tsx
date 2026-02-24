@@ -1,14 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { Fragment, useState } from "react";
-
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -16,9 +14,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { GlobeIcon } from "@coss/ui/icons";
+import Link from "next/link";
+import { Fragment, useState } from "react";
 
 interface Schedule {
   id: number;
@@ -45,6 +44,7 @@ export function ScheduleListItem({
   isDeletable,
   duplicateFunction,
   redirectUrl,
+  isPlatform = false,
 }: {
   schedule: Schedule;
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -57,6 +57,7 @@ export function ScheduleListItem({
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
   redirectUrl: string;
+  isPlatform?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -158,7 +159,7 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} isPlatform={isPlatform}>
           <ConfirmationDialogContent
             variety="danger"
             title={t("delete_schedule")}

@@ -1,13 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { CheckboxField, Form } from "@calcom/ui/components/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
@@ -19,6 +17,7 @@ export type EventTypes = Array<{ id: number; title: string }>;
 export function BulkEditDefaultForEventsModal({
   eventTypes,
   isEventTypesFetching,
+  isPlatform = false,
   ...props
 }: {
   open: boolean;
@@ -29,6 +28,7 @@ export function BulkEditDefaultForEventsModal({
   isEventTypesFetching?: boolean;
   eventTypes?: EventTypes;
   handleBulkEditDialogToggle: () => void;
+  isPlatform?: boolean;
 }) {
   const { t } = useLocale();
 
@@ -45,7 +45,11 @@ export function BulkEditDefaultForEventsModal({
   if (isEventTypesFetching || !open || !eventTypes) return null;
 
   return (
-    <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
+    <Dialog
+      name="Bulk Default Location Update"
+      open={props.open}
+      onOpenChange={props.setOpen}
+      isPlatform={isPlatform}>
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}

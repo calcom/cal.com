@@ -5,12 +5,9 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
-import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type {
   AvailabilityOption,
   FormValues,
@@ -84,8 +81,8 @@ type EventTypeScheduleDetailsProps = {
   customClassNames?: AvailabilityTableCustomClassNames;
 };
 
-type HostSchedulesQueryType =
-  | GetAllSchedulesByUserIdQueryType
+// Type for host schedules query - can be either trpc query or custom hook
+export type HostSchedulesQueryType =
   | (({ userId }: { userId: number }) => UseQueryResult<
       {
         schedules: {
@@ -105,7 +102,12 @@ type EventTypeTeamScheduleProps = {
   customClassNames?: TeamAvailabilityCustomClassNames;
 };
 
-type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
+// Inlined TeamMember type to avoid web import
+export type TeamMember = {
+  avatar: string;
+  name: string | null;
+  id: number;
+};
 
 type EventTypeScheduleProps = {
   schedulesQueryData?: Array<
@@ -125,17 +127,19 @@ type EventTypeScheduleProps = {
 } & Omit<EventTypeScheduleDetailsProps, "customClassNames"> &
   Omit<EventTypeTeamScheduleProps, "customClassNames">;
 
-export type EventAvailabilityTabBaserProps = {
+export type EventAvailabilityTabBaseProps = {
   isTeamEvent: boolean;
 };
 
 type UseTeamEventScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
   customClassNames?: EventAvailabilityTabCustomClassNames;
+  isPlatform?: boolean;
 };
 
-type EventAvailabilityTabProps = EventAvailabilityTabBaserProps &
+export type EventAvailabilityTabProps = EventAvailabilityTabBaseProps &
   Omit<EventTypeScheduleProps, "customClassNames"> & {
     customClassNames?: EventAvailabilityTabCustomClassNames;
+    isPlatform?: boolean;
   };
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
@@ -638,15 +642,16 @@ const TeamMemberSchedule = ({
   teamMembers,
   hostScheduleQuery,
   customClassNames,
+  isPlatform = false,
 }: {
   host: Host;
   index: number;
   teamMembers: TeamMember[];
   hostScheduleQuery: HostSchedulesQueryType;
   customClassNames?: TeamMemmberScheduelCustomClassNames;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
 
   const formMethods = useFormContext<FormValues>();
   const { getValues } = formMethods;
@@ -720,9 +725,11 @@ const TeamAvailability = ({
   teamMembers,
   hostSchedulesQuery,
   customClassNames,
+  isPlatform = false,
 }: EventTypeTeamScheduleProps & {
   teamMembers: TeamMember[];
   customClassNames?: TeamAvailabilityCustomClassNames;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
   const { watch } = useFormContext<FormValues>();
@@ -770,6 +777,7 @@ const TeamAvailability = ({
                     teamMembers={teamMembers}
                     hostScheduleQuery={hostSchedulesQuery}
                     customClassNames={customClassNames?.teamMemberSchedule}
+                    isPlatform={isPlatform}
                   />
                 </li>
               ))}
@@ -827,10 +835,10 @@ const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
   isRestrictionScheduleEnabled,
+  isPlatform = false,
   ...rest
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
@@ -857,6 +865,7 @@ const UseTeamEventScheduleSettingsToggle = ({
               teamMembers={rest.teamMembers}
               hostSchedulesQuery={rest.hostSchedulesQuery}
               customClassNames={customClassNames?.teamAvailability}
+              isPlatform={isPlatform}
             />
           </div>
         )}
@@ -883,9 +892,14 @@ const UseTeamEventScheduleSettingsToggle = ({
   );
 };
 
-export const EventAvailabilityTab = ({ eventType, isTeamEvent, ...rest }: EventAvailabilityTabProps) => {
+export const EventAvailabilityTab = ({
+  eventType,
+  isTeamEvent,
+  isPlatform = false,
+  ...rest
+}: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseTeamEventScheduleSettingsToggle eventType={eventType} {...rest} />
+    <UseTeamEventScheduleSettingsToggle eventType={eventType} isPlatform={isPlatform} {...rest} />
   ) : (
     <EventTypeSchedule
       eventType={eventType}

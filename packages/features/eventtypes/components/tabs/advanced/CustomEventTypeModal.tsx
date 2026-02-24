@@ -1,8 +1,3 @@
-import type { FC } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { FormProvider } from "react-hook-form";
-import { useForm, useFormContext } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName, validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -10,8 +5,11 @@ import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
+import type { FC } from "react";
+import type { SubmitHandler } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 
 interface FormValues {
   customEventName: string;
@@ -363,11 +361,21 @@ interface CustomEventTypeModalProps {
   event: EventNameObjectType;
   isNameFieldSplit: boolean;
   customClassNames?: CustomEventTypeModalClassNames;
+  isPlatform?: boolean;
 }
 
 const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   const { t } = useLocale();
-  const { defaultValue, placeHolder, close, setValue, event, isNameFieldSplit, customClassNames } = props;
+  const {
+    defaultValue,
+    placeHolder,
+    close,
+    setValue,
+    event,
+    isNameFieldSplit,
+    customClassNames,
+    isPlatform = false,
+  } = props;
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -376,7 +384,7 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   });
 
   return (
-    <Dialog open={true} onOpenChange={close}>
+    <Dialog open={true} onOpenChange={close} isPlatform={isPlatform}>
       <DialogContent
         title={t("custom_event_name")}
         description={t("custom_event_name_description")}

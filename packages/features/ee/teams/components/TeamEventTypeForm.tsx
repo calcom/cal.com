@@ -1,18 +1,15 @@
-import type { ReactNode } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type { createEventTypeInput } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { ReactNode } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
-import { createEventTypeInput } from "@calcom/features/eventtypes/lib/types";
 
 type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
 
@@ -28,6 +25,7 @@ type props = {
   handleSubmit: (values: CreateEventTypeFormValues) => void;
   isManagedEventType: boolean;
   SubmitButton: (isPending: boolean) => ReactNode;
+  isPlatform?: boolean;
 };
 export const TeamEventTypeForm = ({
   permissions,
@@ -39,9 +37,8 @@ export const TeamEventTypeForm = ({
   handleSubmit,
   isManagedEventType,
   SubmitButton,
+  isPlatform = false,
 }: props) => {
-  const isPlatform = useIsPlatform();
-
   const { t } = useLocale();
 
   const { register, setValue, formState } = form;

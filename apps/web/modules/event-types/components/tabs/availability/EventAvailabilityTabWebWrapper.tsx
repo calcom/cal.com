@@ -1,13 +1,19 @@
-import { useFormContext } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
+import {
+  EventAvailabilityTab,
+  type HostSchedulesQueryType,
+  type TeamMember,
+} from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type {
+  EventTypeSetup,
+  FormValues,
+} from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { useFormContext } from "react-hook-form";
 
-import type { TeamMembers } from "../../EventType";
-import { EventAvailabilityTab } from "./EventAvailabilityTab";
+type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
@@ -19,57 +25,81 @@ export type EventAvailabilityTabWebWrapperProps = {
 export type GetAllSchedulesByUserIdQueryType =
   typeof trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
 
-const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperProps) => {
+const EventAvailabilityTabWebWrapper = (
+  props: EventAvailabilityTabWebWrapperProps
+) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
   const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
 
-  const { isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
-    eventType: props.eventType,
-    translate: t,
-    formMethods,
-  });
+  const { isManagedEventType, isChildrenManagedEventType } =
+    useLockedFieldsManager({
+      eventType: props.eventType,
+      translate: t,
+      formMethods,
+    });
 
   // Check if team has restriction schedule feature enabled
-  const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
-    {
-      teamId: props.eventType.team?.id || 0,
-      feature: "restriction-schedule",
-    },
-    {
-      enabled: !!props.eventType.team?.id,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    }
-  );
+  const { data: isRestrictionScheduleEnabled = false } =
+    trpc.viewer.features.checkTeamFeature.useQuery(
+      {
+        teamId: props.eventType.team?.id || 0,
+        feature: "restriction-schedule",
+      },
+      {
+        enabled: !!props.eventType.team?.id,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      }
+    );
 
   const { isPending: isSchedulePending, data: scheduleQueryData } =
     trpc.viewer.availability.schedule.get.useQuery(
       {
         scheduleId:
-          scheduleId || (!props.isTeamEvent ? props.user?.defaultScheduleId : undefined) || undefined,
+          scheduleId ||
+          (!props.isTeamEvent ? props.user?.defaultScheduleId : undefined) ||
+          undefined,
         isManagedEventType: isManagedEventType || isChildrenManagedEventType,
       },
-      { enabled: !!scheduleId || (!props.isTeamEvent && !!props.user?.defaultScheduleId) }
+      {
+        enabled:
+          !!scheduleId ||
+          (!props.isTeamEvent && !!props.user?.defaultScheduleId),
+      }
     );
 
-  const { isPending: isRestrictionSchedulePending, data: restrictionScheduleQueryData } =
-    trpc.viewer.availability.schedule.get.useQuery(
-      {
-        scheduleId: restrictionScheduleId || undefined,
-        isManagedEventType: isManagedEventType || isChildrenManagedEventType,
-      },
-      { enabled: !!restrictionScheduleId }
-    );
+  const {
+    isPending: isRestrictionSchedulePending,
+    data: restrictionScheduleQueryData,
+  } = trpc.viewer.availability.schedule.get.useQuery(
+    {
+      scheduleId: restrictionScheduleId || undefined,
+      isManagedEventType: isManagedEventType || isChildrenManagedEventType,
+    },
+    { enabled: !!restrictionScheduleId }
+  );
 
   const { data: schedulesQueryData, isPending: isSchedulesPending } =
     trpc.viewer.availability.list.useQuery(undefined);
 
-  const hostSchedulesQuery = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
+  const hostSchedulesQuery = (({ userId }: { userId: number }) =>
+    trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
+      userId,
+    })) as HostSchedulesQueryType;
+
+  const transformedTeamMembers: TeamMember[] = props.teamMembers.map(
+    (member) => ({
+      avatar: member.avatar,
+      name: member.name,
+      id: member.id,
+    })
+  );
 
   return (
     <EventAvailabilityTab
       {...props}
+      teamMembers={transformedTeamMembers}
       schedulesQueryData={schedulesQueryData?.schedules}
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}

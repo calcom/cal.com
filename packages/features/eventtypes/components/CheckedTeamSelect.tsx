@@ -1,10 +1,10 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
-import type { Options, Props } from "react-select";
-
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import type {
+  PriorityDialogCustomClassNames,
+  WeightDialogCustomClassNames,
+} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,12 +14,9 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import type {
-  PriorityDialogCustomClassNames,
-  WeightDialogCustomClassNames,
-} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
+import type { Options, Props } from "react-select";
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -55,6 +52,7 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  isPlatform = false,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,8 +61,8 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  isPlatform?: boolean;
 }) => {
-  const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
 

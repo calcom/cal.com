@@ -1,14 +1,11 @@
-import { noop } from "@tanstack/react-table";
-import { formatInTimeZone } from "date-fns-tz";
-
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger } from "@calcom/ui/components/dialog";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { noop } from "@tanstack/react-table";
+import { formatInTimeZone } from "date-fns-tz";
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
 const sortByDate = (a: { ranges: TimeRange[]; id: string }, b: { ranges: TimeRange[]; id: string }) => {
@@ -34,6 +31,7 @@ const DateOverrideList = ({
   weekStart = 0,
   handleAvailabilityUpdate = noop,
   isDryRun = false,
+  isPlatform = false,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -46,9 +44,9 @@ const DateOverrideList = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
   isDryRun?: boolean;
+  isPlatform?: boolean;
 }) => {
   const { t, i18n } = useLocale();
-  const isPlatform = useIsPlatform();
 
   const unsortedFieldArrayMap = fields.reduce(
     (map: { [id: string]: number }, { id }, index) => ({ ...map, [id]: index }),

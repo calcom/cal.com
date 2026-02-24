@@ -7,15 +7,17 @@ import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
 import CredentialActionsDropdown from "@calcom/web/modules/apps/components/CredentialActionsDropdown";
-import { CalendarSwitch } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 import AdditionalCalendarSelector from "@calcom/web/modules/calendars/components/AdditionalCalendarSelector";
+import { CalendarSwitch } from "@calcom/web/modules/calendars/components/CalendarSwitch";
 import Link from "next/link";
 import React from "react";
 
-export enum SelectedCalendarSettingsScope {
-  User = "user",
-  EventType = "eventType",
-}
+export const SelectedCalendarSettingsScope = {
+  User: "user",
+  EventType: "eventType",
+} as const;
+export type SelectedCalendarSettingsScope =
+  (typeof SelectedCalendarSettingsScope)[keyof typeof SelectedCalendarSettingsScope];
 
 type SelectedCalendarsSettingsWebWrapperProps = {
   onChanged?: () => unknown | Promise<unknown>;

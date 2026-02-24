@@ -1,10 +1,17 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from "react";
 
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type {
@@ -14,12 +21,12 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EventAdvancedTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
-import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab";
-import type { EventAvailabilityTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
-import type { EventLimitsTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
-import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/recurring/RecurringEventController";
-import type { EventSetupTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
+import type { EventAdvancedTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
+import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/assignment/EventTeamAssignmentTab";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventLimitsTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
+import type { EventRecurringTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/recurring/RecurringEventController";
+import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
@@ -27,7 +34,10 @@ import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
+import {
+  useAtomsEventTypeById,
+  QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY,
+} from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
@@ -74,7 +84,15 @@ const EventType = forwardRef<
   EventTypeSetupProps & EventTypePlatformWrapperProps
 >(function EventType(props, ref) {
   const {
-    tabs = ["setup", "availability", "team", "limits", "advanced", "recurring", "payments"],
+    tabs = [
+      "setup",
+      "availability",
+      "team",
+      "limits",
+      "advanced",
+      "recurring",
+      "payments",
+    ],
     onSuccess,
     onError,
     onDeleteSuccess,
@@ -92,8 +110,10 @@ const EventType = forwardRef<
   const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const { eventType, locationOptions, team, teamMembers, destinationCalendar } = restProps;
-  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
+  const { eventType, locationOptions, team, teamMembers, destinationCalendar } =
+    restProps;
+  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] =
+    useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
 
   const handleDeleteSuccess = () => {
@@ -138,12 +158,17 @@ const EventType = forwardRef<
         ...child,
         created: true,
       }));
-      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+      currentValues.assignAllTeamMembers =
+        currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       if (!disableToasts) {
-        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+        toast({
+          description: t("event_type_updated_successfully", {
+            eventTypeTitle: eventType.title,
+          }),
+        });
       }
       onSuccess?.(currentValues);
       callbacksRef.current?.onSuccess?.();
@@ -172,7 +197,11 @@ const EventType = forwardRef<
       if (!isDryRun) {
         updateMutation.mutate(data);
       } else {
-        toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+        toast({
+          description: t("event_type_updated_successfully", {
+            eventTypeTitle: eventType.title,
+          }),
+        });
         callbacksRef.current?.onSuccess?.();
       }
     },
@@ -182,10 +211,16 @@ const EventType = forwardRef<
   // Create a ref for the save button to trigger its click
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+  const callbacksRef = useRef<{
+    onSuccess?: () => void;
+    onError?: (error: Error) => void;
+  }>({});
 
   const handleFormSubmit = useCallback(
-    (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+    (customCallbacks?: {
+      onSuccess?: () => void;
+      onError?: (error: Error) => void;
+    }) => {
       if (customCallbacks) {
         callbacksRef.current = customCallbacks;
       }
@@ -224,7 +259,10 @@ const EventType = forwardRef<
   );
   const slug = form.watch("slug") ?? eventType.slug;
 
-  const showToast = (message: string, _variant: "success" | "warning" | "error") => {
+  const showToast = (
+    message: string,
+    _variant: "success" | "warning" | "error"
+  ) => {
     if (!disableToasts) {
       toast({ description: message });
     }
@@ -273,11 +311,16 @@ const EventType = forwardRef<
         isUserLoading={isUserLoading}
         showToast={showToast}
         customClassNames={customClassNames?.eventAdvancedTab}
+        orgId={organizationId}
       />
     ) : (
       <></>
     ),
-    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
+    payments: tabs.includes("payments") ? (
+      <EventPaymentsTabPlatformWrapper eventType={eventType} />
+    ) : (
+      <></>
+    ),
     limits: tabs.includes("limits") ? (
       <EventLimitsTabPlatformWrapper
         eventType={eventType}
@@ -325,7 +368,10 @@ const EventType = forwardRef<
     if (allowDelete && !isDryRun) {
       isTeamEventTypeDeleted.current = true;
       team?.id
-        ? deleteTeamEventTypeMutation.mutate({ eventTypeId: id, teamId: team.id })
+        ? deleteTeamEventTypeMutation.mutate({
+            eventTypeId: id,
+            teamId: team.id,
+          })
         : deleteMutation.mutate(id);
     }
 
@@ -358,7 +404,8 @@ const EventType = forwardRef<
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
         allowDelete={allowDelete}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+      >
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog

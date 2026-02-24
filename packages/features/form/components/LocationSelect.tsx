@@ -1,12 +1,10 @@
+import type { EventLocationType } from "@calcom/app-store/locations";
+import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
+import classNames from "@calcom/ui/classNames";
+import { Select } from "@calcom/ui/components/form";
+import { LinkIcon, MapIcon, MapPinIcon, PhoneIcon, VideoIcon } from "@coss/ui/icons";
 import type { GroupBase, Props, SingleValue } from "react-select";
 import { components } from "react-select";
-
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Select } from "@calcom/ui/components/form";
-import classNames from "@calcom/ui/classNames";
-import { LinkIcon, MapIcon, MapPinIcon, PhoneIcon, VideoIcon } from "@coss/ui/icons";
 
 export type LocationSelectCustomClassNames = {
   optionIcon?: string;
@@ -36,14 +34,14 @@ const OptionWithIcon = ({
   label,
   value,
   customClassNames,
+  isPlatform = false,
 }: {
   icon?: string;
   label: string;
   value: string;
   customClassNames?: LocationSelectCustomClassNames;
+  isPlatform?: boolean;
 }) => {
-  const isPlatform = useIsPlatform();
-
   const getIconFromValue = (value: string) => {
     switch (value) {
       case "phone":
@@ -82,9 +80,12 @@ const OptionWithIcon = ({
 
 export default function LocationSelect({
   customClassNames,
+  isPlatform = false,
   ...props
-}: Props<LocationOption, false, GroupOptionType> & { customClassNames?: LocationSelectCustomClassNames }) {
-  const isPlatform = useIsPlatform();
+}: Props<LocationOption, false, GroupOptionType> & {
+  customClassNames?: LocationSelectCustomClassNames;
+  isPlatform?: boolean;
+}) {
   const { innerClassNames: propsInnerClassNames, ...restProps } = props as typeof props & {
     innerClassNames?: {
       option?: string;
@@ -109,6 +110,7 @@ export default function LocationSelect({
                   label={props.data.label}
                   value={props.data.value}
                   customClassNames={customClassNames}
+                  isPlatform={isPlatform}
                 />
               </div>
             </components.Option>
@@ -123,6 +125,7 @@ export default function LocationSelect({
                   label={props.data.label}
                   value={props.data.value}
                   customClassNames={customClassNames}
+                  isPlatform={isPlatform}
                 />
               </div>
             </components.SingleValue>

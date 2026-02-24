@@ -1,20 +1,18 @@
-import { useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Header } from "@calcom/features/bookings/components/Header";
-import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { Header } from "@calcom/features/bookings/components/Header";
+import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "./components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
-
+import { LargeCalendar } from "./components/LargeCalendar";
+import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { formatUsername } from "../booker/BookerPlatformWrapper";
 import type {
   CalendarViewPlatformWrapperAtomPropsForIndividual,
@@ -132,6 +130,7 @@ export const EventTypeCalendarViewComponent = (
           extraDays={7}
           isMobile={false}
           nextSlots={6}
+          isPlatform={true}
         />
       </BookerSection>
       <BookerSection

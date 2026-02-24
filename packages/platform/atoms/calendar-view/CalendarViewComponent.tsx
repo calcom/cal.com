@@ -1,8 +1,7 @@
 import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
-import { LargeCalendar } from "./components/LargeCalendar";
 import { bookerLayoutOptions } from "@calcom/prisma/zod-utils";
-
+import { LargeCalendar } from "./components/LargeCalendar";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
 export const CalendarViewComponent = () => {
@@ -17,6 +16,7 @@ export const CalendarViewComponent = () => {
           extraDays={7}
           isMobile={false}
           nextSlots={6}
+          isPlatform={true}
         />
       </BookerSection>
       <BookerSection

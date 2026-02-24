@@ -1,16 +1,14 @@
-import { AtomsWrapper } from "@/components/atoms-wrapper";
-
+import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
-import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
-
-import { useCreateEventTypeForm } from "../../hooks/event-types/private/useCreateEventTypeForm";
 import { useCreateEventType } from "../../hooks/event-types/private/useCreateEventType";
+import { useCreateEventTypeForm } from "../../hooks/event-types/private/useCreateEventTypeForm";
 import { useCreateTeamEventType } from "../../hooks/event-types/private/useCreateTeamEventType";
 import { useTeams } from "../../hooks/teams/useTeams";
 import { cn } from "../../src/lib/utils";
+import { AtomsWrapper } from "@/components/atoms-wrapper";
 
 type ActionButtonsClassNames = {
   container?: string;
@@ -91,6 +89,7 @@ export const CreateEventTypePlatformWrapper = ({
         isPending={createTeamEventTypeQuery.isPending}
         form={form}
         isManagedEventType={isManagedEventType}
+        isPlatform={true}
         handleSubmit={(values) => {
           !isDryRun &&
             createTeamEventTypeQuery.mutate({
@@ -121,6 +120,7 @@ export const CreateEventTypePlatformWrapper = ({
         isPending={createEventTypeQuery.isPending}
         form={form}
         isManagedEventType={isManagedEventType}
+        isPlatform={true}
         handleSubmit={(values) => {
           !isDryRun &&
             createEventTypeQuery.mutate({

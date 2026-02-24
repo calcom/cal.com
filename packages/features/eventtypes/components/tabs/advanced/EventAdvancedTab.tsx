@@ -1,43 +1,25 @@
-import { useState, Suspense, useMemo, useEffect } from "react";
-import type { Dispatch, SetStateAction } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import {
-  SelectedCalendarsSettingsWebWrapper,
-  SelectedCalendarSettingsScope,
-  SelectedCalendarsSettingsWebWrapperSkeleton,
-} from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
-import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
-import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
-  FormValues,
-  EventTypeSetupProps,
-  SelectClassNames,
   CheckboxClassNames,
+  EventTypeSetupProps,
+  FormValues,
   InputClassNames,
+  SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { FormBuilder } from "./FormBuilder";
-import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
-  DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
+  DEFAULT_LIGHT_BRAND_COLOR,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -46,33 +28,82 @@ import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import type { EditableSchema } from "@calcom/prisma/zod-utils";
-import type { fieldSchema } from "@calcom/prisma/zod-utils";
+import type { EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
-  SelectField,
-  ColorPicker,
-  TextField,
-  Label,
   CheckboxField,
-  Switch,
-  SettingsToggle,
+  ColorPicker,
+  Label,
   Select,
+  SelectField,
+  SettingsToggle,
+  Switch,
+  TextField,
 } from "@calcom/ui/components/form";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
-
+import type { ComponentType, Dispatch, SetStateAction } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { z } from "zod";
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
+import { FormBuilder } from "./FormBuilder";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+// Slot component prop types
+export type SelectedCalendarsSettingsSlotProps = {
+  eventTypeId: number;
+  disabledScope: "user" | "eventType";
+  disableConnectionModification: boolean;
+  scope: "user" | "eventType";
+  destinationCalendarId?: string;
+  setScope: (scope: "user" | "eventType") => void;
+};
+
+export type BookerLayoutSelectorSlotProps = {
+  fallbackToUserSettings: boolean;
+  isDark: boolean;
+  isOuterBorder: boolean;
+  user?: EventAdvancedBaseProps["user"];
+  isUserLoading?: boolean;
+};
+
+export type MultiplePrivateLinksControllerSlotProps = {
+  team: EventAdvancedBaseProps["team"];
+  bookerUrl: string;
+  setMultiplePrivateLinksVisible: Dispatch<SetStateAction<boolean>>;
+  userTimeZone: string;
+};
+
+export type AddVerifiedEmailSlotProps = {
+  username: string;
+  showToast: EventAdvancedBaseProps["showToast"];
+};
+
+export type TimezoneSelectSlotProps = {
+  id: string;
+  value: string;
+  onChange: (event: { value: string } | null) => void;
+};
+
+// Slots type for web-specific components
+export type EventAdvancedTabSlots = {
+  SelectedCalendarsSettings?: ComponentType<SelectedCalendarsSettingsSlotProps> | null;
+  SelectedCalendarsSettingsSkeleton?: ComponentType | null;
+  BookerLayoutSelector?: ComponentType<BookerLayoutSelectorSlotProps> | null;
+  MultiplePrivateLinksController?: ComponentType<MultiplePrivateLinksControllerSlotProps> | null;
+  AddVerifiedEmail?: ComponentType<AddVerifiedEmailSlotProps> | null;
+  TimezoneSelect?: ComponentType<TimezoneSelectSlotProps> | null;
+};
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -137,6 +168,9 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   showBookerLayoutSelector: boolean;
   localeOptions?: { value: string; label: string }[];
   verifiedEmails?: string[];
+  slots?: EventAdvancedTabSlots;
+  isPlatform?: boolean;
+  platformClientId?: string;
 };
 
 type CalendarSettingsProps = {
@@ -154,6 +188,8 @@ type CalendarSettingsProps = {
   userEmail: string;
   isTeamEventType: boolean;
   isChildrenManagedEventType: boolean;
+  slots?: EventAdvancedTabSlots;
+  isPlatform?: boolean;
 };
 
 const destinationCalendarComponents = {
@@ -168,7 +204,7 @@ const destinationCalendarComponents = {
     userEmail,
     isTeamEventType,
     showToast,
-  }: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType"> & {
+  }: Omit<CalendarSettingsProps, "eventType" | "isChildrenManagedEventType" | "slots"> & {
     showConnectedCalendarSettings: boolean;
   }) {
     const { t } = useLocale();
@@ -321,12 +357,24 @@ const destinationCalendarComponents = {
   },
 };
 
+const SelectedCalendarsSettingsSkeletonDefault = () => (
+  <div className="border-subtle mt-4 rounded-lg border p-4">
+    <div className="bg-emphasis h-6 w-48 animate-pulse rounded-md" />
+    <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
+  </div>
+);
+
 const calendarComponents = {
-  CalendarSettingsSkeleton() {
+  CalendarSettingsSkeleton({
+    SelectedCalendarsSettingsSkeleton,
+  }: {
+    SelectedCalendarsSettingsSkeleton?: ComponentType | null;
+  }) {
+    const Skeleton = SelectedCalendarsSettingsSkeleton || SelectedCalendarsSettingsSkeletonDefault;
     return (
       <div>
         <destinationCalendarComponents.DestinationCalendarSettingsSkeleton />
-        <SelectedCalendarsSettingsWebWrapperSkeleton />
+        <Skeleton />
       </div>
     );
   },
@@ -343,27 +391,35 @@ const calendarComponents = {
     eventNamePlaceholder,
     setShowEventNameTip,
     showToast,
+    slots,
+    isPlatform = false,
   }: CalendarSettingsProps) {
     const formMethods = useFormContext<FormValues>();
     /**
      * Only display calendar selector if user has connected calendars AND if it's not
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
-
-    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
       !!calendarsQuery.data?.connectedCalendars.length && isConnectedCalendarSettingsApplicable;
 
     const selectedCalendarSettingsScope = formMethods.getValues("useEventLevelSelectedCalendars")
-      ? SelectedCalendarSettingsScope.EventType
-      : SelectedCalendarSettingsScope.User;
+      ? "eventType"
+      : "user";
 
     const destinationCalendar = calendarsQuery.data?.destinationCalendar;
     if (isConnectedCalendarSettingsLoading && isConnectedCalendarSettingsApplicable) {
-      return <calendarComponents.CalendarSettingsSkeleton />;
+      return (
+        <calendarComponents.CalendarSettingsSkeleton
+          SelectedCalendarsSettingsSkeleton={slots?.SelectedCalendarsSettingsSkeleton}
+        />
+      );
     }
+
+    const SelectedCalendarsSettings = slots?.SelectedCalendarsSettings;
+    const SelectedCalendarsSettingsSkeleton =
+      slots?.SelectedCalendarsSettingsSkeleton || SelectedCalendarsSettingsSkeletonDefault;
 
     return (
       <div>
@@ -383,16 +439,16 @@ const calendarComponents = {
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
+                  <Suspense fallback={<SelectedCalendarsSettingsSkeleton />}>
+                    {!isPlatform && SelectedCalendarsSettings && (
+                      <SelectedCalendarsSettings
                         eventTypeId={eventType.id}
-                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disabledScope="user"
                         disableConnectionModification={true}
                         scope={selectedCalendarSettingsScope}
                         destinationCalendarId={destinationCalendar?.externalId}
                         setScope={(scope) => {
-                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          const chosenScopeIsEventLevel = scope === "eventType";
                           formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
                             shouldDirty: true,
                           });
@@ -421,9 +477,10 @@ export const EventAdvancedTab = ({
   verifiedEmails,
   orgId,
   localeOptions,
+  slots,
+  isPlatform = false,
+  platformClientId,
 }: EventAdvancedTabProps) => {
-  const isPlatform = useIsPlatform();
-  const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
@@ -585,12 +642,12 @@ export const EventAdvancedTab = ({
 
   let userEmail = user?.email || "";
 
-  if (isPlatform && platformContext.clientId) {
+  if (isPlatform && platformClientId) {
     verifiedSecondaryEmails = verifiedSecondaryEmails.map((email) => ({
       ...email,
-      label: removePlatformClientIdFromEmail(email.label, platformContext.clientId),
+      label: removePlatformClientIdFromEmail(email.label, platformClientId),
     }));
-    userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
+    userEmail = removePlatformClientIdFromEmail(userEmail, platformClientId);
   }
 
   const metadata = formMethods.watch("metadata");
@@ -608,9 +665,12 @@ export const EventAdvancedTab = ({
     [paymentAppData]
   );
 
-  const TimezoneSelect = useMemo(() => {
-    return isPlatform ? PlatformTimzoneSelect : WebTimezoneSelect;
-  }, [isPlatform]);
+  // Use timezone select from slots (platform or web specific)
+  const TimezoneSelect = slots?.TimezoneSelect;
+
+  const BookerLayoutSelector = slots?.BookerLayoutSelector;
+  const MultiplePrivateLinksController = slots?.MultiplePrivateLinksController;
+  const AddVerifiedEmail = slots?.AddVerifiedEmail;
 
   return (
     <div className="stack-y-4 flex flex-col">
@@ -626,8 +686,10 @@ export const EventAdvancedTab = ({
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
         eventType={eventType}
+        slots={slots}
+        isPlatform={isPlatform}
       />
-      {showBookerLayoutSelector && (
+      {showBookerLayoutSelector && BookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
           isDark={selectedThemeIsDark}
@@ -673,6 +735,7 @@ export const EventAdvancedTab = ({
             }}
             showPriceField={isPaidEvent}
             paymentCurrency={paymentAppData?.currency || "usd"}
+            isPlatform={isPlatform}
           />
         </div>
       </div>
@@ -994,7 +1057,7 @@ export const EventAdvancedTab = ({
           </>
         )}
       />
-      {!isPlatform && (
+      {!isPlatform && MultiplePrivateLinksController && (
         <Controller
           name="multiplePrivateLinks"
           render={() => {
@@ -1257,14 +1320,16 @@ export const EventAdvancedTab = ({
                           <Label className="text-default mb-2 block text-sm font-medium">
                             <>{t("timezone")}</>
                           </Label>
-                          <TimezoneSelect
-                            id="lockedTimeZone"
-                            value={value ?? "Europe/London"}
-                            onChange={(event) => {
-                              if (event)
-                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                            }}
-                          />
+                          {TimezoneSelect && (
+                            <TimezoneSelect
+                              id="lockedTimeZone"
+                              value={value ?? "Europe/London"}
+                              onChange={(event) => {
+                                if (event)
+                                  formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                              }}
+                            />
+                          )}
                         </>
                       )}
                     />
@@ -1343,7 +1408,7 @@ export const EventAdvancedTab = ({
                       : null
                   );
                 }}>
-                {isPlatform && (
+                {isPlatform && AddVerifiedEmail && (
                   <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
                 )}
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -1557,6 +1622,7 @@ export const EventAdvancedTab = ({
                     recipient="attendees"
                     customClassNames={customClassNames?.emailNotifications}
                     t={t}
+                    isPlatform={isPlatform}
                   />
                 </>
               );
@@ -1573,6 +1639,7 @@ export const EventAdvancedTab = ({
                   recipient="hosts"
                   customClassNames={customClassNames?.emailNotifications}
                   t={t}
+                  isPlatform={isPlatform}
                 />
               </>
             )}
@@ -1588,6 +1655,7 @@ export const EventAdvancedTab = ({
           isNameFieldSplit={isSplit}
           event={eventNameObject}
           customClassNames={customClassNames?.customEventTypeModal}
+          isPlatform={isPlatform}
         />
       )}
     </div>
