@@ -29,7 +29,6 @@
     "edit-app-template": "yarn app-store edit-template",
     "delete-app-template": "yarn app-store delete-template",
     "build": "turbo run build --filter=@calcom/web...",
-    "build:queue": "turbo run build --filter=@calid/queue...",
     "build:worker": "turbo run @calid/worker#build",
     "build:engine": "turbo run @calid/job-engine#build",
     "build:ai": "turbo run build --scope=\"@calcom/ai\"",
