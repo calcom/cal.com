@@ -117,7 +117,7 @@ export class WorkflowsRepository {
         user: {
           ...user,
           locale: user?.locale ?? "en",
-          organization: { id: user.profiles?.[0]?.organization?.id ?? null },
+          organizationId: user.profiles?.[0]?.organization?.id ?? null,
         },
         prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
@@ -139,7 +139,7 @@ export class WorkflowsRepository {
         user: {
           ...user,
           locale: user?.locale ?? "en",
-          organization: { id: user.profiles?.[0]?.organization?.id ?? null },
+          organizationId: user.profiles?.[0]?.organization?.id ?? null,
         },
         prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
