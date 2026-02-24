@@ -6,7 +6,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { sendMonthlyDigestEmail } from "@calcom/emails/workflow-email-service";
 import { EventsInsights } from "@calcom/features/insights/server/events";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
