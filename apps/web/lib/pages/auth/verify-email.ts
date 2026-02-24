@@ -106,8 +106,9 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     await cleanUpVerificationTokens(foundToken.id);
 
-    const isSafePath = redirectTo?.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.startsWith("/\\");
-    let redirectPath = isSafePath ? redirectTo : "/settings/my-account/profile";
+    const isSafePath =
+      redirectTo?.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.startsWith("/\\");
+    let redirectPath = isSafePath && redirectTo ? redirectTo : "/settings/my-account/profile";
     if (makePrimary === "true") {
       const separator = redirectPath.includes("?") ? "&" : "?";
       redirectPath = `${redirectPath}${separator}sessionClear=1`;
