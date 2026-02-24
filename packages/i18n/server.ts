@@ -1,23 +1,27 @@
 import { createInstance } from "i18next";
 import type { i18n as I18nInstance } from "i18next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { fetchWithTimeout } from "@calcom/lib/fetchWithTimeout";
-import logger from "@calcom/lib/logger";
+const { i18n } = require("@calcom/i18n/next-i18next.config");
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-const { i18n } = require("@calcom/config/next-i18next.config");
-const path = require("node:path");
-const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
-const englishTranslations: Record<string, string> = require(translationsPath);
-/* eslint-enable @typescript-eslint/no-require-imports */
+const englishTranslations: Record<string, string> = require("@calcom/i18n/locales/en/common.json");
 
-const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
+const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, I18nInstance>();
 const SUPPORTED_NAMESPACES = ["common"];
 
+export function mergeWithEnglishFallback(localeTranslations: Record<string, string>): Record<string, string> {
+  return {
+    // IMPORTANT: Spread English translations first to provide fallback for missing keys
+    ...englishTranslations,
+    // Then spread locale translations to override English when keys exist in both
+    ...localeTranslations,
+  };
+}
+
 /**
  * Loads translations for a specific locale and namespace with optimized caching
+ * Server-side only function that loads translations directly from file system for best performance
+ * Uses @calcom/config package alias for reliable access across all packages in the monorepo
  * @param {string} _locale - The locale code (e.g., 'en', 'fr', 'zh')
  * @param {string} ns - The namespace for the translations
  * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
@@ -28,32 +32,21 @@ export async function loadTranslations(_locale: string, _ns: string) {
   const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
+  const cached = translationCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
-  const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-  try {
-    const response = await fetchWithTimeout(
-      url,
-      {
-        cache: "no-store",
-      },
-      process.env.NODE_ENV === "development" ? 30000 : 3000
-    );
-
-    if (!response.ok) {
-      logger.warn(`Failed to fetch translations for ${locale}: ${response.status}, falling back to English`);
-      return englishTranslations;
-    }
-
-    const translations = await response.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (err) {
-    logger.warn(`Failed to load translations for ${locale}, falling back to English:`, err);
+  if (locale === "en") {
+    translationCache.set(cacheKey, englishTranslations);
     return englishTranslations;
   }
+
+  const { default: localeTranslations } = await import(`./locales/${locale}/${ns}.json`);
+
+  const mergedTranslations = mergeWithEnglishFallback(localeTranslations);
+  translationCache.set(cacheKey, mergedTranslations);
+  return mergedTranslations;
 }
 
 /**
