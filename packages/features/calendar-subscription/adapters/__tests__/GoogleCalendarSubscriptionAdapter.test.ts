@@ -488,6 +488,88 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       expect(result.syncToken).toBe("final-sync-token");
     });
 
+    test("should retry with full sync when Google returns 410 (expired sync token)", async () => {
+      const fullSyncResponse = {
+        data: {
+          nextSyncToken: "fresh-sync-token",
+          items: [
+            {
+              id: "event-1",
+              ...commonEventData,
+              start: { dateTime: oneWeekFromNow.toISOString() },
+              end: { dateTime: eventEndTime.toISOString() },
+            },
+          ],
+        },
+      };
+
+      const error410 = new Error("Sync token is no longer valid, a full sync is required.");
+      (error410 as unknown as { code: number }).code = 410;
+
+      mockClient.events.list.mockRejectedValueOnce(error410).mockResolvedValueOnce(fullSyncResponse);
+
+      const result = await adapter.fetchEvents(mockSelectedCalendar, mockCredential);
+
+      expect(mockClient.events.list).toHaveBeenCalledTimes(2);
+
+      // First call used the stale syncToken
+      expect(mockClient.events.list).toHaveBeenNthCalledWith(1, {
+        calendarId: "test@example.com",
+        pageToken: undefined,
+        singleEvents: true,
+        syncToken: "test-sync-token",
+      });
+
+      // Second call is a full sync (timeMin/timeMax, no syncToken)
+      const secondCall = mockClient.events.list.mock.calls[1][0];
+      expect(secondCall.syncToken).toBeUndefined();
+      expect(secondCall.timeMin).toBeDefined();
+      expect(secondCall.timeMax).toBeDefined();
+
+      expect(result.syncToken).toBe("fresh-sync-token");
+      expect(result.items).toHaveLength(1);
+    });
+
+    test("should not retry on 410 when there is no sync token", async () => {
+      const calendarWithoutSyncToken = {
+        ...mockSelectedCalendar,
+        syncToken: null,
+      };
+
+      const error410 = new Error("Gone");
+      (error410 as unknown as { code: number }).code = 410;
+
+      mockClient.events.list.mockRejectedValueOnce(error410);
+
+      await expect(adapter.fetchEvents(calendarWithoutSyncToken, mockCredential)).rejects.toThrow("Gone");
+      expect(mockClient.events.list).toHaveBeenCalledTimes(1);
+    });
+
+    test("should not retry 410 twice (isRetry guard)", async () => {
+      const error410 = new Error("Sync token is no longer valid, a full sync is required.");
+      (error410 as unknown as { code: number }).code = 410;
+
+      // First call fails with 410 (triggers retry), second call also fails with 410 (should not retry again)
+      mockClient.events.list.mockRejectedValueOnce(error410).mockRejectedValueOnce(error410);
+
+      await expect(adapter.fetchEvents(mockSelectedCalendar, mockCredential)).rejects.toThrow(
+        "Sync token is no longer valid"
+      );
+      expect(mockClient.events.list).toHaveBeenCalledTimes(2);
+    });
+
+    test("should propagate non-410 errors", async () => {
+      const error500 = new Error("Internal Server Error");
+      (error500 as unknown as { code: number }).code = 500;
+
+      mockClient.events.list.mockRejectedValueOnce(error500);
+
+      await expect(adapter.fetchEvents(mockSelectedCalendar, mockCredential)).rejects.toThrow(
+        "Internal Server Error"
+      );
+      expect(mockClient.events.list).toHaveBeenCalledTimes(1);
+    });
+
     test("should filter out events without ID", async () => {
       const mockEventsResponse = {
         data: {

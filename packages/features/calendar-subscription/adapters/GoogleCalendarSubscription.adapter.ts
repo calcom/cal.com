@@ -103,7 +103,8 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
   async fetchEvents(
     selectedCalendar: SelectedCalendar,
-    credential: CalendarCredential
+    credential: CalendarCredential,
+    isRetry = false
   ): Promise<CalendarSubscriptionEvent> {
     log.info("Attempt to fetch events from Google Calendar", { externalId: selectedCalendar.externalId });
     const client = await this.getClient(credential);
@@ -132,17 +133,26 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     }
 
     const events: calendar_v3.Schema$Event[] = [];
-    do {
-      const { data }: { data: calendar_v3.Schema$Events } = await client.events.list(params);
+    try {
+      do {
+        const { data }: { data: calendar_v3.Schema$Events } = await client.events.list(params);
 
-      syncToken = data.nextSyncToken || syncToken;
-      pageToken = data.nextPageToken ?? null;
-      if (pageToken) {
-        params.pageToken = pageToken;
+        syncToken = data.nextSyncToken || syncToken;
+        pageToken = data.nextPageToken ?? null;
+        if (pageToken) {
+          params.pageToken = pageToken;
+        }
+
+        events.push(...(data.items || []));
+      } while (pageToken);
+    } catch (error) {
+      const err = error as { code?: number };
+      if (err.code === 410 && params.syncToken && !isRetry) {
+        log.info("Sync token expired, performing full sync", { externalId: selectedCalendar.externalId });
+        return this.fetchEvents({ ...selectedCalendar, syncToken: null }, credential, true);
       }
-
-      events.push(...(data.items || []));
-    } while (pageToken);
+      throw error;
+    }
 
     return {
       provider: "google_calendar",
