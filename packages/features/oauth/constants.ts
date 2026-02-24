@@ -35,6 +35,14 @@ export function parseScopeParam(scopeParam: string | null | undefined): string[]
   return scopeParam.split(/[, ]+/).filter(Boolean);
 }
 
+export function isLegacyScope(scope: string): boolean {
+  return scope === "READ_BOOKING" || scope === "READ_PROFILE";
+}
+
+export function isLegacyClient(clientScopes: string[]): boolean {
+  return clientScopes.length === 0 || clientScopes.every(isLegacyScope);
+}
+
 export type NewAccessScope = Exclude<AccessScope, "READ_BOOKING" | "READ_PROFILE">;
 
 export const SCOPE_TO_PERMISSION: Record<NewAccessScope, number> = {

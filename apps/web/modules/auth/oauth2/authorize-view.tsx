@@ -1,6 +1,6 @@
 "use client";
 
-import { SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { getScopeDisplayItems, resolveScopesForTokens } from "./scopes";
+import { getScopeDisplayItems } from "./scopes";
 
 export function Authorize() {
   const { t } = useLocale();
@@ -91,9 +91,9 @@ export function Authorize() {
     }
   }, [isPendingProfiles, show_account_selector]);
 
-  const effectiveScopes = resolveScopesForTokens(scope, client?.scopes ?? []);
+  const isLegacy = isLegacyClient(client?.scopes ?? []);
+  const effectiveScopes = parseScopeParam(scope);
 
-  // Auto-authorize trusted clients
   useEffect(() => {
     if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
@@ -217,12 +217,45 @@ export function Authorize() {
           {t("allow_client_to", { clientName: client.name })}
         </div>
         <ul className="text-sm stack-y-3">
-          {getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
-            <li key={idx} className="relative pl-5">
-              <span className="absolute left-0">&#10003;</span>
-              {label}
-            </li>
-          ))}
+          {isLegacy ? (
+            <>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>{" "}
+                {t("associate_with_cal_account", { clientName: client.name })}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("see_personal_info")}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("see_primary_email_address")}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("connect_installed_apps")}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("access_event_type")}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("access_availability")}
+              </li>
+              <li className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {t("access_bookings")}
+              </li>
+            </>
+          ) : (
+            getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
+              <li key={idx} className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {label}
+              </li>
+            ))
+          )}
         </ul>
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>

@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
@@ -108,8 +108,11 @@ export class OAuthService {
 
     this.ensureClientAccessAllowed(client, loggedInUserId);
 
-    const requestedScopes = parseScopeParam(scopeParam);
-    if (requestedScopes.length > 0) {
+    if (!isLegacyClient(client.scopes)) {
+      const requestedScopes = parseScopeParam(scopeParam);
+      if (requestedScopes.length === 0) {
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", { reason: "scope_required" });
+      }
       this.validateRequestedScopes(client.scopes, requestedScopes);
     }
 
@@ -144,11 +147,8 @@ export class OAuthService {
 
     this.validateRedirectUri(client.redirectUri, redirectUri);
 
-    const scopes: AccessScope[] =
-      requestedScopes.length === 0 && client.scopes.length > 0 ? [...client.scopes] : requestedScopes;
-
-    if (requestedScopes.length > 0) {
-      this.validateRequestedScopes(client.scopes, scopes);
+    if (!isLegacyClient(client.scopes)) {
+      this.validateRequestedScopes(client.scopes, requestedScopes);
     }
 
     if (client.clientType === "PUBLIC") {
@@ -186,7 +186,7 @@ export class OAuthService {
       clientId,
       userId: teamSlug ? undefined : loggedInUserId,
       teamId,
-      scopes,
+      scopes: requestedScopes,
       codeChallenge,
       codeChallengeMethod,
     });
@@ -241,8 +241,7 @@ export class OAuthService {
     }
   }
 
-  private validateRequestedScopes(clientScopes: AccessScope[], requestedScopes: string[]) {
-    if (clientScopes.length === 0) return;
+  private validateRequestedScopes(clientScopes: AccessScope[], requestedScopes: string[]): void {
     const invalidScopes = requestedScopes.filter(
       (requestedScope) => !clientScopes.includes(requestedScope as AccessScope)
     );
@@ -579,7 +578,8 @@ export type OAuthErrorReason =
   | "refresh_token_revoked"
   | "client_id_mismatch"
   | "encryption_key_missing"
-  | "scope_exceeds_client_registration";
+  | "scope_exceeds_client_registration"
+  | "scope_required";
 
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
@@ -600,4 +600,5 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_id_mismatch: "invalid_grant",
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
   scope_exceeds_client_registration: SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR,
+  scope_required: "scope parameter is required for this OAuth client",
 };
