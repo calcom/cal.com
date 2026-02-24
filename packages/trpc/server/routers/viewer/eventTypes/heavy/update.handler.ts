@@ -997,7 +997,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   // Reconstruct children array from pendingChildrenChanges or preserve existing children
   let resolvedChildren = children;
-  if (!children) {
+  if (!children && pendingChildrenChanges) {
     const eventTypeRepo = new EventTypeRepository(ctx.prisma);
     const existingChildren = await eventTypeRepo.findChildrenByParentId(id);
 
