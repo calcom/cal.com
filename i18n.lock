@@ -1,6 +1,8 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    background_jobs: a93c8e79149100a0cade9e6513069419
+    background_jobs_description: 623057fbf21dad2ac3d9c24d46538e69
     third_party_services: 0d7d998c4e6ff092c5c99c07cd0d57df
     third_party_services_description: 1a8733e2145c36473ac7cf5c28dbee2f
     view_response: a34180c5473c6b9f6e191b79f595db45
@@ -1309,7 +1311,12 @@ checksums:
     offer_seats: 397e1d0c97bf4c59d19893c4b5e4701a
     offer_seats_description: 9d6c5062b2f56f01fa08cc094ec0833b
     show_busy_title: 4fbcc27856b8b3b47bf4e3ddf8993c5a
-    show_busy_description: cbed37c2cdc303626ecdb4a4185ad3a0
+    show_busy_description: 4e50b23dae514160e10dd559a13d83f1
+    show_busy_percentage_placeholder: da6a89573e85ff57008a204b062132a6
+    show_busy_window_days: be91060aa52f40103be636c55c8c50e2
+    show_busy_window_type_placeholder: 5fff46c054a4c20ebd3425ac2acfaf6d
+    show_busy_window_business: e906b89c71a15737d407eb80162bb6f4
+    show_busy_window_calendar: 4e3edb798f398b7a35cc3b630488d67e
     seats_available_one: caec97a07dd26ce5d58cd0f9f7e8863d
     seats_available_other: bdb3ba6773eaabd65a2aff1bac75dc03
     seats_nearly_full: 7503d4abf1b6b4ccf5825ed773cc2b96

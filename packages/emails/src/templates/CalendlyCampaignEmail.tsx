@@ -1,3 +1,5 @@
+import React from "react";
+
 import { DEMO_URL, SIGNUP_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";

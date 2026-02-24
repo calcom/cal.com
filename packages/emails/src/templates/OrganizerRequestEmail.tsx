@@ -1,3 +1,5 @@
+import React from "react";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 

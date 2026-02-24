@@ -1,0 +1,19 @@
+{
+  "name": "@calid/queue",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bullmq": "^5.67.2",
+    "dotenv": "^17.2.4",
+    "ioredis": "^5.9.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

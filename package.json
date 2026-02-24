@@ -29,6 +29,8 @@
     "edit-app-template": "yarn app-store edit-template",
     "delete-app-template": "yarn app-store delete-template",
     "build": "turbo run build --filter=@calcom/web...",
+    "build:worker": "turbo run @calid/worker#build",
+    "build:engine": "turbo run @calid/job-engine#build",
     "build:ai": "turbo run build --scope=\"@calcom/ai\"",
     "clean": "find . -name node_modules -o -name .next -o -name .turbo -o -name dist -type d -prune | xargs rm -rf",
     "db-deploy": "turbo run db-deploy",
@@ -85,7 +87,9 @@
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
     "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish"
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish",
+    "worker:start": "turbo run @calid/worker#start",
+    "worker:dev": "turbo run @calid/worker#dev"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",

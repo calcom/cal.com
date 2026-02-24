@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "../../",
+    "paths": {
+      "@calid/job-engine/*": ["./packages/job-engine/src/*"],
+      "@calid/job-engine": ["packages/job-engine/src/index.ts"]
+    },
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  },
+  "include": ["src"]
+}

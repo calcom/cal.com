@@ -9,7 +9,7 @@
     "@calcom/prisma#generate-schemas": {
       "cache": false,
       "dependsOn": [],
-      "outputs": ["node_modules/.prisma/client/**"]
+      "outputs": ["node_modules/.prisma/**", "node_modules/@prisma/client/**"]
     },
     "@calcom/web#build": {
       "dependsOn": ["@calcom/prisma#generate-schemas"],
@@ -72,6 +72,26 @@
     "deploy": {
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-deploy"]
+    },
+    "@calid/job-engine#build": {
+      "dependsOn": ["@calcom/prisma#generate-schemas"],
+      "outputs": ["dist/**"],
+      "cache": false
+    },
+
+    "@calid/worker#build": {
+      "dependsOn": [ "@calid/job-engine#build"],
+      "outputs": ["dist/**"],
+      "cache": false
+    },
+
+    "@calid/worker#start": {
+      "cache": false,
+      "dependsOn": ["@calid/worker#build"]
+    },
+    "@calid/worker#dev": {
+      "cache": false,
+      "persistent": true
     }
   },
   "globalDependencies": ["yarn.lock"],
@@ -416,6 +436,8 @@
     "EXPOSE_SWAGGER_UI",
     "ICSMOBILE_TRANSACTION_AUTH_KEY",
     "ICSMOBILE_OTP_AUTH_KEY",
-    "ICSMOBILE_SENDERID"
+    "ICSMOBILE_SENDERID",
+    "REDIS_URL",
+    "USE_BULLMQ"
   ]
 }

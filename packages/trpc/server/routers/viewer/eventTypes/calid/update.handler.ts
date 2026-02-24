@@ -22,7 +22,7 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { SchedulingType, EventTypeAutoTranslatedField, PeriodType } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
@@ -251,7 +251,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   data.locations = locations ?? undefined;
 
   if (periodType) {
-    data.periodType = handlePeriodType(periodType);
+    const normalizedPeriodType = handlePeriodType(periodType);
+    data.periodType = normalizedPeriodType;
+    if (normalizedPeriodType === PeriodType.UNLIMITED) {
+      // Clear range-specific fields when future booking limit is turned off
+      data.periodStartDate = null;
+      data.periodEndDate = null;
+      data.periodDays = null;
+      data.periodCountCalendarDays = null;
+    }
   }
 
   if (recurringEvent) {

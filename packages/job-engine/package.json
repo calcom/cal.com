@@ -1,0 +1,18 @@
+{
+  "name": "@calid/job-engine",
+  "private": true,
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@calcom/dayjs": "*",
+    "@calcom/emails": "*",
+    "axios": "^1.6.5",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/uuid": "^11.0.0",
+    "prisma": "^7.3.0",
+    "typescript": "^5.9.3"
+  }
+}

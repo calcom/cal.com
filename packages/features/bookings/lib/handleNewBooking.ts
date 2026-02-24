@@ -134,7 +134,7 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/originalResche
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "./handleNewBooking/triggerBookingEmails";
 import type { PaymentAppData } from "./handleNewBooking/types";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -1452,8 +1452,6 @@ async function handler(
     organizerUser.id
   );
 
-  const hasConfirmationSmsWorkflow = doesHaveSmsAttendeeWorkflow(workflows, WorkflowTriggerEvents.NEW_EVENT);
-
   // Main mutable logic starts here
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2145,13 +2143,13 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
-          // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          // Send rescheduled emails asynchronously via background worker to improve reschedule response time
           const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
             workflows,
             WorkflowTriggerEvents.RESCHEDULE_EVENT
           );
 
-          await triggerBookingEmailsInngest({
+          await triggerBookingEmails({
             calEvent: {
               ...copyEvent,
               additionalInformation: metadata,
@@ -2299,8 +2297,8 @@ async function handler(
             workflows,
             WorkflowTriggerEvents.NEW_EVENT
           );
-          // Send emails asynchronously via Inngest to improve booking response time
-          await triggerBookingEmailsInngest({
+          // Send emails asynchronously via background worker to improve booking response time
+          await triggerBookingEmails({
             calEvent: {
               ...evt,
               additionalInformation,
@@ -2343,8 +2341,8 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      // Send request emails asynchronously via Inngest for pending bookings
-      await triggerBookingEmailsInngest({
+      // Send request emails asynchronously via background worker for pending bookings
+      await triggerBookingEmails({
         calEvent: { ...evt, additionalNotes },
         isHostConfirmationEmailsDisabled: false,
         isAttendeeConfirmationEmailDisabled: false,

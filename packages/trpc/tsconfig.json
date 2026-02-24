@@ -12,7 +12,10 @@
     "@calcom/lib/*": ["../lib/*"],
     "@calcom/prisma": ["../prisma"],
     "@calcom/prisma/*": ["../prisma/*"],
-    "@calcom/repository/*": ["../lib/server/repository/*"]
+    "@calcom/repository/*": ["../lib/server/repository/*"],
+    "@calid/queue":["../queue"],
+    "@calid/queue/*":["../queue/*"]
+
   },
   "include": [
     "../types/@wojtekmaj__react-daterange-picker.d.ts",
