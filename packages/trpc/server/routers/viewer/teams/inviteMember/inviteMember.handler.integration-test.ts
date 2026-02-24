@@ -124,7 +124,7 @@ vi.mock("@calcom/emails/organization-email-service", () => ({
 }));
 
 // Mock for getTranslation
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn(() => Promise.resolve((key: string) => key)),
 }));
 
