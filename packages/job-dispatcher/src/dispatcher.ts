@@ -90,7 +90,15 @@ export class JobDispatcher {
    * The caller is never blocked by the pickup polling window unless allowBlocking=true.
    */
   async dispatch<T = unknown>(input: DispatchJobInput<T>): Promise<DispatchResult> {
-    const { queue: queueName, name, data, bullmqOptions, allowBlocking = false, inngestTs } = input;
+    const {
+      queue: queueName,
+      name,
+      data,
+      bullmqOptions,
+      allowBlocking = false,
+      inngestTs,
+      forceInngest = false,
+    } = input;
 
     this.logger.info("[job-dispatcher] Dispatch called", {
       jobName: name,
@@ -100,7 +108,7 @@ export class JobDispatcher {
     });
 
     // ── Fast path: BullMQ disabled ─────────────────────────────────────────
-    if (!this.useBullmq) {
+    if (!this.useBullmq || forceInngest) {
       this.logger.info("[job-dispatcher] BullMQ disabled – routing to Inngest", { jobName: name });
       return await this.fallbackToInngest(name, data, "BullMQ disabled", inngestTs);
     }

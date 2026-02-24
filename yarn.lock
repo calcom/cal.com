@@ -4181,8 +4181,6 @@ __metadata:
     "@types/node": ^20.0.0
     bullmq: ^5.67.2
     typescript: ^5.3.0
-  peerDependencies:
-    inngest: "*"
   languageName: unknown
   linkType: soft
 
