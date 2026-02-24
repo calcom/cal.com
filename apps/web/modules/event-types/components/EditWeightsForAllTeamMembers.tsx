@@ -151,9 +151,11 @@ export const EditWeightsForAllTeamMembers = ({
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
 
-  // Initialize local weights from host data when sheet opens
+  const prevIsOpenRef = useRef(false);
+
+  // Initialize local weights only when the sheet transitions from closed to open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       const initial: Record<string, number> = {};
       for (const host of value) {
         if (!host.isFixed) {
@@ -162,6 +164,7 @@ export const EditWeightsForAllTeamMembers = ({
       }
       setLocalWeights(initial);
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, value]);
 
   const handleWeightChange = (memberId: string, weight: number) => {
@@ -262,6 +265,8 @@ export const EditWeightsForAllTeamMembers = ({
       const newWeights: Record<string, number> = { ...localWeights };
       const newErrors: Array<{ email: string; error: string }> = [];
 
+      const emailToMember = new Map(allMembers.map((m) => [m.email, m]));
+
       // Skip header row
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -270,7 +275,7 @@ export const EditWeightsForAllTeamMembers = ({
         const [, , email, weightStr] = line.split(",");
         if (!email || !weightStr) continue;
 
-        const member = allMembers.find((m) => m.email === email);
+        const member = emailToMember.get(email);
         if (!member) {
           newErrors.push({ email, error: t("member_not_found") });
           continue;

@@ -235,6 +235,7 @@ const FixedHosts = ({
             )}
           >
             <Label
+              data-testid="fixed-hosts-label"
               className={classNames(
                 "mb-1 text-sm font-semibold",
                 customClassNames?.label
@@ -535,6 +536,7 @@ const RoundRobinHosts = ({
         <div className="flex items-center justify-between">
           <div>
             <Label
+              data-testid="round-robin-hosts-label"
               className={classNames(
                 "mb-1 text-sm font-semibold",
                 customClassNames?.label
@@ -718,7 +720,8 @@ const ChildrenEventTypes = ({
   const debouncedAssignedChildrenSearch = useDebounce(assignedChildrenSearch, 300);
 
   // Paginated display of existing children
-  const pendingChanges = getValues("pendingChildrenChanges") ?? {
+  const watchedPendingChanges = useWatch<FormValues, "pendingChildrenChanges">({ name: "pendingChildrenChanges" });
+  const pendingChanges = watchedPendingChanges ?? {
     childrenToAdd: [],
     childrenToRemove: [],
     childrenToUpdate: [],

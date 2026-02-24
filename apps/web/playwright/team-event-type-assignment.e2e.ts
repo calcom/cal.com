@@ -43,6 +43,7 @@ async function createTeamWithEvent(
 
 async function navigateToAssignmentTab(page: Page, eventId: number) {
   await page.goto(`/event-types/${eventId}?tabName=team`);
+  await expect(page).toHaveURL(/event-types\/\d+\?tabName=team/);
   await page.waitForLoadState("networkidle");
   const form = page.locator("#event-type-form");
   await expect(form).toBeVisible();
@@ -82,7 +83,7 @@ test.describe("Team Event Type - Assignment Tab", () => {
 
     const form = await navigateToAssignmentTab(page, teamEvent.id);
 
-    await expect(form.getByText("Fixed hosts").first()).toBeVisible();
+    await expect(form.locator('[data-testid="fixed-hosts-label"]')).toBeVisible();
     await scrollToHost(form, TARGET_HOST, page);
   });
 
@@ -92,7 +93,7 @@ test.describe("Team Event Type - Assignment Tab", () => {
 
     const form = await navigateToAssignmentTab(page, teamEvent.id);
 
-    await expect(form.getByText("Round-robin hosts")).toBeVisible();
+    await expect(form.locator('[data-testid="round-robin-hosts-label"]')).toBeVisible();
     await scrollToHost(form, TARGET_HOST, page);
   });
 
