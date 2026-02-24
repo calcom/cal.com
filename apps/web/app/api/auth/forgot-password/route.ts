@@ -17,11 +17,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "email is required" }, { status: 400 });
   }
 
-  let ip = getIP(req) ?? email.data;
-  const forwardedFor = req.headers.get("x-forwarded-for") as string;
-  if (!ip && forwardedFor) {
-    ip = forwardedFor?.split(",").at(0) ?? email.data;
-  }
+  const ip = getIP(req) ?? email.data;
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
