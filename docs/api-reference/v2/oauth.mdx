@@ -476,6 +476,10 @@ After this step, the client is no longer treated as a legacy client. Scope valid
   Do **not** update the client scopes before updating your authorization URL. Doing so will immediately break the authorization flow for any user who visits the old URL without a `scope` parameter.
 </Warning>
 
+### Re-approval
+
+Updating scopes on a legacy client does **not** trigger re-approval as long as you only add user-level scopes (such as `BOOKING_READ`, `EVENT_TYPE_READ`, etc.). The client stays in its current approval status and no admin review is required.
+
 ### Existing tokens
 
 Tokens issued before the migration continue to work until users re-authorize. There is no forced invalidation of existing tokens during the migration.
