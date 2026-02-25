@@ -2,8 +2,13 @@
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import {
+  AppHeader,
+  AppHeaderActions,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@components/app/app-header";
 import { Button } from "@coss/ui/components/button";
-import { CardFrameDescription, CardFrameHeader, CardFrameTitle } from "@coss/ui/components/card";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -22,25 +27,22 @@ export function WebhookFormHeader({
   const { t } = useLocale();
 
   return (
-    <CardFrameHeader>
-      <div className="flex min-w-0 flex-col gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          {showBackButton && (
-            <Button
-              aria-label={t("go_back")}
-              render={<Link href="/settings/developer/webhooks" />}
-              size="icon-sm"
-              variant="ghost">
-              <ArrowLeftIcon />
-            </Button>
-          )}
-          <div className="flex-1">
-            <CardFrameTitle>{t(titleKey)}</CardFrameTitle>
-            <CardFrameDescription>{t("add_webhook_description", { appName: APP_NAME })}</CardFrameDescription>
-          </div>
-          {CTA}
-        </div>
+    <AppHeader>
+      <div className="flex min-w-0 items-start gap-3">
+        {showBackButton && (
+          <Button
+            aria-label={t("go_back")}
+            render={<Link href="/settings/developer/webhooks" />}
+            size="icon-sm"
+            variant="ghost">
+            <ArrowLeftIcon />
+          </Button>
+        )}
+        <AppHeaderContent title={t(titleKey)}>
+          <AppHeaderDescription>{t("add_webhook_description", { appName: APP_NAME })}</AppHeaderDescription>
+        </AppHeaderContent>
       </div>
-    </CardFrameHeader>
+      {CTA && <AppHeaderActions>{CTA}</AppHeaderActions>}
+    </AppHeader>
   );
 }

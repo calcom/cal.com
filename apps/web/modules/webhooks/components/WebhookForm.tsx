@@ -3,13 +3,12 @@
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "@calcom/features/webhooks/lib/integrationTemplate";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
 import { Button } from "@coss/ui/components/button";
-import { Card, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@coss/ui/components/collapsible";
 import {
   Combobox,
@@ -326,8 +325,7 @@ const WebhookForm = (props: {
     value: unit,
     label: t(`${unit.toLowerCase()}_timeUnit`),
   }));
-  const selectedTimeUnitItem =
-    timeUnitItems.find((item) => item.value === timeUnit) ?? timeUnitItems[2];
+  const selectedTimeUnitItem = timeUnitItems.find((item) => item.value === timeUnit) ?? timeUnitItems[2];
 
   const isCreating = !props?.webhook?.id;
   const needsTime = triggers.some(
@@ -397,11 +395,7 @@ const WebhookForm = (props: {
           field: { ref, name, value, onBlur, onChange },
           fieldState: { invalid, isTouched, isDirty, error },
         }) => (
-          <Field
-            name={name}
-            invalid={invalid}
-            touched={isTouched}
-            dirty={isDirty}>
+          <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
             <FieldLabel>{t("subscriber_url")}</FieldLabel>
             <Input
               ref={ref}
@@ -427,10 +421,7 @@ const WebhookForm = (props: {
       <Controller
         name="active"
         control={formMethods.control}
-        render={({
-          field: { name, value, onChange },
-          fieldState: { invalid, isTouched, isDirty },
-        }) => (
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => (
           <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
             <FieldLabel>
               <Switch checked={value} onCheckedChange={(checked) => onChange(checked)} />
@@ -442,10 +433,7 @@ const WebhookForm = (props: {
       <Controller
         name="eventTriggers"
         control={formMethods.control}
-        render={({
-          field: { name, onChange, value },
-          fieldState: { invalid, isTouched, isDirty },
-        }) => {
+        render={({ field: { name, onChange, value }, fieldState: { invalid, isTouched, isDirty } }) => {
           const selectedItems = translatedTriggerOptions.filter((option) => value.includes(option.value));
           return (
             <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
@@ -479,8 +467,7 @@ const WebhookForm = (props: {
                         {selectedValues?.map((item) => (
                           <ComboboxChip
                             key={item.value}
-                            removeProps={{ "aria-label": `${t("remove")} ${item.label}` }}
-                          >
+                            removeProps={{ "aria-label": `${t("remove")} ${item.label}` }}>
                             {item.label}
                           </ComboboxChip>
                         ))}
@@ -537,9 +524,7 @@ const WebhookForm = (props: {
                   touched={isTouched || timeTouched}
                   dirty={isDirty || timeDirty}>
                   <FieldLabel>{t("how_long_after_user_no_show_minutes")}</FieldLabel>
-                  <Group
-                    aria-label={t("how_long_after_user_no_show_minutes")}
-                    className="w-full">
+                  <Group aria-label={t("how_long_after_user_no_show_minutes")} className="w-full">
                     <NumberField
                       aria-label="Duration"
                       className="gap-0"
@@ -579,10 +564,7 @@ const WebhookForm = (props: {
       <Controller
         name="secret"
         control={formMethods.control}
-        render={({
-          field: { name, value, onChange },
-          fieldState: { invalid, isTouched, isDirty },
-        }) => (
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => (
           <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
             {hasSecretKey ? (
               <>
@@ -597,9 +579,9 @@ const WebhookForm = (props: {
                     onValueChange={
                       changeSecret
                         ? (v) => {
-                          setNewSecret(v);
-                          onChange(v);
-                        }
+                            setNewSecret(v);
+                            onChange(v);
+                          }
                         : undefined
                     }
                     placeholder={changeSecret ? t("leave_blank_to_remove_secret") : undefined}
@@ -625,11 +607,7 @@ const WebhookForm = (props: {
             ) : (
               <>
                 <FieldLabel>{t("secret")}</FieldLabel>
-                <Input
-                  type="text"
-                  value={value ?? ""}
-                  onValueChange={onChange}
-                />
+                <Input type="text" value={value ?? ""} onValueChange={onChange} />
               </>
             )}
           </Field>
@@ -639,10 +617,7 @@ const WebhookForm = (props: {
       <Controller
         name="payloadTemplate"
         control={formMethods.control}
-        render={({
-          field: { name, value, onChange },
-          fieldState: { invalid, isTouched, isDirty },
-        }) => {
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => {
           // Flatten webhookVariables into a single array for payloadVariables
           const payloadVariables = webhookVariables.flatMap(({ variables }) =>
             variables.map(({ name: n, variable, description }) => ({
@@ -763,7 +738,7 @@ const WebhookForm = (props: {
 
   if (props.headerWrapper) {
     const cardContent = (
-      <>
+      <CardFrame>
         <Card className="rounded-b-none!">
           <CardPanel>{formFields}</CardPanel>
         </Card>
@@ -771,7 +746,7 @@ const WebhookForm = (props: {
           {cancelButton}
           {submitButton}
         </CardFrameFooter>
-      </>
+      </CardFrame>
     );
 
     return (
