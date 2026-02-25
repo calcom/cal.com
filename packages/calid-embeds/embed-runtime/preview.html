@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --border-color: #ded9d9;
+      --dark-bg: rgb(16 16 16);
+    }
+
+    .row {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .cell-1 {
+      border-right: 1px solid var(--border-color);
+      padding-right: 10px;
+    }
+
+    .cell-2 {
+      margin: 10px;
+    }
+
+    .dark {
+      background-color: var(--dark-bg);
+    }
+
+    #my-embed {
+      width: 100%;
+      height: 90%;
+      overflow: scroll;
+    }
+  </style>
+  <script>
+    const searchParams = new URL(document.URL).searchParams;
+    const embedType = searchParams.get("embedType");
+    const calLink = searchParams.get("calLink");
+  </script>
+  <script type="module" src="./src/preview.ts"></script>
+</head>
+<body>
+  <section id="my-embed"></section>
+</body>
+</html>
