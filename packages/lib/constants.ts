@@ -20,13 +20,20 @@ export const ORGANIZER_EMAIL_EXEMPT_DOMAINS = process.env.ORGANIZER_EMAIL_EXEMPT
 const IS_DEV = CALCOM_ENV === "development";
 export const SINGLE_ORG_SLUG = process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG;
 /** https://app.cal.com */
+
+/** * Dynamically determines the application's base URL.
+ * It prioritizes the browser's current origin (window.location.origin) to ensure
+ * that self-hosted Docker instances work correctly without requiring a rebuild.
+ */
 export const WEBAPP_URL =
-  ensureProtocol(process.env.NEXT_PUBLIC_WEBAPP_URL) ||
-  VERCEL_URL ||
-  RAILWAY_STATIC_URL ||
-  HEROKU_URL ||
-  RENDER_URL ||
-  "http://localhost:3000";
+  typeof window !== "undefined"
+    ? window.location.origin
+    : ensureProtocol(process.env.NEXT_PUBLIC_WEBAPP_URL) ||
+      VERCEL_URL ||
+      RAILWAY_STATIC_URL ||
+      HEROKU_URL ||
+      RENDER_URL ||
+      "http://localhost:3000";
 
 // OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
 // So for development purpose, we would stick to localhost only
