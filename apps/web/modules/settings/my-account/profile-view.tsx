@@ -9,6 +9,7 @@ import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import { useUnsavedChangesWarning } from "@calcom/lib/hooks/useUnsavedChangesWarning";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -28,7 +29,12 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
@@ -85,7 +91,10 @@ const ProfileView = ({ user }: Props) => {
       revalidateSettingsProfile();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
-        showToast(t("change_of_email_toast", { email: tempFormValues?.email }), "success");
+        showToast(
+          t("change_of_email_toast", { email: tempFormValues?.email }),
+          "success"
+        );
       } else {
         showToast(t("settings_updated_successfully"), "success");
       }
@@ -105,44 +114,56 @@ const ProfileView = ({ user }: Props) => {
       }
     },
   });
-  const unlinkConnectedAccountMutation = trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
-    onSuccess: async (res) => {
-      showToast(t(res.message), "success");
-      utils.viewer.me.invalidate();
-      revalidateSettingsProfile();
-    },
-    onError: (e) => {
-      showToast(t(e.message), "error");
-    },
-  });
+  const unlinkConnectedAccountMutation =
+    trpc.viewer.loggedInViewerRouter.unlinkConnectedAccount.useMutation({
+      onSuccess: async (res) => {
+        showToast(t(res.message), "success");
+        utils.viewer.me.invalidate();
+        revalidateSettingsProfile();
+      },
+      onError: (e) => {
+        showToast(t(e.message), "error");
+      },
+    });
 
-  const addSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
-    onSuccess: (res) => {
-      setShowSecondaryEmailModalOpen(false);
-      setNewlyAddedSecondaryEmail(res?.data?.email);
-      utils.viewer.me.invalidate();
-      revalidateSettingsProfile();
-    },
-    onError: (error) => {
-      setSecondaryEmailAddErrorMessage(error?.message || "");
-    },
-  });
+  const addSecondaryEmailMutation =
+    trpc.viewer.loggedInViewerRouter.addSecondaryEmail.useMutation({
+      onSuccess: (res) => {
+        setShowSecondaryEmailModalOpen(false);
+        setNewlyAddedSecondaryEmail(res?.data?.email);
+        utils.viewer.me.invalidate();
+        revalidateSettingsProfile();
+      },
+      onError: (error) => {
+        setSecondaryEmailAddErrorMessage(error?.message || "");
+      },
+    });
 
-  const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const resendVerifyEmailMutation =
+    trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
-  const [tempFormValues, setTempFormValues] = useState<ExtendedFormValues | null>(null);
-  const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
-  const [showCreateAccountPasswordDialog, setShowCreateAccountPasswordDialog] = useState(false);
-  const [showAccountDisconnectWarning, setShowAccountDisconnectWarning] = useState(false);
-  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
-  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
-  const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
+  const [tempFormValues, setTempFormValues] =
+    useState<ExtendedFormValues | null>(null);
+  const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] =
+    useState("");
+  const [showCreateAccountPasswordDialog, setShowCreateAccountPasswordDialog] =
+    useState(false);
+  const [showAccountDisconnectWarning, setShowAccountDisconnectWarning] =
+    useState(false);
+  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] =
+    useState(false);
+  const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] =
+    useState("");
+  const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<
+    undefined | string
+  >(undefined);
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] = useState(false);
+  const [isCompanyEmailAlertDismissed, setIsCompanyEmailAlertDismissed] =
+    useState(false);
   const form = useForm<DeleteAccountValues>();
 
   const onDeleteMeSuccessMutation = async () => {
@@ -181,25 +202,30 @@ const ProfileView = ({ user }: Props) => {
       revalidateSettingsProfile();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.viewer.me.deleteMeWithoutPassword.useMutation({
-    onSuccess: onDeleteMeSuccessMutation,
-    onError: onDeleteMeErrorMutation,
-    async onSettled() {
-      await utils.viewer.me.invalidate();
-      revalidateSettingsProfile();
-    },
-  });
+  const deleteMeWithoutPasswordMutation =
+    trpc.viewer.me.deleteMeWithoutPassword.useMutation({
+      onSuccess: onDeleteMeSuccessMutation,
+      onError: onDeleteMeErrorMutation,
+      async onSettled() {
+        await utils.viewer.me.invalidate();
+        revalidateSettingsProfile();
+      },
+    });
 
   const isCALIdentityProvider = user?.identityProvider === IdentityProvider.CAL;
 
-  const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const onConfirmPassword = (
+    e: Event | React.MouseEvent<HTMLElement, MouseEvent>
+  ) => {
     e.preventDefault();
 
     const password = passwordRef.current.value;
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
-  const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+  const onConfirmButton = (
+    e: Event | React.MouseEvent<HTMLElement, MouseEvent>
+  ) => {
     e.preventDefault();
     if (isCALIdentityProvider) {
       const totpCode = form.getValues("totpCode");
@@ -210,7 +236,10 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
+  const onConfirm = (
+    { totpCode }: DeleteAccountValues,
+    e: BaseSyntheticEvent | undefined
+  ) => {
     e?.preventDefault();
     if (isCALIdentityProvider) {
       const password = passwordRef.current.value;
@@ -225,11 +254,19 @@ const ProfileView = ({ user }: Props) => {
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
-    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t(
+      "please_try_again"
+    )}`,
     [ErrorCode.UserNotFound]: t("no_account_exists"),
-    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
-    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t(
+      "please_try_again"
+    )}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t(
+      "please_try_again_and_contact_us"
+    )}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t(
+      "account_created_with_identity_provider"
+    ),
   };
 
   const userEmail = user.email || "";
@@ -267,7 +304,8 @@ const ProfileView = ({ user }: Props) => {
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={true}
+    >
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -316,19 +354,30 @@ const ProfileView = ({ user }: Props) => {
 
       {shouldShowCompanyEmailAlert && (
         <div className="mt-6">
-          <CompanyEmailOrganizationBanner onDismissAction={() => setIsCompanyEmailAlertDismissed(true)} />
+          <CompanyEmailOrganizationBanner
+            onDismissAction={() => setIsCompanyEmailAlertDismissed(true)}
+          />
         </div>
       )}
 
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
+        <Label className="mb-0 text-base font-semibold text-red-700">
+          {t("danger_zone")}
+        </Label>
+        <p className="text-subtle text-sm">
+          {t("account_deletion_cannot_be_undone")}
+        </p>
       </div>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <SectionBottomActions align="end">
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button
+              data-testid="delete-account"
+              color="destructive"
+              className="mt-1"
+              StartIcon="trash-2"
+            >
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -337,10 +386,13 @@ const ProfileView = ({ user }: Props) => {
           title={t("delete_account_modal_title")}
           description={t("confirm_delete_account_modal", { appName: APP_NAME })}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <>
             <div className="mb-10">
-              <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
+              <p className="text-subtle mb-4 text-sm">
+                {t("delete_account_confirmation_message")}
+              </p>
               {isCALIdentityProvider && (
                 <PasswordField
                   data-testid="password"
@@ -359,7 +411,9 @@ const ProfileView = ({ user }: Props) => {
                 </Form>
               )}
 
-              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              {hasDeleteErrors && (
+                <Alert severity="error" title={deleteErrorMessage} />
+              )}
             </div>
             <DialogFooter showDivider>
               <DialogClose />
@@ -367,7 +421,8 @@ const ProfileView = ({ user }: Props) => {
                 color="destructive"
                 data-testid="delete-account-confirm"
                 onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
+                loading={deleteMeMutation.isPending}
+              >
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>
@@ -381,7 +436,8 @@ const ProfileView = ({ user }: Props) => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <div className="mb-10">
             <div className="mb-4 grid gap-2 md:grid-cols-2">
               <div>
@@ -394,7 +450,9 @@ const ProfileView = ({ user }: Props) => {
                 <span className="text-emphasis mb-2 block text-sm font-medium leading-none">
                   {t("new_email_address")}
                 </span>
-                <p className="text-subtle leading-none">{tempFormValues?.email}</p>
+                <p className="text-subtle leading-none">
+                  {tempFormValues?.email}
+                </p>
               </div>
             </div>
             <PasswordField
@@ -407,14 +465,17 @@ const ProfileView = ({ user }: Props) => {
               ref={passwordRef}
             />
 
-            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+            {confirmPasswordErrorMessage && (
+              <Alert severity="error" title={confirmPasswordErrorMessage} />
+            )}
           </div>
           <DialogFooter showDivider>
             <Button
               data-testid="profile-update-email-submit-button"
               color="primary"
               loading={confirmPasswordMutation.isPending}
-              onClick={(e) => onConfirmPassword(e)}>
+              onClick={(e) => onConfirmPassword(e)}
+            >
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -422,31 +483,40 @@ const ProfileView = ({ user }: Props) => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showCreateAccountPasswordDialog} onOpenChange={setShowCreateAccountPasswordDialog}>
+      <Dialog
+        open={showCreateAccountPasswordDialog}
+        onOpenChange={setShowCreateAccountPasswordDialog}
+      >
         <DialogContent
           title={t("create_account_password")}
           description={t("create_account_password_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <DialogFooter>
             <DialogClose />
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showAccountDisconnectWarning} onOpenChange={setShowAccountDisconnectWarning}>
+      <Dialog
+        open={showAccountDisconnectWarning}
+        onOpenChange={setShowAccountDisconnectWarning}
+      >
         <DialogContent
           title={t("disconnect_account")}
           description={t("disconnect_account_hint")}
           type="creation"
-          Icon="triangle-alert">
+          Icon="triangle-alert"
+        >
           <DialogFooter>
             <Button
               color="primary"
               onClick={() => {
                 unlinkConnectedAccountMutation.mutate();
                 setShowAccountDisconnectWarning(false);
-              }}>
+              }}
+            >
               {t("confirm")}
             </Button>
             <DialogClose />
@@ -560,7 +630,8 @@ const ProfileForm = ({
   });
 
   const getUpdatedFormValues = (values: FormValues) => {
-    const changedFields = formMethods.formState.dirtyFields?.secondaryEmails || [];
+    const changedFields =
+      formMethods.formState.dirtyFields?.secondaryEmails || [];
     const updatedValues: FormValues = {
       ...values,
     };
@@ -571,7 +642,8 @@ const ProfileForm = ({
     );
     if (primaryEmailIndex >= 0) {
       // Add the new updated value as primary email
-      updatedValues.email = updatedValues.secondaryEmails[primaryEmailIndex].email;
+      updatedValues.email =
+        updatedValues.secondaryEmails[primaryEmailIndex].email;
     }
 
     // We will only send the emails which have already changed
@@ -585,12 +657,17 @@ const ProfileForm = ({
     });
 
     const deletedEmails = (user?.secondaryEmails || []).filter(
-      (secondaryEmail) => !updatedValues.secondaryEmails.find((val) => val.id && val.id === secondaryEmail.id)
+      (secondaryEmail) =>
+        !updatedValues.secondaryEmails.find(
+          (val) => val.id && val.id === secondaryEmail.id
+        )
     );
     const secondaryEmails = [
       ...updatedEmails.map((email) => ({ ...email, isDeleted: false })),
       ...deletedEmails.map((email) => ({ ...email, isDeleted: true })),
-    ].map((secondaryEmail) => pick(secondaryEmail, ["id", "email", "isDeleted"]));
+    ].map((secondaryEmail) =>
+      pick(secondaryEmail, ["id", "email", "isDeleted"])
+    );
 
     return {
       ...updatedValues,
@@ -615,6 +692,8 @@ const ProfileForm = ({
     formState: { isSubmitting, isDirty },
   } = formMethods;
 
+  useUnsavedChangesWarning(isDirty);
+
   const isDisabled = isSubmitting || !isDirty;
   return (
     <Form form={formMethods} handleSubmit={handleFormSubmit}>
@@ -627,9 +706,16 @@ const ProfileForm = ({
               const showRemoveAvatarButton = value !== null;
               return (
                 <>
-                  <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
+                  <UserAvatar
+                    data-testid="profile-upload-avatar"
+                    previewSrc={value}
+                    size="lg"
+                    user={user}
+                  />
                   <div className="ms-4">
-                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
+                    <h2 className="mb-2 text-sm font-medium">
+                      {t("profile_picture")}
+                    </h2>
                     <div className="flex gap-2">
                       <ImageUploader
                         target="avatar"
@@ -639,7 +725,9 @@ const ProfileForm = ({
                           onChange(newAvatar);
                         }}
                         imageSrc={getUserAvatarUrl({ avatarUrl: value })}
-                        triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                        triggerButtonColor={
+                          showRemoveAvatarButton ? "secondary" : "secondary"
+                        }
                       />
 
                       {showRemoveAvatarButton && (
@@ -647,7 +735,8 @@ const ProfileForm = ({
                           color="minimal"
                           onClick={() => {
                             onChange(null);
-                          }}>
+                          }}
+                        >
                           {t("remove")}
                         </Button>
                       )}
@@ -671,22 +760,32 @@ const ProfileForm = ({
           <div className="-mt-2 flex flex-wrap items-start gap-2">
             <div
               className={
-                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
-              }>
+                secondaryEmailFields.length > 1
+                  ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2"
+                  : "flex-1"
+              }
+            >
               {secondaryEmailFields.map((field, index) => (
                 <CustomEmailTextField
                   key={field.itemId}
                   formMethods={formMethods}
-                  formMethodFieldName={`secondaryEmails.${index}.email` as keyof FormValues}
-                  errorMessage={get(formMethods.formState.errors, `secondaryEmails.${index}.email.message`)}
+                  formMethodFieldName={
+                    `secondaryEmails.${index}.email` as keyof FormValues
+                  }
+                  errorMessage={get(
+                    formMethods.formState.errors,
+                    `secondaryEmails.${index}.email.message`
+                  )}
                   emailVerified={Boolean(field.emailVerified)}
                   emailPrimary={field.emailPrimary}
                   dataTestId={`profile-form-email-${index}`}
                   handleChangePrimary={() => {
-                    const fields = secondaryEmailFields.map((secondaryField, cIndex) => ({
-                      ...secondaryField,
-                      emailPrimary: cIndex === index,
-                    }));
+                    const fields = secondaryEmailFields.map(
+                      (secondaryField, cIndex) => ({
+                        ...secondaryField,
+                        emailPrimary: cIndex === index,
+                      })
+                    );
                     updateAllSecondaryEmailFields(fields);
                   }}
                   handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
@@ -699,7 +798,8 @@ const ProfileForm = ({
               StartIcon="plus"
               className="mt-2"
               onClick={() => handleAddSecondaryEmail()}
-              data-testid="add-secondary-email">
+              data-testid="add-secondary-email"
+            >
               {t("add_email")}
             </Button>
           </div>
@@ -731,7 +831,9 @@ const ProfileForm = ({
                     labelClassname="font-normal text-sm text-subtle"
                     valueClassname="text-emphasis inline-flex items-center gap-1 font-normal text-sm leading-5"
                     value={
-                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(attribute.type)
+                      ["TEXT", "NUMBER", "SINGLE_SELECT"].includes(
+                        attribute.type
+                      )
                         ? attribute.options[0].value
                         : attribute.options.map((option) => option.value)
                     }
@@ -743,22 +845,27 @@ const ProfileForm = ({
         )}
         {/* // For Non-Cal identities, we merge the values from DB and the user logging in,
         so essentially there's no point in allowing them to disconnect, since when they log in they will get logged into the same account */}
-        {!isCALIdentityProvider && user.email !== user.identityProviderEmail && (
-          <div className="mt-6">
-            <Label>Connected accounts</Label>
-            <div className="flex items-center">
-              <span className="text-default text-sm capitalize">{user.identityProvider.toLowerCase()}</span>
-              {user.identityProviderEmail && (
-                <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
-              )}
-              <div className="flex flex-1 justify-end">
-                <Button color="destructive" onClick={onDisconnect}>
-                  {t("disconnect")}
-                </Button>
+        {!isCALIdentityProvider &&
+          user.email !== user.identityProviderEmail && (
+            <div className="mt-6">
+              <Label>Connected accounts</Label>
+              <div className="flex items-center">
+                <span className="text-default text-sm capitalize">
+                  {user.identityProvider.toLowerCase()}
+                </span>
+                {user.identityProviderEmail && (
+                  <span className="text-default ml-2 text-sm">
+                    {user.identityProviderEmail}
+                  </span>
+                )}
+                <div className="flex flex-1 justify-end">
+                  <Button color="destructive" onClick={onDisconnect}>
+                    {t("disconnect")}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
       <SectionBottomActions align="end">
         <Button
@@ -766,7 +873,8 @@ const ProfileForm = ({
           disabled={isDisabled}
           color="primary"
           type="submit"
-          data-testid="profile-submit-button">
+          data-testid="profile-submit-button"
+        >
           {t("update")}
         </Button>
       </SectionBottomActions>

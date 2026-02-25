@@ -12,10 +12,14 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import {
+  DEFAULT_LIGHT_BRAND_COLOR,
+  DEFAULT_DARK_BRAND_COLOR,
+} from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useUnsavedChangesWarning } from "@calcom/lib/hooks/useUnsavedChangesWarning";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
@@ -43,7 +47,9 @@ const useBrandColors = (
     lightVal: brandColor,
     darkVal: darkBrandColor,
   });
-  const selectedTheme = currentTheme ? brandTheme[currentTheme as "light" | "dark"] : {};
+  const selectedTheme = currentTheme
+    ? brandTheme[currentTheme as "light" | "dark"]
+    : {};
   useCalcomTheme({
     root: selectedTheme,
   });
@@ -63,9 +69,12 @@ const AppearanceView = ({
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
   const [isCustomBrandColorChecked, setIsCustomBranColorChecked] = useState(
-    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
+    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR ||
+      user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
-  const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  const [hideBrandingValue, setHideBrandingValue] = useState(
+    user?.hideBranding ?? false
+  );
   useTheme(user?.appTheme);
   useBrandColors(user?.appTheme ?? null, {
     brandColor: user?.brandColor,
@@ -79,7 +88,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isUserAppThemeSubmitting, isDirty: isUserAppThemeDirty },
+    formState: {
+      isSubmitting: isUserAppThemeSubmitting,
+      isDirty: isUserAppThemeDirty,
+    },
     reset: resetUserAppThemeReset,
   } = userAppThemeFormMethods;
 
@@ -90,7 +102,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isUserThemeSubmitting, isDirty: isUserThemeDirty },
+    formState: {
+      isSubmitting: isUserThemeSubmitting,
+      isDirty: isUserThemeDirty,
+    },
     reset: resetUserThemeReset,
   } = userThemeFormMethods;
 
@@ -101,7 +116,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isBookerLayoutFormSubmitting, isDirty: isBookerLayoutFormDirty },
+    formState: {
+      isSubmitting: isBookerLayoutFormSubmitting,
+      isDirty: isBookerLayoutFormDirty,
+    },
     reset: resetBookerLayoutThemeReset,
   } = bookerLayoutFormMethods;
 
@@ -118,7 +136,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
+    formState: {
+      isSubmitting: isBrandColorsFormSubmitting,
+      isDirty: isBrandColorsFormDirty,
+    },
     reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
@@ -129,13 +150,23 @@ const AppearanceView = ({
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
 
+  const isAnyFormDirty =
+    isUserAppThemeDirty ||
+    isUserThemeDirty ||
+    isBookerLayoutFormDirty ||
+    isBrandColorsFormDirty;
+  useUnsavedChangesWarning(isAnyFormDirty);
+
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
       revalidateHasTeamPlan();
       showToast(t("settings_updated_successfully"), "success");
-      resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
+      resetBrandColorsThemeReset({
+        brandColor: data.brandColor,
+        darkBrandColor: data.darkBrandColor,
+      });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
       resetUserThemeReset({ theme: data.theme });
       resetUserAppThemeReset({ appTheme: data.appTheme });
@@ -155,10 +186,15 @@ const AppearanceView = ({
   });
 
   return (
-    <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
+    <SettingsHeader
+      title={t("appearance")}
+      description={t("appearance_description")}
+    >
       <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
         <div>
-          <p className="text-default text-base font-semibold">{t("app_theme")}</p>
+          <p className="text-default text-base font-semibold">
+            {t("app_theme")}
+          </p>
           <p className="text-default">{t("app_theme_applies_note")}</p>
         </div>
       </div>
@@ -169,7 +205,8 @@ const AppearanceView = ({
           mutation.mutate({
             appTheme,
           });
-        }}>
+        }}
+      >
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
           <ThemeLabel
             variant="system"
@@ -202,7 +239,8 @@ const AppearanceView = ({
             disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
             type="submit"
             data-testid="update-app-theme-btn"
-            color="primary">
+            color="primary"
+          >
             {t("update")}
           </Button>
         </SectionBottomActions>
@@ -212,7 +250,9 @@ const AppearanceView = ({
         <>
           <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
             <div>
-              <p className="text-default text-base font-semibold">{t("theme")}</p>
+              <p className="text-default text-base font-semibold">
+                {t("theme")}
+              </p>
               <p className="text-default">{t("theme_applies_note")}</p>
             </div>
           </div>
@@ -228,7 +268,8 @@ const AppearanceView = ({
               mutation.mutate({
                 theme: null,
               });
-            }}>
+            }}
+          >
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
               <ThemeLabel
                 variant="system"
@@ -258,7 +299,8 @@ const AppearanceView = ({
                 disabled={isUserThemeSubmitting || !isUserThemeDirty}
                 type="submit"
                 data-testid="update-theme-btn"
-                color="primary">
+                color="primary"
+              >
                 {t("update")}
               </Button>
             </SectionBottomActions>
@@ -267,20 +309,25 @@ const AppearanceView = ({
           <Form
             form={bookerLayoutFormMethods}
             handleSubmit={(values) => {
-              const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
+              const layoutError = validateBookerLayouts(
+                values?.metadata?.defaultBookerLayouts || null
+              );
               if (layoutError) {
                 showToast(t(layoutError), "error");
                 return;
               } else {
                 mutation.mutate(values);
               }
-            }}>
+            }}
+          >
             <BookerLayoutSelector
               isDark={selectedThemeIsDark}
               name="metadata.defaultBookerLayouts"
               title={t("bookerlayout_user_settings_title")}
               description={t("bookerlayout_user_settings_description")}
-              isDisabled={isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty}
+              isDisabled={
+                isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty
+              }
               isLoading={mutation.isPending}
               user={user}
             />
@@ -290,7 +337,8 @@ const AppearanceView = ({
             form={brandColorsFormMethods}
             handleSubmit={(values) => {
               mutation.mutate(values);
-            }}>
+            }}
+          >
             <div className="mt-6">
               <SettingsToggle
                 toggleSwitchAtTheEnd={true}
@@ -306,7 +354,8 @@ const AppearanceView = ({
                     });
                   }
                 }}
-                childrenClassName="lg:ml-0">
+                childrenClassName="lg:ml-0"
+              >
                 <div className="border-subtle flex flex-col gap-6 border-x p-6">
                   <Controller
                     name="brandColor"
@@ -326,12 +375,19 @@ const AppearanceView = ({
                             } else {
                               setLightModeError(true);
                             }
-                            brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
+                            brandColorsFormMethods.setValue(
+                              "brandColor",
+                              value,
+                              { shouldDirty: true }
+                            );
                           }}
                         />
                         {lightModeError ? (
                           <div className="mt-4">
-                            <Alert severity="warning" message={t("light_theme_contrast_error")} />
+                            <Alert
+                              severity="warning"
+                              message={t("light_theme_contrast_error")}
+                            />
                           </div>
                         ) : null}
                       </div>
@@ -344,7 +400,9 @@ const AppearanceView = ({
                     defaultValue={DEFAULT_BRAND_COLOURS.dark}
                     render={() => (
                       <div className="mt-6 sm:mt-0">
-                        <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
+                        <p className="text-default mb-2 block text-sm font-medium">
+                          {t("dark_brand_color")}
+                        </p>
                         <ColorPicker
                           defaultValue={DEFAULT_BRAND_COLOURS.dark}
                           resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
@@ -354,12 +412,19 @@ const AppearanceView = ({
                             } else {
                               setDarkModeError(true);
                             }
-                            brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
+                            brandColorsFormMethods.setValue(
+                              "darkBrandColor",
+                              value,
+                              { shouldDirty: true }
+                            );
                           }}
                         />
                         {darkModeError ? (
                           <div className="mt-4">
-                            <Alert severity="warning" message={t("dark_theme_contrast_error")} />
+                            <Alert
+                              severity="warning"
+                              message={t("dark_theme_contrast_error")}
+                            />
                           </div>
                         ) : null}
                       </div>
@@ -369,9 +434,12 @@ const AppearanceView = ({
                 <SectionBottomActions align="end">
                   <Button
                     loading={mutation.isPending}
-                    disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
+                    disabled={
+                      isBrandColorsFormSubmitting || !isBrandColorsFormDirty
+                    }
                     color="primary"
-                    type="submit">
+                    type="submit"
+                  >
                     {t("update")}
                   </Button>
                 </SectionBottomActions>
