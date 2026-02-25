@@ -118,7 +118,7 @@ Errors during the authorization step are displayed directly to the user on the C
 If an error occurs after the client is validated, the user is redirected to the `redirect_uri` with an error:
 
 - **Scope required**: If the `scope` parameter is missing, the error `scope parameter is required for this OAuth client` is displayed on the authorization page.
-- **Unknown scope**: If the `scope` parameter includes scope values that do not exist, the user is redirected with `error=invalid_request` and `error_description=Requested scope is not a recognized scope`. This applies to both regular and legacy clients.
+- **Unknown scope**: If the `scope` parameter includes scope values that do not exist, the user is redirected with `error=invalid_scope` and `error_description=Requested scope is not a recognized scope`. This applies to both regular and legacy clients.
 - **Invalid scope**: If the `scope` parameter includes scopes not enabled on the OAuth client, the user is redirected with `error=invalid_request` and `error_description=Requested scope exceeds the client's registered scopes`.
 - **Access denied**: If the user denies access or has insufficient permissions, the user is redirected with an error.
 
@@ -511,6 +511,10 @@ After this step, the client is no longer treated as a legacy client. Scope valid
 <Warning>
   Do **not** update the client scopes before updating your authorization URL. Doing so will immediately break the authorization flow for any user who visits the old URL without a `scope` parameter.
 </Warning>
+
+### Re-approval
+
+Updating scopes on a legacy client does **not** trigger re-approval as long as you only add user-level scopes (such as `BOOKING_READ`, `EVENT_TYPE_READ`, etc.). The client stays in its current approval status and no admin review is required.
 
 ### Existing tokens
 

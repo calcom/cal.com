@@ -325,7 +325,8 @@ function isScopeError(errorMessage: string): boolean {
   );
 }
 
-function mapTrpcCodeToOAuthError(code: string | undefined) {
+function mapTrpcCodeToOAuthError(code: string | undefined, message?: string) {
+  if (message === OAUTH_ERROR_REASONS["unknown_scope"]) return "invalid_scope";
   if (code === "BAD_REQUEST") return "invalid_request";
   if (code === "UNAUTHORIZED") return "unauthorized_client";
   return "server_error";
@@ -368,7 +369,7 @@ function redirectToOAuthError({
 }) {
   const redirectUrl = buildOAuthErrorRedirectUrl({
     redirectUri,
-    error: mapTrpcCodeToOAuthError(trpcError.data?.code),
+    error: mapTrpcCodeToOAuthError(trpcError.data?.code, trpcError.message),
     errorDescription: trpcError.message,
     state,
   });
