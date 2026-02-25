@@ -454,7 +454,7 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page).toHaveURL(/^https:\/\/example\.com/);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get("error")).toBe("invalid_request");
+    expect(url.searchParams.get("error")).toBe("invalid_scope");
     expect(url.searchParams.get("error_description")).toBe(OAUTH_ERROR_REASONS["unknown_scope"]);
     expect(url.searchParams.get("state")).toBe("1234");
     expect(url.searchParams.get("code")).toBeNull();
@@ -486,7 +486,7 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page).toHaveURL(/^https:\/\/example\.com/);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get("error")).toBe("invalid_request");
+    expect(url.searchParams.get("error")).toBe("invalid_scope");
     expect(url.searchParams.get("error_description")).toBe(OAUTH_ERROR_REASONS["unknown_scope"]);
     expect(url.searchParams.get("state")).toBe("1234");
     expect(url.searchParams.get("code")).toBeNull();
