@@ -82,7 +82,9 @@ export const schemaEventTypeBaseBodyParams = EventTypeSchema.pick({
 
 const schemaEventTypeCreateParams = z
   .object({
-    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH, {
+      message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+    }),
     slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
     length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
@@ -103,7 +105,9 @@ export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
 
 const schemaEventTypeEditParams = z
   .object({
-    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH).optional(),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH, {
+      message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+    }).optional(),
     slug: z
       .string()
       .transform((s) => slugify(s))
