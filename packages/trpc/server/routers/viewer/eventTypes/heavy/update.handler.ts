@@ -1,3 +1,5 @@
+import type { NextApiResponse, GetServerSidePropsContext } from "next";
+
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -8,7 +10,6 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScanner";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -22,19 +23,20 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import {
+  WorkflowTriggerEvents,
+  SchedulingType,
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
-  SchedulingType,
-  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
+
 import { TRPCError } from "@trpc/server";
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
+
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import {
-  ensureEmailOrPhoneNumberIsPresent,
   ensureUniqueBookingFields,
+  ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
@@ -80,9 +82,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor,
     users,
     children,
-    pendingChildrenChanges,
     assignAllTeamMembers,
-    pendingHostChanges,
     hosts,
     id,
     multiplePrivateLinks,
@@ -477,217 +477,82 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
 
-  if (teamId && (pendingHostChanges || hosts)) {
+  if (teamId && hosts) {
+    // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    // guard against missing IDs, this may mean a member has just been removed
+    // or this request was forged.
+    // we let this pass through on organization sub-teams
+    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+      });
+    }
 
-    if (pendingHostChanges) {
-      // New delta path: process changes directly
-      let { hostsToAdd, hostsToUpdate, hostsToRemove } = pendingHostChanges;
-      const { clearAllHosts } = pendingHostChanges;
+    const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
 
-      // When clearAllHosts is true, compute delta: keep hosts in hostsToAdd, remove all others
-      if (clearAllHosts) {
-        const existingHostUserIds = eventType.hosts.map((h) => ({ userId: h.userId }));
-        const existingUserIdSet = new Set(existingHostUserIds.map((h) => h.userId));
-        const newUserIdSet = new Set(hostsToAdd.map((h) => h.userId));
+    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    hostLocationDeletions = existingHosts
+      .filter((host) => host.location === null)
+      .map((host) => ({ userId: host.userId, eventTypeId: id }));
+    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
-        // Hosts to delete: existing but NOT in hostsToAdd
-        const userIdsToDelete = existingHostUserIds
-          .filter((h) => !newUserIdSet.has(h.userId))
-          .map((h) => h.userId);
-
-        // Hosts to update: existing AND in hostsToAdd (apply new properties)
-        const hostsToUpdateFromClear = hostsToAdd
-          .filter((h) => existingUserIdSet.has(h.userId))
-          .map((h) => ({
-            userId: h.userId,
-            isFixed: h.isFixed,
-            priority: h.priority,
-            weight: h.weight,
-            scheduleId: h.scheduleId,
-            groupId: h.groupId,
-            location: h.location,
-          }));
-
-        // Hosts to add: in hostsToAdd but NOT existing
-        const hostsToAddNew = hostsToAdd.filter((h) => !existingUserIdSet.has(h.userId));
-
-        // Replace the arrays with computed values
-        hostsToRemove = userIdsToDelete;
-        hostsToUpdate = hostsToUpdateFromClear;
-        hostsToAdd = hostsToAddNew;
-      }
-
-      // Validate that all new/updated host userIds are valid team members
-      const allUserIds = [...hostsToAdd.map((h) => h.userId), ...hostsToUpdate.map((h) => h.userId)];
-      if (
-        allUserIds.length > 0 &&
-        !allUserIds.every((uid) => teamMemberIds.includes(uid)) &&
-        !eventType.team?.parentId
-      ) {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
-
-      // Track host location deletions from updates that set location to null
-      hostLocationDeletions = hostsToUpdate
-        .filter((host) => host.location === null)
-        .map((host) => ({ userId: host.userId, eventTypeId: id }));
-
-      data.hosts = {
-        ...(hostsToRemove.length > 0 && {
-          deleteMany: {
-            OR: hostsToRemove.map((userId) => ({
-              userId,
-              eventTypeId: id,
-            })),
-          },
-        }),
-        ...(hostsToAdd.length > 0 && {
-          create: hostsToAdd.map((host) => {
-            const hostData: {
-              userId: number;
-              isFixed: boolean;
-              priority: number;
-              weight: number;
-              groupId: string | null | undefined;
-              scheduleId?: number | null | undefined;
-              location?: {
-                create: {
-                  type: string;
-                  credentialId: number | null | undefined;
-                  link: string | null | undefined;
-                  address: string | null | undefined;
-                  phoneNumber: string | null | undefined;
-                };
-              };
-            } = {
-              userId: host.userId,
-              isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
-              priority: host.priority ?? 2,
-              weight: host.weight ?? 100,
-              groupId: host.groupId,
-              scheduleId: host.scheduleId ?? null,
+    data.hosts = {
+      deleteMany: {
+        OR: removedHosts.map((host) => ({
+          userId: host.userId,
+          eventTypeId: id,
+        })),
+      },
+      create: newHosts.map((host) => {
+        const hostData: {
+          userId: number;
+          isFixed: boolean;
+          priority: number;
+          weight: number;
+          groupId: string | null | undefined;
+          scheduleId?: number | null | undefined;
+          location?: {
+            create: {
+              type: string;
+              credentialId: number | null | undefined;
+              link: string | null | undefined;
+              address: string | null | undefined;
+              phoneNumber: string | null | undefined;
             };
-            if (host.location) {
-              hostData.location = {
-                create: {
-                  type: host.location.type,
-                  credentialId: host.location.credentialId,
-                  link: host.location.link,
-                  address: host.location.address,
-                  phoneNumber: host.location.phoneNumber,
-                },
-              };
-            }
-            return hostData;
-          }),
-        }),
-        ...(hostsToUpdate.length > 0 && {
-          update: hostsToUpdate.map((host) => {
-            const updateData: {
-              isFixed?: boolean;
-              priority?: number;
-              weight?: number;
-              scheduleId?: number | null;
-              groupId?: string | null;
-              location?: {
-                upsert: {
-                  create: {
-                    type: string;
-                    credentialId: number | null | undefined;
-                    link: string | null | undefined;
-                    address: string | null | undefined;
-                    phoneNumber: string | null | undefined;
-                  };
-                  update: {
-                    type: string;
-                    credentialId: number | null | undefined;
-                    link: string | null | undefined;
-                    address: string | null | undefined;
-                    phoneNumber: string | null | undefined;
-                  };
-                };
-              };
-            } = {};
-            if (host.isFixed !== undefined) {
-              updateData.isFixed = data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed;
-            }
-            if (host.priority !== undefined) {
-              updateData.priority = host.priority ?? 2;
-            }
-            if (host.weight !== undefined) {
-              updateData.weight = host.weight ?? 100;
-            }
-            if (host.scheduleId !== undefined) {
-              updateData.scheduleId = host.scheduleId;
-            }
-            if (host.groupId !== undefined) {
-              updateData.groupId = host.groupId;
-            }
-            if (host.location) {
-              updateData.location = {
-                upsert: {
-                  create: {
-                    type: host.location.type,
-                    credentialId: host.location.credentialId,
-                    link: host.location.link,
-                    address: host.location.address,
-                    phoneNumber: host.location.phoneNumber,
-                  },
-                  update: {
-                    type: host.location.type,
-                    credentialId: host.location.credentialId,
-                    link: host.location.link,
-                    address: host.location.address,
-                    phoneNumber: host.location.phoneNumber,
-                  },
-                },
-              };
-            }
-            return {
-              where: {
-                userId_eventTypeId: {
-                  userId: host.userId,
-                  eventTypeId: id,
-                },
-              },
-              data: updateData,
-            };
-          }),
-        }),
-      };
-    } else if (hosts) {
-      // Legacy path: full hosts array (backward compatibility for Platform API)
-      if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
-
-      const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-      const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
-
-      const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-      hostLocationDeletions = existingHosts
-        .filter((host) => host.location === null)
-        .map((host) => ({ userId: host.userId, eventTypeId: id }));
-      const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
-      const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
-
-      data.hosts = {
-        deleteMany: {
-          OR: removedHosts.map((host) => ({
-            userId: host.userId,
-            eventTypeId: id,
-          })),
-        },
-        create: newHosts.map((host) => {
-          const hostData: {
-            userId: number;
-            isFixed: boolean;
-            priority: number;
-            weight: number;
-            groupId: string | null | undefined;
-            scheduleId?: number | null | undefined;
-            location?: {
+          };
+        } = {
+          userId: host.userId,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
+          priority: host.priority ?? 2,
+          weight: host.weight ?? 100,
+          groupId: host.groupId,
+          scheduleId: host.scheduleId ?? null,
+        };
+        if (host.location) {
+          hostData.location = {
+            create: {
+              type: host.location.type,
+              credentialId: host.location.credentialId,
+              link: host.location.link,
+              address: host.location.address,
+              phoneNumber: host.location.phoneNumber,
+            },
+          };
+        }
+        return hostData;
+      }),
+      update: existingHosts.map((host) => {
+        const updateData: {
+          isFixed: boolean | undefined;
+          priority: number;
+          weight: number;
+          scheduleId: number | null | undefined;
+          groupId: string | null | undefined;
+          location?: {
+            upsert: {
               create: {
                 type: string;
                 credentialId: number | null | undefined;
@@ -695,17 +560,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 address: string | null | undefined;
                 phoneNumber: string | null | undefined;
               };
+              update: {
+                type: string;
+                credentialId: number | null | undefined;
+                link: string | null | undefined;
+                address: string | null | undefined;
+                phoneNumber: string | null | undefined;
+              };
             };
-          } = {
-            userId: host.userId,
-            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
-            priority: host.priority ?? 2,
-            weight: host.weight ?? 100,
-            groupId: host.groupId,
-            scheduleId: host.scheduleId ?? null,
           };
-          if (host.location) {
-            hostData.location = {
+        } = {
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2,
+          weight: host.weight ?? 100,
+          scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
+          groupId: host.groupId,
+        };
+        if (host.location) {
+          updateData.location = {
+            upsert: {
               create: {
                 type: host.location.type,
                 credentialId: host.location.credentialId,
@@ -713,74 +586,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 address: host.location.address,
                 phoneNumber: host.location.phoneNumber,
               },
-            };
-          }
-          return hostData;
-        }),
-        update: existingHosts.map((host) => {
-          const updateData: {
-            isFixed: boolean | undefined;
-            priority: number;
-            weight: number;
-            scheduleId: number | null | undefined;
-            groupId: string | null | undefined;
-            location?: {
-              upsert: {
-                create: {
-                  type: string;
-                  credentialId: number | null | undefined;
-                  link: string | null | undefined;
-                  address: string | null | undefined;
-                  phoneNumber: string | null | undefined;
-                };
-                update: {
-                  type: string;
-                  credentialId: number | null | undefined;
-                  link: string | null | undefined;
-                  address: string | null | undefined;
-                  phoneNumber: string | null | undefined;
-                };
-              };
-            };
-          } = {
-            isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-            priority: host.priority ?? 2,
-            weight: host.weight ?? 100,
-            scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
-            groupId: host.groupId,
-          };
-          if (host.location) {
-            updateData.location = {
-              upsert: {
-                create: {
-                  type: host.location.type,
-                  credentialId: host.location.credentialId,
-                  link: host.location.link,
-                  address: host.location.address,
-                  phoneNumber: host.location.phoneNumber,
-                },
-                update: {
-                  type: host.location.type,
-                  credentialId: host.location.credentialId,
-                  link: host.location.link,
-                  address: host.location.address,
-                  phoneNumber: host.location.phoneNumber,
-                },
-              },
-            };
-          }
-          return {
-            where: {
-              userId_eventTypeId: {
-                userId: host.userId,
-                eventTypeId: id,
+              update: {
+                type: host.location.type,
+                credentialId: host.location.credentialId,
+                link: host.location.link,
+                address: host.location.address,
+                phoneNumber: host.location.phoneNumber,
               },
             },
-            data: updateData,
           };
-        }),
-      };
-    }
+        }
+        return {
+          where: {
+            userId_eventTypeId: {
+              userId: host.userId,
+              eventTypeId: id,
+            },
+          },
+          data: updateData,
+        };
+      }),
+    };
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
@@ -988,64 +814,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // - If calVideoSettings provided in input, sync to children
   // - If Cal Video location removed, delete from children (pass null)
   // - Otherwise, leave children's settings untouched (pass undefined)
-  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined;
+  let calVideoSettingsForChildren: typeof calVideoSettings | null | undefined = undefined;
   if (calVideoSettings !== undefined) {
     calVideoSettingsForChildren = calVideoSettings;
   } else if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     calVideoSettingsForChildren = null;
-  }
-
-  // Reconstruct children array from pendingChildrenChanges or preserve existing children
-  let resolvedChildren = children;
-  if (!children && pendingChildrenChanges) {
-    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
-    const existingChildren = await eventTypeRepo.findChildrenByParentId(id);
-
-    if (pendingChildrenChanges?.clearAllChildren) {
-      resolvedChildren = pendingChildrenChanges.childrenToAdd.map((c) => ({
-        owner: {
-          id: c.owner.id,
-          name: c.owner.name,
-          email: c.owner.email,
-          eventTypeSlugs: [],
-        },
-        hidden: c.hidden,
-      }));
-    } else {
-      const removeSet = new Set(pendingChildrenChanges?.childrenToRemove ?? []);
-      const updateMap = new Map((pendingChildrenChanges?.childrenToUpdate ?? []).map((u) => [u.userId, u]));
-
-      resolvedChildren = existingChildren
-        .filter((c) => c.owner && !removeSet.has(c.owner.id))
-        .map((c) => {
-          const update = updateMap.get(c.owner!.id);
-          return {
-            owner: {
-              id: c.owner!.id,
-              name: c.owner!.name ?? "",
-              email: c.owner!.email,
-              eventTypeSlugs: c
-                .owner!.eventTypes.map((et) => et.slug)
-                .filter((slug) => slug !== updatedEventType.slug),
-            },
-            hidden: update?.hidden ?? c.hidden,
-          };
-        });
-
-      if (pendingChildrenChanges) {
-        for (const added of pendingChildrenChanges.childrenToAdd) {
-          resolvedChildren.push({
-            owner: {
-              id: added.owner.id,
-              name: added.owner.name,
-              email: added.owner.email,
-              eventTypeSlugs: [],
-            },
-            hidden: added.hidden,
-          });
-        }
-      }
-    }
   }
 
   // Handling updates to children event types (managed events types)
@@ -1054,7 +827,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     currentUserId: ctx.user.id,
     oldEventType: eventType,
     updatedEventType,
-    children: resolvedChildren,
+    children,
     profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
     updatedValues,
@@ -1062,7 +835,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   // Clean up empty host groups
-  if (hostGroups !== undefined || hosts || pendingHostChanges) {
+  if (hostGroups !== undefined || hosts) {
     await ctx.prisma.hostGroup.deleteMany({
       where: {
         eventTypeId: id,
