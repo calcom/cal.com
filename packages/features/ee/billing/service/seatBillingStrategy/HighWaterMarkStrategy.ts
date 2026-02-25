@@ -1,9 +1,8 @@
 import logger from "@calcom/lib/logger";
-
-import type { HighWaterMarkService } from "../highWaterMark/HighWaterMarkService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
-import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
+import type { HighWaterMarkService } from "../highWaterMark/HighWaterMarkService";
 import type { SeatChangeContext } from "./ISeatBillingStrategy";
+import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 
 const log = logger.getSubLogger({ prefix: ["HighWaterMarkStrategy"] });
 
@@ -13,6 +12,8 @@ export interface IHighWaterMarkStrategyDeps {
 }
 
 export class HighWaterMarkStrategy extends BaseSeatBillingStrategy {
+  readonly strategyName = "HighWaterMark";
+
   constructor(private readonly deps: IHighWaterMarkStrategyDeps) {
     super();
   }
