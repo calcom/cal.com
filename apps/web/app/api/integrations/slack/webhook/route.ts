@@ -20,7 +20,9 @@ function verifyCalWebhookSignature(
   if (!secret) return true;
   if (!signature) return false;
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  return signature === expected || signature === `sha256=${expected}`;
+  const sigToCompare = signature.startsWith("sha256=") ? signature.slice(7) : signature;
+  if (sigToCompare.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(sigToCompare, "hex"), Buffer.from(expected, "hex"));
 }
 
 function formatSlackMessage(triggerEvent: string, payload: Record<string, unknown>): string {
@@ -136,6 +138,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.error("Slack API error:", slackRes.status, errText);
       return NextResponse.json(
         { error: `Slack API error: ${slackRes.status}`, details: errText },
+        { status: 502 }
+      );
+    }
+
+    const slackBody = (await slackRes.json()) as { ok: boolean; error?: string };
+    if (!slackBody.ok) {
+      console.error("Slack API application error:", slackBody.error);
+      return NextResponse.json(
+        { error: `Slack API error: ${slackBody.error ?? "unknown"}` },
         { status: 502 }
       );
     }
