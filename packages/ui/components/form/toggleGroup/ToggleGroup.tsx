@@ -1,5 +1,6 @@
 import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
 import type { ReactNode } from "react";
+import { useState } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -42,15 +43,26 @@ export const ToggleGroup = ({
   isFullWidth,
   orientation = "horizontal",
   customClassNames,
+  defaultValue,
   ...props
 }: ToggleGroupProps & { customClassNames?: string }) => {
+  const isControlled = props.value !== undefined;
+  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
+
   return (
     <>
       <RadixToggleGroup.Root
         type="single"
         {...props}
+        {...(isControlled ? { value: props.value } : { value: uncontrolledValue })}
         orientation={orientation}
-        onValueChange={onValueChange}
+        onValueChange={(value) => {
+          if (!value) return;
+          if (!isControlled) {
+            setUncontrolledValue(value);
+          }
+          onValueChange?.(value);
+        }}
         style={{
           // @ts-expect-error --toggle-group-shadow is not a valid CSS property but can be a variable
           "--toggle-group-shadow":

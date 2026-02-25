@@ -91,6 +91,7 @@ const TRIGGER_TO_BUILDER_CATEGORY: Record<WebhookTriggerEvents, BuilderCategory>
   // Form events
   [WebhookTriggerEvents.FORM_SUBMITTED]: "form",
   [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT]: "form",
+  [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT]: "form",
 
   // OOO events
   [WebhookTriggerEvents.OOO_CREATED]: "ooo",
@@ -133,7 +134,8 @@ export type DelegationTriggerEvents = typeof WebhookTriggerEvents.DELEGATION_CRE
 
 export type FormTriggerEvents =
   | typeof WebhookTriggerEvents.FORM_SUBMITTED
-  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT;
+  | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
+  | typeof WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT;
 
 export type OOOTriggerEvents = typeof WebhookTriggerEvents.OOO_CREATED;
 

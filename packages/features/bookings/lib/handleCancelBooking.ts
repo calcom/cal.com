@@ -10,7 +10,7 @@ import {
   makeGuestActor,
   makeUserActor,
 } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
@@ -41,12 +41,14 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -81,7 +83,7 @@ export type CancelBookingInput = {
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
-  actionSource?: ActionSource;
+  actionSource: ValidActionSource;
 } & PlatformParams;
 
 type Dependencies = {
@@ -173,17 +175,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const userUuid = input.userUuid ?? null;
 
-  // Extract action source once for reuse
-  const actionSource = input.actionSource ?? "UNKNOWN";
-  if (actionSource === "UNKNOWN") {
-    log.warn(
-      "Booking cancellation with unknown actionSource",
-      safeStringify({
-        bookingUid: bookingToDelete.uid,
-        userUuid,
-      })
-    );
-  }
+  const actionSource = input.actionSource;
 
   const actorToUse = getAuditActor({
     userUuid,
@@ -218,15 +210,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
-  if (
-    !platformClientId &&
-    !cancellationReason?.trim() &&
-    isCancellationUserHost &&
-    !skipCancellationReasonValidation
-  ) {
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required",
     });
   }
 
@@ -724,10 +716,15 @@ type BookingCancelServiceDependencies = {
 export class BookingCancelService implements IBookingCancelService {
   constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
-  async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
+  async cancelBooking(input: {
+    bookingData: CancelRegularBookingData;
+    bookingMeta?: CancelBookingMeta;
+    actionSource: ValidActionSource;
+  }) {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
+      actionSource: input.actionSource,
     };
 
     return handler(cancelBookingInput, this.deps);
