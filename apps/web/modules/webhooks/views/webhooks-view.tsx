@@ -98,7 +98,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
             );
           })
         ) : (
-          <Empty className="rounded-xl border border-dashed md:py-32">
+          <Empty className="rounded-xl border border-dashed">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <WebhookIcon />
