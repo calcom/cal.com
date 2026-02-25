@@ -753,10 +753,13 @@ const WebhookForm = (props: {
       <Form
         form={formMethods}
         handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-        <div className="flex flex-col gap-4">
-          {props.headerWrapper(formMethods, cardContent)}
-          <WebhookTestDisclosure />
-        </div>
+        {props.headerWrapper(
+          formMethods,
+          <div className="flex flex-col gap-4">
+            {cardContent}
+            <WebhookTestDisclosure />
+          </div>
+        )}
       </Form>
     );
   }
