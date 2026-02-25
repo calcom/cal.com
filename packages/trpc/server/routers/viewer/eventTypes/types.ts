@@ -9,7 +9,7 @@ import type {
   HostGroupInput,
   HostInput,
 } from "@calcom/features/eventtypes/lib/types";
-import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
+import { MAX_EVENT_TYPE_TITLE_LENGTH, MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -123,7 +123,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     // Fields from EventTypeSchema
     periodType: z.enum(["UNLIMITED", "ROLLING", "ROLLING_WINDOW", "RANGE"]).optional(),
     schedulingType: z.enum(["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]).nullable().optional(),
-    title: z.string().min(1).optional(),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH).optional(),
     slug: z.string().optional(),
     description: z.string().nullable().optional(),
     interfaceLanguage: z.string().nullable().optional(),
