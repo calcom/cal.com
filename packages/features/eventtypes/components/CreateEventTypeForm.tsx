@@ -40,6 +40,21 @@ export default function CreateEventTypeForm({
   const [firstRender, setFirstRender] = useState(true);
 
   const { register } = form;
+
+
+  const {
+  onChange: titleOnChange,
+  ...titleField
+} = register("title", {
+  required: t("field_required"),
+  maxLength: {
+    value: 100, // or MAX_EVENT_TITLE_CHARACTERS if defined
+    message: t("max_characters_allowed", {
+      count: 100,
+    }),
+  },
+});
+  
   return (
     <Form
       form={form}
@@ -51,8 +66,9 @@ export default function CreateEventTypeForm({
           label={t("title")}
           placeholder={t("quick_chat")}
           data-testid="event-type-quick-chat"
-          {...register("title")}
+          {...titleField}
           onChange={(e) => {
+            titleOnChange(e);
             form.setValue("title", e?.target.value);
             if (form.formState.touchedFields["slug"] === undefined) {
               form.setValue("slug", slugify(e?.target.value));

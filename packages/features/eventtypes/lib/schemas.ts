@@ -3,6 +3,7 @@ import { z } from "zod";
 import { eventTypeLocations, eventTypeSlug } from "@calcom/lib/zod/eventType";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { MAX_EVENT_TITLE_CHARACTERS } from '@calcom/lib/constants'
 
 type CalVideoSettings =
   | {
@@ -58,7 +59,7 @@ export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
   .object({
     id: z.number(),
     slug: z.string(),
-    title: z.string().min(1),
+    title: z.string().min(1).max(MAX_EVENT_TITLE_CHARACTERS),
     description: z.string(),
     length: z.number(),
     teamId: z.number().nullish(),
@@ -86,9 +87,7 @@ export type TCreateEventTypeInput = {
 
 export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
   .object({
-    title: z.string().trim().min(1)
-    .refine( (value) => value.trim().split(/\s+/).length <= 50,
-    { message: "Title cannot exceed 50 words" }),
+    title: z.string().trim().min(1).max(MAX_EVENT_TITLE_CHARACTERS),
     slug: eventTypeSlug,
     description: z.string().nullish(),
     length: z.number().int(),
