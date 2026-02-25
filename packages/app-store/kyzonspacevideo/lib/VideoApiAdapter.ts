@@ -21,18 +21,22 @@ import { kyzonAxiosInstance } from "./axios";
 import { refreshKyzonToken, isTokenExpired } from "./tokenManager";
 
 const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
+  let cachedKey: KyzonCredentialKey | null = null;
+
   const getRefreshedKey = async (): Promise<KyzonCredentialKey> => {
-    let key = kyzonCredentialKeySchema.parse(credential.key);
+    if (!cachedKey) {
+      cachedKey = kyzonCredentialKeySchema.parse(credential.key);
+    }
 
     // Check if token needs refresh and has refresh capability
-    if (isTokenExpired(key)) {
+    if (isTokenExpired(cachedKey)) {
       const refreshedToken = await refreshKyzonToken(credential.id);
       if (refreshedToken) {
-        key = refreshedToken;
+        cachedKey = refreshedToken;
       }
     }
 
-    return key;
+    return cachedKey;
   };
 
   const authenticatedRequest = async <T>(operation: (key: KyzonCredentialKey) => Promise<T>): Promise<T> => {
@@ -45,6 +49,7 @@ const KyzonVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         const refreshedToken = await refreshKyzonToken(credential.id);
         if (refreshedToken && refreshedToken.access_token !== key.access_token) {
+          cachedKey = refreshedToken;
           return await operation(refreshedToken);
         }
       }
