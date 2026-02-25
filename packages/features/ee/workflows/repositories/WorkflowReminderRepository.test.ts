@@ -301,6 +301,8 @@ describe("WorkflowReminderRepository", () => {
               sender: true,
               numberVerificationPending: true,
               numberRequired: true,
+              autoTranslateEnabled: true,
+              sourceLocale: true,
               workflow: {
                 select: {
                   id: true,
