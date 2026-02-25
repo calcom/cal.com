@@ -18,6 +18,8 @@ export type EmailVerifyCode = {
     name?: string | null;
     email: string;
   };
+  /** When true, email body greeting is "Hi there"; otherwise "Hi {user.name}". Used when To shows extracted name but request had no name. */
+  useGenericGreeting?: boolean;
   verificationEmailCode: string;
   isVerifyingEmail?: boolean;
 };

@@ -20,6 +20,8 @@ const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 interface VerifyEmailType {
   username?: string;
+  /** When true, email body greeting is "Hi there"; otherwise "Hi {username}". */
+  useGenericGreeting?: boolean;
   email: string;
   language?: string;
   secondaryEmailId?: number;
@@ -89,6 +91,7 @@ export const sendEmailVerificationByCode = async ({
   email,
   language,
   username,
+  useGenericGreeting,
   isVerifyingEmail,
 }: VerifyEmailType) => {
   if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
@@ -111,6 +114,7 @@ export const sendEmailVerificationByCode = async ({
       email,
       name: username,
     },
+    useGenericGreeting,
     isVerifyingEmail,
   });
 

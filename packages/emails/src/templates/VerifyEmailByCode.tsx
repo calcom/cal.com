@@ -20,7 +20,7 @@ export const VerifyEmailByCode = (
         <>{props.language("verify_email_email_header")}</>
       </p>
       <p style={{ fontWeight: 400 }}>
-        <>{props.language("hi_user_name", { name: props.user.name })}!</>
+        <>{props.language("hi_user_name", { name: props.useGenericGreeting ? "there" : (props.user.name ?? "") })}!</>
       </p>
       <div style={{ lineHeight: "6px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>

@@ -29,11 +29,13 @@ export class VerifiedResourcesService {
     email: string,
     recipientName?: string
   ) {
-    const displayName = recipientName?.trim() || displayNameFromEmail(email);
+    const hasName = !!recipientName?.trim();
+    const displayName = hasName ? recipientName!.trim() : displayNameFromEmail(email);
     const res = await sendEmailVerificationByCode({
       email: email,
       language: user.locale,
       username: displayName,
+      useGenericGreeting: !hasName,
       isVerifyingEmail: true,
     });
 

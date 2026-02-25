@@ -38,9 +38,16 @@ jest.spyOn(TOTPtoMock.prototype, "check").mockImplementation(function () {
   return true;
 });
 
+let lastVerifyEmailInput: { user: { name?: string | null; email: string }; useGenericGreeting?: boolean } | null =
+  null;
+
 jest
   .spyOn(AttendeeVerifyEmail.prototype as any, "getNodeMailerPayload")
-  .mockImplementation(async function () {
+  .mockImplementation(async function (this: InstanceType<typeof AttendeeVerifyEmail>) {
+    lastVerifyEmailInput = {
+      user: { name: this.verifyAccountInput?.user?.name, email: this.verifyAccountInput?.user?.email ?? "" },
+      useGenericGreeting: this.verifyAccountInput?.useGenericGreeting,
+    };
     return {
       to: `testnotrealemail@notreal.com`,
       from: `testnotrealemail@notreal.com`,
@@ -149,24 +156,32 @@ describe("Organizations Teams Verified Resources", () => {
   });
 
   it("should trigger email verification code", async () => {
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post(
         `/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verification-code/request`
       )
       .send({ email: emailToVerify } satisfies RequestEmailVerificationInput)
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200);
+    expect(lastVerifyEmailInput).not.toBeNull();
+    expect(lastVerifyEmailInput!.useGenericGreeting).toBe(true);
+    expect(lastVerifyEmailInput!.user.email).toBe(emailToVerify);
+    expect(lastVerifyEmailInput!.user.name).toBeTruthy();
   });
 
   it("should accept optional name for recipient in verification code request", async () => {
     const emailWithName = `org-team-e2e-with-name-${randomString()}@example.com`;
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post(
         `/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verification-code/request`
       )
       .send({ email: emailWithName, name: "Jane" } satisfies RequestEmailVerificationInput)
       .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
       .expect(200);
+    expect(lastVerifyEmailInput).not.toBeNull();
+    expect(lastVerifyEmailInput!.useGenericGreeting).toBeFalsy();
+    expect(lastVerifyEmailInput!.user.email).toBe(emailWithName);
+    expect(lastVerifyEmailInput!.user.name).toBe("Jane");
   });
 
   it("should verify email", async () => {
