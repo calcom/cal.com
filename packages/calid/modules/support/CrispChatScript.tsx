@@ -19,11 +19,13 @@ declare global {
 const CRISP_WEBSITE_ID = "3375d605-22a8-4347-8a1e-6e30ce39c15b";
 
 const isAuthOrGettingStartedPages = (pathname: string) => {
+  console.log("pathname", pathname);
   return (
     pathname.includes("/auth/") ||
     pathname.includes("/login") ||
     pathname.includes("/signup") ||
-    pathname.includes("/getting-started")
+    pathname.includes("/getting-started") ||
+    pathname.includes("/queuedash")
   );
 };
 

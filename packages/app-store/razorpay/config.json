@@ -14,5 +14,6 @@
   "__createdUsingCli": true,
   "__template": "event-type-app-card",
   "dirName": "razorpay",
+  "isOAuth": true,
   "extendsFeature": "EventType"
 }

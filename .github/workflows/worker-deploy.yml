@@ -1,0 +1,629 @@
+name: Build Worker, Push Docker Image, Deploy to EC2
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+      - develop
+    paths:
+      - 'apps/worker/**'
+      - 'packages/**'
+      - '.github/workflows/worker-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Target branch"
+        required: false
+        default: "develop"
+      rebuild:
+        description: "Rebuild the Docker image even if it exists"
+        required: false
+        default: "false"
+      worker_replicas:
+        description: "Number of worker replicas (overrides secret)"
+        required: false
+        default: ""
+
+concurrency:
+  group: worker-deploy-${{ github.event.inputs.branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-push-deploy-worker:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/build'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: df -h
+
+      - name: "cleanup"
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+
+      - run: df -h
+
+      - name: Initialize Global Log File
+        run: |
+          echo "LOG_FILE=workflow.log" >> $GITHUB_ENV
+          echo "Worker Deployment Started" > workflow.log
+
+      - name: Check for required secrets
+        id: check_required_secrets_status
+        run: |
+          check() {
+            if [ -z "$1" ]; then
+              echo "$2 is EMPTY ❌" | tee -a $LOG_FILE
+              echo "passed=failure" >> $GITHUB_OUTPUT
+            else
+              echo "$2 is SET ✅"
+            fi
+          }
+          check "${{ secrets.EC2_HOST_STAG }}" "EC2_HOST_STAG"
+          check "${{ secrets.EC2_SSH_KEY_STAG }}" "EC2_SSH_KEY_STAG"
+          check "${{ secrets.EC2_HOST_PROD }}" "EC2_HOST_PROD"
+          check "${{ secrets.EC2_SSH_KEY_PROD }}" "EC2_SSH_KEY_PROD"
+          check "${{ secrets.AWS_REGION }}" "AWS_REGION"
+          check "${{ secrets.AWS_ACCESS_KEY_ID }}" "AWS_ACCESS_KEY_ID"
+          check "${{ secrets.AWS_SECRET_ACCESS_KEY }}" "AWS_SECRET_ACCESS_KEY"
+          check "${{ secrets.AWS_ACCOUNT_ID }}" "AWS_ACCOUNT_ID"
+          check "${{ secrets.SENDGRID_API_KEY }}" "SENDGRID_API_KEY"
+          check "${{ secrets.EMAIL_TO }}" "EMAIL_TO"
+          check "${{ secrets.EMAIL_FROM }}" "EMAIL_FROM"
+
+      - name: Extract Git commit hash
+        if: ${{ steps.check_required_secrets_status.outputs.passed != 'failure' }}
+        id: hash
+        run: |
+          hash="$(git rev-parse HEAD)"
+          echo "[INFO]: 🆕 Worker Deployment - Commit: $hash" >> "$LOG_FILE"
+          echo "GIT_HASH=$hash" >> $GITHUB_OUTPUT
+
+      - name: Set branch name
+        id: set_branch
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch != '' && github.event.inputs.branch || github.ref_name }}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Set dynamic values based on deployment environment
+        id: key_values
+        run: |
+          if [ "${{ steps.set_branch.outputs.branch_name }}" == "main" ]; then
+            echo "EC2_HOST=${{ secrets.EC2_HOST_PROD }}" >> $GITHUB_OUTPUT
+            echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.EC2_SSH_KEY_PROD }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "WORKER_REPO_NAME=cal_worker_prod" >> $GITHUB_OUTPUT
+            echo "ENVIRONMENT=PRODUCTION" >> $GITHUB_OUTPUT
+            # Worker replicas: use input override, then secret, then default to 1
+            if [ -n "${{ github.event.inputs.worker_replicas }}" ]; then
+              echo "WORKER_REPLICAS=${{ github.event.inputs.worker_replicas }}" >> $GITHUB_OUTPUT
+            else
+              REPLICAS="${{ secrets.WORKER_REPLICAS_PROD }}"
+              echo "WORKER_REPLICAS=${REPLICAS:-1}" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "EC2_HOST=${{ secrets.EC2_HOST_STAG }}" >> $GITHUB_OUTPUT
+            echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
+            echo "${{ secrets.EC2_SSH_KEY_STAG }}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "WORKER_REPO_NAME=cal_worker_stag" >> $GITHUB_OUTPUT
+            echo "ENVIRONMENT=STAGING" >> $GITHUB_OUTPUT
+            # Worker replicas: use input override, then secret, then default to 1
+            if [ -n "${{ github.event.inputs.worker_replicas }}" ]; then
+              echo "WORKER_REPLICAS=${{ github.event.inputs.worker_replicas }}" >> $GITHUB_OUTPUT
+            else
+              REPLICAS="${{ secrets.WORKER_REPLICAS_STAG }}"
+              echo "WORKER_REPLICAS=${REPLICAS:-1}" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      # ============ DOCKER BUILD & PUSH ============
+      - name: Set up Docker Buildx
+        id: setup_docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
+        if: ${{ steps.setup_docker.outcome == 'success' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        id: configure-aws
+        continue-on-error: true
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Check AWS Configure status
+        shell: bash
+        run: |
+          if [ "${{ steps.configure-aws.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ AWS Configure failed" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ✅ AWS Configure successful" >> "$LOG_FILE"
+          fi
+
+      - name: Login to Amazon ECR
+        if: ${{ steps.configure-aws.outcome == 'success' }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        continue-on-error: true
+
+      - name: Check ECR login status
+        shell: bash
+        if: ${{ steps.configure-aws.outcome == 'success' }}
+        run: |
+          if [ "${{ steps.login-ecr.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ ECR login failed" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ✅ ECR login successful" >> "$LOG_FILE"
+          fi
+
+      - name: Check if worker image already exists in ECR
+        if: ${{ steps.login-ecr.outcome == 'success' && github.event.inputs.rebuild != 'true' }}
+        id: check-ecr-worker-image
+        uses: mnmandahalf/check-ecr-image-exists@v0.1.5
+        with:
+          region: ${{ secrets.AWS_REGION }}
+          repository-name: ${{ steps.key_values.outputs.WORKER_REPO_NAME }}
+          image-tag: ${{ steps.hash.outputs.GIT_HASH }}
+          access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Log worker ECR image existence status
+        if: ${{ github.event.inputs.rebuild != 'true' }}
+        shell: bash
+        run: |
+          if [ "${{ steps.check-ecr-worker-image.outputs.image-exists }}" == "1" ]; then
+            echo "[INFO]: ✅ Worker ECR image already exists" >> "$LOG_FILE"
+          else
+            echo "[INFO]: ❌ Worker ECR image does not exist, proceeding to build and push" >> "$LOG_FILE"
+          fi
+
+      - name: Build and Push Worker Docker image
+        if: ${{ steps.check-ecr-worker-image.outputs.image-exists == '0' || github.event.inputs.rebuild == 'true' }}
+        id: docker_build_worker
+        uses: docker/build-push-action@v5
+        continue-on-error: true
+        with:
+          context: .
+          file: ./apps/worker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.WORKER_REPO_NAME }}:${{ steps.hash.outputs.GIT_HASH }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.WORKER_REPO_NAME }}:latest
+
+      - name: Check Worker Docker build status
+        shell: bash
+        id: check_worker_docker_build_status
+        run: |
+          if [ "${{ steps.check-ecr-worker-image.outputs.image-exists }}" == "1" ]; then
+            echo "[INFO]: ✅ Worker image already exists, skipping build" >> "$LOG_FILE"
+            echo "image_ready=true" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.docker_build_worker.outcome }}" != "success" ]; then
+            echo "[ERROR]: ❌ Worker Docker build & push failed" >> "$LOG_FILE"
+            echo "image_ready=false" >> $GITHUB_OUTPUT
+          else
+            echo "[INFO]: ✅ Worker Docker build & push succeeded" >> "$LOG_FILE"
+            echo "image_ready=true" >> $GITHUB_OUTPUT
+          fi
+
+      # ============ DEPLOY TO EC2 ============
+      - name: SSH into EC2 and Deploy Workers
+        if: ${{ steps.check_worker_docker_build_status.outputs.image_ready == 'true' }}
+        uses: appleboy/ssh-action@v0.1.10
+        id: ssh_deploy
+        env:
+          EC2_HOST: ${{ steps.key_values.outputs.EC2_HOST }}
+          EC2_SSH_KEY: ${{ steps.key_values.outputs.EC2_SSH_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          WORKER_REPO_NAME: ${{ steps.key_values.outputs.WORKER_REPO_NAME }}
+          GIT_HASH: ${{ steps.hash.outputs.GIT_HASH }}
+          WORKER_REPLICAS: ${{ steps.key_values.outputs.WORKER_REPLICAS }}
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: "onehash"
+          key: ${{ env.EC2_SSH_KEY }}
+          command_timeout: 600s # 10 minutes
+          envs: AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_ACCOUNT_ID,WORKER_REPO_NAME,GIT_HASH,WORKER_REPLICAS
+          script_stop: false
+          script: |
+            #!/bin/bash
+
+            LOG_FILE="/home/onehash/worker-deployment.log"
+            : > "$LOG_FILE"
+
+            log_message() {
+              local level=$1
+              local message=$2
+              local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+              echo "[$timestamp][VPC][$level] $message" | tee -a "$LOG_FILE"
+            }
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # CONFIGURABLE SHUTDOWN TIMEOUT
+            #
+            # WHY: BullMQ workers call worker.close() on SIGTERM, which waits for active
+            # jobs to finish before exiting. If docker stop's timeout is shorter than the
+            # running job, Docker sends SIGKILL, which hard-kills the process mid-job.
+            # BullMQ then sees a stalled lock and either retries or marks the job failed.
+            #
+            # Set this to >= your longest expected job duration (in seconds).
+            # 180s is a safe default; raise to 300s for very long jobs.
+            # ─────────────────────────────────────────────────────────────────────────────
+            GRACEFUL_STOP_TIMEOUT=180
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # HEALTH CHECK CONFIG
+            #
+            # WHY: We need new workers to be fully initialized and actively processing
+            # before we drain old ones. Rushing this window risks a gap in processing capacity.
+            # ─────────────────────────────────────────────────────────────────────────────
+            HEALTH_CHECK_ATTEMPTS=12        # 12 × 5s = 60s max wait per container
+            HEALTH_CHECK_INTERVAL=5         # seconds between each check
+
+            log_message "INFO" "==== WORKER DEPLOYMENT STARTED ===="
+            log_message "INFO" "Git Hash: $GIT_HASH"
+            log_message "INFO" "Worker Replicas: $WORKER_REPLICAS"
+            log_message "INFO" "Repository: $WORKER_REPO_NAME"
+            log_message "INFO" "Graceful stop timeout: ${GRACEFUL_STOP_TIMEOUT}s"
+
+            # Configure AWS
+            log_message "INFO" "Configuring AWS credentials..."
+            aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+            aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+            aws configure set default.region "$AWS_REGION"
+            aws configure set default.output json
+
+            # Login to ECR
+            log_message "INFO" "Logging into ECR..."
+            if ! aws ecr get-login-password --region "$AWS_REGION" | \
+              docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"; then
+              log_message "ERROR" "❌ Failed to login to ECR"
+              exit 1
+            fi
+            log_message "INFO" "✅ ECR login successful"
+
+            # Check disk space
+            AVAILABLE_SPACE=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+            log_message "INFO" "Available disk space: ${AVAILABLE_SPACE}GB"
+
+            if [ "$AVAILABLE_SPACE" -lt 5 ]; then
+              log_message "WARN" "⚠️ Low disk space. Pruning Docker..."
+              docker system prune -af --volumes || true
+              AVAILABLE_SPACE=$(df -BG / | tail -1 | awk '{print $4}' | sed 's/G//')
+              log_message "INFO" "Disk space after pruning: ${AVAILABLE_SPACE}GB"
+            fi
+
+            WORKER_IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${WORKER_REPO_NAME}:${GIT_HASH}"
+            log_message "INFO" "Worker image: $WORKER_IMAGE"
+
+            # Pull the worker image
+            log_message "INFO" "Pulling worker image..."
+            if ! docker pull "$WORKER_IMAGE"; then
+              log_message "ERROR" "❌ Failed to pull worker image"
+              exit 1
+            fi
+            log_message "INFO" "✅ Worker image pulled successfully"
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # HEALTH CHECK FUNCTION (unchanged logic, extracted for reuse)
+            # ─────────────────────────────────────────────────────────────────────────────
+            check_worker_health() {
+              local container=$1
+              local attempt=1
+
+              while [ $attempt -le $HEALTH_CHECK_ATTEMPTS ]; do
+                log_message "INFO" "Health check attempt $attempt/$HEALTH_CHECK_ATTEMPTS for $container"
+
+                STATUS=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null | tr -d '[:space:]' || echo "not_found")
+
+                if [ "$STATUS" != "running" ]; then
+                  log_message "ERROR" "❌ $container is not running (status: $STATUS)"
+                  return 1
+                fi
+
+                LOGS=$(docker logs "$container" 2>&1)
+
+                if echo "$LOGS" | grep -q "Workers are up"; then
+                  if echo "$LOGS" | grep -qi "fatal\|panic\|error.*failed\|ECONNREFUSED"; then
+                    log_message "WARN" "⚠️ $container started but has errors"
+                    if [ $attempt -eq $HEALTH_CHECK_ATTEMPTS ]; then
+                      return 1
+                    fi
+                  else
+                    log_message "INFO" "✅ $container is healthy"
+                    return 0
+                  fi
+                else
+                  log_message "INFO" "Container $container still starting (attempt $attempt/$HEALTH_CHECK_ATTEMPTS)"
+                fi
+
+                sleep $HEALTH_CHECK_INTERVAL
+                attempt=$((attempt + 1))
+              done
+
+              log_message "ERROR" "❌ $container did not become healthy after $HEALTH_CHECK_ATTEMPTS attempts"
+              docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
+              return 1
+            }
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # GRACEFUL STOP FUNCTION
+            #
+            # WHY: `docker stop` defaults to 10 seconds before sending SIGKILL.
+            # BullMQ's worker.close() needs time to:
+            #   1. Stop accepting new jobs from the queue
+            #   2. Wait for in-flight jobs to call their process() handler's resolve/reject
+            #   3. Cleanly release the BullMQ job lock
+            #
+            # Using -t $GRACEFUL_STOP_TIMEOUT ensures Docker waits long enough.
+            # Without this, SIGKILL hits mid-job → lock expires → job retried or stalled.
+            # ─────────────────────────────────────────────────────────────────────────────
+            graceful_stop_container() {
+              local container=$1
+
+              log_message "INFO" "Sending SIGTERM to $container (timeout: ${GRACEFUL_STOP_TIMEOUT}s)..."
+
+              # docker stop sends SIGTERM, then waits -t seconds before SIGKILL
+              # This gives worker.close() its full budget to drain in-flight jobs
+              if docker stop -t "$GRACEFUL_STOP_TIMEOUT" "$container" 2>/dev/null; then
+                log_message "INFO" "✅ $container stopped gracefully"
+              else
+                log_message "WARN" "⚠️ $container did not stop within ${GRACEFUL_STOP_TIMEOUT}s — SIGKILL was sent by Docker"
+              fi
+
+              docker rm -f "$container" 2>/dev/null || true
+              log_message "INFO" "🗑️ $container removed"
+            }
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # CAPTURE EXISTING WORKERS BEFORE WE START ANYTHING NEW
+            #
+            # WHY: We snapshot the old worker list now so that even if naming overlaps
+            # occur (unlikely but defensive), we operate on a fixed, known set.
+            # ─────────────────────────────────────────────────────────────────────────────
+            OLD_WORKERS=$(docker ps -a --filter "name=worker-" --format "{{.Names}}" | sort -V || echo "")
+
+            if [ -n "$OLD_WORKERS" ]; then
+              log_message "INFO" "Existing worker containers detected:"
+              for w in $OLD_WORKERS; do
+                log_message "INFO" "  → $w"
+              done
+            else
+              log_message "INFO" "No existing worker containers found — fresh deployment"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 1: START NEW WORKERS UNDER TEMPORARY NAMES (worker-new-*)
+            #
+            # WHY: We spin up new containers BEFORE touching old ones. This ensures at
+            # no point is the queue left with zero active consumers. BullMQ jobs that
+            # arrive during deployment will be picked up by the new containers immediately.
+            #
+            # Using a "worker-new-*" naming convention avoids colliding with the running
+            # "worker-*" containers and makes the rollback path clear.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 1: Starting new worker containers ===="
+
+            WORKERS_STARTED=0
+            WORKERS_FAILED=0
+            HEALTHY_NEW_WORKERS=""
+
+            for i in $(seq 1 "$WORKER_REPLICAS"); do
+              NEW_NAME="worker-new-$i"
+              log_message "INFO" "Starting $NEW_NAME..."
+
+              if docker run -d \
+                --name "$NEW_NAME" \
+                --restart unless-stopped \
+                --env-file "/home/onehash/.env" \
+                --add-host=host.docker.internal:host-gateway \
+                --memory="512m" \
+                "$WORKER_IMAGE" 2>&1 | tee -a "$LOG_FILE"; then
+
+                log_message "INFO" "Container $NEW_NAME created, waiting for initialization..."
+                sleep 5
+
+                if check_worker_health "$NEW_NAME"; then
+                  WORKERS_STARTED=$((WORKERS_STARTED + 1))
+                  HEALTHY_NEW_WORKERS="$HEALTHY_NEW_WORKERS $NEW_NAME"
+                  log_message "INFO" "✅ $NEW_NAME is healthy and consuming from queue"
+                else
+                  WORKERS_FAILED=$((WORKERS_FAILED + 1))
+                  log_message "ERROR" "❌ $NEW_NAME failed health check — keeping for debug, will not promote"
+                  # Do NOT rename or proceed with a broken container.
+                  # Old workers are still running, so queue is still being served.
+                fi
+              else
+                WORKERS_FAILED=$((WORKERS_FAILED + 1))
+                log_message "ERROR" "❌ Failed to start $NEW_NAME"
+              fi
+            done
+
+            log_message "INFO" "New workers healthy: $WORKERS_STARTED / $WORKER_REPLICAS"
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # ABORT GUARD: Don't drain old workers if no new ones are healthy
+            #
+            # WHY: If all new containers failed (bad image, OOM, config error), we must
+            # NOT touch the old workers. They are still serving jobs. Aborting here
+            # preserves the running system and avoids an outage.
+            # ─────────────────────────────────────────────────────────────────────────────
+            if [ "$WORKERS_STARTED" -eq 0 ]; then
+              log_message "ERROR" "❌ All new workers failed to start. Old workers left untouched. Deployment ABORTED."
+              log_message "ERROR" "   Investigate new container logs before retrying."
+              exit 1
+            fi
+
+            if [ "$WORKERS_FAILED" -gt 0 ]; then
+              log_message "WARN" "⚠️ $WORKERS_FAILED new worker(s) failed health check — proceeding with $WORKERS_STARTED healthy replacement(s)"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 2: GRACEFULLY DRAIN AND STOP OLD WORKERS
+            #
+            # WHY: Now that new workers are healthy and consuming jobs, we can safely
+            # drain the old ones. We stop them one at a time with the full graceful
+            # timeout, ensuring any job the old container is mid-processing gets to finish.
+            #
+            # Draining one-by-one (rather than parallel stop) means at any moment
+            # we always have at least (WORKERS_STARTED - 1) new + some old workers
+            # serving the queue. Smoother capacity curve during rollover.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 2: Gracefully stopping old worker containers ===="
+
+            if [ -n "$OLD_WORKERS" ]; then
+              for old_container in $OLD_WORKERS; do
+                log_message "INFO" "Draining old container: $old_container"
+                graceful_stop_container "$old_container"
+              done
+              log_message "INFO" "✅ All old workers drained and removed"
+            else
+              log_message "INFO" "No old workers to drain"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 3: RENAME worker-new-* → worker-*
+            #
+            # WHY: Rename to canonical names so the next deployment correctly identifies
+            # these as "old" containers to drain. Also keeps monitoring/alerting that
+            # filters by container name (e.g. "worker-1") working correctly.
+            #
+            # `docker rename` is atomic and does not restart the container.
+            # The --restart unless-stopped policy is preserved through rename.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 3: Renaming new workers to canonical names ===="
+
+            for i in $(seq 1 "$WORKER_REPLICAS"); do
+              NEW_NAME="worker-new-$i"
+              FINAL_NAME="worker-$i"
+
+              # Only rename containers that are in our healthy set
+              if echo "$HEALTHY_NEW_WORKERS" | grep -qw "$NEW_NAME"; then
+                if docker rename "$NEW_NAME" "$FINAL_NAME" 2>/dev/null; then
+                  log_message "INFO" "✅ Renamed $NEW_NAME → $FINAL_NAME"
+                else
+                  log_message "WARN" "⚠️ Failed to rename $NEW_NAME → $FINAL_NAME (may already exist or container exited)"
+                fi
+              else
+                log_message "WARN" "Skipping rename for $NEW_NAME — it was not healthy"
+              fi
+            done
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # PHASE 4: CLEANUP — Remove any leftover worker-new-* containers
+            #
+            # WHY: Failed new containers (those that didn't pass health checks) are
+            # still named worker-new-*. We remove them now that old workers are gone
+            # and the system is stable. They were kept alive until now for log inspection.
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== PHASE 4: Cleaning up failed new containers ===="
+
+            LEFTOVER_NEW=$(docker ps -a --filter "name=worker-new-" --format "{{.Names}}" || echo "")
+            if [ -n "$LEFTOVER_NEW" ]; then
+              for container in $LEFTOVER_NEW; do
+                log_message "WARN" "Removing failed new container: $container"
+                docker logs --tail 50 "$container" >> "$LOG_FILE" 2>&1 || true
+                docker rm -f "$container" 2>/dev/null || true
+              done
+            else
+              log_message "INFO" "No leftover new containers to clean up"
+            fi
+
+            # ─────────────────────────────────────────────────────────────────────────────
+            # FINAL STATUS
+            # ─────────────────────────────────────────────────────────────────────────────
+            log_message "INFO" "==== DEPLOYMENT SUMMARY ===="
+            log_message "INFO" "Workers requested:  $WORKER_REPLICAS"
+            log_message "INFO" "Workers started:    $WORKERS_STARTED"
+            log_message "INFO" "Workers failed:     $WORKERS_FAILED"
+
+            log_message "INFO" "Running worker containers:"
+            docker ps --filter "name=worker-" --format "table {{.Names}}\t{{.Status}}\t{{.Image}}" | tee -a "$LOG_FILE"
+
+            # Cleanup old images (72h filter avoids removing the image we just deployed)
+            log_message "INFO" "Pruning old Docker images..."
+            docker image prune -af --filter "until=72h" 2>&1 | tee -a "$LOG_FILE" || true
+
+            if [ "$WORKERS_FAILED" -gt 0 ]; then
+              log_message "WARN" "⚠️ Deployment completed with $WORKERS_FAILED failed worker(s)"
+            fi
+
+            log_message "INFO" "✅ ==== WORKER DEPLOYMENT COMPLETED ===="
+            exit 0
+
+      # ============ COPY LOGS & NOTIFY ============
+      - name: Copy VPC logs to runner
+        uses: nicklasfrahm/scp-action@main
+        if: always()
+        id: download_vpc_logs
+        env:
+          EC2_HOST: ${{ steps.key_values.outputs.EC2_HOST }}
+          EC2_SSH_KEY: ${{ steps.key_values.outputs.EC2_SSH_KEY }}
+        with:
+          direction: download
+          host: ${{ env.EC2_HOST }}
+          fingerprint: ${{ secrets.SSH_TARGET_FINGERPRINT }}
+          insecure_ignore_fingerprint: true
+          username: "onehash"
+          key: ${{ env.EC2_SSH_KEY }}
+          source: "/home/onehash/worker-deployment.log"
+          target: "./worker-deployment.log"
+
+      - name: Append VPC logs to runner log file
+        if: always()
+        run: |
+          if [ -f ./worker-deployment.log ]; then
+            cat ./worker-deployment.log >> "$LOG_FILE"
+          fi
+
+      - name: Send deployment status email
+        if: always()
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          LOG_FILE: ${{ env.LOG_FILE }}
+          ENVIRONMENT: ${{ steps.key_values.outputs.ENVIRONMENT }}
+          WORKER_REPLICAS: ${{ steps.key_values.outputs.WORKER_REPLICAS }}
+        run: |
+          LOG_SNIPPET=$(cat "$LOG_FILE" 2>/dev/null | tail -100 | jq -Rs . || echo '""')
+
+          STATUS_EMOJI=$([ '${{ job.status }}' = 'success' ] && echo '✅' || echo '❌')
+          STATUS_TEXT=$([ '${{ job.status }}' = 'success' ] && echo 'Successful' || echo 'Failed')
+
+          SUBJECT="CAL ID $ENVIRONMENT Worker Deployment - $STATUS_TEXT"
+
+          BODY=$(jq -Rs --arg sha "${{ github.sha }}" \
+                  --arg status "$STATUS_TEXT" \
+                  --arg actor "${{ github.actor }}" \
+                  --arg branch "${{ steps.set_branch.outputs.branch_name }}" \
+                  --arg runid "${{ github.run_id }}" \
+                  --arg replicas "$WORKER_REPLICAS" \
+                  --arg env "$ENVIRONMENT" \
+                  --arg logs "$LOG_SNIPPET" '
+                  "WORKER DEPLOYMENT Notification\n\nEnvironment: \($env)\nStatus: \($status)\nWorker Replicas: \($replicas)\n\nCommit: \($sha)\nTriggered by: \($actor)\nBranch: \($branch)\n\nWorkflow Run: https://github.com/${{ github.repository }}/actions/runs/\($runid)\n\n--- Deployment Log ---\n\($logs | fromjson)"
+                ' <<< "")
+
+          curl --request POST \
+            --url https://api.sendgrid.com/v3/mail/send \
+            --header "Authorization: Bearer $SENDGRID_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data "{
+              \"personalizations\": [{\"to\": [{\"email\": \"${EMAIL_TO}\"}]}],
+              \"from\": {\"email\": \"${EMAIL_FROM}\"},
+              \"subject\": \"${SUBJECT}\",
+              \"content\": [{\"type\": \"text/plain\", \"value\": $BODY}]
+            }"
+
+          echo "📧 Notification email sent"

@@ -234,7 +234,7 @@ export class Cal {
     iframe.setAttribute("allow", "payment");
 
     const queryParams = this.buildParams(queryCfg);
-    const origin = (calOrigin || appCfg.calOrigin || "");
+    const origin = calOrigin || appCfg.calOrigin || "";
 
     const iframeUrl = new URL(`${origin}/${calLink}`);
 

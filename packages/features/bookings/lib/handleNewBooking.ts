@@ -134,7 +134,7 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/originalResche
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { processAttachmentResponses } from "./handleNewBooking/processAttachmentResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { triggerBookingEmailsInngest } from "./handleNewBooking/triggerBookingEmailsInngest";
+import { triggerBookingEmails } from "./handleNewBooking/triggerBookingEmails";
 import type { PaymentAppData } from "./handleNewBooking/types";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -560,6 +560,45 @@ async function handler(
       bookerEmail,
       offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
     });
+  }
+
+  if (eventType.showBusy && typeof eventType.showBusyPercent === "number") {
+    const requestedStartUtc = dayjs(reqBody.start).utc();
+    const formatter = new Intl.DateTimeFormat("fr-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: reqBody.timeZone,
+    });
+    const dateKey = formatter.format(requestedStartUtc.toDate());
+    const rawWindowDays = eventType.showBusyWindowDays;
+    const windowDays =
+      typeof rawWindowDays === "number" && Number.isFinite(rawWindowDays)
+        ? Math.min(30, Math.max(1, rawWindowDays))
+        : 7;
+    const windowType = eventType.showBusyWindowType === "calendar" ? "calendar" : "business";
+    const today = dayjs().tz(reqBody.timeZone).startOf("day");
+    const windowKeys: string[] = [];
+    let cursor = today;
+    while (windowKeys.length < windowDays) {
+      const isWeekend = cursor.day() === 0 || cursor.day() === 6;
+      if (windowType === "calendar" || !isWeekend) {
+        windowKeys.push(cursor.format("YYYY-MM-DD"));
+      }
+      cursor = cursor.add(1, "day");
+    }
+    const isWithinWindow = windowKeys.includes(dateKey);
+    if (isWithinWindow) {
+      const storedSlotsByDate = (eventType.showBusySlots || {}) as Record<string, string[]>;
+      const storedSlotsForDate = storedSlotsByDate[dateKey] || [];
+      const isVisibleSlot = storedSlotsForDate.some((slot) =>
+        dayjs(slot).utc().isSame(requestedStartUtc, "minute")
+      );
+
+      if (!isVisibleSlot) {
+        throw new Error(ErrorCode.NoAvailableUsersFound);
+      }
+    }
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
@@ -1413,8 +1452,6 @@ async function handler(
     organizerUser.id
   );
 
-  const hasConfirmationSmsWorkflow = doesHaveSmsAttendeeWorkflow(workflows, WorkflowTriggerEvents.NEW_EVENT);
-
   // Main mutable logic starts here
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2106,13 +2143,13 @@ async function handler(
         }
       } else {
         if (!isDryRun) {
-          // Send rescheduled emails asynchronously via Inngest to improve reschedule response time
+          // Send rescheduled emails asynchronously via background worker to improve reschedule response time
           const hasRelevantSmsWorkflow = doesHaveSmsAttendeeWorkflow(
             workflows,
             WorkflowTriggerEvents.RESCHEDULE_EVENT
           );
 
-          await triggerBookingEmailsInngest({
+          await triggerBookingEmails({
             calEvent: {
               ...copyEvent,
               additionalInformation: metadata,
@@ -2260,8 +2297,8 @@ async function handler(
             workflows,
             WorkflowTriggerEvents.NEW_EVENT
           );
-          // Send emails asynchronously via Inngest to improve booking response time
-          await triggerBookingEmailsInngest({
+          // Send emails asynchronously via background worker to improve booking response time
+          await triggerBookingEmails({
             calEvent: {
               ...evt,
               additionalInformation,
@@ -2304,8 +2341,8 @@ async function handler(
       })
     );
     if (!isDryRun) {
-      // Send request emails asynchronously via Inngest for pending bookings
-      await triggerBookingEmailsInngest({
+      // Send request emails asynchronously via background worker for pending bookings
+      await triggerBookingEmails({
         calEvent: { ...evt, additionalNotes },
         isHostConfirmationEmailsDisabled: false,
         isAttendeeConfirmationEmailDisabled: false,

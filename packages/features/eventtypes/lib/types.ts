@@ -135,6 +135,11 @@ export type FormValues = {
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
+  showBusy: boolean;
+  showBusyPercent: number | null;
+  showBusySlots: Record<string, string[]> | null;
+  showBusyWindowDays: number | null;
+  showBusyWindowType: "calendar" | "business" | null;
   metadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
   destinationCalendar: {
     integration: string;

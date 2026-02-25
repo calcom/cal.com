@@ -492,6 +492,178 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
   );
 }
 
+if (IS_GOOGLE_LOGIN_ENABLED) {
+  // ADD THIS:
+  providers.push(
+    CredentialsProvider({
+      id: "google-one-tap",
+      name: "Google One Tap",
+      credentials: {
+        credential: { type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.credential) {
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        // Verify the Google ID token
+        const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+        let payload: any;
+
+        try {
+          const ticket = await client.verifyIdToken({
+            idToken: credentials.credential,
+            audience: GOOGLE_CLIENT_ID,
+          });
+          const p = ticket.getPayload();
+          if (!p) throw new Error("Empty payload");
+          payload = p;
+        } catch (err) {
+          log.error("Google One Tap token verification failed", { err });
+          throw new Error(ErrorCode.IncorrectEmailPassword);
+        }
+
+        if (!payload.email_verified || !payload.email) {
+          throw new Error("unverified-email");
+        }
+
+        const email = payload.email.toLowerCase();
+
+        // Check locked before anything else
+        const lockedCheck = await prisma.user.findFirst({
+          where: { email },
+          select: { locked: true },
+        });
+        if (lockedCheck?.locked) {
+          throw new Error(ErrorCode.UserAccountLocked);
+        }
+
+        await checkRateLimitAndThrowError({ identifier: email });
+
+        // 1. Try to find user by Google identity provider + sub
+        let existingUser = await prisma.user.findFirst({
+          where: {
+            AND: [{ identityProvider: IdentityProvider.GOOGLE }, { identityProviderId: payload.sub }],
+          },
+        });
+
+        // 2. Fall back to email lookup (handles CAL users, invited users, etc.)
+        if (!existingUser) {
+          existingUser = await prisma.user.findFirst({
+            where: { email: { equals: email, mode: "insensitive" } },
+          });
+
+          if (existingUser) {
+            // Migrate identity provider to Google if safe to do so
+            const migratable =
+              existingUser.identityProvider === IdentityProvider.CAL ||
+              existingUser.identityProvider === IdentityProvider.GOOGLE;
+
+            if (!migratable) {
+              log.warn("One Tap provider mismatch", {
+                email,
+                existingProvider: existingUser.identityProvider,
+              });
+              throw new Error(`wrong-provider&provider=${existingUser.identityProvider}`);
+            }
+
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                identityProvider: IdentityProvider.GOOGLE,
+                identityProviderId: payload.sub,
+                ...(!existingUser.emailVerified && { emailVerified: new Date() }),
+              },
+            });
+          }
+        }
+
+        // 3. Create brand-new user
+        if (!existingUser) {
+          try {
+            const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(IdentityProvider.GOOGLE, email);
+            const { existingUserWithUsername, username: _username } = await checkIfUserNameTaken({
+              name: payload.name || "",
+            });
+            const username = orgId
+              ? slugify(orgUsername)
+              : existingUserWithUsername
+              ? usernameSlugRandom(payload.name || "")
+              : _username;
+
+            existingUser = await prisma.user.create({
+              data: {
+                username,
+                emailVerified: new Date(),
+                name: payload.name || "",
+                ...(payload.picture && { avatarUrl: payload.picture }),
+                email,
+                metadata: {
+                  signupSource: "google-one-tap", 
+                },
+                identityProvider: IdentityProvider.GOOGLE,
+                identityProviderId: payload.sub,
+                creationSource: CreationSource.WEBAPP,
+                ...(orgId && {
+                  verified: true,
+                  organization: { connect: { id: orgId } },
+                  teams: {
+                    create: {
+                      role: MembershipRole.MEMBER,
+                      accepted: true,
+                      team: { connect: { id: orgId } },
+                    },
+                  },
+                }),
+              },
+            });
+
+            log.info("New user created via Google One Tap", { userId: existingUser.id });
+
+            await sendUserToMakeWebhook({
+              id: existingUser.id,
+              email: existingUser.email,
+              name: existingUser.name || "",
+              username: existingUser.username || "",
+              identityProvider: IdentityProvider.GOOGLE,
+              createdAt: existingUser.createdDate,
+            });
+          } catch (err) {
+            log.error("One Tap user creation failed", { email, error: safeStringify(err) });
+            throw new Error("user-creation-error");
+          }
+        }
+
+        if (existingUser.locked) {
+          throw new Error(ErrorCode.UserAccountLocked);
+        }
+
+        // 2FA: signal to bridge API so it can redirect to TOTP page
+        if (existingUser.twoFactorEnabled) {
+          throw new Error(ErrorCode.SecondFactorRequired);
+        }
+
+        const userRepo = new UserRepository(prisma);
+        const fullUser = await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
+        const hasActiveTeams = fullUser ? checkIfUserBelongsToActiveTeam(fullUser) : false;
+
+        return {
+          id: existingUser.id,
+          email: existingUser.email,
+          name: existingUser.name,
+          username: existingUser.username,
+          metadata: existingUser.metadata,
+          role: existingUser.role,
+          belongsToActiveTeam: hasActiveTeams,
+          locale: existingUser.locale,
+          profile: fullUser?.allProfiles[0],
+          createdDate: existingUser.createdDate,
+        };
+      },
+    })
+  );
+}
+
 if (isSAMLLoginEnabled) {
   providers.push({
     id: "saml",

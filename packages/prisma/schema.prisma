@@ -171,6 +171,11 @@ model EventType {
   slotInterval                             Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
   metadata                                 Json?
+  showBusy                                 Boolean                   @default(false)
+  showBusyPercent                          Int?
+  showBusySlots                            Json?
+  showBusyWindowDays                       Int?
+  showBusyWindowType                       String?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl                       String?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
@@ -1545,19 +1550,20 @@ model WorkflowReminder {
 }
 
 model WebhookScheduledTriggers {
-  id            Int       @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   jobName       String? // jobName is deprecated, not needed when webhook and booking is set
   subscriberUrl String
   payload       String
-  scheduled     Boolean   @default(false)
+  scheduled     Boolean  @default(false)
   startAfter    DateTime
-  retryCount    Int       @default(0)
-  createdAt     DateTime? @default(now())
-  appId         String?
-  webhookId     String?
-  webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  bookingId     Int?
-  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  retryCount    Int      @default(0)
+
+  createdAt DateTime? @default(now())
+  appId     String?
+  webhookId String?
+  webhook   Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  bookingId Int?
+  booking   Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {

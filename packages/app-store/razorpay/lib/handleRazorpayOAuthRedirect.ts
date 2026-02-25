@@ -1,22 +1,26 @@
 import type { ParsedUrlQuery } from "querystring";
 
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import {
   IS_PRODUCTION,
   RAZORPAY_CLIENT_ID,
   RAZORPAY_CLIENT_SECRET,
   RAZORPAY_REDIRECT_URL,
-  RAZORPAY_STATE_KEY,
 } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
+import { throwIfNotHaveAdminAccessToCalIdTeam } from "../../_utils/throwIfNotHaveAdminAccessToCalIdTeam";
 import { default as Razorpay } from "./Razorpay";
 
 const handleRazorpayOAuthRedirect = async (query: ParsedUrlQuery, userId: number) => {
   const { code, state } = query;
 
-  if (!code || !state || state !== RAZORPAY_STATE_KEY) {
+  if (!code || !state) {
     throw new Error("Razorpay oauth response malformed");
   }
+
+  const parsedState: IntegrationOAuthCallbackState = JSON.parse(state as string);
 
   const res = await fetch("https://auth.razorpay.com/token", {
     method: "POST",
@@ -43,13 +47,19 @@ const handleRazorpayOAuthRedirect = async (query: ParsedUrlQuery, userId: number
     access_token,
     refresh_token,
     user_id: userId,
+    team_id: parsedState.calIdTeamId,
   });
 
   const didCreate = await razorpay.createWebhooks(razorpay_account_id);
   if (!didCreate) {
     throw new Error("Failed to create webhooks for user");
   }
-  const installation = await prisma.credential.create({
+
+  if (parsedState?.calIdTeamId) {
+    await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: parsedState.calIdTeamId, userId });
+  }
+
+  await prisma.credential.create({
     data: {
       type: "razorpay_payment",
       key: {
@@ -57,15 +67,19 @@ const handleRazorpayOAuthRedirect = async (query: ParsedUrlQuery, userId: number
         refresh_token,
         public_token,
         account_id: razorpay_account_id,
-        userId: userId,
+        ...(parsedState.calIdTeamId
+          ? {
+              calIdTeamId: parsedState.calIdTeamId,
+            }
+          : {
+              userId: userId,
+            }),
       },
+      calIdTeamId: parsedState.calIdTeamId,
       userId: userId,
       appId: "razorpay",
     },
   });
-  if (!installation) {
-    throw new Error("Unable to create user credential for Razorpay");
-  }
 };
 
 export default handleRazorpayOAuthRedirect;
