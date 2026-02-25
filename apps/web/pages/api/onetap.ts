@@ -10,6 +10,9 @@ const ALLOWED_ORIGINS = (process.env.ONE_TAP_ALLOWED_ORIGINS ?? "")
 type OneTapSuccessResponse = {
   ok: true;
   redirectUrl: string;
+  isNewUser?: boolean;
+  username?: string;
+  email?: string;
 };
 
 type OneTapErrorResponse = {
