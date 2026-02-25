@@ -47,9 +47,11 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       const parsedTeamId = parseInt(teamIdParam, 10);
       if (!isNaN(parsedTeamId)) {
         setTeamId(parsedTeamId);
+        // Clear stale team creation data from IndexedDB since the team was already created via Stripe checkout
+        store.setTeamDetails({ name: "", slug: "", bio: "" });
       }
     }
-  }, [searchParams, setTeamId, teamId]);
+  }, [searchParams, setTeamId, teamId, store]);
 
   const formSchema = z.object({
     invites: z.array(

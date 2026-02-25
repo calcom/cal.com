@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -139,7 +140,9 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
                 app={app}
                 isInstalling={installingAppSlug === app.slug}
                 onInstallClick={setInstallingAppSlug}
-                installOptions={createInstallHandlers(app.slug)}
+                installOptions={createInstallHandlers(app.slug, {
+                  returnTo: `${WEBAPP_URL}/onboarding/personal/calendar`,
+                })}
               />
             ))}
           </div>

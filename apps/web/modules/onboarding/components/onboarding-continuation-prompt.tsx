@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { XIcon } from "@coss/ui/icons";
 
 import { useOnboardingStore } from "../store/onboarding-store";
@@ -13,6 +14,7 @@ export const OnboardingContinuationPrompt = () => {
   const router = useRouter();
   const { t } = useLocale();
   const { selectedPlan, organizationDetails, teamDetails, resetOnboarding } = useOnboardingStore();
+  const { isPending: isTeamMembershipPending, hasTeamMembership } = useHasTeamMembership();
   const [isVisible, setIsVisible] = useState(false);
   const [entityName, setEntityName] = useState<string>("");
   const [entityType, setEntityType] = useState<"organization" | "team" | null>(null);
@@ -26,7 +28,14 @@ export const OnboardingContinuationPrompt = () => {
     const hasTeamPlan = selectedPlan === "team";
     const hasTeamData = teamDetails.name?.trim() && teamDetails.slug?.trim();
 
-    // Show if either organization or team has data
+    // If the user already has a team membership server-side, suppress the team continuation prompt
+    if (hasTeamPlan && !isTeamMembershipPending && hasTeamMembership) {
+      setIsVisible(false);
+      setEntityName("");
+      setEntityType(null);
+      return;
+    }
+
     if (hasOrganizationPlan && hasOrganizationData) {
       setIsVisible(true);
       setEntityName(organizationDetails.name);
@@ -40,7 +49,7 @@ export const OnboardingContinuationPrompt = () => {
       setEntityName("");
       setEntityType(null);
     }
-  }, [selectedPlan, organizationDetails, teamDetails]);
+  }, [selectedPlan, organizationDetails, teamDetails, isTeamMembershipPending, hasTeamMembership]);
 
   if (!isVisible || !entityName || !entityType) {
     return null;

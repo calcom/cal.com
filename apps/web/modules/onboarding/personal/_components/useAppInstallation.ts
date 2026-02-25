@@ -11,15 +11,18 @@ export const useAppInstallation = () => {
   const utils = trpc.useUtils();
   const [installingAppSlug, setInstallingAppSlug] = useState<string | null>(null);
 
-  const createInstallHandlers = (appSlug: string, onSuccess?: InstallSuccessCallback) => {
+  const createInstallHandlers = (
+    appSlug: string,
+    options?: { onSuccess?: InstallSuccessCallback; returnTo?: string }
+  ) => {
     return {
+      ...(options?.returnTo && { returnTo: options.returnTo }),
       onSuccess: () => {
         setInstallingAppSlug(null);
         utils.viewer.apps.integrations.invalidate();
         showToast(t("app_successfully_installed"), "success");
 
-        // Call custom success callback if provided
-        onSuccess?.(appSlug);
+        options?.onSuccess?.(appSlug);
       },
       onError: (error: unknown) => {
         setInstallingAppSlug(null);

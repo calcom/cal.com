@@ -11,13 +11,13 @@ import { showToast } from "@calcom/ui/components/toast";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type PersonalSettingsViewProps = {
@@ -35,6 +35,7 @@ export const PersonalSettingsView = ({
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const { personalDetails, setPersonalDetails } = useOnboardingStore();
+  const { update: updateSession } = useSession();
 
   const avatarRef = useRef<HTMLInputElement>(null);
   const [imageSrc, setImageSrc] = useState<string>("");
@@ -97,11 +98,15 @@ export const PersonalSettingsView = ({
       bio: data.bio || "",
     });
 
-    // Save to backend
+    // Save to backend and mark onboarding as completed early since calendar integration is optional
     await mutation.mutateAsync({
       name: data.name,
       bio: data.bio || "",
+      completedOnboarding: true,
     });
+
+    // Refresh the NextAuth session so server-side checks see completedOnboarding: true
+    await updateSession();
 
     router.push("/onboarding/personal/calendar");
   });
