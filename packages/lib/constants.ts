@@ -76,8 +76,9 @@ export const MAX_SEATS_PER_TIME_SLOT = 1000;
 /** Maximum duration allowed for an event in minutes (24 hours) */
 export const MAX_EVENT_DURATION_MINUTES = 1440;
 
-/** Minimum duration allowed for an event in minutes */
 export const MIN_EVENT_DURATION_MINUTES = 1;
+
+export const MAX_EVENT_TYPE_TITLE_LENGTH = 200;
 
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
