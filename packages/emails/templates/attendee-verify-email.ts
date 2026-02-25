@@ -37,7 +37,7 @@ ${this.verifyAccountInput.language(
   { appName: APP_NAME }
 )}
 ${this.verifyAccountInput.language("verify_email_email_header")}
-${this.verifyAccountInput.language("hi_user_name", { name: this.verifyAccountInput.useGenericGreeting ? "there" : (this.verifyAccountInput.user.name ?? "") })},
+${this.verifyAccountInput.useGenericGreeting ? this.verifyAccountInput.language("hi_there") : this.verifyAccountInput.language("hi_user_name", { name: this.verifyAccountInput.user.name ?? "" })},
 ${this.verifyAccountInput.language("verify_email_by_code_email_body")}
 ${this.verifyAccountInput.verificationEmailCode}
 ${this.verifyAccountInput.language("happy_scheduling")} ${this.verifyAccountInput.language(
