@@ -187,7 +187,10 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
         teamIds && Boolean(teamIds.length)
           ? {
               appId: appSlug,
-              teamId: { in: teamIds },
+              OR: [
+                { teamId: { in: teamIds } },
+                { calIdTeamId: { in: teamIds } },
+              ],
             }
           : {},
       ],
@@ -287,13 +290,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ? userTeams.map((team) => ({
         ...team,
         alreadyInstalled: appInstalls.some(
-          (install) => Boolean(install.teamId) && install.teamId === team.id
+          (install) => (Boolean(install.teamId) && install.teamId === team.id) || (Boolean(install.calIdTeamId) && install.calIdTeamId === team.id)
         ),
       }))
     : [];
   let credentialId = null;
   if (parsedTeamIdParam) {
-    credentialId = appInstalls.find((item) => !!item.teamId && item.teamId == parsedTeamIdParam)?.id ?? null;
+    credentialId = appInstalls.find((item) => (!!item.teamId && item.teamId == parsedTeamIdParam) || (!!item.calIdTeamId && item.calIdTeamId == parsedTeamIdParam))?.id ?? null;
   } else {
     credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
   }

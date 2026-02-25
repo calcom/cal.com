@@ -30,17 +30,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ message: "You must be team owner to do this" });
       }
     }
+    const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state as string);
+
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: appType,
-        userId: req.session.user.id,
+        ...(state.calIdTeamId
+          ? { calIdTeamId: state.calIdTeamId }
+          : state.teamId
+          ? { teamId: state.teamId }
+          : { userId: req.session.user.id }),
       },
     });
     if (alreadyInstalled) {
       return res.status(200).json({ url: "/apps/installed/payment" });
     }
-
-    const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state as string);
 
     const params = {
       client_id: RAZORPAY_CLIENT_ID as string,

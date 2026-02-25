@@ -47,59 +47,39 @@ const handleRazorpayOAuthRedirect = async (query: ParsedUrlQuery, userId: number
     access_token,
     refresh_token,
     user_id: userId,
+    team_id: parsedState.calIdTeamId,
   });
 
   const didCreate = await razorpay.createWebhooks(razorpay_account_id);
   if (!didCreate) {
     throw new Error("Failed to create webhooks for user");
   }
+
   if (parsedState?.calIdTeamId) {
     await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: parsedState.calIdTeamId, userId });
-
-    await prisma.credential.create({
-      data: {
-        type: "razorpay_payment",
-        key: {
-          access_token,
-          refresh_token,
-          public_token,
-          account_id: razorpay_account_id,
-        },
-        calIdTeamId: parsedState.calIdTeamId,
-        appId: "razorpay",
-      },
-    });
-  } else if (parsedState?.teamId) {
-    await throwIfNotHaveAdminAccessToCalIdTeam({ teamId: parsedState.teamId, userId });
-
-    await prisma.credential.create({
-      data: {
-        type: "razorpay_payment",
-        key: {
-          access_token,
-          refresh_token,
-          public_token,
-          account_id: razorpay_account_id,
-        },
-        teamId: parsedState.teamId,
-        appId: "razorpay",
-      },
-    });
-  } else {
-    await prisma.credential.create({
-      data: {
-        type: "razorpay_payment",
-        key: {
-          access_token,
-          refresh_token,
-          public_token,
-          account_id: razorpay_account_id,
-        },
-        userId: userId,
-        appId: "razorpay",
-      },
-    });
   }
+
+  await prisma.credential.create({
+    data: {
+      type: "razorpay_payment",
+      key: {
+        access_token,
+        refresh_token,
+        public_token,
+        account_id: razorpay_account_id,
+        ...(parsedState.calIdTeamId
+          ? {
+              calIdTeamId: parsedState.calIdTeamId,
+            }
+          : {
+              userId: userId,
+            }),
+      },
+      calIdTeamId: parsedState.calIdTeamId,
+      userId: userId,
+      appId: "razorpay",
+    },
+  });
 };
 
 export default handleRazorpayOAuthRedirect;
