@@ -20,6 +20,7 @@ import {
   getBulkTeamEventTypes,
   getBulkUserEventTypes,
   getEventTypeById,
+  getEventTypeByIdWithTeamMembers,
   getPublicEvent,
   type PublicEventType,
   TUpdateEventTypeInputSchema,
@@ -99,7 +100,7 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
-    const eventType = await getEventTypeById({
+    const eventType = await getEventTypeByIdWithTeamMembers({
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
@@ -121,11 +122,9 @@ export class EventTypesAtomService {
       }
     }
 
-    // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
-    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
-    eventType.teamMembers = onlyManagedTeamMembers;
+    const onlyManagedTeamMembers = eventType.teamMembers.filter((member) => member.isPlatformManaged);
 
-    return eventType;
+    return { ...eventType, teamMembers: onlyManagedTeamMembers };
   }
 
   async getUserEventTypes(userId: number) {
