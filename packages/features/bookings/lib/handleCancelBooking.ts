@@ -47,6 +47,8 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -208,15 +210,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
-  if (
-    !platformClientId &&
-    !cancellationReason?.trim() &&
-    isCancellationUserHost &&
-    !skipCancellationReasonValidation
-  ) {
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required",
     });
   }
 

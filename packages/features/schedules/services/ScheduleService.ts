@@ -4,8 +4,8 @@ import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser
 import { HttpError } from "@calcom/lib/http-error";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { z } from "zod";
+import type { UserFromSession } from "@calcom/features/auth/lib/userFromSessionUtils";
 import { ScheduleRepository } from "../repositories/ScheduleRepository";
 
 export const ZUpdateInputSchema = z.object({
@@ -37,7 +37,7 @@ export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
 
 interface IUpdateScheduleOptions {
   input: TUpdateInputSchema;
-  user: Pick<NonNullable<TrpcSessionUser>, "id" | "defaultScheduleId" | "timeZone">;
+  user: Pick<NonNullable<UserFromSession>, "id" | "defaultScheduleId" | "timeZone">;
 }
 
 export type UpdateScheduleResponse = Awaited<ReturnType<ScheduleService["update"]>>;
