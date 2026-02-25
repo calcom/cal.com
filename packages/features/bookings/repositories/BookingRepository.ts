@@ -931,6 +931,26 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  /**
+   * Fetches attendee emails and the organizer's user ID for a booking.
+   * Used when rescheduling to determine guest availability.
+   */
+  async findBookingAttendeesByUid({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   async findFirstBookingFromResponse({ responseId }: { responseId: number }) {
     const booking = await this.prismaClient.booking.findFirst({
       where: {

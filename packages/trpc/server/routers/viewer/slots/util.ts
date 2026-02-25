@@ -22,7 +22,7 @@ import type { EventTypeRepository } from "@calcom/features/eventtypes/repositori
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges, intersect } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/ISelectedSlotRepository";
@@ -56,7 +56,7 @@ import { TRPCError } from "@trpc/server";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
-import type { GetScheduleOptions } from "./types";
+import type { GetScheduleOptions, ContextForGetSchedule } from "./types";
 import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
@@ -990,6 +990,132 @@ export class AvailableSlotsService {
     };
   }
 
+  /**
+   * When rescheduling, fetches the original booking's attendees and checks if any is a Cal.com user.
+   * If a guest is found as a Cal.com user, returns their available date ranges so that
+   * only mutually available time slots (host AND guest) are shown.
+   *
+   * Guest availability is only checked when the HOST (event owner / team admin) reschedules.
+   * When a guest reschedules themselves (via email link, not logged in — or logged in as an attendee),
+   * we skip this check so they can pick any available slot on the host's calendar.
+   */
+  private async _getGuestAvailabilityForReschedule({
+    rescheduleUid,
+    ctx,
+    startTime,
+    endTime,
+    duration,
+    bypassBusyCalendarTimes,
+    silentCalendarFailures,
+    mode,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    ctx?: ContextForGetSchedule;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    duration: number;
+    bypassBusyCalendarTimes: boolean;
+    silentCalendarFailures: boolean;
+    mode?: CalendarFetchMode;
+    loggerWithEventDetails: Logger<unknown>;
+  }) {
+    // 1. Fetch the original booking's attendee emails
+    const booking = await this.dependencies.bookingRepo.findBookingAttendeesByUid({
+      bookingUid: rescheduleUid,
+    });
+
+    if (!booking?.attendees?.length) {
+      return null;
+    }
+
+    // 2. Determine if this is a host-initiated reschedule.
+    // Guests reschedule via email link (no session). Only check guest availability
+    // when the event type owner or team admin reschedules.
+    const sessionUserEmail = ctx?.session?.user?.email;
+    if (!sessionUserEmail) {
+      loggerWithEventDetails.debug(
+        "No authenticated session — guest self-reschedule, skipping guest availability check"
+      );
+      return null;
+    }
+
+    const attendeeEmails = booking.attendees.map((a) => a.email);
+
+    // If the logged-in user IS one of the attendees, they're a guest rescheduling themselves
+    const isGuestSelfReschedule = attendeeEmails.some(
+      (email) => email.toLowerCase() === sessionUserEmail.toLowerCase()
+    );
+    if (isGuestSelfReschedule) {
+      loggerWithEventDetails.debug(
+        "Authenticated user is a booking attendee — guest self-reschedule, skipping guest availability check"
+      );
+      return null;
+    }
+
+    loggerWithEventDetails.debug("Host-initiated reschedule detected, checking guest availability");
+
+    // 2. Look up if any attendee is a registered Cal.com user
+    const guestCalUsers = await this.dependencies.userRepo.findUsersByEmailsForAvailability({
+      emails: attendeeEmails,
+    });
+
+    // Filter out the host user (the organizer of the booking)
+    const guests = guestCalUsers.filter((user) => user.id !== booking.userId);
+
+    if (guests.length === 0) {
+      loggerWithEventDetails.debug(
+        "No Cal.com guest users found for reschedule, skipping guest availability check"
+      );
+      return null;
+    }
+
+    loggerWithEventDetails.debug("Found Cal.com guest user(s) for reschedule", {
+      guestCount: guests.length,
+    });
+
+    // 3. Fetch availability for guest Cal.com user (the booker)
+    // Use the first guest — in most cases there's one main booker
+    const guestUser = guests[0];
+
+    const guestAvailabilityResults = await this.dependencies.userAvailabilityService.getUsersAvailability({
+      users: [
+        {
+          ...guestUser,
+          isFixed: true,
+        },
+      ],
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        // Don't pass eventTypeId — guest's availability shouldn't be constrained by host's event type
+        afterEventBuffer: 0,
+        beforeEventBuffer: 0,
+        duration,
+        returnDateOverrides: false,
+        bypassBusyCalendarTimes,
+        silentlyHandleCalendarFailures: silentCalendarFailures,
+        mode,
+      },
+      initialData: {
+        // No event type for guest — we want their general availability
+        rescheduleUid,
+      },
+    });
+
+    if (guestAvailabilityResults.length === 0) {
+      return null;
+    }
+
+    // Return the guest's available date ranges (working hours minus busy times)
+    return guestAvailabilityResults[0].dateRanges;
+  }
+
+  private getGuestAvailabilityForReschedule = withReporting(
+    this._getGuestAvailabilityForReschedule.bind(this),
+    "getGuestAvailabilityForReschedule"
+  );
+
   private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
     if (!teamId) {
       return false;
@@ -1272,6 +1398,45 @@ export class AvailableSlotsService {
             mode,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+      }
+    }
+
+    // When rescheduling, check if any attendee (guest/booker) is a Cal.com user.
+    // If so, intersect their availability with the host's to only show mutually available slots.
+    // Only applies for host-initiated reschedules (not guest self-reschedule).
+    if (input.rescheduleUid) {
+      try {
+        const guestDateRanges = await this.getGuestAvailabilityForReschedule({
+          rescheduleUid: input.rescheduleUid,
+          ctx,
+          startTime,
+          endTime,
+          duration: input.duration || 0,
+          bypassBusyCalendarTimes,
+          silentCalendarFailures,
+          mode,
+          loggerWithEventDetails,
+        });
+
+        if (guestDateRanges && guestDateRanges.length > 0) {
+          aggregatedAvailability = intersect([aggregatedAvailability, guestDateRanges]);
+          loggerWithEventDetails.info(
+            "Intersected host availability with guest availability for reschedule",
+            {
+              guestDateRangesCount: guestDateRanges.length,
+              resultingAvailabilityCount: aggregatedAvailability.length,
+            }
+          );
+        }
+      } catch (error) {
+        // Non-fatal: if we can't get guest availability, fall back to host-only availability
+        loggerWithEventDetails.warn(
+          "Failed to fetch guest availability for reschedule, continuing with host-only availability",
+          {
+            rescheduleUid: input.rescheduleUid,
+            error: error instanceof Error ? error.message : "Unknown error",
+          }
+        );
       }
     }
 

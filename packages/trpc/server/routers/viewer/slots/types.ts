@@ -82,6 +82,12 @@ export const removeSelectedSlotSchema = z.object({
 
 export interface ContextForGetSchedule extends Record<string, unknown> {
   req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
+  session?: {
+    user?: {
+      id?: number;
+      email?: string | null;
+    };
+  } | null;
 }
 
 export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchemaObject>;

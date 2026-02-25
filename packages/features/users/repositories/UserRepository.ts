@@ -1456,4 +1456,49 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  /**
+   * Finds Cal.com users by their email addresses with availability data.
+   * Used when rescheduling to check guest availability.
+   *
+   * Uses raw SQL UNION to check both primary and secondary (verified) emails,
+   * following the same pattern as findVerifiedUsersByEmailsRaw for performance.
+   * Emails are stored lowercase so no LOWER() is needed (avoids sequential scan).
+   */
+  async findUsersByEmailsForAvailability({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+
+    // Step 1: Fast raw SQL lookup for matching user IDs via UNION (primary + secondary emails)
+    const emailListSql = Prisma.join(normalizedEmails.map((e) => Prisma.sql`${e}`));
+    const matchedUsers = await this.prismaClient.$queryRaw<Array<{ id: number }>>(Prisma.sql`
+      SELECT u."id"
+      FROM "public"."users" AS u
+      WHERE u."email" IN (${emailListSql})
+        AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      UNION
+      SELECT u."id"
+      FROM "public"."users" AS u
+      INNER JOIN "public"."SecondaryEmail" AS t0
+        ON t0."userId" = u."id"
+      WHERE t0."email" IN (${emailListSql})
+        AND t0."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+    `);
+
+    if (matchedUsers.length === 0) return [];
+
+    // Step 2: Fetch full availability data via Prisma (handles nested relations)
+    const userIds = matchedUsers.map((u) => u.id);
+    const users = await this.prismaClient.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        ...availabilityUserSelect,
+        credentials: { select: credentialForCalendarServiceSelect },
+      },
+    });
+    return users.map(withSelectedCalendars);
+  }
+
 }
