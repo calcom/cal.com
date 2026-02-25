@@ -28,7 +28,7 @@ export const WebhookFormSkeleton = ({ titleKey = "add_webhook" }: WebhookFormSke
                 </div>
                 <div className="flex flex-col gap-2">
                   <Skeleton className="h-4.5 sm:h-4 w-28" />
-                  <Skeleton className="h-36 w-full" />
+                  <Skeleton className="h-43 w-full" />
                   <Skeleton className="h-6 w-32" />
                 </div>
                 <div className="flex flex-col gap-2">
