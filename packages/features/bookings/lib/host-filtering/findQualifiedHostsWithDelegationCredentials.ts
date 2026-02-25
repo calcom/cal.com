@@ -1,15 +1,14 @@
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
 } from "@calcom/features/users/lib/getRoutedUsers";
-import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
-
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import type { FilterHostsService } from "./filterHostsBySameRoundRobinHost";
 
@@ -240,13 +239,27 @@ export class QualifiedHostsService {
       };
     }
 
+    // Determine the appropriate fallback hosts.
+    // When segment matching reduces the host count (e.g. 100 hosts → 2), and those hosts
+    // aren't available, we need to fall back to the broader pre-segment set so the booking
+    // doesn't fail with no_available_users_found_error.
+    const segmentMatchingReducedHosts =
+      hostsAfterSegmentMatching.length < hostsAfterRescheduleWithSameRoundRobinHost.length;
+    const fairnessReducedHosts =
+      hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.length;
+
+    let allFallbackRRHosts: typeof hostsAfterFairnessMatching | undefined;
+    if (segmentMatchingReducedHosts) {
+      // Segment matching narrowed hosts — fall back to the full pre-segment set
+      allFallbackRRHosts = hostsAfterRescheduleWithSameRoundRobinHost;
+    } else if (fairnessReducedHosts) {
+      // Only fairness filtering narrowed hosts — fall back to the pre-fairness set
+      allFallbackRRHosts = hostsAfterRoutedTeamMemberIdsMatching;
+    }
+
     return {
       qualifiedRRHosts: hostsAfterFairnessMatching,
-      // only if fairness filtering is active
-      allFallbackRRHosts:
-        hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.length
-          ? hostsAfterRoutedTeamMemberIdsMatching
-          : undefined,
+      allFallbackRRHosts,
       fixedHosts,
     };
   }

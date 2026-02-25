@@ -1,12 +1,9 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { vi, it, describe, expect, afterEach } from "vitest";
-import type { Mock } from "vitest";
-
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import * as getRoutedUsers from "@calcom/features/users/lib/getRoutedUsers";
 import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
-
+import type { Mock } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
 // Mock the filterHostsByLeadThreshold function
@@ -681,11 +678,125 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
       routingFormResponse: null,
     });
 
-    // Verify the result
+    // Verify the result — segment matching reduced hosts (4 → 3), so fallback is the full pre-segment set
     expect(result).toEqual({
       qualifiedRRHosts: [hosts[2]],
-      allFallbackRRHosts: [hosts[1], hosts[2]],
+      allFallbackRRHosts: hosts,
       fixedHosts: [],
     });
+  });
+
+  it("should populate allFallbackRRHosts when segment matching reduces hosts even without fairness filtering", async () => {
+    // This reproduces the bug where segment matching narrows 100 hosts to 2,
+    // maxLeadThreshold is null (so fairness is a no-op), and allFallbackRRHosts
+    // was incorrectly left undefined — causing no_available_users_found_error
+    // when the segment-matched hosts weren't available.
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "segment-matched-1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "segment-matched-2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "other-host-3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "other-host-4@gmail.com",
+          id: 4,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "other-host-5@gmail.com",
+          id: 5,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    // Segment matching reduces 5 hosts down to 2
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
+      hosts[0],
+      hosts[1],
+    ]);
+
+    // Fairness filter is a no-op (maxLeadThreshold is null, so filterHostsByLeadThreshold returns same hosts)
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue([hosts[0], hosts[1]]);
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // qualifiedRRHosts should be the 2 segment-matched hosts
+    expect(result.qualifiedRRHosts).toEqual([hosts[0], hosts[1]]);
+    // allFallbackRRHosts should be ALL hosts (pre-segment set) so booking can
+    // fall back when the segment-matched hosts aren't available
+    expect(result.allFallbackRRHosts).toEqual(hosts);
+    expect(result.fixedHosts).toEqual([]);
   });
 });
