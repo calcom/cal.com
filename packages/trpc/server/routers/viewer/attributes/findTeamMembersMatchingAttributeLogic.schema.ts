@@ -8,9 +8,6 @@ export type TFindTeamMembersMatchingAttributeLogicInputSchema = {
   isPreview?: boolean;
   _enablePerf?: boolean;
   _concurrency?: number;
-  cursor?: number;
-  limit?: number;
-  search?: string;
 };
 
 export const ZFindTeamMembersMatchingAttributeLogicInputSchema: z.ZodType<TFindTeamMembersMatchingAttributeLogicInputSchema> =
@@ -20,7 +17,4 @@ export const ZFindTeamMembersMatchingAttributeLogicInputSchema: z.ZodType<TFindT
     isPreview: z.boolean().optional(),
     _enablePerf: z.boolean().optional(),
     _concurrency: z.number().optional(),
-    cursor: z.number().optional(),
-    limit: z.number().min(1).max(100).optional(),
-    search: z.string().optional(),
   });
