@@ -76,6 +76,9 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
+
+  
+
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
 
 
@@ -124,14 +127,21 @@ export const EventSetupTab = (
           )}>
      <TextField
   required
+  // --- Keep all your original classes ---
   containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
   labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
   className={classNames(customClassNames?.titleSection?.titleInput?.input)}
   
   label={t("title")}
   data-testid="event-title"
+  
+  // 1. Ensure the error prop is receiving the hook-form error message
   error={formMethods.formState.errors.title?.message}
+  
+  // 2. Add the native HTML max attribute for extra browser-level safety
   max={MAX_EVENT_TITLE_CHARACTERS}
+
+  // 3. Register LAST so it can properly hook into the input
   {...formMethods.register("title", {
     required: t("field_required"),
     maxLength: {
@@ -140,6 +150,7 @@ export const EventSetupTab = (
         count: MAX_EVENT_TITLE_CHARACTERS,
       }),
     },
+    // Incorporate the locked logic here
     disabled: isManagedEventType || isChildrenManagedEventType || titleLockedProps.disabled,
   })}
 />
