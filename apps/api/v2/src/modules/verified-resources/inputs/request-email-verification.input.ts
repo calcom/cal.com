@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString, Matches, MaxLength } from "class-validator";
 
 export class RequestEmailVerificationInput {
   @ApiProperty({
@@ -21,6 +21,10 @@ export class RequestEmailVerificationInput {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(100, { message: "name must be at most 100 characters" })
+  @Matches(/^[\w\s\-]*$/, {
+    message: "name must contain only letters, numbers, spaces, and hyphens",
+  })
   @Expose()
   name?: string;
 }
