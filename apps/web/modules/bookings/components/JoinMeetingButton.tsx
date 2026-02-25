@@ -4,7 +4,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-
 import { useJoinableLocation } from "./useJoinableLocation";
 
 interface JoinMeetingButtonProps {
@@ -54,9 +53,15 @@ export function JoinMeetingButton({
       onClick={handleClick}>
       {provider?.iconUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={provider.iconUrl} className="h-4 w-4 shrink-0 rounded-sm" alt={`${provider.label} logo`} />
+        <img
+          src={provider.iconUrl}
+          className="h-4 w-4 shrink-0 rounded-sm"
+          alt={`${provider.label} logo`}
+        />
       )}
-      {provider?.label ? t("join_event_location", { eventLocationType: provider.label }) : t("join_meeting")}
+      {provider?.label
+        ? t("join_event_location", { eventLocationType: provider.label })
+        : t("join_meeting")}
     </Button>
   );
 }

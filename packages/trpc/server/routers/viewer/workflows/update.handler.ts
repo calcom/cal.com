@@ -1,7 +1,12 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isAttendeeAction,
+  isEmailAction,
+  isFormTrigger,
+  isWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { deleteRemindersOfActiveOnIds } from "@calcom/features/ee/workflows/lib/deleteRemindersOfActiveOnIds";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
@@ -16,29 +21,29 @@ import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositorie
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
-import { prisma, type PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { type PrismaClient, prisma } from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
-  getSender,
-  upsertSmsReminderFieldForEventTypes,
-  isAuthorizedToAddActiveOnIds,
-  removeSmsReminderFieldForEventTypes,
-  isStepEdited,
   getEmailTemplateText,
-  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  getSender,
+  isAuthorizedToAddActiveOnIds,
+  isStepEdited,
   removeAIAgentCallPhoneNumberFieldForEventTypes,
+  removeSmsReminderFieldForEventTypes,
+  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  upsertSmsReminderFieldForEventTypes,
 } from "./util";
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "metadata" | "locale" | "timeFormat" | "timeZone">;
+    user: Pick<
+      NonNullable<TrpcSessionUser>,
+      "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organizationId"
+    >;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -159,9 +164,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userWorkflow.teamId
     );
 
-    activeOnWithChildren = activeOnEventTypes
-      .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
-      .flat();
+    activeOnWithChildren = activeOnEventTypes.flatMap((eventType) =>
+      [eventType.id].concat(eventType.children.map((child) => child.id))
+    );
 
     let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
     if (userWorkflow.isActiveOnAll) {
@@ -415,6 +420,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
           inboundAgentId: newStep.inboundAgentId || null,
+          sourceLocale: newStep.sourceLocale ?? null,
+          autoTranslateEnabled: newStep.autoTranslateEnabled ?? false,
         })
       ) {
         // check if step that require team plan already existed before
@@ -458,6 +465,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         }
 
         const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
+        const didSubjectChange = newStep.emailSubject !== oldStep.emailSubject;
+        const didSourceLocaleChange = newStep.sourceLocale !== oldStep.sourceLocale;
+        const didAutoTranslateEnable = !oldStep.autoTranslateEnabled && Boolean(newStep.autoTranslateEnabled);
+        const nextVerifiedAt = (() => {
+          if (!SCANNING_WORKFLOW_STEPS) return new Date();
+          if (didBodyChange) return null;
+          return oldStep.verifiedAt;
+        })();
 
         await workflowStepRepository.updateWorkflowStep(oldStep.id, {
           action: newStep.action,
@@ -471,8 +486,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
           agentId: newStep.agentId || null,
-          verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+          verifiedAt: nextVerifiedAt,
+          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
+          sourceLocale: newStep.sourceLocale || ctx.user.locale,
         });
+
+        const shouldTranslate =
+          ctx.user.organizationId &&
+          newStep.autoTranslateEnabled &&
+          isAttendeeAction(newStep.action) &&
+          !isWhatsappAction(newStep.action) &&
+          (newStep.reminderBody || newStep.emailSubject) &&
+          (didBodyChange || didSubjectChange || didSourceLocaleChange || didAutoTranslateEnable);
+
+        if (shouldTranslate) {
+          await tasker.create("translateWorkflowStepData", {
+            workflowStepId: oldStep.id,
+            reminderBody: newStep.reminderBody,
+            emailSubject: newStep.emailSubject,
+            sourceLocale: newStep.sourceLocale || ctx.user.locale,
+          });
+        }
 
         if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
           await tasker.create("scanWorkflowBody", {
@@ -485,7 +519,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await scheduleWorkflowNotifications({
             activeOn: activeOnEventTypeIds,
             isOrg,
-            workflowSteps: [newStep],
+            workflowSteps: [{ ...newStep, verifiedAt: nextVerifiedAt }],
             time,
             timeUnit,
             trigger,
@@ -532,6 +566,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }),
           id: undefined,
           senderName: undefined,
+          autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
+          sourceLocale: newStep.sourceLocale || ctx.user.locale,
         };
       })
   );
@@ -559,7 +595,30 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           })
         )
       );
-    } else if (!isFormTrigger(trigger)) {
+    }
+
+    if (ctx.user.organizationId) {
+      await Promise.all(
+        createdSteps
+          .filter(
+            (step) =>
+              step.autoTranslateEnabled &&
+              isAttendeeAction(step.action) &&
+              !isWhatsappAction(step.action) &&
+              (step.reminderBody || step.emailSubject)
+          )
+          .map((step) =>
+            tasker.create("translateWorkflowStepData", {
+              workflowStepId: step.id,
+              reminderBody: step.reminderBody,
+              emailSubject: step.emailSubject,
+              sourceLocale: step.sourceLocale || ctx.user.locale,
+            })
+          )
+      );
+    }
+
+    if (!SCANNING_WORKFLOW_STEPS && !isFormTrigger(trigger)) {
       // schedule notification for new step (only for event-based triggers)
       await scheduleWorkflowNotifications({
         activeOn: activeOnEventTypeIds,

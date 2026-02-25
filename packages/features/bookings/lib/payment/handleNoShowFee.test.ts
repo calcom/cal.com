@@ -6,7 +6,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 
@@ -26,7 +26,7 @@ vi.mock("@calcom/emails/billing-email-service", () => ({
   sendNoShowFeeChargedEmail: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
@@ -52,9 +52,11 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => (
 }));
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(function() { return {
-    findParentOrganizationByTeamId: vi.fn(),
-  }; }),
+  TeamRepository: vi.fn().mockImplementation(function () {
+    return {
+      findParentOrganizationByTeamId: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -71,7 +73,9 @@ describe("handleNoShowFee", () => {
     };
 
     const paymentServiceModule = await PaymentServiceMap.stripepayment;
-    vi.mocked(paymentServiceModule.BuildPaymentService).mockImplementation(function() { return mockPaymentService; });
+    vi.mocked(paymentServiceModule.BuildPaymentService).mockImplementation(function () {
+      return mockPaymentService;
+    });
   });
 
   const mockBooking = {
@@ -220,7 +224,9 @@ describe("handleNoShowFee", () => {
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
-      vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepository; });
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepository;
+      });
 
       const result = await handleNoShowFee({
         booking: teamBooking,

@@ -8,7 +8,7 @@ import classNames from "@calcom/ui/classNames";
 export type SelectProps<
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 > = Props<Option, IsMulti, Group>;
 
 export const InputComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
@@ -27,7 +27,7 @@ export const InputComponent = <Option, IsMulti extends boolean, Group extends Gr
 function Select<
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   const [mounted, setMounted] = useState<boolean>(false);
   const { resolvedTheme, forcedTheme } = useGetTheme();
@@ -125,7 +125,7 @@ function Select<
 export function SelectWithValidation<
   Option extends { label: string; value: string },
   isMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<Option> = GroupBase<Option>,
 >({
   required = false,
   onChange,
@@ -179,7 +179,6 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

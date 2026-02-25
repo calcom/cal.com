@@ -17,4 +17,10 @@ export const DI_TOKENS = {
   HIGH_WATER_MARK_REPOSITORY_MODULE: Symbol("HighWaterMarkRepositoryModule"),
   MONTHLY_PRORATION_TEAM_REPOSITORY: Symbol("MonthlyProrationTeamRepository"),
   MONTHLY_PRORATION_TEAM_REPOSITORY_MODULE: Symbol("MonthlyProrationTeamRepositoryModule"),
+  BILLING_PERIOD_REPOSITORY: Symbol("BillingPeriodRepository"),
+  BILLING_PERIOD_REPOSITORY_MODULE: Symbol("BillingPeriodRepositoryModule"),
+  BILLING_PERIOD_SERVICE: Symbol("BillingPeriodService"),
+  BILLING_PERIOD_SERVICE_MODULE: Symbol("BillingPeriodServiceModule"),
+  SEAT_BILLING_STRATEGY_FACTORY: Symbol("SeatBillingStrategyFactory"),
+  SEAT_BILLING_STRATEGY_FACTORY_MODULE: Symbol("SeatBillingStrategyFactoryModule"),
 };

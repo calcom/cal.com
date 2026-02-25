@@ -146,6 +146,13 @@ model VideoCallGuest {
   @@index([email])
 }
 
+enum CancellationReasonRequirement {
+  MANDATORY_BOTH
+  MANDATORY_HOST_ONLY
+  MANDATORY_ATTENDEE_ONLY
+  OPTIONAL_BOTH
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.string.min(1)
@@ -279,9 +286,10 @@ model EventType {
   restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
   hostGroups            HostGroup[]
 
-  bookingRequiresAuthentication Boolean @default(false)
-  rrHostSubsetEnabled           Boolean @default(false)
-  enablePerHostLocations        Boolean @default(false)
+  bookingRequiresAuthentication Boolean                        @default(false)
+  rrHostSubsetEnabled           Boolean                        @default(false)
+  requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
+  enablePerHostLocations        Boolean                        @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -498,6 +506,8 @@ model User {
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
+  wrongAssignmentReports         WrongAssignmentReport[]       @relation("WrongAssignmentReportedBy")
+  reviewedWrongAssignmentReports WrongAssignmentReport[]       @relation("WrongAssignmentReviewedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -625,6 +635,7 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  wrongAssignmentReports WrongAssignmentReport[]
 
   features TeamFeatures[]
 
@@ -924,6 +935,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  wrongAssignmentReports       WrongAssignmentReport[]
   routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
@@ -1152,6 +1164,7 @@ enum WebhookTriggerEvents {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
+  ROUTING_FORM_FALLBACK_HIT
   DELEGATION_CREDENTIAL_ERROR
   WRONG_ASSIGNMENT_REPORT
 }
@@ -1353,6 +1366,7 @@ model App_RoutingForms_Form {
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
   workflows                WorkflowsOnRoutingForms[]
+  wrongAssignmentReports   WrongAssignmentReport[]
 
   @@index([userId])
   @@index([disabled])
@@ -1381,6 +1395,7 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+  @@index([formId, createdAt])
   @@index([routedToBookingUid])
 }
 
@@ -1390,6 +1405,7 @@ model App_RoutingForms_QueuedFormResponse {
   formId              String
   response            Json
   chosenRouteId       String?
+  fallbackAction      Json?
   createdAt           DateTime                       @default(now())
   updatedAt           DateTime?                      @updatedAt
   actualResponseId    Int?                           @unique
@@ -1550,6 +1566,10 @@ model WorkflowStep {
 
   inboundAgentId String? @unique
   inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+
+  autoTranslateEnabled Boolean                   @default(false)
+  sourceLocale         String?
+  translations         WorkflowStepTranslation[]
 
   @@index([workflowId])
 }
@@ -2375,6 +2395,11 @@ enum EventTypeAutoTranslatedField {
   TITLE
 }
 
+enum WorkflowStepAutoTranslatedField {
+  REMINDER_BODY
+  EMAIL_SUBJECT
+}
+
 model DelegationCredential {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
@@ -2464,6 +2489,20 @@ model EventTypeTranslation {
   @@index([eventTypeId, field, targetLocale])
 }
 
+model WorkflowStepTranslation {
+  uid            String                          @id @default(cuid())
+  workflowStep   WorkflowStep                    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int
+  field          WorkflowStepAutoTranslatedField
+  sourceLocale   String
+  targetLocale   String
+  translatedText String                          @db.Text
+  createdAt      DateTime                        @default(now())
+  updatedAt      DateTime                        @updatedAt
+
+  @@unique([workflowStepId, field, targetLocale])
+}
+
 enum WatchlistType {
   EMAIL
   DOMAIN
@@ -2479,6 +2518,7 @@ enum WatchlistAction {
 enum WatchlistSource {
   MANUAL
   FREE_DOMAIN_POLICY
+  SIGNUP
 }
 
 model Watchlist {
@@ -2575,9 +2615,49 @@ model BookingReport {
   @@index([createdAt])
 }
 
+enum WrongAssignmentReportStatus {
+  PENDING // Initial state - awaiting review
+  REVIEWED // Admin has seen it
+  RESOLVED // Corrective action taken
+  DISMISSED // Admin decided no action needed
+}
+
+model WrongAssignmentReport {
+  id              String                      @id @default(uuid()) @db.Uuid
+  bookingUid      String                      @unique
+  booking         Booking                     @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  reportedById    Int?
+  reportedBy      User?                       @relation("WrongAssignmentReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  correctAssignee String?
+  additionalNotes String
+  teamId          Int?
+  team            Team?                       @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  routingFormId   String?
+  routingForm     App_RoutingForms_Form?      @relation(fields: [routingFormId], references: [id], onDelete: SetNull)
+  status          WrongAssignmentReportStatus @default(PENDING)
+  reviewedById    Int?
+  reviewedBy      User?                       @relation("WrongAssignmentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([reportedById])
+  @@index([teamId])
+  @@index([routingFormId])
+  @@index([status])
+  @@index([reviewedById])
+  @@index([createdAt])
+  @@index([teamId, status, createdAt])
+}
+
 enum BillingPeriod {
   MONTHLY
   ANNUALLY
+}
+
+enum BillingMode {
+  SEATS
+  ACTIVE_USERS
 }
 
 model OrganizationOnboarding {
@@ -3019,6 +3099,7 @@ model TeamBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode        @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]
@@ -3047,6 +3128,7 @@ model OrganizationBilling {
   subscriptionEnd      DateTime?
 
   billingPeriod     BillingPeriod?
+  billingMode       BillingMode        @default(SEATS)
   pricePerSeat      Int?
   paidSeats         Int?
   monthlyProrations MonthlyProration[]

@@ -22,7 +22,6 @@ export const HighestRatedMembersTable = () => {
     }
   );
 
-
   return (
     <ChartCard title={t("highest_rated")} isPending={isPending} isError={isError}>
       {isSuccess && data ? <UserStatsTable data={data} /> : null}

@@ -1,14 +1,15 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
+import process from "node:process";
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import { TRPCError } from "@trpc/server";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 enum DirectAction {
   ACCEPT = "accept",
@@ -99,11 +100,11 @@ async function handler(request: NextRequest) {
     let message = "Error confirming booking";
     if (e instanceof TRPCError) message = (e as TRPCError).message;
     return NextResponse.redirect(
-      new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, request.url)
+      new URL(`/booking/${bookingUid}?error=${encodeURIComponent(message)}`, WEBAPP_URL)
     );
   }
 
-  return NextResponse.redirect(new URL(`/booking/${bookingUid}`, request.url));
+  return NextResponse.redirect(new URL(`/booking/${bookingUid}`, WEBAPP_URL));
 }
 
 export const GET = defaultResponderForAppDir(handler);

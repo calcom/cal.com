@@ -6,7 +6,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -86,22 +86,22 @@ export class CalendarEventBuilder {
     if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-        const {
-          description,
-          attendees,
-          references,
-          title,
-          startTime,
-          endTime,
-          location,
-          responses,
-          customInputs,
-          iCalUID,
-          iCalSequence,
-          oneTimePassword,
-          seatsReferences,
-          assignmentReason,
-        } = booking;
+    const {
+      description,
+      attendees,
+      references,
+      title,
+      startTime,
+      endTime,
+      location,
+      responses,
+      customInputs,
+      iCalUID,
+      iCalSequence,
+      oneTimePassword,
+      seatsReferences,
+      assignmentReason,
+    } = booking;
 
     const {
       conferenceCredentialId,
@@ -187,18 +187,18 @@ export class CalendarEventBuilder {
         platformCancelUrl,
         platformBookingUrl,
       })
-            .withRecurring(recurring)
-            .withUid(uid)
-            .withOneTimePassword(oneTimePassword)
-            .withOrganization(organizationId)
-            .withAssignmentReason(
-              assignmentReason?.[0]?.reasonEnum
-                ? {
-                    category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
-                    details: assignmentReason[0].reasonString ?? null,
-                  }
-                : null
-            );
+      .withRecurring(recurring)
+      .withUid(uid)
+      .withOneTimePassword(oneTimePassword)
+      .withOrganization(organizationId)
+      .withAssignmentReason(
+        assignmentReason?.[0]?.reasonEnum
+          ? {
+              category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
+              details: assignmentReason[0].reasonString ?? null,
+            }
+          : null
+      );
 
     // Seats
     if (seatsReferences?.length && bookingResponses) {
@@ -533,23 +533,23 @@ export class CalendarEventBuilder {
     return this;
   }
 
-    withHashedLink(hashedLink?: string | null) {
-      this.event = {
-        ...this.event,
-        hashedLink,
-      };
-      return this;
-    }
+  withHashedLink(hashedLink?: string | null) {
+    this.event = {
+      ...this.event,
+      hashedLink,
+    };
+    return this;
+  }
 
-    withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
-      this.event = {
-        ...this.event,
-        assignmentReason,
-      };
-      return this;
-    }
+  withAssignmentReason(assignmentReason?: { category: string; details?: string | null } | null) {
+    this.event = {
+      ...this.event,
+      assignmentReason,
+    };
+    return this;
+  }
 
-    build(): CalendarEvent | null {
+  build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||
