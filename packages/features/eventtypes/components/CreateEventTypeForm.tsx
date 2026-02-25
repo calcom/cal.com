@@ -50,7 +50,7 @@ export default function CreateEventTypeForm({
   maxLength: {
     value: MAX_EVENT_TITLE_CHARACTERS,
     message: t("max_characters_allowed", {
-      count: 100,
+      count: MAX_EVENT_TITLE_CHARACTERS,
     }),
   },
 });
