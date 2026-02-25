@@ -12,4 +12,3 @@ export function getBookingAuditViewerService() {
 
   return container.get<BookingAuditViewerService>(bookingAuditViewerServiceModule.token);
 }
-

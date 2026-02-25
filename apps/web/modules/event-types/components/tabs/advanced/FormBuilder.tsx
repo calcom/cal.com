@@ -29,7 +29,7 @@ import {
   InputField,
   Label,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
@@ -152,7 +152,9 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">{description}</p>
+          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
+            {description}
+          </p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               value={(() => {
@@ -169,12 +171,12 @@ export const FormBuilder = function FormBuilder({
                 {
                   value: "email",
                   label: "Email",
-                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                  iconLeft: <MailIcon className="h-4 w-4" />,
                 },
                 {
                   value: "phone",
                   label: "Phone",
-                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                  iconLeft: <PhoneIcon className="h-4 w-4" />,
                 },
               ]}
               onValueChange={(value) => {
@@ -256,15 +258,18 @@ export const FormBuilder = function FormBuilder({
             if (!fieldType) {
               throw new Error(`Invalid field type - ${field.type}`);
             }
-            const groupedBySourceLabel = sources.reduce((groupBy, source) => {
-              const item = groupBy[source.label] || [];
-              if (source.type === "user" || source.type === "default") {
+            const groupedBySourceLabel = sources.reduce(
+              (groupBy, source) => {
+                const item = groupBy[source.label] || [];
+                if (source.type === "user" || source.type === "default") {
+                  return groupBy;
+                }
+                item.push(source);
+                groupBy[source.label] = item;
                 return groupBy;
-              }
-              item.push(source);
-              groupBy[source.label] = item;
-              return groupBy;
-            }, {} as Record<string, NonNullable<(typeof field)["sources"]>>);
+              },
+              {} as Record<string, NonNullable<(typeof field)["sources"]>>
+            );
 
             return (
               <li
@@ -278,7 +283,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <Icon name="arrow-up" className="h-5 w-5" />
+                        <ArrowUpIcon className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -286,7 +291,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <Icon name="arrow-down" className="h-5 w-5" />
+                        <ArrowDownIcon className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -428,7 +433,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => {},
+  onChange = () => { },
   className = "",
   readOnly = false,
   showPrice = false,
@@ -614,7 +619,7 @@ function FieldEditDialog({
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto">
+          <div className="h-auto max-h-[85vh]">
             <DialogHeader
               title={t("add_a_booking_question")}
               subtitle={
@@ -640,7 +645,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
+              value={fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -909,9 +914,15 @@ function FieldLabel({ field }: { field: RhfFormField }) {
       `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
     );
   }
-  const label =
-    variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
-  return <span>{t(label)}</span>;
+  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
+  const firstField = variantData?.fields?.[0];
+  const label = firstField?.label?.trim() ? firstField.label : "";
+  const firstFieldName = firstField?.name;
+  const defaultLabelFromTypeConfig =
+    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
+      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
+    ]?.defaultLabel || "";
+  return <span>{t(label || defaultLabelFromTypeConfig)}</span>;
 }
 
 function VariantSelector() {
@@ -997,16 +1008,17 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
+
           return (
             <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{f.name}</span>
+                  <span className="text-muted">{t(appUiFieldConfig?.defaultLabel || "")}</span>
                 </Label>
               )}
               <InputField

@@ -48,4 +48,3 @@ export function isSafeUrlToLoadResourceFrom(urlString: string) {
     return false;
   }
 }
-

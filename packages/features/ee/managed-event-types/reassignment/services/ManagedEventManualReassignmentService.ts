@@ -28,7 +28,6 @@ import logger from "@calcom/lib/logger";
 import type loggerType from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 
-
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import {
@@ -110,7 +109,6 @@ export class ManagedEventManualReassignmentService {
       newUserT,
       reassignedById,
     });
-
 
     const { newBooking, cancelledBooking } = await this.executeBookingReassignmentTransaction({
       originalBookingFull,
@@ -241,17 +239,13 @@ export class ManagedEventManualReassignmentService {
    * Resolves and validates all entities needed for reassignment
    */
   private async resolveTargetEntities(bookingId: number, newUserId: number, reassignLogger: typeof logger) {
-    const {
-      currentChildEventType,
-      parentEventType,
-      targetChildEventType,
-      originalBooking,
-    } = await findTargetChildEventType({
-      bookingId,
-      newUserId,
-      bookingRepository: this.bookingRepository,
-      eventTypeRepository: this.eventTypeRepository,
-    });
+    const { currentChildEventType, parentEventType, targetChildEventType, originalBooking } =
+      await findTargetChildEventType({
+        bookingId,
+        newUserId,
+        bookingRepository: this.bookingRepository,
+        eventTypeRepository: this.eventTypeRepository,
+      });
 
     reassignLogger.info("Found target child event type", {
       currentChildId: currentChildEventType.id,
@@ -284,15 +278,14 @@ export class ManagedEventManualReassignmentService {
       throw new Error("Original booking user not found");
     }
 
-    const originalBookingFull = await this.bookingRepository.findByIdWithAttendeesPaymentAndReferences(
-      bookingId
-    );
+    const originalBookingFull =
+      await this.bookingRepository.findByIdWithAttendeesPaymentAndReferences(bookingId);
 
     if (!originalBookingFull) {
       throw new Error("Original booking not found");
     }
 
-    const { getTranslation } = await import("@calcom/lib/server/i18n");
+    const { getTranslation } = await import("@calcom/i18n/server");
     const newUserT = await getTranslation(newUser.locale ?? "en", "common");
     const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
 
@@ -358,7 +351,7 @@ export class ManagedEventManualReassignmentService {
     originalBookingFull: NonNullable<
       Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
     >;
-    originalUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    originalUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     apps: ReturnType<typeof eventTypeAppMetadataOptionalSchema.parse>;
     logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
@@ -412,7 +405,7 @@ export class ManagedEventManualReassignmentService {
     logger,
   }: {
     newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    newUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
     newBooking: ManagedEventReassignmentCreatedBooking;
     originalBookingFull: NonNullable<
@@ -612,9 +605,7 @@ export class ManagedEventManualReassignmentService {
           data: {
             location: bookingLocation,
             metadata: {
-              ...(typeof newBooking.metadata === "object" && newBooking.metadata
-                ? newBooking.metadata
-                : {}),
+              ...(typeof newBooking.metadata === "object" && newBooking.metadata ? newBooking.metadata : {}),
               ...bookingMetadataUpdate,
             },
             referencesToCreate: referencesToCreateForDb,
@@ -644,7 +635,6 @@ export class ManagedEventManualReassignmentService {
     };
   }
 
-
   /**
    * Sends reassignment notification emails to all parties
    */
@@ -666,9 +656,9 @@ export class ManagedEventManualReassignmentService {
     targetEventTypeDetails: NonNullable<Awaited<ReturnType<typeof getEventTypesFromDB>>>;
     parentEventType: Awaited<ReturnType<typeof findTargetChildEventType>>["parentEventType"];
     newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    newUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    newUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     originalUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
-    originalUserT: Awaited<ReturnType<typeof import("@calcom/lib/server/i18n")["getTranslation"]>>;
+    originalUserT: Awaited<ReturnType<typeof import("@calcom/i18n/server")["getTranslation"]>>;
     bookingLocation: string | null;
     videoCallData: CalendarEvent["videoCallData"];
     additionalInformation: AdditionalInformation;

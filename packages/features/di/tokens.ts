@@ -1,10 +1,12 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { ACTIVE_USER_BILLING_DI_TOKENS } from "@calcom/features/ee/billing/active-user/di/tokens";
 import { FEATURE_OPT_IN_DI_TOKENS } from "@calcom/features/feature-opt-in/di/tokens";
 import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
 import { OAUTH_DI_TOKENS } from "@calcom/features/oauth/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
+import { TRANSLATION_DI_TOKENS } from "@calcom/features/translation/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 import { WEBHOOK_TOKENS } from "./webhooks/Webhooks.tokens";
 
@@ -83,6 +85,8 @@ export const DI_TOKENS = {
   ...HASHED_LINK_DI_TOKENS,
   ...OAUTH_DI_TOKENS,
   ...WATCHLIST_DI_TOKENS,
+  ...ACTIVE_USER_BILLING_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
+  ...TRANSLATION_DI_TOKENS,
   ...WEBHOOK_TOKENS,
 };
