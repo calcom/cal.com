@@ -1,11 +1,9 @@
 import type { ServerResponse } from "node:http";
-import type { NextApiResponse } from "next";
-
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { NextApiResponse } from "next";
 import type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "./findTeamMembersMatchingAttributeLogic.schema";
 
 interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
@@ -21,7 +19,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
   ctx,
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
-  const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
+  const { teamId, attributesQueryValue, _enablePerf, _concurrency, cursor, limit, search } = input;
   const orgId = ctx.user.organizationId;
   if (!orgId) {
     throw new Error("You must be in an organization to use this feature");
@@ -50,21 +48,28 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
       mainWarnings,
       fallbackWarnings,
       result: null,
+      nextCursor: undefined,
+      total: 0,
     };
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await new UserRepository(ctx.prisma).findByIds({ ids: matchingTeamMembersIds });
+  const userRepo = new UserRepository(ctx.prisma);
+
+  const { users, nextCursor, total } = await userRepo.findByIdsWithPagination({
+    ids: matchingTeamMembersIds,
+    search,
+    cursor,
+    limit,
+  });
 
   return {
     mainWarnings,
     fallbackWarnings,
-    troubleshooter: troubleshooter,
-    result: matchingTeamMembers.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    })),
+    troubleshooter,
+    result: users,
+    nextCursor,
+    total,
   };
 };
 

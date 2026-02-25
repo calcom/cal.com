@@ -176,8 +176,6 @@ export const getEventTypeById = async ({
     bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
   });
 
-  const isOrgEventType = !!eventTypeObject.team?.parentId;
-
   // Find the current user's membership role to enable/disable deletion in the UI.
   // Null when not a team event type.
   const membershipRepo = new MembershipRepository(prisma);
@@ -251,14 +249,14 @@ export const getEventTypeByIdWithTeamMembers = async (props: getEventTypeByIdPro
     ? await membershipRepo.findMembershipsWithUserByTeamId({ teamId: result.team.id })
     : [];
 
-  const enrichedMembers = await Promise.all(
-    memberships.map(async (membership) => ({
-      ...membership,
-      user: await userRepo.enrichUserWithItsProfile({
-        user: membership.user,
-      }),
-    }))
-  );
+  const memberUsers = memberships.map((m) => m.user);
+  const enrichedUsers = await userRepo.enrichUsersWithTheirProfiles(memberUsers);
+  const enrichedUserMap = new Map(enrichedUsers.map((u) => [u.id, u]));
+
+  const enrichedMembers = memberships.map((membership) => ({
+    ...membership,
+    user: enrichedUserMap.get(membership.user.id) ?? membership.user,
+  }));
 
   const teamMembers = enrichedMembers
     .filter((member) => member.accepted || isOrgEventType)
