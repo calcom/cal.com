@@ -22,8 +22,9 @@ export class RequestEmailVerificationInput {
   @IsOptional()
   @IsString()
   @MaxLength(100, { message: "name must be at most 100 characters" })
-  @Matches(/^[\w\s\-]*$/, {
-    message: "name must contain only letters, numbers, spaces, and hyphens",
+  @Matches(/^[\p{L}\p{M} \t'\-.]*$/u, {
+    message:
+      "name must contain only letters (including accented), spaces, apostrophes, hyphens, and periods",
   })
   @Expose()
   name?: string;
