@@ -1,7 +1,7 @@
 import { cn } from "@coss/ui/lib/utils";
 
 function AppHeader({ className, ...props }: React.ComponentProps<"header">) {
-  return <header className={cn("mb-6 flex items-start justify-between gap-4", className)} {...props} />;
+  return <header className={cn("mb-6 mt-2 flex items-center md:items-start justify-between gap-4", className)} {...props} />;
 }
 
 function AppHeaderContent({
