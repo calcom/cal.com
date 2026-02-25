@@ -1,9 +1,11 @@
-import { PrismaClient } from "@prisma/client";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-import { TRPCError } from "@trpc/server";
-import { INNGEST_ID } from "@calcom/lib/constants";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
-import { TScheduleWhatsappMessageInputSchema } from "./scheduleWhatsappMessage.schema";
+import { dispatcher, JobName } from "@calid/job-dispatcher";
+import type { WhatsAppReminderScheduledJobData } from "@calid/job-engine/types";
+import { QueueName } from "@calid/queue";
+import type { PrismaClient } from "@prisma/client";
+
+import type { TrpcSessionUser } from "@calcom/trpc/server";
+
+import type { TScheduleWhatsappMessageInputSchema } from "./scheduleWhatsappMessage.schema";
 
 type GetOptions = {
   ctx: {
@@ -18,8 +20,7 @@ export const scheduleWhatsappMessageHandler = async ({ ctx, input }: GetOptions)
   const { calIdTeamId } = input;
 
   // Fetch pending scheduled WhatsApp reminders that need to be processed
-  // These are reminders that were stored in the DB but not yet scheduled with Meta
-  // (because Meta doesn't support native scheduling like Twilio does)
+  // These are reminders that were stored in the DB but not yet scheduled
   const pendingReminders = await prisma.calIdWorkflowReminder.findMany({
     where: {
       method: "WHATSAPP",
@@ -32,7 +33,7 @@ export const scheduleWhatsappMessageHandler = async ({ ctx, input }: GetOptions)
       ...(calIdTeamId && {
         workflowStep: {
           workflow: {
-            teamId: calIdTeamId,
+            calIdTeamId: calIdTeamId,
           },
         },
       }),
@@ -56,18 +57,15 @@ export const scheduleWhatsappMessageHandler = async ({ ctx, input }: GetOptions)
   if (pendingReminders.length === 0) {
     return {
       message: "No pending WhatsApp reminders to schedule",
-      scheduled: 0
+      scheduled: 0,
     };
   }
 
-  // Determine Inngest environment key
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-
-  // Schedule each reminder with Inngest
+  // Schedule each reminder
   const schedulePromises = pendingReminders.map(async (reminder) => {
     const { booking, workflowStep, scheduledDate, id: reminderId } = reminder;
 
-    if (!booking || !workflowStep) {
+    if (!booking || !workflowStep || !booking.eventTypeId) {
       return null;
     }
 
@@ -76,41 +74,38 @@ export const scheduleWhatsappMessageHandler = async ({ ctx, input }: GetOptions)
     const delay = Math.max(0, scheduledDate.getTime() - now.getTime());
 
     try {
-      // Send event to Inngest with delay
-      await inngestClient.send({
-        name: `whatsapp/reminder.scheduled-${key}`,
-        data: {
-          reminderId,
-          bookingUid: booking.uid,
-          workflowStepId: workflowStep.id,
-          scheduledDate: scheduledDate.toISOString(),
-          attendee: {
-            name: booking.attendees[0]?.name || "",
-            email: booking.attendees[0]?.email || "",
-            timeZone: booking.attendees[0]?.timeZone || "UTC",
+      const payload: WhatsAppReminderScheduledJobData = {
+        action: workflowStep.action,
+        eventTypeId: booking.eventTypeId,
+        workflowId: workflowStep.workflow.id,
+        workflowStepId: workflowStep.id,
+        recipientNumber: workflowStep.sendTo || booking.attendees[0]?.phoneNumber || "",
+        reminderId,
+        bookingUid: booking.uid,
+        scheduledDate: scheduledDate.toISOString(),
+        variableData: {} as any, // Will be reconstructed in job
+        userId: workflowStep.workflow.userId,
+        teamId: workflowStep.workflow.calIdTeamId,
+        template: workflowStep.template,
+        metaTemplateName: workflowStep.metaTemplateName,
+        metaPhoneNumberId: workflowStep.metaTemplatePhoneNumberId,
+        seatReferenceUid: reminder.seatReferenceId,
+      };
+
+      // Dispatch job
+      await dispatcher.dispatch({
+        queue: QueueName.SCHEDULED,
+        name: JobName.WHATSAPP_REMINDER_SCHEDULED,
+        data: payload,
+        bullmqOptions: {
+          delay,
+          attempts: 2,
+          backoff: {
+            type: "exponential",
+            delay: 5000,
           },
-          organizer: {
-            name: booking.user?.name || "",
-            email: booking.user?.email || "",
-            timeZone: booking.user?.timeZone || "UTC",
-            locale: booking.user?.locale || "en",
-            timeFormat: booking.user?.timeFormat || 12,
-          },
-          event: {
-            title: booking.eventType?.title || booking.title,
-            startTime: booking.startTime.toISOString(),
-            endTime: booking.endTime.toISOString(),
-            eventTypeId: booking.eventType?.id,
-          },
-          workflow: {
-            action: workflowStep.action,
-            template: workflowStep.template,
-            sendTo: workflowStep.sendTo,
-          },
-          userId: workflowStep.workflow.userId,
-          teamId: workflowStep.workflow.teamId,
         },
-        ts: delay > 0 ? now.getTime() + delay : undefined,
+        inngestTs: Date.now() + delay,
       });
 
       return reminderId;
@@ -132,7 +127,7 @@ export const scheduleWhatsappMessageHandler = async ({ ctx, input }: GetOptions)
       },
       data: {
         scheduled: true,
-        referenceId: "INNGEST_SCHEDULED", // Marker that it's scheduled via Inngest
+        referenceId: "DISPATCHER_SCHEDULED",
       },
     });
   }

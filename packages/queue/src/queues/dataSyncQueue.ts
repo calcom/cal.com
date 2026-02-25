@@ -16,7 +16,9 @@ export const DATA_SYNC_JOB_OPTIONS = {
   removeOnComplete: {
     age: 60 * 60 * 24 * 3, // keep 3 days (audit/debug)
   },
-  removeOnFail: false, // KEEP FAILED JOBS FOREVER
+  removeOnFail: {
+    age: 60 * 60 * 24 * 15, // keep 15 days
+  },
 };
 
 /** 
