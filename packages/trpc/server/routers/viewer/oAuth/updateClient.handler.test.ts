@@ -881,6 +881,118 @@ describe("updateClientHandler", () => {
     );
   });
 
+  it("does not change status when owner adds individual scope to legacy client (empty scopes)", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ],
+        },
+      })
+    );
+  });
+
+  it("sets status to PENDING when owner adds org scope to legacy client", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "PENDING",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.ORG_BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.ORG_BOOKING_READ],
+          status: "PENDING",
+          rejectionReason: null,
+        },
+      })
+    );
+  });
+
   it("does not trigger reapproval when admin updates scopes", async () => {
     mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
