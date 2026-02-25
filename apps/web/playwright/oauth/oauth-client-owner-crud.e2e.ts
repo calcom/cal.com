@@ -801,6 +801,7 @@ test.describe("OAuth client creation", () => {
       purpose,
       redirectUri,
       enablePkce: true,
+      scopes: [...OAUTH_SCOPES],
     });
 
     await expectOAuthClientInDb(prisma, clientId, {

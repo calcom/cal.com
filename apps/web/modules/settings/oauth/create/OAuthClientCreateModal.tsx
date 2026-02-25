@@ -46,7 +46,7 @@ export function OAuthClientCreateDialog({
       websiteUrl: "",
       logo: "",
       enablePkce: false,
-      scopes: [...OAUTH_SCOPES],
+      scopes: [],
     },
   });
 
