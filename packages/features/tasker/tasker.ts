@@ -1,4 +1,3 @@
-import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { BookingAuditTaskConsumerPayload } from "@calcom/features/booking-audit/lib/types/bookingAuditTask";
 import type { z } from "zod";
 
@@ -29,18 +28,6 @@ type TaskPayloads = {
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
   scanWorkflowUrls: z.infer<typeof import("./tasks/scanWorkflowUrls").scanWorkflowUrlsSchema>;
   sendAnalyticsEvent: z.infer<typeof import("./tasks/analytics/schema").sendAnalyticsEventSchema>;
-  executeAIPhoneCall: {
-    workflowReminderId: number;
-    agentId: string;
-    fromNumber: string;
-    toNumber: string;
-    bookingUid: string | null;
-    userId: number | null;
-    teamId: number | null;
-    providerAgentId: string;
-    responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
-    routedEventTypeId?: number | null;
-  };
   bookingAudit: BookingAuditTaskConsumerPayload;
   sendAwaitingPaymentEmail: z.infer<
     typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema

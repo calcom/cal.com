@@ -1,5 +1,3 @@
-import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
   isAttendeeAction,
@@ -21,8 +19,8 @@ import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositorie
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
-import { type PrismaClient, prisma } from "@calcom/prisma";
-import { PhoneNumberSubscriptionStatus, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { prisma, type PrismaClient } from "@calcom/prisma";
+import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
@@ -32,9 +30,7 @@ import {
   getSender,
   isAuthorizedToAddActiveOnIds,
   isStepEdited,
-  removeAIAgentCallPhoneNumberFieldForEventTypes,
   removeSmsReminderFieldForEventTypes,
-  upsertAIAgentCallPhoneNumberFieldForEventTypes,
   upsertSmsReminderFieldForEventTypes,
 } from "./util";
 
@@ -256,8 +252,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const workflowStepRepository = new WorkflowStepRepository(ctx.prisma);
 
-  const agentRepo = new PrismaAgentRepository(prisma);
-
   const stepIds = userWorkflow.steps.map((step) => step.id);
   const allReminders = await WorkflowReminderRepository.findWorkflowRemindersByStepIds(stepIds);
 
@@ -295,131 +289,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       const remindersFromStep = remindersByStepId.get(oldStep.id) || [];
       //step was deleted
       if (!newStep) {
-        if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
-          const agent = await agentRepo.findAgentWithPhoneNumbers(oldStep.agentId ?? undefined);
-
-          if (!agent) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: `Agent ${oldStep.agentId} not found for cleanup`,
-            });
-          }
-
-          await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-          await workflowStepRepository.deleteById(oldStep.id);
-
-          const aiPhoneService = createDefaultAIPhoneServiceProvider();
-          const externalErrors: string[] = [];
-
-          const phoneNumberOperations: Promise<void | { success: boolean; message: string }>[] = [];
-
-          if (agent.outboundPhoneNumbers) {
-            for (const phoneNumber of agent.outboundPhoneNumbers) {
-              if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-                try {
-                  phoneNumberOperations.push(
-                    aiPhoneService
-                      .cancelPhoneNumberSubscription({
-                        phoneNumberId: phoneNumber.id,
-                        userId: user.id,
-                      })
-                      .catch((error) => {
-                        const message = `Failed to cancel phone number subscription ${
-                          phoneNumber.phoneNumber
-                        }: ${error instanceof Error ? error.message : "Unknown error"}`;
-                        externalErrors.push(message);
-                        log.error(message);
-                      })
-                  );
-                } catch (error) {
-                  const message = `Failed to cancel phone number subscription ${phoneNumber.phoneNumber}: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                  }`;
-                  externalErrors.push(message);
-                  log.error(message);
-                  phoneNumberOperations.push(Promise.resolve());
-                }
-              } else if (
-                phoneNumber.subscriptionStatus === null ||
-                phoneNumber.subscriptionStatus === undefined
-              ) {
-                try {
-                  phoneNumberOperations.push(
-                    aiPhoneService
-                      .deletePhoneNumber({
-                        phoneNumber: phoneNumber.phoneNumber,
-                        userId: user.id,
-                        deleteFromDB: true,
-                      })
-                      .catch((error) => {
-                        const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
-                          error instanceof Error ? error.message : "Unknown error"
-                        }`;
-                        externalErrors.push(message);
-                        log.error(message);
-                      })
-                  );
-                } catch (error) {
-                  const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
-                    error instanceof Error ? error.message : "Unknown error"
-                  }`;
-                  externalErrors.push(message);
-                  log.error(message);
-                  phoneNumberOperations.push(Promise.resolve());
-                }
-              }
-              // Skip cancelled phone numbers - they don't need any action
-            }
-          }
-
-          await Promise.all(phoneNumberOperations);
-
-          try {
-            await aiPhoneService.deleteAgent({
-              id: agent.id,
-              userId: user.id,
-              teamId: userWorkflow.teamId ?? undefined,
-            });
-          } catch (error) {
-            const message = `Failed to delete agent ${agent.id} from external service: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`;
-            externalErrors.push(message);
-            log.error(message);
-          }
-
-          if (oldStep.inboundAgentId) {
-            try {
-              await aiPhoneService.deleteAgent({
-                id: oldStep.inboundAgentId,
-                userId: user.id,
-                teamId: userWorkflow.teamId ?? undefined,
-              });
-            } catch (error) {
-              const message = `Failed to delete inbound agent ${
-                oldStep.inboundAgentId
-              } from external service: ${error instanceof Error ? error.message : "Unknown error"}`;
-              externalErrors.push(message);
-              log.error(message);
-            }
-          }
-
-          // If there were external errors, we should log them for manual cleanup
-          // but the operation is considered successful since DB is consistent
-          if (externalErrors.length > 0) {
-            log.error(`External service cleanup errors for workflow step ${oldStep.id}:`, externalErrors);
-          }
-        } else {
-          // For non-AI phone steps, just delete reminders and step
-          await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-          await workflowStepRepository.deleteById(oldStep.id);
-        }
+        await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+        await workflowStepRepository.deleteById(oldStep.id);
       } else if (
         isStepEdited(oldStep, {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
-          agentId: newStep.agentId || null,
-          inboundAgentId: newStep.inboundAgentId || null,
           sourceLocale: newStep.sourceLocale ?? null,
           autoTranslateEnabled: newStep.autoTranslateEnabled ?? false,
         })
@@ -485,7 +360,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
-          agentId: newStep.agentId || null,
           verifiedAt: nextVerifiedAt,
           autoTranslateEnabled: ctx.user.organizationId ? (newStep.autoTranslateEnabled ?? false) : false,
           sourceLocale: newStep.sourceLocale || ctx.user.locale,
@@ -683,98 +557,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             s.numberRequired
         ),
         isOrg,
-      });
-    }
-  }
-
-  // Remove or add attendeePhoneNumber field for AI phone call actions
-  const aiPhoneCallStepsNeeded =
-    activeOnWithChildren.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
-
-  await removeAIAgentCallPhoneNumberFieldForEventTypes({
-    activeOnToRemove: removedActiveOnIds,
-    workflowId: id,
-    isOrg,
-    activeOn: activeOnWithChildren,
-  });
-
-  if (!aiPhoneCallStepsNeeded) {
-    await removeAIAgentCallPhoneNumberFieldForEventTypes({
-      activeOnToRemove: activeOnWithChildren,
-      workflowId: id,
-      isOrg,
-    });
-  } else {
-    await upsertAIAgentCallPhoneNumberFieldForEventTypes({
-      activeOn: activeOnWithChildren,
-      workflowId: id,
-      isAIAgentCallPhoneNumberRequired: steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL),
-      isOrg,
-    });
-  }
-
-  const aiPhoneCallSteps = steps.filter((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL && s.agentId);
-  if (aiPhoneCallSteps.length > 0) {
-    const aiService = createDefaultAIPhoneServiceProvider();
-    const externalToolErrors: string[] = [];
-
-    await Promise.all(
-      aiPhoneCallSteps.map(async (step) => {
-        if (!step.agentId) return;
-
-        try {
-          const agent = await agentRepo.findProviderAgentIdById(step.agentId);
-
-          if (!agent?.providerAgentId) {
-            log.error(`Agent not found for step ${step.id} agentId ${step.agentId}`);
-            return;
-          }
-
-          if (removedActiveOnIds.length > 0) {
-            try {
-              await aiService.removeToolsForEventTypes(agent.providerAgentId, removedActiveOnIds);
-            } catch (error) {
-              const message = `Failed to remove tools for removed event types from agent ${
-                agent.providerAgentId
-              }: ${error instanceof Error ? error.message : "Unknown error"}`;
-              externalToolErrors.push(message);
-              log.error(message);
-            }
-          }
-
-          if (newActiveOn.length > 0) {
-            await Promise.all(
-              newActiveOn.map(async (eventTypeId) => {
-                try {
-                  await aiService.updateToolsFromAgentId(agent.providerAgentId, {
-                    eventTypeId,
-                    timeZone: user?.timeZone ?? "Europe/London",
-                    userId: user.id,
-                    teamId: userWorkflow.teamId || undefined,
-                  });
-                } catch (error) {
-                  const message = `${error instanceof Error ? error.message : "Unknown error"}`;
-                  externalToolErrors.push(message);
-                  log.error(message);
-                }
-              })
-            );
-          }
-        } catch (error) {
-          const message = `Failed to update agent tools for step ${step.id}: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`;
-          externalToolErrors.push(message);
-          log.error(message);
-        }
-      })
-    );
-
-    if (externalToolErrors.length > 0) {
-      log.error(`Agent tool update errors for workflow ${id}:`, externalToolErrors);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: externalToolErrors.join("; "),
       });
     }
   }

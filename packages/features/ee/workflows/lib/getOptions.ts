@@ -7,7 +7,6 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
   isEmailToAttendeeAction,
-  isCalAIAction,
   isFormTrigger,
 } from "./actionHelperFunctions";
 import {
@@ -25,8 +24,7 @@ export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
     return {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
-      needsCredits: (!isOrgsPlan && isSMSOrWhatsappAction(action)) || isCalAIAction(action),
-      isCalAi: isCalAIAction(action),
+      needsCredits: !isOrgsPlan && isSMSOrWhatsappAction(action),
     };
   });
 }

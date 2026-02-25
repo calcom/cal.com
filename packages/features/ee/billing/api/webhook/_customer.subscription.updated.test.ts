@@ -3,8 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SWHMap } from "./__handler";
 import handler from "./_customer.subscription.updated";
 
-const { findByStripeSubscriptionId, prismaMock } = vi.hoisted(() => {
-  const findByStripeSubscriptionIdFn = vi.fn().mockResolvedValue(null);
+const { prismaMock } = vi.hoisted(() => {
   const prismaMockObj = {
     teamBilling: {
       findUnique: vi.fn(),
@@ -14,21 +13,9 @@ const { findByStripeSubscriptionId, prismaMock } = vi.hoisted(() => {
       findUnique: vi.fn(),
       update: vi.fn(),
     },
-    calAiPhoneNumber: {
-      update: vi.fn(),
-    },
   };
   return {
-    findByStripeSubscriptionId: findByStripeSubscriptionIdFn,
     prismaMock: prismaMockObj,
-  };
-});
-
-vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => {
-  return {
-    PrismaPhoneNumberRepository: class {
-      findByStripeSubscriptionId = findByStripeSubscriptionId;
-    },
   };
 });
 
@@ -90,7 +77,6 @@ describe("customer.subscription.updated webhook", () => {
       }),
     });
     expect(result).toEqual({
-      phoneNumber: null,
       teamBilling: { success: true, type: "team", teamId: 123 },
     });
   });

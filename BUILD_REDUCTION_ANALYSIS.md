@@ -7,6 +7,20 @@ This document catalogues every self-contained feature in the monorepo that can b
 
 ---
 
+## Reclassifications after deep import audit
+
+The following items were initially listed as **Tier 1** (zero-risk) but were moved to higher tiers after running a full import graph audit as part of the Tier 1 removal PR. They remain in their original sections below with updated tier labels.
+
+| Feature | Original tier | Reclassified to | Reason |
+|---------|--------------|-----------------|--------|
+| **EE: API Keys** (`packages/features/ee/api-keys/`) | Tier 1 | **Tier 3** | Exports `findValidApiKey`, `hashAPIKey`, `generateUniqueAPIKey` consumed by `apps/api/v1/lib/helpers/verifyApiKey.ts`, Zapier, and Make integrations. Removing breaks all API key authentication. |
+| **EE: Deployment** (`packages/features/ee/deployment/`) | Tier 1 | **Tier 3** | `DeploymentRepository` imported directly by `packages/features/auth/lib/next-auth-options.ts` and `getServerSession.ts`. Core auth dependency. |
+| **EE: Impersonation** (`packages/features/ee/impersonation/`) | Tier 1 | **Tier 2** | `ImpersonationProvider` is registered inside Next-Auth config. Requires removing the provider from auth options, not just deleting the directory. |
+| **Campfire** (`packages/app-store/campfire/`) | Tier 1 | **Tier 2** | The `campfire` location type is referenced across API v2 event-type transformers (`apps/api/v2/src/ee/event-types/`), platform location types, and `RegularBookingService`. Removing without API versioning is a breaking change. |
+| **Templates** (`packages/app-store/templates/`) | Tier 1 | **Tier 2** | `isTemplate` field exists in `AppMetaSchema.ts`, `App.d.ts`, app-store CLI, and listing handlers. Removable but requires schema and type changes across multiple packages. |
+
+---
+
 ## Baseline measurements
 
 | Area | Measured size |

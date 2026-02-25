@@ -39,7 +39,6 @@ export const formSchema = z.object({
         .optional()
         .nullable(),
       senderName: z.string().nullish(),
-      agentId: z.string().nullish(),
       autoTranslateEnabled: z.boolean().optional(),
       sourceLocale: z.string().nullish(),
     })

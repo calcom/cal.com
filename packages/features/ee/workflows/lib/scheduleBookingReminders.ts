@@ -1,4 +1,3 @@
-import { scheduleAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
@@ -204,21 +203,6 @@ export async function scheduleBookingReminders(
             creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
           });
         }
-      } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {
-        await scheduleAIPhoneCall({
-          evt: bookingInfo,
-          triggerEvent: trigger,
-          timeSpan: {
-            time,
-            timeUnit,
-          },
-          workflowStepId: step.id,
-          userId,
-          teamId,
-          verifiedAt: step?.verifiedAt ?? null,
-          submittedPhoneNumber: booking.smsReminderNumber,
-          routedEventTypeId: null,
-        });
       }
     });
     await Promise.all(promiseScheduleReminders);

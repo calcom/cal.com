@@ -1,5 +1,4 @@
 import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
-import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep, WorkflowListType as WorkflowType } from "@calcom/ee/workflows/lib/types";
@@ -479,7 +478,8 @@ export class WorkflowRepository {
       [WorkflowMethods.EMAIL]: (id) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
-      [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),
+      // AI_PHONE_CALL reminders no longer exist but kept for backward compat with existing DB records
+      [WorkflowMethods.AI_PHONE_CALL]: (_id, _referenceId) => Promise.resolve(),
     };
 
     if (!remindersToDelete) return Promise.resolve();

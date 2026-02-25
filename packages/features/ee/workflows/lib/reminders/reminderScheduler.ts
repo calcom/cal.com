@@ -184,23 +184,6 @@ const processWorkflowStep = async (
       isVerificationPending: step.numberVerificationPending,
       evt,
     });
-  } else if (isCalAIAction(step.action)) {
-    const { scheduleAIPhoneCall } = await import("./aiPhoneCallManager");
-    await scheduleAIPhoneCall({
-      triggerEvent: workflow.trigger,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
-      workflowStepId: step.id,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
-      seatReferenceUid,
-      submittedPhoneNumber: smsReminderNumber,
-      verifiedAt: step.verifiedAt,
-      routedEventTypeId: formData ? formData.routedEventTypeId : null,
-      ...contextData,
-    });
   }
 };
 

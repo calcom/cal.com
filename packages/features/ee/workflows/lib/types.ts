@@ -165,8 +165,6 @@ export type FormValues = {
   activeOn: Option[];
   steps: (PrismaWorkflowStep & {
     senderName: string | null;
-    agentId?: string | null;
-    inboundAgentId?: string | null;
   })[];
   trigger: WorkflowTriggerEvents;
   time?: number;

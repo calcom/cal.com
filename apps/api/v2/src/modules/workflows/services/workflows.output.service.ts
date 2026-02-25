@@ -13,7 +13,6 @@ import { Injectable } from "@nestjs/common";
 
 import {
   ATTENDEE,
-  CAL_AI_PHONE_CALL,
   EMAIL,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
@@ -125,12 +124,6 @@ const ACTION_CONFIG_MAP = {
     requiresPhone: false,
   },
   [WHATSAPP_NUMBER]: {
-    recipient: PHONE_NUMBER,
-    messageKey: "text",
-    setsCustomRecipient: true,
-    requiresPhone: false,
-  },
-  [CAL_AI_PHONE_CALL]: {
     recipient: PHONE_NUMBER,
     messageKey: "text",
     setsCustomRecipient: true,

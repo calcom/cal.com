@@ -118,12 +118,6 @@ export class WorkflowReminderRepository {
                 trigger: true,
               },
             },
-            agent: {
-              select: {
-                outboundPhoneNumbers: { select: { phoneNumber: true } },
-                outboundEventTypeId: true,
-              },
-            },
           },
         },
         booking: { select: bookingSelect },

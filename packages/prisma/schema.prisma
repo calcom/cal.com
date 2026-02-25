@@ -208,40 +208,40 @@ model EventType {
   requiresBookerEmailVerification    Boolean                @default(false)
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
-  autoTranslateDescriptionEnabled          Boolean                   @default(false)
-  autoTranslateInstantMeetingTitleEnabled  Boolean                   @default(true)
+  autoTranslateDescriptionEnabled          Boolean                 @default(false)
+  autoTranslateInstantMeetingTitleEnabled  Boolean                 @default(true)
   /// @zod.import(["import { recurringEventType } from '../../zod-utils'"]).custom.use(recurringEventType)
   recurringEvent                           Json?
-  disableGuests                            Boolean                   @default(false)
-  hideCalendarNotes                        Boolean                   @default(false)
-  hideCalendarEventDetails                 Boolean                   @default(false)
+  disableGuests                            Boolean                 @default(false)
+  hideCalendarNotes                        Boolean                 @default(false)
+  hideCalendarEventDetails                 Boolean                 @default(false)
   /// @zod.number.min(0)
-  minimumBookingNotice                     Int                       @default(120)
-  beforeEventBuffer                        Int                       @default(0)
-  afterEventBuffer                         Int                       @default(0)
+  minimumBookingNotice                     Int                     @default(120)
+  beforeEventBuffer                        Int                     @default(0)
+  afterEventBuffer                         Int                     @default(0)
   seatsPerTimeSlot                         Int?
-  onlyShowFirstAvailableSlot               Boolean                   @default(false)
-  showOptimizedSlots                       Boolean?                  @default(false)
-  disableCancelling                        Boolean?                  @default(false)
-  disableRescheduling                      Boolean?                  @default(false)
+  onlyShowFirstAvailableSlot               Boolean                 @default(false)
+  showOptimizedSlots                       Boolean?                @default(false)
+  disableCancelling                        Boolean?                @default(false)
+  disableRescheduling                      Boolean?                @default(false)
   /// @zod.number.min(0)
   minimumRescheduleNotice                  Int?
-  seatsShowAttendees                       Boolean?                  @default(false)
-  seatsShowAvailabilityCount               Boolean?                  @default(true)
+  seatsShowAttendees                       Boolean?                @default(false)
+  seatsShowAvailabilityCount               Boolean?                @default(true)
   schedulingType                           SchedulingType?
-  schedule                                 Schedule?                 @relation(fields: [scheduleId], references: [id])
+  schedule                                 Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId                               Int?
-  allowReschedulingCancelledBookings       Boolean?                  @default(false)
+  allowReschedulingCancelledBookings       Boolean?                @default(false)
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                                    Int                       @default(0)
+  price                                    Int                     @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                                 String                    @default("usd")
+  currency                                 String                  @default("usd")
   slotInterval                             Int?
   /// @zod.import(["import { EventTypeMetaDataSchema } from '../../zod-utils'"]).custom.use(EventTypeMetaDataSchema)
   metadata                                 Json?
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
-  forwardParamsSuccessRedirect             Boolean?                  @default(true)
+  forwardParamsSuccessRedirect             Boolean?                @default(true)
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   redirectUrlOnNoRoutingFormResponse       String?
   workflows                                WorkflowsOnEventTypes[]
@@ -249,27 +249,26 @@ model EventType {
   bookingLimits                            Json?
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   durationLimits                           Json?
-  isInstantEvent                           Boolean                   @default(false)
-  instantMeetingExpiryTimeOffsetInSeconds  Int                       @default(90)
+  isInstantEvent                           Boolean                 @default(false)
+  instantMeetingExpiryTimeOffsetInSeconds  Int                     @default(90)
   instantMeetingScheduleId                 Int?
-  instantMeetingSchedule                   Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
+  instantMeetingSchedule                   Schedule?               @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   instantMeetingParameters                 String[]
-  assignAllTeamMembers                     Boolean                   @default(false)
+  assignAllTeamMembers                     Boolean                 @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
-  assignRRMembersUsingSegment              Boolean                   @default(false)
+  assignRRMembersUsingSegment              Boolean                 @default(false)
   /// @zod.import(["import { rrSegmentQueryValueSchema } from '../../zod-utils'"]).custom.use(rrSegmentQueryValueSchema)
   rrSegmentQueryValue                      Json?
-  useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
-  aiPhoneCallConfig                        AIPhoneCallConfiguration?
-  isRRWeightsEnabled                       Boolean                   @default(false)
+  useEventTypeDestinationCalendarEmail     Boolean                 @default(false)
+  isRRWeightsEnabled                       Boolean                 @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
-  includeNoShowInRRCalculation             Boolean                   @default(false)
+  includeNoShowInRRCalculation             Boolean                 @default(false)
   selectedCalendars                        SelectedCalendar[]
-  allowReschedulingPastBookings            Boolean                   @default(false)
-  hideOrganizerEmail                       Boolean                   @default(false)
+  allowReschedulingPastBookings            Boolean                 @default(false)
+  hideOrganizerEmail                       Boolean                 @default(false)
   maxActiveBookingsPerBooker               Int?
-  maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
+  maxActiveBookingPerBookerOfferReschedule Boolean                 @default(false)
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   customReplyToEmail                       String?
   calVideoSettings                         CalVideoSettings?
@@ -515,8 +514,6 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
-  calAiPhoneNumbers              CalAiPhoneNumber[]
-  agents                         Agent[]
   oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
 
@@ -631,8 +628,6 @@ model Team {
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
   roles                  Role[] // Added for Role relation
-  calAiPhoneNumbers      CalAiPhoneNumber[]
-  agents                 Agent[]
   bookingReports         BookingReport[]
   wrongAssignmentReports WrongAssignmentReport[]
 
@@ -1540,11 +1535,6 @@ model WorkflowStep {
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
   verifiedAt                DateTime?
-  agentId                   String?            @unique
-  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
-
-  inboundAgentId String? @unique
-  inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   autoTranslateEnabled Boolean                   @default(false)
   sourceLocale         String?
@@ -1573,26 +1563,6 @@ model Workflow {
 
   @@index([userId])
   @@index([teamId])
-}
-
-model AIPhoneCallConfiguration {
-  id              Int       @id @default(autoincrement())
-  eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId     Int
-  templateType    String    @default("CUSTOM_TEMPLATE")
-  schedulerName   String?
-  generalPrompt   String?
-  yourPhoneNumber String
-  numberToCall    String
-  guestName       String?
-  guestEmail      String?
-  guestCompany    String?
-  enabled         Boolean   @default(false)
-  beginMessage    String?
-  llmId           String?
-
-  @@unique([eventTypeId])
-  @@index([eventTypeId])
 }
 
 model WorkflowsOnEventTypes {
@@ -2982,85 +2952,6 @@ model BookingAudit {
   @@index([bookingUid])
   @@index([timestamp])
   @@index([operationId])
-}
-
-enum PhoneNumberSubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELLED
-  INCOMPLETE
-  INCOMPLETE_EXPIRED
-  TRIALING
-  UNPAID
-}
-
-// Cal AI Voice Agent
-model Agent {
-  id   String @id @default(uuid())
-  name String
-
-  // Either user-owned OR team-owned
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId Int?
-  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  // Provider-specific agent ID (e.g., Retell AI agent ID)
-  providerAgentId String @unique
-
-  // Event type association for inbound agents
-  inboundEventTypeId Int?
-
-  // Event type association for outbound agents
-  outboundEventTypeId Int?
-
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
-  outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
-  workflowStep         WorkflowStep?
-  inboundWorkflowStep  WorkflowStep?      @relation("WorkflowStepInboundAgent")
-
-  @@index([userId])
-  @@index([teamId])
-  @@index([inboundEventTypeId])
-  @@index([outboundEventTypeId])
-}
-
-model CalAiPhoneNumber {
-  id Int @id @default(autoincrement())
-
-  // Either user-owned OR team-owned
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  teamId Int?
-  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
-
-  phoneNumber String @unique
-  provider    String
-
-  // Provider-specific phone number ID (e.g., Retell phone number ID)
-  providerPhoneNumberId String? @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  stripeCustomerId     String?
-  stripeSubscriptionId String?                        @unique
-  subscriptionStatus   PhoneNumberSubscriptionStatus?
-
-  // Agent associations
-  inboundAgentId  String?
-  inboundAgent    Agent?  @relation("InboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
-  outboundAgentId String?
-  outboundAgent   Agent?  @relation("OutboundAgent", fields: [outboundAgentId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([teamId])
-  @@index([inboundAgentId])
-  @@index([outboundAgentId])
 }
 
 model TeamBilling {

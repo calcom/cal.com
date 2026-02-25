@@ -1,4 +1,3 @@
-import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { NextApiRequest } from "next";
 import authedProcedure, {
@@ -168,10 +167,6 @@ export const viewerOrganizationsRouter = router({
   }),
   adminDelete: authedAdminProcedure.input(ZAdminDeleteInput).mutation(async (opts) => {
     const { default: handler } = await import("./adminDelete.handler");
-    return handler(opts);
-  }),
-  createPhoneCall: eventOwnerProcedure.input(createPhoneCallSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./createPhoneCall.handler");
     return handler(opts);
   }),
   createSelfHosted: authedProcedure.input(ZCreateSelfHostedInputSchema).mutation(async (opts) => {

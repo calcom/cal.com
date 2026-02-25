@@ -6,11 +6,9 @@ import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
-  getAIAgentCallPhoneNumberField,
-  getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
-import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
+import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -99,77 +97,6 @@ export async function removeSmsReminderFieldForEventType({
   );
 }
 
-export async function upsertAIAgentCallPhoneNumberFieldForEventTypes({
-  activeOn,
-  workflowId,
-  isAIAgentCallPhoneNumberRequired,
-  isOrg,
-}: {
-  activeOn: number[];
-  workflowId: number;
-  isAIAgentCallPhoneNumberRequired?: boolean;
-  isOrg: boolean;
-}) {
-  let allEventTypeIds = activeOn;
-
-  if (isOrg) {
-    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOn);
-  }
-
-  for (const eventTypeId of allEventTypeIds) {
-    await upsertBookingField(
-      getAIAgentCallPhoneNumberField(),
-      getAIAgentCallPhoneNumberSource({
-        workflowId,
-        isAIAgentCallPhoneNumberRequired: isAIAgentCallPhoneNumberRequired ?? false,
-      }),
-      eventTypeId
-    );
-  }
-}
-
-export async function removeAIAgentCallPhoneNumberFieldForEventTypes({
-  activeOnToRemove,
-  workflowId,
-  isOrg,
-  activeOn,
-}: {
-  activeOnToRemove: number[];
-  workflowId: number;
-  isOrg: boolean;
-  activeOn?: number[];
-}) {
-  let allEventTypeIds = activeOnToRemove;
-
-  if (isOrg) {
-    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOnToRemove, activeOn);
-  }
-  for (const eventTypeId of allEventTypeIds) {
-    await removeAIAgentCallPhoneNumberFieldForEventType({
-      workflowId,
-      eventTypeId,
-    });
-  }
-}
-
-export async function removeAIAgentCallPhoneNumberFieldForEventType({
-  workflowId,
-  eventTypeId,
-}: {
-  workflowId: number;
-  eventTypeId: number;
-}) {
-  await removeBookingField(
-    {
-      name: CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-    },
-    {
-      id: `${workflowId}`,
-      type: "workflow",
-    },
-    eventTypeId
-  );
-}
 
 async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
   const teamMembersWithEventTypes = await prisma.membership.findMany({

@@ -1,7 +1,11 @@
+import { useSearchParams } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
+import { useState, useEffect } from "react";
+import type { UseFormReturn } from "react-hook-form";
+
 import {
-  isCalAIAction,
-  isFormTrigger,
   isSMSAction,
+  isFormTrigger,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "@calcom/features/ee/workflows/lib/constants";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
@@ -16,12 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-import { useAgentsData } from "@calcom/web/modules/ee/workflows/hooks/useAgentsData";
 import { ArrowRightIcon, ZapIcon } from "@coss/ui/icons";
-import { useSearchParams } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
 
 import { AddActionDialog } from "./AddActionDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
@@ -77,11 +76,7 @@ export default function WorkflowDetailsPage(props: Props) {
             isFormTrigger(form.getValues("trigger")) &&
             !ALLOWED_FORM_WORKFLOW_ACTIONS.some((action) => action === option.value);
 
-          const isSelectAllCalAiAction = isCalAIAction(option.value) && form.watch("selectAll");
-
-          const isOrgCalAiAction = isCalAIAction(option.value) && isOrg;
-
-          if (isFormWorkflowWithInvalidSteps || isSelectAllCalAiAction || isOrgCalAiAction) {
+          if (isFormWorkflowWithInvalidSteps) {
             return false;
           }
           return true;
@@ -105,7 +100,6 @@ export default function WorkflowDetailsPage(props: Props) {
             label,
             creditsTeamId: teamId,
             isOrganization: isOrg,
-            isCalAi: isCalAIAction(option.value),
             needsTeamsUpgrade,
             upgradeTeamsBadgeProps: needsTeamsUpgrade
               ? { hasPaidPlan, hasActiveTeamPlan, isTrial }
@@ -176,17 +170,12 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
-      agentId: null,
-      inboundAgentId: null,
       autoTranslateEnabled: false,
       sourceLocale: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
-
-  const { outboundAgentQueries: agentQueriesTrpc, inboundAgentQueries: inboundAgentQueriesTrpc } =
-    useAgentsData(form);
 
   return (
     <>
@@ -225,11 +214,6 @@ export default function WorkflowDetailsPage(props: Props) {
         {form.getValues("steps") && (
           <div className="">
             {form.getValues("steps")?.map((step, index) => {
-              const agentData = agentQueriesTrpc[index]?.data;
-              const isAgentLoading = agentQueriesTrpc[index]?.isPending;
-              const inboundAgentData = inboundAgentQueriesTrpc[index]?.data;
-              const isInboundAgentLoading = inboundAgentQueriesTrpc[index]?.isPending;
-
               return (
                 <div key={index}>
                   <FormCard
@@ -251,27 +235,19 @@ export default function WorkflowDetailsPage(props: Props) {
                             check: () => true,
                             disabled: !permissions.canUpdate,
                             fn: () => {
-                              if (
-                                isCalAIAction(step.action) &&
-                                agentData?.outboundPhoneNumbers &&
-                                agentData.outboundPhoneNumbers.length > 0
-                              ) {
-                                setIsDeleteStepDialogOpen(true);
-                              } else {
-                                const steps = form.getValues("steps");
-                                const updatedSteps = steps
-                                  ?.filter((currStep) => currStep.id !== step.id)
-                                  .map((s) => {
-                                    const updatedStep = s;
-                                    if (step.stepNumber < updatedStep.stepNumber) {
-                                      updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                    }
-                                    return updatedStep;
-                                  });
-                                form.setValue("steps", updatedSteps);
-                                if (setReload) {
-                                  setReload(!reload);
-                                }
+                              const steps = form.getValues("steps");
+                              const updatedSteps = steps
+                                ?.filter((currStep) => currStep.id !== step.id)
+                                .map((s) => {
+                                  const updatedStep = s;
+                                  if (step.stepNumber < updatedStep.stepNumber) {
+                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                  }
+                                  return updatedStep;
+                                });
+                              form.setValue("steps", updatedSteps);
+                              if (setReload) {
+                                setReload(!reload);
                               }
                             },
                           }
@@ -290,10 +266,6 @@ export default function WorkflowDetailsPage(props: Props) {
                         onSaveWorkflow={props.onSaveWorkflow}
                         setIsDeleteStepDialogOpen={setIsDeleteStepDialogOpen}
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
-                        isAgentLoading={isAgentLoading}
-                        agentData={agentData}
-                        inboundAgentData={inboundAgentData}
-                        isInboundAgentLoading={isInboundAgentLoading}
                         allOptions={allOptions}
                         actionOptions={transformedActionOptions}
                         updateTemplate={updateTemplate}

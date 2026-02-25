@@ -74,19 +74,6 @@ type EventLocation = {
   customLabel?: string;
 };
 
-type PhoneCallConfig = {
-  generalPrompt: string;
-  enabled: boolean;
-  beginMessage: string;
-  yourPhoneNumber: string;
-  numberToCall: string;
-  guestName?: string;
-  guestEmail?: string;
-  guestCompany?: string;
-  templateType: string;
-  schedulerName?: string;
-};
-
 export type PrivateLinkWithOptions = {
   link: string;
   expiresAt?: Date | null;
@@ -122,7 +109,6 @@ export type FormValues = {
   eventTypeColor: z.infer<typeof eventTypeColor>;
   customReplyToEmail: string | null;
   locations: EventLocation[];
-  aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;

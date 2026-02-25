@@ -319,10 +319,6 @@ class PublicEventTypeOutput {
 
   @IsOptional()
   @ApiPropertyOptional()
-  aiPhoneCallConfig?: any;
-
-  @IsOptional()
-  @ApiPropertyOptional()
   schedulingType?: any;
 
   @IsInt()

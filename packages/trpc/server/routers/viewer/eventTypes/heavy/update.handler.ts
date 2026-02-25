@@ -92,7 +92,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     bookingFields,
     offsetStart,
     secondaryEmailId,
-    aiPhoneCallConfig,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     autoTranslateInstantMeetingTitleEnabled,
@@ -127,14 +126,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: true,
           weight: true,
           isFixed: true,
-        },
-      },
-      aiPhoneCallConfig: {
-        select: {
-          generalPrompt: true,
-          beginMessage: true,
-          enabled: true,
-          llmId: true,
         },
       },
       calVideoSettings: {
@@ -697,33 +688,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       data.secondaryEmail = {
         disconnect: true,
       };
-    }
-  }
-
-  if (aiPhoneCallConfig) {
-    if (aiPhoneCallConfig.enabled) {
-      await ctx.prisma.aIPhoneCallConfiguration.upsert({
-        where: {
-          eventTypeId: id,
-        },
-        update: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-        },
-        create: {
-          ...aiPhoneCallConfig,
-          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
-          eventTypeId: id,
-        },
-      });
-    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
-      await ctx.prisma.aIPhoneCallConfiguration.delete({
-        where: {
-          eventTypeId: id,
-        },
-      });
     }
   }
 
