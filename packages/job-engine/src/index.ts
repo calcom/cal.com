@@ -10,4 +10,5 @@ export * from "./data-sync/bookingExport.service";
 export * from "./data-sync/type";
 
 export * from "./scheduled/triggerScheduledWebhook.service";
+export * from "./scheduled/whatsappReminderScheduled.service";
 export * from "./scheduled/type";

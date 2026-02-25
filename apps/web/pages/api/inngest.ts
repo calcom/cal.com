@@ -1,3 +1,4 @@
+import { MetaError } from "@calid/features/modules/workflows/providers/meta";
 import { createInngestWorkflowContext, getInngestClient, JobName } from "@calid/job-dispatcher";
 import {
   calendlyImportService,
@@ -13,6 +14,7 @@ import {
   BookingNotFoundError,
   PaymentAppNotFoundError,
   PaymentReminderError,
+  whatsappReminderScheduledService,
 } from "@calid/job-engine";
 import type {
   BookingEmailsJobData,
@@ -22,6 +24,7 @@ import type {
   RazorpayAppRevokedJobData,
   RazorpayPaymentLinkPaidJobData,
   TriggerScheduledWebhookData,
+  WhatsAppReminderScheduledJobData,
 } from "@calid/job-engine";
 import { NonRetriableError } from "inngest";
 import { serve } from "inngest/next";
@@ -29,8 +32,6 @@ import { serve } from "inngest/next";
 import { syncTemplates } from "@calcom/app-store/whatsapp-business/trpc/syncTemplates.handler";
 import { INNGEST_ID } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
-import { whatsappReminderScheduled } from "./whatsapp-reminder-scheduled";
 
 export const inngestClient = getInngestClient();
 
@@ -217,6 +218,43 @@ export const handleScheduledWebhookTrigger = inngestClient.createFunction(
   }
 );
 
+export const handleWhatsappReminderScheduled = inngestClient.createFunction(
+  {
+    id: `whatsapp-reminder-scheduled-${key}`,
+    name: "Send Scheduled WhatsApp Reminder",
+    retries: 1, // Only retry once for MetaError
+  },
+  {
+    event: `${JobName.WHATSAPP_REMINDER_SCHEDULED}-${key}`,
+  },
+  async ({ event, step, logger }) => {
+    const ctx = createInngestWorkflowContext(step, logger);
+
+    try {
+      const result = await whatsappReminderScheduledService(
+        ctx,
+        event.data as WhatsAppReminderScheduledJobData
+      );
+      return result;
+    } catch (error) {
+      // Non-retriable errors should not be retried
+      if (error instanceof Error && error.message.startsWith("NON_RETRIABLE:")) {
+        throw new NonRetriableError(error.message.replace("NON_RETRIABLE: ", ""));
+      }
+
+      // MetaError is retriable (network/API issues)
+      if (error instanceof MetaError) {
+        throw error; // Inngest will retry
+      }
+
+      // Unknown errors are also non-retriable to prevent spam
+      throw new NonRetriableError(
+        `Failed to send WhatsApp: ${error instanceof Error ? error.message : error}`
+      );
+    }
+  }
+);
+
 // INNGEST-ONLY CRONS:
 //
 // These function are registered with a cron trigger directly in Inngest.
@@ -231,24 +269,6 @@ const handleWhatsAppTemplateSyncFn = inngestClient.createFunction(
     await syncTemplates({ step, logger });
     return { message: `WhatsApp template sync completed` };
   }
-);
-
-const handleWhatsappReminderScheduled = inngestClient.createFunction(
-  {
-    id: `whatsapp-reminder-scheduled-${key}`,
-    name: "Send Scheduled WhatsApp Reminder",
-    retries: 1,
-    cancelOn: [
-      {
-        event: `whatsapp/reminder.cancelled-${key}`,
-        match: "data.reminderId",
-      },
-    ],
-  },
-  {
-    event: `whatsapp/reminder.scheduled-${key}`,
-  },
-  whatsappReminderScheduled
 );
 
 export default serve({
