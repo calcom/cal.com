@@ -1,4 +1,4 @@
-import { SUPPORTED_LOCALES } from "@calcom/platform-constants";
+import { MAX_EVENT_TYPE_TITLE_LENGTH, SUPPORTED_LOCALES } from "@calcom/platform-constants";
 import { SchedulingType } from "@calcom/platform-enums";
 import {
   ApiExtraModels,
@@ -17,6 +17,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  MaxLength,
   Min,
   ValidateNested,
 } from "class-validator";
@@ -156,6 +157,9 @@ class BaseUpdateEventTypeInput {
 
   @IsOptional()
   @IsString()
+  @MaxLength(MAX_EVENT_TYPE_TITLE_LENGTH, {
+    message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+  })
   @DocsPropertyOptional({ example: CREATE_EVENT_TITLE_EXAMPLE })
   title?: string;
 

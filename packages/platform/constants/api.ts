@@ -71,6 +71,7 @@ export type API_VERSIONS_ENUM = (typeof API_VERSIONS)[number];
 export type API_VERSIONS_TYPE = typeof API_VERSIONS;
 export const CAL_API_VERSION_HEADER = "cal-api-version";
 export const MAX_SEATS_PER_TIME_SLOT = 1000;
+export const MAX_EVENT_TYPE_TITLE_LENGTH = 200;
 
 // Keep in sync with i18n.json locale.targets
 export const SUPPORTED_LOCALES = [
