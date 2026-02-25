@@ -158,6 +158,17 @@ describe("Organizations Teams Verified Resources", () => {
       .expect(200);
   });
 
+  it("should accept optional name for recipient in verification code request", async () => {
+    const emailWithName = `org-team-e2e-with-name-${randomString()}@example.com`;
+    return request(app.getHttpServer())
+      .post(
+        `/v2/organizations/${org.id}/teams/${orgTeam.id}/verified-resources/emails/verification-code/request`
+      )
+      .send({ email: emailWithName, name: "Jane" } satisfies RequestEmailVerificationInput)
+      .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+      .expect(200);
+  });
+
   it("should verify email", async () => {
     return request(app.getHttpServer())
       .post(

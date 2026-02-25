@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsEmail } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class RequestEmailVerificationInput {
   @ApiProperty({
@@ -11,4 +11,16 @@ export class RequestEmailVerificationInput {
   @IsEmail()
   @Expose()
   email!: string;
+
+  @ApiProperty({
+    type: String,
+    description:
+      "Optional recipient name. When provided, the verification email will greet the recipient with this name (e.g. 'Hi Jane') instead of the API caller's username.",
+    example: "Jane",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @Expose()
+  name?: string;
 }

@@ -62,7 +62,8 @@ export class TeamsVerifiedResourcesController {
   ): Promise<RequestEmailVerificationOutput> {
     const verificationCodeRequest = await this.verifiedResourcesService.requestEmailVerificationCode(
       { username, locale },
-      body.email
+      body.email,
+      body.name
     );
 
     return {

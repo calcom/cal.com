@@ -8,6 +8,15 @@ import {
 } from "@calcom/platform-libraries";
 import { sendEmailVerificationByCode, verifyEmailCodeHandler } from "@calcom/platform-libraries/emails";
 
+/** Derive a display name from the email local part when name is not provided (e.g. jane.doe@example.com → "Jane Doe"). */
+function displayNameFromEmail(email: string): string {
+  const local = email.split("@")[0]?.trim() ?? "";
+  if (!local) return "there";
+  const words = local.replace(/[._]/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "there";
+  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+}
+
 @Injectable()
 export class VerifiedResourcesService {
   constructor(
@@ -15,11 +24,16 @@ export class VerifiedResourcesService {
     private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository
   ) {}
 
-  async requestEmailVerificationCode(user: { username: string; locale: string }, email: string) {
+  async requestEmailVerificationCode(
+    user: { username: string; locale: string },
+    email: string,
+    recipientName?: string
+  ) {
+    const displayName = recipientName?.trim() || displayNameFromEmail(email);
     const res = await sendEmailVerificationByCode({
       email: email,
       language: user.locale,
-      username: user.username,
+      username: displayName,
       isVerifyingEmail: true,
     });
 
