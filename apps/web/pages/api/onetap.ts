@@ -150,11 +150,20 @@ export default async function handler(
     return void res.status(500).json({ ok: false, error: "Could not obtain CSRF token" });
   }
 
-  const cookieHeader = [browserCookiesWithoutCsrf, freshCsrfCookieValue]
-    .filter(Boolean)
-    .join("; ");
+  const cookieHeader = [browserCookiesWithoutCsrf, freshCsrfCookieValue].filter(Boolean).join("; ");
 
   let callbackRes: Response;
+
+  const payloadB64 = credential.split(".")[1];
+  if (!payloadB64) throw new Error("Malformed JWT: missing payload segment");
+
+  const { email } = JSON.parse(Buffer.from(payloadB64, "base64url").toString("utf8")) as { email?: string };
+
+  const existingUser = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+    select: { id: true },
+  });
+
   try {
     callbackRes = await fetch(`${baseUrl}/api/auth/callback/google-one-tap`, {
       method: "POST",
@@ -182,12 +191,6 @@ export default async function handler(
   }
 
   const { url: callbackUrl = "", error: callbackError } = nextAuthBody;
-
-  console.log("[google-one-tap] NextAuth response:", {
-    status: callbackRes.status,
-    callbackUrl,
-    callbackError,
-  });
 
   if (callbackUrl.includes("csrf=true")) {
     console.error("[google-one-tap] CSRF validation failed — cookie/token mismatch");
@@ -248,19 +251,14 @@ export default async function handler(
     }
   }
 
+  let username: string | undefined = undefined;
   try {
-    const payloadB64 = credential.split(".")[1];
-    if (!payloadB64) throw new Error("Malformed JWT: missing payload segment");
-
-    const { email } = JSON.parse(
-      Buffer.from(payloadB64, "base64url").toString("utf8")
-    ) as { email?: string };
-
     if (email) {
       const user = await prisma.user.findFirst({
         where: { email: { equals: email, mode: "insensitive" } },
-        select: { metadata: true },
+        select: { metadata: true, username: true },
       });
+      username = user?.username ?? undefined;
 
       const meta = user?.metadata as Record<string, unknown> | null;
       const currentStep = meta?.currentOnboardingStep;
@@ -274,5 +272,5 @@ export default async function handler(
     console.error("[google-one-tap] Failed to check onboarding status:", err);
   }
 
-  return void res.status(200).json({ ok: true, redirectUrl });
+  return void res.status(200).json({ ok: true, redirectUrl, isNewUser: !existingUser, username, email });
 }
