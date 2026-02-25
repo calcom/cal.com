@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   MAX_SEATS_PER_TIME_SLOT,
   MAX_EVENT_DURATION_MINUTES,
+  MAX_EVENT_TYPE_TITLE_LENGTH,
   MIN_EVENT_DURATION_MINUTES,
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
@@ -81,7 +82,7 @@ export const schemaEventTypeBaseBodyParams = EventTypeSchema.pick({
 
 const schemaEventTypeCreateParams = z
   .object({
-    title: z.string(),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH),
     slug: z.string().transform((s) => slugify(s)),
     description: z.string().optional().nullable(),
     length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),
@@ -102,7 +103,7 @@ export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
 
 const schemaEventTypeEditParams = z
   .object({
-    title: z.string().optional(),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH).optional(),
     slug: z
       .string()
       .transform((s) => slugify(s))
