@@ -23,6 +23,10 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -47,6 +51,8 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -208,15 +214,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
-  if (
-    !platformClientId &&
-    !cancellationReason?.trim() &&
-    isCancellationUserHost &&
-    !skipCancellationReasonValidation
-  ) {
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required",
     });
   }
 
@@ -396,6 +402,23 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
     organizationId: ownerProfile?.organizationId ?? null,
     schedulingType: bookingToDelete.eventType?.schedulingType,
+    hideBranding: bookingToDelete.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(bookingToDelete.eventTypeId, {
+          team: bookingToDelete.eventType?.team
+            ? {
+                hideBranding: bookingToDelete.eventType.team.hideBranding,
+                parent: bookingToDelete.eventType.team.parent,
+              }
+            : null,
+          owner: bookingToDelete.user
+            ? {
+                id: bookingToDelete.user.id,
+                hideBranding: bookingToDelete.user.hideBranding,
+                profiles: bookingToDelete.user.profiles ?? [],
+              }
+            : null,
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };

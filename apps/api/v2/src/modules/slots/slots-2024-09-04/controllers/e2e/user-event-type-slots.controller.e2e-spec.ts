@@ -787,7 +787,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-${eventTypeId}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -832,7 +832,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-seated-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -866,7 +866,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: randomString(),
+        referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {
           connect: {
@@ -961,7 +961,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${randomString()}`,
+        uid: `booking-uid-seated-range-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -995,7 +995,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       bookingSeatsRepositoryFixture.create({
-        referenceUid: randomString(),
+        referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {
           connect: {
@@ -1348,7 +1348,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
         advanceTo(newDate);
 
         const slotDuration = 60;
-        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        // Use 2050-09-06 to avoid overlap with other tests that reserve 2050-09-05
+        const slotStartTime = "2050-09-06T09:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
           .post(`/v2/slots/reservations`)
           .send({
@@ -1377,7 +1378,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`
+            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-10&duration=60`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -1390,10 +1391,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const days = Object.keys(slots);
         expect(days.length).toEqual(5);
 
-        const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        const expectedSlotsUTC2050_09_06 = expectedSlotsUTC["2050-09-06"].filter(
           (slot) => slot.start !== slotStartTime
         );
-        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-06": expectedSlotsUTC2050_09_06 });
 
         const dbSlot = await selectedSlotRepositoryFixture.getByUid(
           responseReservedVariableSlot.reservationUid
@@ -1409,7 +1410,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("request slot contains already existing reserved slot", async () => {
-        // Try to reserve 9:45-12:45 when 10:00-11:00 is taken
+        // Try to reserve 8:45-11:45 when 09:00-10:00 on 2050-09-06 is taken
         const newSlotStart = DateTime.fromISO(responseReservedVariableSlot.slotStart)
           .minus({ minutes: 15 })
           .toISO();
