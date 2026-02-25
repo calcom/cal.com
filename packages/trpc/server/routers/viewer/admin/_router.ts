@@ -21,6 +21,7 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
+import { ZAppStoreRatingsListSchema, ZAppStoreRatingActionSchema } from "./appStoreRatings.schema";
 import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
@@ -120,4 +121,17 @@ export const adminRouter = router({
     }),
   }),
   watchlist: watchlistRouter,
+
+  listPendingAppRatings: authedAdminProcedure.input(ZAppStoreRatingsListSchema).query(async (opts) => {
+    const { listPendingAppRatingsHandler } = await import("./appStoreRatings.handler");
+    return listPendingAppRatingsHandler(opts);
+  }),
+  approveAppRating: authedAdminProcedure.input(ZAppStoreRatingActionSchema).mutation(async (opts) => {
+    const { approveAppRatingHandler } = await import("./appStoreRatings.handler");
+    return approveAppRatingHandler(opts);
+  }),
+  rejectAppRating: authedAdminProcedure.input(ZAppStoreRatingActionSchema).mutation(async (opts) => {
+    const { rejectAppRatingHandler } = await import("./appStoreRatings.handler");
+    return rejectAppRatingHandler(opts);
+  }),
 });

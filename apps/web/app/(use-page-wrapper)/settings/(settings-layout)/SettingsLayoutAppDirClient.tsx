@@ -299,6 +299,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/admin/playground",
           trackingMetadata: { section: "admin", page: "playground" },
         },
+        {
+          name: "app_store_ratings",
+          href: "/settings/admin/app-store-ratings",
+          trackingMetadata: { section: "admin", page: "app_store_ratings" },
+        },
       ],
     },
   ];

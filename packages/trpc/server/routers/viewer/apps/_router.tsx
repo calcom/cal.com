@@ -12,6 +12,8 @@ import { ZSetDefaultConferencingAppSchema } from "./setDefaultConferencingApp.sc
 import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
+import { ZAppRatingsInputSchema } from "./appRatings.schema";
+import { ZSubmitAppRatingInputSchema } from "./submitAppRating.schema";
 
 type AppsRouterHandlerCache = {
   appById?: typeof import("./appById.handler").appByIdHandler;
@@ -28,6 +30,8 @@ type AppsRouterHandlerCache = {
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
   setDefaultConferencingApp?: typeof import("./setDefaultConferencingApp.handler").setDefaultConferencingAppHandler;
   updateUserDefaultConferencingApp?: typeof import("./updateUserDefaultConferencingApp.handler").updateUserDefaultConferencingAppHandler;
+  appRatings?: typeof import("./appRatings.handler").appRatingsHandler;
+  submitAppRating?: typeof import("./submitAppRating.handler").submitAppRatingHandler;
 };
 
 export const appsRouter = router({
@@ -132,4 +136,14 @@ export const appsRouter = router({
       );
       return updateUserDefaultConferencingAppHandler({ ctx, input });
     }),
+
+  appRatings: authedProcedure.input(ZAppRatingsInputSchema).query(async ({ ctx, input }) => {
+    const { appRatingsHandler } = await import("./appRatings.handler");
+    return appRatingsHandler({ ctx, input });
+  }),
+
+  submitAppRating: authedProcedure.input(ZSubmitAppRatingInputSchema).mutation(async ({ ctx, input }) => {
+    const { submitAppRatingHandler } = await import("./submitAppRating.handler");
+    return submitAppRatingHandler({ ctx, input });
+  }),
 });

@@ -37,10 +37,11 @@ function SingleAppPage(props: AppDataProps) {
     return null;
   }
 
-  const { source, data } = props;
+  const { source, data, totalInstalls } = props;
   return (
     <App
       name={data.name}
+      totalInstalls={totalInstalls}
       description={data.description}
       isGlobal={data.isGlobal}
       slug={data.slug}
@@ -62,7 +63,7 @@ function SingleAppPage(props: AppDataProps) {
       dependencies={data.dependencies}
       concurrentMeetings={data.concurrentMeetings}
       paid={data.paid}
-      //   tos="https://zoom.us/terms"
+      // tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={
         <>

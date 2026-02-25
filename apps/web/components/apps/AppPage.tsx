@@ -23,6 +23,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { AppStoreRatingSection } from "./AppStoreRatingSection";
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 import { MultiDisconnectIntegration } from "./MultiDisconnectIntegration";
 
@@ -54,6 +55,7 @@ export type AppPageProps = {
   dependencies?: string[];
   concurrentMeetings: AppType["concurrentMeetings"];
   paid?: AppType["paid"];
+  totalInstalls?: number;
 };
 
 export const AppPage = ({
@@ -80,6 +82,7 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
+  totalInstalls,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -351,6 +354,14 @@ export const AppPage = ({
                 className="bg-subtle text-emphasis rounded-md p-1 text-xs capitalize">
                 {categories[0]}
               </Link>{" "}
+              {typeof totalInstalls === "number" && totalInstalls > 0 && (
+                <>
+                  <Badge variant="gray" className="mr-1">
+                    <Icon name="download" className="-mt-px mr-1 inline h-3 w-3" />
+                    {totalInstalls.toLocaleString()} {t("installations")}
+                  </Badge>
+                </>
+              )}
               {paid && (
                 <>
                   <Badge className="mr-1">
@@ -498,6 +509,8 @@ export const AppPage = ({
             </li>
           )}
         </ul>
+        <AppStoreRatingSection appSlug={slug} />
+
         <hr className="border-subtle my-8 border" />
         <span className="text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}

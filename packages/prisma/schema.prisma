@@ -509,6 +509,7 @@ model User {
   agents                         Agent[]
   oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
+  appStoreRatings                AppStoreRating[]
 
   autoOptInFeatures Boolean @default(false)
 
@@ -1290,22 +1291,42 @@ enum AppCategories {
 
 model App {
   // The slug for the app store public page inside `/apps/[slug]`
-  slug        String          @id @unique
+  slug          String           @id @unique
   // The directory name for `/packages/app-store/[dirName]`
-  dirName     String          @unique
+  dirName       String           @unique
   // Needed API Keys
-  keys        Json?
+  keys          Json?
   // One or multiple categories to which this app belongs
-  categories  AppCategories[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  credentials Credential[]
-  payments    Payment[]
-  Webhook     Webhook[]
-  ApiKey      ApiKey[]
-  enabled     Boolean         @default(false)
+  categories    AppCategories[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  credentials   Credential[]
+  payments      Payment[]
+  Webhook       Webhook[]
+  ApiKey        ApiKey[]
+  enabled       Boolean          @default(false)
+  // Cached total number of installations to avoid COUNT on Credentials
+  totalInstalls Int              @default(0)
+  ratings       AppStoreRating[]
 
   @@index([enabled])
+}
+
+model AppStoreRating {
+  id        Int      @id @default(autoincrement())
+  appSlug   String
+  app       App      @relation(fields: [appSlug], references: [slug], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5 stars
+  comment   String?  @db.Text
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([appSlug, userId])
+  @@index([appSlug, approved])
+  @@index([approved])
 }
 
 model App_RoutingForms_Form {

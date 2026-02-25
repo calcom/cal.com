@@ -73,6 +73,16 @@ export const getStaticProps = async (slug: string) => {
 
   const appFromDb = await prisma.app.findUnique({
     where: { slug: slug.toLowerCase() },
+    select: {
+      slug: true,
+      dirName: true,
+      keys: true,
+      categories: true,
+      createdAt: true,
+      updatedAt: true,
+      enabled: true,
+      totalInstalls: true,
+    },
   });
 
   const isAppAvailableInFileSystem = appMeta;
@@ -121,5 +131,6 @@ export const getStaticProps = async (slug: string) => {
     isAppDisabled: false as const,
     source: { content, data },
     data: appMeta,
+    totalInstalls: appFromDb.totalInstalls,
   };
 };
