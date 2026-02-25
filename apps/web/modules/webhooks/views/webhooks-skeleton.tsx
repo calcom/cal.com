@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardPanel } from "@coss/ui/components/card";
+import { Card, CardFrame, CardFrameHeader, CardPanel } from "@coss/ui/components/card";
 import { Skeleton } from "@coss/ui/components/skeleton";
 import {
   ListItem,
@@ -17,17 +17,21 @@ export const SkeletonLoader = () => {
       <WebhooksHeader />
       <div className="flex flex-col gap-6">
         <section>
-          <div className="mb-3 flex items-center gap-2">
-            <Skeleton className="size-5 shrink-0 rounded-full" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Card>
-            <CardPanel className="p-0">
-              <WebhookListItemSkeleton />
-              <WebhookListItemSkeleton />
-              <WebhookListItemSkeleton />
-            </CardPanel>
-          </Card>
+          <CardFrame>
+            <CardFrameHeader>
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-5 shrink-0 rounded-full" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </CardFrameHeader>
+            <Card>
+              <CardPanel className="p-0">
+                <WebhookListItemSkeleton />
+                <WebhookListItemSkeleton />
+                <WebhookListItemSkeleton />
+              </CardPanel>
+            </Card>
+          </CardFrame>
         </section>
       </div>
     </>
