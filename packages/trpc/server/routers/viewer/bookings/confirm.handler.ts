@@ -19,6 +19,10 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -168,6 +172,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           workflows: {
@@ -198,6 +204,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
+          profiles: {
+            select: {
+              organization: { select: { hideBranding: true } },
+            },
+          },
         },
       },
       id: true,
@@ -352,6 +364,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
+    hideBranding: booking.eventType?.id
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
+          team: booking.eventType.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: user.hideBranding,
+            profiles: user.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -564,7 +588,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

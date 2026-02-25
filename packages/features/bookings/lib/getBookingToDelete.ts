@@ -24,9 +24,11 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           destinationCalendar: true,
           locale: true,
           isPlatformManaged: true,
+          hideBranding: true,
           profiles: {
             select: {
               organizationId: true,
+              organization: { select: { hideBranding: true } },
             },
           },
         },
@@ -63,6 +65,8 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           parentId: true,

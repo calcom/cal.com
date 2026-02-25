@@ -9,6 +9,10 @@ import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEma
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -193,10 +197,17 @@ export async function getOrganizerData(userId: number | null) {
       id: userId,
     },
     select: {
+      id: true,
       name: true,
       email: true,
       timeZone: true,
       locale: true,
+      hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   });
 }
@@ -362,6 +373,18 @@ export async function buildCalendarEvent(
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: organizer.id,
+            hideBranding: organizer.hideBranding,
+            profiles: organizer.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   if (videoCallReference) {
