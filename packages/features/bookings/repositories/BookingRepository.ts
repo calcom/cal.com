@@ -2171,4 +2171,45 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  /**
+   * Returns accepted bookings whose attendee list contains at least one of the given emails,
+   * within the provided date range and excluding the booking with `excludedUid` (the booking
+   * being rescheduled).  Used to surface guest conflicts when a host reschedules.
+   */
+  async getAcceptedBookingsByAttendeeEmails({
+    attendeeEmails,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    attendeeEmails: string[];
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string | null;
+  }) {
+    if (attendeeEmails.length === 0) return [];
+
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        startTime: { gte: startDate },
+        endTime: { lte: endDate },
+        ...(excludedUid ? { uid: { not: excludedUid } } : {}),
+        attendees: {
+          some: {
+            email: { in: attendeeEmails },
+          },
+        },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        uid: true,
+        userId: true,
+      },
+    });
+  }
 }

@@ -810,6 +810,44 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
+
+    // When rescheduling, collect accepted bookings of all guests (attendees who are not
+    // the host) so we can block slots that would double-book them.
+    let guestBusyTimes: EventBusyDetails[] = [];
+    if (input.rescheduleUid) {
+      const rescheduleBooking = await bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid: input.rescheduleUid,
+      });
+      if (rescheduleBooking) {
+        // Host emails: the booking's user + any event-type host emails
+        const hostEmails = new Set<string>();
+        if (rescheduleBooking.user?.email) hostEmails.add(rescheduleBooking.user.email);
+        rescheduleBooking.eventType?.hosts?.forEach((h) => {
+          if (h.user.email) hostEmails.add(h.user.email);
+        });
+
+        // Guest emails = attendees that are NOT hosts
+        const guestEmails = rescheduleBooking.attendees
+          .map((a) => a.email)
+          .filter((email) => !hostEmails.has(email));
+
+        if (guestEmails.length > 0) {
+          const guestBookings = await bookingRepo.getAcceptedBookingsByAttendeeEmails({
+            attendeeEmails: guestEmails,
+            startDate: startTimeDate,
+            endDate: endTimeDate,
+            excludedUid: input.rescheduleUid,
+          });
+          guestBusyTimes = guestBookings.map((b) => ({
+            start: b.startTime.toISOString(),
+            end: b.endTime.toISOString(),
+            title: b.title ?? undefined,
+            source: "guest",
+          }));
+        }
+      }
+    }
+
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
@@ -933,6 +971,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
