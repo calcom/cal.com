@@ -1,12 +1,7 @@
-import { z } from "zod";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-
-const lyraAppKeysSchema = z.object({
-  client_id: z.string(),
-  client_secret: z.string(),
-});
+import { appKeysSchema } from "../zod";
 
 export const getLyraAppKeys = async () => {
   const appKeys = await getAppKeysFromSlug("lyra");
-  return lyraAppKeysSchema.parse(appKeys);
+  return appKeysSchema.parse(appKeys);
 };
