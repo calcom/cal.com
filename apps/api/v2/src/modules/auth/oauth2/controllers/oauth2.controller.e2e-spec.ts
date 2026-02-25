@@ -808,12 +808,12 @@ describe("OAuth2 Controller Endpoints", () => {
     const readBookingClientId = `test-legacy-read-booking-${randomString()}`;
     const readBookingReadProfileClientId = `test-legacy-read-booking-read-profile-${randomString()}`;
 
-    async function generateAuthCode(clientId: string): Promise<string> {
+    async function generateAuthCode(clientId: string, scopes: AccessScope[] = []): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         clientId,
         testUser.id,
         testRedirectUri,
-        []
+        scopes
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;
@@ -912,6 +912,33 @@ describe("OAuth2 Controller Endpoints", () => {
       const code = await generateAuthCode(readBookingReadProfileClientId);
       const response = await exchangeCode(readBookingReadProfileClientId, code);
       expect(response.body.scope).toBe("");
+    });
+
+    it("NULL client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(nullScopesClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(nullScopesClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("empty [] client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(emptyScopesClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(emptyScopesClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("[READ_BOOKING] client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(readBookingClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(readBookingClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("[READ_BOOKING, READ_PROFILE] client scopes + [BOOKING_READ, BOOKING_WRITE] requested → token scope contains BOOKING_READ BOOKING_WRITE", async () => {
+      const code = await generateAuthCode(readBookingReadProfileClientId, [
+        AccessScope.BOOKING_READ,
+        AccessScope.BOOKING_WRITE,
+      ]);
+      const response = await exchangeCode(readBookingReadProfileClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ BOOKING_WRITE");
     });
 
     afterAll(async () => {
