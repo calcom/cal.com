@@ -216,7 +216,7 @@ export function Authorize() {
         <div className="mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        {isLegacy ? (
+        {isLegacy && effectiveScopes.length === 0 ? (
           <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
             <li className="relative pl-5">
               <span className="absolute left-0">&#10003;</span>{" "}
