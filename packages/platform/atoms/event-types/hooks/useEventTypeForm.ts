@@ -9,6 +9,7 @@ import { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE } from "@calcom/features/ca
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
+import { MAX_EVENT_TYPE_TITLE_LENGTH } from "@calcom/lib/constants";
 import type {
   FormValues,
   EventTypeSetupProps,
@@ -157,6 +158,9 @@ export const useEventTypeForm = ({
     resolver: zodResolver(
       z
         .object({
+          title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH, {
+            message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+          }),
           // Length if string, is converted to a number or it can be a number
           // Make it optional because it's not submitted from all tabs of the page
           eventName: z
