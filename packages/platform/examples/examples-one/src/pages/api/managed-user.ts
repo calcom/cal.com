@@ -57,7 +57,8 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
 
 // example endpoint to create a managed cal.com user
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const { emails } = JSON.parse(req.body);
+  const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const { emails } = body;
   const emailOne = emails[0];
   const emailTwo = emails[1];
   const emailThree = emails[2];
@@ -74,31 +75,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
   }
 
-  const managedUserResponseOne = await createUserWithDefaultSchedule(
-    emailOne,
-    "Keith",
-    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3023&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseTwo = await createUserWithDefaultSchedule(
-    emailTwo,
-    "Somay",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseThree = await createUserWithDefaultSchedule(
-    emailThree,
-    "Rajiv",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseFour = await createUserWithDefaultSchedule(
-    emailFour,
-    "Morgan",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
-  const managedUserResponseFive = await createUserWithDefaultSchedule(
-    emailFive,
-    "Lauris",
-    "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-  );
+  const [
+    managedUserResponseOne,
+    managedUserResponseTwo,
+    managedUserResponseThree,
+    managedUserResponseFour,
+    managedUserResponseFive,
+  ] = await Promise.all([
+    createUserWithDefaultSchedule(
+      emailOne,
+      "Keith",
+      "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=3023&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ),
+    createUserWithDefaultSchedule(
+      emailTwo,
+      "Somay",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ),
+    createUserWithDefaultSchedule(
+      emailThree,
+      "Rajiv",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ),
+    createUserWithDefaultSchedule(
+      emailFour,
+      "Morgan",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ),
+    createUserWithDefaultSchedule(
+      emailFive,
+      "Lauris",
+      "https://plus.unsplash.com/premium_photo-1668319915476-5cc7717e00f1?q=80&w=3164&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    ),
+  ]);
 
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const organizationId = process.env.ORGANIZATION_ID;

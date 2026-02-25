@@ -17,8 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   const { email, authorizationCode } = body;
 
+  if (!email) {
+    return res.status(400).json({ email: "", username: "", id: 0, accessToken: "" });
+  }
+
   const existingUser = await prisma.user.findFirst({
-    orderBy: { createdAt: "desc" },
+    where: { email },
     select: {
       calcomUserId: true,
       email: true,
