@@ -27,6 +27,7 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  hideBranding?: boolean;
 }
 
 export const sendEmailVerification = async ({
@@ -93,6 +94,7 @@ export const sendEmailVerificationByCode = async ({
   username,
   useGenericGreeting,
   isVerifyingEmail,
+  hideBranding,
 }: VerifyEmailType) => {
   if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
@@ -116,6 +118,7 @@ export const sendEmailVerificationByCode = async ({
     },
     useGenericGreeting,
     isVerifyingEmail,
+    hideLogo: hideBranding,
   });
 
   return { ok: true, skipped: false };

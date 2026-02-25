@@ -94,11 +94,13 @@ export class EmailWorkflowService {
       creditCheckFn,
     });
 
-    const hideBranding = await this.shouldHideBranding({
-      platformClientId: evt.platformClientId,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
-    });
+    const hideBranding =
+      evt.hideBranding ??
+      (await this.shouldHideBranding({
+        platformClientId: evt.platformClientId,
+        userId: workflow.userId,
+        teamId: evt.team?.id ?? workflow.teamId,
+      }));
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
       evt,
