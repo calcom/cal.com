@@ -4,6 +4,7 @@ import {
   getSMSMessageWithVariables,
   shouldUseTwilio,
 } from "@calcom/ee/workflows/lib/reminders/utils";
+import { getTranslationService } from "@calcom/features/di/containers/TranslationService";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { SENDER_ID } from "@calcom/lib/constants";
@@ -13,15 +14,18 @@ import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
+import {
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
-import type { FormSubmissionData, BookingInfo } from "../types";
+import type { BookingInfo, FormSubmissionData } from "../types";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
 import * as twilio from "./providers/twilioProvider";
@@ -49,6 +53,8 @@ export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   prisma?: PrismaClient;
   verifiedAt: Date | null;
   creditCheckFn: CreditCheckFn;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 export type ScheduleTextReminderArgsWithRequiredFields = Omit<
@@ -169,6 +175,24 @@ const scheduleSMSReminderForEvt = async (
       action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
 
     let smsMessage = message;
+
+    if (
+      smsMessage &&
+      args.autoTranslateEnabled &&
+      action === WorkflowActions.SMS_ATTENDEE &&
+      workflowStepId
+    ) {
+      const attendeeLocale = attendeeToBeUsedInSMS.language?.locale || "en";
+      const translationService = await getTranslationService();
+      const { translatedBody } = await translationService.getWorkflowStepTranslation(
+        workflowStepId,
+        attendeeLocale,
+        { includeBody: true }
+      );
+      if (translatedBody) {
+        smsMessage = translatedBody;
+      }
+    }
 
     if (smsMessage) {
       smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
