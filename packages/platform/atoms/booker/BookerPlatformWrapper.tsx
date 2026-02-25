@@ -401,6 +401,7 @@ const BookerPlatformWrapperComponent = (
     name: bookerForm.formName,
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
+    eventTypeId: event?.data?.id,
   });
 
   const verifyCode = useVerifyCode({

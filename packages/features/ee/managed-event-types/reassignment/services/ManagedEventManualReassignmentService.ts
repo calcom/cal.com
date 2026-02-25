@@ -8,37 +8,39 @@ import {
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import {
+import type {
   BookingRepository,
-  type ManagedEventReassignmentCreatedBooking,
-  type ManagedEventCancellationResult,
+  ManagedEventCancellationResult,
+  ManagedEventReassignmentCreatedBooking,
 } from "@calcom/features/bookings/repositories/BookingRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import {
+  type ManagedEventAssignmentReasonService,
+  ManagedEventReassignmentType,
+} from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventAssignmentReasonRecorder";
+import {
+  buildNewBookingPlan,
+  findTargetChildEventType,
+  validateManagedEventReassignment,
+} from "@calcom/features/ee/managed-event-types/reassignment/utils";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
 import type loggerType from "@calcom/lib/logger";
+import logger from "@calcom/lib/logger";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-
-import {
-  ManagedEventAssignmentReasonService,
-  ManagedEventReassignmentType,
-} from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventAssignmentReasonRecorder";
-import {
-  findTargetChildEventType,
-  validateManagedEventReassignment,
-  buildNewBookingPlan,
-} from "@calcom/features/ee/managed-event-types/reassignment/utils";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 interface ManagedEventManualReassignmentServiceDeps {
   prisma: PrismaClient;
@@ -183,7 +185,24 @@ export class ManagedEventManualReassignmentService {
             bookerUrl,
             metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
           },
-          hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
+          hideBranding: await getEventTypeService().shouldHideBrandingForEventType(
+            targetEventTypeDetails.id,
+            {
+              team: targetEventTypeDetails.team
+                ? {
+                    hideBranding: targetEventTypeDetails.team.hideBranding,
+                    parent: targetEventTypeDetails.team.parent,
+                  }
+                : null,
+              owner: targetEventTypeDetails.owner
+                ? {
+                    id: targetEventTypeDetails.owner.id,
+                    hideBranding: targetEventTypeDetails.owner.hideBranding,
+                    profiles: targetEventTypeDetails.owner.profiles ?? [],
+                  }
+                : null,
+            } satisfies EventTypeBrandingData
+          ),
           seatReferenceUid: undefined,
           isDryRun: false,
           isConfirmedByDefault: targetEventTypeDetails.requiresConfirmation ? false : true,
@@ -451,7 +470,7 @@ export class ManagedEventManualReassignmentService {
     }
 
     let videoCallUrl: string | null = null;
-    let videoCallData: CalendarEvent["videoCallData"] = undefined;
+    let videoCallData: CalendarEvent["videoCallData"];
     const additionalInformation: AdditionalInformation = {};
 
     try {
