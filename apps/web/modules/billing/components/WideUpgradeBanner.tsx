@@ -76,14 +76,14 @@ export function WideUpgradeBanner({
     <div className="relative flex w-full overflow-hidden rounded-xl bg-muted border-muted border">
       <Button
         variant="ghost"
-        color="minimal"
         className="absolute right-2 top-2 z-10"
         onClick={() => {
           dismiss(tracking);
           setVisible(false);
           posthog.capture("large_upgrade_banner_dismissed", { source: tracking, target });
         }}>
-        <Icon name="x" className="h-4 w-4 text-subtle" />
+        {/* This button goes on top of the image, so it's better to force this color */}
+        <Icon name="x" className="h-4 w-4 text-gray-700" />
       </Button>
       {/* Left Content */}
       <div className="flex flex-1 flex-col p-6">
@@ -132,7 +132,7 @@ export function WideUpgradeBanner({
 
       {/* Right Content - Image */}
       <div
-        className={`relative hidden flex-1 overflow-hidden md:block${size === "sm" ? " max-w-64" : ""}`}>
+        className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? " max-w-64" : " max-w-[520px]"}`}>
         <Image
           src={image.src}
           alt={title}
