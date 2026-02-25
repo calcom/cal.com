@@ -50,9 +50,11 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
         <AppHeaderContent title={t("webhooks")}>
           <AppHeaderDescription>{t("add_webhook_description", { appName: APP_NAME })}</AppHeaderDescription>
         </AppHeaderContent>
-        <AppHeaderActions>
-          <CreateNewWebhookButton />
-        </AppHeaderActions>
+        {webhookGroups.length > 0 && (
+          <AppHeaderActions>
+            <CreateNewWebhookButton />
+          </AppHeaderActions>
+        )}
       </AppHeader>
 
       <div className="flex flex-col gap-6">
