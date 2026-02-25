@@ -6,6 +6,7 @@
   "license": "See license in LICENSE",
   "main": "./index.ts",
   "dependencies": {
+    "@calcom/i18n": "workspace:*",
     "@calcom/lib": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@hookform/error-message": "2.0.0",
