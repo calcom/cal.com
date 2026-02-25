@@ -1131,7 +1131,7 @@
   "oauth_scope_category_user": "User",
   "oauth_scope_category_team": "Team",
   "oauth_scope_category_organization": "Organization",
-  "legacy_oauth_client_scopes_warning": "This is a legacy OAuth client. Scopes are not enforced — access tokens issued by this client can access any resource on behalf of the authorizing user. To restrict access, create a new OAuth client with scopes defined.",
+  "legacy_oauth_client_scopes_warning": "This is a legacy OAuth client — scopes are not enforced and access tokens can access any resource. Do not modify scopes here before reading the migration guide:",
   "oauth_scope_event_type_read": "View event types",
   "oauth_scope_event_type_write": "Create, edit, and delete event types",
   "oauth_scope_booking_read": "View bookings",

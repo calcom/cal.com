@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { isLegacyClient, OAUTH_SCOPES, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
@@ -114,6 +114,11 @@ export class OAuthService {
         throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", { reason: "scope_required" });
       }
       this.validateRequestedScopes(client.scopes, requestedScopes);
+    } else {
+      const requestedScopes = parseScopeParam(scopeParam);
+      if (requestedScopes.length > 0) {
+        this.validateScopesAreKnown(requestedScopes);
+      }
     }
 
     return {
@@ -149,6 +154,8 @@ export class OAuthService {
 
     if (!isLegacyClient(client.scopes)) {
       this.validateRequestedScopes(client.scopes, requestedScopes);
+    } else if (requestedScopes.length > 0) {
+      this.validateScopesAreKnown(requestedScopes);
     }
 
     if (client.clientType === "PUBLIC") {
@@ -238,6 +245,15 @@ export class OAuthService {
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { reason: "redirect_uri_mismatch" });
+    }
+  }
+
+  private validateScopesAreKnown(requestedScopes: string[]): void {
+    const unknownScopes = requestedScopes.filter(
+      (scope) => !OAUTH_SCOPES.includes(scope as AccessScope)
+    );
+    if (unknownScopes.length > 0) {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", { reason: "unknown_scope" });
     }
   }
 
@@ -579,7 +595,8 @@ export type OAuthErrorReason =
   | "client_id_mismatch"
   | "encryption_key_missing"
   | "scope_exceeds_client_registration"
-  | "scope_required";
+  | "scope_required"
+  | "unknown_scope";
 
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
@@ -601,4 +618,5 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
   scope_exceeds_client_registration: SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR,
   scope_required: "scope parameter is required for this OAuth client",
+  unknown_scope: "Requested scope is not a recognized scope",
 };

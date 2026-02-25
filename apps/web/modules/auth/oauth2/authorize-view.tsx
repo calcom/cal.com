@@ -1,6 +1,7 @@
 "use client";
 
 import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -217,7 +218,7 @@ export function Authorize() {
         <div className="mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        {isLegacy ? (
+        {isLegacy && effectiveScopes.length === 0 ? (
           <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
             <li className="relative pl-5">
               <span className="absolute left-0">&#10003;</span>{" "}
@@ -318,7 +319,10 @@ export function Authorize() {
 }
 
 function isScopeError(errorMessage: string): boolean {
-  return errorMessage.includes(SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR);
+  return (
+    errorMessage.includes(SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR) ||
+    errorMessage.includes(OAUTH_ERROR_REASONS["unknown_scope"])
+  );
 }
 
 function mapTrpcCodeToOAuthError(code: string | undefined) {

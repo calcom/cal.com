@@ -175,17 +175,6 @@ function OAuthScopeCheckboxes({
 }) {
   const { t } = useLocale();
 
-  if (isLegacy) {
-    return (
-      <div>
-        <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
-          {t("oauth_scopes")}
-        </Label>
-        <Alert severity="warning" title={t("legacy_oauth_client_scopes_warning")} />
-      </div>
-    );
-  }
-
   return (
     <Controller
       control={form.control}
@@ -208,6 +197,24 @@ function OAuthScopeCheckboxes({
                 </span>
               </Tooltip>
             </Label>
+            {isLegacy && (
+              <Alert
+                severity="warning"
+                className="mb-3"
+                title={
+                  <>
+                    {t("legacy_oauth_client_scopes_warning")}{" "}
+                    <a
+                      href="https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline">
+                      https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration
+                    </a>
+                  </>
+                }
+              />
+            )}
             <div className="space-y-2">
               {OAUTH_SCOPE_CATEGORIES.map((category, index) => (
                 <ScopeCategorySection
