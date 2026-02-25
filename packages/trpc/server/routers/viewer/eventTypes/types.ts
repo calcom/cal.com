@@ -8,10 +8,6 @@ import type {
   HashedLinkInput,
   HostGroupInput,
   HostInput,
-  HostLocationInput,
-  HostUpdateInput,
-  PendingChildrenChangesInput,
-  PendingHostChangesInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import {
@@ -91,23 +87,6 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   location: hostLocationSchema.optional().nullable(),
 });
 
-const hostUpdateSchema: z.ZodType<HostUpdateInput> = z.object({
-  userId: z.number(),
-  isFixed: z.boolean().optional(),
-  priority: z.number().min(0).max(4).optional().nullable(),
-  weight: z.number().min(0).optional().nullable(),
-  scheduleId: z.number().optional().nullable(),
-  groupId: z.string().optional().nullable(),
-  location: hostLocationSchema.optional().nullable(),
-});
-
-const pendingHostChangesSchema: z.ZodType<PendingHostChangesInput> = z.object({
-  hostsToAdd: z.array(hostSchema),
-  hostsToUpdate: z.array(hostUpdateSchema),
-  hostsToRemove: z.array(z.number()),
-  clearAllHosts: z.boolean().optional(),
-});
-
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -121,27 +100,6 @@ const childSchema: z.ZodType<ChildInput> = z.object({
     eventTypeSlugs: z.array(z.string()),
   }),
   hidden: z.boolean(),
-});
-
-const pendingChildrenChangesSchema: z.ZodType<PendingChildrenChangesInput> = z.object({
-  childrenToAdd: z.array(
-    z.object({
-      owner: z.object({
-        id: z.number(),
-        name: z.string(),
-        email: z.string(),
-      }),
-      hidden: z.boolean(),
-    })
-  ),
-  childrenToRemove: z.array(z.number()),
-  childrenToUpdate: z.array(
-    z.object({
-      userId: z.number(),
-      hidden: z.boolean().optional(),
-    })
-  ),
-  clearAllChildren: z.boolean().optional(),
 });
 
 const destinationCalendarInputSchema: z.ZodType<DestinationCalendarInput> = z
@@ -208,6 +166,10 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     showOptimizedSlots: z.boolean().nullable().optional(),
     disableCancelling: z.boolean().nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
+    requiresCancellationReason: z
+      .enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"])
+      .nullable()
+      .optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),
     seatsShowAttendees: z.boolean().nullable().optional(),
     seatsShowAvailabilityCount: z.boolean().nullable().optional(),
@@ -262,8 +224,6 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
     enablePerHostLocations: z.boolean().optional(),
-    pendingHostChanges: pendingHostChangesSchema.optional(),
-    pendingChildrenChanges: pendingChildrenChangesSchema.optional(),
   })
   .strict();
 
