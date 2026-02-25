@@ -82,11 +82,12 @@ Errors during the authorization step are displayed directly to the user on the C
 If an error occurs after the client is validated, the user is redirected to the `redirect_uri` with an error:
 
 - **Scope required**: If the `scope` parameter is missing, the error `scope parameter is required for this OAuth client` is displayed on the authorization page.
+- **Unknown scope**: If the `scope` parameter includes scope values that do not exist, the user is redirected with `error=invalid_request` and `error_description=Requested scope is not a recognized scope`. This applies to both regular and legacy clients.
 - **Invalid scope**: If the `scope` parameter includes scopes not enabled on the OAuth client, the user is redirected with `error=invalid_request` and `error_description=Requested scope exceeds the client's registered scopes`.
 - **Access denied**: If the user denies access or has insufficient permissions, the user is redirected with an error.
 
 ```
-https://your-app.com/callback?error=invalid_request&error_description=Requested%20scope%20exceeds%20the%20client%27s%20registered%20scopes&state=YOUR_STATE
+https://your-app.com/callback?error=invalid_request&error_description=Requested+scope+exceeds+the+client%27s+registered+scopes&state=YOUR_STATE
 ```
 
 ## 3. Exchange Token
