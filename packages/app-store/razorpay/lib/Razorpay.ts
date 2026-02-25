@@ -23,13 +23,13 @@ const razorpay_api_base_url = "https://api.razorpay.com";
 interface RazorpayWrapperOptions {
   access_token: string;
   refresh_token: string;
-  user_id: number;
+  user_id?: number;
 }
 
 class RazorpayWrapper {
   private access_token: string;
   private refresh_token: string;
-  private user_id: number;
+  private user_id?: number;
   private axiosInstance: AxiosInstance;
   private isRefreshing = false;
   private createPaymentLinkReqBody = {};
