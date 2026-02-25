@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_EVENT_TYPE_TITLE_LENGTH } from "@calcom/lib/constants";
 import { eventTypeLocations, eventTypeSlug } from "@calcom/lib/zod/eventType";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -58,7 +59,9 @@ export const EventTypeDuplicateInput: z.ZodType<TEventTypeDuplicateInput> = z
   .object({
     id: z.number(),
     slug: z.string(),
-    title: z.string().min(1),
+    title: z.string().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH, {
+      message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+    }),
     description: z.string(),
     length: z.number(),
     teamId: z.number().nullish(),
@@ -86,7 +89,9 @@ export type TCreateEventTypeInput = {
 
 export const createEventTypeInput: z.ZodType<TCreateEventTypeInput> = z
   .object({
-    title: z.string().trim().min(1),
+    title: z.string().trim().min(1).max(MAX_EVENT_TYPE_TITLE_LENGTH, {
+      message: `Title must be ${MAX_EVENT_TYPE_TITLE_LENGTH} or fewer characters`,
+    }),
     slug: eventTypeSlug,
     description: z.string().nullish(),
     length: z.number().int(),
