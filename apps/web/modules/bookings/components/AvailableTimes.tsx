@@ -17,7 +17,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { CalendarX2Icon } from "@coss/ui/icons";
+import { CalendarX2Icon, MoonIcon, SunIcon } from "@coss/ui/icons";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
@@ -29,7 +29,7 @@ type TOnTimeSelect = (
   time: string,
   attendees: number,
   seatsPerTimeSlot?: number | null,
-  bookingUid?: string
+  bookingUid?: string,
 ) => void;
 
 type TOnTentativeTimeSelect = ({
@@ -61,7 +61,10 @@ type SlotItemProps = {
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
+    data?: Pick<
+      BookerEvent,
+      "length" | "bookingFields" | "price" | "currency" | "metadata"
+    > | null;
   };
   customClassNames?: string;
   confirmStepClassNames?: {
@@ -105,11 +108,16 @@ const SlotItem = ({
   const isPaidEvent = useMemo(() => {
     if (!eventData?.price) return false;
     const paymentAppData = getPaymentAppData(eventData);
-    return eventData?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+    return (
+      eventData?.price > 0 &&
+      !Number.isNaN(paymentAppData.price) &&
+      paymentAppData.price > 0
+    );
   }, [eventData]);
 
   const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+    getQueryParam("overlayCalendar") === "true" ||
+    localStorage.getItem("overlayCalendarSwitchDefault");
 
   const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStoreContext((state) => state.bookingData);
@@ -117,23 +125,40 @@ const SlotItem = ({
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
-  const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
-  const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
-  const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
-  const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
+  const bookingFull = !!(
+    hasTimeSlots &&
+    slot.attendees &&
+    slot.attendees >= seatsPerTimeSlot
+  );
+  const isHalfFull =
+    slot.attendees &&
+    seatsPerTimeSlot &&
+    slot.attendees / seatsPerTimeSlot >= 0.5;
+  const isNearlyFull =
+    slot.attendees &&
+    seatsPerTimeSlot &&
+    slot.attendees / seatsPerTimeSlot >= 0.83;
+  const colorClass = isNearlyFull
+    ? "bg-rose-600"
+    : isHalfFull
+      ? "bg-yellow-500"
+      : "bg-emerald-400";
 
   const nowDate = dayjs();
   const usersTimezoneDate = nowDate.tz(timezone);
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
-  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const selectedTimeslot = useBookerStoreContext(
+    (state) => state.selectedTimeslot,
+  );
 
-  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
-    start: computedDateWithUsersTimezone,
-    selectedDuration: eventData?.length ?? 0,
-    offset,
-  });
+  const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } =
+    useCheckOverlapWithOverlay({
+      start: computedDateWithUsersTimezone,
+      selectedDuration: eventData?.length ?? 0,
+      offset,
+    });
 
   const onButtonClick = () => {
     if (handleSlotClick) {
@@ -149,6 +174,11 @@ const SlotItem = ({
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+
+  // Determine if time slot is AM or PM for visual indicators
+  const isAM = computedDateWithUsersTimezone.format("A") === "AM";
+  const isPM = !isAM;
+
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -171,17 +201,41 @@ const SlotItem = ({
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
-            `${customClassNames}`
+            // Subtle background tint for AM/PM distinction (only in 12h format)
+            timeFormat.includes("A") &&
+              isAM &&
+              "bg-amber-50/30 dark:bg-amber-950/10",
+            timeFormat.includes("A") &&
+              isPM &&
+              "bg-blue-50/30 dark:bg-blue-950/10",
+            `${customClassNames}`,
           )}
-          color="secondary">
+          color="secondary"
+        >
           <div className="flex items-center gap-2">
             {!hasTimeSlots && overlayCalendarToggled && (
               <span
                 className={classNames(
                   "inline-block h-2 w-2 rounded-full",
-                  isOverlapping ? "bg-rose-600" : "bg-emerald-400"
+                  isOverlapping ? "bg-rose-600" : "bg-emerald-400",
                 )}
               />
+            )}
+            {/* AM/PM visual indicator - only show when using 12h format */}
+            {timeFormat.includes("A") && (
+              <>
+                {isAM ? (
+                  <SunIcon
+                    className="text-amber-600 dark:text-amber-400 h-3.5 w-3.5 flex-shrink-0"
+                    aria-label="AM"
+                  />
+                ) : (
+                  <MoonIcon
+                    className="text-blue-600 dark:text-blue-400 h-3.5 w-3.5 flex-shrink-0"
+                    aria-label="PM"
+                  />
+                )}
+              </>
             )}
             {computedDateWithUsersTimezone.format(timeFormat)}
           </div>
@@ -189,7 +243,10 @@ const SlotItem = ({
           {hasTimeSlots && !bookingFull && (
             <p className="flex items-center text-sm">
               <span
-                className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
+                className={classNames(
+                  colorClass,
+                  "mr-1 inline-block h-2 w-2 rounded-full",
+                )}
                 aria-hidden
               />
               <SeatsAvailabilityText
@@ -203,15 +260,27 @@ const SlotItem = ({
         {!!slot.showConfirmButton && (
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
-              <m.div key={slot.time} initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+              <m.div
+                key={slot.time}
+                initial={{ width: 0 }}
+                animate={{ width: "auto" }}
+                exit={{ width: 0 }}
+              >
                 <Button
                   variant={layout === "column_view" ? "icon" : "button"}
-                  StartIcon={layout === "column_view" ? "chevron-right" : undefined}
+                  StartIcon={
+                    layout === "column_view" ? "chevron-right" : undefined
+                  }
                   type="button"
                   className={confirmStepClassNames?.confirmButton}
                   onClick={() =>
                     onTimeSelect &&
-                    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                    onTimeSelect(
+                      slot.time,
+                      slot?.attendees || 0,
+                      seatsPerTimeSlot,
+                      slot.bookingUid,
+                    )
                   }
                   data-testid="skip-confirm-book-button"
                   disabled={
@@ -225,15 +294,19 @@ const SlotItem = ({
                   }
                   color="primary"
                   loading={
-                    (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
+                    (selectedTimeslot === slot.time &&
+                      loadingStates?.creatingBooking) ||
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||
                     loadingStates?.creatingInstantBooking
-                  }>
+                  }
+                >
                   {(() => {
                     if (layout === "column_view") return "";
-                    if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
-                    if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_button");
+                    if (isTimeslotUnavailable)
+                      return t("timeslot_unavailable_short");
+                    if (!renderConfirmNotVerifyEmailButtonCond)
+                      return t("verify_email_button");
                     return isPaidEvent ? t("pay_and_book") : t("confirm");
                   })()}
                 </Button>
@@ -283,9 +356,15 @@ export const AvailableTimes = ({
         {!slots.length && (
           <div
             data-testId="no-slots-available"
-            className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
+            className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent"
+          >
             <CalendarX2Icon className="text-muted mb-2 h-4 w-4" />
-            <p className={classNames("text-muted", showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm")}>
+            <p
+              className={classNames(
+                "text-muted",
+                showTimeFormatToggle ? "-mt-1 text-lg" : "text-sm",
+              )}
+            >
               {t("all_booked_today")}
             </p>
           </div>
@@ -295,7 +374,9 @@ export const AvailableTimes = ({
           if (slot.away) return null;
           return <SlotItem key={slot.time} slot={slot} {...props} />;
         })}
-        {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
+        {oooAfterSlots && !oooBeforeSlots && (
+          <OOOSlot {...slots[slots.length - 1]} className="pb-0" />
+        )}
       </div>
     </div>
   );
@@ -314,7 +395,16 @@ interface IOOOSlotProps {
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
   const isPlatform = useIsPlatform();
-  const { fromUser, toUser, reason, emoji, notes, showNotePublicly, time, className = "" } = props;
+  const {
+    fromUser,
+    toUser,
+    reason,
+    emoji,
+    notes,
+    showNotePublicly,
+    time,
+    className = "",
+  } = props;
 
   if (isPlatform) return <></>;
   return (
