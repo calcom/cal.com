@@ -11,7 +11,7 @@ import {
   AppHeaderDescription,
 } from "@components/app/app-header";
 import { Avatar, AvatarImage } from "@coss/ui/components/avatar";
-import { Card, CardFrame, CardPanel } from "@coss/ui/components/card";
+import { Card, CardPanel } from "@coss/ui/components/card";
 import {
   Empty,
   EmptyContent,
@@ -41,10 +41,8 @@ const WebhooksView = ({ data }: Props) => {
 const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const { profiles, webhookGroups } = webhooksByViewer;
+  const { webhookGroups } = webhooksByViewer;
   const bookerUrl = useBookerUrl();
-
-  const hasTeams = profiles && profiles.length > 1;
 
   return (
     <>
@@ -66,36 +64,32 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
               (group.profile.slug ? `${bookerUrl}/${group.profile.slug}/avatar.png` : undefined);
             return (
               <section key={group.teamId ?? group.profile.slug ?? ""}>
-                {hasTeams && (
-                  <div className="mb-3 flex items-center gap-2">
-                    <Avatar className="size-5">
-                      {userAvatar ? <AvatarImage alt={userName} src={userAvatar} /> : null}
-                    </Avatar>
-                    <span className="font-medium text-sm">{userName}</span>
-                  </div>
-                )}
-                <CardFrame>
-                  <Card className="[--card:var(--popover)]">
-                    <CardPanel className="p-0">
-                      {[...group.webhooks]
-                        .sort((a, b) => a.id.localeCompare(b.id))
-                        .map((webhook) => (
-                          <WebhookListItem
-                            key={webhook.id}
-                            webhook={webhook}
-                            editHref={`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`}
-                            permissions={{
-                              canEditWebhook: group?.metadata?.canModify ?? false,
-                              canDeleteWebhook: group?.metadata?.canDelete ?? false,
-                            }}
-                            onEditWebhookAction={() =>
-                              router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
-                            }
-                          />
-                        ))}
-                    </CardPanel>
-                  </Card>
-                </CardFrame>
+                <div className="mb-3 flex items-center gap-2">
+                  <Avatar className="size-5">
+                    {userAvatar ? <AvatarImage alt={userName} src={userAvatar} /> : null}
+                  </Avatar>
+                  <span className="font-medium text-sm">{userName}</span>
+                </div>
+                <Card>
+                  <CardPanel className="p-0">
+                    {[...group.webhooks]
+                      .sort((a, b) => a.id.localeCompare(b.id))
+                      .map((webhook) => (
+                        <WebhookListItem
+                          key={webhook.id}
+                          webhook={webhook}
+                          editHref={`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`}
+                          permissions={{
+                            canEditWebhook: group?.metadata?.canModify ?? false,
+                            canDeleteWebhook: group?.metadata?.canDelete ?? false,
+                          }}
+                          onEditWebhookAction={() =>
+                            router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
+                          }
+                        />
+                      ))}
+                  </CardPanel>
+                </Card>
               </section>
             );
           })
