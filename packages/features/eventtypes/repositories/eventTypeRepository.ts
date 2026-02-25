@@ -673,6 +673,22 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
       restrictionScheduleId: true,
@@ -699,15 +715,49 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      _count: {
+      hosts: {
         select: {
-          hosts: true,
-          children: true,
+          isFixed: true,
+          userId: true,
+          priority: true,
+          weight: true,
+          scheduleId: true,
+          groupId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              avatarUrl: true,
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
@@ -939,6 +989,22 @@ export class EventTypeRepository implements IEventTypesRepository {
               },
             },
           },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
       restrictionScheduleId: true,
@@ -965,15 +1031,49 @@ export class EventTypeRepository implements IEventTypesRepository {
           name: true,
         },
       },
-      _count: {
+      hosts: {
         select: {
-          hosts: true,
-          children: true,
+          isFixed: true,
+          userId: true,
+          groupId: true,
+          priority: true,
+          weight: true,
+          scheduleId: true,
+          location: {
+            select: {
+              id: true,
+              type: true,
+              credentialId: true,
+              link: true,
+              address: true,
+              phoneNumber: true,
+            },
+          },
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
         },
       },
       enablePerHostLocations: true,
       userId: true,
       price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              avatarUrl: true,
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
