@@ -22,4 +22,5 @@ export type EmailVerifyCode = {
   useGenericGreeting?: boolean;
   verificationEmailCode: string;
   isVerifyingEmail?: boolean;
+  hideLogo?: boolean;
 };
