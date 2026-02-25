@@ -1,5 +1,5 @@
-import { render, screen, cleanup } from "@testing-library/react";
-import { describe, expect, it, vi, beforeAll, afterAll, afterEach } from "vitest";
+import { render, screen, cleanup, act } from "@testing-library/react";
+import { describe, expect, it, vi, beforeAll, afterAll, afterEach, beforeEach } from "vitest";
 
 import * as shouldChargeModule from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 
@@ -19,6 +19,13 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
+beforeEach(() => {
+  // Use fake timers to prevent jsdom requestAnimationFrame callbacks from firing
+  // after the test environment is torn down (causes "Cannot read properties of null
+  // reading '_location'" errors when running in the full test suite)
+  vi.useFakeTimers();
+});
+
 afterAll(() => {
   // Restore scrollIntoView to avoid polluting other tests in the same worker
   if (originalScrollIntoView) {
@@ -32,7 +39,13 @@ afterAll(() => {
 });
 
 afterEach(() => {
+  // Flush any pending animation frame callbacks before cleanup to prevent
+  // jsdom _location errors when the environment is destroyed
+  act(() => {
+    vi.runAllTimers();
+  });
   cleanup();
+  vi.useRealTimers();
 });
 
 vi.mock("@calcom/trpc/react", () => ({
