@@ -30,7 +30,7 @@ is ready to be used.
 
 ### Available Scopes
 
-Scopes control which API endpoints the OAuth token can access. The following scopes are available:
+Scopes control which API endpoints the OAuth token can access. Once a user authorizes your client with a given set of scopes, the issued access token can only be used to call endpoints covered by those scopes — any request to an endpoint outside the granted scopes will be rejected. The following scopes are available:
 
 | Scope | Description | Endpoints |
 |-------|-------------|-----------|
@@ -448,6 +448,38 @@ Public clients do not use a `client_secret`. All parameters are required:
     No OAuth client exists with the provided `client_id`.
   </Accordion>
 </AccordionGroup>
+
+## Legacy Client Migration
+
+If your OAuth client was created before scopes were introduced, it is considered a **legacy client**. A client is treated as legacy if it has no scopes configured, or if it only has the old legacy scope values (`READ_BOOKING` and/or `READ_PROFILE`). Access tokens issued by legacy clients can access any resource on behalf of the authorizing user — scopes are not enforced.
+
+You can migrate a legacy client to use explicit scopes without creating a new client. **Order matters** — follow these steps to avoid breaking existing integrations:
+
+### Step 1: Update your authorization URL
+
+Add a `scope` query parameter to your authorization URL **before** changing any client settings. Legacy clients skip scope validation during authorization, so users can already authorize with a scope parameter even while the client is still in legacy mode.
+
+```
+https://app.cal.com/auth/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE&scope=BOOKING_READ%20BOOKING_WRITE
+```
+
+New access tokens issued after this change will carry only the scopes you specified. For the full list of available scopes, see [Available Scopes](#available-scopes).
+
+### Step 2: Update client scopes in settings
+
+Once your authorization URL is updated and you have verified that new tokens are being issued with the correct scopes, open your OAuth client settings and select the matching scopes. Save the client.
+
+After this step, the client is no longer treated as a legacy client. Scope validation is enforced for all new authorization requests.
+
+<Warning>
+  Do **not** update the client scopes before updating your authorization URL. Doing so will immediately break the authorization flow for any user who visits the old URL without a `scope` parameter.
+</Warning>
+
+### Existing tokens
+
+Tokens issued before the migration continue to work until users re-authorize. There is no forced invalidation of existing tokens during the migration.
+
+---
 
 ## 5. Verify Access Token
 

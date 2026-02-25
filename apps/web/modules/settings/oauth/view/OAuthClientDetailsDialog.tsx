@@ -68,7 +68,7 @@ const OAuthClientDetailsDialog = ({
     redirectUri: string;
     websiteUrl: string;
     logo: string;
-    scopes: AccessScope[];
+    scopes: AccessScope[] | undefined;
   }) => void;
   onDelete?: (clientId: string) => void;
   isStatusChangePending?: boolean;
@@ -202,7 +202,7 @@ const OAuthClientDetailsDialog = ({
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => {
               if (!canEdit) return;
-              if (!isLegacy && (!values.scopes || values.scopes.length === 0)) {
+              if (!isLegacy && !values.scopes?.length) {
                 showToast(t("oauth_client_scope_required"), "error");
                 return;
               }
@@ -213,7 +213,8 @@ const OAuthClientDetailsDialog = ({
                 redirectUri: values.redirectUri.trim() || "",
                 websiteUrl: values.websiteUrl.trim() || "",
                 logo: values.logo,
-                scopes: isLegacy ? undefined : values.scopes,
+                // note(Lauris): for legacy clients with no scopes selected, omit scopes to leave the DB unchanged.
+                scopes: isLegacy && !values.scopes?.length ? undefined : values.scopes,
               });
             })}>
             {status ? (
