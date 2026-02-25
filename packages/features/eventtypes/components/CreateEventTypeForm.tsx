@@ -47,12 +47,6 @@ export default function CreateEventTypeForm({
   ...titleField
 } = register("title", {
   required: t("field_required"),
-  maxLength: {
-    value: MAX_EVENT_TITLE_CHARACTERS,
-    message: t("max_characters_allowed", {
-      count: MAX_EVENT_TITLE_CHARACTERS,
-    }),
-  },
 });
   
 
