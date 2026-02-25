@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
+import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES, MAX_EVENT_TITLE_CHARACTERS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
@@ -48,7 +48,7 @@ export default function CreateEventTypeForm({
 } = register("title", {
   required: t("field_required"),
   maxLength: {
-    value: 100, // or MAX_EVENT_TITLE_CHARACTERS if defined
+    value: MAX_EVENT_TITLE_CHARACTERS,
     message: t("max_characters_allowed", {
       count: 100,
     }),
