@@ -124,13 +124,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     );
 
-    if (authorizeResult.error_description) {
-      res.status(400).json({ message: authorizeResult.error_description });
-      return;
-    }
+    if (authorizeResult.error_description || authorizeResult.error) {
+      if (state?.onErrorReturnTo || state?.returnTo) {
+        res.redirect(
+          getSafeRedirectUrl(state.onErrorReturnTo) ??
+            getSafeRedirectUrl(state?.returnTo) ??
+            getInstalledAppPath({ variant: config.variant, slug: config.slug })
+        );
+        return;
+      }
 
-    if (authorizeResult.error) {
-      res.status(400).json({ message: authorizeResult.error });
+      res
+        .status(400)
+        .json({ message: authorizeResult.error_description ?? authorizeResult.error });
       return;
     }
 
