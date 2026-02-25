@@ -1,12 +1,6 @@
-import type { User as UserAuth } from "next-auth";
-import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { ENABLE_PROFILE_SWITCHER, IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,11 +10,15 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Credits } from "@calcom/ui/components/credits";
 import { ButtonOrLink } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
-import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 import { Logo } from "@calcom/ui/components/logo";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { User as UserAuth } from "next-auth";
+import { useSession } from "next-auth/react";
 import { KBarTrigger } from "./Kbar";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
@@ -135,7 +133,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
             </div>
           </header>
           {/* logo icon for tablet */}
-          <Link href="/event-types" className="text-center md:inline lg:hidden">
+          <Link href="/event-types" prefetch={true} className="text-center md:inline lg:hidden">
             <Logo small icon />
           </Link>
           <Navigation isPlatformNavigation={isPlatformPages} />

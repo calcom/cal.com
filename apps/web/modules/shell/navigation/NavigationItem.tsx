@@ -1,18 +1,17 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import posthog from "posthog-js";
-import React, { Fragment, useState, useEffect } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import posthog from "posthog-js";
+import type React from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
 const usePersistedExpansionState = (itemName: string) => {
@@ -123,6 +122,7 @@ export const NavigationItem: React.FC<{
                       <Link
                         key={childItem.name}
                         href={childItem.href}
+                        prefetch={true}
                         aria-current={childIsCurrent ? "page" : undefined}
                         onClick={() => {
                           setIsTooltipOpen(false);
@@ -208,6 +208,7 @@ export const NavigationItem: React.FC<{
             data-test-id={item.name}
             onClick={() => trackNavigationClick(item.name)}
             href={item.href}
+            prefetch={true}
             aria-label={t(item.name)}
             target={item.target}
             className={classNames(
@@ -283,6 +284,7 @@ export const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
+      prefetch={true}
       target={item.target}
       className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted bg-transparent! relative my-2 min-w-0 flex-1 overflow-hidden rounded-md p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
@@ -353,6 +355,7 @@ export const MobileNavigationMoreItem: React.FC<{
                     <li key={childItem.name} className="border-subtle border-t">
                       <Link
                         href={childItem.href}
+                        prefetch={true}
                         className="hover:bg-cal-muted flex items-center p-4 pl-12 transition">
                         <span className="text-default font-medium">
                           {isLocaleReady ? t(childItem.name) : <SkeletonText />}
@@ -374,6 +377,7 @@ export const MobileNavigationMoreItem: React.FC<{
       ) : (
         <Link
           href={item.href}
+          prefetch={true}
           target={item.target}
           className="hover:bg-subtle flex items-center justify-between p-5 transition">
           {itemContent}
