@@ -1208,6 +1208,7 @@
   "copy_times_to_tooltip": "Copy times to …",
   "change_weekly_schedule": "Change your weekly schedule",
   "error": "Error",
+  "error_uploading_image": "Failed to upload image. Please try again.",
   "at_least_characters_one": "Please enter at least one character",
   "at_least_characters_other": "Please enter at least {{count}} characters",
   "team_logo": "Team logo",

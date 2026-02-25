@@ -38,6 +38,7 @@ import { ZOrgPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
+import { ZUploadOnboardingImageSchema } from "./uploadOnboardingImage.schema";
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -51,6 +52,10 @@ export const viewerOrganizationsRouter = router({
   }),
   intentToCreateOrg: authedProcedure.input(ZIntentToCreateOrgInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./intentToCreateOrg.handler");
+    return handler(opts);
+  }),
+  uploadOnboardingImage: authedProcedure.input(ZUploadOnboardingImageSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./uploadOnboardingImage.handler");
     return handler(opts);
   }),
   createWithPaymentIntent: authedProcedure
