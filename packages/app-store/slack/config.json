@@ -1,0 +1,15 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Slack",
+  "slug": "slack",
+  "type": "slack_notification",
+  "logo": "icon.svg",
+  "url": "https://slack.com",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Send Cal.com booking notifications to Slack. Get notified when meetings are created, cancelled, or rescheduled in a channel or DM of your choice.",
+  "isTemplate": false,
+  "isOAuth": false
+}

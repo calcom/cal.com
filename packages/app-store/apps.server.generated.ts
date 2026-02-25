@@ -64,6 +64,7 @@ export const apiHandlers = {
   signal: import("./signal/api"),
   sirius_video: import("./sirius_video/api"),
   skype: import("./skype/api"),
+  slack: import("./slack/api"),
   stripepayment: import("./stripepayment/api"),
   sylapsvideo: import("./sylapsvideo/api"),
   tandemvideo: import("./tandemvideo/api"),

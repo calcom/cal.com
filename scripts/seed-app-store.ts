@@ -242,6 +242,8 @@ export default async function main() {
     });
   }
 
+  await createApp("slack", "slack", ["automation"], "slack_notification");
+
   for (const [, app] of Object.entries(appStoreMetadata)) {
     if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;

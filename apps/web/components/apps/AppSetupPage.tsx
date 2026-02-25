@@ -1,6 +1,5 @@
-import dynamic from "next/dynamic";
-
 import { DynamicComponent } from "@calcom/app-store/_components/DynamicComponent";
+import dynamic from "next/dynamic";
 
 export const AppSetupMap = {
   alby: dynamic(() => import("@calcom/web/components/apps/alby/Setup")),
@@ -16,6 +15,7 @@ export const AppSetupMap = {
   paypal: dynamic(() => import("@calcom/web/components/apps/paypal/Setup")),
   hitpay: dynamic(() => import("@calcom/web/components/apps/hitpay/Setup")),
   btcpayserver: dynamic(() => import("@calcom/web/components/apps/btcpayserver/Setup")),
+  slack: dynamic(() => import("@calcom/web/components/apps/slack/Setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
