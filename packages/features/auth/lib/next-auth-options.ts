@@ -598,6 +598,9 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
                 name: payload.name || "",
                 ...(payload.picture && { avatarUrl: payload.picture }),
                 email,
+                metadata: {
+                  signupSource: "google-one-tap", 
+                }
                 identityProvider: IdentityProvider.GOOGLE,
                 identityProviderId: payload.sub,
                 creationSource: CreationSource.WEBAPP,
