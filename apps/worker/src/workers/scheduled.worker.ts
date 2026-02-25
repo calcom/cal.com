@@ -1,6 +1,9 @@
 import { JobName, SleepSignal } from "@calid/job-dispatcher";
-import type { ScheduledJob } from "@calid/job-engine";
-import { type TriggerScheduledWebhookData } from "@calid/job-engine";
+import type {
+  ScheduledJob,
+  WhatsAppReminderScheduledJobData,
+  TriggerScheduledWebhookData,
+} from "@calid/job-engine";
 // import type { SyncWhatsappTemplatesData } from "@calid/job-engine/src/scheduled/type.js";
 import { getRedisOptions, QueueName } from "@calid/queue";
 import type { Job } from "bullmq";
@@ -8,6 +11,7 @@ import { Worker } from "bullmq";
 
 // import { syncWhatsappTemplatesProcessor } from "../processors/scheduled/syncWhatsappTemplates.processor.js";
 import { triggerScheduledWebhookProcessor } from "../processors/scheduled/triggerScheduledWebhook.processor.ts";
+import { processWhatsappReminderScheduled } from "../processors/scheduled/whatsappReminderScheduled.processor.js";
 import { resolveJobName } from "../utils/resolveJobName";
 
 export const SCHEDULED_WORKER_NAME = "scheduled-worker";
@@ -33,6 +37,10 @@ export const scheduledWorker = new Worker<ScheduledJob>(
       switch (job.name) {
         case JobName.WEBHOOK_SCHEDULED_TRIGGER:
           await triggerScheduledWebhookProcessor(job as Job<TriggerScheduledWebhookData>);
+          break;
+
+        case JobName.WHATSAPP_REMINDER_SCHEDULED:
+          await processWhatsappReminderScheduled(job as Job<WhatsAppReminderScheduledJobData>);
           break;
 
         // case JobName.WHATSAPP_TEMPLATE_SYNC:

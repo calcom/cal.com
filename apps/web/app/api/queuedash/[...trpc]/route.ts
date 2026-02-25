@@ -10,6 +10,7 @@ let queues: {
   queue: Queue;
   displayName: string;
   type: "bullmq";
+  connectionUrl?: string;
 }[];
 
 async function getQueues() {
@@ -23,21 +24,25 @@ async function getQueues() {
       dataSyncQueue.waitUntilReady(),
       scheduledQueue.waitUntilReady(),
     ]);
+    const connectionUrl = process.env.REDIS_URL;
     queues = [
       {
         queue: defaultQueue,
         displayName: "Default Queue",
         type: "bullmq",
+        connectionUrl,
       },
       {
         queue: dataSyncQueue,
         displayName: "Data Sync Queue",
         type: "bullmq",
+        connectionUrl,
       },
       {
         queue: scheduledQueue,
         displayName: "Scheduled Queue",
         type: "bullmq",
+        connectionUrl,
       },
     ];
   }
