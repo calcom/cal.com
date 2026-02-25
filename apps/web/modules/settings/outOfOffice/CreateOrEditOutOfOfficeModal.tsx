@@ -209,8 +209,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 currentlyEditingOutOfOfficeEntry
                   ? t("edit_an_out_of_office")
                   : oooType === "team"
-                  ? t("create_ooo_dialog_team_title")
-                  : t("create_an_out_of_office")
+                    ? t("create_ooo_dialog_team_title")
+                    : t("create_an_out_of_office")
               }
               subtitle={
                 oooType === "team"

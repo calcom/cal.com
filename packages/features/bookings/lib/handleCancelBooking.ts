@@ -10,13 +10,14 @@ import {
   makeGuestActor,
   makeUserActor,
 } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -40,12 +41,14 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -80,7 +83,7 @@ export type CancelBookingInput = {
   userId?: number;
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
-  actionSource?: ActionSource;
+  actionSource: ValidActionSource;
 } & PlatformParams;
 
 type Dependencies = {
@@ -172,17 +175,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const userUuid = input.userUuid ?? null;
 
-  // Extract action source once for reuse
-  const actionSource = input.actionSource ?? "UNKNOWN";
-  if (actionSource === "UNKNOWN") {
-    log.warn(
-      "Booking cancellation with unknown actionSource",
-      safeStringify({
-        bookingUid: bookingToDelete.uid,
-        userUuid,
-      })
-    );
-  }
+  const actionSource = input.actionSource;
 
   const actorToUse = getAuditActor({
     userUuid,
@@ -217,15 +210,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
 
-  if (
-    !platformClientId &&
-    !cancellationReason?.trim() &&
-    isCancellationUserHost &&
-    !skipCancellationReasonValidation
-  ) {
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: "Cancellation reason is required",
     });
   }
 
@@ -272,6 +265,11 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
@@ -423,9 +421,10 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       isPlatformManagedUserBooking: bookingToDelete.user.isPlatformManaged,
     } satisfies HandleCancelBookingResponse;
 
+  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
@@ -536,6 +535,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       organizationId: orgId ?? null,
       operationId,
       source: actionSource,
+      isBookingAuditEnabled,
     });
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
@@ -570,6 +570,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           new: BookingStatus.CANCELLED,
         },
       },
+      isBookingAuditEnabled,
     });
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
@@ -715,10 +716,15 @@ type BookingCancelServiceDependencies = {
 export class BookingCancelService implements IBookingCancelService {
   constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
-  async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
+  async cancelBooking(input: {
+    bookingData: CancelRegularBookingData;
+    bookingMeta?: CancelBookingMeta;
+    actionSource: ValidActionSource;
+  }) {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
+      actionSource: input.actionSource,
     };
 
     return handler(cancelBookingInput, this.deps);
