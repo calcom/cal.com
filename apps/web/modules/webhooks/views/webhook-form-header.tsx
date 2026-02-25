@@ -2,13 +2,13 @@
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@coss/ui/components/button";
 import {
   AppHeader,
   AppHeaderActions,
   AppHeaderContent,
   AppHeaderDescription,
-} from "@components/app/app-header";
-import { Button } from "@coss/ui/components/button";
+} from "@coss/ui/shared/app-header";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";

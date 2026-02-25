@@ -4,12 +4,6 @@ import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  AppHeader,
-  AppHeaderActions,
-  AppHeaderContent,
-  AppHeaderDescription,
-} from "@components/app/app-header";
 import { Avatar, AvatarImage } from "@coss/ui/components/avatar";
 import { Card, CardFrame, CardFrameHeader, CardPanel } from "@coss/ui/components/card";
 import {
@@ -20,6 +14,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@coss/ui/components/empty";
+import {
+  AppHeader,
+  AppHeaderActions,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 import { WebhookIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CreateNewWebhookButton, WebhookListItem } from "../components";

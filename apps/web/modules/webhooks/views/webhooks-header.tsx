@@ -7,7 +7,7 @@ import {
   AppHeaderActions,
   AppHeaderContent,
   AppHeaderDescription,
-} from "@components/app/app-header";
+} from "@coss/ui/shared/app-header";
 import type { ReactNode } from "react";
 
 export function WebhooksHeader({ actions }: { actions?: ReactNode }) {
