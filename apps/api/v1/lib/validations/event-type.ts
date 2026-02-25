@@ -4,7 +4,7 @@ import {
   MAX_SEATS_PER_TIME_SLOT,
   MAX_EVENT_DURATION_MINUTES,
   MIN_EVENT_DURATION_MINUTES,
-  MAX_EVENT_TITLE_CHARACTERS,
+  MAX_EVENT_TITLE_CHARACTERS,   
 } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -103,7 +103,7 @@ export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
 
 const schemaEventTypeEditParams = z
   .object({
-    title: z.string().trim().min(1).max(MAX_EVENT_TITLE_CHARACTERS).optional(),
+      title: z.string().trim().min(1).max(MAX_EVENT_TITLE_CHARACTERS).optional(),
     slug: z
       .string()
       .transform((s) => slugify(s))

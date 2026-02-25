@@ -1,4 +1,3 @@
-import { MAX_EVENT_TITLE_CHARACTERS } from "@calcom/lib/constants";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type {
@@ -30,11 +29,12 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
-import { useState} from "react";
+import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
+
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
   titleSection?: {
@@ -76,11 +76,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-
-  
-
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
-
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -115,8 +111,6 @@ export const EventSetupTab = (
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
 
-
-
   return (
     <div>
       <div className={classNames("stack-y-4", customClassNames?.wrapper)}>
@@ -125,35 +119,17 @@ export const EventSetupTab = (
             "stack-y-6 rounded-lg border border-subtle p-6",
             customClassNames?.titleSection?.container
           )}>
-     <TextField
-  required
-  // --- Keep all your original classes ---
-  containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
-  labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
-  className={classNames(customClassNames?.titleSection?.titleInput?.input)}
-  
-  label={t("title")}
-  data-testid="event-title"
-  
-  // 1. Ensure the error prop is receiving the hook-form error message
-  error={formMethods.formState.errors.title?.message}
-  
-  // 2. Add the native HTML max attribute for extra browser-level safety
-  max={MAX_EVENT_TITLE_CHARACTERS}
-
-  // 3. Register LAST so it can properly hook into the input
-  {...formMethods.register("title", {
-    required: t("field_required"),
-    maxLength: {
-      value: MAX_EVENT_TITLE_CHARACTERS,
-      message: t("max_characters_allowed", {
-        count: MAX_EVENT_TITLE_CHARACTERS,
-      }),
-    },
-    // Incorporate the locked logic here
-    disabled: isManagedEventType || isChildrenManagedEventType || titleLockedProps.disabled,
-  })}
-/>
+          <TextField
+            required
+            containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
+            labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
+            className={classNames(customClassNames?.titleSection?.titleInput?.input)}
+            label={t("title")}
+            {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
+            defaultValue={eventType.title}
+            data-testid="event-title"
+            {...formMethods.register("title")}
+          />
           <div>
             {isPlatform ? (
               <TextAreaField

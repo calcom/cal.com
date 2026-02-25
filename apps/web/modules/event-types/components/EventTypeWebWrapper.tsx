@@ -183,30 +183,27 @@ const EventTypeWeb = ({
       await utils.viewer.eventTypes.get.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
     },
-onError: (err) => {
-  const zodError = err.data?.zodError as
-    | { fieldErrors?: Record<string, string[]> }
-    | undefined;
+    onError: (err) => {
+      let message = "";
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
 
-  const fieldErrors = zodError?.fieldErrors;
+      if (err.data?.code === "UNAUTHORIZED") {
+        message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
+      }
 
-  if (fieldErrors) {
-    Object.keys(fieldErrors).forEach((key) => {
-      const field = key as Parameters<typeof form.setError>[0];
-      const messages = fieldErrors[key];
-      if (!messages?.length) return;
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+        message = `${err.data.code}: ${t(err.message)}`;
+      }
 
-      form.setError(field, {
-        type: "server",
-        message: messages[0],
-      });
-    });
-  }
+      if (err.data?.code === "INTERNAL_SERVER_ERROR") {
+        message = t("unexpected_error_try_again");
+      }
 
-  if (err.data?.code) {
-    showToast(`${err.data.code}: ${t(err.message)}`, "error");
-  }
-}
+      showToast(message ? t(message) : t(err.message), "error");
+    },
   });
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
