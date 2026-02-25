@@ -600,7 +600,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
                 email,
                 metadata: {
                   signupSource: "google-one-tap", 
-                }
+                },
                 identityProvider: IdentityProvider.GOOGLE,
                 identityProviderId: payload.sub,
                 creationSource: CreationSource.WEBAPP,
