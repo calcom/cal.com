@@ -1,4 +1,4 @@
-import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { expect, test, vi, describe, beforeEach } from "vitest";
@@ -456,6 +456,12 @@ describe("OAuth Callback Handler", () => {
       });
       const res = createMockResponse();
 
+      vi.mocked(decodeOAuthState).mockReturnValue({
+        onErrorReturnTo: undefined as unknown as string,
+        fromApp: false,
+        returnTo: undefined,
+      });
+
       const mockErrorResponse = {
         error: "invalid_client",
         error_description: "Client authentication failed",
@@ -476,6 +482,12 @@ describe("OAuth Callback Handler", () => {
         query: { code: "auth_code_123" },
       });
       const res = createMockResponse();
+
+      vi.mocked(decodeOAuthState).mockReturnValue({
+        onErrorReturnTo: undefined as unknown as string,
+        fromApp: false,
+        returnTo: undefined,
+      });
 
       const mockErrorResponse = {
         error: "invalid_client",
