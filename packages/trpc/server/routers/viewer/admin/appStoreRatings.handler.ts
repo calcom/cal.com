@@ -1,4 +1,5 @@
-import { AppStoreRatingRepository } from "@calcom/features/apps/repository/AppStoreRatingRepository";
+import { getAppStoreRatingService } from "@calcom/features/app-store-ratings/di/AppStoreRatingService.container";
+
 import type { TAppStoreRatingActionSchema, TAppStoreRatingsListSchema } from "./appStoreRatings.schema";
 
 interface ListOptions {
@@ -6,7 +7,8 @@ interface ListOptions {
 }
 
 export const listPendingAppRatingsHandler = async ({ input }: ListOptions) => {
-  return AppStoreRatingRepository.findPendingPaginated({
+  const service = getAppStoreRatingService();
+  return service.getPendingRatings({
     take: input.take,
     skip: input.skip,
   });
@@ -17,9 +19,11 @@ interface ActionOptions {
 }
 
 export const approveAppRatingHandler = async ({ input }: ActionOptions) => {
-  return AppStoreRatingRepository.approve(input.id);
+  const service = getAppStoreRatingService();
+  return service.approveRating(input.id);
 };
 
 export const rejectAppRatingHandler = async ({ input }: ActionOptions) => {
-  return AppStoreRatingRepository.delete(input.id);
+  const service = getAppStoreRatingService();
+  return service.rejectRating(input.id);
 };

@@ -22,6 +22,7 @@ import { Button } from "@calcom/ui/components/button";
 import {
   BookOpenIcon,
   CircleAlertIcon,
+  DownloadIcon,
   ExternalLinkIcon,
   FileIcon,
   FlagIcon,
@@ -367,7 +368,7 @@ export const AppPage = ({
               {typeof totalInstalls === "number" && totalInstalls > 0 && (
                 <>
                   <Badge variant="gray" className="mr-1">
-                    <Icon name="download" className="-mt-px mr-1 inline h-3 w-3" />
+                    <DownloadIcon className="-mt-px mr-1 inline h-3 w-3" />
                     {totalInstalls.toLocaleString()} {t("installations")}
                   </Badge>
                 </>

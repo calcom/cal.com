@@ -1,4 +1,5 @@
-import { AppStoreRatingRepository } from "@calcom/features/apps/repository/AppStoreRatingRepository";
+import { getAppStoreRatingService } from "@calcom/features/app-store-ratings/di/AppStoreRatingService.container";
+
 import type { TAppRatingsInputSchema } from "./appRatings.schema";
 
 interface AppRatingsOptions {
@@ -10,11 +11,12 @@ interface AppRatingsOptions {
 
 export const appRatingsHandler = async ({ ctx, input }: AppRatingsOptions) => {
   const { appSlug, take, skip } = input;
+  const service = getAppStoreRatingService();
 
   const [ratings, aggregate, userRating] = await Promise.all([
-    AppStoreRatingRepository.findApprovedByAppSlug({ appSlug, take, skip }),
-    AppStoreRatingRepository.getAggregateByAppSlug(appSlug),
-    AppStoreRatingRepository.findByUserAndApp({ userId: ctx.user.id, appSlug }),
+    service.getApprovedRatings({ appSlug, take, skip }),
+    service.getAggregateRatings(appSlug),
+    service.getUserRating({ userId: ctx.user.id, appSlug }),
   ]);
 
   return {

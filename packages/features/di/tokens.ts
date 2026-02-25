@@ -1,3 +1,4 @@
+import { APP_STORE_RATING_DI_TOKENS } from "@calcom/features/app-store-ratings/di/tokens";
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { ACTIVE_USER_BILLING_DI_TOKENS } from "@calcom/features/ee/billing/active-user/di/tokens";
@@ -89,4 +90,5 @@ export const DI_TOKENS = {
   ...ORGANIZATION_DI_TOKENS,
   ...TRANSLATION_DI_TOKENS,
   ...WEBHOOK_TOKENS,
+  ...APP_STORE_RATING_DI_TOKENS,
 };

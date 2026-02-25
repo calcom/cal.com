@@ -1,7 +1,14 @@
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 
 export class AppStoreRatingRepository {
-  static async findApprovedByAppSlug({
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  static create() {
+    return new AppStoreRatingRepository(prisma);
+  }
+
+  async findApprovedBySlug({
     appSlug,
     take = 50,
     skip = 0,
@@ -10,7 +17,7 @@ export class AppStoreRatingRepository {
     take?: number;
     skip?: number;
   }) {
-    return prisma.appStoreRating.findMany({
+    return this.prismaClient.appStoreRating.findMany({
       where: { appSlug, approved: true },
       select: {
         id: true,
@@ -31,8 +38,8 @@ export class AppStoreRatingRepository {
     });
   }
 
-  static async getAggregateByAppSlug(appSlug: string) {
-    const result = await prisma.appStoreRating.aggregate({
+  async getAggregateBySlug(appSlug: string) {
+    const result = await this.prismaClient.appStoreRating.aggregate({
       where: { appSlug, approved: true },
       _avg: { rating: true },
       _count: { rating: true },
@@ -43,8 +50,8 @@ export class AppStoreRatingRepository {
     };
   }
 
-  static async findByUserAndApp({ userId, appSlug }: { userId: number; appSlug: string }) {
-    return prisma.appStoreRating.findUnique({
+  async findByUserAndSlug({ userId, appSlug }: { userId: number; appSlug: string }) {
+    return this.prismaClient.appStoreRating.findUnique({
       where: { appSlug_userId: { appSlug, userId } },
       select: {
         id: true,
@@ -56,7 +63,7 @@ export class AppStoreRatingRepository {
     });
   }
 
-  static async upsert({
+  async upsert({
     userId,
     appSlug,
     rating,
@@ -67,7 +74,7 @@ export class AppStoreRatingRepository {
     rating: number;
     comment?: string;
   }) {
-    return prisma.appStoreRating.upsert({
+    return this.prismaClient.appStoreRating.upsert({
       where: { appSlug_userId: { appSlug, userId } },
       create: { appSlug, userId, rating, comment, approved: false },
       update: { rating, comment, approved: false },
@@ -75,9 +82,9 @@ export class AppStoreRatingRepository {
     });
   }
 
-  static async findPendingPaginated({ take = 50, skip = 0 }: { take?: number; skip?: number }) {
+  async findPendingPaginated({ take = 50, skip = 0 }: { take?: number; skip?: number }) {
     const [items, total] = await Promise.all([
-      prisma.appStoreRating.findMany({
+      this.prismaClient.appStoreRating.findMany({
         where: { approved: false },
         select: {
           id: true,
@@ -97,21 +104,21 @@ export class AppStoreRatingRepository {
         take,
         skip,
       }),
-      prisma.appStoreRating.count({ where: { approved: false } }),
+      this.prismaClient.appStoreRating.count({ where: { approved: false } }),
     ]);
     return { items, total };
   }
 
-  static async approve(id: number) {
-    return prisma.appStoreRating.update({
+  async approve(id: number) {
+    return this.prismaClient.appStoreRating.update({
       where: { id },
       data: { approved: true },
       select: { id: true, approved: true },
     });
   }
 
-  static async delete(id: number) {
-    return prisma.appStoreRating.delete({
+  async deleteById(id: number) {
+    return this.prismaClient.appStoreRating.delete({
       where: { id },
       select: { id: true },
     });

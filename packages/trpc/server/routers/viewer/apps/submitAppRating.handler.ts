@@ -1,4 +1,5 @@
-import { AppStoreRatingRepository } from "@calcom/features/apps/repository/AppStoreRatingRepository";
+import { getAppStoreRatingService } from "@calcom/features/app-store-ratings/di/AppStoreRatingService.container";
+
 import type { TSubmitAppRatingInputSchema } from "./submitAppRating.schema";
 
 interface SubmitAppRatingOptions {
@@ -10,13 +11,12 @@ interface SubmitAppRatingOptions {
 
 export const submitAppRatingHandler = async ({ ctx, input }: SubmitAppRatingOptions) => {
   const { appSlug, rating, comment } = input;
+  const service = getAppStoreRatingService();
 
-  const result = await AppStoreRatingRepository.upsert({
+  return service.submitRating({
     userId: ctx.user.id,
     appSlug,
     rating,
     comment,
   });
-
-  return result;
 };
