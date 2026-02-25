@@ -10,8 +10,8 @@
     "url": "https://github.com/calcom/cal.com"
   },
   "scripts": {
-    "dev": "yarn vite build --watch & npx postcss ./globals.css -o ./globals.min.css --watch",
-    "build-npm": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./globals.css -o ./globals.min.css",
+    "dev": "yarn vite build --watch & npx postcss ./styles.css -o ./globals.min.css --watch",
+    "build-npm": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./styles.css -o ./globals.min.css",
     "publish-npm": "yarn build-npm && npm publish --access public",
     "test": "jest",
     "dev-on": "node scripts/dev-on.js",
@@ -35,6 +35,7 @@
     "postcss-import": "16.1.0",
     "postcss-prefixer": "3.0.0",
     "postcss-prefixwrap": "1.57.0",
+    "tailwindcss": "4.1.17",
     "ts-jest": "29.1.4",
     "typescript": "5.9.3",
     "vite": "6.4.1",
@@ -91,8 +92,7 @@
     "dompurify": "3.3.1",
     "marked": "15.0.6",
     "react-use": "17.6.0",
-    "tailwind-merge": "1.13.2",
-    "tailwindcss": "4.1.17"
+    "tailwind-merge": "1.13.2"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
