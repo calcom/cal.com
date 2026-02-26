@@ -162,8 +162,10 @@ export async function handleConfirmation(args: {
     // If calendar event creation fails catastrophically, rollback the booking status
     // so the organizer can retry confirmation. This is needed because confirm.handler.ts
     // atomically sets the status to ACCEPTED before calling handleConfirmation (see #7703).
-    await prisma.booking.update({
-      where: { id: bookingId },
+    // Guard with status=ACCEPTED so we don't overwrite a CANCELLED/REJECTED status that
+    // may have been set by another request while eventManager.create() was running.
+    await prisma.booking.updateMany({
+      where: { id: bookingId, status: BookingStatus.ACCEPTED },
       data: { status: BookingStatus.PENDING },
     });
     throw error;

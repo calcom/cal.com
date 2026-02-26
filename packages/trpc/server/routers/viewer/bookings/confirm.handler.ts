@@ -291,7 +291,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed or being processed" });
     }
   } else {
-    // For rejection, just check the status hasn't already been confirmed
+    // Non-recurring rejection: atomically transition PENDING -> REJECTED so concurrent
+    // confirm+reject races cannot both succeed.
+    // The actual DB update to REJECTED is deferred to the else-branch below where
+    // rejectionReason and payment refund are also handled; we use a read-check here
+    // to give an early, clear error for the already-confirmed case.
+    // NOTE: The recurring-booking block (below) already filters on status=PENDING in its
+    // findMany, so it is inherently safe. For the single-booking path we add an atomic guard.
     if (booking.status === BookingStatus.ACCEPTED) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
     }
@@ -376,31 +382,31 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     disableRescheduling: booking.eventType?.disableRescheduling ?? false,
     team: booking.eventType?.team
       ? {
-          name: booking.eventType.team.name,
-          id: booking.eventType.team.id,
-          members: [],
-        }
+        name: booking.eventType.team.name,
+        id: booking.eventType.team.id,
+        members: [],
+      }
       : undefined,
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
     assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
       ? {
-          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
-          details: booking.assignmentReason[0].reasonString ?? null,
-        }
+        category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+        details: booking.assignmentReason[0].reasonString ?? null,
+      }
       : null,
     hideBranding: booking.eventType?.id
       ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
-          team: booking.eventType.team
-            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
-            : null,
-          owner: {
-            id: user.id,
-            hideBranding: user.hideBranding,
-            profiles: user.profiles ?? [],
-          },
-        } satisfies EventTypeBrandingData)
+        team: booking.eventType.team
+          ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+          : null,
+        owner: {
+          id: user.id,
+          hideBranding: user.hideBranding,
+          profiles: user.profiles ?? [],
+        },
+      } satisfies EventTypeBrandingData)
       : false,
   };
 
@@ -524,15 +530,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       }
       // end handle refunds.
 
-      await prisma.booking.update({
+      // Atomically transition PENDING -> REJECTED. If a concurrent confirm request already
+      // moved the booking to ACCEPTED, count will be 0 and we abort to avoid overwriting it.
+      const rejectResult = await prisma.booking.updateMany({
         where: {
           id: bookingId,
+          status: BookingStatus.PENDING,
         },
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
         },
       });
+
+      if (rejectResult.count === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed or being processed" });
+      }
 
       rejectedBookings = [
         {
