@@ -291,6 +291,7 @@ export const buildEventForTeamEventType = async ({
   organizerUser,
   schedulingType,
   team,
+  optionalGuestUserIds,
 }: {
   existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
@@ -303,6 +304,8 @@ export const buildEventForTeamEventType = async ({
     id: number;
     name: string;
   } | null;
+  optionalGuestUserIds?: number[];
+  optionalGuestUsers?: Pick<User, "id" | "name" | "timeZone" | "locale" | "email">[];
 }) => {
   // not null assertion.
   if (!schedulingType) {
@@ -338,10 +341,34 @@ export const buildEventForTeamEventType = async ({
           translate: await getTranslation(user.locale ?? "en", "common"),
           locale: user.locale ?? "en",
         },
+        isOptionalGuest: optionalGuestUserIds?.includes(user.id) ?? false,
       };
     });
 
   const teamMembers = await Promise.all(teamMemberPromises);
+
+  // Add optional guest users who are not already in the filtered users list
+  if (optionalGuestUserIds?.length && optionalGuestUsers?.length) {
+    const existingUserIds = new Set(filteredUsers.map((u) => u.id));
+    const additionalOptionalGuests = optionalGuestUsers.filter(
+      (u) => !existingUserIds.has(u.id) && u.email !== organizerUser.email
+    );
+    const additionalGuestPromises = additionalOptionalGuests.map(async (user) => ({
+      id: user.id,
+      email: user.email ?? "",
+      name: user.name ?? "",
+      firstName: "",
+      lastName: "",
+      timeZone: user.timeZone,
+      language: {
+        translate: await getTranslation(user.locale ?? "en", "common"),
+        locale: user.locale ?? "en",
+      },
+      isOptionalGuest: true,
+    }));
+    const additionalGuests = await Promise.all(additionalGuestPromises);
+    teamMembers.push(...additionalGuests);
+  }
 
   const updatedEvt = CalendarEventBuilder.fromEvent(evt)
     ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
@@ -1621,12 +1648,28 @@ async function handler(
   }
 
   if (isTeamEventType) {
+    const parsedMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata);
+    const optionalGuestUserIds = parsedMetadata?.addTeamMembersAsOptionalGuests
+      ? parsedMetadata.optionalGuestUserIds || []
+      : [];
+
+    // Fetch optional guest users who may not be in the scheduled users list
+    let optionalGuestUsers: Pick<User, "id" | "name" | "timeZone" | "locale" | "email">[] = [];
+    if (optionalGuestUserIds.length > 0) {
+      optionalGuestUsers = await deps.prismaClient.user.findMany({
+        where: { id: { in: optionalGuestUserIds } },
+        select: { id: true, name: true, timeZone: true, locale: true, email: true },
+      });
+    }
+
     const teamEvt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
       team: eventType.team,
       organizerUser,
+      optionalGuestUserIds,
+      optionalGuestUsers,
     });
 
     if (!teamEvt) {

@@ -535,7 +535,7 @@ class Office365CalendarService implements Calendar {
                     address: destinationCalendar?.externalId ?? member.email,
                     name: member.name,
                   },
-                  type: "required" as const,
+                  type: (member.isOptionalGuest ? "optional" : "required") as "optional" | "required",
                 };
               })
           : []),

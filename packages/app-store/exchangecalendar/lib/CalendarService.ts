@@ -65,8 +65,12 @@ class ExchangeCalendarService implements Calendar {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
     if (event.team?.members) {
-      event.team.members.forEach((member: Person) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email));
+      event.team.members.forEach((member) => {
+        if (member.isOptionalGuest) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        } else {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        }
       });
     }
     return appointment
@@ -102,7 +106,11 @@ class ExchangeCalendarService implements Calendar {
     });
     if (event.team?.members) {
       event.team.members.forEach((member) => {
-        appointment.RequiredAttendees.Add(new Attendee(member.email));
+        if (member.isOptionalGuest) {
+          appointment.OptionalAttendees.Add(new Attendee(member.email));
+        } else {
+          appointment.RequiredAttendees.Add(new Attendee(member.email));
+        }
       });
     }
     return appointment

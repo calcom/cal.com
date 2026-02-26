@@ -420,7 +420,7 @@ class LarkCalendarService implements Calendar {
       if (member.email !== this.credential.user?.email) {
         const attendee: LarkEventAttendee = {
           type: "third_party",
-          is_optional: false,
+          is_optional: member.isOptionalGuest ?? false,
           third_party_email: member.email,
         };
         attendeeArray.push(attendee);

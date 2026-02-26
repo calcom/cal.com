@@ -57,6 +57,10 @@ import {
 import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
 import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Icon } from "@calcom/ui/components/icon";
 import type { Dispatch, SetStateAction } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -550,6 +554,28 @@ export const EventAdvancedTab = ({
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
+
+  const isTeamEventType = !!team;
+  const [addTeamMembersAsOptionalGuests, setAddTeamMembersAsOptionalGuests] = useState(
+    !!formMethods.getValues("metadata")?.addTeamMembersAsOptionalGuests
+  );
+
+  const teamMembersOptions = useMemo(() => {
+    if (!team?.members) return [];
+    return team.members
+      .filter((member) => member.accepted)
+      .map((member) => ({
+        value: String(member.user.id),
+        label: member.user.name || member.user.email || "",
+        avatar: getUserAvatarUrl(member.user),
+        email: member.user.email,
+      }));
+  }, [team?.members]);
+
+  const selectedOptionalGuests = useMemo(() => {
+    const ids = formMethods.getValues("metadata")?.optionalGuestUserIds || [];
+    return teamMembersOptions.filter((opt) => ids.includes(Number(opt.value)));
+  }, [teamMembersOptions, formMethods.getValues("metadata")?.optionalGuestUserIds]);
 
   const customReplyToEmail = formMethods.watch("customReplyToEmail");
 
@@ -1484,6 +1510,89 @@ export const EventAdvancedTab = ({
           </SettingsToggle>
         )}
       />
+      {isTeamEventType && (
+        <Controller
+          name="metadata"
+          render={({ field: { value: metadataValue, onChange: onMetadataChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                addTeamMembersAsOptionalGuests && "rounded-b-none"
+              )}
+              title={t("add_team_members_as_optional_guests")}
+              Badge={<UpgradeTeamsBadge />}
+              description={t("add_team_members_as_optional_guests_description")}
+              checked={addTeamMembersAsOptionalGuests}
+              onCheckedChange={(checked) => {
+                setAddTeamMembersAsOptionalGuests(checked);
+                if (!checked) {
+                  onMetadataChange({
+                    ...metadataValue,
+                    addTeamMembersAsOptionalGuests: false,
+                    optionalGuestUserIds: [],
+                  });
+                } else {
+                  onMetadataChange({
+                    ...metadataValue,
+                    addTeamMembersAsOptionalGuests: true,
+                  });
+                }
+              }}>
+              <div className="border-subtle flex flex-col gap-4 rounded-b-lg border border-t-0 p-6">
+                <Select
+                  isMulti
+                  placeholder={t("select")}
+                  options={teamMembersOptions.filter(
+                    (opt) =>
+                      !(metadataValue?.optionalGuestUserIds || []).includes(Number(opt.value))
+                  )}
+                  value={[]}
+                  onChange={(selectedOptions) => {
+                    const newIds = selectedOptions.map((opt: { value: string }) => Number(opt.value));
+                    const currentIds = metadataValue?.optionalGuestUserIds || [];
+                    onMetadataChange({
+                      ...metadataValue,
+                      addTeamMembersAsOptionalGuests: true,
+                      optionalGuestUserIds: [...currentIds, ...newIds],
+                    });
+                  }}
+                />
+                <ul className={classNames("rounded-md", selectedOptionalGuests.length >= 1 && "border-subtle border")}>
+                  {selectedOptionalGuests.map((option, index) => (
+                    <li
+                      key={option.value}
+                      className={classNames(
+                        "flex px-3 py-2",
+                        index !== selectedOptionalGuests.length - 1 && "border-subtle border-b"
+                      )}>
+                      <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+                      <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
+                      <div className="ml-auto flex items-center">
+                        <Icon
+                          name="x"
+                          className="my-auto ml-2 h-4 w-4 cursor-pointer"
+                          onClick={() => {
+                            const currentIds = metadataValue?.optionalGuestUserIds || [];
+                            onMetadataChange({
+                              ...metadataValue,
+                              addTeamMembersAsOptionalGuests: true,
+                              optionalGuestUserIds: currentIds.filter(
+                                (id: number) => id !== Number(option.value)
+                              ),
+                            });
+                          }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </SettingsToggle>
+          )}
+        />
+      )}
       <Controller
         name="showOptimizedSlots"
         render={({ field: { onChange, value } }) => {

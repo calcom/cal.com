@@ -168,6 +168,7 @@ class GoogleCalendarService implements Calendar {
             email: teamMemberDestinationCalendar?.externalId ?? m.email,
             displayName: m.name,
             responseStatus: "accepted",
+            ...(m.isOptionalGuest ? { optional: true } : {}),
           };
         });
       attendees.push(...teamAttendeesWithoutCurrentUser);
