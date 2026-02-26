@@ -166,9 +166,7 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
     return 0;
   }
 
-  // Detect dry-run mode from query param even when the prerender instruction didn't pass it
-  // but the actual embed modal opening call did. This avoids a partial dry-run where
-  // the queued-response API call would still fire.
+  // Handles partial dry-run: prerender doesn't have the flag but the modal opening call does
   if (url.searchParams.get("cal.isBookingDryRun") === "true") {
     return 0;
   }

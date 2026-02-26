@@ -229,14 +229,17 @@ describe("keepParentInformedAboutDimensionChanges", () => {
 });
 
 describe("recordResponseIfQueued", () => {
+  let originalFetch: typeof global.fetch;
   let fetchSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    originalFetch = global.fetch;
     fetchSpy = vi.fn();
-    global.fetch = fetchSpy;
+    global.fetch = fetchSpy as unknown as typeof global.fetch;
   });
 
   afterEach(() => {
+    global.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
