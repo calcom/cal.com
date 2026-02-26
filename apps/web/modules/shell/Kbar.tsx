@@ -27,7 +27,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
 const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
@@ -437,14 +437,17 @@ type CrowSSEEvent = {
   type: string;
   content?: string;
   tool_name?: string;
+  display_name?: string;
   arguments?: Record<string, unknown>;
   conversation_id?: string;
+  links?: string[];
 };
 
 type ChatMessage = {
   role: "user" | "assistant";
   text: string;
   href: string | null;
+  sources?: string[];
 };
 
 type CrowFallbackState = {
@@ -452,8 +455,63 @@ type CrowFallbackState = {
   messages: ChatMessage[];
   conversationId: string | null;
   streaming: boolean;
+  checkingDocs: boolean;
   error: boolean;
 };
+
+// Minimal markdown renderer — no external deps, handles bold, inline code, and lists.
+function renderInline(text: string): JSX.Element {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("**") && part.endsWith("**") ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
+          <strong key={i}>{part.slice(2, -2)}</strong>
+        ) : part.startsWith("`") && part.endsWith("`") ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
+          <code key={i} className="rounded bg-subtle px-1 font-mono text-xs">
+            {part.slice(1, -1)}
+          </code>
+        ) : (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
+          <Fragment key={i}>{part}</Fragment>
+        )
+      )}
+    </>
+  );
+}
+
+function renderMarkdown(text: string): JSX.Element {
+  return (
+    <>
+      {text.split("\n").map((line, i) => {
+        const orderedMatch = line.match(/^(\d+)\.\s(.+)/);
+        if (orderedMatch) {
+          // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
+          return (
+            <div key={i} className="ml-3">
+              {orderedMatch[1]}. {renderInline(orderedMatch[2])}
+            </div>
+          );
+        }
+        const bulletMatch = line.match(/^[-*]\s(.+)/);
+        if (bulletMatch) {
+          // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
+          return (
+            <div key={i} className="ml-3">
+              · {renderInline(bulletMatch[1])}
+            </div>
+          );
+        }
+        // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
+        if (!line.trim()) return <div key={i} className="h-2" />;
+        // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
+        return <div key={i}>{renderInline(line)}</div>;
+      })}
+    </>
+  );
+}
 
 function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
@@ -500,6 +558,7 @@ function CrowFallback({
     messages: [],
     conversationId: null,
     streaming: false,
+    checkingDocs: false,
     error: false,
   });
   const abortRef = useRef<AbortController | null>(null);
@@ -584,6 +643,19 @@ function CrowFallback({
                   return { ...s, messages: msgs };
                 });
               }
+            } else if (event.type === "tool_call_start") {
+              setState((s) => ({ ...s, checkingDocs: true }));
+            } else if (event.type === "tool_call_complete") {
+              setState((s) => ({ ...s, checkingDocs: false }));
+            } else if (event.type === "tool_result_links" && event.links?.length) {
+              setState((s) => {
+                const msgs = [...s.messages];
+                const last = msgs[msgs.length - 1];
+                if (last?.role === "assistant") {
+                  msgs[msgs.length - 1] = { ...last, sources: event.links };
+                }
+                return { ...s, checkingDocs: false, messages: msgs };
+              });
             }
           } catch {
             // ignore malformed SSE frames
@@ -649,7 +721,9 @@ function CrowFallback({
   if (state.messages.length === 0) {
     return (
       <div className="flex items-center justify-center px-4 py-6">
-        <span className="animate-pulse text-sm text-subtle">{t("kbar_crow_thinking")}</span>
+        <span className="animate-pulse text-sm text-subtle">
+          {state.checkingDocs ? t("kbar_crow_checking_docs") : t("kbar_crow_thinking")}
+        </span>
       </div>
     );
   }
@@ -657,6 +731,7 @@ function CrowFallback({
   return (
     <div className="max-h-80 overflow-y-auto px-4 py-3">
       {state.messages.map((msg, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: message list is append-only
         <div key={i} className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
           {msg.role === "user" ? (
             <div className="max-w-[75%] rounded-lg bg-subtle px-3 py-2 text-default text-sm">
@@ -665,14 +740,16 @@ function CrowFallback({
           ) : (
             <div className="max-w-[85%]">
               <p className="mb-1 font-medium text-subtle text-xs uppercase tracking-wide">
-                {t("kbar_crow_ai_label")}
+                {i === state.messages.length - 1 && state.checkingDocs && !msg.text
+                  ? t("kbar_crow_checking_docs")
+                  : t("kbar_crow_ai_label")}
               </p>
-              <p className="text-default text-sm">
-                {msg.text}
-                {i === state.messages.length - 1 && state.streaming && (
+              <div className="text-default text-sm">
+                {renderMarkdown(msg.text)}
+                {i === state.messages.length - 1 && state.streaming && !state.checkingDocs && (
                   <span className="ml-0.5 animate-pulse">▋</span>
                 )}
-              </p>
+              </div>
               {msg.href && !state.streaming && (
                 <button
                   onClick={() => {
@@ -683,6 +760,22 @@ function CrowFallback({
                   <CornerDownLeftIcon className="h-3 w-3" />
                   {t("kbar_crow_navigate")}
                 </button>
+              )}
+              {msg.sources && msg.sources.length > 0 && !state.streaming && (
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                  {msg.sources.map((url, si) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: source list is stable
+                    <a
+                      key={si}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-subtle text-xs transition hover:text-default">
+                      <ExternalLinkIcon className="h-3 w-3" />
+                      {t("kbar_crow_source")}
+                    </a>
+                  ))}
+                </div>
               )}
             </div>
           )}
