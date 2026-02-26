@@ -481,8 +481,9 @@ function renderInline(text: string): JSX.Element {
           // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
           (() => {
             const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-            return m ? (
-              <a key={i} href={m[2]} target="_blank" rel="noopener noreferrer"
+            const safeHref = m && /^https?:\/\//.test(m[2]) ? m[2] : null;
+            return safeHref ? (
+              <a key={i} href={safeHref} target="_blank" rel="noopener noreferrer"
                 className="underline transition hover:text-default">
                 {m[1]}
               </a>
