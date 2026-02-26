@@ -9,4 +9,6 @@ export interface TeamSummaryDto {
   id: number;
   name: string;
   parentId: number | null;
+  hideBranding?: boolean;
+  parent?: { hideBranding: boolean } | null;
 }

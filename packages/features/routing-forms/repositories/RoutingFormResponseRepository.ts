@@ -39,9 +39,15 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  async recordQueuedFormResponse(input: RecordFormResponseInput) {
+  async recordQueuedFormResponse(
+    input: RecordFormResponseInput & { fallbackAction?: Prisma.InputJsonValue | null }
+  ) {
+    const { fallbackAction, ...rest } = input;
     return await this.prismaClient.app_RoutingForms_QueuedFormResponse.create({
-      data: this.generateCreateFormResponseData(input),
+      data: {
+        ...this.generateCreateFormResponseData(rest),
+        ...(fallbackAction ? { fallbackAction } : {}),
+      },
     });
   }
 
@@ -91,6 +97,7 @@ export class RoutingFormResponseRepository {
         formId: true,
         response: true,
         chosenRouteId: true,
+        fallbackAction: true,
         createdAt: true,
         updatedAt: true,
         actualResponseId: true,

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createEvent as createIcsEvent } from "ics";
 import { createCalendarObject, updateCalendarObject } from "tsdav";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("ics", () => ({
   createEvent: vi.fn(),
@@ -41,7 +41,6 @@ vi.mock("./CalEventParser", () => ({
 }));
 
 import type { CalendarServiceEvent } from "@calcom/types/Calendar";
-
 import BaseCalendarService from "./CalendarService";
 
 const createMockEvent = (overrides: Partial<CalendarServiceEvent> = {}): CalendarServiceEvent => ({
@@ -101,6 +100,359 @@ class TestCalendarService extends BaseCalendarService {
     return this.updateEvent(uid, event);
   }
 }
+
+describe("CalendarService - UID Consistency", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should use event.uid when provided, not generate a new UUID", async () => {
+    const service = new TestCalendarService();
+    const bookingUid = "booking-uid-from-database-abc123";
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:${bookingUid}\r\nDTSTART:20230615T150000Z\r\nDTEND:20230615T160000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({ uid: bookingUid });
+    const result = await service.createEvent(event, 1);
+
+    expect(result.uid).toBe(bookingUid);
+    expect(result.id).toBe(bookingUid);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    expect(calledArg.filename).toBe(`${bookingUid}.ics`);
+
+    const icsCallArg = vi.mocked(createIcsEvent).mock.calls[0][0];
+    expect(icsCallArg.uid).toBe(bookingUid);
+  });
+
+  it("should generate a new UUID when event.uid is not provided", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:generated-uuid\r\nDTSTART:20230615T150000Z\r\nDTEND:20230615T160000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({ uid: undefined });
+    const result = await service.createEvent(event, 1);
+
+    expect(result.uid).toBeTruthy();
+    expect(typeof result.uid).toBe("string");
+    expect(result.uid.length).toBeGreaterThan(0);
+  });
+
+  it("should use the same uid for CalDAV filename and ics UID property", async () => {
+    const service = new TestCalendarService();
+    const bookingUid = "consistent-uid-xyz789";
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:${bookingUid}\r\nDTSTART:20230615T150000Z\r\nDTEND:20230615T160000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({ uid: bookingUid });
+    await service.createEvent(event, 1);
+
+    const icsCallArg = vi.mocked(createIcsEvent).mock.calls[0][0];
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+
+    expect(icsCallArg.uid).toBe(bookingUid);
+    expect(calledArg.filename).toBe(`${bookingUid}.ics`);
+    expect(icsCallArg.uid).toBe(calledArg.filename?.replace(".ics", ""));
+  });
+});
+
+describe("CalendarService - VTIMEZONE Generation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should include VTIMEZONE block in created CalDAV event", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T15:00:00Z",
+      endTime: "2023-06-15T16:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/Chicago",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    expect(iCalString).toContain("BEGIN:VTIMEZONE");
+    expect(iCalString).toContain("END:VTIMEZONE");
+    expect(iCalString).toContain("TZID:America/Chicago");
+  });
+
+  it("should use TZID in DTSTART instead of UTC Z suffix", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T15:00:00Z",
+      endTime: "2023-06-15T16:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/Chicago",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    expect(iCalString).toContain("DTSTART;TZID=America/Chicago:");
+    const unfolded = iCalString.replace(/\r?\n[ \t]/g, "");
+    expect(unfolded).not.toMatch(/^DTSTART:[0-9]{8}T[0-9]{6}Z/m);
+  });
+
+  it("should convert UTC time to local time correctly for America/Chicago", async () => {
+    const service = new TestCalendarService();
+    // 2023-01-15T15:00:00Z = 2023-01-15T09:00:00 in America/Chicago (UTC-6 in January)
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230115T150000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-01-15T15:00:00Z",
+      endTime: "2023-01-15T16:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/Chicago",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+    const unfolded = iCalString.replace(/\r?\n[ \t]/g, "");
+
+    expect(unfolded).toContain("DTSTART;TZID=America/Chicago:20230115T090000");
+  });
+
+  it("should place VTIMEZONE block before BEGIN:VEVENT", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T15:00:00Z",
+      endTime: "2023-06-15T16:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/Chicago",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    const vtimezoneIdx = iCalString.indexOf("BEGIN:VTIMEZONE");
+    const veventIdx = iCalString.indexOf("BEGIN:VEVENT");
+
+    expect(vtimezoneIdx).toBeGreaterThan(-1);
+    expect(veventIdx).toBeGreaterThan(-1);
+    expect(vtimezoneIdx).toBeLessThan(veventIdx);
+  });
+
+  it("should produce valid 8-digit DTSTART dates in VTIMEZONE blocks", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T12:00:00Z",
+      endTime: "2023-06-15T13:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/New_York",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+    const dtStartMatches = vtimezoneBlock.match(/DTSTART:(\d+)T/g);
+    expect(dtStartMatches).not.toBeNull();
+    for (const match of dtStartMatches ?? []) {
+      const dateStr = match.replace("DTSTART:", "").replace("T", "");
+      expect(dateStr).toHaveLength(8); // YYYYMMDD = 8 chars
+    }
+  });
+
+  it("should use pre-transition local time for VTIMEZONE DTSTART (RFC 5545)", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T120000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-06-15T12:00:00Z",
+      endTime: "2023-06-15T13:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/New_York",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+
+    // America/New_York 2023: spring forward March 12 at 2:00 AM EST,
+    // fall back November 5 at 2:00 AM EDT.
+    // RFC 5545 requires DTSTART to use pre-transition local time (02:00),
+    // not the post-transition time (03:00 for spring forward, 01:00 for fall back).
+    const daylightBlock = vtimezoneBlock.slice(
+      vtimezoneBlock.indexOf("BEGIN:DAYLIGHT"),
+      vtimezoneBlock.indexOf("END:DAYLIGHT")
+    );
+    expect(daylightBlock).toContain("DTSTART:20230312T020000");
+
+    const standardBlock = vtimezoneBlock.slice(
+      vtimezoneBlock.indexOf("BEGIN:STANDARD"),
+      vtimezoneBlock.indexOf("END:STANDARD")
+    );
+    expect(standardBlock).toContain("DTSTART:20231105T020000");
+  });
+
+  it("should use correct DST rules for Southern Hemisphere (Australia/Sydney)", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230115T020000Z\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    const event = createMockEvent({
+      startTime: "2023-01-15T02:00:00Z",
+      endTime: "2023-01-15T03:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "Australia/Sydney",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.createEvent(event, 1);
+
+    const calledArg = vi.mocked(createCalendarObject).mock.calls[0][0];
+    const iCalString = calledArg.iCalString;
+
+    expect(iCalString).toContain("BEGIN:VTIMEZONE");
+    expect(iCalString).toContain("TZID:Australia/Sydney");
+    const vtimezoneBlock = iCalString.slice(
+      iCalString.indexOf("BEGIN:VTIMEZONE"),
+      iCalString.indexOf("END:VTIMEZONE") + 13
+    );
+    expect(vtimezoneBlock).toContain("BEGIN:DAYLIGHT");
+    expect(vtimezoneBlock).toContain("BEGIN:STANDARD");
+  });
+
+  it("should apply timezone fix to updateEvent as well", async () => {
+    const service = new TestCalendarService();
+    const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:test-uid\r\nDTSTART:20230615T150000Z\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDURATION:PT1H\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+
+    vi.mocked(createIcsEvent).mockReturnValue({
+      error: null as unknown as Error,
+      value: mockIcsOutput,
+    });
+
+    (service as unknown as Record<string, unknown>).getEventsByUID = vi.fn().mockResolvedValue([
+      {
+        uid: "test-uid",
+        url: "https://caldav.example.com/calendar/test.ics",
+        etag: '"etag123"',
+      },
+    ]);
+
+    const event = createMockEvent({
+      uid: "test-uid",
+      startTime: "2023-06-15T15:00:00Z",
+      endTime: "2023-06-15T16:00:00Z",
+      organizer: {
+        name: "Test",
+        email: "test@example.com",
+        timeZone: "America/Chicago",
+        language: { translate: ((key: string) => key) as never, locale: "en" },
+      },
+    });
+
+    await service.testUpdateEvent("test-uid", event, "https://caldav.example.com/calendar/");
+
+    const calledArg = vi.mocked(updateCalendarObject).mock.calls[0][0];
+    const data = calledArg.calendarObject.data;
+
+    expect(data).toContain("BEGIN:VTIMEZONE");
+    expect(data).toContain("TZID:America/Chicago");
+    expect(data).toContain("DTSTART;TZID=America/Chicago:");
+  });
+});
 
 describe("CalendarService - SCHEDULE-AGENT injection", () => {
   beforeEach(() => {
@@ -366,7 +718,7 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
 
     it("should preserve other iCal properties unchanged", async () => {
       const service = new TestCalendarService();
-      const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cal.com//NONSGML//EN\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDTSTART:20230101T100000Z\r\nDTEND:20230101T110000Z\r\nEND:VCALENDAR`;
+      const mockIcsOutput = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cal.com//NONSGML//EN\r\nBEGIN:VEVENT\r\nATTENDEE;CN=Guest:mailto:guest@example.com\r\nDTSTART:20230101T100000Z\r\nDTEND:20230101T110000Z\r\nEND:VEVENT\r\nEND:VCALENDAR`;
       vi.mocked(createIcsEvent).mockReturnValue({
         error: null as unknown as Error,
         value: mockIcsOutput,
@@ -381,8 +733,6 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
 
       expect(iCalString).toContain("VERSION:2.0");
       expect(iCalString).toContain("PRODID:-//Cal.com//NONSGML//EN");
-      expect(iCalString).toContain("DTSTART:20230101T100000Z");
-      expect(iCalString).toContain("DTEND:20230101T110000Z");
     });
 
     it("should handle empty iCalString gracefully", async () => {

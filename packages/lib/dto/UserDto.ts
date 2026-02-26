@@ -34,4 +34,6 @@ export interface BookingConfirmationUserDto {
   name: string | null;
   destinationCalendar: DestinationCalendarDto | null;
   locale: string | null;
+  hideBranding?: boolean;
+  profiles?: { organization: { hideBranding: boolean } | null }[];
 }
