@@ -1513,7 +1513,7 @@ const determineProfile = ({
 
   if (token.upId) {
     // Otherwise use what's in the token
-    return { profileId: token.profileId, upId: token.upId as string };
+    return { id: token.profileId ?? null, upId: token.upId as string };
   }
 
   // If there is just one profile it has to be the one we want to log into.
