@@ -78,8 +78,8 @@ export const helpCards: HelpCardInfo[] = [
       "If you are building a marketplace or platform from scratch, our Platform Starter Kit has everything you need.",
     variant: "basic",
     actionButton: {
-      href: "https://experts.cal.com",
-      child: "Try the Demo",
+      href: "https://github.com/calcom/examples",
+      child: "View Examples",
     },
   },
   {
