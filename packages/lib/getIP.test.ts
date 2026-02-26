@@ -22,6 +22,18 @@ describe("parseIpFromHeaders", () => {
   it("returns the first element when given an array", () => {
     expect(parseIpFromHeaders(["1.2.3.4", "5.6.7.8"])).toBe("1.2.3.4");
   });
+
+  it("trims whitespace from parsed IP", () => {
+    expect(parseIpFromHeaders(" 1.2.3.4 , 5.6.7.8")).toBe("1.2.3.4");
+  });
+
+  it("trims whitespace from single IP", () => {
+    expect(parseIpFromHeaders("  10.0.0.1  ")).toBe("10.0.0.1");
+  });
+
+  it("trims whitespace from array element", () => {
+    expect(parseIpFromHeaders(["  1.2.3.4  ", "5.6.7.8"])).toBe("1.2.3.4");
+  });
 });
 
 describe("getIP", () => {
@@ -35,7 +47,9 @@ describe("getIP", () => {
       const req = buildRequest({
         "cf-connecting-ip": "1.1.1.1",
         "true-client-ip": "2.2.2.2",
+        "x-vercel-forwarded-for": "7.7.7.7",
         "x-forwarded-for": "3.3.3.3",
+        "x-vercel-proxied-for": "8.8.8.8",
         "x-real-ip": "4.4.4.4",
       });
       expect(getIP(req)).toBe("1.1.1.1");
@@ -50,12 +64,29 @@ describe("getIP", () => {
       expect(getIP(req)).toBe("2.2.2.2");
     });
 
-    it("falls back to x-forwarded-for when cf and true-client headers are absent", () => {
+    it("falls back to x-vercel-forwarded-for when cf and true-client headers are absent", () => {
+      const req = buildRequest({
+        "x-vercel-forwarded-for": "7.7.7.7, 10.0.0.1",
+        "x-forwarded-for": "3.3.3.3",
+        "x-real-ip": "4.4.4.4",
+      });
+      expect(getIP(req)).toBe("7.7.7.7");
+    });
+
+    it("falls back to x-forwarded-for when cf, true-client and vercel-forwarded headers are absent", () => {
       const req = buildRequest({
         "x-forwarded-for": "3.3.3.3, 10.0.0.1",
         "x-real-ip": "4.4.4.4",
       });
       expect(getIP(req)).toBe("3.3.3.3");
+    });
+
+    it("falls back to x-vercel-proxied-for when only it and x-real-ip are present", () => {
+      const req = buildRequest({
+        "x-vercel-proxied-for": "8.8.8.8",
+        "x-real-ip": "4.4.4.4",
+      });
+      expect(getIP(req)).toBe("8.8.8.8");
     });
 
     it("falls back to x-real-ip as last resort", () => {
@@ -84,7 +115,9 @@ describe("getIP", () => {
       const req = buildNextApiRequest({
         "cf-connecting-ip": "1.1.1.1",
         "true-client-ip": "2.2.2.2",
+        "x-vercel-forwarded-for": "7.7.7.7",
         "x-forwarded-for": "3.3.3.3",
+        "x-vercel-proxied-for": "8.8.8.8",
         "x-real-ip": "4.4.4.4",
       });
       expect(getIP(req)).toBe("1.1.1.1");
@@ -98,7 +131,16 @@ describe("getIP", () => {
       expect(getIP(req)).toBe("2.2.2.2");
     });
 
-    it("falls back to x-forwarded-for when cf and true-client headers are absent", () => {
+    it("falls back to x-vercel-forwarded-for when cf and true-client headers are absent", () => {
+      const req = buildNextApiRequest({
+        "x-vercel-forwarded-for": "7.7.7.7",
+        "x-forwarded-for": "3.3.3.3",
+        "x-real-ip": "4.4.4.4",
+      });
+      expect(getIP(req)).toBe("7.7.7.7");
+    });
+
+    it("falls back to x-forwarded-for when cf, true-client and vercel-forwarded headers are absent", () => {
       const req = buildNextApiRequest({
         "x-forwarded-for": "3.3.3.3, 10.0.0.1",
         "x-real-ip": "4.4.4.4",

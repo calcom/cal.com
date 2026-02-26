@@ -4,25 +4,43 @@ import z from "zod";
 import logger from "./logger";
 
 export function parseIpFromHeaders(value: string | string[]) {
-  return Array.isArray(value) ? value[0] : value.split(",")[0];
+  const raw = Array.isArray(value) ? value[0] : value.split(",")[0];
+  return raw.trim();
 }
 
 /**
- * Tries to extract IP address from a request.
+ * Headers checked in priority order for CF → Vercel proxy chain.
  *
- * Header priority (CF → Vercel setup):
- *  1. cf-connecting-ip  – set by Cloudflare with the real client IP
- *  2. true-client-ip    – set by Cloudflare (Enterprise / Managed Transforms)
- *  3. x-forwarded-for   – first IP is the real client; survives the CF → Vercel hop
- *  4. x-real-ip         – set by Vercel to the *connecting* IP (CF edge IP when
- *                         behind Cloudflare, so least reliable)
+ * When Cloudflare proxies to Vercel, the request passes through multiple hops:
+ *   Client → Cloudflare Edge → Vercel Edge → Serverless Function (AWS Lambda)
  *
- * @see https://github.com/vercel/examples/blob/main/edge-functions/ip-blocking/lib/get-ip.ts
+ * Vercel's internal routing may strip or override upstream headers before they
+ * reach the serverless function.  We check both Cloudflare-origin headers and
+ * Vercel-specific headers.
+ *
+ *  1. cf-connecting-ip        – set by Cloudflare with the real client IP
+ *  2. true-client-ip          – set by CF Enterprise / Managed Transforms
+ *  3. x-vercel-forwarded-for  – Vercel's own forwarded-for chain; preserves
+ *                               the original client IP even after internal hops
+ *  4. x-forwarded-for         – standard proxy header; first IP is the client
+ *  5. x-vercel-proxied-for    – alternative Vercel header for proxied requests
+ *  6. x-real-ip               – set by Vercel to the *connecting* IP (CF edge
+ *                               or internal LB IP — least reliable)
+ *
+ * @see https://vercel.com/docs/security/reverse-proxy
+ * @see https://developers.cloudflare.com/fundamentals/reference/http-headers/
  **/
-export default function getIP(request: Request | NextApiRequest) {
-  const headers: readonly string[] = ["cf-connecting-ip", "true-client-ip", "x-forwarded-for", "x-real-ip"];
+export const IP_HEADERS: readonly string[] = [
+  "cf-connecting-ip",
+  "true-client-ip",
+  "x-vercel-forwarded-for",
+  "x-forwarded-for",
+  "x-vercel-proxied-for",
+  "x-real-ip",
+];
 
-  for (const header of headers) {
+export default function getIP(request: Request | NextApiRequest) {
+  for (const header of IP_HEADERS) {
     const value = request instanceof Request ? request.headers.get(header) : request.headers[header];
     if (value) {
       return parseIpFromHeaders(value);
