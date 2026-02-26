@@ -155,7 +155,19 @@ export async function handleConfirmation(args: {
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = await eventManager.create(evt, { skipCalendarEvent: !areCalendarEventsEnabled });
+  let scheduleResult;
+  try {
+    scheduleResult = await eventManager.create(evt, { skipCalendarEvent: !areCalendarEventsEnabled });
+  } catch (error) {
+    // If calendar event creation fails catastrophically, rollback the booking status
+    // so the organizer can retry confirmation. This is needed because confirm.handler.ts
+    // atomically sets the status to ACCEPTED before calling handleConfirmation (see #7703).
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.PENDING },
+    });
+    throw error;
+  }
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
@@ -260,12 +272,21 @@ export async function handleConfirmation(args: {
     const unconfirmedRecurringBookings = await prisma.booking.findMany({
       where: {
         recurringEventId,
-        status: BookingStatus.PENDING,
+        OR: [
+          { status: BookingStatus.PENDING },
+          // Also include the booking that was already atomically set to ACCEPTED
+          // by the confirm handler to prevent race conditions (see Cal.com #7703)
+          { id: bookingId, status: BookingStatus.ACCEPTED },
+        ],
       },
     });
 
+    // Always record oldStatus as PENDING since that's the true original status.
+    // The confirm handler atomically sets the triggering booking to ACCEPTED before
+    // calling handleConfirmation, so booking.status may already be ACCEPTED in the DB,
+    // but semantically the transition is PENDING -> ACCEPTED (see #7703).
     acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
-      oldStatus: booking.status,
+      oldStatus: BookingStatus.PENDING,
       uid: booking.uid,
     }));
 

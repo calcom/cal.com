@@ -2,19 +2,17 @@ import {
   createBookingScenario,
   getOrganizer,
   getScenarioData,
-  TestData,
   mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleConfirmation";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => {
   const onBookingAccepted = vi.fn().mockResolvedValue(undefined);
