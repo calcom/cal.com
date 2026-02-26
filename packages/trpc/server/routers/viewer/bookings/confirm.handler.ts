@@ -251,24 +251,50 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
   }
 
-  // Do not move this before authorization check.
-  // This is done to avoid exposing extra information to the requester.
-  if (booking.status === BookingStatus.ACCEPTED) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
-  }
+  // Atomically guard against duplicate confirmation processing.
+  // Using updateMany with a status WHERE clause ensures only one concurrent request succeeds.
+  if (confirmed) {
+    // If booking requires payment and is not paid, just mark as accepted and return early
+    if (booking.payment.length > 0 && !booking.paid) {
+      const updateResult = await prisma.booking.updateMany({
+        where: {
+          id: bookingId,
+          status: BookingStatus.PENDING,
+        },
+        data: {
+          status: BookingStatus.ACCEPTED,
+        },
+      });
 
-  // If booking requires payment and is not paid, we don't allow confirmation
-  if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    await prisma.booking.update({
+      if (updateResult.count === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed or being processed" });
+      }
+
+      return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
+    }
+
+    // For non-payment confirmations, atomically transition PENDING -> ACCEPTED
+    // This prevents multiple concurrent confirmation requests from generating duplicate calendar events
+    // Note: handleConfirmation() will later update the same row to attach calendar references,
+    // which is safe since the status is already ACCEPTED.
+    const atomicUpdate = await prisma.booking.updateMany({
       where: {
         id: bookingId,
+        status: BookingStatus.PENDING,
       },
       data: {
         status: BookingStatus.ACCEPTED,
       },
     });
 
-    return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
+    if (atomicUpdate.count === 0) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed or being processed" });
+    }
+  } else {
+    // For rejection, just check the status hasn't already been confirmed
+    if (booking.status === BookingStatus.ACCEPTED) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    }
   }
 
   // Cache translations to avoid requesting multiple times.
