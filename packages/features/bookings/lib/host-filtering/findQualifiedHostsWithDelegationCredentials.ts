@@ -141,19 +141,12 @@ export class QualifiedHostsService {
       return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
     }
 
-    // When routedTeamMemberIds is provided, filter fixed hosts to only include those that were
-    // matched by the routing logic. This prevents non-routed fixed hosts from appearing in
-    // availability checks when attribute-based routing is active.
-    const allFixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
+    const fixedHosts = normalizedHosts.filter(isFixedHost).filter((host) =>
       isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
         rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,
         schedulingType: eventType.schedulingType ?? undefined,
       })
     );
-    const fixedHosts =
-      routedTeamMemberIds.length > 0
-        ? allFixedHosts.filter((host) => routedTeamMemberIds.includes(host.user.id))
-        : allFixedHosts;
     const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost).filter((host) =>
       isWithinRRHostSubset(host, rrHostSubsetIds ?? [], {
         rrHostSubsetEnabled: eventType.rrHostSubsetEnabled ?? false,

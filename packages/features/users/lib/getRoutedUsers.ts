@@ -32,13 +32,8 @@ export const getRoutedUsersWithContactOwnerAndFixedUsers = <
     "filtering users as per routedTeamMemberIds",
     safeStringify({ routedTeamMemberIds, contactOwnerEmail })
   );
-  // When routing is explicitly applied via routedTeamMemberIds, only include users that match
-  // the routing criteria (or are the contact owner). Fixed hosts should NOT be automatically
-  // included because the routing form's attribute logic has already determined who should
-  // participate. Including non-routed fixed hosts causes them to appear in availability checks
-  // even though they weren't matched by the routing logic.
   return users.filter(
-    (user) => routedTeamMemberIds.includes(user.id) || user.email === contactOwnerEmail
+    (user) => routedTeamMemberIds.includes(user.id) || user.isFixed || user.email === contactOwnerEmail
   );
 };
 
