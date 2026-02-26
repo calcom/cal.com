@@ -174,10 +174,10 @@ export class SmtpConfigurationService {
       smtpSecure?: boolean;
     } = {};
 
-    if (params.fromEmail) updateData.fromEmail = params.fromEmail;
-    if (params.fromName) updateData.fromName = params.fromName;
-    if (params.smtpHost) updateData.smtpHost = params.smtpHost;
-    if (params.smtpPort) updateData.smtpPort = params.smtpPort;
+    if (params.fromEmail !== undefined) updateData.fromEmail = params.fromEmail;
+    if (params.fromName !== undefined) updateData.fromName = params.fromName;
+    if (params.smtpHost !== undefined) updateData.smtpHost = params.smtpHost;
+    if (params.smtpPort !== undefined) updateData.smtpPort = params.smtpPort;
     if (params.smtpUser) {
       updateData.smtpUser = JSON.stringify(
         encryptSecret({ ring: SMTP_KEYRING, plaintext: params.smtpUser, aad: { teamId } })
