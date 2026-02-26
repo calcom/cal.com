@@ -1,3 +1,6 @@
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import prisma from "@calcom/prisma";
+
 import type { IUrlShortenerProvider } from "./IUrlShortenerProvider";
 import { DubShortener } from "./providers/DubShortener";
 import { NoopShortener } from "./providers/NoopShortener";
@@ -5,10 +8,23 @@ import { SinkClient } from "./providers/SinkClient";
 import { SinkShortener } from "./providers/SinkShortener";
 
 export class UrlShortenerFactory {
-  static create(): IUrlShortenerProvider {
+  static async create(teamId?: number | null): Promise<IUrlShortenerProvider> {
     if (SinkShortener.isConfigured()) {
-      return new SinkShortener(new SinkClient());
+      const featuresRepository = new FeaturesRepository(prisma);
+
+      const globallyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("sink-shortener");
+      if (globallyEnabled) {
+        return new SinkShortener(new SinkClient());
+      }
+
+      if (teamId) {
+        const useSink = await featuresRepository.checkIfTeamHasFeature(teamId, "sink-shortener");
+        if (useSink) {
+          return new SinkShortener(new SinkClient());
+        }
+      }
     }
+
     if (DubShortener.isConfigured()) {
       return new DubShortener();
     }

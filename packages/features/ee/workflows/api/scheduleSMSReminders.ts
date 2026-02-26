@@ -54,8 +54,6 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  const shortener = UrlShortenerFactory.create();
-
   for (const reminder of unscheduledReminders) {
     if (!reminder.workflowStep || !reminder.booking) {
       continue;
@@ -138,6 +136,7 @@ export async function handler(req: NextRequest) {
           }`,
         };
 
+        const shortener = await UrlShortenerFactory.create(teamId);
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
           await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
             domain: DUB_SMS_DOMAIN,

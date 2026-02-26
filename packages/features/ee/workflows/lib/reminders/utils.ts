@@ -13,7 +13,8 @@ export const getSMSMessageWithVariables = async (
   smsMessage: string,
   evt: BookingInfo,
   attendeeToBeUsedInSMS: AttendeeInBookingInfo,
-  action: WorkflowActions
+  action: WorkflowActions,
+  teamId?: number | null
 ) => {
   const recipientEmail = getWorkflowRecipientEmail({
     action,
@@ -29,7 +30,7 @@ export const getSMSMessageWithVariables = async (
     }`,
   };
 
-  const shortener = UrlShortenerFactory.create();
+  const shortener = await UrlShortenerFactory.create(teamId);
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
     await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
       domain: DUB_SMS_DOMAIN,

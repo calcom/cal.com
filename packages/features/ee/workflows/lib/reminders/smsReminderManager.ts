@@ -171,7 +171,7 @@ const scheduleSMSReminderForEvt = async (
     let smsMessage = message;
 
     if (smsMessage) {
-      smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action);
+      smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action, teamId);
     } else if (template === WorkflowTemplates.REMINDER) {
       smsMessage =
         smsReminderTemplate(

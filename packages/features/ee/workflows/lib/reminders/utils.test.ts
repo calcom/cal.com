@@ -6,7 +6,7 @@ import type { AttendeeInBookingInfo, BookingInfo } from "../types";
 const mockShortenMany = vi.fn();
 vi.mock("@calcom/features/url-shortener/UrlShortenerFactory", () => ({
   UrlShortenerFactory: {
-    create: () => ({
+    create: async () => ({
       shortenMany: (...args: unknown[]) => mockShortenMany(...args),
     }),
   },
