@@ -6,6 +6,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { BookingStatus, BookingReportReason } from "@calcom/prisma/enums";
 
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { TRPCError } from "@trpc/server";
 
 import { reportBookingHandler } from "./reportBooking.handler";
@@ -14,6 +15,12 @@ vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportReposito
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/bookings/services/BookingAccessService");
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
+}));
+vi.mock("@calcom/features/watchlist/lib/utils/normalization", () => ({
+  extractDomainFromEmail: (email: string) => email.split("@")[1],
+}));
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     getSubLogger: () => ({
@@ -28,73 +35,75 @@ describe("reportBookingHandler", () => {
     id: 1,
     email: "user@example.com",
     name: "Test User",
+    organizationId: undefined,
   };
+
+  const mockActionSource = "WEBAPP" as const;
+
+  const tomorrow = new Date(Date.now() + 86400000);
+  const yesterday = new Date(Date.now() - 86400000);
 
   const mockBooking = {
     id: 100,
     uid: "test-booking-uid",
-    startTime: new Date("2025-12-01T10:00:00Z"),
+    userId: 1,
+    startTime: tomorrow,
     status: BookingStatus.ACCEPTED,
-    recurringEventId: null,
-    attendees: [{ email: "booker@example.com" }],
+    attendees: [{ email: "booker@spammer.com" }],
     seatsReferences: [],
     report: null,
   };
 
   const mockBookingRepo = {
     findByUidIncludeReport: vi.fn(),
-    getActiveRecurringBookingsFromDate: vi.fn(),
+    findUpcomingByAttendeeEmail: vi.fn(),
+    findUpcomingByAttendeeDomain: vi.fn(),
   };
 
   const mockReportRepo = {
     createReport: vi.fn(),
-    findAllReportedBookings: vi.fn(),
   };
 
   const mockBookingAccessService = {
     doesUserIdHaveAccessToBooking: vi.fn(),
   };
 
+  function callHandler(inputOverrides = {}) {
+    return reportBookingHandler({
+      ctx: { user: mockUser },
+      input: {
+        bookingUid: "test-booking-uid",
+        reason: BookingReportReason.SPAM,
+        ...inputOverrides,
+      },
+      actionSource: mockActionSource,
+    });
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
 
     vi.mocked(BookingRepository).mockImplementation(function () {
-      return mockBookingRepo;
+      return mockBookingRepo as any;
     });
     vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
-      return mockReportRepo;
+      return mockReportRepo as any;
     });
     vi.mocked(BookingAccessService).mockImplementation(function () {
-      return mockBookingAccessService;
+      return mockBookingAccessService as any;
     });
+
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
+    mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
+    mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([]);
   });
 
   describe("access control", () => {
     it("should throw FORBIDDEN when user doesn't have access to booking", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(false);
 
-      await expect(
-        reportBookingHandler({
-          ctx: { user: mockUser },
-          input: {
-            bookingUid: "test-booking-uid",
-            reason: BookingReportReason.SPAM,
-          },
-        })
-      ).rejects.toThrow(TRPCError);
-
-      await expect(
-        reportBookingHandler({
-          ctx: { user: mockUser },
-          input: {
-            bookingUid: "test-booking-uid",
-            reason: BookingReportReason.SPAM,
-          },
-        })
-      ).rejects.toMatchObject({
+      await expect(callHandler()).rejects.toMatchObject({
         code: "FORBIDDEN",
-        message: "You don't have access to this booking",
       });
     });
 
@@ -102,22 +111,11 @@ describe("reportBookingHandler", () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue(null);
 
-      await expect(
-        reportBookingHandler({
-          ctx: { user: mockUser },
-          input: {
-            bookingUid: "test-booking-uid",
-            reason: BookingReportReason.SPAM,
-          },
-        })
-      ).rejects.toMatchObject({
+      await expect(callHandler()).rejects.toMatchObject({
         code: "NOT_FOUND",
-        message: "Booking not found",
       });
     });
-  });
 
-  describe("duplicate report prevention", () => {
     it("should throw BAD_REQUEST when booking already has a report", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
@@ -125,171 +123,104 @@ describe("reportBookingHandler", () => {
         report: { id: "existing-report" },
       });
 
-      await expect(
-        reportBookingHandler({
-          ctx: { user: mockUser },
-          input: {
-            bookingUid: "test-booking-uid",
-            reason: BookingReportReason.SPAM,
-          },
-        })
-      ).rejects.toMatchObject({
+      await expect(callHandler()).rejects.toMatchObject({
         code: "BAD_REQUEST",
         message: "This booking has already been reported",
       });
     });
-  });
 
-  describe("successful report creation", () => {
-    it("should successfully create a single booking report and auto-cancel upcoming booking", async () => {
+    it("should throw BAD_REQUEST when booking has no attendees", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
-        startTime: new Date(Date.now() + 86400000), // Tomorrow
-      });
-      vi.mocked(handleCancelBooking).mockResolvedValue({
-        success: true,
-        message: "Cancelled",
-        onlyRemovedAttendee: false,
-        bookingUid: "test-booking-uid",
+        attendees: [],
       });
 
-      const result = await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-          description: "This is spam",
-        },
+      await expect(callHandler()).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Booking has no attendees",
       });
+    });
+
+    it("should allow EMAIL reporting for seated event bookings", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        ...mockBooking,
+        seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
+      });
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
+      vi.mocked(handleCancelBooking).mockResolvedValue({ success: true, bookingId: 100 });
+      mockReportRepo.createReport.mockResolvedValue({});
+
+      const result = await callHandler({ reportType: "EMAIL" });
 
       expect(result.success).toBe(true);
-      expect(result.message).toBe("Booking reported and cancelled successfully");
-      expect(result.reportedCount).toBe(1);
-      expect(mockReportRepo.createReport).toHaveBeenCalledWith({
-        bookingUid: "test-booking-uid",
-        bookerEmail: "booker@example.com",
-        reportedById: mockUser.id,
-        reason: BookingReportReason.SPAM,
-        description: "This is spam",
-        cancelled: true,
-        organizationId: undefined,
-      });
     });
 
-    it("should create report without description for past booking", async () => {
+    it("should throw BAD_REQUEST for DOMAIN reporting on seated event bookings", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
-        startTime: new Date(Date.now() - 86400000), // Yesterday
+        seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
       });
 
-      const result = await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.DONT_KNOW_PERSON,
-        },
-      });
-
-      expect(result.message).toBe("Booking reported successfully");
-      expect(mockReportRepo.createReport).toHaveBeenCalledWith({
-        bookingUid: "test-booking-uid",
-        bookerEmail: "booker@example.com",
-        reportedById: mockUser.id,
-        reason: BookingReportReason.DONT_KNOW_PERSON,
-        description: undefined,
-        cancelled: false,
-        organizationId: undefined,
-      });
-    });
-  });
-
-  describe("cancellation integration", () => {
-    it("should cancel booking when cancelBooking is true", async () => {
-      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
-        ...mockBooking,
-        startTime: new Date(Date.now() + 86400000), // Tomorrow
-      });
-      vi.mocked(handleCancelBooking).mockResolvedValue({
-        success: true,
-        message: "Cancelled",
-        onlyRemovedAttendee: false,
-        bookingUid: "test-booking-uid",
-      });
-
-      const result = await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-          description: "Spam booking",
-        },
-      });
-
-      expect(result.message).toBe("Booking reported and cancelled successfully");
-      expect(handleCancelBooking).toHaveBeenCalledWith({
-        bookingData: {
-          uid: "test-booking-uid",
-          cancelledBy: mockUser.email,
-          skipCancellationReasonValidation: true,
-        },
-        userId: mockUser.id,
-      });
-    });
-
-    it("should not cancel booking if it's in the past", async () => {
-      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
-        ...mockBooking,
-        startTime: new Date(Date.now() - 86400000),
-      });
-
-      const result = await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-        },
+      await expect(callHandler({ reportType: "DOMAIN" })).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Domain reporting is not available for seated events",
       });
 
       expect(handleCancelBooking).not.toHaveBeenCalled();
-      expect(result.message).toBe("Booking reported successfully");
+    });
+  });
+
+  describe("EMAIL report type", () => {
+    beforeEach(() => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
     });
 
-    it("should handle cancellation failure gracefully", async () => {
-      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
-        ...mockBooking,
-        startTime: new Date(Date.now() + 86400000),
-      });
-      vi.mocked(handleCancelBooking).mockRejectedValue(new Error("Cancellation failed"));
-
-      const result = await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-        },
+    it("should query by attendee email and cancel upcoming booking", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
       });
 
+      const result = await callHandler({ reportType: "EMAIL" });
+
+      expect(mockBookingRepo.findUpcomingByAttendeeEmail).toHaveBeenCalledWith({
+        attendeeEmail: "booker@spammer.com",
+        hostUserId: mockUser.id,
+      });
       expect(result.success).toBe(true);
-      expect(result.message).toBe("Booking reported successfully, but cancellation failed");
-      expect(result).not.toHaveProperty("cancellationError");
+      expect(result.message).toBe("Booking reported and cancelled successfully");
     });
 
-    it("should use cancelSubsequentBookings for recurring events", async () => {
-      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
-        ...mockBooking,
-        recurringEventId: "recurring-123",
-        startTime: new Date(Date.now() + 86400000),
+    it("should use booker email (not domain) for report creation", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
       });
-      mockBookingRepo.getActiveRecurringBookingsFromDate.mockResolvedValue([
-        { uid: "100" },
-        { uid: "101" },
-        { uid: "102" },
+
+      await callHandler({ reportType: "EMAIL" });
+
+      expect(mockReportRepo.createReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookerEmail: "booker@spammer.com",
+        })
+      );
+    });
+
+    it("should cancel additional bookings from the same email", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
+        { uid: "additional-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
+        { uid: "additional-2", report: null, attendees: [{ email: "booker@spammer.com" }] },
       ]);
       vi.mocked(handleCancelBooking).mockResolvedValue({
         success: true,
@@ -298,31 +229,210 @@ describe("reportBookingHandler", () => {
         bookingUid: "test-booking-uid",
       });
 
-      await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-        },
-      });
+      const result = await callHandler({ reportType: "EMAIL" });
 
-      expect(handleCancelBooking).toHaveBeenCalledWith({
-        bookingData: expect.objectContaining({
-          cancelSubsequentBookings: true,
-        }),
-        userId: mockUser.id,
-      });
+      // Original + 2 additional
+      expect(handleCancelBooking).toHaveBeenCalledTimes(3);
+      expect(result.reportedCount).toBe(3);
+    });
+  });
+
+  describe("DOMAIN report type", () => {
+    beforeEach(() => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
     });
 
-    it("should pass seatReferenceUid for seated events", async () => {
+    it("should query by attendee domain", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      await callHandler({ reportType: "DOMAIN" });
+
+      expect(mockBookingRepo.findUpcomingByAttendeeDomain).toHaveBeenCalledWith({
+        domain: "spammer.com",
+        hostUserId: mockUser.id,
+      });
+      expect(mockBookingRepo.findUpcomingByAttendeeEmail).not.toHaveBeenCalled();
+    });
+
+    it("should use @domain as bookerEmail for report grouping", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      await callHandler({ reportType: "DOMAIN" });
+
+      expect(mockReportRepo.createReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookerEmail: "@spammer.com",
+        })
+      );
+    });
+
+    it("should cancel bookings from different emails on the same domain", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([
+        { uid: "domain-match-1", report: null, attendees: [{ email: "other@spammer.com" }] },
+      ]);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      const result = await callHandler({ reportType: "DOMAIN" });
+
+      // Original + 1 domain match
+      expect(handleCancelBooking).toHaveBeenCalledTimes(2);
+      expect(result.reportedCount).toBe(2);
+    });
+
+    it("should reject DOMAIN report for free email domains", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        ...mockBooking,
+        attendees: [{ email: "booker@gmail.com" }],
+      });
+      vi.mocked(checkIfFreeEmailDomain).mockResolvedValue(true);
+
+      await expect(callHandler({ reportType: "DOMAIN" })).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: "Cannot report by domain for free email providers",
+      });
+
+      expect(handleCancelBooking).not.toHaveBeenCalled();
+
+      // Reset for other tests
+      vi.mocked(checkIfFreeEmailDomain).mockResolvedValue(false);
+    });
+  });
+
+  describe("skipNotifications", () => {
+    it("should pass skipNotifications: true to handleCancelBooking", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      await callHandler();
+
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({
+            skipCancellationReasonValidation: true,
+            cancelledBy: mockUser.email,
+          }),
+          skipNotifications: true,
+          actionSource: mockActionSource,
+        })
+      );
+    });
+  });
+
+  describe("cancellation behavior", () => {
+    beforeEach(() => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+    });
+
+    it("should not cancel past bookings", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        ...mockBooking,
+        startTime: yesterday,
+      });
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
+
+      const result = await callHandler();
+
+      expect(handleCancelBooking).not.toHaveBeenCalled();
+      expect(result.message).toBe("Booking reported successfully");
+    });
+
+    it("should skip already-reported bookings in additional matches", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
+        { uid: "already-reported", report: { id: "r1" }, attendees: [{ email: "booker@spammer.com" }] },
+        { uid: "not-reported", report: null, attendees: [{ email: "booker@spammer.com" }] },
+      ]);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      const result = await callHandler();
+
+      // Original + 1 unreported additional (skip the already-reported one)
+      expect(handleCancelBooking).toHaveBeenCalledTimes(2);
+      expect(result.reportedCount).toBe(2);
+    });
+
+    it("should mark cancelled flag only for bookings that were actually cancelled", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
+        { uid: "additional-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
+      ]);
+      // First cancellation (original) succeeds, second (additional) fails
+      vi.mocked(handleCancelBooking)
+        .mockResolvedValueOnce({
+          success: true,
+          message: "Cancelled",
+          onlyRemovedAttendee: false,
+          bookingUid: "test-booking-uid",
+        })
+        .mockRejectedValueOnce(new Error("Cancellation failed"));
+
+      const result = await callHandler();
+
+      expect(result.success).toBe(true);
+      expect(result.reportedCount).toBe(2);
+
+      // Original booking was cancelled successfully
+      expect(mockReportRepo.createReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingUid: "test-booking-uid",
+          cancelled: true,
+        })
+      );
+      // Additional booking cancellation failed — should be marked as not cancelled
+      expect(mockReportRepo.createReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingUid: "additional-1",
+          cancelled: false,
+        })
+      );
+    });
+
+    it("should report but not cancel when all cancellations fail", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockRejectedValue(new Error("Cancellation failed"));
+
+      const result = await callHandler();
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe("Booking reported successfully");
+    });
+  });
+
+  describe("host user scoping", () => {
+    it("should use booking.userId as hostUserId when available", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
-        startTime: new Date(Date.now() + 86400000),
-        seatsReferences: [
-          { referenceUid: "seat-123", attendee: { email: mockUser.email } },
-          { referenceUid: "seat-456", attendee: { email: "other@example.com" } },
-        ],
+        userId: 99, // Different from user.id (1)
       });
       vi.mocked(handleCancelBooking).mockResolvedValue({
         success: true,
@@ -331,20 +441,58 @@ describe("reportBookingHandler", () => {
         bookingUid: "test-booking-uid",
       });
 
-      await reportBookingHandler({
-        ctx: { user: mockUser },
-        input: {
-          bookingUid: "test-booking-uid",
-          reason: BookingReportReason.SPAM,
-        },
+      await callHandler({ reportType: "EMAIL" });
+
+      expect(mockBookingRepo.findUpcomingByAttendeeEmail).toHaveBeenCalledWith({
+        attendeeEmail: "booker@spammer.com",
+        hostUserId: 99,
+      });
+    });
+
+    it("should fall back to user.id when booking.userId is null", async () => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        ...mockBooking,
+        userId: null,
+      });
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
       });
 
-      expect(handleCancelBooking).toHaveBeenCalledWith({
-        bookingData: expect.objectContaining({
-          seatReferenceUid: "seat-123",
-        }),
-        userId: mockUser.id,
+      await callHandler({ reportType: "EMAIL" });
+
+      expect(mockBookingRepo.findUpcomingByAttendeeEmail).toHaveBeenCalledWith({
+        attendeeEmail: "booker@spammer.com",
+        hostUserId: mockUser.id,
       });
+    });
+  });
+
+  describe("report count messages", () => {
+    beforeEach(() => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+    });
+
+    it("should say 'N bookings reported' when multiple bookings are reported", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
+        { uid: "extra-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
+        { uid: "extra-2", report: null, attendees: [{ email: "booker@spammer.com" }] },
+      ]);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      const result = await callHandler();
+
+      expect(result.message).toBe("3 bookings reported and cancelled successfully");
+      expect(result.reportedCount).toBe(3);
     });
   });
 });

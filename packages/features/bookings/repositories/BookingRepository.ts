@@ -9,6 +9,7 @@ import {
 } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { workflowSelect } from "../../ee/workflows/lib/getAllWorkflows";
+import { UPCOMING_BOOKING_STATUSES } from "../lib/isUpcomingBooking";
 import type {
   BookingUpdateData,
   BookingWhereInput,
@@ -645,6 +646,7 @@ export class BookingRepository implements IBookingRepository {
       select: {
         id: true,
         uid: true,
+        userId: true,
         startTime: true,
         status: true,
         recurringEventId: true,
@@ -728,6 +730,64 @@ export class BookingRepository implements IBookingRepository {
         status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
       },
       select: { id: true, uid: true },
+      orderBy: { startTime: "asc" },
+    });
+  }
+
+  async findUpcomingByAttendeeEmail({
+    attendeeEmail,
+    hostUserId,
+  }: {
+    attendeeEmail: string;
+    hostUserId: number;
+  }) {
+    return await this.prismaClient.booking.findMany({
+      where: {
+        userId: hostUserId,
+        startTime: { gt: new Date() },
+        status: { in: UPCOMING_BOOKING_STATUSES },
+        attendees: {
+          some: {
+            email: { equals: attendeeEmail },
+          },
+        },
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        attendees: { select: { email: true } },
+        report: { select: { id: true } },
+      },
+      orderBy: { startTime: "asc" },
+    });
+  }
+
+  async findUpcomingByAttendeeDomain({ domain, hostUserId }: { domain: string; hostUserId: number }) {
+    return await this.prismaClient.booking.findMany({
+      where: {
+        userId: hostUserId,
+        startTime: { gt: new Date() },
+        status: { in: UPCOMING_BOOKING_STATUSES },
+        attendees: {
+          some: {
+            email: { endsWith: `@${domain}` },
+          },
+        },
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        attendees: { select: { email: true } },
+        report: { select: { id: true } },
+      },
       orderBy: { startTime: "asc" },
     });
   }

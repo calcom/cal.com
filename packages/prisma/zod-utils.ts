@@ -1,6 +1,5 @@
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
-import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
   AnyZodObject,
   objectInputType,
@@ -10,14 +9,14 @@ import type {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
-
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type { Prisma } from "./client";
 import { EventTypeCustomInputType } from "./enums";
 
 /** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
 export const emailRegex =
   /* eslint-disable-next-line no-useless-escape */
-  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
 
 /**
  * RFC 5321 Section 4.5.3.1.3 specifies:
@@ -299,7 +298,7 @@ export const bookingResponses = z
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
 // Re-exported from @calcom/lib/zod/eventType for backwards compatibility
-export { eventTypeLocations, type EventTypeLocation } from "@calcom/lib/zod/eventType";
+export { type EventTypeLocation, eventTypeLocations } from "@calcom/lib/zod/eventType";
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z

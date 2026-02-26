@@ -1,12 +1,13 @@
 import { describe, it, expect } from "vitest";
 
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { BookingReportReason, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import {
   getPendingActions,
   getCancelEventAction,
   getVideoOptionsActions,
   getEditEventActions,
+  getReportAction,
   getAfterEventActions,
   shouldShowPendingActions,
   shouldShowEditActions,
@@ -454,6 +455,45 @@ describe("Booking Actions", () => {
       expect(addMembersAction?.disabled).toBe(false);
       expect(rerouteAction?.disabled).toBe(false);
       expect(reassignAction?.disabled).toBe(false);
+    });
+  });
+
+  describe("getReportAction", () => {
+    it("should be enabled for regular bookings without a report", () => {
+      const context = createMockContext();
+      const action = getReportAction(context);
+
+      expect(action.disabled).toBe(false);
+    });
+
+    it("should be disabled when booking already has a report", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          report: {
+            id: "report-1",
+            description: null,
+            createdAt: new Date(),
+            reason: BookingReportReason.SPAM,
+            reportedById: null,
+          },
+        },
+      });
+      const action = getReportAction(context);
+
+      expect(action.disabled).toBe(true);
+    });
+
+    it("should be enabled for seated event bookings", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "attendee@example.com" } }],
+        },
+      });
+      const action = getReportAction(context);
+
+      expect(action.disabled).toBe(false);
     });
   });
 

@@ -16,6 +16,8 @@ import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
+import { ZGetUpcomingBookingsByDomainInputSchema } from "./getUpcomingBookingsByDomain.schema";
+import { ZIsFreeDomainInputSchema } from "./isFreeDomain.schema";
 import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
 import { ZHasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
@@ -114,6 +116,20 @@ export const bookingsRouter = router({
         ctx,
         input,
       });
+    }),
+
+  isFreeDomain: authedProcedure.input(ZIsFreeDomainInputSchema).query(async ({ input }) => {
+    const { isFreeDomainHandler } = await import("./isFreeDomain.handler");
+
+    return isFreeDomainHandler({ input });
+  }),
+
+  getUpcomingBookingsByDomain: authedProcedure
+    .input(ZGetUpcomingBookingsByDomainInputSchema)
+    .query(async ({ input, ctx }) => {
+      const { getUpcomingBookingsByDomainHandler } = await import("./getUpcomingBookingsByDomain.handler");
+
+      return getUpcomingBookingsByDomainHandler({ ctx, input });
     }),
 
   reportBooking: authedProcedure.input(ZReportBookingInputSchema).mutation(async ({ input, ctx }) => {

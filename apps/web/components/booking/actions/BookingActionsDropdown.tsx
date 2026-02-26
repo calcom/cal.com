@@ -448,7 +448,9 @@ export function BookingActionsDropdown({
         isOpenDialog={isOpenReportDialog}
         setIsOpenDialog={setIsOpenReportDialog}
         bookingUid={booking.uid}
+        bookerEmail={booking.attendees[0]?.email ?? ""}
         isRecurring={isRecurring}
+        isSeatedEvent={booking.seatsReferences.length > 0}
         status={getBookingStatus()}
       />
       {isBookingFromRoutingForm && (

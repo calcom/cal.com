@@ -12,6 +12,7 @@ import {
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   expectBookingCancelledWebhookToHaveBeenFired,
+  expectWorkflowToBeNotTriggered,
   expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -1666,6 +1667,130 @@ describe("Cancel Booking", () => {
     expect(result.success).toBe(true);
     expect(result.onlyRemovedAttendee).toBe(false);
     expect(result.bookingId).toBe(idOfBookingToBeCancelled);
+  });
+
+  test("Should not send emails or trigger workflows when skipNotifications is true", async ({ emails }) => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "h5Wv3eHgconAED2j4gcVhP";
+    const idOfBookingToBeCancelled = 1020;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        webhooks: [
+          {
+            userId: organizer.id,
+            eventTriggers: ["BOOKING_CANCELLED"],
+            subscriberUrl: "http://my-webhook.example.com",
+            active: true,
+            eventTypeId: 1,
+            appId: null,
+          },
+        ],
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "EVENT_CANCELLED",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            metadata: {
+              videoCallUrl: "https://existing-daily-video-call-url.example.com",
+            },
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-1`,
+      },
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: {
+        id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+      },
+    });
+
+    const result = await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Spam report",
+      },
+      skipNotifications: true,
+      actionSource: "WEBAPP",
+    });
+
+    expect(result.success).toBe(true);
+
+    // Workflows should NOT be triggered with skipNotifications
+    expectWorkflowToBeNotTriggered({ emailsToReceive: [organizer.email], emails });
+
+    // No cancellation emails should have been sent
+    const allEmails = emails.get();
+    const cancellationEmails = allEmails.filter(
+      (e: { subject: string }) =>
+        e.subject.toLowerCase().includes("cancel") || e.subject.toLowerCase().includes("rejected")
+    );
+    expect(cancellationEmails).toHaveLength(0);
   });
 
   describe("Cancellation Reason Requirement", () => {

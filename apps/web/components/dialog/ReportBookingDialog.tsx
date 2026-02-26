@@ -1,16 +1,99 @@
-import type { Dispatch, SetStateAction } from "react";
-import { Controller, useForm } from "react-hook-form";
-
+import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { formatTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingReportReason } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Select, Label } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
+import { Label, Select, TextArea } from "@calcom/ui/components/form";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import type { Dispatch, SetStateAction } from "react";
+import { Controller, useForm } from "react-hook-form";
+
+function ReportTypeSelector({
+  reportType,
+  onReportTypeChange,
+  isFreeDomain,
+  isSeatedEvent,
+  bookerEmail,
+  bookerDomain,
+  matchingBookings,
+  isPreviewLoading,
+  userTimeZone,
+  userTimeFormat,
+}: {
+  reportType: "EMAIL" | "DOMAIN";
+  onReportTypeChange: (value: "EMAIL" | "DOMAIN") => void;
+  isFreeDomain: boolean;
+  isSeatedEvent: boolean;
+  bookerEmail: string;
+  bookerDomain: string;
+  matchingBookings: { uid: string; title: string; startTime: Date; endTime: Date; attendeeEmail: string }[];
+  isPreviewLoading: boolean;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null;
+}) {
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
+
+  return (
+    <>
+      {!isFreeDomain && !isSeatedEvent && bookerDomain && (
+        <div className="mb-4">
+          <RadioGroup
+            value={reportType}
+            onValueChange={(value) => onReportTypeChange(value as "EMAIL" | "DOMAIN")}>
+            <RadioField id="report-email" value="EMAIL" label={t("report_type_email")} />
+            <RadioField
+              id="report-domain"
+              value="DOMAIN"
+              label={t("report_type_domain", { domain: bookerDomain })}
+            />
+          </RadioGroup>
+        </div>
+      )}
+
+      {matchingBookings.length > 0 && (
+        <div className="mb-4">
+          <Alert
+            severity="warning"
+            title={
+              reportType === "EMAIL"
+                ? t("report_email_bookings_preview", { email: bookerEmail })
+                : t("report_domain_bookings_preview", { domain: bookerDomain })
+            }
+          />
+          <ul className="border-subtle mt-2 max-h-40 overflow-y-auto rounded-md border">
+            {matchingBookings.map((b) => (
+              <li
+                key={b.uid}
+                className="border-subtle flex items-center justify-between border-b px-3 py-2 text-sm last:border-b-0">
+                <span className="text-emphasis font-medium">{b.title}</span>
+                <span className="text-subtle text-xs">
+                  {dayjs(b.startTime).tz(userTimeZone).locale(language).format("ddd, D MMM") +
+                    " " +
+                    formatTime(b.startTime, userTimeFormat, userTimeZone)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {matchingBookings.length === 0 && !isPreviewLoading && (
+        <div className="mb-4">
+          <Alert severity="warning" title={t("report_booking_will_cancel_description")} />
+        </div>
+      )}
+    </>
+  );
+}
 
 type BookingReportStatus = "upcoming" | "past" | "cancelled" | "rejected";
 
@@ -18,32 +101,55 @@ interface IReportBookingDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingUid: string;
+  bookerEmail: string;
   isRecurring: boolean;
+  isSeatedEvent: boolean;
   status: BookingReportStatus;
 }
 
 interface FormValues {
   reason: BookingReportReason;
   description: string;
+  reportType: "EMAIL" | "DOMAIN";
 }
 
 export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingUid, status } = props;
+  const { data: me } = useMeQuery();
+  const userTimeZone = me?.timeZone;
+  const userTimeFormat = me?.timeFormat ?? null;
+  const { isOpenDialog, setIsOpenDialog, bookingUid, bookerEmail, isSeatedEvent } = props;
 
-  const willBeCancelled = status === "upcoming";
+  const bookerDomain = bookerEmail.split("@")[1]?.toLowerCase() ?? "";
+
+  const { data: freeDomainCheck } = trpc.viewer.bookings.isFreeDomain.useQuery(
+    { email: bookerEmail },
+    { enabled: isOpenDialog && !!bookerDomain }
+  );
+  const isFreeDomain = freeDomainCheck?.isFreeDomain ?? false;
 
   const {
     control,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       reason: BookingReportReason.SPAM,
       description: "",
+      reportType: "EMAIL",
     },
   });
+
+  const reportType = watch("reportType");
+
+  const { data: bookingPreview, isLoading: isPreviewLoading } =
+    trpc.viewer.bookings.getUpcomingBookingsByDomain.useQuery(
+      { bookingUid, reportType },
+      { enabled: isOpenDialog }
+    );
 
   const { mutate: reportBooking, isPending } = trpc.viewer.bookings.reportBooking.useMutation({
     async onSuccess(data) {
@@ -61,14 +167,20 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
       bookingUid,
       reason: data.reason,
       description: data.description || undefined,
+      reportType: data.reportType,
     });
   };
 
   const reasonOptions = [
     { label: t("report_reason_spam"), value: BookingReportReason.SPAM },
-    { label: t("report_reason_dont_know_person"), value: BookingReportReason.DONT_KNOW_PERSON },
+    {
+      label: t("report_reason_dont_know_person"),
+      value: BookingReportReason.DONT_KNOW_PERSON,
+    },
     { label: t("report_reason_other"), value: BookingReportReason.OTHER },
   ];
+
+  const matchingBookings = bookingPreview?.bookings ?? [];
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -112,11 +224,18 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
                 />
               </div>
 
-              {willBeCancelled && (
-                <div className="mb-4">
-                  <Alert severity="warning" title={t("report_booking_will_cancel_description")} />
-                </div>
-              )}
+              <ReportTypeSelector
+                reportType={reportType}
+                onReportTypeChange={(value) => setValue("reportType", value)}
+                isFreeDomain={isFreeDomain}
+                isSeatedEvent={isSeatedEvent}
+                bookerEmail={bookerEmail}
+                bookerDomain={bookerDomain}
+                matchingBookings={matchingBookings}
+                isPreviewLoading={isPreviewLoading}
+                userTimeZone={userTimeZone}
+                userTimeFormat={userTimeFormat}
+              />
             </div>
           </div>
 
@@ -128,7 +247,11 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
               disabled={isPending}>
               {t("cancel")}
             </Button>
-            <Button type="submit" color="primary" disabled={isPending} loading={isPending}>
+            <Button
+              type="submit"
+              color="primary"
+              disabled={isPending || isPreviewLoading}
+              loading={isPending || isPreviewLoading}>
               {t("submit_report")}
             </Button>
           </DialogFooter>

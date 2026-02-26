@@ -38,6 +38,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/i18n/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -45,7 +46,6 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -88,6 +88,8 @@ export type CancelBookingInput = {
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
   actionSource: ValidActionSource;
+  /** When true, suppresses emails, webhooks, and workflow reminders. Internal use only (e.g. spam report bulk cancellation). */
+  skipNotifications?: boolean;
 } & PlatformParams;
 
 type Dependencies = {
@@ -167,6 +169,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     internalNote,
     skipCancellationReasonValidation = false,
   } = bookingCancelInput.parse(body);
+  const skipNotifications = input.skipNotifications ?? false;
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
     userId,
@@ -443,48 +446,52 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     } satisfies HandleCancelBookingResponse;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evtWithoutAssignmentReason,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-      cancelledBy: cancelledBy,
-      requestReschedule: false,
-    }).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  if (!skipNotifications) {
+    const promises = webhooks.map((webhook) =>
+      sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+        ...evtWithoutAssignmentReason,
+        ...eventTypeInfo,
+        status: "CANCELLED",
+        smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+        cancelledBy: cancelledBy,
+        requestReschedule: false,
+      }).catch((e) => {
+        logger.error(
+          `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+          safeStringify(e)
+        );
+      })
+    );
+    await Promise.all(promises);
+  }
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   const creditService = new CreditService();
 
-  await sendCancelledReminders({
-    workflows,
-    smsReminderNumber: bookingToDelete.smsReminderNumber,
-    evt: {
-      ...evt,
-      ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
-        ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
-        : {}),
-      bookerUrl,
-      ...{
-        eventType: {
-          slug: bookingToDelete.eventType?.slug as string,
-          schedulingType: bookingToDelete.eventType?.schedulingType,
-          hosts: bookingToDelete.eventType?.hosts,
+  if (!skipNotifications) {
+    await sendCancelledReminders({
+      workflows,
+      smsReminderNumber: bookingToDelete.smsReminderNumber,
+      evt: {
+        ...evt,
+        ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+          ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
+          : {}),
+        bookerUrl,
+        ...{
+          eventType: {
+            slug: bookingToDelete.eventType?.slug as string,
+            schedulingType: bookingToDelete.eventType?.schedulingType,
+            hosts: bookingToDelete.eventType?.hosts,
+          },
         },
       },
-    },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
-    creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
-  });
+      hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+      creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
+    });
+  }
 
   let updatedBookings: {
     id: number;
@@ -703,7 +710,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if (!skipNotifications && (!platformClientId || (platformClientId && arePlatformEmailsEnabled)))
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },

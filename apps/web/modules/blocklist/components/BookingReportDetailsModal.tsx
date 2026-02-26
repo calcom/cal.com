@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
-
+import type { BlocklistScope, GroupedBookingReport } from "@calcom/features/blocklist/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { ExternalLinkIcon, GlobeIcon, MailIcon } from "@coss/ui/icons";
-
-import type { GroupedBookingReport, BlocklistScope } from "@calcom/features/blocklist/types";
+import Link from "next/link";
+import { Controller, useForm } from "react-hook-form";
 
 interface FormData {
   blockType: WatchlistType;
@@ -39,6 +37,7 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
 }: BookingReportDetailsModalProps<T>) {
   const { t } = useLocale();
   const isSystem = scope === "system";
+  const isDomainReport = entry?.bookerEmail.startsWith("@") ?? false;
 
   const {
     control,
@@ -47,7 +46,7 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
     formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      blockType: WatchlistType.EMAIL,
+      blockType: isDomainReport ? WatchlistType.DOMAIN : WatchlistType.EMAIL,
     },
   });
 
@@ -84,7 +83,9 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
               <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
               <div className="bg-default space-y-4 rounded-xl p-5">
                 <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("email")}</label>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">
+                    {isDomainReport ? t("domain") : t("email")}
+                  </label>
                   <p className="text-subtle text-sm">{entry.bookerEmail}</p>
                 </div>
 
@@ -139,36 +140,38 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
               </div>
             </div>
 
-            <div>
-              <h2 className="text-emphasis mb-2 text-base font-semibold">
-                {t("what_would_you_like_to_block")}
-              </h2>
-              {isSystem && <p className="text-subtle mb-3 text-sm">{t("system_wide_blocklist_warning")}</p>}
-              <Controller
-                name="blockType"
-                control={control}
-                render={({ field }) => (
-                  <ToggleGroup
-                    value={field.value}
-                    onValueChange={(value) => {
-                      if (value) field.onChange(value);
-                    }}
-                    options={[
-                      {
-                        value: WatchlistType.EMAIL,
-                        label: t("block_this_email"),
-                        iconLeft: <MailIcon className="h-4 w-4" />,
-                      },
-                      {
-                        value: WatchlistType.DOMAIN,
-                        label: t("block_all_from_domain"),
-                        iconLeft: <GlobeIcon className="h-4 w-4" />,
-                      },
-                    ]}
-                  />
-                )}
-              />
-            </div>
+            {!isDomainReport && (
+              <div>
+                <h2 className="text-emphasis mb-2 text-base font-semibold">
+                  {t("what_would_you_like_to_block")}
+                </h2>
+                {isSystem && <p className="text-subtle mb-3 text-sm">{t("system_wide_blocklist_warning")}</p>}
+                <Controller
+                  name="blockType"
+                  control={control}
+                  render={({ field }) => (
+                    <ToggleGroup
+                      value={field.value}
+                      onValueChange={(value) => {
+                        if (value) field.onChange(value);
+                      }}
+                      options={[
+                        {
+                          value: WatchlistType.EMAIL,
+                          label: t("block_this_email"),
+                          iconLeft: <MailIcon className="h-4 w-4" />,
+                        },
+                        {
+                          value: WatchlistType.DOMAIN,
+                          label: t("block_all_from_domain"),
+                          iconLeft: <GlobeIcon className="h-4 w-4" />,
+                        },
+                      ]}
+                    />
+                  )}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter className="mt-6">
