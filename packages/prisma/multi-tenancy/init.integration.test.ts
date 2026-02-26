@@ -1,11 +1,7 @@
 import http from "node:http";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-const mockCustomPrisma = vi.fn();
-
-vi.mock("../index", () => ({
-  customPrisma: (...args: unknown[]) => mockCustomPrisma(...args),
-}));
+const mockTenantClientFactory = vi.fn();
 
 describe("MultiTenancy integration", () => {
   let server: http.Server;
@@ -13,6 +9,7 @@ describe("MultiTenancy integration", () => {
 
   let initMultiTenancy: typeof import("./init").initMultiTenancy;
   let getTenant: typeof import("./init").getTenant;
+  let setTenantClientFactory: typeof import("./init").setTenantClientFactory;
   let tenantContext: typeof import("./context").tenantContext;
 
   const defaultClient = { _tag: "default" };
@@ -36,9 +33,9 @@ describe("MultiTenancy integration", () => {
       br: "postgresql://br-host/db",
     });
 
-    mockCustomPrisma.mockImplementation((opts: { datasources: { db: { url: string } } }) => {
-      if (opts.datasources.db.url.includes("eu")) return euClient;
-      if (opts.datasources.db.url.includes("br")) return brClient;
+    mockTenantClientFactory.mockImplementation((url: string) => {
+      if (url.includes("eu")) return euClient;
+      if (url.includes("br")) return brClient;
       return defaultClient;
     });
 
@@ -46,8 +43,10 @@ describe("MultiTenancy integration", () => {
     const ctx = await import("./context");
     initMultiTenancy = mod.initMultiTenancy;
     getTenant = mod.getTenant;
+    setTenantClientFactory = mod.setTenantClientFactory;
     tenantContext = ctx.tenantContext;
 
+    setTenantClientFactory(mockTenantClientFactory);
     initMultiTenancy();
 
     await new Promise<void>((resolve) => {

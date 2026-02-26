@@ -1,26 +1,24 @@
 import http from "node:http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockCustomPrisma = vi.fn();
-
-vi.mock("../index", () => ({
-  customPrisma: (...args: unknown[]) => mockCustomPrisma(...args),
-}));
+const mockTenantClientFactory = vi.fn();
 
 describe("MultiTenancy", () => {
   let initMultiTenancy: typeof import("./init").initMultiTenancy;
   let getTenant: typeof import("./init").getTenant;
+  let setTenantClientFactory: typeof import("./init").setTenantClientFactory;
   let tenantStorage: typeof import("./init").tenantStorage;
   let tenantContext: typeof import("./context").tenantContext;
 
   beforeEach(async () => {
     vi.resetModules();
-    mockCustomPrisma.mockReset();
+    mockTenantClientFactory.mockReset();
 
     const mod = await import("./init");
     const ctx = await import("./context");
     initMultiTenancy = mod.initMultiTenancy;
     getTenant = mod.getTenant;
+    setTenantClientFactory = mod.setTenantClientFactory;
     tenantStorage = mod.tenantStorage;
     tenantContext = ctx.tenantContext;
   });
@@ -55,6 +53,7 @@ describe("MultiTenancy", () => {
 
     it("returns default client when tenant is not in DATABASE_TENANTS", () => {
       process.env.DATABASE_TENANTS = JSON.stringify({ eu: "postgresql://eu-host/db" });
+      setTenantClientFactory(mockTenantClientFactory);
       initMultiTenancy();
 
       tenantStorage.run({ tenant: "br" }, () => {
@@ -64,34 +63,35 @@ describe("MultiTenancy", () => {
 
     it("returns tenant client when tenant exists in DATABASE_TENANTS", () => {
       const tenantClient = { _tag: "eu" } as never;
-      mockCustomPrisma.mockReturnValue(tenantClient);
+      mockTenantClientFactory.mockReturnValue(tenantClient);
       process.env.DATABASE_TENANTS = JSON.stringify({ eu: "postgresql://eu-host/db" });
+      setTenantClientFactory(mockTenantClientFactory);
       initMultiTenancy();
 
       tenantStorage.run({ tenant: "eu" }, () => {
         expect(tenantContext.resolve(defaultClient)).toBe(tenantClient);
-        expect(mockCustomPrisma).toHaveBeenCalledWith({
-          datasources: { db: { url: "postgresql://eu-host/db" } },
-        });
+        expect(mockTenantClientFactory).toHaveBeenCalledWith("postgresql://eu-host/db");
       });
     });
 
     it("caches tenant client across calls", () => {
       const tenantClient = { _tag: "eu" } as never;
-      mockCustomPrisma.mockReturnValue(tenantClient);
+      mockTenantClientFactory.mockReturnValue(tenantClient);
       process.env.DATABASE_TENANTS = JSON.stringify({ eu: "postgresql://eu-host/db" });
+      setTenantClientFactory(mockTenantClientFactory);
       initMultiTenancy();
 
       tenantStorage.run({ tenant: "eu" }, () => {
         tenantContext.resolve(defaultClient);
         tenantContext.resolve(defaultClient);
-        expect(mockCustomPrisma).toHaveBeenCalledTimes(1);
+        expect(mockTenantClientFactory).toHaveBeenCalledTimes(1);
       });
     });
 
     it("handles invalid JSON in DATABASE_TENANTS gracefully", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
       process.env.DATABASE_TENANTS = "not-json";
+      setTenantClientFactory(mockTenantClientFactory);
       initMultiTenancy();
 
       tenantStorage.run({ tenant: "eu" }, () => {

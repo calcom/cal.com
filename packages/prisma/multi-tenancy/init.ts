@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import http from "node:http";
 import type { PrismaClient } from "../generated/prisma/client";
-import { customPrisma } from "../index";
 import { tenantContext } from "./context";
 
 type Tenant = string;
@@ -11,6 +10,12 @@ export const tenantStorage = new AsyncLocalStorage<{ tenant: Tenant }>();
 const clients = new Map<Tenant, PrismaClient>();
 
 let tenantConfig: Record<string, string> | null = null;
+type TenantClientFactory = (url: string) => PrismaClient;
+let tenantClientFactory: TenantClientFactory | null = null;
+
+export function setTenantClientFactory(factory: TenantClientFactory): void {
+  tenantClientFactory = factory;
+}
 
 function getTenantConfig(): Record<string, string> {
   if (tenantConfig) return tenantConfig;
@@ -33,11 +38,12 @@ function getTenantConfig(): Record<string, string> {
 function getTenantClient(tenant: Tenant): PrismaClient | null {
   const url = getTenantConfig()[tenant];
   if (!url) return null;
+  if (!tenantClientFactory) return null;
 
   const existing = clients.get(tenant);
   if (existing) return existing;
 
-  const client = customPrisma({ datasources: { db: { url } } });
+  const client = tenantClientFactory(url);
   clients.set(tenant, client);
   return client;
 }

@@ -7,6 +7,7 @@ import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
 import { type Prisma, PrismaClient } from "./generated/prisma/client";
 import { tenantContext } from "./multi-tenancy/context";
+import { setTenantClientFactory } from "./multi-tenancy/init";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool =
@@ -71,6 +72,8 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
     .$extends(bookingIdempotencyKeyExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 };
+
+setTenantClientFactory((url) => customPrisma({ datasources: { db: { url } } }));
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
