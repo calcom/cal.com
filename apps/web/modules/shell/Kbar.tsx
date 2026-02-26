@@ -29,8 +29,28 @@ import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import CrowScript from "../ee/support/lib/crow/CrowScript";
+
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
 const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
+
+type CrowAskOptions = {
+  apiUrl: string;
+  productId: string;
+  query: string;
+  conversationId?: string | null;
+  context?: Record<string, unknown>;
+  onChunk?: (text: string) => void;
+  onNavigate?: (href: string) => void;
+  onCheckingDocs?: (checking: boolean) => void;
+  onToolResult?: (toolName: string, result: unknown) => void;
+  onDone?: (conversationId: string | null) => void;
+  onError?: () => void;
+};
+
+interface CrowWindow extends Window {
+  crow?: (command: string, options?: CrowAskOptions) => AbortController | void;
+}
 
 
 type ShortcutArrayType = {
@@ -338,7 +358,9 @@ const KBarContent = (): JSX.Element => {
   const { t } = useLocale();
 
   return (
-    <KBarPortal>
+    <>
+      <CrowScript />
+      <KBarPortal>
       <KBarPositioner className="overflow-scroll">
         <KBarAnimator className="z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md bg-default shadow-lg">
           <div className="flex items-center justify-center border-subtle border-b">
@@ -362,6 +384,7 @@ const KBarContent = (): JSX.Element => {
         <div className="fixed inset-0 z-1 bg-neutral-800/70" />
       </KBarPositioner>
     </KBarPortal>
+    </>
   );
 };
 
@@ -435,8 +458,6 @@ function renderResultItem(item: string | Action, active: boolean, t: (key: strin
     </div>
   );
 }
-
-import { useCrowChat } from "./useCrowChat";
 
 // Minimal markdown renderer — no external deps, handles bold, inline code, links, and lists.
 function renderInline(text: string): JSX.Element {
@@ -536,6 +557,31 @@ function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   );
 }
 
+type ChatMessage = {
+  role: "user" | "assistant";
+  text: string;
+  href: string | null;
+  sources?: string[];
+};
+
+type CrowChatState = {
+  mode: "search" | "chat";
+  messages: ChatMessage[];
+  conversationId: string | null;
+  streaming: boolean;
+  checkingDocs: boolean;
+  error: boolean;
+};
+
+const INITIAL_CROW_STATE: CrowChatState = {
+  mode: "search",
+  messages: [],
+  conversationId: null,
+  streaming: false,
+  checkingDocs: false,
+  error: false,
+};
+
 function CrowFallback({
   triggerQuery,
   searchQuery,
@@ -548,15 +594,129 @@ function CrowFallback({
   const { t } = useLocale();
   const router = useRouter();
   const { query } = useKBar();
+  const [state, setState] = useState<CrowChatState>(INITIAL_CROW_STATE);
+  const abortRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const hasSentInitialRef = useRef(false);
 
-  const { state, messagesEndRef } = useCrowChat({
-    apiUrl: CROW_API_URL,
-    productId: CROW_PRODUCT_ID,
-    triggerQuery,
-    searchQuery,
-    onEnterChatMode,
-    onClearSearch: () => query.setSearch(""),
-  });
+  const sendMessage = useCallback(
+    (message: string, convId: string | null) => {
+      abortRef.current?.abort();
+
+      setState((s) => ({
+        ...s,
+        streaming: true,
+        error: false,
+        messages: [
+          ...s.messages,
+          { role: "user", text: message, href: null },
+          { role: "assistant", text: "", href: null },
+        ],
+      }));
+
+      const pendingSources: string[] = [];
+      const crowApi = (window as CrowWindow).crow;
+
+      if (!crowApi) {
+        setState((s) => ({ ...s, streaming: false, error: true }));
+        return;
+      }
+
+      const controller = crowApi("ask", {
+        apiUrl: CROW_API_URL,
+        productId: CROW_PRODUCT_ID,
+        query: message,
+        conversationId: convId,
+        context: { page: window.location.pathname },
+        onChunk: (text: string) => {
+          setState((s) => {
+            const msgs = [...s.messages];
+            const last = msgs[msgs.length - 1];
+            if (last?.role === "assistant") {
+              msgs[msgs.length - 1] = { ...last, text: last.text + text };
+            }
+            return { ...s, messages: msgs };
+          });
+        },
+        onNavigate: (href: string) => {
+          setState((s) => {
+            const msgs = [...s.messages];
+            const last = msgs[msgs.length - 1];
+            if (last?.role === "assistant") {
+              msgs[msgs.length - 1] = { ...last, href };
+            }
+            return { ...s, messages: msgs };
+          });
+        },
+        onCheckingDocs: (checking: boolean) => {
+          setState((s) => ({ ...s, checkingDocs: checking }));
+        },
+        onToolResult: (_toolName: string, result: unknown) => {
+          if (pendingSources.length >= 3) return;
+          const blob = JSON.stringify(result);
+          const urlPattern = /https:\/\/cal\.com\/help\/[^\s"')<>\\]+/g;
+          let m: RegExpExecArray | null;
+          // biome-ignore lint/suspicious/noAssignInExpressions: standard regex exec loop
+          while ((m = urlPattern.exec(blob)) !== null) {
+            if (!pendingSources.includes(m[0])) pendingSources.push(m[0]);
+            if (pendingSources.length >= 3) break;
+          }
+        },
+        onDone: (capturedConvId: string | null) => {
+          setState((s) => {
+            const msgs = [...s.messages];
+            const last = msgs[msgs.length - 1];
+            if (last?.role === "assistant" && pendingSources.length > 0) {
+              msgs[msgs.length - 1] = { ...last, sources: pendingSources };
+            }
+            return { ...s, mode: "chat", streaming: false, conversationId: capturedConvId, messages: msgs };
+          });
+          onEnterChatMode();
+        },
+        onError: () => {
+          setState((s) => ({ ...s, streaming: false, error: s.mode === "search" }));
+        },
+      });
+
+      if (controller instanceof AbortController) {
+        abortRef.current = controller;
+      }
+    },
+    [onEnterChatMode]
+  );
+
+  // Fire once on mount with the trigger query (user explicitly selected "AI Answer")
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect
+  useEffect(() => {
+    if (hasSentInitialRef.current) return;
+    hasSentInitialRef.current = true;
+    if (!triggerQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
+    sendMessage(triggerQuery, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // empty deps: fires once when user selects AI Answer
+
+  // Enter key: send follow-up when in chat mode
+  useEffect(() => {
+    if (state.mode !== "chat") return;
+
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === "Enter" && searchQuery.trim() && !state.streaming) {
+        e.preventDefault();
+        e.stopPropagation();
+        const msg = searchQuery.trim();
+        query.setSearch("");
+        sendMessage(msg, state.conversationId);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [state.mode, state.streaming, state.conversationId, searchQuery, query, sendMessage]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.messages]);
 
   if (!CROW_API_URL || !CROW_PRODUCT_ID) {
     return <HelpDeskLink searchQuery={searchQuery} />;
@@ -612,7 +772,6 @@ function CrowFallback({
               {msg.sources && msg.sources.length > 0 && !state.streaming && (
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                   {msg.sources.slice(0, 5).map((url, si) => {
-                    // Turn "/routing/routing-overview" into "Routing Overview"
                     const slug = url.split("/").pop() ?? "";
                     const label = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || t("kbar_crow_source");
                     return (
