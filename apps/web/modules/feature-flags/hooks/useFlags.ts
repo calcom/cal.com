@@ -37,7 +37,8 @@ const initialData: AppFlags = {
   "active-user-billing": false,
   "sidebar-tips": false,
   "abuse-scoring": false,
-  "signup-watchlist-review": false
+  "dunning-enforcement": false,
+  "signup-watchlist-review": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

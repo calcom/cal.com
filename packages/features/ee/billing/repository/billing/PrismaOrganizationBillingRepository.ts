@@ -11,6 +11,15 @@ import type {
 
 export class PrismaOrganizationBillingRepository implements IBillingRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
+
+  async findByTeamId(teamId: number): Promise<string | null> {
+    const record = await this.prismaClient.organizationBilling.findUnique({
+      where: { teamId },
+      select: { id: true },
+    });
+    return record?.id ?? null;
+  }
+
   async create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord> {
     const billingRecord = await this.prismaClient.organizationBilling.create({
       data: {

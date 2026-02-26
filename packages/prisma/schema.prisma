@@ -3109,6 +3109,8 @@ model TeamBilling {
   highWaterMark            Int?
   highWaterMarkPeriodStart DateTime?
 
+  dunningStatus TeamDunningStatus?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -3138,6 +3140,8 @@ model OrganizationBilling {
   // High water mark tracking for monthly billing
   highWaterMark            Int?
   highWaterMarkPeriodStart DateTime?
+
+  dunningStatus OrganizationDunningStatus?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3240,6 +3244,60 @@ enum ProrationStatus {
   CHARGED // Payment succeeded
   FAILED // Payment failed
   CANCELLED // Cancelled (e.g., subscription ended before charge)
+}
+
+enum DunningStatus {
+  CURRENT
+  WARNING
+  SOFT_BLOCKED
+  HARD_BLOCKED
+  CANCELLED
+}
+
+model TeamDunningStatus {
+  id            String      @id @default(cuid())
+  teamBillingId String      @unique
+  teamBilling   TeamBilling @relation(fields: [teamBillingId], references: [id], onDelete: Cascade)
+
+  status        DunningStatus @default(CURRENT)
+  firstFailedAt DateTime?
+  lastFailedAt  DateTime?
+  resolvedAt    DateTime?
+
+  subscriptionId  String?
+  failedInvoiceId String?
+  invoiceUrl      String?
+  failureReason   String?
+
+  notificationsSent Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model OrganizationDunningStatus {
+  id                    String              @id @default(cuid())
+  organizationBillingId String              @unique
+  organizationBilling   OrganizationBilling @relation(fields: [organizationBillingId], references: [id], onDelete: Cascade)
+
+  status        DunningStatus @default(CURRENT)
+  firstFailedAt DateTime?
+  lastFailedAt  DateTime?
+  resolvedAt    DateTime?
+
+  subscriptionId  String?
+  failedInvoiceId String?
+  invoiceUrl      String?
+  failureReason   String?
+
+  notificationsSent Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
 }
 
 enum CalendarCacheEventStatus {

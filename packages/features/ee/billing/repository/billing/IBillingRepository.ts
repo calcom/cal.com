@@ -38,6 +38,7 @@ export interface IBillingRepositoryUpdateArgs {
 
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
+  findByTeamId(teamId: number): Promise<string | null>;
   findBySubscriptionId(subscriptionId: string): Promise<{ id: string; teamId: number } | null>;
   updateById(id: string, data: IBillingRepositoryUpdateArgs): Promise<void>;
 }

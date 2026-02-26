@@ -40,6 +40,7 @@ export type AppFlags = {
   "sidebar-tips": boolean;
   "abuse-scoring": boolean;
   "signup-watchlist-review": boolean;
+  "dunning-enforcement": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

@@ -169,6 +169,13 @@ const teamSelect = {
 export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  async create(data: { name: string; slug: string }) {
+    return this.prismaClient.team.create({
+      data,
+      select: { id: true, name: true, slug: true },
+    });
+  }
+
   async findById({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({
       where: {
