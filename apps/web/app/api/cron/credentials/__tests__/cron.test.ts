@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 
-import { handleCreateCredentials } from "../route";
+import { handleCreateCredentials, handleDeleteCredentials } from "../route";
 
 type OrgParams = { id: number };
 const createOrg = async ({ id }: OrgParams) =>
@@ -32,16 +32,19 @@ type DelegationCredentialParams = {
   workspacePlatformId: number;
 };
 
-const createDelegationCredential = async ({
-  id,
-  orgId,
-  domain,
-  workspacePlatformId,
-}: DelegationCredentialParams) =>
+const createDelegationCredential = async (
+  {
+    id,
+    orgId,
+    domain,
+    workspacePlatformId,
+  }: DelegationCredentialParams,
+  options?: { enabled?: boolean }
+) =>
   await prismock.delegationCredential.create({
     data: {
       id,
-      enabled: true,
+      enabled: options?.enabled ?? true,
       domain,
       organizationId: orgId,
       workspacePlatformId,
@@ -197,5 +200,77 @@ describe("Delegation Credentials: Organization-wide Google Calendar Access", () 
         type: "google_calendar",
       }))
     );
+  });
+});
+
+describe("handleDeleteCredentials", () => {
+  beforeEach(() => {
+    prismock.delegationCredential.deleteMany();
+    prismock.credential.deleteMany();
+    prismock.user.deleteMany();
+    prismock.team.deleteMany();
+    prismock.workspacePlatform.deleteMany();
+    prismock.membership.deleteMany();
+  });
+
+  it("returns message and zero success when no disabled delegation credentials exist", async () => {
+    const result = await handleDeleteCredentials();
+    expect(result).toEqual({
+      message: "No disabled delegation credentials found",
+      success: 0,
+      failures: 0,
+    });
+    await expectCredentials([]);
+  });
+
+  it("deletes credentials for disabled google delegation credential", async () => {
+    const org = await createOrg({ id: 1 });
+    const workspacePlatform = await createWorkspacePlatform({ id: 1 });
+    const user = await createUser({ id: 1, email: "user@example.com" });
+    await createMembership({ teamId: org.id, userId: user.id });
+    await createDelegationCredential(
+      {
+        id: "delegation-credential-1",
+        orgId: org.id,
+        domain: "example.com",
+        workspacePlatformId: workspacePlatform.id,
+      },
+      { enabled: false }
+    );
+    await createCredential({ id: 1, userId: user.id, delegationCredentialId: "delegation-credential-1" });
+    await createCredential({ id: 2, userId: user.id, delegationCredentialId: "delegation-credential-1" });
+
+    const result = await handleDeleteCredentials();
+    expect(result.success).toBe(2);
+    expect(result.failures).toBe(0);
+    await expectCredentials([]);
+  });
+
+  it("skips credential deletion for non-google workspace platforms", async () => {
+    const org = await createOrg({ id: 1 });
+    const outlookPlatform = await createWorkspacePlatform({
+      id: 2,
+      name: "Outlook",
+      slug: "outlook",
+      description: "Test",
+    });
+    const user = await createUser({ id: 1, email: "user@outlook.com" });
+    await createMembership({ teamId: org.id, userId: user.id });
+    await createDelegationCredential(
+      {
+        id: "delegation-credential-2",
+        orgId: org.id,
+        domain: "outlook.com",
+        workspacePlatformId: outlookPlatform.id,
+      },
+      { enabled: false }
+    );
+    await createCredential({ id: 1, userId: user.id, delegationCredentialId: "delegation-credential-2" });
+
+    const result = await handleDeleteCredentials();
+    expect(result.success).toBe(0);
+    await expectCredentials([
+      { userId: user.id, delegationCredentialId: "delegation-credential-2", type: "google_calendar" },
+    ]);
   });
 });

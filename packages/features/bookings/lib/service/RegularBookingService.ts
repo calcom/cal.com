@@ -491,7 +491,7 @@ export interface IBookingServiceDependencies {
   webhookProducer: IWebhookProducerService;
 }
 
-async function validateRescheduleRestrictions({
+export async function validateRescheduleRestrictions({
   rescheduleUid,
   userId,
   eventType,

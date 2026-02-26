@@ -111,7 +111,7 @@ export async function handleCreateCredentials() {
   };
 }
 
-async function handleDeleteCredentials() {
+export async function handleDeleteCredentials() {
   const log = moduleLogger.getSubLogger({ prefix: ["DeleteCredentials"] });
   const delegationCredentials =
     await DelegationCredentialRepository.findAllDisabledAndIncludeNextBatchOfMembersToProcess();
