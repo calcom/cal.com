@@ -3,10 +3,10 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import {
-  WorkflowTriggerEvents,
-  WorkflowTemplates,
   WorkflowActions,
   WorkflowMethods,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
@@ -96,7 +96,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
   const locale = evt.organizer.language.locale;
   const timeFormat = evt.organizer.timeFormat;
 
-  const contentSid = getContentSidForTemplate(template);
+  let contentSid: string | undefined = getContentSidForTemplate(template);
   const contentVariables = getContentVariablesForTemplate({
     name,
     attendeeName,
@@ -181,6 +181,12 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & 
           name
         ) || message;
   }
+
+  // Note: WhatsApp translation is not currently supported because:
+  // 1. WhatsApp Business API requires pre-approved Message Templates (contentSid) for business-initiated messages
+  // 2. The Twilio provider only sends contentSid/contentVariables for WhatsApp, ignoring the body parameter
+  // 3. Sending free-form text without a template will be rejected by WhatsApp outside the 24-hour service window
+  // To enable WhatsApp translation, a generic template with a single variable for the entire body would be needed.
 
   // Allows debugging generated whatsapp content without waiting for twilio to send whatsapp messages
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, textMessage);
