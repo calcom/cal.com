@@ -33,7 +33,6 @@ const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
 
 const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
   if (seconds <= 0) return event;
-  // move event start date back by the specified travel time
   event.startDate.second -= seconds;
   return event;
 };
@@ -170,7 +169,6 @@ class ICSFeedCalendarService implements Calendar {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
 
-        // Ignore cancelled events
         const status = vevent.getFirstPropertyValue("status");
         if (typeof status === "string" && status.toLowerCase() === "cancelled") return;
 				
@@ -191,14 +189,11 @@ class ICSFeedCalendarService implements Calendar {
               timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
               const standard = new ICAL.Component("standard");
 
-              // get timezone offset
               const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
               const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
 
-              // set timezone offset
               standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
               standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-              // provide a standard dtstart
               standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
               timezoneComp.addSubcomponent(standard);
               vcalendar.addSubcomponent(timezoneComp);
@@ -221,7 +216,6 @@ class ICSFeedCalendarService implements Calendar {
           vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
         }
 
-        // mutate event to consider travel time
         applyTravelDuration(event, getTravelDurationInSeconds(vevent));
 
         if (event.isRecurring()) {
