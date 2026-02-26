@@ -160,8 +160,9 @@ export async function handlePaymentSuccess(params: {
       length: booking.eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
@@ -227,7 +228,7 @@ export async function handlePaymentSuccess(params: {
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
         calendarEvent: calendarEventForWorkflow,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding ?? false,
         triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });
@@ -256,6 +257,7 @@ export async function handlePaymentSuccess(params: {
       await handleBookingRequested({
         evt,
         booking,
+        oAuthClientId: platformClientParams?.platformClientId,
       });
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }

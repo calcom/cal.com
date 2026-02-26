@@ -1,60 +1,58 @@
 "use client";
 
-import type { ReactNode } from "react";
-import React, { forwardRef, useCallback, useId, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-
+import { EyeIcon, EyeOffIcon, SearchIcon } from "@coss/ui/icons";
+import type React from "react";
+import type { ReactNode } from "react";
+import { forwardRef, useCallback, useId, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { Alert } from "../../alert";
-import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
 import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 
-export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
-  const { t } = useLocale();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const toggleIsPasswordVisible = useCallback(
-    () => setIsPasswordVisible(!isPasswordVisible),
-    [isPasswordVisible, setIsPasswordVisible]
-  );
-  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(
+  function PasswordField(props, ref) {
+    const { t } = useLocale();
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const toggleIsPasswordVisible = useCallback(
+      () => setIsPasswordVisible(!isPasswordVisible),
+      [isPasswordVisible, setIsPasswordVisible]
+    );
+    const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
-  return (
-    <InputField
-      type={isPasswordVisible ? "text" : "password"}
-      placeholder={props.placeholder || "•••••••••••••"}
-      ref={ref}
-      {...props}
-      className={classNames(
-        "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
-        props.className
-      )}
-      addOnSuffix={
-        <Tooltip content={textLabel}>
-          <button
-            className="text-emphasis h-9"
-            tabIndex={-1}
-            type="button"
-            onClick={() => toggleIsPasswordVisible()}>
-            {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
-            ) : (
-              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
-            )}
-            <span className="sr-only">{textLabel}</span>
-          </button>
-        </Tooltip>
-      }
-    />
-  );
-});
+    return (
+      <InputField
+        type={isPasswordVisible ? "text" : "password"}
+        placeholder={props.placeholder || "•••••••••••••"}
+        ref={ref}
+        {...props}
+        className={classNames(
+          "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
+          props.className
+        )}
+        addOnSuffix={
+          <Tooltip content={textLabel}>
+            <button
+              className="text-emphasis h-9"
+              tabIndex={-1}
+              type="button"
+              onClick={() => toggleIsPasswordVisible()}>
+              {isPasswordVisible ? (
+                <EyeOffIcon className="h-4 w-4 stroke-[2.5px]" />
+              ) : (
+                <EyeIcon className="h-4 w-4 stroke-[2.5px]" />
+              )}
+              <span className="sr-only">{textLabel}</span>
+            </button>
+          </Tooltip>
+        }
+      />
+    );
+  }
+);
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
   return (
@@ -104,41 +102,40 @@ type TextAreaFieldProps = {
     labelProps?: React.ComponentProps<typeof Label>;
   };
 
-export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(function TextField(
-  props,
-  ref
-) {
-  const id = useId();
-  const { t: _t } = useLocale();
-  const t = props.t || _t;
-  const methods = useFormContext();
-  const {
-    label = t(props.name as string),
-    labelProps,
-    /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
-      ? `${props.name}_placeholder`
-      : "",
-    ...passThrough
-  } = props;
-  return (
-    <div>
-      {!!props.name && (
-        <Label htmlFor={id} {...labelProps}>
-          {label}
-        </Label>
-      )}
-      <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
-      {methods?.formState?.errors[props.name]?.message && (
-        <Alert
-          className="mt-1"
-          severity="error"
-          message={<>{methods.formState.errors[props.name]?.message}</>}
-        />
-      )}
-    </div>
-  );
-});
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(
+  function TextField(props, ref) {
+    const id = useId();
+    const { t: _t } = useLocale();
+    const t = props.t || _t;
+    const methods = useFormContext();
+    const {
+      label = t(props.name as string),
+      labelProps,
+      /** Prevents displaying untranslated placeholder keys */
+      placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+        ? `${props.name}_placeholder`
+        : "",
+      ...passThrough
+    } = props;
+    return (
+      <div>
+        {!!props.name && (
+          <Label htmlFor={id} {...labelProps}>
+            {label}
+          </Label>
+        )}
+        <TextArea ref={ref} placeholder={placeholder} {...passThrough} />
+        {methods?.formState?.errors[props.name]?.message && (
+          <Alert
+            className="mt-1"
+            severity="error"
+            message={<>{methods.formState.errors[props.name]?.message}</>}
+          />
+        )}
+      </div>
+    );
+  }
+);
 
 export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(function NumberInput(props, ref) {
   return (
@@ -154,17 +151,16 @@ export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(functio
   );
 });
 
-export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
-  props,
-  ref
-) {
-  return (
-    <InputField
-      ref={ref}
-      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
-      placeholder="Search"
-      containerClassName="mt-1"
-      {...props}
-    />
-  );
-});
+export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(
+  function PasswordField(props, ref) {
+    return (
+      <InputField
+        ref={ref}
+        addOnLeading={<SearchIcon className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
+        placeholder="Search"
+        containerClassName="mt-1"
+        {...props}
+      />
+    );
+  }
+);

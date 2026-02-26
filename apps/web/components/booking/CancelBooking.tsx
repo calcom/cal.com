@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
+import type { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CheckboxField, Label, Select, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { InfoIcon, XIcon } from "@coss/ui/icons";
+import { useCallback, useState } from "react";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -45,6 +46,7 @@ const InternalNotePresetsSelect = ({
       onPresetSelect?.(option);
     }
   };
+
 
   return (
     <div className="mb-4 flex flex-col">
@@ -109,6 +111,7 @@ type Props = {
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
 };
@@ -162,11 +165,18 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const hostMissingCancellationReason =
-    isCancellationUserHost &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
+  const isReasonRequired = isCancellationReasonRequired(
+    props.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  const missingRequiredReason = isReasonRequired && !cancellationReason?.trim();
+  const hostMissingInternalNote =
+    isCancellationUserHost && props.internalNotePresets.length > 0 && !internalNote?.id;
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
+  const canCancel =
+    !missingRequiredReason && !hostMissingInternalNote && !cancellationNoShowFeeNotAcknowledged;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
@@ -177,12 +187,69 @@ export default function CancelBooking(props: Props) {
 
   const isRenderedAsCancelDialog = props.renderContext === "dialog";
 
+  const handleCancel =async()=>{
+     try{
+          setLoading(true);
+
+                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
+                  const { csrfToken } = await response.json();
+
+                  const res = await fetch("/api/cancel", {
+                    body: JSON.stringify({
+                      uid: booking?.uid,
+                      cancellationReason: cancellationReason,
+                      allRemainingBookings,
+                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
+                      seatReferenceUid,
+                      cancelledBy: currentUserEmail,
+                      internalNote: internalNote,
+                      csrfToken,
+                    }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                  });
+
+                  const bookingWithCancellationReason = {
+                    ...(bookingCancelledEventProps.booking as object),
+                    cancellationReason,
+                  } as unknown;
+
+                  if (res.status >= 200 && res.status < 300) {
+                    sdkActionManager?.fire("bookingCancelled", {
+                      ...bookingCancelledEventProps,
+                      booking: bookingWithCancellationReason,
+                    });
+                    refreshData();
+                    if (props.onCanceled) {
+                      props.onCanceled();
+                    }
+                  } else {
+                    const data = await res.json();
+                    const errorMessage =
+                      data.message ||
+                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
+                        "please_try_again"
+                      )}`;
+
+                    if (props.showErrorAsToast) {
+                      showToast(errorMessage, "error");
+                    } else {
+                      setError(errorMessage);
+                    }
+                  }
+     } finally{
+          setLoading(false);
+     }
+  }
+
   return (
     <>
       {error && !props.showErrorAsToast && (
         <div className="mt-8">
           <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-            <Icon name="x" className="h-6 w-6 text-red-600" />
+            <XIcon className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
             <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
@@ -217,7 +284,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>{t(isReasonRequired ? "cancellation_reason" : "cancellation_reason_optional_label")}</Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -230,7 +297,7 @@ export default function CancelBooking(props: Props) {
           />
           {isCancellationUserHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
-              <Icon name="info" className="text-subtle h-4 w-4" />
+              <InfoIcon className="text-subtle h-4 w-4" />
               <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
@@ -267,63 +334,8 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
-                onClick={async () => {
-                  setLoading(true);
-
-                  // telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const response = await fetch("/api/csrf?sameSite=none", { cache: "no-store" });
-                  const { csrfToken } = await response.json();
-
-                  const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                      internalNote: internalNote,
-                      csrfToken,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                  });
-
-                  const bookingWithCancellationReason = {
-                    ...(bookingCancelledEventProps.booking as object),
-                    cancellationReason,
-                  } as unknown;
-
-                  if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
-                    sdkActionManager?.fire("bookingCancelled", {
-                      ...bookingCancelledEventProps,
-                      booking: bookingWithCancellationReason,
-                    });
-                    refreshData();
-                    if (props.onCanceled) {
-                      props.onCanceled();
-                    }
-                  } else {
-                    const data = await res.json();
-                    setLoading(false);
-                    const errorMessage =
-                      data.message ||
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`;
-
-                    if (props.showErrorAsToast) {
-                      showToast(errorMessage, "error");
-                    } else {
-                      setError(errorMessage);
-                    }
-                  }
-                }}
+                disabled={!canCancel}
+                onClick={handleCancel}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>

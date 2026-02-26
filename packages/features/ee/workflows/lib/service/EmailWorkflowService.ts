@@ -1,9 +1,8 @@
-import type { EventStatus } from "ics";
-
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { getTranslationService } from "@calcom/features/di/containers/TranslationService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
@@ -12,16 +11,24 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/i18n/server";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { SchedulingType, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  SchedulingType,
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import { CalendarEvent } from "@calcom/types/Calendar";
-
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { EventStatus } from "ics";
 import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
-import { isEmailAction, getTemplateBodyForAction, getTemplateSubjectForAction } from "../actionHelperFunctions";
+import {
+  getTemplateBodyForAction,
+  getTemplateSubjectForAction,
+  isEmailAction,
+} from "../actionHelperFunctions";
 import { detectMatchedTemplate } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
@@ -31,11 +38,11 @@ import customTemplate, {
 import emailRatingTemplate from "../reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../reminders/templates/emailReminderTemplate";
 import type {
-  FormSubmissionData,
-  WorkflowContextData,
   AttendeeInBookingInfo,
   BookingInfo,
+  FormSubmissionData,
   ScheduleEmailReminderAction,
+  WorkflowContextData,
 } from "../types";
 import { WorkflowService } from "./WorkflowService";
 
@@ -87,10 +94,13 @@ export class EmailWorkflowService {
       creditCheckFn,
     });
 
-    const hideBranding = await getHideBranding({
-      userId: workflow.userId ?? undefined,
-      teamId: workflow.teamId ?? undefined,
-    });
+    const hideBranding =
+      evt.hideBranding ??
+      (await this.shouldHideBranding({
+        platformClientId: evt.platformClientId,
+        userId: workflow.userId,
+        teamId: evt.team?.id ?? workflow.teamId,
+      }));
 
     const emailWorkflowContentParams = await this.generateParametersToBuildEmailWorkflowContent({
       evt,
@@ -234,7 +244,31 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
+      workflowStepId: workflowStep.id,
+      autoTranslateEnabled: workflowStep.autoTranslateEnabled,
+      sourceLocale: workflowStep.sourceLocale,
     } as const;
+  }
+
+  private async shouldHideBranding({
+    platformClientId,
+    userId,
+    teamId,
+  }: {
+    platformClientId?: string | null;
+    userId?: number | null;
+    teamId?: number | null;
+  }): Promise<boolean> {
+    if (platformClientId) {
+      return true;
+    }
+
+    const hideBranding = await getHideBranding({
+      userId: userId ?? undefined,
+      teamId: teamId ?? undefined,
+    });
+
+    return hideBranding;
   }
 
   async generateEmailPayloadForEvtWorkflow({
@@ -249,6 +283,9 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
+    workflowStepId,
+    autoTranslateEnabled,
+    sourceLocale,
   }: {
     evt: BookingInfo;
     sendTo: string[];
@@ -261,6 +298,9 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
+    workflowStepId?: number;
+    autoTranslateEnabled?: boolean;
+    sourceLocale?: string | null;
   }) {
     const log = logger.getSubLogger({
       prefix: [`[generateEmailPayloadForEvtWorkflow]: bookingUid: ${evt?.uid}`],
@@ -392,7 +432,7 @@ export class EmailWorkflowService {
 
     if (matchedTemplate === WorkflowTemplates.REMINDER) {
       const t = await getTranslation(locale, "common");
-      const meetingUrl =  
+      const meetingUrl =
         getVideoCallUrlFromCalEvent({
           videoCallData: evt.videoCallData,
           uid: evt.uid,
@@ -412,6 +452,7 @@ export class EmailWorkflowService {
         meetingUrl,
         otherPerson: attendeeName,
         name,
+        isBrandingDisabled: hideBranding,
       });
     } else if (matchedTemplate === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
@@ -426,6 +467,7 @@ export class EmailWorkflowService {
         timeZone,
         organizer: evt.organizer.name,
         name,
+        isBrandingDisabled: hideBranding,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
       });
@@ -481,10 +523,33 @@ export class EmailWorkflowService {
         eventEndTimeInAttendeeTimezone: dayjs(endTime).tz(attendeeToBeUsedInMail.timeZone),
       };
 
-      const emailSubjectTemplate = customTemplate(emailSubject, variables, locale, evt.organizer.timeFormat);
+      let translatedEmailBody = emailBody;
+      let translatedEmailSubject = emailSubject;
+
+      if (autoTranslateEnabled && isEmailAttendeeAction && workflowStepId) {
+        const translationService = await getTranslationService();
+        const { translatedBody, translatedSubject } = await translationService.getWorkflowStepTranslation(
+          workflowStepId,
+          locale,
+          { includeBody: true, includeSubject: true }
+        );
+        if (translatedBody) {
+          translatedEmailBody = translatedBody;
+        }
+        if (translatedSubject) {
+          translatedEmailSubject = translatedSubject;
+        }
+      }
+
+      const emailSubjectTemplate = customTemplate(
+        translatedEmailSubject,
+        variables,
+        locale,
+        evt.organizer.timeFormat
+      );
       emailContent.emailSubject = emailSubjectTemplate.text;
       emailContent.emailBody = customTemplate(
-        emailBody,
+        translatedEmailBody,
         variables,
         locale,
         evt.organizer.timeFormat,
@@ -523,10 +588,9 @@ export class EmailWorkflowService {
     };
 
     const shouldIncludeCalendarEvent =
-    includeCalendarEvent &&
-    triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
+      includeCalendarEvent && triggerEvent !== WorkflowTriggerEvents.BOOKING_REQUESTED;
 
-  const attachments = shouldIncludeCalendarEvent
+    const attachments = shouldIncludeCalendarEvent
       ? [
           {
             content:
@@ -544,12 +608,14 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
+    const replyTo = evt.hideOrganizerEmail
+      ? customReplyToEmail
+      : customReplyToEmail || evt.organizer.email;
+
     return {
       subject: emailContent.emailSubject,
       html: emailContent.emailBody,
-      ...(!evt.hideOrganizerEmail && {
-        replyTo: customReplyToEmail || evt.organizer.email,
-      }),
+      ...(replyTo && { replyTo }),
       attachments,
       sender,
     };
