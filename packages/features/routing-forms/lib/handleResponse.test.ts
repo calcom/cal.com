@@ -401,7 +401,8 @@ describe("handleResponse", () => {
         },
       });
 
-      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      // Empty array from attribute matching is now treated as "no match" (null) due to ?.length check
+      expect(result.teamMembersMatchingAttributeLogic).toBeNull();
       expect(result.fallbackAction).toEqual(fallbackAction);
 
       // Verify that fallbackAttributesQueryValue is NOT passed when fallbackAction is configured
@@ -502,7 +503,8 @@ describe("handleResponse", () => {
         },
       });
 
-      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      // Empty array from attribute matching is now treated as "no match" (null) due to ?.length check
+      expect(result.teamMembersMatchingAttributeLogic).toBeNull();
       expect(result.fallbackAction).toBeNull();
 
       // Verify that fallbackAttributesQueryValue IS passed when fallbackAction is NOT configured (backwards compatibility)
@@ -775,7 +777,8 @@ describe("handleResponse", () => {
         },
       });
 
-      expect(result.teamMembersMatchingAttributeLogic).toEqual([]);
+      // Empty array from attribute matching is now treated as "no match" (null) due to ?.length check
+      expect(result.teamMembersMatchingAttributeLogic).toBeNull();
       expect(result.crmContactOwnerEmail).toEqual("crm-owner@example.com");
       // fallbackAction should be null because CRM contact owner was found
       expect(result.fallbackAction).toBeNull();
