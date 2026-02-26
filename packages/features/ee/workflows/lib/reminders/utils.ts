@@ -37,7 +37,9 @@ export const getSMSMessageWithVariables = async (
     });
 
   const timeZone =
-    action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.timeZone : evt.organizer.timeZone;
+    action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE
+      ? attendeeToBeUsedInSMS.timeZone
+      : evt.organizer.timeZone;
 
   const variables: VariablesType = {
     eventName: evt.title,
@@ -63,7 +65,7 @@ export const getSMSMessageWithVariables = async (
   };
 
   const locale =
-    action === WorkflowActions.SMS_ATTENDEE
+    action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE
       ? attendeeToBeUsedInSMS.language?.locale
       : evt.organizer.language.locale;
 
