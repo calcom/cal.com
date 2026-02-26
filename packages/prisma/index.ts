@@ -1,11 +1,12 @@
+import process from "node:process";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { PrismaClient, type Prisma } from "./generated/prisma/client";
+import { type Prisma, PrismaClient } from "./generated/prisma/client";
+import { tenantContext } from "./multi-tenancy/context";
 
 const connectionString = process.env.DATABASE_URL || "";
 const pool =
@@ -76,11 +77,22 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
 
 // Explanation why we cast as PrismaClient. When we leave Prisma to its devices it tries to infer logic based on the extensions, but this is not a simple extends.
 // this makes the PrismaClient export type-hint impossible and it also is a massive hit on Prisma type hinting performance.
-export const prisma: PrismaClient = baseClient
+const prismaDefault: PrismaClient = baseClient
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
+
+export const prisma: PrismaClient = new Proxy(prismaDefault, {
+  get(target, prop, receiver) {
+    const client = tenantContext.resolve(target);
+    if (client === target) {
+      return Reflect.get(target, prop, receiver);
+    }
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+}) as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
