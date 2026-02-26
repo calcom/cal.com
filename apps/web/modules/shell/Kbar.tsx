@@ -32,6 +32,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
 const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
 
+
 type ShortcutArrayType = {
   shortcuts?: string[];
 };
@@ -239,6 +240,7 @@ function buildKbarActions(push: (href: string) => void): Action[] {
   return [...staticActions, ...appStoreActions];
 }
 
+
 function useEventTypesAction(): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
@@ -273,6 +275,7 @@ function useEventTypesAction(): void {
 
   useRegisterActions(actions, [data]);
 }
+
 
 function useUpcomingBookingsAction(): void {
   const router = useRouter();
@@ -441,6 +444,7 @@ type CrowSSEEvent = {
   arguments?: Record<string, unknown>;
   conversation_id?: string;
   links?: string[];
+  result?: unknown;
 };
 
 type ChatMessage = {
@@ -459,9 +463,9 @@ type CrowFallbackState = {
   error: boolean;
 };
 
-// Minimal markdown renderer — no external deps, handles bold, inline code, and lists.
+// Minimal markdown renderer — no external deps, handles bold, inline code, links, and lists.
 function renderInline(text: string): JSX.Element {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
   return (
     <>
       {parts.map((part, i) =>
@@ -473,6 +477,19 @@ function renderInline(text: string): JSX.Element {
           <code key={i} className="rounded bg-subtle px-1 font-mono text-xs">
             {part.slice(1, -1)}
           </code>
+        ) : part.startsWith("[") ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
+          (() => {
+            const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            return m ? (
+              <a key={i} href={m[2]} target="_blank" rel="noopener noreferrer"
+                className="underline transition hover:text-default">
+                {m[1]}
+              </a>
+            ) : (
+              <Fragment key={i}>{part}</Fragment>
+            );
+          })()
         ) : (
           // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
           <Fragment key={i}>{part}</Fragment>
@@ -544,9 +561,11 @@ function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
 }
 
 function CrowFallback({
+  triggerQuery,
   searchQuery,
   onEnterChatMode,
 }: {
+  triggerQuery: string;
   searchQuery: string;
   onEnterChatMode: () => void;
 }): JSX.Element {
@@ -563,6 +582,7 @@ function CrowFallback({
   });
   const abortRef = useRef<AbortController | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const hasSentInitialRef = useRef(false);
 
   const sendMessage = useCallback(async (message: string, convId: string | null) => {
     abortRef.current?.abort();
@@ -602,6 +622,8 @@ function CrowFallback({
       const decoder = new TextDecoder();
       let buffer = "";
       let capturedConvId = convId;
+      // Accumulate top-3 source URLs from MCP tool results across the stream
+      const pendingSources: string[] = [];
 
       while (true) {
         const { done, value } = await reader.read();
@@ -614,7 +636,14 @@ function CrowFallback({
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6);
           if (data === "[DONE]") {
-            setState((s) => ({ ...s, mode: "chat", streaming: false, conversationId: capturedConvId }));
+            setState((s) => {
+              const msgs = [...s.messages];
+              const last = msgs[msgs.length - 1];
+              if (last?.role === "assistant" && pendingSources.length > 0) {
+                msgs[msgs.length - 1] = { ...last, sources: pendingSources };
+              }
+              return { ...s, mode: "chat", streaming: false, conversationId: capturedConvId, messages: msgs };
+            });
             onEnterChatMode();
             return;
           }
@@ -632,7 +661,8 @@ function CrowFallback({
                 return { ...s, messages: msgs };
               });
             } else if (event.type === "client_tool_call" && event.tool_name === "navigateToPage") {
-              const href = (event.arguments?.url as string) ?? null;
+              // url is preferred (direct path); page is a named-route fallback the AI may pass instead
+              const href = ((event.arguments?.url as string) || (event.arguments?.page as string)) ?? null;
               if (href) {
                 setState((s) => {
                   const msgs = [...s.messages];
@@ -643,19 +673,20 @@ function CrowFallback({
                   return { ...s, messages: msgs };
                 });
               }
+            } else if (event.type === "tool_result" && pendingSources.length < 3) {
+              // Extract up to 3 cal.com/help URLs from the MCP search result blob
+              const blob = JSON.stringify(event);
+              const urlPattern = /https:\/\/cal\.com\/help\/[^\s"')<>\\]+/g;
+              let m: RegExpExecArray | null;
+              // biome-ignore lint/suspicious/noAssignInExpressions: standard regex exec loop
+              while ((m = urlPattern.exec(blob)) !== null) {
+                if (!pendingSources.includes(m[0])) pendingSources.push(m[0]);
+                if (pendingSources.length >= 3) break;
+              }
             } else if (event.type === "tool_call_start") {
               setState((s) => ({ ...s, checkingDocs: true }));
             } else if (event.type === "tool_call_complete") {
               setState((s) => ({ ...s, checkingDocs: false }));
-            } else if (event.type === "tool_result_links" && event.links?.length) {
-              setState((s) => {
-                const msgs = [...s.messages];
-                const last = msgs[msgs.length - 1];
-                if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = { ...last, sources: event.links };
-                }
-                return { ...s, checkingDocs: false, messages: msgs };
-              });
             }
           } catch {
             // ignore malformed SSE frames
@@ -672,20 +703,16 @@ function CrowFallback({
     }
   }, [onEnterChatMode]);
 
-  // Initial query: fire Crow when searchQuery changes (search mode only)
+  // Fire once on mount with the trigger query (user explicitly selected "AI Answer").
+  // The ref guard prevents React 18 Strict Mode's double-invoke from sending twice.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only effect
   useEffect(() => {
-    if (!searchQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
-    if (state.mode === "chat") return;
-
-    const timer = setTimeout(() => {
-      sendMessage(searchQuery, null);
-    }, 600);
-
-    return () => {
-      clearTimeout(timer);
-      abortRef.current?.abort();
-    };
-  }, [searchQuery, state.mode, sendMessage]);
+    if (hasSentInitialRef.current) return;
+    hasSentInitialRef.current = true;
+    if (!triggerQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
+    void sendMessage(triggerQuery, null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // empty deps: fires once when user selects AI Answer
 
   // Enter key: send follow-up when in chat mode
   useEffect(() => {
@@ -750,7 +777,7 @@ function CrowFallback({
                   <span className="ml-0.5 animate-pulse">▋</span>
                 )}
               </div>
-              {msg.href && !state.streaming && (
+              {msg.href && (
                 <button
                   onClick={() => {
                     query.toggle();
@@ -763,18 +790,23 @@ function CrowFallback({
               )}
               {msg.sources && msg.sources.length > 0 && !state.streaming && (
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                  {msg.sources.map((url, si) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: source list is stable
-                    <a
-                      key={si}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-subtle text-xs transition hover:text-default">
-                      <ExternalLinkIcon className="h-3 w-3" />
-                      {t("kbar_crow_source")}
-                    </a>
-                  ))}
+                  {msg.sources.slice(0, 5).map((url, si) => {
+                    // Turn "/routing/routing-overview" into "Routing Overview"
+                    const slug = url.split("/").pop() ?? "";
+                    const label = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || t("kbar_crow_source");
+                    return (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: source list is stable
+                      <a
+                        key={si}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-subtle text-xs transition hover:text-default">
+                        <ExternalLinkIcon className="h-3 w-3" />
+                        {label}
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -795,6 +827,9 @@ function RenderResults(): JSX.Element {
   const { query } = useKBar();
   const { t } = useLocale();
   const [inChatMode, setInChatMode] = useState(false);
+  const [triggeredQuery, setTriggeredQuery] = useState<string | null>(null);
+  // Updated synchronously during each render by KBarResults' onRender — never stale in handlers
+  const aiAnswerActiveRef = useRef(false);
 
   useEventTypesAction();
   useUpcomingBookingsAction();
@@ -804,15 +839,79 @@ function RenderResults(): JSX.Element {
     query.setSearch("");
   }, [query]);
 
-  if (inChatMode || (results.length === 0 && searchQuery.trim().length > 0)) {
-    return <CrowFallback searchQuery={searchQuery} onEnterChatMode={handleEnterChatMode} />;
+  const crowConfigured = !!(CROW_API_URL && CROW_PRODUCT_ID);
+  const hasQuery = searchQuery.trim().length > 0;
+
+  // Intercept Enter only when AI Answer is the active kbar item, keeping the palette open
+  useEffect(() => {
+    if (inChatMode || triggeredQuery !== null || !hasQuery || !crowConfigured) return;
+
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === "Enter" && aiAnswerActiveRef.current) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        setTriggeredQuery(searchQuery);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [inChatMode, triggeredQuery, hasQuery, crowConfigured, searchQuery]);
+
+  if (inChatMode || triggeredQuery !== null) {
+    return (
+      <CrowFallback
+        triggerQuery={triggeredQuery ?? searchQuery}
+        searchQuery={searchQuery}
+        onEnterChatMode={handleEnterChatMode}
+      />
+    );
   }
 
+  // Inject AI Answer as the last item in kbar's list so arrow navigation works natively
+  const crowAiItem: Action = {
+    id: "crow-ai-answer",
+    name: "kbar_crow_ai_label",
+    keywords: searchQuery,
+    perform: () => {}, // never called — Enter is intercepted above, click is handled in onRender
+  };
+  const allItems = hasQuery && crowConfigured ? ([...results, crowAiItem] as (string | Action)[]) : results;
+
   return (
-    <KBarResults
-      items={results}
-      onRender={({ item, active }: RenderItemProps): JSX.Element => renderResultItem(item, active, t)}
-    />
+    <>
+      {allItems.length > 0 && (
+        <KBarResults
+          items={allItems}
+          onRender={({ item, active }: RenderItemProps): JSX.Element => {
+            if (typeof item !== "string" && item.id === "crow-ai-answer") {
+              // Track active state for the Enter capture handler above (updated during render — never stale)
+              aiAnswerActiveRef.current = active;
+              let background = "var(--cal-bg-default)";
+              let borderLeft = "2px solid transparent";
+              if (active) {
+                background = "var(--cal-bg-subtle)";
+                borderLeft = "2px solid var(--cal-border)";
+              }
+              return (
+                <div
+                  style={{ background, borderLeft, color: "var(--cal-text)" }}
+                  className="flex items-center px-4 py-2.5 text-sm transition hover:cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent kbar from also firing perform()
+                    setTriggeredQuery(searchQuery);
+                  }}>
+                  {t("kbar_crow_ai_label")}
+                </div>
+              );
+            }
+            return renderResultItem(item, active, t);
+          }}
+        />
+      )}
+      {hasQuery && !crowConfigured && results.length === 0 && (
+        <HelpDeskLink searchQuery={searchQuery} />
+      )}
+    </>
   );
 }
 
