@@ -12,21 +12,21 @@ describe("generateHashedLink", () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it("returns different values for different IDs at same time", () => {
+  it("different IDs produce different links at the same time", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-01-01T00:00:00Z"));
-    const result1 = generateHashedLink(1);
-    const result2 = generateHashedLink(2);
-    expect(result1).not.toBe(result2);
+    const link1 = generateHashedLink(1);
+    const link2 = generateHashedLink(2);
+    expect(link1).not.toBe(link2);
   });
 
-  it("returns different values at different times for same ID", () => {
+  it("same ID at different times produces different links", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-01-01T00:00:00Z"));
-    const result1 = generateHashedLink(1);
+    const link1 = generateHashedLink(1);
     vi.setSystemTime(new Date("2025-01-01T00:00:01Z"));
-    const result2 = generateHashedLink(1);
-    expect(result1).not.toBe(result2);
+    const link2 = generateHashedLink(1);
+    expect(link1).not.toBe(link2);
   });
 
   it("accepts numeric ID", () => {
@@ -37,5 +37,14 @@ describe("generateHashedLink", () => {
   it("accepts string ID", () => {
     const result = generateHashedLink("my-event-type");
     expect(typeof result).toBe("string");
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it("same ID at same time produces same link (deterministic)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-06-15T12:00:00Z"));
+    const link1 = generateHashedLink(42);
+    const link2 = generateHashedLink(42);
+    expect(link1).toBe(link2);
   });
 });

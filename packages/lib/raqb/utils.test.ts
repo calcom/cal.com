@@ -2,27 +2,27 @@ import { describe, expect, it } from "vitest";
 import { caseInsensitive } from "./utils";
 
 describe("caseInsensitive", () => {
-  it("lowercases a single string", () => {
+  it("lowercases a string", () => {
     expect(caseInsensitive("Hello World")).toBe("hello world");
   });
 
-  it("lowercases all strings in an array", () => {
-    expect(caseInsensitive(["Hello", "WORLD"])).toEqual(["hello", "world"]);
+  it("lowercases an array of strings", () => {
+    expect(caseInsensitive(["FOO", "Bar"])).toEqual(["foo", "bar"]);
   });
 
-  it("handles empty string", () => {
+  it("returns empty string unchanged", () => {
     expect(caseInsensitive("")).toBe("");
   });
 
-  it("handles empty array", () => {
+  it("returns empty array unchanged", () => {
     expect(caseInsensitive([])).toEqual([]);
   });
 
-  it("handles already-lowercase input", () => {
-    expect(caseInsensitive("already lowercase")).toBe("already lowercase");
+  it("returns already lowercase string unchanged", () => {
+    expect(caseInsensitive("abc")).toBe("abc");
   });
 
-  it("handles mixed case input in array", () => {
-    expect(caseInsensitive(["FiRsT", "sEcOnD", "THIRD"])).toEqual(["first", "second", "third"]);
+  it("handles mixed case array", () => {
+    expect(caseInsensitive(["UPPER", "lower", "MiXeD"])).toEqual(["upper", "lower", "mixed"]);
   });
 });
