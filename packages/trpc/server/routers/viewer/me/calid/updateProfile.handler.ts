@@ -418,7 +418,7 @@ const handleUserMetadata = async ({ ctx, input }: CalIdUpdateProfileOptions) => 
       const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
       cleanMetadata.headerUrl = await uploadHeader({
         banner: headerUrl,
-        userId: user.id,
+        userId: ctx.user.id,
       });
     } else if (cleanMetadata.headerUrl === null) {
       // Explicit clear
