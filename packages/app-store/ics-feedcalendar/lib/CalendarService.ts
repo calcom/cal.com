@@ -153,8 +153,7 @@ class ICSFeedCalendarService implements Calendar {
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
-        // Ignore events that are exceptions to recurring events (have recurrence-id)
-        // to avoid duplicates, as they are processed in the recurring event logic.
+        // Ignore events that are exceptions to recurring events (have recurrence-id) to avoid duplicates, as they are processed in the recurring event logic.
         if (vevent.getFirstPropertyValue("recurrence-id")) return;
         const event = new ICAL.Event(vevent);
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
@@ -225,9 +224,6 @@ class ICSFeedCalendarService implements Calendar {
             return;
           }
 
-          // We process recurring events by iterating through occurrences
-          // starting from the start of the recurring event or the start
-          // of the availability range, whichever is later.
           let iteratorStart;
           if (event.startDate.toJSDate() < rangeStart.toDate()) {
             iteratorStart = ICAL.Time.fromJSDate(rangeStart.toDate(), false);
