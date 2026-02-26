@@ -900,7 +900,7 @@ export const getOptions = ({
         }
 
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        const { upId } = determineProfile({
+        const { upId, id: visitorProfileId } = determineProfile({
           profiles: allProfiles,
           token,
         });
@@ -911,7 +911,7 @@ export const getOptions = ({
         const finalJwt = {
           ...token,
           upId,
-          profileId: token.profileId ?? null,
+          profileId: visitorProfileId ?? token.profileId ?? null,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
