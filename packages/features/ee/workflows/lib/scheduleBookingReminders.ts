@@ -123,6 +123,8 @@ export async function scheduleBookingReminders(
           verifiedAt: step?.verifiedAt ?? null,
           isOrganization: isOrg,
           organizationId,
+          autoTranslateEnabled: step.autoTranslateEnabled,
+          sourceLocale: step.sourceLocale,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -181,6 +183,8 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
+            autoTranslateEnabled: step.autoTranslateEnabled,
+            sourceLocale: step.sourceLocale,
             creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             organizationId,
           });
@@ -201,6 +205,8 @@ export async function scheduleBookingReminders(
             userId: userId,
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
+            autoTranslateEnabled: step.autoTranslateEnabled,
+            sourceLocale: step.sourceLocale,
             creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
             organizationId,
           });

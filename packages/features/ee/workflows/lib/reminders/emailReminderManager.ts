@@ -40,6 +40,8 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   verifiedAt: Date | null;
   isOrganization?: boolean;
   organizationId?: number | null;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 type SendEmailReminderParams = {
@@ -120,6 +122,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     action,
     isOrganization,
     organizationId,
+    autoTranslateEnabled,
+    sourceLocale,
   } = args;
 
   const uid = evt.uid as string;
@@ -159,6 +163,9 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     triggerEvent,
     isOrganization,
     organizationId,
+    workflowStepId,
+    autoTranslateEnabled,
+    sourceLocale,
   });
 
   await sendOrScheduleWorkflowEmailWithReminder({

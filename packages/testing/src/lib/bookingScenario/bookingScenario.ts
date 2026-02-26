@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { TFunction } from "i18next";
+
 // biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import i18nMock from "../__mocks__/libServerI18n";
 // biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
@@ -1764,7 +1766,7 @@ export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
   i18nMock.getTranslation.mockImplementation(() => {
     return new Promise((resolve) => {
-      const identityFn = (key: string) => key;
+      const identityFn = ((key: string) => key) as TFunction<string, undefined>;
       resolve(identityFn);
     });
   });

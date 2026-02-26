@@ -459,6 +459,28 @@ export class AvailableSlotsService {
       }
     }
 
+    // Pre-fetch yearly duration totals per event type to avoid N+1 queries
+    const yearlyDurationTotals = new Map<string, number>();
+    const missingYearlyDurationTotals = new Set<string>();
+    if (durationLimits?.PER_YEAR) {
+      const yearPeriodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+        dateFrom,
+        dateTo,
+        "year",
+        timeZone
+      );
+      for (const periodStart of yearPeriodStartDates) {
+        const yearKey = periodStart.format("YYYY");
+        const totalDurationForYear = await this.dependencies.bookingRepo.getTotalBookingDuration({
+          eventId: eventType.id,
+          startDate: periodStart.toDate(),
+          endDate: periodStart.endOf("year").toDate(),
+          rescheduleUid,
+        });
+        yearlyDurationTotals.set(yearKey, totalDurationForYear);
+      }
+    }
+
     for (const user of users) {
       const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
       const limitManager = new LimitManager();
@@ -545,12 +567,19 @@ export class AvailableSlotsService {
             }
 
             if (unit === "year") {
-              const totalYearlyDuration = await this.dependencies.bookingRepo.getTotalBookingDuration({
-                eventId: eventType.id,
-                startDate: periodStart.toDate(),
-                endDate: periodStart.endOf(unit).toDate(),
-                rescheduleUid,
-              });
+              const yearKey = periodStart.format("YYYY");
+              if (!yearlyDurationTotals.has(yearKey) && !missingYearlyDurationTotals.has(yearKey)) {
+                missingYearlyDurationTotals.add(yearKey);
+                log.warn("[DURATION LIMIT CACHE MISS] Missing pre-fetched yearly duration total", {
+                  eventTypeId: eventType.id,
+                  durationLimitKey: key,
+                  yearKey,
+                  dateFrom: dateFrom.toISOString(),
+                  dateTo: dateTo.toISOString(),
+                  timeZone,
+                });
+              }
+              const totalYearlyDuration = yearlyDurationTotals.get(yearKey) ?? 0;
               if (totalYearlyDuration + selectedDuration > limit) {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (

@@ -15,7 +15,7 @@ import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/reposi
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { prisma } from "@calcom/prisma";
 import { type SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -136,6 +136,8 @@ const processWorkflowStep = async (
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       sender: step.sender,
+      autoTranslateEnabled: step.autoTranslateEnabled,
+      sourceLocale: step.sourceLocale,
       isVerificationPending: step.numberVerificationPending,
       ...contextData,
     });
@@ -179,6 +181,8 @@ const processWorkflowStep = async (
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
+      autoTranslateEnabled: step.autoTranslateEnabled,
+      sourceLocale: step.sourceLocale,
       isVerificationPending: step.numberVerificationPending,
       evt,
     });
