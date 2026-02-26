@@ -169,7 +169,7 @@ const _handleResponse = async ({
             );
 
             teamMemberIdsMatchingAttributeLogic =
-              teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+              teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic?.length
                 ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
                     (member) => member.userId
                   )

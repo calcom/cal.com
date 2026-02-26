@@ -588,6 +588,153 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
     });
   });
 
+  it("should exclude fixed hosts not in routedTeamMemberIds when routing is applied", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: true,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "fixed-host@gmail.com",
+          id: 10,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        groupId: null,
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "rr-host1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        groupId: null,
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "rr-host2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        groupId: null,
+      },
+    ];
+
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue([hosts[1]]);
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    // routedTeamMemberIds has [1, 2] but NOT 10 (the fixed host)
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [1, 2],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // Fixed host (id: 10) should NOT be included because routing is applied
+    // and they're not in routedTeamMemberIds
+    expect(result.fixedHosts).toEqual([]);
+    expect(result.qualifiedRRHosts).toEqual([hosts[1]]);
+  });
+
+  it("should include fixed hosts in routedTeamMemberIds when routing is applied", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: true,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "fixed-host@gmail.com",
+          id: 10,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        groupId: null,
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "rr-host1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        groupId: null,
+      },
+    ];
+
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue([hosts[1]]);
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    // routedTeamMemberIds includes 10 (the fixed host)
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [1, 10],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // Fixed host (id: 10) IS included because they're in routedTeamMemberIds
+    expect(result.fixedHosts).toEqual([hosts[0]]);
+  });
+
   it("should filter for fairness and return fallback with segment filtering and routed team member ids", async () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
