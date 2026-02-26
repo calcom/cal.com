@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import process from "node:process";
 import { APP_NAME, IS_MAILHOG_ENABLED, IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { Browser, Page } from "@playwright/test";

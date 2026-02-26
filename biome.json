@@ -163,7 +163,7 @@
           },
           "correctness": {
             "useImportExtensions": "warn",
-            "noProcessGlobal": "warn",
+            "noProcessGlobal": "off",
             "useExhaustiveDependencies": "warn",
             "noUnknownProperty": "warn",
             "noUnreachable": "warn",
