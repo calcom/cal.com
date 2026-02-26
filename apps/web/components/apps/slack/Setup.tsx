@@ -148,7 +148,7 @@ export default function SlackSetup(_props: ISlackSetupProps) {
             <p className="mt-1 text-muted text-xs">{t("slack_channel_id_hint")}</p>
           </div>
           <div className="flex gap-2 pt-4">
-            <Button type="submit" loading={isSubmitting}>
+            <Button type="submit" loading={isSubmitting || saveKeysMutation.isPending}>
               {t("save")}
             </Button>
             <Button

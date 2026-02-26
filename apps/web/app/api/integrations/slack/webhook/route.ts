@@ -22,7 +22,10 @@ function verifyCalWebhookSignature(
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
   const sigToCompare = signature.startsWith("sha256=") ? signature.slice(7) : signature;
   if (sigToCompare.length !== expected.length) return false;
-  return crypto.timingSafeEqual(Buffer.from(sigToCompare, "hex"), Buffer.from(expected, "hex"));
+  const sigBuffer = Buffer.from(sigToCompare, "hex");
+  const expectedBuffer = Buffer.from(expected, "hex");
+  if (sigBuffer.length !== expectedBuffer.length) return false;
+  return crypto.timingSafeEqual(sigBuffer, expectedBuffer);
 }
 
 function formatSlackMessage(triggerEvent: string, payload: Record<string, unknown>): string {
