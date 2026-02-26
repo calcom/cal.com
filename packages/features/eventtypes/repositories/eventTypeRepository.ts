@@ -1771,6 +1771,32 @@ export class EventTypeRepository implements IEventTypesRepository {
     });
   }
 
+  async findByIdIncludeBrandingInfo({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        team: {
+          select: {
+            hideBranding: true,
+            parent: { select: { hideBranding: true } },
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            hideBranding: true,
+            profiles: {
+              select: {
+                organization: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async getEventTypeList({
     teamId,
     userId,

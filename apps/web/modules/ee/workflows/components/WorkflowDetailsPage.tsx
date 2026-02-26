@@ -178,6 +178,8 @@ export default function WorkflowDetailsPage(props: Props) {
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
       inboundAgentId: null,
+      autoTranslateEnabled: false,
+      sourceLocale: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
