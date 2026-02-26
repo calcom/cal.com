@@ -197,9 +197,8 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                           <Link
                             key="edit_or_manage_webhooks"
                             className="cursor-pointer font-semibold underline"
-                            href="/settings/developer/webhooks">
-                            webhooks settings
-                          </Link>,
+                            href="/settings/developer/webhooks"
+                          />,
                         ]}
                       />
                     </p>
