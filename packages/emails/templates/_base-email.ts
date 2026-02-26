@@ -127,6 +127,8 @@ export default class BaseEmail {
     }
 
     let from = "from" in payload ? (payload.from as string) : "";
+    const calFrom = from;
+    const sanitizedCalFrom = sanitizeDisplayName(calFrom);
     const to = "to" in payload ? (payload.to as string) : "";
 
     if (isSmsCalEmail(to)) {
@@ -188,7 +190,7 @@ export default class BaseEmail {
           error: orgSmtpError,
         });
         try {
-          await sendWithTransport(defaultOptions.transport, sanitizedFrom);
+          await sendWithTransport(defaultOptions.transport, sanitizedCalFrom);
           log.info("Successfully sent email using default SMTP after org SMTP failure", {
             organizationId: this.organizationId,
             emailClass: this.constructor.name,
