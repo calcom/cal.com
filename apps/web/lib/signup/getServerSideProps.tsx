@@ -12,7 +12,7 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { IS_GOOGLE_LOGIN_ENABLED } from "../../server/lib/constants";
+import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
