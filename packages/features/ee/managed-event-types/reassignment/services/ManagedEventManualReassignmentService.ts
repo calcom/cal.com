@@ -28,6 +28,10 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -181,7 +185,24 @@ export class ManagedEventManualReassignmentService {
             bookerUrl,
             metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
           },
-          hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
+          hideBranding: await getEventTypeService().shouldHideBrandingForEventType(
+            targetEventTypeDetails.id,
+            {
+              team: targetEventTypeDetails.team
+                ? {
+                    hideBranding: targetEventTypeDetails.team.hideBranding,
+                    parent: targetEventTypeDetails.team.parent,
+                  }
+                : null,
+              owner: targetEventTypeDetails.owner
+                ? {
+                    id: targetEventTypeDetails.owner.id,
+                    hideBranding: targetEventTypeDetails.owner.hideBranding,
+                    profiles: targetEventTypeDetails.owner.profiles ?? [],
+                  }
+                : null,
+            } satisfies EventTypeBrandingData
+          ),
           seatReferenceUid: undefined,
           isDryRun: false,
           isConfirmedByDefault: targetEventTypeDetails.requiresConfirmation ? false : true,
