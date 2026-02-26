@@ -3,6 +3,7 @@ import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/token
 import { AVATAR_DI_TOKENS } from "@calcom/features/avatars/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
+import { CALENDAR_SUBSCRIPTION_DI_TOKENS } from "@calcom/features/calendar-subscription/di/tokens";
 import { ACTIVE_USER_BILLING_DI_TOKENS } from "@calcom/features/ee/billing/active-user/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { EVENT_TYPE_DI_TOKENS } from "@calcom/features/eventtypes/di/tokens";
@@ -97,4 +98,5 @@ export const DI_TOKENS = {
   ...ABUSE_SCORING_DI_TOKENS,
   ...ABUSE_SCORING_TASKER_DI_TOKENS,
   ...EVENT_TYPE_DI_TOKENS,
+  ...CALENDAR_SUBSCRIPTION_DI_TOKENS,
 };

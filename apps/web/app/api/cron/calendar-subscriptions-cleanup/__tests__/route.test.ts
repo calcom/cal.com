@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
-import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("next/server", () => ({
   NextRequest: class MockNextRequest {
@@ -33,8 +31,13 @@ vi.mock("next/server", () => ({
   },
 }));
 
-vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService");
-vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository");
+const mockCleanupStaleCache = vi.fn();
+
+vi.mock("@calcom/features/calendar-subscription/di/CalendarCacheEventService.container", () => ({
+  getCalendarCacheEventService: vi.fn(() => ({
+    cleanupStaleCache: mockCleanupStaleCache,
+  })),
+}));
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     getSubLogger: vi.fn(() => ({
@@ -64,11 +67,6 @@ vi.mock("@calcom/lib/server/getServerErrorFromUnknown", () => ({
 vi.mock("../../defaultResponderForAppDir", () => ({
   defaultResponderForAppDir: vi.fn((handler) => handler),
 }));
-vi.mock("@calcom/prisma", () => ({
-  prisma: {},
-}));
-
-const mockCalendarCacheEventService = vi.mocked(CalendarCacheEventService);
 
 describe("/api/cron/calendar-subscriptions-cleanup", () => {
   beforeEach(() => {
@@ -105,8 +103,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions-cleanup");
       request.headers.set("authorization", "test-cron-key");
 
-      const mockCleanupStaleCache = vi.fn().mockResolvedValue(undefined);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockResolvedValue(undefined);
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -119,8 +116,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions-cleanup");
       request.headers.set("authorization", "Bearer test-cron-secret");
 
-      const mockCleanupStaleCache = vi.fn().mockResolvedValue(undefined);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockResolvedValue(undefined);
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -134,8 +130,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
         "http://localhost/api/cron/calendar-subscriptions-cleanup?apiKey=test-cron-key"
       );
 
-      const mockCleanupStaleCache = vi.fn().mockResolvedValue(undefined);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockResolvedValue(undefined);
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -150,8 +145,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions-cleanup");
       request.headers.set("authorization", "test-cron-key");
 
-      const mockCleanupStaleCache = vi.fn().mockResolvedValue(undefined);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockResolvedValue(undefined);
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -167,8 +161,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
       request.headers.set("authorization", "test-cron-key");
 
       const mockError = new Error("Database connection failed");
-      const mockCleanupStaleCache = vi.fn().mockRejectedValue(mockError);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockRejectedValue(mockError);
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -182,8 +175,7 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions-cleanup");
       request.headers.set("authorization", "test-cron-key");
 
-      const mockCleanupStaleCache = vi.fn().mockRejectedValue("String error");
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockRejectedValue("String error");
 
       const { GET } = await import("../route");
       const response = await GET(request, { params: Promise.resolve({}) });
@@ -195,19 +187,19 @@ describe("/api/cron/calendar-subscriptions-cleanup", () => {
   });
 
   describe("Service instantiation", () => {
-    test("should instantiate CalendarCacheEventService with correct dependencies", async () => {
+    test("should use DI container to get service instance", async () => {
       const request = new NextRequest("http://localhost/api/cron/calendar-subscriptions-cleanup");
       request.headers.set("authorization", "test-cron-key");
 
-      const mockCleanupStaleCache = vi.fn().mockResolvedValue(undefined);
-      mockCalendarCacheEventService.prototype.cleanupStaleCache = mockCleanupStaleCache;
+      mockCleanupStaleCache.mockResolvedValue(undefined);
 
+      const { getCalendarCacheEventService } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventService.container"
+      );
       const { GET } = await import("../route");
       await GET(request, { params: Promise.resolve({}) });
 
-      expect(mockCalendarCacheEventService).toHaveBeenCalledWith({
-        calendarCacheEventRepository: expect.any(Object),
-      });
+      expect(getCalendarCacheEventService).toHaveBeenCalled();
     });
   });
 });

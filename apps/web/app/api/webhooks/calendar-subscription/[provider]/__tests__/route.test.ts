@@ -1,7 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
-import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("next/server", () => ({
   NextRequest: class MockNextRequest {
@@ -33,14 +31,17 @@ vi.mock("next/server", () => ({
   },
 }));
 
-vi.mock("@calcom/features/calendar-subscription/lib/CalendarSubscriptionService");
-vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService");
-vi.mock("@calcom/features/calendar-subscription/lib/sync/CalendarSyncService");
-vi.mock("@calcom/prisma", () => ({
-  prisma: {},
-}));
+const mockIsCacheEnabled = vi.fn();
+const mockIsSyncEnabled = vi.fn();
+const mockProcessWebhook = vi.fn();
 
-const mockCalendarSubscriptionService = vi.mocked(CalendarSubscriptionService);
+vi.mock("@calcom/features/calendar-subscription/di/CalendarSubscriptionService.container", () => ({
+  getCalendarSubscriptionService: vi.fn(() => ({
+    isCacheEnabled: mockIsCacheEnabled,
+    isSyncEnabled: mockIsSyncEnabled,
+    processWebhook: mockProcessWebhook,
+  })),
+}));
 
 describe("/api/webhooks/calendar-subscription/[provider]", () => {
   beforeEach(() => {
@@ -54,13 +55,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -79,13 +76,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         }
       );
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -121,13 +114,8 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(false);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn();
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(false);
+      mockIsSyncEnabled.mockResolvedValue(false);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -145,13 +133,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -169,13 +153,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(false);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(true);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(false);
+      mockIsSyncEnabled.mockResolvedValue(true);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -193,13 +173,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(true);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(true);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -220,13 +196,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
       });
 
       const mockError = new Error("Webhook validation failed");
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockRejectedValue(mockError);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockRejectedValue(mockError);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -243,13 +215,9 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockRejectedValue("String error");
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockRejectedValue("String error");
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -267,11 +235,8 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
       });
 
       const mockError = new Error("Feature flag service unavailable");
-      const mockIsCacheEnabled = vi.fn().mockRejectedValue(mockError);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
+      mockIsCacheEnabled.mockRejectedValue(mockError);
+      mockIsSyncEnabled.mockResolvedValue(false);
 
       const { POST } = await import("../route");
       const response = await POST(request, {
@@ -285,33 +250,24 @@ describe("/api/webhooks/calendar-subscription/[provider]", () => {
   });
 
   describe("Service instantiation", () => {
-    test("should instantiate all services with correct dependencies", async () => {
+    test("should use DI container to get service instance", async () => {
       const request = new NextRequest("http://localhost/api/webhooks/calendar-subscription/google_calendar", {
         method: "POST",
       });
 
-      const mockIsCacheEnabled = vi.fn().mockResolvedValue(true);
-      const mockIsSyncEnabled = vi.fn().mockResolvedValue(false);
-      const mockProcessWebhook = vi.fn().mockResolvedValue(undefined);
+      mockIsCacheEnabled.mockResolvedValue(true);
+      mockIsSyncEnabled.mockResolvedValue(false);
+      mockProcessWebhook.mockResolvedValue(undefined);
 
-      mockCalendarSubscriptionService.prototype.isCacheEnabled = mockIsCacheEnabled;
-      mockCalendarSubscriptionService.prototype.isSyncEnabled = mockIsSyncEnabled;
-      mockCalendarSubscriptionService.prototype.processWebhook = mockProcessWebhook;
-
+      const { getCalendarSubscriptionService } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarSubscriptionService.container"
+      );
       const { POST } = await import("../route");
       await POST(request, {
         params: Promise.resolve({ provider: "google_calendar" }),
       });
 
-      expect(mockCalendarSubscriptionService).toHaveBeenCalledWith({
-        adapterFactory: expect.any(Object),
-        selectedCalendarRepository: expect.any(Object),
-        featureRepository: expect.any(Object),
-        teamFeatureRepository: expect.any(Object),
-        userFeatureRepository: expect.any(Object),
-        calendarSyncService: expect.any(Object),
-        calendarCacheEventService: expect.any(Object),
-      });
+      expect(getCalendarSubscriptionService).toHaveBeenCalled();
     });
   });
 });

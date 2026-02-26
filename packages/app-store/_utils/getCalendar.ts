@@ -1,7 +1,7 @@
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import { getCalendarCacheEventRepository } from "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -9,13 +9,11 @@ import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import logger from "@calcom/lib/logger";
 import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
-import { prisma } from "@calcom/prisma";
 import type { Calendar, CalendarFetchMode } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { CalendarServiceMap } from "../calendar.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
@@ -58,7 +56,7 @@ export const getCalendar = async (
   // - "none": Don't use cache (for operations that don't use getAvailability, e.g., deleteEvent, listCalendars)
   let shouldServeCache = false;
   if (mode === "slots") {
-    const featuresRepository = new FeaturesRepository(prisma);
+    const featuresRepository = getFeaturesRepository();
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
         featuresRepository.checkIfFeatureIsEnabledGlobally(
@@ -100,10 +98,9 @@ export const getCalendar = async (
 
   if (useCache) {
     log.debug(`Calendar Cache is enabled, using CalendarCacheWrapper for credential ${credential.id}`);
-    const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
     calendar = new CalendarCacheWrapper({
       originalCalendar: calendar,
-      calendarCacheEventRepository,
+      calendarCacheEventRepository: getCalendarCacheEventRepository(),
     });
   }
 
