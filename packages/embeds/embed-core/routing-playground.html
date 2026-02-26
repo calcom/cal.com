@@ -228,6 +228,7 @@
                 calOrigin: window.calOrigin,
                 config: {
                   "cal.embed.pageType": "team.event.booking.slots",
+                  ...(window.params.dryRun ? { "cal.isBookingDryRun": "true" } : {}),
                 },
               });
             }

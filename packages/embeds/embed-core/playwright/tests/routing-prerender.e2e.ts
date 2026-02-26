@@ -1,20 +1,19 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 import { doOnOrgDomain } from "@calcom/web/playwright/lib/testUtils";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { expectHostsToBe } from "../lib/pages/bookingSuccessPage";
 import {
-  getEmbedIframe,
   bookEvent,
+  expectActualFormResponseConnectedToQueuedFormResponse,
   expectEmbedIFrameToBeVisible,
   getAllFormResponses,
-  expectActualFormResponseConnectedToQueuedFormResponse,
+  getEmbedIframe,
   getLatestQueuedFormResponse,
+  getQueuedFormResponse,
 } from "../lib/testUtils";
 
 // in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
@@ -111,6 +110,81 @@ test.describe("Prerender Headless Router", () => {
         hosts: expectedRoutedTeamMembers.map((user) => ({ email: user.email })),
         frame: prerenderedIframe,
       });
+    });
+  });
+
+  test("should skip queued-response API call when cal.isBookingDryRun=true is passed in modal config but not in prerender", async ({
+    page,
+    embeds,
+    users,
+  }) => {
+    const userFixture = await users.create(
+      { username: "routing-forms" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        seedRoutingFormWithAttributeRouting: true,
+        seedRoutingForms: true,
+      }
+    );
+
+    const orgMembership = await userFixture.getOrgMembership();
+    const teamMembership = await userFixture.getFirstTeamMembership();
+    const routingForm = userFixture.routingForms[0];
+
+    const calNamespace = "routingFormFullPrerender";
+    // Note: param.dryRun=true causes the modal config to include cal.isBookingDryRun=true
+    // but prerender does NOT include it - this is the partial dry-run scenario
+    await embeds.gotoPlayground({
+      calNamespace,
+      url: `/embed/routing-playground.html?only=ns:${calNamespace}&param.formId=${routingForm.id}&calOrigin=${WEBAPP_URL}&cal.embed.logging=1&param.dryRun=true`,
+    });
+
+    await doOnOrgDomain({ orgSlug: orgMembership.team.slug, page }, async ({ page }) => {
+      await fillRoutingRequiredAttributes(page, {
+        skills: "JavaScript",
+        location: "London",
+        email: "embed-user@example.com",
+      });
+
+      const expectedRoutedTeamMembers = [teamMembership.user];
+      // Prerender happens without dry-run, so a real queuedFormResponseId is created
+      const { prerenderedIframe, queuedFormResponseId } = await expectPrerenderedRoutedTeamBookingPage({
+        page,
+        calNamespace,
+        calLink: `/team/${teamMembership.team.slug}/team-javascript`,
+        embeds,
+        routedTeamMemberIds: expectedRoutedTeamMembers.map((user) => user.id),
+        routingForm,
+      });
+
+      // Track whether the queued-response API call is made
+      let queuedResponseApiCalled = false;
+      await page.route("**/queued-response", (route) => {
+        queuedResponseApiCalled = true;
+        route.continue();
+      });
+
+      await fillRestOfTheFormAndSubmit(page);
+      await expectEmbedIFrameToBeVisible({ calNamespace, page });
+
+      // Give enough time for the connect method to execute (which would call recordResponseIfQueued)
+      // The connect method runs after the modal opens and the iframe is ready
+      await page.waitForTimeout(3000);
+
+      // The queued-response API should NOT have been called because cal.isBookingDryRun=true
+      // was passed in the modal config, and our fix detects this from the URL query param
+      expect(queuedResponseApiCalled).toBe(false);
+
+      // Verify no actual form response was created from the queued response
+      const queuedFormResponseFromDb = await getQueuedFormResponse(queuedFormResponseId);
+      expect(queuedFormResponseFromDb?.actualResponse).toBeNull();
+
+      // Verify no form responses were recorded at all
+      const allFormResponses = await getAllFormResponses(routingForm.id);
+      expect(allFormResponses.length).toBe(0);
     });
   });
 });

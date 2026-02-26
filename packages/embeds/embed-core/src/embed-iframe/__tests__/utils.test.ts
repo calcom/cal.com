@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdkActionManager } from "../../sdk-event";
 import { embedStore } from "../lib/embedStore";
-import { keepParentInformedAboutDimensionChanges } from "../lib/utils";
+import { keepParentInformedAboutDimensionChanges, recordResponseIfQueued } from "../lib/utils";
 import { fakeCurrentDocumentUrl } from "./test-utils";
 
 type DimensionEvent = {
@@ -226,5 +225,87 @@ describe("keepParentInformedAboutDimensionChanges", () => {
       expect(windowLoadEvents.length).toBe(1);
       expect(embedStore.windowLoadEventFired).toBe(true);
     });
+  });
+});
+
+describe("recordResponseIfQueued", () => {
+  let fetchSpy: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchSpy = vi.fn();
+    global.fetch = fetchSpy;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should return null when no queuedFormResponseId is present", async () => {
+    fakeCurrentDocumentUrl({ params: {} });
+    const result = await recordResponseIfQueued({ field1: "value1" });
+    expect(result).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("should return 0 when queuedFormResponseId is the dry-run UUID", async () => {
+    fakeCurrentDocumentUrl({
+      params: { "cal.queuedFormResponseId": "00000000-0000-0000-0000-000000000000" },
+    });
+    const result = await recordResponseIfQueued({ field1: "value1" });
+    expect(result).toBe(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("should return 0 and skip the API call when cal.isBookingDryRun=true is set", async () => {
+    fakeCurrentDocumentUrl({
+      params: {
+        "cal.queuedFormResponseId": "some-real-queued-id",
+        "cal.isBookingDryRun": "true",
+      },
+    });
+    const result = await recordResponseIfQueued({ field1: "value1" });
+    expect(result).toBe(0);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("should make the API call when queuedFormResponseId is present and not in dry-run mode", async () => {
+    fakeCurrentDocumentUrl({
+      params: { "cal.queuedFormResponseId": "some-real-queued-id" },
+    });
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ data: { formResponseId: 42 } }),
+    });
+    const result = await recordResponseIfQueued({ form: "form-id", field1: "value1" });
+    expect(result).toBe(42);
+    expect(fetchSpy).toHaveBeenCalledWith("/api/routing-forms/queued-response", {
+      method: "POST",
+      body: JSON.stringify({ queuedFormResponseId: "some-real-queued-id", params: { field1: "value1" } }),
+    });
+  });
+
+  it("should return null when the API call fails", async () => {
+    fakeCurrentDocumentUrl({
+      params: { "cal.queuedFormResponseId": "some-real-queued-id" },
+    });
+    fetchSpy.mockResolvedValue({ ok: false });
+    const result = await recordResponseIfQueued({ field1: "value1" });
+    expect(result).toBeNull();
+  });
+
+  it("should not skip the API call when cal.isBookingDryRun is not 'true'", async () => {
+    fakeCurrentDocumentUrl({
+      params: {
+        "cal.queuedFormResponseId": "some-real-queued-id",
+        "cal.isBookingDryRun": "false",
+      },
+    });
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ data: { formResponseId: 99 } }),
+    });
+    const result = await recordResponseIfQueued({ field1: "value1" });
+    expect(result).toBe(99);
+    expect(fetchSpy).toHaveBeenCalled();
   });
 });
