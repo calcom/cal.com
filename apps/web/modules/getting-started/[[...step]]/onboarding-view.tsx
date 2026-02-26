@@ -155,14 +155,18 @@ const OnboardingPage = (props: PageProps) => {
             : data.identityProvider === "GOOGLE"
             ? "gmail_onboarding_success"
             : "email_onboarding_success",
-        signup_method: data.identityProvider === "GOOGLE" ? "google" : "email",
+        signup_method:
+          data.metadata.signupSource === "google-one-tap"
+            ? "onetap"
+            : data.identityProvider === "GOOGLE"
+            ? "google"
+            : "email",
         user_name: data.username,
         full_name: data.name,
         email_address: data.email,
       };
 
       if (!data.completedOnboarding) {
-        console.log("Pushing onboarding completion event to GTM:", gtmEvent);
         window.dataLayer.push(gtmEvent);
       }
 
