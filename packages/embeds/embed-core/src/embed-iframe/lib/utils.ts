@@ -1,5 +1,5 @@
 import { sdkActionManager } from "../../sdk-event";
-import { type EmbedStore } from "../lib/embedStore";
+import type { EmbedStore } from "../lib/embedStore";
 
 export const isBrowser = typeof window !== "undefined";
 
@@ -104,13 +104,13 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
     // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
     const contentHeight = Math.ceil(
       parseFloat(mainElementStyles.height) +
-      parseFloat(mainElementStyles.marginTop) +
-      parseFloat(mainElementStyles.marginBottom)
+        parseFloat(mainElementStyles.marginTop) +
+        parseFloat(mainElementStyles.marginBottom)
     );
     const contentWidth = Math.ceil(
       parseFloat(mainElementStyles.width) +
-      parseFloat(mainElementStyles.marginLeft) +
-      parseFloat(mainElementStyles.marginRight)
+        parseFloat(mainElementStyles.marginLeft) +
+        parseFloat(mainElementStyles.marginRight)
     );
 
     // During first render let iframe tell parent that how much is the expected height to avoid scroll.
@@ -163,6 +163,13 @@ export const recordResponseIfQueued = async (params: Record<string, string | str
   }
   // Corresponding dry run value for routingFormResponseId is 0
   if (queuedFormResponseId === "00000000-0000-0000-0000-000000000000") {
+    return 0;
+  }
+
+  // Detect dry-run mode from query param even when the prerender instruction didn't pass it
+  // but the actual embed modal opening call did. This avoids a partial dry-run where
+  // the queued-response API call would still fire.
+  if (url.searchParams.get("cal.isBookingDryRun") === "true") {
     return 0;
   }
   // form is formId and isn't acutal Form data
