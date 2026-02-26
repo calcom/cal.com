@@ -2103,7 +2103,6 @@ __metadata:
     "@radix-ui/react-slot": "npm:1.1.2"
     "@radix-ui/react-switch": "npm:1.1.0"
     "@radix-ui/react-toast": "npm:1.1.5"
-    "@radix-ui/react-tooltip": "npm:^1.2.8"
     "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@1.0.6"
     "@rollup/plugin-node-resolve": "npm:15.0.1"
     "@tailwindcss/cli": "npm:4.1.16"
@@ -3231,7 +3230,7 @@ __metadata:
     "@radix-ui/react-avatar": "npm:1.1.3"
     "@radix-ui/react-checkbox": "npm:1.0.4"
     "@radix-ui/react-dialog": "npm:1.0.4"
-    "@radix-ui/react-popover": "npm:^1.1.15"
+    "@radix-ui/react-popover": "npm:1.1.15"
     "@radix-ui/react-portal": "npm:1.0.4"
     "@radix-ui/react-select": "npm:0.1.1"
     "@radix-ui/react-slider": "npm:1.2.2"
@@ -3347,15 +3346,15 @@ __metadata:
     "@radix-ui/react-avatar": "npm:1.1.3"
     "@radix-ui/react-collapsible": "npm:1.0.3"
     "@radix-ui/react-dialog": "npm:1.0.4"
-    "@radix-ui/react-dropdown-menu": "npm:^2.1.16"
+    "@radix-ui/react-dropdown-menu": "npm:2.1.16"
     "@radix-ui/react-hover-card": "npm:1.0.7"
     "@radix-ui/react-id": "npm:1.0.1"
-    "@radix-ui/react-popover": "npm:^1.1.15"
+    "@radix-ui/react-popover": "npm:1.1.15"
     "@radix-ui/react-radio-group": "npm:1.1.3"
     "@radix-ui/react-slider": "npm:1.2.2"
     "@radix-ui/react-switch": "npm:1.1.0"
-    "@radix-ui/react-toggle-group": "npm:^1.1.11"
-    "@radix-ui/react-tooltip": "npm:^1.2.8"
+    "@radix-ui/react-toggle-group": "npm:1.1.11"
+    "@radix-ui/react-tooltip": "npm:1.2.8"
     "@sentry/nextjs": "npm:10.33.0"
     "@stripe/react-stripe-js": "npm:1.10.0"
     "@stripe/stripe-js": "npm:1.35.0"
@@ -11713,7 +11712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-dropdown-menu@npm:^2.1.16":
+"@radix-ui/react-dropdown-menu@npm:2.1.16":
   version: 2.1.16
   resolution: "@radix-ui/react-dropdown-menu@npm:2.1.16"
   dependencies:
@@ -12017,7 +12016,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-popover@npm:^1.1.15":
+"@radix-ui/react-popover@npm:1.1.15":
   version: 1.1.15
   resolution: "@radix-ui/react-popover@npm:1.1.15"
   dependencies:
@@ -12698,7 +12697,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-toggle-group@npm:^1.1.11":
+"@radix-ui/react-toggle-group@npm:1.1.11":
   version: 1.1.11
   resolution: "@radix-ui/react-toggle-group@npm:1.1.11"
   dependencies:
@@ -12775,7 +12774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tooltip@npm:^1.2.8":
+"@radix-ui/react-tooltip@npm:1.2.8":
   version: 1.2.8
   resolution: "@radix-ui/react-tooltip@npm:1.2.8"
   dependencies:
