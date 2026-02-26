@@ -1,612 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/v2/oauth-clients/{clientId}/users": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getManagedUsers",
-        "summary": "Get all managed users",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "The number of items to skip",
-            "example": 0,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "emails",
-            "required": false,
-            "in": "query",
-            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
-            "example": "?emails=email1@example.com,email2@example.com",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUsersOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "post": {
-        "operationId": "OAuthClientUsersController_createUser",
-        "summary": "Create a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}": {
-      "get": {
-        "operationId": "OAuthClientUsersController_getUserById",
-        "summary": "Get a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "patch": {
-        "operationId": "OAuthClientUsersController_updateUser",
-        "summary": "Update a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateManagedUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      },
-      "delete": {
-        "operationId": "OAuthClientUsersController_deleteUser",
-        "summary": "Delete a managed user",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetManagedUserOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
-      "post": {
-        "operationId": "OAuthClientUsersController_forceRefresh",
-        "summary": "Force refresh tokens",
-        "description": "If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth/{clientId}/refresh": {
-      "post": {
-        "operationId": "OAuthFlowController_refreshTokens",
-        "summary": "Refresh managed user tokens",
-        "description": "If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
-        "parameters": [
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "x-cal-secret-key",
-            "required": true,
-            "in": "header",
-            "description": "OAuth client secret key.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KeysResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Managed Users"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks": {
-      "post": {
-        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
-        "summary": "Create a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
-        "summary": "Get all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of items to return",
-            "example": 25,
-            "schema": {
-              "minimum": 1,
-              "maximum": 250,
-              "default": 250,
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Number of items to skip",
-            "example": 0,
-            "schema": {
-              "minimum": 0,
-              "default": 0,
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
-        "summary": "Delete all webhooks",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      }
-    },
-    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
-      "patch": {
-        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
-        "summary": "Update a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "webhookId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateWebhookInputDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "get": {
-        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
-        "summary": "Get a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      },
-      "delete": {
-        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
-        "summary": "Delete a webhook",
-        "parameters": [
-          {
-            "name": "x-cal-secret-key",
-            "in": "header",
-            "description": "OAuth client secret key",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Webhooks"]
-      }
-    },
     "/v2/organizations/{orgId}/attributes": {
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
@@ -634,11 +28,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -647,10 +41,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -1129,8 +523,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
-            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
             "schema": {
+              "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
               "type": "array",
               "items": {
                 "type": "string"
@@ -1142,8 +536,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by teamIds. Team ids must be separated by a comma.",
-            "example": "?teamIds=100,200",
             "schema": {
+              "example": "?teamIds=100,200",
               "type": "array",
               "items": {
                 "type": "number"
@@ -1219,8 +613,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
-            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
             "schema": {
+              "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
               "type": "array",
               "items": {
                 "type": "string"
@@ -1232,8 +626,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by teamIds. Team ids must be separated by a comma.",
-            "example": "?teamIds=100,200",
             "schema": {
+              "example": "?teamIds=100,200",
               "type": "array",
               "items": {
                 "type": "number"
@@ -1447,8 +841,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
-            "example": "?status=upcoming,past",
             "schema": {
+              "example": "?status=upcoming,past",
               "type": "array",
               "items": {
                 "type": "string",
@@ -1461,8 +855,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's email address.",
-            "example": "example@domain.com",
             "schema": {
+              "example": "example@domain.com",
               "type": "string"
             }
           },
@@ -1471,8 +865,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
-            "example": "John Doe",
             "schema": {
+              "example": "John Doe",
               "type": "string"
             }
           },
@@ -1481,8 +875,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the booking Uid.",
-            "example": "2NtaeaVcKfpmSZ4CthFdfk",
             "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
               "type": "string"
             }
           },
@@ -1491,8 +885,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
-            "example": "?eventTypeIds=100,200",
             "schema": {
+              "example": "?eventTypeIds=100,200",
               "type": "string"
             }
           },
@@ -1501,8 +895,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type id belonging to the user.",
-            "example": "?eventTypeId=100",
             "schema": {
+              "example": "?eventTypeId=100",
               "type": "string"
             }
           },
@@ -1511,8 +905,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
-            "example": "?teamIds=50,60",
             "schema": {
+              "example": "?teamIds=50,60",
               "type": "string"
             }
           },
@@ -1521,8 +915,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team id that user is part of",
-            "example": "?teamId=50",
             "schema": {
+              "example": "?teamId=50",
               "type": "string"
             }
           },
@@ -1531,8 +925,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with start after this date string.",
-            "example": "?afterStart=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterStart=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -1541,8 +935,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with end before this date string.",
-            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
             "schema": {
+              "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -1551,8 +945,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created after this date string.",
-            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -1561,8 +955,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created before this date string.",
-            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -1571,8 +965,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated after this date string.",
-            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -1581,8 +975,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated before this date string.",
-            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -1591,8 +985,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -1602,8 +996,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -1613,8 +1007,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -1624,8 +1018,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
-            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
+              "example": "?sortUpdated=asc OR ?sortUpdated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -1635,9 +1029,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to return",
-            "example": 10,
             "schema": {
               "default": 100,
+              "example": 10,
               "type": "number"
             }
           },
@@ -1646,9 +1040,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to skip",
-            "example": 0,
             "schema": {
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -1657,8 +1051,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by ids of users within your organization.",
-            "example": "?userIds=100,200",
             "schema": {
+              "example": "?userIds=100,200",
               "type": "string"
             }
           },
@@ -1871,11 +1265,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -1884,10 +1278,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -2278,11 +1672,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -2291,10 +1685,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -2771,8 +2165,8 @@
             "required": false,
             "in": "query",
             "description": "Permissions to remove (format: resource.action). Supports comma-separated values as well as repeated query params.",
-            "example": "?permissions=eventType.read,booking.read",
             "schema": {
+              "example": "?permissions=eventType.read,booking.read",
               "type": "array",
               "items": {
                 "type": "string",
@@ -2805,11 +2199,13 @@
                   "organization.manageBilling",
                   "organization.changeMemberRole",
                   "organization.impersonate",
+                  "organization.passwordReset",
                   "organization.update",
                   "booking.read",
                   "booking.readOrgBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readOrgAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -2831,7 +2227,9 @@
                   "watchlist.create",
                   "watchlist.read",
                   "watchlist.update",
-                  "watchlist.delete"
+                  "watchlist.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -3024,8 +2422,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by teamIds. Team ids must be separated by a comma.",
-            "example": "?teamIds=100,200",
             "schema": {
+              "example": "?teamIds=100,200",
               "type": "array",
               "items": {
                 "type": "number"
@@ -3214,8 +2612,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
-            "example": "2050-09-05",
             "schema": {
+              "example": "2050-09-05",
               "type": "string"
             }
           },
@@ -3224,8 +2622,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
-            "example": "2050-09-06",
             "schema": {
+              "example": "2050-09-06",
               "type": "string"
             }
           },
@@ -3234,8 +2632,8 @@
             "required": false,
             "in": "query",
             "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
-            "example": "Europe/Rome",
             "schema": {
+              "example": "Europe/Rome",
               "type": "string"
             }
           },
@@ -3244,8 +2642,8 @@
             "required": false,
             "in": "query",
             "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
-            "example": "60",
             "schema": {
+              "example": "60",
               "type": "number"
             }
           },
@@ -3254,8 +2652,8 @@
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
             "schema": {
+              "example": "range",
               "enum": ["range", "time"],
               "type": "string"
             }
@@ -3265,8 +2663,8 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
-            "example": "abc123def456",
             "schema": {
+              "example": "abc123def456",
               "type": "string"
             }
           },
@@ -3275,8 +2673,8 @@
             "required": false,
             "in": "query",
             "description": "Whether to queue the form response.",
-            "example": true,
             "schema": {
+              "example": true,
               "type": "boolean"
             }
           }
@@ -3405,11 +2803,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -3418,10 +2816,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -3478,6 +2876,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -3598,6 +3021,31 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -3836,8 +3284,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
-            "example": "?status=upcoming,past",
             "schema": {
+              "example": "?status=upcoming,past",
               "type": "array",
               "items": {
                 "type": "string",
@@ -3850,8 +3298,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's email address.",
-            "example": "example@domain.com",
             "schema": {
+              "example": "example@domain.com",
               "type": "string"
             }
           },
@@ -3860,8 +3308,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
-            "example": "John Doe",
             "schema": {
+              "example": "John Doe",
               "type": "string"
             }
           },
@@ -3870,8 +3318,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the booking Uid.",
-            "example": "2NtaeaVcKfpmSZ4CthFdfk",
             "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
               "type": "string"
             }
           },
@@ -3880,8 +3328,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
-            "example": "?eventTypeIds=100,200",
             "schema": {
+              "example": "?eventTypeIds=100,200",
               "type": "string"
             }
           },
@@ -3890,8 +3338,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type id belonging to the team.",
-            "example": "?eventTypeId=100",
             "schema": {
+              "example": "?eventTypeId=100",
               "type": "string"
             }
           },
@@ -3900,8 +3348,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with start after this date string.",
-            "example": "?afterStart=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterStart=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -3910,8 +3358,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with end before this date string.",
-            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
             "schema": {
+              "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -3920,8 +3368,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -3931,8 +3379,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -3942,8 +3390,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -3953,10 +3401,10 @@
             "required": false,
             "in": "query",
             "description": "The number of items to return",
-            "example": 10,
             "schema": {
               "minimum": 1,
               "maximum": 250,
+              "example": 10,
               "type": "number"
             }
           },
@@ -3965,9 +3413,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -4048,8 +3496,8 @@
             "required": false,
             "in": "query",
             "description": "Filter booking references by type",
-            "example": "google_calendar",
             "schema": {
+              "example": "google_calendar",
               "enum": [
                 "google_calendar",
                 "office365_calendar",
@@ -4870,11 +4318,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -4883,10 +4331,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -5311,11 +4759,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -5324,10 +4772,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -5766,11 +5214,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -5779,10 +5227,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -6315,8 +5763,8 @@
             "required": false,
             "in": "query",
             "description": "Permissions to remove (format: resource.action). Supports comma-separated values as well as repeated query params.",
-            "example": "?permissions=eventType.read,booking.read",
             "schema": {
+              "example": "?permissions=eventType.read,booking.read",
               "type": "array",
               "items": {
                 "type": "string",
@@ -6342,6 +5790,7 @@
                   "booking.readTeamBookings",
                   "booking.readRecordings",
                   "booking.update",
+                  "booking.readTeamAuditLogs",
                   "insights.read",
                   "workflow.create",
                   "workflow.read",
@@ -6354,7 +5803,9 @@
                   "webhook.create",
                   "webhook.read",
                   "webhook.update",
-                  "webhook.delete"
+                  "webhook.delete",
+                  "featureOptIn.read",
+                  "featureOptIn.update"
                 ]
               }
             }
@@ -6756,8 +6207,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
-            "example": "2050-09-05",
             "schema": {
+              "example": "2050-09-05",
               "type": "string"
             }
           },
@@ -6766,8 +6217,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
-            "example": "2050-09-06",
             "schema": {
+              "example": "2050-09-06",
               "type": "string"
             }
           },
@@ -6776,8 +6227,8 @@
             "required": false,
             "in": "query",
             "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
-            "example": "Europe/Rome",
             "schema": {
+              "example": "Europe/Rome",
               "type": "string"
             }
           },
@@ -6786,8 +6237,8 @@
             "required": false,
             "in": "query",
             "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
-            "example": "60",
             "schema": {
+              "example": "60",
               "type": "number"
             }
           },
@@ -6796,8 +6247,8 @@
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
             "schema": {
+              "example": "range",
               "enum": ["range", "time"],
               "type": "string"
             }
@@ -6807,8 +6258,8 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
-            "example": "abc123def456",
             "schema": {
+              "example": "abc123def456",
               "type": "string"
             }
           },
@@ -6817,8 +6268,8 @@
             "required": false,
             "in": "query",
             "description": "Whether to queue the form response.",
-            "example": true,
             "schema": {
+              "example": true,
               "type": "boolean"
             }
           }
@@ -6955,11 +6406,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -6968,10 +6419,20 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "schema": {
+              "example": 1,
               "type": "number"
             }
           }
@@ -7181,6 +6642,16 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter schedules by event type ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7251,11 +6722,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -7264,10 +6735,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -7404,11 +6875,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -7417,10 +6888,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -7931,10 +7402,10 @@
             "required": false,
             "in": "query",
             "description": "The number of items to return",
-            "example": 10,
             "schema": {
               "minimum": 1,
               "maximum": 1000,
+              "example": 10,
               "type": "number"
             }
           },
@@ -7943,9 +7414,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -7954,8 +7425,8 @@
             "required": false,
             "in": "query",
             "description": "The email address or an array of email addresses to filter by",
-            "example": ["user1@example.com", "user2@example.com"],
             "schema": {
+              "example": ["user1@example.com", "user2@example.com"],
               "type": "array",
               "items": {
                 "type": "string"
@@ -7967,8 +7438,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by assigned attribute option ids. ids must be separated by a comma.",
-            "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
             "schema": {
+              "example": "?assignedOptionIds=aaaaaaaa-bbbb-cccc-dddd-eeeeee1eee,aaaaaaaa-bbbb-cccc-dddd-eeeeee2eee",
               "type": "array",
               "items": {
                 "type": "string"
@@ -7980,9 +7451,9 @@
             "required": false,
             "in": "query",
             "description": "Query operator used to filter assigned options, AND by default.",
-            "example": "NONE",
             "schema": {
               "default": "AND",
+              "example": "NONE",
               "enum": ["OR", "AND", "NONE"],
               "type": "string"
             }
@@ -7992,8 +7463,8 @@
             "required": false,
             "in": "query",
             "description": "Filter by teamIds. Team ids must be separated by a comma.",
-            "example": "?teamIds=100,200",
             "schema": {
+              "example": "?teamIds=100,200",
               "type": "array",
               "items": {
                 "type": "number"
@@ -8261,8 +7732,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
-            "example": "?status=upcoming,past",
             "schema": {
+              "example": "?status=upcoming,past",
               "type": "array",
               "items": {
                 "type": "string",
@@ -8275,8 +7746,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's email address.",
-            "example": "example@domain.com",
             "schema": {
+              "example": "example@domain.com",
               "type": "string"
             }
           },
@@ -8285,8 +7756,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
-            "example": "John Doe",
             "schema": {
+              "example": "John Doe",
               "type": "string"
             }
           },
@@ -8295,8 +7766,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the booking Uid.",
-            "example": "2NtaeaVcKfpmSZ4CthFdfk",
             "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
               "type": "string"
             }
           },
@@ -8305,8 +7776,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
-            "example": "?eventTypeIds=100,200",
             "schema": {
+              "example": "?eventTypeIds=100,200",
               "type": "string"
             }
           },
@@ -8315,8 +7786,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type id belonging to the user.",
-            "example": "?eventTypeId=100",
             "schema": {
+              "example": "?eventTypeId=100",
               "type": "string"
             }
           },
@@ -8325,8 +7796,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
-            "example": "?teamIds=50,60",
             "schema": {
+              "example": "?teamIds=50,60",
               "type": "string"
             }
           },
@@ -8335,8 +7806,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team id that user is part of",
-            "example": "?teamId=50",
             "schema": {
+              "example": "?teamId=50",
               "type": "string"
             }
           },
@@ -8345,8 +7816,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with start after this date string.",
-            "example": "?afterStart=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterStart=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -8355,8 +7826,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with end before this date string.",
-            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
             "schema": {
+              "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -8365,8 +7836,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created after this date string.",
-            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -8375,8 +7846,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created before this date string.",
-            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -8385,8 +7856,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated after this date string.",
-            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -8395,8 +7866,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated before this date string.",
-            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -8405,8 +7876,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8416,8 +7887,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8427,8 +7898,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8438,8 +7909,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
-            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
+              "example": "?sortUpdated=asc OR ?sortUpdated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8449,9 +7920,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to return",
-            "example": 10,
             "schema": {
               "default": 100,
+              "example": 10,
               "type": "number"
             }
           },
@@ -8460,9 +7931,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to skip",
-            "example": 0,
             "schema": {
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -8520,11 +7991,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -8533,10 +8004,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -8545,8 +8016,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8556,8 +8027,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8787,11 +8258,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -8800,10 +8271,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -8812,8 +8283,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8823,8 +8294,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -8834,8 +8305,8 @@
             "required": false,
             "in": "query",
             "description": "Filter ooo entries by the user email address. user must be within your organization.",
-            "example": "example@domain.com",
             "schema": {
+              "example": "example@domain.com",
               "type": "string"
             }
           }
@@ -9211,11 +8682,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -9224,10 +8695,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -9625,8 +9096,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
-            "example": "?status=upcoming,past",
             "schema": {
+              "example": "?status=upcoming,past",
               "type": "array",
               "items": {
                 "type": "string",
@@ -9639,8 +9110,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's email address.",
-            "example": "example@domain.com",
             "schema": {
+              "example": "example@domain.com",
               "type": "string"
             }
           },
@@ -9649,8 +9120,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the attendee's name.",
-            "example": "John Doe",
             "schema": {
+              "example": "John Doe",
               "type": "string"
             }
           },
@@ -9659,8 +9130,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by the booking Uid.",
-            "example": "2NtaeaVcKfpmSZ4CthFdfk",
             "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
               "type": "string"
             }
           },
@@ -9669,8 +9140,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type ids belonging to the user. Event type ids must be separated by a comma.",
-            "example": "?eventTypeIds=100,200",
             "schema": {
+              "example": "?eventTypeIds=100,200",
               "type": "string"
             }
           },
@@ -9679,8 +9150,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by event type id belonging to the user.",
-            "example": "?eventTypeId=100",
             "schema": {
+              "example": "?eventTypeId=100",
               "type": "string"
             }
           },
@@ -9689,8 +9160,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team ids that user is part of. Team ids must be separated by a comma.",
-            "example": "?teamIds=50,60",
             "schema": {
+              "example": "?teamIds=50,60",
               "type": "string"
             }
           },
@@ -9699,8 +9170,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings by team id that user is part of",
-            "example": "?teamId=50",
             "schema": {
+              "example": "?teamId=50",
               "type": "string"
             }
           },
@@ -9709,8 +9180,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with start after this date string.",
-            "example": "?afterStart=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterStart=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -9719,8 +9190,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings with end before this date string.",
-            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
             "schema": {
+              "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -9729,8 +9200,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created after this date string.",
-            "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterCreatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -9739,8 +9210,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been created before this date string.",
-            "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeCreatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -9749,8 +9220,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated after this date string.",
-            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
             "schema": {
+              "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
               "type": "string"
             }
           },
@@ -9759,8 +9230,8 @@
             "required": false,
             "in": "query",
             "description": "Filter bookings that have been updated before this date string.",
-            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
             "schema": {
+              "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
               "type": "string"
             }
           },
@@ -9769,8 +9240,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their start time in ascending or descending order.",
-            "example": "?sortStart=asc OR ?sortStart=desc",
             "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -9780,8 +9251,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their end time in ascending or descending order.",
-            "example": "?sortEnd=asc OR ?sortEnd=desc",
             "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -9791,8 +9262,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
-            "example": "?sortCreated=asc OR ?sortCreated=desc",
             "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -9802,8 +9273,8 @@
             "required": false,
             "in": "query",
             "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
-            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
+              "example": "?sortUpdated=asc OR ?sortUpdated=desc",
               "enum": ["asc", "desc"],
               "type": "string"
             }
@@ -9813,9 +9284,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to return",
-            "example": 10,
             "schema": {
               "default": 100,
+              "example": 10,
               "type": "number"
             }
           },
@@ -9824,9 +9295,9 @@
             "required": false,
             "in": "query",
             "description": "The number of items to skip",
-            "example": 0,
             "schema": {
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -9847,6 +9318,73 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/by-seat/{seatUid}": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingBySeatUid",
+        "summary": "Get a booking by seat UID",
+        "description": "Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.\n\n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "seatUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
                 }
               }
             }
@@ -10551,8 +10089,8 @@
             "required": false,
             "in": "query",
             "description": "Filter booking references by type",
-            "example": "google_calendar",
             "schema": {
+              "example": "google_calendar",
               "enum": [
                 "google_calendar",
                 "office365_calendar",
@@ -10638,11 +10176,69 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/location": {
+      "patch": {
+        "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
+        "summary": "Update booking location for an existing booking",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingLocationInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateBookingLocationOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
         "operationId": "BookingGuestsController_2024_08_13_addGuests",
         "summary": "Add guests to an existing booking",
-        "description": "Add one or more guests to an existing booking.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "description": "Add one or more guests to an existing booking. Maximum 10 guests per request, with a limit of 30 total guests per booking.\n    \n    **Rate Limiting:**\n    This endpoint is rate limited to 5 requests per minute to prevent abuse.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10878,15 +10474,26 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
-        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?timeZone=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`. Note: loggedInUsersTz is deprecated, use timeZone instead.",
         "parameters": [
           {
             "name": "loggedInUsersTz",
-            "required": true,
+            "required": false,
             "in": "query",
-            "description": "The timezone of the logged in user represented as a string",
-            "example": "America/New_York",
+            "deprecated": true,
+            "description": "Deprecated: Use timeZone instead. The timezone of the user represented as a string",
             "schema": {
+              "example": "America/New_York",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "The timezone for the busy times query represented as a string",
+            "schema": {
+              "example": "America/New_York",
               "type": "string"
             }
           },
@@ -10895,8 +10502,8 @@
             "required": false,
             "in": "query",
             "description": "The starting date for the busy times query",
-            "example": "2023-10-01",
             "schema": {
+              "example": "2023-10-01",
               "type": "string"
             }
           },
@@ -10905,8 +10512,8 @@
             "required": false,
             "in": "query",
             "description": "The ending date for the busy times query",
-            "example": "2023-10-31",
             "schema": {
+              "example": "2023-10-31",
               "type": "string"
             }
           },
@@ -11482,6 +11089,832 @@
         "tags": ["Conferencing"]
       }
     },
+    "/v2/oauth-clients/{clientId}/users": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getManagedUsers",
+        "summary": "Get all managed users",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "emails",
+            "required": false,
+            "in": "query",
+            "description": "Filter managed users by email. If you want to filter by multiple emails, separate them with a comma.",
+            "schema": {
+              "example": "?emails=email1@example.com,email2@example.com",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "post": {
+        "operationId": "OAuthClientUsersController_createUser",
+        "summary": "Create a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}": {
+      "get": {
+        "operationId": "OAuthClientUsersController_getUserById",
+        "summary": "Get a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "patch": {
+        "operationId": "OAuthClientUsersController_updateUser",
+        "summary": "Update a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateManagedUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      },
+      "delete": {
+        "operationId": "OAuthClientUsersController_deleteUser",
+        "summary": "Delete a managed user",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUserOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
+      "post": {
+        "operationId": "OAuthClientUsersController_forceRefresh",
+        "summary": "Force refresh tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth/{clientId}/refresh": {
+      "post": {
+        "operationId": "OAuthFlowController_refreshTokens",
+        "summary": "Refresh managed user tokens",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning> If managed user access token is expired then get a new one using this endpoint - it will also refresh the refresh token, because we use\n    \"refresh token rotation\" mechanism. Access token is valid for 60 minutes and refresh token for 1 year. Make sure to store them in your database, for example, in your User database model `calAccessToken` and `calRefreshToken` fields.\nResponse also contains `accessTokenExpiresAt` and `refreshTokenExpiresAt` fields, but if you decode the jwt token the payload will contain `clientId` (OAuth client ID), `ownerId` (user to whom token belongs ID), `iat` (issued at time) and `expiresAt` (when does the token expire) fields.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "required": true,
+            "in": "header",
+            "description": "OAuth client secret key.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeysResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Managed Users"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks": {
+      "post": {
+        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
+        "summary": "Create a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
+        "summary": "Get all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
+        "summary": "Delete all webhooks",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
+        "summary": "Update a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
+        "summary": "Get a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
+        "summary": "Delete a webhook",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "OAuth client secret key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform / Webhooks"]
+      }
+    },
+    "/v2/oauth-clients": {
+      "post": {
+        "operationId": "OAuthClientsController_createOAuthClient",
+        "summary": "Create an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create an OAuth client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClients",
+        "summary": "Get all OAuth clients",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      }
+    },
+    "/v2/oauth-clients/{clientId}": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientById",
+        "summary": "Get an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "patch": {
+        "operationId": "OAuthClientsController_updateOAuthClient",
+        "summary": "Update an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOAuthClientInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      },
+      "delete": {
+        "operationId": "OAuthClientsController_deleteOAuthClient",
+        "summary": "Delete an OAuth client",
+        "description": "<Warning>These endpoints are deprecated and will be removed in the future.</Warning>",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Deprecated: Platform OAuth Clients"]
+      }
+    },
     "/v2/destination-calendars": {
       "put": {
         "operationId": "DestinationCalendarsController_updateDestinationCalendars",
@@ -11911,11 +12344,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -11924,10 +12357,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -12042,6 +12475,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -12067,6 +12508,14 @@
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -12364,11 +12813,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -12377,10 +12826,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -12388,9 +12837,9 @@
             "name": "slug",
             "required": false,
             "in": "query",
-            "example": "organization-slug",
             "description": "The slug of the managed organization",
             "schema": {
+              "example": "organization-slug",
               "type": "string"
             }
           },
@@ -12398,9 +12847,9 @@
             "name": "metadataKey",
             "required": false,
             "in": "query",
-            "example": "metadata-key",
             "description": "The key of the metadata - it is case sensitive so provide exactly as stored. If you provide it then you must also provide metadataValue",
             "schema": {
+              "example": "metadata-key",
               "type": "string"
             }
           },
@@ -12408,9 +12857,9 @@
             "name": "metadataValue",
             "required": false,
             "in": "query",
-            "example": "metadata-value",
             "description": "The value of the metadata - it is case sensitive so provide exactly as stored. If you provide it then you must also provide metadataKey",
             "schema": {
+              "example": "metadata-value",
               "type": "string"
             }
           }
@@ -12620,6 +13069,7 @@
       "patch": {
         "operationId": "MeController_updateMe",
         "summary": "Update my profile",
+        "description": "Updates the authenticated user's profile. Email changes require verification and the primary email stays unchanged until verification completes, unless the new email is already a verified secondary email or the user is platform-managed.",
         "parameters": [
           {
             "name": "Authorization",
@@ -12656,54 +13106,16 @@
         "tags": ["Me"]
       }
     },
-    "/v2/oauth-clients": {
-      "post": {
-        "operationId": "OAuthClientsController_createOAuthClient",
-        "summary": "Create an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOAuthClientInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Create an OAuth client",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
+    "/v2/auth/oauth2/clients/{clientId}": {
       "get": {
-        "operationId": "OAuthClientsController_getOAuthClients",
-        "summary": "Get all OAuth clients",
+        "operationId": "OAuth2Controller_getClient",
+        "summary": "Get OAuth2 client",
+        "description": "Returns the OAuth2 client information for the given client ID",
         "parameters": [
           {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "name": "clientId",
             "required": true,
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -12715,80 +13127,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientsResponseDto"
+                  "$ref": "#/components/schemas/OAuth2ClientResponseDto"
                 }
               }
             }
           }
         },
-        "tags": ["OAuth Clients"]
+        "tags": ["OAuth2"]
       }
     },
-    "/v2/oauth-clients/{clientId}": {
-      "get": {
-        "operationId": "OAuthClientsController_getOAuthClientById",
-        "summary": "Get an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
-      },
-      "patch": {
-        "operationId": "OAuthClientsController_updateOAuthClient",
-        "summary": "Update an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+    "/v2/auth/oauth2/token": {
+      "post": {
+        "operationId": "OAuth2Controller_token",
+        "summary": "Exchange authorization code or refresh token for tokens",
+        "description": "RFC 6749-compliant token endpoint. Pass client_id in the request body (Section 2.3.1). Use grant_type 'authorization_code' to exchange an auth code for tokens, or 'refresh_token' to refresh an access token. Accepts both application/x-www-form-urlencoded (standard per RFC 6749 Section 4.1.3) and application/json content types.",
+        "parameters": [],
         "requestBody": {
           "required": true,
+          "description": "Token request body. client_id is required. Accepts application/x-www-form-urlencoded (RFC 6749 standard) or application/json. Use grant_type 'authorization_code' with client_secret (confidential) or code_verifier (public/PKCE), or grant_type 'refresh_token' with client_secret (confidential) or just the refresh_token (public).",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOAuthClientInput"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OAuth2ExchangeConfidentialInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OAuth2ExchangePublicInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OAuth2RefreshConfidentialInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OAuth2RefreshPublicInput"
+                  }
+                ]
               }
             }
           }
@@ -12799,49 +13172,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
+                  "$ref": "#/components/schemas/OAuth2TokensDto"
                 }
               }
             }
           }
         },
-        "tags": ["OAuth Clients"]
-      },
-      "delete": {
-        "operationId": "OAuthClientsController_deleteOAuthClient",
-        "summary": "Delete an OAuth client",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "clientId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetOAuthClientResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["OAuth Clients"]
+        "tags": ["OAuth2"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request": {
@@ -13042,11 +13379,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -13055,10 +13392,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -13105,11 +13442,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -13118,10 +13455,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -13262,8 +13599,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z\n      ",
-            "example": "2050-09-05",
             "schema": {
+              "example": "2050-09-05",
               "type": "string"
             }
           },
@@ -13272,8 +13609,8 @@
             "required": true,
             "in": "query",
             "description": "\n      Time until which available slots should be checked.\n      \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to end of day or specify hours:\n      2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z",
-            "example": "2050-09-06",
             "schema": {
+              "example": "2050-09-06",
               "type": "string"
             }
           },
@@ -13282,8 +13619,8 @@
             "required": false,
             "in": "query",
             "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
-            "example": "Europe/Rome",
             "schema": {
+              "example": "Europe/Rome",
               "type": "string"
             }
           },
@@ -13292,8 +13629,8 @@
             "required": false,
             "in": "query",
             "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
-            "example": "60",
             "schema": {
+              "example": "60",
               "type": "number"
             }
           },
@@ -13302,8 +13639,8 @@
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
             "schema": {
+              "example": "range",
               "enum": ["range", "time"],
               "type": "string"
             }
@@ -13313,8 +13650,8 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
-            "example": "abc123def456",
             "schema": {
+              "example": "abc123def456",
               "type": "string"
             }
           },
@@ -13747,96 +14084,120 @@
             "required": false,
             "in": "query",
             "description": "The unique identifier of the booking being rescheduled. When provided will ensure that the original booking time appears within the returned available slots when rescheduling.",
-            "example": "abc123def456",
-            "schema": {}
+            "schema": {
+              "example": "abc123def456",
+              "type": "string"
+            }
           },
           {
             "name": "start",
             "required": true,
             "in": "query",
             "description": "\n      Time starting from which available slots should be checked.\n\n      Must be in UTC timezone as ISO 8601 datestring.\n\n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
-            "example": "2050-09-05",
-            "schema": {}
+            "schema": {
+              "example": "2050-09-05",
+              "type": "string"
+            }
           },
           {
             "name": "end",
             "required": true,
             "in": "query",
             "description": "\n    Time until which available slots should be checked.\n\n    Must be in UTC timezone as ISO 8601 datestring.\n\n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
-            "example": "2050-09-06",
-            "schema": {}
+            "schema": {
+              "example": "2050-09-06",
+              "type": "string"
+            }
           },
           {
             "name": "organizationSlug",
             "required": false,
             "in": "query",
             "description": "The slug of the organization to which user with username belongs or team with teamSlug belongs.",
-            "example": "org-slug",
-            "schema": {}
+            "schema": {
+              "example": "org-slug",
+              "type": "string"
+            }
           },
           {
             "name": "teamSlug",
             "required": false,
             "in": "query",
             "description": "The slug of the team who owns event type with eventTypeSlug - used when slots are checked for team event type.",
-            "example": "team-slug",
-            "schema": {}
+            "schema": {
+              "example": "team-slug",
+              "type": "string"
+            }
           },
           {
             "name": "username",
             "required": false,
             "in": "query",
             "description": "The username of the user who owns event type with eventTypeSlug - used when slots are checked for individual user event type.",
-            "example": "bob",
-            "schema": {}
+            "schema": {
+              "example": "bob",
+              "type": "string"
+            }
           },
           {
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
             "description": "The slug of the event type for which available slots should be checked. If slug is provided then username or teamSlug must be provided too and if relevant organizationSlug too.",
-            "example": "event-type-slug",
-            "schema": {}
+            "schema": {
+              "example": "event-type-slug",
+              "type": "string"
+            }
           },
           {
             "name": "eventTypeId",
             "required": false,
             "in": "query",
             "description": "The ID of the event type for which available slots should be checked.",
-            "example": "100",
-            "schema": {}
+            "schema": {
+              "example": "100",
+              "type": "number"
+            }
           },
           {
             "name": "usernames",
             "required": false,
             "in": "query",
             "description": "The usernames for which available slots should be checked separated by a comma.\n\n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n\n    Must contain at least 2 usernames.",
-            "example": "alice,bob",
-            "schema": {}
+            "schema": {
+              "example": "alice,bob",
+              "type": "string"
+            }
           },
           {
             "name": "format",
             "required": false,
             "in": "query",
             "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
-            "example": "range",
-            "schema": {}
+            "schema": {
+              "example": "range",
+              "type": "string"
+            }
           },
           {
             "name": "duration",
             "required": false,
             "in": "query",
             "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
-            "example": "60",
-            "schema": {}
+            "schema": {
+              "example": "60",
+              "type": "number"
+            }
           },
           {
             "name": "timeZone",
             "required": false,
             "in": "query",
             "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
-            "example": "Europe/Rome",
-            "schema": {}
+            "schema": {
+              "example": "Europe/Rome",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -14403,6 +14764,184 @@
         "tags": ["Teams"]
       }
     },
+    "/v2/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "TeamsBookingsController_getAllTeamBookings",
+        "summary": "Get team bookings",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "schema": {
+              "example": "?status=upcoming,past",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "schema": {
+              "example": "example@domain.com",
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "schema": {
+              "example": "John Doe",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the booking Uid.",
+            "schema": {
+              "example": "2NtaeaVcKfpmSZ4CthFdfk",
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "schema": {
+              "example": "?eventTypeIds=100,200",
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the team.",
+            "schema": {
+              "example": "?eventTypeId=100",
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "schema": {
+              "example": "?afterStart=2025-03-07T10:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "schema": {
+              "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "schema": {
+              "example": "?sortStart=asc OR ?sortStart=desc",
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "schema": {
+              "example": "?sortEnd=asc OR ?sortEnd=desc",
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "schema": {
+              "example": "?sortCreated=asc OR ?sortCreated=desc",
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Bookings"]
+      }
+    },
     "/v2/teams/{teamId}/event-types": {
       "post": {
         "operationId": "TeamsEventTypesController_createTeamEventType",
@@ -14707,6 +15246,309 @@
         "tags": ["Teams / Event Types"]
       }
     },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/webhooks": {
+      "post": {
+        "operationId": "TeamsEventTypesWebhooksController_createTeamEventTypeWebhook",
+        "summary": "Create a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesWebhooksController_getTeamEventTypeWebhooks",
+        "summary": "Get all webhooks for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesWebhooksController_deleteAllTeamEventTypeWebhooks",
+        "summary": "Delete all webhooks for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "TeamsEventTypesWebhooksController_updateTeamEventTypeWebhook",
+        "summary": "Update a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesWebhooksController_getTeamEventTypeWebhook",
+        "summary": "Get a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesWebhooksController_deleteTeamEventTypeWebhook",
+        "summary": "Delete a webhook for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types / Webhooks"]
+      }
+    },
+    "/v2/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "TeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Invite"]
+      }
+    },
     "/v2/teams/{teamId}/memberships": {
       "post": {
         "operationId": "TeamsMembershipsController_createTeamMembership",
@@ -14781,11 +15623,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -14794,10 +15636,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -14806,8 +15648,8 @@
             "required": false,
             "in": "query",
             "description": "Filter team memberships by email addresses. If you want to filter by multiple emails, separate them with a comma (max 20 emails for performance).",
-            "example": "?emails=user1@example.com,user2@example.com",
             "schema": {
+              "example": "?emails=user1@example.com,user2@example.com",
               "type": "array",
               "items": {
                 "type": "string"
@@ -15001,11 +15843,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15014,10 +15856,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -15235,11 +16077,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15248,10 +16090,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -15298,11 +16140,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15311,10 +16153,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -15609,11 +16451,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15622,10 +16464,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -15664,11 +16506,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15677,10 +16519,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           },
@@ -15843,11 +16685,11 @@
             "required": false,
             "in": "query",
             "description": "Maximum number of items to return",
-            "example": 25,
             "schema": {
               "minimum": 1,
               "maximum": 250,
               "default": 250,
+              "example": 25,
               "type": "number"
             }
           },
@@ -15856,10 +16698,10 @@
             "required": false,
             "in": "query",
             "description": "Number of items to skip",
-            "example": 0,
             "schema": {
               "minimum": 0,
               "default": 0,
+              "example": 0,
               "type": "number"
             }
           }
@@ -15938,6 +16780,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -16002,6 +16852,193 @@
   "servers": [],
   "components": {
     "schemas": {
+      "OAuth2ClientDto": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "The OAuth client ID",
+            "example": "clxxxxxxxxxxxxxxxx"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "description": "The redirect URI for the OAuth client",
+            "example": "https://example.com/callback"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the OAuth client",
+            "example": "My App"
+          },
+          "logo": {
+            "type": "string",
+            "nullable": true,
+            "description": "The logo URL of the OAuth client"
+          },
+          "is_trusted": {
+            "type": "boolean",
+            "description": "Whether the OAuth client is trusted",
+            "example": false
+          },
+          "client_type": {
+            "type": "string",
+            "description": "The type of OAuth client (CONFIDENTIAL or PUBLIC)",
+            "example": "CONFIDENTIAL",
+            "enum": ["CONFIDENTIAL", "PUBLIC"]
+          }
+        },
+        "required": ["client_id", "redirect_uri", "name", "is_trusted", "client_type"]
+      },
+      "OAuth2ClientResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OAuth2ClientDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "OAuth2ExchangeConfidentialInput": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "The client identifier",
+            "example": "my-client-id"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "The grant type — must be 'authorization_code'",
+            "example": "authorization_code",
+            "enum": ["authorization_code"]
+          },
+          "code": {
+            "type": "string",
+            "description": "The authorization code received from the authorize endpoint",
+            "example": "abc123"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "description": "The redirect URI used in the authorization request",
+            "example": "https://example.com/callback"
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "The client secret for confidential clients"
+          }
+        },
+        "required": ["client_id", "grant_type", "code", "redirect_uri", "client_secret"]
+      },
+      "OAuth2ExchangePublicInput": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "The client identifier",
+            "example": "my-client-id"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "The grant type — must be 'authorization_code'",
+            "example": "authorization_code",
+            "enum": ["authorization_code"]
+          },
+          "code": {
+            "type": "string",
+            "description": "The authorization code received from the authorize endpoint",
+            "example": "abc123"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "description": "The redirect URI used in the authorization request",
+            "example": "https://example.com/callback"
+          },
+          "code_verifier": {
+            "type": "string",
+            "description": "PKCE code verifier (required for public clients that used code_challenge)"
+          }
+        },
+        "required": ["client_id", "grant_type", "code", "redirect_uri", "code_verifier"]
+      },
+      "OAuth2RefreshConfidentialInput": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "The client identifier",
+            "example": "my-client-id"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "The grant type — must be 'refresh_token'",
+            "example": "refresh_token",
+            "enum": ["refresh_token"]
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "The refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "The client secret for confidential clients"
+          }
+        },
+        "required": ["client_id", "grant_type", "refresh_token", "client_secret"]
+      },
+      "OAuth2RefreshPublicInput": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "The client identifier",
+            "example": "my-client-id"
+          },
+          "grant_type": {
+            "type": "string",
+            "description": "The grant type — must be 'refresh_token'",
+            "example": "refresh_token",
+            "enum": ["refresh_token"]
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "The refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": ["client_id", "grant_type", "refresh_token"]
+      },
+      "OAuth2TokensDto": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "The access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "token_type": {
+            "type": "string",
+            "description": "The token type",
+            "example": "bearer"
+          },
+          "refresh_token": {
+            "type": "string",
+            "description": "The refresh token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expires_in": {
+            "type": "number",
+            "description": "The number of seconds until the access token expires",
+            "example": 1800
+          }
+        },
+        "required": ["access_token", "token_type", "refresh_token", "expires_in"]
+      },
       "ManagedUserOutput": {
         "type": "object",
         "properties": {
@@ -17762,6 +18799,31 @@
           }
         }
       },
+      "DisableRescheduling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Disable rescheduling when less than the specified number of minutes before the meeting. If set, `disabled` should be false or undefined.",
+            "example": 60
+          }
+        }
+      },
+      "DisableCancelling_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -17792,6 +18854,11 @@
           "disableTranscriptionForOrganizer": {
             "type": "boolean",
             "description": "If true, the organizer will not be able to receive transcription of the meeting"
+          },
+          "sendTranscriptionEmails": {
+            "type": "boolean",
+            "description": "Send emails with the transcription of the Cal Video after the meeting ends.",
+            "default": true
           }
         }
       },
@@ -17901,11 +18968,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -18060,6 +19127,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -19004,6 +20153,31 @@
           }
         }
       },
+      "DisableCancellingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, cancelling is always disabled for this event type.",
+            "example": true
+          }
+        }
+      },
+      "DisableReschedulingOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disabled": {
+            "type": "boolean",
+            "description": "If true, rescheduling is always disabled for this event type.",
+            "example": true
+          },
+          "minutesBefore": {
+            "type": "number",
+            "description": "Rescheduling is disabled when less than the specified number of minutes before the meeting.",
+            "example": 60
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -19268,6 +20442,41 @@
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
+          },
           "ownerId": {
             "type": "number",
             "example": 10
@@ -19277,6 +20486,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full URL to the booking page for this event type",
+            "example": "https://cal.com/john-doe/30min",
+            "format": "uri"
           }
         },
         "required": [
@@ -19300,7 +20515,8 @@
           "hidden",
           "bookingRequiresAuthentication",
           "ownerId",
-          "users"
+          "users",
+          "bookingUrl"
         ]
       },
       "CreateEventTypeOutput_2024_06_14": {
@@ -19624,6 +20840,41 @@
             "type": "boolean",
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancellingOutput_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableReschedulingOutput_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set preferred language for the booking interface."
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled."
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking."
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Arrange time slots to optimize availability."
+          },
           "teamId": {
             "type": "number"
           },
@@ -19832,11 +21083,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -19991,6 +21242,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "locations": {
             "type": "array",
@@ -21456,11 +22789,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -21615,6 +22948,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -21919,11 +23334,11 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity."
           },
           "afterEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be appended after an event to give more time after it."
+            "description": "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment."
           },
           "scheduleId": {
             "type": "number",
@@ -22078,6 +23493,88 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "disableCancelling": {
+            "description": "Settings for disabling cancelling of this event type.",
+            "example": {
+              "disabled": true
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableCancelling_2024_06_14"
+              }
+            ]
+          },
+          "disableRescheduling": {
+            "description": "Settings for disabling rescheduling of this event type. Can be always disabled or disabled when less than X minutes before the meeting.",
+            "example": {
+              "disabled": false,
+              "minutesBefore": 60
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisableRescheduling_2024_06_14"
+              }
+            ]
+          },
+          "interfaceLanguage": {
+            "type": "string",
+            "description": "Set preferred language for the booking interface. Use empty string for visitor's browser language (default).",
+            "enum": [
+              "",
+              "en",
+              "ar",
+              "az",
+              "bg",
+              "bn",
+              "ca",
+              "cs",
+              "da",
+              "de",
+              "el",
+              "es",
+              "es-419",
+              "eu",
+              "et",
+              "fi",
+              "fr",
+              "he",
+              "hu",
+              "it",
+              "ja",
+              "km",
+              "ko",
+              "nl",
+              "no",
+              "pl",
+              "pt-BR",
+              "pt",
+              "ro",
+              "ru",
+              "sk-SK",
+              "sr",
+              "sv",
+              "tr",
+              "uk",
+              "vi",
+              "zh-CN",
+              "zh-TW"
+            ]
+          },
+          "allowReschedulingPastBookings": {
+            "type": "boolean",
+            "description": "Enabling this option allows for past events to be rescheduled.",
+            "default": false
+          },
+          "allowReschedulingCancelledBookings": {
+            "type": "boolean",
+            "description": "When enabled, users will be able to create a new booking when trying to reschedule a cancelled booking.",
+            "default": false
+          },
+          "showOptimizedSlots": {
+            "type": "boolean",
+            "description": "Arrange time slots to optimize availability.",
+            "default": false
           },
           "schedulingType": {
             "type": "string",
@@ -22297,7 +23794,8 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success"
+            "example": "success",
+            "enum": ["success", "error"]
           },
           "data": {
             "$ref": "#/components/schemas/InviteDataDto"
@@ -22820,11 +24318,18 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR"
+              "DELEGATION_CREDENTIAL_ERROR",
+              "WRONG_ASSIGNMENT_REPORT"
             ]
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         },
         "required": ["active", "subscriberUrl", "triggers"]
@@ -22888,11 +24393,18 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR"
+              "DELEGATION_CREDENTIAL_ERROR",
+              "WRONG_ASSIGNMENT_REPORT"
             ]
           },
           "secret": {
             "type": "string"
+          },
+          "version": {
+            "type": "string",
+            "description": "The version of the webhook",
+            "example": "2021-10-20",
+            "enum": ["2021-10-20"]
           }
         }
       },
@@ -26354,11 +27866,13 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26380,7 +27894,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26458,11 +27974,13 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26484,7 +28002,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26590,11 +28110,13 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26616,7 +28138,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26693,11 +28217,13 @@
                 "organization.manageBilling",
                 "organization.changeMemberRole",
                 "organization.impersonate",
+                "organization.passwordReset",
                 "organization.update",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readOrgAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26719,7 +28245,9 @@
                 "watchlist.create",
                 "watchlist.read",
                 "watchlist.update",
-                "watchlist.delete"
+                "watchlist.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -26781,6 +28309,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26793,7 +28322,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26864,6 +28395,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26876,7 +28408,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -26975,6 +28509,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -26987,7 +28522,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           },
@@ -27057,6 +28594,7 @@
                 "booking.readTeamBookings",
                 "booking.readRecordings",
                 "booking.update",
+                "booking.readTeamAuditLogs",
                 "insights.read",
                 "workflow.create",
                 "workflow.read",
@@ -27069,7 +28607,9 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "featureOptIn.read",
+                "featureOptIn.update"
               ]
             }
           }
@@ -28226,6 +29766,11 @@
             "type": "string",
             "example": "jane100@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "jane100@example.com",
+            "description": "Clean email for display purposes"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -28235,7 +29780,7 @@
             "example": "America/Los_Angeles"
           }
         },
-        "required": ["id", "name", "email", "username", "timeZone"]
+        "required": ["id", "name", "email", "displayEmail", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",
@@ -28261,6 +29806,11 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
           },
           "timeZone": {
             "type": "string",
@@ -28324,7 +29874,7 @@
             "example": "+1234567890"
           }
         },
-        "required": ["name", "email", "timeZone", "absent"]
+        "required": ["name", "email", "displayEmail", "timeZone", "absent"]
       },
       "BookingOutput_2024_08_13": {
         "type": "object",
@@ -28652,6 +30202,11 @@
             "type": "string",
             "example": "john@example.com"
           },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
           "timeZone": {
             "type": "string",
             "example": "America/New_York"
@@ -28731,7 +30286,15 @@
             }
           }
         },
-        "required": ["name", "email", "timeZone", "absent", "seatUid", "bookingFieldsResponses"]
+        "required": [
+          "name",
+          "email",
+          "displayEmail",
+          "timeZone",
+          "absent",
+          "seatUid",
+          "bookingFieldsResponses"
+        ]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
@@ -29442,10 +31005,6 @@
             "example": "success",
             "enum": ["success", "error"]
           },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
-          },
           "error": {
             "type": "object"
           },
@@ -29472,10 +31031,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "message": {
-            "type": "string",
-            "example": "This endpoint will require authentication in a future release."
           },
           "error": {
             "type": "object"
@@ -29730,9 +31285,14 @@
           "email": {
             "type": "string",
             "example": "john.doe@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Clean email for display purposes"
           }
         },
-        "required": ["id", "name", "email"]
+        "required": ["id", "name", "email", "displayEmail"]
       },
       "ReassignBookingOutput_2024_08_13": {
         "type": "object",
@@ -30012,7 +31572,7 @@
         "type": "object",
         "properties": {
           "guests": {
-            "description": "Array of guests to add to the booking",
+            "description": "Array of guests to add to the booking. Maximum 10 guests per request.",
             "example": [
               {
                 "email": "john.doe@example.com",
@@ -30033,6 +31593,164 @@
         "required": ["guests"]
       },
       "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateInputAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "address",
+            "description": "only allowed value for type is `address` - it refers to address defined by the organizer."
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeAddressLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeAddress",
+            "description": "only allowed value for type is `attendeeAddress`"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 Example St, City, Country"
+          }
+        },
+        "required": ["type", "address"]
+      },
+      "UpdateBookingInputAttendeeDefinedLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeeDefined",
+            "description": "only allowed value for type is `attendeeDefined`"
+          },
+          "location": {
+            "type": "string",
+            "example": "321 Example St, City, Country"
+          }
+        },
+        "required": ["type", "location"]
+      },
+      "UpdateBookingInputAttendeePhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "attendeePhone",
+            "description": "only allowed value for type is `attendeePhone`"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingInputLinkLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "link",
+            "description": "only allowed value for type is `link` - it refers to link defined by the organizer."
+          },
+          "link": {
+            "type": "string",
+            "example": "https://meet.google.com/txi-fein-xyz"
+          }
+        },
+        "required": ["type", "link"]
+      },
+      "UpdateBookingInputPhoneLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "phone",
+            "description": "only allowed value for type is `phone` - it refers to phone defined by the organizer."
+          },
+          "phone": {
+            "type": "string",
+            "example": "+37120993151"
+          }
+        },
+        "required": ["type", "phone"]
+      },
+      "UpdateBookingLocationInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "description": "One of the event type locations. If instead of passing one of the location objects as required by schema you are still passing a string please use an object.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UpdateInputAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeAddressLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeeDefinedLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputAttendeePhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputLinkLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateBookingLocationOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {

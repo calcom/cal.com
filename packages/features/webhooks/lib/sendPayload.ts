@@ -1,12 +1,18 @@
-import { createHmac } from "crypto";
-import { compile } from "handlebars";
-
+import { createHmac } from "node:crypto";
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
-import { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
+import type {
+  DelegationCredentialErrorPayloadType,
+  PaymentData,
+  WebhookSubscriber,
+} from "@calcom/features/webhooks/lib/dto/types";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import { compile } from "handlebars";
+import { z } from "zod";
+
+// Minimal webhook shape for sending payloads (subset of WebhookSubscriber)
+type WebhookForPayload = Pick<WebhookSubscriber, "subscriberUrl" | "appId" | "payloadTemplate" | "version">;
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
 
@@ -76,7 +82,7 @@ export type OOOEntryPayloadType = {
   };
 };
 
-export type EventPayloadType = CalendarEvent &
+export type EventPayloadType = Omit<CalendarEvent, "assignmentReason"> &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
     uid?: string | null;
@@ -92,7 +98,9 @@ export type EventPayloadType = CalendarEvent &
     paymentId?: number;
     rescheduledBy?: string;
     cancelledBy?: string;
-    paymentData?: Payment;
+    paymentData?: PaymentData;
+    requestReschedule?: boolean;
+    assignmentReason?: string | { reasonEnum: string; reasonString: string }[] | null;
   };
 
 export type WebhookPayloadType =
@@ -213,11 +221,24 @@ export function isEventPayload(data: WebhookPayloadType): data is EventPayloadTy
   return !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data);
 }
 
+const webhookAssignmentReasonSchema = z.union([
+  z.string(),
+  z.array(z.object({ reasonEnum: z.string(), reasonString: z.string() })),
+  z.null(),
+  z.undefined(),
+]);
+
+export function sanitizeAssignmentReasonForWebhook(data: EventPayloadType): EventPayloadType {
+  const result = webhookAssignmentReasonSchema.safeParse(data.assignmentReason);
+  if (result.success) return data;
+  return { ...data, assignmentReason: undefined };
+}
+
 const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   data: WebhookPayloadType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
@@ -230,6 +251,7 @@ const sendPayload = async (
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (isEventPayload(data)) {
+    data = sanitizeAssignmentReasonForWebhook(data);
     data.description = data.description || data.additionalNotes;
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
@@ -268,7 +290,7 @@ export const sendGenericWebhookPayload = async ({
   secretKey: string | null;
   triggerEvent: string;
   createdAt: string;
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">;
+  webhook: WebhookForPayload;
   data: Record<string, unknown>;
   rootData?: Record<string, unknown>;
 }) => {
@@ -302,11 +324,11 @@ export const createWebhookSignature = (params: { secret?: string | null; body: s
 
 const _sendPayload = async (
   secretKey: string | null,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  webhook: WebhookForPayload,
   body: string,
   contentType: "application/json" | "application/x-www-form-urlencoded"
 ) => {
-  const { subscriberUrl } = webhook;
+  const { subscriberUrl, version } = webhook;
   if (!subscriberUrl || !body) {
     throw new Error("Missing required elements to send webhook payload.");
   }
@@ -316,6 +338,7 @@ const _sendPayload = async (
     headers: {
       "Content-Type": contentType,
       "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
+      "X-Cal-Webhook-Version": version,
     },
     redirect: "manual",
     body,

@@ -11,13 +11,18 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import {
+  HAS_ORG_OPT_IN_FEATURES,
+  HAS_TEAM_OPT_IN_FEATURES,
+  HAS_USER_OPT_IN_FEATURES,
+} from "@calcom/features/feature-opt-in/config";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
-import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -26,9 +31,12 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+
+import Shell from "~/shell/Shell";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -72,6 +80,15 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           href: "/settings/my-account/push-notifications",
           trackingMetadata: { section: "my_account", page: "push_notifications" },
         },
+        ...(HAS_USER_OPT_IN_FEATURES
+          ? [
+              {
+                name: "features",
+                href: "/settings/my-account/features",
+                trackingMetadata: { section: "my_account", page: "features" },
+              },
+            ]
+          : []),
         // TODO
         // { name: "referrals", href: "/settings/my-account/referrals" },
       ],
@@ -95,6 +112,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "2fa_auth",
           href: "/settings/security/two-factor-auth",
           trackingMetadata: { section: "security", page: "2fa_auth" },
+        },
+        {
+          name: "compliance",
+          href: "/settings/security/compliance",
+          trackingMetadata: { section: "security", page: "compliance" },
         },
       ],
     },
@@ -122,14 +144,20 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "webhooks" },
         },
         {
+          name: "oAuth",
+          href: "/settings/developer/oauth",
+          trackingMetadata: { section: "developer", page: "oauth_clients" },
+        },
+        {
           name: "api_keys",
           href: "/settings/developer/api-keys",
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
-          name: "admin_api",
-          href: "/settings/organizations/admin-api",
-          trackingMetadata: { section: "developer", page: "admin_api" },
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
+          isExternalLink: true,
+          trackingMetadata: { section: "developer", page: "api_docs" },
         },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -179,11 +207,20 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "organization", page: "directory_sync" },
         },
         {
-          name: "admin_api",
-          href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
           isExternalLink: true,
-          trackingMetadata: { section: "organization", page: "admin_api" },
+          trackingMetadata: { section: "organization", page: "api_docs" },
         },
+        ...(HAS_ORG_OPT_IN_FEATURES
+          ? [
+              {
+                name: "features",
+                href: "/settings/organizations/features",
+                trackingMetadata: { section: "organization", page: "features" },
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -215,6 +252,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "license" },
         },
         {
+          name: "admin_billing",
+          href: "/settings/admin/billing",
+          trackingMetadata: { section: "admin", page: "billing" },
+        },
+        {
           name: "impersonation",
           href: "/settings/admin/impersonation",
           trackingMetadata: { section: "admin", page: "impersonation" },
@@ -240,8 +282,13 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "locked_sms" },
         },
         {
+          name: "pbac_resource_blocklist",
+          href: "/settings/admin/blocklist",
+          trackingMetadata: { section: "admin", page: "blocklist" },
+        },
+        {
           name: "oAuth",
-          href: "/settings/admin/oAuth",
+          href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
         },
         {
@@ -258,7 +305,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     },
   ];
 
-  tabs.find((tab) => {
+  for (const tab of tabs) {
     if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
       tab.children?.push({
         name: "sso_configuration",
@@ -268,21 +315,21 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       // TODO: Enable dsync for self hosters
       // tab.children?.push({ name: "directory_sync", href: "/settings/security/dsync" });
     }
+
     if (tab.name === "admin" && IS_CALCOM) {
       tab.children?.push({
         name: "create_org",
         href: "/settings/organizations/new",
         trackingMetadata: { section: "admin", page: "create_org" },
       });
-    }
-    if (tab.name === "admin" && IS_CALCOM) {
+
       tab.children?.push({
         name: "create_license_key",
         href: "/settings/license-key/new",
         trackingMetadata: { section: "admin", page: "create_license_key" },
       });
     }
-  });
+  }
 
   return tabs;
 };
@@ -298,7 +345,7 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-export interface SettingsPermissions {
+interface SettingsPermissions {
   canViewRoles?: boolean;
   canViewOrganizationBilling?: boolean;
   canUpdateOrganization?: boolean;
@@ -404,7 +451,7 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
+          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "api_docs"
         );
         return { ...tab, children: filtered };
       }
@@ -430,10 +477,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
-      <Icon
-        name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
-      />
+      <ArrowLeftIcon className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
@@ -514,7 +558,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
           if (!teamMenuState[index]) {
             return null;
           }
-          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+          if (teamMenuState.some((teamState) => teamState.teamId === team.id)) {
             return (
               <Collapsible
                 className="cursor-pointer"
@@ -557,9 +601,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
+                        <ChevronDownIcon className="h-4 w-4" />
                       ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
+                        <ChevronRightIcon className="h-4 w-4" />
                       )}
                     </div>
                     {}
@@ -621,6 +665,16 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         className="px-2! me-5 h-7 w-auto"
                         disableChevron
                       />
+                      {HAS_TEAM_OPT_IN_FEATURES && (
+                        <VerticalTabItem
+                          name={t("features")}
+                          href={`/settings/teams/${team.id}/features`}
+                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                          trackingMetadata={{ section: "team", page: "features", teamId: team.id }}
+                          className="px-2! me-5 h-7 w-auto"
+                          disableChevron
+                        />
+                      )}
                       {/* Hide if there is a parent ID */}
                       {!team.parentId ? (
                         <>
@@ -647,6 +701,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                 </CollapsibleContent>
               </Collapsible>
             );
+          }
+
+          return null;
         })}
     </>
   );
@@ -662,12 +719,13 @@ const SettingsSidebarContainer = ({
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
+  const [otherTeamMenuState, setOtherTeamMenuState] =
+    useState<
+      {
+        teamId: number | undefined;
+        teamMenuOpen: boolean;
+      }[]
+    >();
   const session = useSession();
 
   const organizationId = session.data?.user?.org?.id;
@@ -767,7 +825,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-2! h-7 w-fit ${
+                          className={`px-2! py-1! min-h-7 h-auto w-full ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -890,9 +948,9 @@ const SettingsSidebarContainer = ({
                                   }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <ChevronDownIcon className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <ChevronRightIcon className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -962,6 +1020,9 @@ const SettingsSidebarContainer = ({
 const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const isStandalone = useIsStandalone();
+
+  if (isStandalone) return null;
 
   return (
     <>
@@ -974,7 +1035,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <ArrowLeftIcon className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -983,19 +1044,14 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
   );
 };
 
-export type SettingsLayoutProps = {
+type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({
-  children,
-  teamFeatures,
-  permissions,
-  ...rest
-}: SettingsLayoutProps) {
+function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -1079,3 +1135,6 @@ const SidebarContainerElement = ({
     </>
   );
 };
+
+export type { SettingsLayoutProps, SettingsPermissions };
+export default SettingsLayoutAppDirClient;

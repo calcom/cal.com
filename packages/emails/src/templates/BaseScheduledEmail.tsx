@@ -1,19 +1,17 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
+import type { TFunction } from "i18next";
 import {
+  AppsStatus,
   BaseEmailHtml,
   Info,
   LocationInfo,
   ManageLink,
+  UserFieldsResponses,
   WhenInfo,
   WhoInfo,
-  AppsStatus,
-  UserFieldsResponses,
 } from "../components";
 import { PersonInfo } from "../components/WhoInfo";
 
@@ -48,6 +46,7 @@ export const BaseScheduledEmail = (
     date: `${getRecipientStart("h:mma")} - ${getRecipientEnd("h:mma")}, ${t(
       getRecipientStart("dddd").toLowerCase()
     )}, ${t(getRecipientStart("MMMM").toLowerCase())} ${getRecipientStart("D, YYYY")}`,
+    interpolation: { escapeValue: false },
   });
 
   let rescheduledBy = props.calEvent.rescheduledBy;
@@ -64,15 +63,15 @@ export const BaseScheduledEmail = (
 
   return (
     <BaseEmailHtml
-      hideLogo={Boolean(props.calEvent.platformClientId)}
+      hideLogo={Boolean(props.calEvent.platformClientId) || Boolean(props.calEvent.hideBranding)}
       headerType={props.headerType || "checkCircle"}
       subject={props.subject || subject}
       title={t(
         props.title
           ? props.title
           : props.calEvent.recurringEvent?.count
-          ? "your_event_has_been_scheduled_recurring"
-          : "your_event_has_been_scheduled"
+            ? "your_event_has_been_scheduled_recurring"
+            : "your_event_has_been_scheduled"
       )}
       callToAction={
         props.callToAction === null
@@ -128,6 +127,13 @@ export const BaseScheduledEmail = (
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer formatted />
       {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
+      {props.isOrganizer && props.calEvent.assignmentReason && (
+        <Info
+          label={t("assignment_reason")}
+          description={`${t(props.calEvent.assignmentReason.category)}${props.calEvent.assignmentReason.details ? `: ${props.calEvent.assignmentReason.details}` : ""}`}
+          withSpacer
+        />
+      )}
       <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
         <Info

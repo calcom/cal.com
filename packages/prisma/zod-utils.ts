@@ -11,9 +11,8 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { EventTypeCustomInputType } from "@calcom/prisma/enums";
-
 import type { Prisma } from "./client";
+import { EventTypeCustomInputType } from "./enums";
 
 /** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
 export const emailRegex =
@@ -32,35 +31,6 @@ const emailRegexSchema = z
   .string()
   .max(MAX_EMAIL_LENGTH, { message: "Email address is too long" })
   .regex(emailRegex);
-
-const slugify = (str: string, forDisplayingInput?: boolean) => {
-  if (!str) {
-    return "";
-  }
-
-  const s = str
-    .toLowerCase() // Convert to lowercase
-    .trim() // Remove whitespace from both sides
-    .normalize("NFD") // Normalize to decomposed form for handling accents
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    .replace(/[^.\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode and except "." period) with a dash
-    .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
-    .replace(/^-+/, "") // Remove dashes from start
-    .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
-    .replace(/^\.+/, "") // Remove periods from the start
-    .replace(
-      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
-      ""
-    ) // Removes emojis
-    .replace(/\s+/g, " ")
-    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
-
-  return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
-};
 
 const getValidRhfFieldName = (fieldName: string) => {
   // Remember that any transformation that you do here would run on System Field names as well. So, be careful and avoiding doing anything here that would modify the SystemField names.
@@ -248,6 +218,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
   multipleDuration: z.number().array().optional(),
+  hideDurationSelectorInBookingPage: z.boolean().optional(),
   giphyThankYouPage: z.string().optional(),
   additionalNotesRequired: z.boolean().optional(),
   disableSuccessPage: z.boolean().optional(),
@@ -327,20 +298,8 @@ export const bookingResponses = z
 
 export type BookingResponses = z.infer<typeof bookingResponses>;
 
-export const eventTypeLocations = z.array(
-  z.object({
-    // TODO: Couldn't find a way to make it a union of types from App Store locations
-    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
-    type: z.string(),
-    address: z.string().optional(),
-    link: z.string().url().optional(),
-    displayLocationPublicly: z.boolean().optional(),
-    hostPhoneNumber: z.string().optional(),
-    credentialId: z.number().optional(),
-    teamName: z.string().optional(),
-    customLabel: z.string().optional(),
-  })
-);
+// Re-exported from @calcom/lib/zod/eventType for backwards compatibility
+export { eventTypeLocations, type EventTypeLocation } from "@calcom/lib/zod/eventType";
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
@@ -377,13 +336,8 @@ export const eventTypeColor = z
 
 export type IntervalLimitsType = IntervalLimit | null;
 
-export const eventTypeSlug = z
-  .string()
-  .trim()
-  .transform((val) => slugify(val))
-  .refine((val) => val.length >= 1, {
-    message: "Please enter at least one character",
-  });
+// Re-exported from @calcom/lib/zod/eventType for backwards compatibility
+export { eventTypeSlug } from "@calcom/lib/zod/eventType";
 
 export const stringToDate = z.string().transform((a) => new Date(a));
 
@@ -403,9 +357,14 @@ export const stringOrNumber = z.union([
 
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
-  z.string().trim().min(1),
+  z
+    .string()
+    .trim()
+    .min(1),
   // boolean must be true if set.
-  z.boolean().refine((v) => v === true),
+  z
+    .boolean()
+    .refine((v) => v === true),
 ]);
 
 const PlatformClientParamsSchema = z.object({
@@ -569,6 +528,7 @@ export const teamMetadataStrictSchema = baseTeamMetadataSchema
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
+    platformClientId: z.string().optional(),
   })
   .and(z.record(z.string()))
   .nullable()
@@ -688,7 +648,7 @@ export function denullishShape<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall>,
-  Input = objectInputType<T, Catchall>
+  Input = objectInputType<T, Catchall>,
 >(
   obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
 ): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
@@ -720,13 +680,14 @@ export const entries = <O extends Record<string, unknown>>(
 /**
  * Returns a type with all readonly notations removed (traverses recursively on an object)
  */
-type DeepWriteable<T> = T extends Readonly<{
-  -readonly [K in keyof T]: T[K];
-}>
-  ? {
-      -readonly [K in keyof T]: DeepWriteable<T[K]>;
-    }
-  : T; /* Make it work with readonly types (this is not strictly necessary) */
+type DeepWriteable<T> =
+  T extends Readonly<{
+    -readonly [K in keyof T]: T[K];
+  }>
+    ? {
+        -readonly [K in keyof T]: DeepWriteable<T[K]>;
+      }
+    : T; /* Make it work with readonly types (this is not strictly necessary) */
 
 type FromEntries<T> = T extends [infer Keys, unknown][]
   ? { [K in Keys & PropertyKey]: Extract<T[number], [K, unknown]>[1] }
@@ -739,7 +700,7 @@ type FromEntries<T> = T extends [infer Keys, unknown][]
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/fromEntries.ts
  */
 export const fromEntries = <
-  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>
+  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>,
 >(
   entries: E
 ): FromEntries<DeepWriteable<E>> => {
@@ -810,6 +771,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  requiresCancellationReason: true,
   allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
@@ -867,12 +829,90 @@ export const unlockedManagedEventTypeProps = {
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
 
+// Zod-compatible version of allManagedEventTypeProps that only includes scalar fields
+// (excludes Prisma relation fields like children, users, webhooks, availability, etc.)
+// This is used with EventTypeSchema.pick() which requires exact key matching
+// IMPORTANT: This must match the scalar fields in allManagedEventTypeProps exactly
+export const allManagedEventTypePropsForZod = {
+  title: true,
+  description: true,
+  interfaceLanguage: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  currency: true,
+  periodDays: true,
+  position: true,
+  price: true,
+  slug: true,
+  length: true,
+  offsetStart: true,
+  locations: true,
+  hidden: true,
+  recurringEvent: true,
+  minimumRescheduleNotice: true,
+  disableGuests: true,
+  disableCancelling: true,
+  disableRescheduling: true,
+  requiresCancellationReason: true,
+  allowReschedulingCancelledBookings: true,
+  requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
+  requiresConfirmationForFreeEmail: true,
+  requiresConfirmationWillBlockSlot: true,
+  eventName: true,
+  metadata: true,
+  hideCalendarNotes: true,
+  hideCalendarEventDetails: true,
+  minimumBookingNotice: true,
+  beforeEventBuffer: true,
+  afterEventBuffer: true,
+  successRedirectUrl: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
+  seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
+  periodType: true,
+  periodStartDate: true,
+  periodEndDate: true,
+  periodCountCalendarDays: true,
+  bookingLimits: true,
+  onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
+  slotInterval: true,
+  scheduleId: true,
+  bookingFields: true,
+  durationLimits: true,
+  maxActiveBookingsPerBooker: true,
+  maxActiveBookingPerBookerOfferReschedule: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  assignAllTeamMembers: true,
+  isRRWeightsEnabled: true,
+  eventTypeColor: true,
+  allowReschedulingPastBookings: true,
+  hideOrganizerEmail: true,
+  rescheduleWithSameRoundRobinHost: true,
+  maxLeadThreshold: true,
+  customReplyToEmail: true,
+  bookingRequiresAuthentication: true,
+} as const;
+
+// Zod-compatible version of unlockedManagedEventTypeProps
+export const unlockedManagedEventTypePropsForZod = {
+  locations: true,
+  scheduleId: true,
+} as const;
+
 export const emailSchema = emailRegexSchema;
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
-export const emailSchemaRefinement = (value: string) => {
+export const emailSchemaRefinement = (value: string | null | undefined) => {
+  // If there's no value, it's NOT a valid email format, so return false.
+  if (!value) return false;
   return emailSchema.safeParse(value).success;
 };
 
@@ -970,7 +1010,8 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   // Accept forms: domain-only, `@domain`, or `local@domain`
   // - Domain labels: alnum, hyphens allowed internally, no leading/trailing hyphen
   // - Require at least one dot and end with an alpha TLD of length ≥2
-  const EMAIL_OR_DOMAIN_PATTERN = /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z]{2,}|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})$/i;
+  const EMAIL_OR_DOMAIN_PATTERN =
+    /^(?:[a-z0-9._+'-]+@|@)?(?:[a-z]{2,}|(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,})$/i;
 
   const isValid = allDomains.every((entry) => EMAIL_OR_DOMAIN_PATTERN.test(entry));
 

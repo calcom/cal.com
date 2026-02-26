@@ -13,6 +13,7 @@ import bolna_config_json from "./bolna/config.json";
 import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
+import caretta_config_json from "./caretta/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -111,7 +112,6 @@ import zoho_bigin_config_json from "./zoho-bigin/config.json";
 import zohocalendar_config_json from "./zohocalendar/config.json";
 import zohocrm_config_json from "./zohocrm/config.json";
 import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
-
 export const appStoreMetadata = {
   alby: alby_config_json,
   amie: amie_config_json,
@@ -124,6 +124,7 @@ export const appStoreMetadata = {
   btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
+  caretta: caretta_config_json,
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,

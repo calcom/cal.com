@@ -281,6 +281,16 @@ export class WorkflowService {
       return;
     }
 
+    if (
+      workflowTriggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+      dayjs(scheduledDate).isBefore(dayjs())
+    ) {
+      log.debug(
+        `Skipping lazy email reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+      );
+      return;
+    }
+
     let workflowReminder: { id: number | null; uuid: string | null };
     try {
       const workflowReminderRepository = new WorkflowReminderRepository(prisma);

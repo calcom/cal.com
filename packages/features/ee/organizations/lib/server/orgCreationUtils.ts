@@ -1,4 +1,4 @@
-import { lookup } from "dns";
+import { lookup } from "node:dns";
 import { type TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
@@ -205,9 +205,8 @@ export async function assertCanCreateOrg({
   errorOnUserAlreadyPartOfOrg?: boolean;
 }) {
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "email-verification"
-  );
+  const emailVerificationEnabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const verifiedUser = emailVerificationEnabled ? !!orgOwner.emailVerified : true;
   if (!verifiedUser) {

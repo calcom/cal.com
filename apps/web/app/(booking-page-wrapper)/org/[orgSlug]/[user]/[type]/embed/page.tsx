@@ -3,7 +3,7 @@ import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
 
-import { loadTranslations } from "@calcom/lib/server/i18n";
+import { loadTranslations } from "@calcom/i18n/server";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
@@ -32,11 +32,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   const eventLocale = props.eventData?.interfaceLanguage;
   const ns = "common";
-  let translations;
-  if (eventLocale) {
-    const ns = "common";
-    translations = await loadTranslations(eventLocale, ns);
-  }
+  const translations = await loadTranslations(eventLocale ?? "en", ns);
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (

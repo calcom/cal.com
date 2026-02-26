@@ -2,6 +2,7 @@ import { BookingAuditTaskerProducerService } from "@calcom/features/booking-audi
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { moduleLoader as taskerModuleLoader } from "@calcom/features/di/shared/services/tasker.service";
 import { moduleLoader as loggerModuleLoader } from "@calcom/features/di/shared/services/logger.service";
+import { moduleLoader as auditActorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/AuditActorRepository.module";
 
 import { createModule, bindModuleToClassOnToken } from "../../di/di";
 
@@ -17,10 +18,11 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     tasker: taskerModuleLoader,
     log: loggerModuleLoader,
+    auditActorRepository: auditActorRepositoryModuleLoader,
   },
 });
 
 export const moduleLoader = {
   token,
-  loadModule
+  loadModule,
 };

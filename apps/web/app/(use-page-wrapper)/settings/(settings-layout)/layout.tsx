@@ -20,7 +20,7 @@ import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
 const getTeamFeatures = unstable_cache(
   async (teamId: number) => {
     const featuresRepository = new FeaturesRepository(prisma);
-    return await featuresRepository.getTeamFeatures(teamId);
+    return await featuresRepository.getEnabledTeamFeatures(teamId);
   },
   ["team-features"],
   {

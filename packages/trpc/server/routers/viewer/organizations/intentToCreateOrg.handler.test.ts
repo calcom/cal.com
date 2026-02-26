@@ -1,14 +1,10 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
+import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import { BillingPeriod, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
-import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {
@@ -17,6 +13,59 @@ vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
 }));
 
 vi.mock("@calcom/features/ee/organizations/lib/OrganizationPaymentService");
+
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
+  TeamRepository: class {
+    constructor() {}
+    findOwnedTeamsByUserId() {
+      return Promise.resolve([]);
+    }
+    findById() {
+      return Promise.resolve({
+        id: 1,
+        name: "Test Org",
+        slug: "test-org",
+        logoUrl: null,
+        parentId: null,
+        metadata: {},
+        isOrganization: true,
+        organizationSettings: null,
+        isPlatform: false,
+      });
+    }
+  },
+}));
+
+vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", () => ({
+  createTeamsHandler: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler", () => ({
+  inviteMembersWithNoInviterPermissionCheck: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/i18n/server", () => ({
+  getTranslation: vi
+    .fn()
+    .mockImplementation(async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    }),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue({}),
+}));
 
 const mockInput = {
   name: "Test Org",
@@ -55,7 +104,7 @@ describe("intentToCreateOrgHandler", () => {
     vi.resetAllMocks();
     await prismock.reset();
 
-    vi.mocked(OrganizationPaymentService).mockImplementation(() => {
+    vi.mocked(OrganizationPaymentService).mockImplementation(function () {
       return {
         createOrganizationOnboarding: vi.fn().mockImplementation(async (data: any) => {
           return await prismock.organizationOnboarding.create({
@@ -185,7 +234,12 @@ describe("intentToCreateOrgHandler", () => {
             user: null as any,
           },
         })
-      ).rejects.toThrow(new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." }));
+      ).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized.",
+        })
+      );
     });
 
     it("should throw forbidden error when non-admin tries to create org for another user", async () => {
@@ -208,6 +262,25 @@ describe("intentToCreateOrgHandler", () => {
           message: "You can only create organization where you are the owner",
         })
       );
+    });
+
+    it("should reject non-admin creating org for another user even with isPlatform flag", async () => {
+      const nonAdminUser = await createTestUser({
+        email: "nonadmin@example.com",
+        role: UserPermissionRole.USER,
+      });
+
+      await expect(
+        intentToCreateOrgHandler({
+          input: { ...mockInput, isPlatform: true },
+          ctx: {
+            user: nonAdminUser,
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        message: "You can only create organization where you are the owner",
+      });
     });
 
     it("should throw error when target user is not found", async () => {
@@ -433,7 +506,12 @@ describe("intentToCreateOrgHandler", () => {
         ],
         invitedMembers: [
           { email: "new@new.com", teamName: "new", teamId: -1, role: "ADMIN" },
-          { email: "team@new.com", teamName: "team", teamId: -1, role: "ADMIN" },
+          {
+            email: "team@new.com",
+            teamName: "team",
+            teamId: -1,
+            role: "ADMIN",
+          },
         ],
       };
 

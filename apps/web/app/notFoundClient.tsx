@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect } from "react";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -54,6 +55,12 @@ export function NotFound({ host }: { host: string }) {
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
+
+  useLayoutEffect(() => {
+    if (typeof window !== "undefined") {
+      window.CalComPageStatus = "404";
+    }
+  }, []);
 
   const links = [
     {

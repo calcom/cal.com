@@ -14,7 +14,7 @@ import handler from "../../../pages/api/users/_post";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   return {
     getTranslation: (key: string) => {
       return () => key;
@@ -35,9 +35,9 @@ vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.contr
 
 const mockCreate = vi.fn();
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(() => ({
+  UserRepository: vi.fn().mockImplementation(function() { return {
     create: mockCreate,
-  })),
+  }; }),
 }));
 
 vi.mock("@calcom/lib/auth/hashPassword", () => ({

@@ -265,6 +265,9 @@ describe("getBulkUserEventTypes", () => {
       select: {
         id: true,
         title: true,
+        description: true,
+        length: true,
+        slug: true,
         locations: true,
         metadata: true,
         parentId: true,

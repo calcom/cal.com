@@ -1,11 +1,9 @@
+import dayjs from "@calcom/dayjs";
+import { useCalendarStore } from "@calcom/features/calendars/weeklyview/state/store";
+import { calculateEventLayouts, createLayoutMap } from "@calcom/features/calendars/weeklyview/utils/overlap";
+import classNames from "@calcom/ui/classNames";
 import { useEffect, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
-
-import dayjs from "@calcom/dayjs";
-import classNames from "@calcom/ui/classNames";
-
-import { useCalendarStore } from "../../state/store";
-import { calculateEventLayouts, createLayoutMap } from "../../utils/overlap";
 import { Event } from "./Event";
 
 type Props = {

@@ -1,12 +1,12 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod } from "@calcom/prisma/enums";

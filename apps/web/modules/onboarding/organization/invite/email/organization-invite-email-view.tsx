@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
@@ -35,8 +35,12 @@ type FormValues = {
 
 export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEmailViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const flags = useFlags();
+  const { teams } = useOnboardingStore();
+  const migratedTeams = teams.filter((team) => team.isBeingMigrated);
+  const isMigrationFlow = searchParams?.get("migrate") === "true";
 
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
@@ -54,11 +58,11 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
   const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
-  const teams =
+  const teamOptions =
     filteredTeams.length > 0
       ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
       : [];
-  const hasTeams = teams.length > 0;
+  const hasTeams = teamOptions.length > 0;
 
   // Conditional form schema - team is optional when there are no teams
   const formSchema = z.object({
@@ -102,7 +106,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   };
 
   const handleBack = () => {
-    router.push("/onboarding/organization/teams");
+    router.back();
   };
 
   const handleSkip = async () => {
@@ -136,8 +140,12 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
 
+  // Calculate total steps dynamically
+  const totalSteps = isMigrationFlow && migratedTeams.length > 0 ? 6 : 4;
+  const currentStep = isMigrationFlow && migratedTeams.length > 0 ? 6 : 4;
+
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={4} totalSteps={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={currentStep} totalSteps={totalSteps}>
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
           title={t("onboarding_org_invite_title")}
@@ -176,7 +184,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
                   remove={remove}
                   defaultRole={inviteRole}
                   showTeamSelect={hasTeams}
-                  teams={teams}
+                  teams={teamOptions}
                   emailPlaceholder={`dave@${usersEmailDomain}`}
                 />
 

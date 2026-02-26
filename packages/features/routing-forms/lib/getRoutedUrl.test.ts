@@ -1,34 +1,35 @@
 import "@calcom/lib/__mocks__/logger";
 
-import { createHash } from "crypto";
-import type { GetServerSidePropsContext } from "next";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { createHash } from "node:crypto";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
+import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
+import type { GetServerSidePropsContext } from "next";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
+import { handleResponse } from "./handleResponse";
 
 // Mock dependencies
 vi.mock("./getUrlSearchParamsToForward");
+vi.mock("./handleResponse");
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
-vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
-vi.mock("@calcom/lib/server/repository/PrismaRoutingFormRepository");
+vi.mock("@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
-    UserRepository: vi.fn().mockImplementation(() => ({
-      enrichUserWithItsProfile: vi.fn(),
-    })),
+    UserRepository: vi.fn().mockImplementation(function () {
+      return {
+        enrichUserWithItsProfile: vi.fn(),
+      };
+    }),
   };
 });
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains");
@@ -44,8 +45,33 @@ vi.mock("@calcom/app-store/routing-forms/enrichFormWithMigrationData", () => ({
 vi.mock("@calcom/lib/sentryWrapper", () => ({
   withReporting: (fn: unknown) => fn,
 }));
+vi.mock("@calcom/features/routing-trace/di/RoutingTraceService.container", () => ({
+  getRoutingTraceService: vi.fn(() => ({
+    addStep: vi.fn(),
+    getStepsCount: vi.fn().mockReturnValue(0),
+    savePendingRoutingTrace: vi.fn().mockResolvedValue(undefined),
+    processForBooking: vi.fn().mockResolvedValue(undefined),
+  })),
+}));
 
-const mockForm = {
+const mockForm: {
+  id: string;
+  user: { id: number; name: string };
+  team: null;
+  name: string;
+  fields: never[];
+  routes: never[];
+  userId: number;
+  teamId: null;
+  createdAt: Date;
+  updatedAt: Date;
+  description: null;
+  enabled: boolean;
+  isDefault: boolean;
+  fieldsOrder: never[];
+  position: number;
+  slug: string;
+} = {
   id: "form-id",
   user: { id: 1, name: "Test User" },
   team: null,
@@ -64,7 +90,12 @@ const mockForm = {
   slug: "test-form",
 };
 
-const mockSerializableForm = {
+const mockSerializableForm: {
+  id: string;
+  fields: { id: string; type: string; label: string; identifier: string }[];
+  routes: never[];
+  user: { id: number };
+} = {
   id: "form-id",
   fields: [{ id: "email", type: "email", label: "Email", identifier: "email" }],
   routes: [],
@@ -73,7 +104,7 @@ const mockSerializableForm = {
 
 const mockContext = (
   query: Record<string, unknown>,
-  url = "/link/form-id"
+  url: string = "/link/form-id"
 ): Pick<GetServerSidePropsContext, "query" | "req"> => ({
   query: { form: "form-id", ...query },
   req: { url },
@@ -89,13 +120,11 @@ describe("getRoutedUrl", () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockImplementation(async ({ user }) => user);
     const mockUserRepository = vi.mocked(UserRepository);
     if (mockUserRepository && typeof mockUserRepository.mockImplementation === "function") {
-      mockUserRepository.mockImplementation(
-        () =>
-          ({
-            enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } as any)
-      );
+      mockUserRepository.mockImplementation(function () {
+        return {
+          enrichUserWithItsProfile: mockEnrichUserWithItsProfile,
+        } as unknown as InstanceType<typeof UserRepository>;
+      });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
     vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
@@ -323,6 +352,154 @@ describe("getRoutedUrl", () => {
           isPreview: true,
         })
       );
+    });
+  });
+
+  describe("Fallback action", () => {
+    it("should use fallbackAction for external redirect when no team members found", async () => {
+      vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+        mockForm as never
+      );
+      const mainRedirectUrl = "test-user/30min";
+      const fallbackUrl = "https://example.com/fallback";
+      const mockRoute = {
+        id: "route1",
+        action: { type: "eventTypeRedirectUrl", value: mainRedirectUrl },
+      };
+      vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
+      vi.mocked(handleResponse).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [],
+        formResponse: { id: 1 },
+        queuedFormResponse: null,
+        attributeRoutingConfig: null,
+        timeTaken: {},
+        crmContactOwnerEmail: null,
+        crmContactOwnerRecordType: null,
+        crmAppSlug: null,
+        isPreview: false,
+        fallbackAction: { type: "externalRedirectUrl", value: fallbackUrl },
+      });
+
+      const context = mockContext({ email: "test@cal.com" });
+      const result = await getRoutedUrl(context);
+
+      expect(result).toEqual({
+        redirect: {
+          destination: expect.stringContaining(fallbackUrl),
+          permanent: false,
+        },
+      });
+    });
+
+    it("should use fallbackAction for custom page message when no team members found", async () => {
+      vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+        mockForm as never
+      );
+      const mainRedirectUrl = "test-user/30min";
+      const customMessage = "No team members available";
+      const mockRoute = {
+        id: "route1",
+        action: { type: "eventTypeRedirectUrl", value: mainRedirectUrl },
+      };
+      vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
+      vi.mocked(handleResponse).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [],
+        formResponse: { id: 1 },
+        queuedFormResponse: null,
+        attributeRoutingConfig: null,
+        timeTaken: {},
+        crmContactOwnerEmail: null,
+        crmContactOwnerRecordType: null,
+        crmAppSlug: null,
+        isPreview: false,
+        fallbackAction: { type: "customPageMessage", value: customMessage },
+      });
+
+      const context = mockContext({ email: "test@cal.com" });
+      const result = await getRoutedUrl(context);
+
+      expect(result).toEqual({
+        props: {
+          isEmbed: false,
+          form: mockSerializableForm,
+          message: customMessage,
+          errorMessage: null,
+        },
+      });
+    });
+
+    it("should use main action when fallbackAction is null", async () => {
+      vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+        mockForm as never
+      );
+      const redirectUrl = "test-user/30min";
+      const mockRoute = { id: "route1", action: { type: "eventTypeRedirectUrl", value: redirectUrl } };
+      vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
+      vi.mocked(getAbsoluteEventTypeRedirectUrlWithEmbedSupport).mockReturnValue(`/${redirectUrl}`);
+      vi.mocked(handleResponse).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [123],
+        formResponse: { id: 1 },
+        queuedFormResponse: null,
+        attributeRoutingConfig: null,
+        timeTaken: {},
+        crmContactOwnerEmail: null,
+        crmContactOwnerRecordType: null,
+        crmAppSlug: null,
+        isPreview: false,
+        fallbackAction: null,
+      });
+
+      const context = mockContext({ email: "test@cal.com" });
+      const result = await getRoutedUrl(context);
+
+      expect(result).toEqual({
+        redirect: {
+          destination: `/${redirectUrl}`,
+          permanent: false,
+        },
+      });
+    });
+
+    it("should use fallbackAction for event type redirect when no team members found", async () => {
+      vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
+        mockForm as never
+      );
+      const mainRedirectUrl = "test-user/30min";
+      const fallbackRedirectUrl = "test-user/60min";
+      const mockRoute = {
+        id: "route1",
+        action: { type: "eventTypeRedirectUrl", value: mainRedirectUrl },
+      };
+      vi.mocked(findMatchingRoute).mockReturnValue(mockRoute as never);
+      vi.mocked(substituteVariables).mockReturnValue(fallbackRedirectUrl);
+      vi.mocked(getAbsoluteEventTypeRedirectUrlWithEmbedSupport).mockReturnValue(`/${fallbackRedirectUrl}`);
+      vi.mocked(handleResponse).mockResolvedValue({
+        teamMembersMatchingAttributeLogic: [],
+        formResponse: { id: 1 },
+        queuedFormResponse: null,
+        attributeRoutingConfig: null,
+        timeTaken: {},
+        crmContactOwnerEmail: null,
+        crmContactOwnerRecordType: null,
+        crmAppSlug: null,
+        isPreview: false,
+        fallbackAction: { type: "eventTypeRedirectUrl", value: fallbackRedirectUrl },
+      });
+
+      const context = mockContext({ email: "test@cal.com" });
+      const result = await getRoutedUrl(context);
+
+      expect(substituteVariables).toHaveBeenCalledWith(
+        fallbackRedirectUrl,
+        { email: "test@cal.com" },
+        mockSerializableForm.fields
+      );
+      expect(result).toEqual({
+        redirect: {
+          destination: `/${fallbackRedirectUrl}`,
+          permanent: false,
+        },
+      });
     });
   });
 });

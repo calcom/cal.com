@@ -1,6 +1,6 @@
-import React from "react";
+import type React from "react";
 
-import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
+import { CAL_URL, LOGO, LOGO_DARK, WEBAPP_URL } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -66,7 +66,7 @@ const OG_ASSETS = {
   },
   generic: {
     id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
-    logo: "cal-logo-word-black.svg",
+    logo: LOGO_DARK,
     logoWidth: "350",
     variant: "light" as const,
   },
@@ -186,7 +186,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // any non existing images for dynamic collectives, while at the same time removing them from
   // the names list, because the profile name of that event is a concatenation of all names.
   const attendees = (profile.image ? [profile, ...users] : users).filter(
-    (value, index, self) => self.findIndex((v) => v.name === value.name) == index
+    (value, index, self) => self.findIndex((v) => v.name === value.name) === index
   );
 
   // Construct list of avatar urls, removes duplicates and empty profile images
@@ -217,7 +217,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 tw="rounded-full mr-[-36px] border-[6px] border-[#CDCED2]"
                 key={avatar}
                 src={avatar}
-                alt="Profile picture"
+                alt="Profile"
                 width={config.avatarSize}
                 height={config.avatarSize}
               />
@@ -233,12 +233,20 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
         <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
           <div
             tw="flex w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
+            style={{
+              whiteSpace: "nowrap",
+              fontFamily: "cal",
+              textOverflow: "ellipsis",
+            }}>
             Meet {joinMultipleNames(names)}
           </div>
           <div
             tw="flex mt-3 w-[1040px] overflow-hidden"
-            style={{ whiteSpace: "nowrap", fontFamily: "inter", textOverflow: "ellipsis" }}>
+            style={{
+              whiteSpace: "nowrap",
+              fontFamily: "inter",
+              textOverflow: "ellipsis",
+            }}>
             {title}
           </div>
         </div>

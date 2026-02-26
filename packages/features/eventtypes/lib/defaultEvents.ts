@@ -38,8 +38,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   bufferTime: 0,
   availability: [],
   id: 0,
-  startTime: 0,
-  endTime: 0,
+  uuid: "00000000-0000-0000-0000-000000000000",
   allSelectedCalendars: [],
   userLevelSelectedCalendars: [],
   schedules: [],
@@ -90,6 +89,7 @@ const commons = {
   seatsShowAvailabilityCount: null,
   disableCancelling: false,
   disableRescheduling: false,
+  requiresCancellationReason: null,
   minimumRescheduleNotice: null,
   onlyShowFirstAvailableSlot: false,
   allowReschedulingPastBookings: false,
@@ -155,6 +155,8 @@ const commons = {
   createdAt: null,
   updatedAt: null,
   rrHostSubsetEnabled: false,
+  enablePerHostLocations: false,
+  redirectUrlOnNoRoutingFormResponse: null,
 };
 
 export const dynamicEvent = {
