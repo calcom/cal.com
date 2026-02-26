@@ -263,11 +263,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideBranding: booking.eventType?.id
       ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
           team: booking.eventType.team
-            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            ? {
+                hideBranding: booking.eventType.team.hideBranding ?? false,
+                parent: booking.eventType.team.parent ?? null,
+              }
             : null,
           owner: {
             id: user.id,
-            hideBranding: user.hideBranding,
+            hideBranding: user.hideBranding ?? false,
             profiles: user.profiles ?? [],
           },
         } satisfies EventTypeBrandingData)
