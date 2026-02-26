@@ -533,7 +533,10 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
   const endTime = new Date(booking.endTime);
   const startTime = new Date(booking.startTime);
-  const timeZone = booking.user?.timeZone;
+  const organizerTimezone = booking.user?.timeZone ?? "UTC";
+  const attendeeTimezone = booking.attendees[0].timeZone;
+  const isSeatedEvent = !!booking.eventType?.seatsPerTimeSlot;
+  const timeZone = isSeatedEvent ? organizerTimezone : attendeeTimezone;
 
   useDailyEvent("left-meeting", () => {
     if (rediectAttendeeToOnExit) {
@@ -550,7 +553,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
       <main className="prose-sm prose scroll-bar scrollbar-track-w-20 overflow-x-hidden! w-full max-w-64 overflow-scroll border-subtle border-r bg-default p-4 prose-h3:font-cal prose-a:text-emphasis prose-h3:text-emphasis text-emphasis shadow-sm backdrop-blur-lg">
         <h3>{t("what")}:</h3>
         <p>{booking.title}</p>
-        <h3>{t("invitee_timezone")}:</h3>
+        <h3>{isSeatedEvent ? t("organizer_timezone") : t("invitee_timezone")}:</h3>
         <p>{timeZone}</p>
         <h3>{t("when")}:</h3>
         <p suppressHydrationWarning={true}>

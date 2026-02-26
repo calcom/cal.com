@@ -1066,6 +1066,7 @@ export class BookingRepository implements IBookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            seatsPerTimeSlot: true,
             hosts: {
               select: {
                 userId: true,
