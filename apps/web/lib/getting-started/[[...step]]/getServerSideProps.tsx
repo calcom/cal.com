@@ -60,6 +60,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let google_signup_to_be_tracked = false;
   const has_google_signup_tracked = !user.metadata?.hasOwnProperty("google_signup_tracked");
 
+  const is_google_one_tap_signup = user.metadata?.signupSource === "google-one-tap";
+
   const hasNotStartedOnboarding = !user.metadata?.hasOwnProperty("currentOnboardingStep");
 
   let google_signup_tracked = false;
@@ -71,6 +73,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (
     user.identityProvider === "GOOGLE" &&
+    !is_google_one_tap_signup &&
     (!user.metadata || (has_google_signup_tracked && hasNotStartedOnboarding) || google_signup_tracked)
   ) {
     google_signup_to_be_tracked = true;
