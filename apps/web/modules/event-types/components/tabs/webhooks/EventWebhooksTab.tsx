@@ -10,8 +10,14 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-import { Card, CardFrame, CardPanel } from "@coss/ui/components/card";
+import { Card, CardPanel } from "@coss/ui/components/card";
 import { Dialog, DialogPanel, DialogPopup } from "@coss/ui/components/dialog";
+import {
+  AppHeader,
+  AppHeaderActions,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 import Link from "next/link";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -142,61 +148,63 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 />
               )}
               {webhooks.length ? (
-                <div className="mb-2 rounded-md border border-subtle p-8">
-                  <div className="flex justify-between">
-                    <div>
-                      <div className="font-semibold text-default text-sm">{t("webhooks")}</div>
-                      <p className="wrap-break-word max-w-[280px] text-sm text-subtle sm:max-w-[500px]">
+                <>
+                  <AppHeader>
+                    <AppHeaderContent title={t("webhooks")}>
+                      <AppHeaderDescription>
                         {t("add_webhook_description", { appName: APP_NAME })}
-                      </p>
-                    </div>
-                    {cannotEditWebhooks ? (
-                      <Button StartIcon="lock" color="secondary" disabled>
-                        {t("locked_by_team_admin")}
-                      </Button>
-                    ) : (
-                      <NewWebhookButton />
-                    )}
+                      </AppHeaderDescription>
+                    </AppHeaderContent>
+                    <AppHeaderActions>
+                      {cannotEditWebhooks ? (
+                        <Button StartIcon="lock" color="secondary" disabled>
+                          {t("locked_by_team_admin")}
+                        </Button>
+                      ) : (
+                        <NewWebhookButton />
+                      )}
+                    </AppHeaderActions>
+                  </AppHeader>
+
+                  <div className="mb-2 rounded-md border border-subtle p-8">
+                    <Card className="mb-4">
+                      <CardPanel className="p-0">
+                        {webhooks.map((webhook, index) => {
+                          const readOnly = isChildrenManagedEventType && webhook.eventTypeId !== eventType.id;
+                          return (
+                            <WebhookListItem
+                              key={webhook.id}
+                              webhook={webhook}
+                              permissions={{
+                                canEditWebhook: !readOnly,
+                                canDeleteWebhook: !readOnly,
+                              }}
+                              onEditWebhookAction={() => {
+                                setEditModalOpen(true);
+                                setWebhookToEdit(webhook);
+                              }}
+                            />
+                          );
+                        })}
+                      </CardPanel>
+                    </Card>
+
+                    <p className="font-normal text-default text-sm">
+                      <ServerTrans
+                        t={t}
+                        i18nKey="edit_or_manage_webhooks"
+                        components={[
+                          <Link
+                            key="edit_or_manage_webhooks"
+                            className="cursor-pointer font-semibold underline"
+                            href="/settings/developer/webhooks">
+                            webhooks settings
+                          </Link>,
+                        ]}
+                      />
+                    </p>
                   </div>
-
-                  <Card className="my-8">
-                    <CardPanel className="p-0">
-                      {webhooks.map((webhook, index) => {
-                        const readOnly =
-                          isChildrenManagedEventType && webhook.eventTypeId !== eventType.id;
-                        return (
-                          <WebhookListItem
-                            key={webhook.id}
-                            webhook={webhook}
-                            permissions={{
-                              canEditWebhook: !readOnly,
-                              canDeleteWebhook: !readOnly,
-                            }}
-                            onEditWebhookAction={() => {
-                              setEditModalOpen(true);
-                              setWebhookToEdit(webhook);
-                            }}
-                          />
-                        );
-                      })}
-                    </CardPanel>
-                  </Card>
-
-                  <p className="font-normal text-default text-sm">
-                    <ServerTrans
-                      t={t}
-                      i18nKey="edit_or_manage_webhooks"
-                      components={[
-                        <Link
-                          key="edit_or_manage_webhooks"
-                          className="cursor-pointer font-semibold underline"
-                          href="/settings/developer/webhooks">
-                          webhooks settings
-                        </Link>,
-                      ]}
-                    />
-                  </p>
-                </div>
+                </>
               ) : (
                 <EmptyScreen
                   Icon="webhook"
@@ -226,14 +234,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   onCancel={() => setCreateModalOpen(false)}
                   apps={installedApps?.items.map((app) => app.slug)}
                   headerWrapper={(formMethods, children) => (
-                    <CardFrame>
+                    <>
                       <WebhookFormHeader
                         titleKey="create_webhook"
                         showBackButton={false}
                         CTA={<WebhookVersionCTA formMethods={formMethods} />}
                       />
                       {children}
-                    </CardFrame>
+                    </>
                   )}
                 />
               </DialogPanel>
@@ -249,14 +257,14 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                   apps={installedApps?.items.map((app) => app.slug)}
                   onCancel={() => setEditModalOpen(false)}
                   headerWrapper={(formMethods, children) => (
-                    <CardFrame>
+                    <>
                       <WebhookFormHeader
                         titleKey="edit_webhook"
                         showBackButton={false}
                         CTA={<WebhookVersionCTA formMethods={formMethods} />}
                       />
                       {children}
-                    </CardFrame>
+                    </>
                   )}
                   onSubmit={(values: WebhookFormSubmitData) => {
                     if (
