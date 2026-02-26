@@ -7,7 +7,8 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Form, InputError, TextField } from "@calcom/ui/components/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,6 +22,7 @@ type FormValues = {
 
 export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
   const { t } = useLocale();
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -49,6 +51,7 @@ export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
   });
 
   const handleSubmit = (values: FormValues) => {
+    posthog.capture("onboarding_company_email_verify_clicked");
     setErrorMessage("");
     const qs = searchParams.toString();
     const redirectTo = qs ? `${pathname}?${qs}` : pathname;
@@ -67,7 +70,13 @@ export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
         footer={
           !submittedEmail ? (
             <div className="flex w-full items-center justify-between gap-4">
-              <Button color="minimal" className="rounded-[10px]" onClick={() => window.history.back()}>
+              <Button
+                color="minimal"
+                className="rounded-[10px]"
+                onClick={() => {
+                  posthog.capture("onboarding_company_email_back_clicked");
+                  router.back();
+                }}>
                 {t("go_back")}
               </Button>
               <Button
