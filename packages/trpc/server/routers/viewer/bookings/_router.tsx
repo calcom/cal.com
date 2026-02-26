@@ -10,6 +10,7 @@ import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAvatarUrlInputSchema } from "./getAvatarUrl.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
@@ -185,4 +186,12 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  getAvatarUrl: authedProcedure.input(ZGetAvatarUrlInputSchema).query(async ({ input }) => {
+    const { getAvatarUrlHandler } = await import("./getAvatarUrl.handler");
+
+    return getAvatarUrlHandler({
+      input,
+    });
+  }),
 });

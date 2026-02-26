@@ -42,6 +42,7 @@ import { BookingActionsDropdown } from "../../../components/booking/actions/Book
 import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
 import { RejectBookingButton } from "../../../components/booking/RejectBookingButton";
 import type { BookingListingStatus } from "../../../components/booking/types";
+import { useAvatarUrl } from "../hooks/useAvatarUrl";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
 import { checkSheetActive, createBookingSheetKeydownHandler } from "../lib/bookingSheetKeyboardHandler";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
@@ -572,31 +573,37 @@ function WhoSection({ booking }: { booking: BookingOutput }) {
           </div>
         )}
 
-        {booking.attendees.map((attendee, idx) => {
-          const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
-          return (
-            <div key={idx} className="flex items-center gap-4">
-              <Avatar
-                size="md"
-                imageSrc={
-                  attendee.user?.avatarUrl
-                    ? getUserAvatarUrl(attendee.user)
-                    : getPlaceholderAvatar(null, name)
-                }
-                alt={name}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
-                {attendee.phoneNumber && (
-                  <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
-                )}
-                <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
-              </div>
-            </div>
-          );
-        })}
+        {booking.attendees.map((attendee, idx) => (
+          <AttendeeRow key={idx} attendee={attendee} />
+        ))}
       </div>
     </Section>
+  );
+}
+
+function AttendeeRow({ attendee }: { attendee: BookingOutput["attendees"][number] }) {
+  const name = attendee.user?.name || attendee.name || attendee.user?.email || attendee.email;
+  const hasAvatar = !!(attendee.user && attendee.user.avatarUrl);
+  const avatarApiFallback = useAvatarUrl(attendee.email, !hasAvatar);
+
+  let imageSrc: string;
+  if (attendee.user && attendee.user.avatarUrl) {
+    imageSrc = getUserAvatarUrl(attendee.user);
+  } else {
+    imageSrc = avatarApiFallback ?? getPlaceholderAvatar(null, name);
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <Avatar size="md" imageSrc={imageSrc} alt={name} />
+      <div className="min-w-0 flex-1">
+        <p className="text-emphasis truncate text-sm leading-[1.2]">{name}</p>
+        {attendee.phoneNumber && (
+          <p className="text-default truncate text-sm leading-[1.2]">{attendee.phoneNumber}</p>
+        )}
+        <p className="text-default truncate text-sm leading-[1.2]">{attendee.email}</p>
+      </div>
+    </div>
   );
 }
 

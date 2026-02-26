@@ -3361,3 +3361,9 @@ model RoutingTrace {
   assignmentReasonId Int?              @unique
   assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
 }
+
+model ExternalAvatar {
+  email     String   @id
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
