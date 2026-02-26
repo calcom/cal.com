@@ -84,6 +84,7 @@
     "@radix-ui/react-slot": "1.1.2",
     "@radix-ui/react-switch": "1.1.0",
     "@radix-ui/react-toast": "1.1.5",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/react-tooltip-atoms": "npm:@radix-ui/react-tooltip@1.0.6",
     "@tanstack/react-query": "5.17.19",
     "class-variance-authority": "0.4.0",
