@@ -146,6 +146,13 @@ model VideoCallGuest {
   @@index([email])
 }
 
+enum CancellationReasonRequirement {
+  MANDATORY_BOTH
+  MANDATORY_HOST_ONLY
+  MANDATORY_ATTENDEE_ONLY
+  OPTIONAL_BOTH
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.string.min(1)
@@ -279,9 +286,10 @@ model EventType {
   restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
   hostGroups            HostGroup[]
 
-  bookingRequiresAuthentication Boolean @default(false)
-  rrHostSubsetEnabled           Boolean @default(false)
-  enablePerHostLocations        Boolean @default(false)
+  bookingRequiresAuthentication Boolean                        @default(false)
+  rrHostSubsetEnabled           Boolean                        @default(false)
+  requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
+  enablePerHostLocations        Boolean                        @default(false)
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -1155,6 +1163,7 @@ enum WebhookTriggerEvents {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
   FORM_SUBMITTED_NO_EVENT
+  ROUTING_FORM_FALLBACK_HIT
   DELEGATION_CREDENTIAL_ERROR
   WRONG_ASSIGNMENT_REPORT
 }
@@ -1375,6 +1384,7 @@ model App_RoutingForms_QueuedFormResponse {
   formId              String
   response            Json
   chosenRouteId       String?
+  fallbackAction      Json?
   createdAt           DateTime                       @default(now())
   updatedAt           DateTime?                      @updatedAt
   actualResponseId    Int?                           @unique
@@ -1535,6 +1545,10 @@ model WorkflowStep {
 
   inboundAgentId String? @unique
   inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+
+  autoTranslateEnabled Boolean                   @default(false)
+  sourceLocale         String?
+  translations         WorkflowStepTranslation[]
 
   @@index([workflowId])
 }
@@ -2360,6 +2374,11 @@ enum EventTypeAutoTranslatedField {
   TITLE
 }
 
+enum WorkflowStepAutoTranslatedField {
+  REMINDER_BODY
+  EMAIL_SUBJECT
+}
+
 model DelegationCredential {
   id                  String                @id @default(uuid())
   workspacePlatform   WorkspacePlatform     @relation(fields: [workspacePlatformId], references: [id], onDelete: Cascade)
@@ -2447,6 +2466,20 @@ model EventTypeTranslation {
 
   @@unique([eventTypeId, field, targetLocale])
   @@index([eventTypeId, field, targetLocale])
+}
+
+model WorkflowStepTranslation {
+  uid            String                          @id @default(cuid())
+  workflowStep   WorkflowStep                    @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
+  workflowStepId Int
+  field          WorkflowStepAutoTranslatedField
+  sourceLocale   String
+  targetLocale   String
+  translatedText String                          @db.Text
+  createdAt      DateTime                        @default(now())
+  updatedAt      DateTime                        @updatedAt
+
+  @@unique([workflowStepId, field, targetLocale])
 }
 
 enum WatchlistType {

@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { isCancellationReasonRequired } from "@calcom/features/bookings/lib/cancellationReason";
 import { shouldChargeNoShowCancellationFee } from "@calcom/features/bookings/lib/payment/shouldChargeNoShowCancellationFee";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
+import type { CancellationReasonRequirement } from "@calcom/prisma/enums";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea, CheckboxField } from "@calcom/ui/components/form";
+import { CheckboxField, Label, Select, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { InfoIcon, XIcon } from "@coss/ui/icons";
+import { useCallback, useState } from "react";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
@@ -110,6 +111,7 @@ type Props = {
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
   renderContext: "booking-single-view" | "dialog";
   eventTypeMetadata?: Record<string, unknown> | null;
+  requiresCancellationReason?: CancellationReasonRequirement | null;
   showErrorAsToast?: boolean;
   onCanceled?: () => void;
 };
@@ -163,11 +165,18 @@ export default function CancelBooking(props: Props) {
   const isCancellationUserHost =
     props.isHost || bookingCancelledEventProps.organizer.email === currentUserEmail;
 
-  const hostMissingCancellationReason =
-    isCancellationUserHost &&
-    (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id));
+  const isReasonRequired = isCancellationReasonRequired(
+    props.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
+  const missingRequiredReason = isReasonRequired && !cancellationReason?.trim();
+  const hostMissingInternalNote =
+    isCancellationUserHost && props.internalNotePresets.length > 0 && !internalNote?.id;
   const cancellationNoShowFeeNotAcknowledged =
     !props.isHost && cancellationNoShowFeeWarning && !acknowledgeCancellationNoShowFee;
+  const canCancel =
+    !missingRequiredReason && !hostMissingInternalNote && !cancellationNoShowFeeNotAcknowledged;
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- CancelBooking is not usually used in embed mode
@@ -275,7 +284,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{isCancellationUserHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>{t(isReasonRequired ? "cancellation_reason" : "cancellation_reason_optional_label")}</Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -325,7 +334,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={hostMissingCancellationReason || cancellationNoShowFeeNotAcknowledged}
+                disabled={!canCancel}
                 onClick={handleCancel}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
