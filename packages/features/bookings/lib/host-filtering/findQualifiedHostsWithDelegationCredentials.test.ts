@@ -1,12 +1,9 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { vi, it, describe, expect, afterEach } from "vitest";
-import type { Mock } from "vitest";
-
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import * as getRoutedUsers from "@calcom/features/users/lib/getRoutedUsers";
 import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
-
+import type { Mock } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
 // Mock the filterHostsByLeadThreshold function
@@ -685,6 +682,209 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
     expect(result).toEqual({
       qualifiedRRHosts: [hosts[2]],
       allFallbackRRHosts: [hosts[1], hosts[2]],
+      fixedHosts: [],
+    });
+  });
+
+  it("should populate allFallbackRRHosts when segment matching reduces the host pool (no fairness reduction)", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello4@gmail.com",
+          id: 4,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello5@gmail.com",
+          id: 5,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    // Segment matching reduces 5 hosts down to 2
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
+      hosts[0],
+      hosts[1],
+    ]);
+
+    // Fairness filter returns hosts unchanged (maxLeadThreshold is null, so no reduction)
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue([hosts[0], hosts[1]]);
+
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // allFallbackRRHosts should be populated with all RR hosts
+    // because segment matching reduced the pool (5 -> 2),
+    // even though fairness filtering did not reduce it further.
+    expect(result).toEqual({
+      qualifiedRRHosts: [hosts[0], hosts[1]],
+      allFallbackRRHosts: hosts,
+      fixedHosts: [],
+    });
+  });
+
+  it("should not populate allFallbackRRHosts when neither segment matching nor fairness reduces hosts", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        groupId: null,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+        rrResetInterval: RRResetInterval.MONTH,
+      },
+    };
+
+    // Segment matching returns all hosts (no reduction)
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => hosts);
+
+    // Fairness filter returns hosts unchanged
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(hosts);
+
+    const result = await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // No fallback needed since neither filter reduced the pool
+    expect(result).toEqual({
+      qualifiedRRHosts: hosts,
+      allFallbackRRHosts: undefined,
       fixedHosts: [],
     });
   });
