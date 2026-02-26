@@ -12,6 +12,7 @@ export interface IUseVerifyEmailProps {
   onVerifyEmail?: () => void;
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
+  eventTypeId?: number;
 }
 export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
 export const useVerifyEmail = ({
@@ -19,6 +20,7 @@ export const useVerifyEmail = ({
   name,
   requiresBookerEmailVerification,
   onVerifyEmail,
+  eventTypeId,
 }: IUseVerifyEmailProps) => {
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
@@ -56,6 +58,7 @@ export const useVerifyEmail = ({
       email,
       username: typeof name === "string" ? name : name?.firstName,
       language: i18n.language || "en",
+      eventTypeId,
     });
   };
 
