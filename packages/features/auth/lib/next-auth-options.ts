@@ -671,8 +671,8 @@ export const getOptions = ({
         }
 
         const autoMergeJwt = {
-          ...token,
           ...existingUserWithoutTeamsField,
+          ...token,
           profileId: profile.id,
           upId,
           belongsToActiveTeam,
@@ -743,6 +743,13 @@ export const getOptions = ({
           } as JWT;
         }
         const idP = getIdentityProvider(account.provider);
+
+        if (!idP) {
+          log.warn("callbacks:jwt:accountType:oauth - unknown provider, falling back to auto-merge", {
+            provider: account.provider,
+          });
+          return await autoMergeIdentities();
+        }
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -893,18 +900,18 @@ export const getOptions = ({
         }
 
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        const profileResult = determineProfile({
+        const { upId } = determineProfile({
           profiles: allProfiles,
           token,
         });
         log.debug(
           "callbacks:jwt:accountType:oauth:existingUser",
-          safeStringify({ userId: existingUser.id, upId: profileResult.upId })
+          safeStringify({ userId: existingUser.id, upId })
         );
         const finalJwt = {
           ...token,
-          upId: profileResult.upId,
-          profileId: profileResult.id ?? token.profileId ?? null,
+          upId,
+          profileId: token.profileId ?? null,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
@@ -1019,13 +1026,21 @@ export const getOptions = ({
       }
       if (account?.provider) {
         const idP = getIdentityProvider(account.provider);
+
+        if (!idP) {
+          log.warn("callbacks:signIn - unknown provider, rejecting login", {
+            provider: account.provider,
+          });
+          return "/auth/error?error=unknown-provider";
+        }
         // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
         const isEmailVerified = user.emailVerified || (profile as ExtendedOAuthProfile)?.email_verified;
 
         // For Azure AD, check xms_edov (Email Domain Owner Verified) claim
         // xms_edov returns inconsistent types: boolean for work/school, string "1" for personal accounts
         const xmsEdov = (profile as ExtendedOAuthProfile)?.xms_edov;
-        const isAzureEmailDomainVerified = xmsEdov === true || xmsEdov === "1" || xmsEdov === 1;
+        const isAzureEmailDomainVerified =
+          xmsEdov === true || xmsEdov === "true" || xmsEdov === "1" || xmsEdov === 1;
 
         // Azure AD never sets email_verified in the token profile, so isEmailVerified is always
         // falsy for AZUREAD logins. Use isAzureEmailDomainVerified (xms_edov) as the equivalent
@@ -1457,7 +1472,6 @@ export const getOptions = ({
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
       if ((isENVDev || IS_CALCOM) && isNewUser) {
-
         if (process.env.DUB_API_KEY) {
           const clickId = getDubId();
           // check if there's a clickId (dub_id) cookie set by @dub/analytics
@@ -1491,31 +1505,17 @@ const determineProfile = ({
 }: {
   token: JWT;
   profiles: { id: number | null; upId: string }[];
-}): { id: number | null; upId: string } => {
-  // Filter out profiles with null id for safety when selecting a default without token hint
-  const validProfiles = profiles.filter((p) => p.id !== null) as {
-    id: number;
-    upId: string;
-  }[];
-
-  // If profile switcher is disabled, return the first valid profile or fallback to the first original profile if none are valid
+}) => {
+  // If profile switcher is disabled, we can only show the first profile.
   if (!ENABLE_PROFILE_SWITCHER) {
-    // We need to return the profile structure {id: number | null, upId: string}
-    const firstValid = profiles.find((p) => p.id !== null);
-    return firstValid ?? profiles[0]; // Return first valid, or first original as fallback
+    return profiles[0];
   }
 
-  // If a upId exists in the token, try to find the matching profile
   if (token.upId) {
-    const matchingProfile = profiles.find((p) => p.upId === token.upId);
-    if (matchingProfile) {
-      // Prefer the version with a non-null ID if it exists among validProfiles, otherwise return the match found.
-      const matchingValidProfile = validProfiles.find((p) => p.upId === token.upId);
-      return matchingValidProfile ?? matchingProfile;
-    }
+    // Otherwise use what's in the token
+    return { profileId: token.profileId, upId: token.upId as string };
   }
 
-  // Fallback: Return the first valid profile, or the first original profile if none are valid.
-  const firstValid = profiles.find((p) => p.id !== null);
-  return firstValid ?? profiles[0];
+  // If there is just one profile it has to be the one we want to log into.
+  return profiles[0];
 };

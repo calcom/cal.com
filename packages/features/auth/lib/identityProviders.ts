@@ -14,12 +14,8 @@ export const NEXTAUTH_TO_IDENTITY_PROVIDER: Record<string, IdentityProvider> = {
 
 /**
  * Get IdentityProvider enum from NextAuth provider name.
- * Falls back to GOOGLE if not found (maintains existing behavior).
+ * Returns null for unknown providers so callers can reject the login gracefully.
  */
-export const getIdentityProvider = (nextAuthProvider: string): IdentityProvider => {
-  const idP = NEXTAUTH_TO_IDENTITY_PROVIDER[nextAuthProvider];
-  if (!idP) {
-    throw new Error(`Unknown NextAuth provider: "${nextAuthProvider}"`);
-  }
-  return idP;
+export const getIdentityProvider = (nextAuthProvider: string): IdentityProvider | null => {
+  return NEXTAUTH_TO_IDENTITY_PROVIDER[nextAuthProvider] ?? null;
 };
