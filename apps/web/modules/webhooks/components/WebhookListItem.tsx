@@ -103,8 +103,23 @@ export default function WebhookListItem(props: {
               <ListItemTitle data-testid="webhook-url" className="font-medium truncate">
                 <ListItemTitleLink href={props.editHref}>{webhook.subscriberUrl}</ListItemTitleLink>
               </ListItemTitle>
+            ) : props.permissions.canEditWebhook && props.onEditWebhookAction ? (
+              <ListItemTitle data-testid="webhook-url" className="font-medium truncate">
+                <a
+                  className="before:absolute before:inset-0 cursor-pointer"
+                  data-slot="list-item-title-link"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    props.onEditWebhookAction?.();
+                  }}>
+                  {webhook.subscriberUrl}
+                </a>
+              </ListItemTitle>
             ) : (
-              <ListItemTitle data-testid="webhook-url" className="font-medium truncate">{webhook.subscriberUrl}</ListItemTitle>
+              <ListItemTitle data-testid="webhook-url" className="font-medium truncate">
+                {webhook.subscriberUrl}
+              </ListItemTitle>
             )}
             <div className="flex items-center gap-2">
               {!props.permissions.canEditWebhook && <Badge variant="warning">{t("readonly")}</Badge>}
