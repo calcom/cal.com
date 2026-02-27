@@ -257,7 +257,13 @@ describe("AvailableSlotsService - _getGuestAvailabilityForReschedule", () => {
 
       expect(result).toEqual(mockDateRanges);
       expect(mockDependencies.userAvailabilityService.getUsersAvailability).toHaveBeenCalledWith({
-        users: [{ ...guestUser, isFixed: true }],
+        users: [
+          {
+            ...guestUser,
+            credentials: guestUser.credentials.map((c) => ({ ...c, delegatedTo: null })),
+            isFixed: true,
+          },
+        ],
         query: expect.objectContaining({
           dateFrom: expect.any(String),
           dateTo: expect.any(String),
@@ -270,7 +276,7 @@ describe("AvailableSlotsService - _getGuestAvailabilityForReschedule", () => {
       });
       expect(mockLogger.debug).toHaveBeenCalledWith(
         "Found Cal.com guest user(s) for reschedule",
-        expect.objectContaining({ guestEmails: ["guest@cal.com"] })
+        expect.objectContaining({ guestCount: 1 })
       );
     });
 
@@ -280,7 +286,7 @@ describe("AvailableSlotsService - _getGuestAvailabilityForReschedule", () => {
         attendees: [{ email: "guest@cal.com" }],
       });
       mockDependencies.userRepo.findUsersByEmailsForAvailability.mockResolvedValue([
-        { id: 2, email: "guest@cal.com", username: "guest" },
+        { id: 2, email: "guest@cal.com", username: "guest", credentials: [] },
       ]);
       mockDependencies.userAvailabilityService.getUsersAvailability.mockResolvedValue([]);
 
@@ -293,8 +299,8 @@ describe("AvailableSlotsService - _getGuestAvailabilityForReschedule", () => {
   describe("with multiple attendees", () => {
     it("should use the first non-host Cal.com user found", async () => {
       const hostUserId = 1;
-      const firstGuestUser = { id: 2, email: "first@cal.com", username: "first" };
-      const secondGuestUser = { id: 3, email: "second@cal.com", username: "second" };
+      const firstGuestUser = { id: 2, email: "first@cal.com", username: "first", credentials: [] };
+      const secondGuestUser = { id: 3, email: "second@cal.com", username: "second", credentials: [] };
 
       const mockDateRanges = [
         { start: dayjs("2026-03-01T10:00:00Z"), end: dayjs("2026-03-01T12:00:00Z") },

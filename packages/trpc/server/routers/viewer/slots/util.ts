@@ -1078,10 +1078,18 @@ export class AvailableSlotsService {
     // Use the first guest — in most cases there's one main booker
     const guestUser = guests[0];
 
+    // Enrich credentials with delegatedTo: null since guest users fetched via
+    // UserRepository don't go through findQualifiedHostsWithDelegationCredentials.
+    // Guest credentials are personal (not delegated), so this is always safe.
+    const guestWithDelegationCredentials = {
+      ...guestUser,
+      credentials: guestUser.credentials.map((cred) => ({ ...cred, delegatedTo: null })),
+    };
+
     const guestAvailabilityResults = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users: [
         {
-          ...guestUser,
+          ...guestWithDelegationCredentials,
           isFixed: true,
         },
       ],
