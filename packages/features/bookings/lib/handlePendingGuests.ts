@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import GuestVerificationEmailTemplate from "@calcom/emails/templates/guest-verification-email";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 
 export async function createPendingGuestsAndSendEmails({
   guestsToVerify,

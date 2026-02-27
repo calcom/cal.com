@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails/email-manager";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
