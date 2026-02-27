@@ -638,7 +638,7 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4">
+      <div className="bg-muted rounded-lg p-4">
         <ul ref={animationRef} className="flex flex-col gap-1">
           {value?.map((option, index) => (
             <li key={index}>
@@ -661,7 +661,8 @@ function Options({
                 {value.length > 2 && !readOnly && (
                   <Button
                     type="button"
-                    className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                    className="-ml-8 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0 py-2"
+                    style={{ marginLeft: "-36px" }}
                     size="sm"
                     color="minimal"
                     StartIcon="x"
@@ -682,6 +683,7 @@ function Options({
         {!readOnly && (
           <Button
             color="minimal"
+            className="mt-2"
             onClick={() => {
               value.push({ label: "", value: "" });
               onChange(value);
@@ -759,20 +761,18 @@ function FieldEditDialog({
   const hidden = fieldForm.getValues("hidden");
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         size="md"
-        className="max-h-none"
         data-testid="edit-field-dialog"
         enableOverflow={true}
-        forceOverlayWhenNoModal={true} // ← Add this to keep the backdrop
-      >
+        forceOverlayWhenNoModal={true}>
         <DialogHeader>
           <DialogTitle>{t("add_a_booking_question")}</DialogTitle>
           <DialogDescription>{t("booking_questions_description")}</DialogDescription>
         </DialogHeader>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="min-h-[450px] p-2">
+          <div className="p-2">
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
