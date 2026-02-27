@@ -1,8 +1,3 @@
-import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
-
-import { keepPreviousData } from "@tanstack/react-query";
-
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -12,7 +7,9 @@ import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
+import { useRef } from "react";
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 
 type TimeRange = { startTime: string; endTime: string };
@@ -34,7 +31,8 @@ export function compareTimeRanges(
   previousRange: TimeRange | null
 ): { startTime: string; endTime: string; reusePrevious: boolean; overlapsWithPrevious: boolean } {
   if (previousRange) {
-    const isFullyCovered = newRange.startTime >= previousRange.startTime && newRange.endTime <= previousRange.endTime;
+    const isFullyCovered =
+      newRange.startTime >= previousRange.startTime && newRange.endTime <= previousRange.endTime;
     if (isFullyCovered) {
       return {
         startTime: previousRange.startTime,
@@ -44,7 +42,8 @@ export function compareTimeRanges(
       };
     }
 
-    const hasOverlap = newRange.startTime < previousRange.endTime && newRange.endTime > previousRange.startTime;
+    const hasOverlap =
+      newRange.startTime < previousRange.endTime && newRange.endTime > previousRange.startTime;
     return {
       startTime: newRange.startTime,
       endTime: newRange.endTime,
@@ -174,6 +173,8 @@ export const useSchedule = ({
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
+    // Ensures that connectVersion causes a refresh of the data
+    ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
   };
 
@@ -221,23 +222,6 @@ export const useSchedule = ({
     ...(overlapsWithPreviousRange ? { placeholderData: keepPreviousData } : {}),
   });
 
-  // When the embed connects, connectVersion changes in the URL param.
-  // Instead of including it in the query key (which causes a cache miss and loading skeleton),
-  // we use it as a signal to invalidate the existing query so React Query refetches in the
-  // background while keeping the cached prerender data visible.
-  const previousConnectVersionRef = useRef(embedConnectVersion);
-  useEffect(() => {
-    if (embedConnectVersion !== previousConnectVersionRef.current) {
-      previousConnectVersionRef.current = embedConnectVersion;
-      if (isCallingApiV2Slots) {
-        teamScheduleV2.refetch();
-      } else {
-        utils.viewer.slots.getSchedule.invalidate(input);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [embedConnectVersion]);
-
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
       bookerState,
@@ -245,10 +229,7 @@ export const useSchedule = ({
     });
 
     if (teamScheduleV2.isSuccess && eventId && eventSlug) {
-      sdkActionManager?.fire(
-        "availabilityLoaded",
-        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-      );
+      sdkActionManager?.fire("availabilityLoaded", getAvailabilityLoadedEventPayload({ eventId, eventSlug }));
     }
 
     return {
@@ -268,10 +249,7 @@ export const useSchedule = ({
   });
 
   if (schedule.isSuccess && eventId && eventSlug) {
-    sdkActionManager?.fire(
-      "availabilityLoaded",
-      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
-    );
+    sdkActionManager?.fire("availabilityLoaded", getAvailabilityLoadedEventPayload({ eventId, eventSlug }));
   }
 
   return {
