@@ -407,6 +407,28 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     expect(callArgs[1]).not.toHaveProperty("busyTimesFromLimitsBookings");
   });
 
+  it("passes fetched eventType to _getUserAvailability to avoid duplicate DB query", async () => {
+    const user = createMockUser();
+    const fetchedEventType = createMockEventType({ bookingLimits: { PER_DAY: 1 } });
+
+    vi.mocked(mockDependencies.eventTypeRepo.findByIdForUserAvailability).mockResolvedValueOnce(
+      fetchedEventType
+    );
+
+    const getUserAvailabilitySpy = vi.spyOn(service, "_getUserAvailability" as keyof typeof service);
+
+    await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams({ eventTypeId: 100 }), {
+      user,
+    });
+
+    expect(getUserAvailabilitySpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        eventType: fetchedEventType,
+      })
+    );
+  });
+
   it("passes rescheduleUid to getBusyTimesForLimitChecks when provided", async () => {
     const user = createMockUser();
     const eventType = createMockEventType({ bookingLimits: { PER_DAY: 3 } });

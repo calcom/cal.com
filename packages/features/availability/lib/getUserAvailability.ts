@@ -710,6 +710,7 @@ export class UserAvailabilityService {
     }
     const result = await this._getUserAvailability(params, {
       ...initialData,
+      ...(eventType ? { eventType } : {}),
       ...(busyTimesFromLimitsBookings ? { busyTimesFromLimitsBookings } : {}),
     });
     return result;
