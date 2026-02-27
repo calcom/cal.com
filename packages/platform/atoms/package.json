@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "yarn vite build --watch & npx postcss ./globals.css -o ./globals.min.css --watch",
-    "build-npm": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./globals.css -o ./globals.min.css",
+    "build-npm": "NODE_OPTIONS='--max_old_space_size=12288' rm -rf dist && yarn vite build && npx postcss ./globals.css -o ./globals.min.css && node scripts/build-tw3-css.mjs",
     "publish-npm": "yarn build-npm && npm publish --access public",
     "test": "jest",
     "dev-on": "node scripts/dev-on.js",
@@ -61,6 +61,7 @@
     "./dist/index.ts": "./index.ts",
     "./dist/index.d.ts": "./dist/index.d.ts",
     "./globals.min.css": "./globals.min.css",
+    "./globals.tw3.min.css": "./globals.tw3.min.css",
     "./hooks/bookings/useBookings": "./hooks/bookings/useBookings.ts",
     "./hooks/bookings/useHandleBookEvent": "./hooks/bookings/useHandleBookEvent.ts",
     "./hooks/useAtomsContext": "./hooks/useAtomsContext.ts",

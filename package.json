@@ -12,6 +12,7 @@
     "packages/app-store/*",
     "packages/platform/*",
     "packages/platform/examples/base",
+    "packages/platform/examples/examples-tw3",
     "example-apps/*"
   ],
   "scripts": {
