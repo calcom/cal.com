@@ -9,6 +9,7 @@ import {
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -31,7 +32,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -256,6 +257,10 @@ export const roundRobinManualReassignment = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
 
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
@@ -263,9 +268,7 @@ export const roundRobinManualReassignment = async ({
     organizationId: orgId,
     source: actionSource,
     auditData: {
-      ...(hasOrganizerChanged
-        ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } }
-        : null),
+      ...(hasOrganizerChanged ? { organizerUuid: { old: originalOrganizer.uuid, new: newUser.uuid } } : null),
       ...(attendeeUpdatedId
         ? {
             hostAttendeeUpdated: {
@@ -280,6 +283,7 @@ export const roundRobinManualReassignment = async ({
       reassignmentReason: reassignReason ?? null,
       reassignmentType: "manual",
     },
+    isBookingAuditEnabled,
   });
 
   // When organizer hasn't changed, still extract conferenceCredentialId from event type locations

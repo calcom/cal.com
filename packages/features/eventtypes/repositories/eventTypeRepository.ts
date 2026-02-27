@@ -622,6 +622,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -937,6 +938,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
+      redirectUrlOnNoRoutingFormResponse: true,
       forwardParamsSuccessRedirect: true,
       currency: true,
       bookingFields: true,
@@ -1765,6 +1767,32 @@ export class EventTypeRepository implements IEventTypesRepository {
         id: true,
         parentId: true,
         userId: true,
+      },
+    });
+  }
+
+  async findByIdIncludeBrandingInfo({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        team: {
+          select: {
+            hideBranding: true,
+            parent: { select: { hideBranding: true } },
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            hideBranding: true,
+            profiles: {
+              select: {
+                organization: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
       },
     });
   }

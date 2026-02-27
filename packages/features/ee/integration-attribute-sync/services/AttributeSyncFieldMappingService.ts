@@ -43,18 +43,14 @@ export class AttributeSyncFieldMappingService {
     });
 
     if (!membership) {
-      log.warn(
-        `No membership found for user ${userId} in org ${organizationId}`
-      );
+      log.warn(`No membership found for user ${userId} in org ${organizationId}`);
       return;
     }
 
     const memberId = membership.id;
 
     const enabledSyncFieldMappings = syncFieldMappings.filter(
-      (mapping) =>
-        mapping.enabled &&
-        integrationFields[mapping.integrationFieldName] !== undefined
+      (mapping) => mapping.enabled && integrationFields[mapping.integrationFieldName] !== undefined
     );
 
     if (enabledSyncFieldMappings.length === 0) {
@@ -64,22 +60,20 @@ export class AttributeSyncFieldMappingService {
 
     const attributeIds = enabledSyncFieldMappings.map((m) => m.attributeId);
 
-    const attributes =
-      await this.deps.attributeRepository.findManyByIdsAndOrgIdWithOptions({
-        attributeIds,
-        orgId: organizationId,
-      });
+    const attributes = await this.deps.attributeRepository.findManyByIdsAndOrgIdWithOptions({
+      attributeIds,
+      orgId: organizationId,
+    });
 
     const attributeMap = new Map(attributes.map((a) => [a.id, a]));
 
-    const { attributeIdsToSync, optionsToCreate, assignmentsToCreate } =
-      this.processMappings({
-        enabledMappings: enabledSyncFieldMappings,
-        attributeMap,
-        integrationFields,
-        memberId,
-        orgId: organizationId,
-      });
+    const { attributeIdsToSync, optionsToCreate, assignmentsToCreate } = this.processMappings({
+      enabledMappings: enabledSyncFieldMappings,
+      attributeMap,
+      integrationFields,
+      memberId,
+      orgId: organizationId,
+    });
 
     if (optionsToCreate.length > 0) {
       const newAssignments = await this.createOptionsAndGetAssignments({
@@ -103,9 +97,7 @@ export class AttributeSyncFieldMappingService {
     if (assignmentsToCreate.length > 0) {
       await this.deps.attributeToUserRepository.createManySkipDuplicates(assignmentsToCreate);
 
-      log.info(
-        `Synced ${assignmentsToCreate.length} attribute(s) for member ${memberId}`
-      );
+      log.info(`Synced ${assignmentsToCreate.length} attribute(s) for member ${memberId}`);
     }
   }
 
@@ -156,9 +148,7 @@ export class AttributeSyncFieldMappingService {
         continue;
       }
 
-      const rawFieldValue = String(
-        integrationFields[mapping.integrationFieldName]
-      );
+      const rawFieldValue = String(integrationFields[mapping.integrationFieldName]);
 
       if (hasOptions({ attribute })) {
         // SINGLE_SELECT / MULTI_SELECT - must find existing option
@@ -243,12 +233,9 @@ export class AttributeSyncFieldMappingService {
       orgId,
     });
 
-    const optionLookup = new Map(
-      allOptions.map((o) => [`${o.attributeId}:${o.value.toLowerCase()}`, o])
-    );
+    const optionLookup = new Map(allOptions.map((o) => [`${o.attributeId}:${o.value.toLowerCase()}`, o]));
 
-    const assignments: Array<{ memberId: number; attributeOptionId: string }> =
-      [];
+    const assignments: Array<{ memberId: number; attributeOptionId: string }> = [];
 
     for (const newOption of optionsToCreate) {
       const key = `${newOption.attributeId}:${newOption.value.toLowerCase()}`;
@@ -260,9 +247,7 @@ export class AttributeSyncFieldMappingService {
           attributeOptionId: createdOption.id,
         });
       } else {
-        log.error(
-          `Failed to find newly created option for attribute ${newOption.attributeId}`
-        );
+        log.error(`Failed to find newly created option for attribute ${newOption.attributeId}`);
       }
     }
 

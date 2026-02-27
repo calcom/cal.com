@@ -20,9 +20,9 @@ import {
   ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextAreaField, Form, Label, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
+import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
 
 enum ReassignType {
   AUTO = "auto",
@@ -252,7 +252,9 @@ export const ReassignDialog = ({
                   <strong className="mb-1 block">
                     {isManagedEvent ? t("auto_reassign") : t("round_robin")}
                   </strong>
-                  <p>{isManagedEvent ? t("auto_reassign_description") : t("round_robin_reassign_description")}</p>
+                  <p>
+                    {isManagedEvent ? t("auto_reassign_description") : t("round_robin_reassign_description")}
+                  </p>
                 </RadioArea.Item>
               ) : null}
               <RadioArea.Item
@@ -285,7 +287,7 @@ export const ReassignDialog = ({
                     {isFetching && teamMemberOptions.length === 0 ? (
                       <div className="flex h-full items-center justify-center">
                         <div className="flex flex-col items-center gap-2">
-                          <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
+                          <LoaderIcon className="text-subtle h-5 w-5 animate-spin" />
                           <p className="text-subtle text-sm">{t("loading")}</p>
                         </div>
                       </div>
@@ -295,42 +297,42 @@ export const ReassignDialog = ({
                       </div>
                     ) : (
                       teamMemberOptions.map((member) => (
-                      <label
-                        key={member.value}
-                        tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
-                        role="radio"
-                        aria-checked={watchedTeamMemberId === member.value}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            form.setValue("teamMemberId", member.value);
-                          }
-                        }}
-                        className={classNames(
-                          "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
-                          watchedTeamMemberId === member.value && "bg-subtle"
-                        )}>
-                        <div className="flex flex-1 items-center space-x-3">
-                          <input
-                            type="radio"
-                            className="hidden"
-                            checked={watchedTeamMemberId === member.value}
-                            onChange={() => form.setValue("teamMemberId", member.value)}
-                          />
-                          <div
-                            className={classNames(
-                              "h-3 w-3 shrink-0 rounded-full",
-                              member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
+                        <label
+                          key={member.value}
+                          tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
+                          role="radio"
+                          aria-checked={watchedTeamMemberId === member.value}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              form.setValue("teamMemberId", member.value);
+                            }
+                          }}
+                          className={classNames(
+                            "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
+                            watchedTeamMemberId === member.value && "bg-subtle"
+                          )}>
+                          <div className="flex flex-1 items-center space-x-3">
+                            <input
+                              type="radio"
+                              className="hidden"
+                              checked={watchedTeamMemberId === member.value}
+                              onChange={() => form.setValue("teamMemberId", member.value)}
+                            />
+                            <div
+                              className={classNames(
+                                "h-3 w-3 shrink-0 rounded-full",
+                                member.status === "unavailable" ? "bg-red-500" : "bg-green-500"
+                              )}
+                            />
+                            <span className="text-emphasis w-full text-sm">{member.label}</span>
+                            {watchedTeamMemberId === member.value && (
+                              <div className="place-self-end pr-2">
+                                <CheckIcon className="text-emphasis h-4 w-4" />
+                              </div>
                             )}
-                          />
-                          <span className="text-emphasis w-full text-sm">{member.label}</span>
-                          {watchedTeamMemberId === member.value && (
-                            <div className="place-self-end pr-2">
-                              <Icon name="check" className="text-emphasis h-4 w-4" />
-                            </div>
-                          )}
-                        </div>
-                      </label>
+                          </div>
+                        </label>
                       ))
                     )}
                     {teamMemberOptions.length > 0 && (

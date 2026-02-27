@@ -1,8 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { UserFromSession } from "@calcom/features/auth/lib/userFromSessionUtils";
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -21,7 +19,7 @@ vi.mock("@calcom/prisma", () => ({
 
 describe("OrganizationPermissionService", () => {
   let service: OrganizationPermissionService;
-  const mockUser: TrpcSessionUser = {
+  const mockUser: UserFromSession = {
     id: 1,
     email: "test@example.com",
     role: "USER",

@@ -18,6 +18,8 @@ export type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
+import type { EnrichmentDataStore, DataRequirements } from "../service/EnrichmentDataStore";
+
 /**
  * This is agnostic of the action and is common for all actions
  */
@@ -34,10 +36,27 @@ export type GetDisplayJsonParams = {
 export type GetDisplayTitleParams = {
   storedData: BaseStoredAuditData;
   userTimeZone: string;
+  dbStore: EnrichmentDataStore;
 };
 
 export type GetDisplayFieldsParams = {
   storedData: BaseStoredAuditData;
+  dbStore: EnrichmentDataStore;
+};
+
+/**
+ * Discriminated union for display field values
+ * Each variant represents a different way to render the field value
+ */
+export type DisplayFieldValue =
+  | { type: "translationKey"; valueKey: string }
+  | { type: "rawValue"; value: string }
+  | { type: "rawValues"; values: string[] }
+  | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
+
+export type DisplayField = {
+  labelKey: string;
+  fieldValue: DisplayFieldValue;
 };
 
 /**
@@ -89,6 +108,14 @@ export interface IAuditActionService {
   getDisplayJson?(params: GetDisplayJsonParams): Record<string, unknown>;
 
   /**
+   * Declare what data this action needs from DB
+   * Returns identifiers to be bulk-fetched before enrichment
+   * @param storedData - Parsed stored data { version, fields }
+   * @returns Data requirements with arrays of identifiers to fetch
+   */
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements;
+
+  /**
    * Get the display title for the audit action
    * Returns a translation key with optional interpolation params for dynamic titles
    * (e.g., "Booking reassigned to John Doe" instead of just "Reassignment")
@@ -104,16 +131,9 @@ export interface IAuditActionService {
    * Optional - implement only if custom display fields are needed
    * @param params - Object containing storedData
    * @param params.storedData - Parsed stored data { version, fields }
-   * @returns Promise of array of field objects with label and value (either translation key or raw value)
+   * @returns Promise of array of DisplayField objects with label and discriminated value type
    */
-  getDisplayFields?(params: GetDisplayFieldsParams): Promise<
-    Array<{
-      labelKey: string; // Translation key for field label
-      valueKey?: string; // Translation key for field value (will be translated)
-      value?: string; // Raw value for field value (will NOT be translated)
-      values?: string[]; // Array of raw values (will NOT be translated, rendered as separate lines)
-    }>
-  >;
+  getDisplayFields?(params: GetDisplayFieldsParams): Promise<DisplayField[]>;
 
   /**
    * Migrate old version data to latest version

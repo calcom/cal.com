@@ -24,7 +24,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   eventType: EventType
 ) => {
   let allCredentials = Array.isArray(user.credentials) ? user.credentials : [];
- 
+
   if (eventType?.team?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
@@ -33,10 +33,10 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       select: credentialForCalendarServiceSelect,
     });
     if (Array.isArray(teamCredentialsQuery)) {
-    allCredentials.push(...teamCredentialsQuery);
+      allCredentials.push(...teamCredentialsQuery);
     }
   }
-  
+
   if (eventType?.parentId) {
     const teamCredentialsQuery = await prisma.team.findFirst({
       where: {
@@ -60,7 +60,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   const { profile } = await new UserRepository(prisma).enrichUserWithItsProfile({
     user: user,
   });
-  
+
   if (profile?.organizationId) {
     const org = await prisma.team.findUnique({
       where: {
