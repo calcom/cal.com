@@ -14,6 +14,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -101,7 +102,31 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     );
   }
   if (!bookingBelongsToTeam && !isBookingOrganizer) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
+
+    // ADMIN can still request reschedule to team member bookings
+    const membershipRepository = new MembershipRepository(prisma);
+    const ownerMemberships = await membershipRepository.findAllByUserId({
+      userId: bookingToReschedule.userId,
+      filters: { accepted: true },
+    });
+
+    const ownerTeamIds = ownerMemberships.map((m) => m.teamId);
+    const permissionCheckService = new PermissionCheckService();
+
+    const permissionResults = await Promise.all(
+      ownerTeamIds.map((teamId) =>
+        permissionCheckService.checkPermission({
+          userId: user.id,
+          teamId,
+          permission: "booking.update",
+          fallbackRoles: ["ADMIN"],
+        })
+      )
+    );
+
+    if (!permissionResults.some((hasPermission) => hasPermission)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "User is neither owner nor admin of the team of the current booking" });
+    }
   }
 
   const event: Partial<EventType> = bookingToReschedule.eventType ?? {};
