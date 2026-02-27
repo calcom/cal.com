@@ -7,7 +7,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as defaultPrisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { Webhook, WebhookGroup, WebhookSubscriber } from "../dto/types";
@@ -32,6 +32,15 @@ interface WebhookQueryResult {
   eventTriggers: WebhookTriggerEvents[];
   version: WebhookVersion;
   priority: number; // This field is added by the query and removed before returning
+}
+
+interface WebhookQueryInput {
+  triggerEvent: WebhookTriggerEvents;
+  userId?: number | null;
+  eventTypeId?: number | null;
+  managedParentEventTypeId?: number | null;
+  teamIds?: number[];
+  oAuthClientId?: string | null;
 }
 
 const filterWebhooks = (webhook: { appId: string | null }): boolean => {
@@ -110,99 +119,77 @@ export class WebhookRepository implements IWebhookRepository {
   }
 
   /**
-   * Raw SQL query using UNION for better index utilization than complex ORs
-   * Each UNION branch can use its own optimal index
+   * Raw SQL query using conditional UNION branches.
+   * Optional params are only included when truthy, avoiding 42P18 (untyped params in IS NOT NULL).
    */
-  private async getSubscribersRaw(params: {
-    userId?: number | null;
-    eventTypeId?: number | null;
-    managedParentEventTypeId?: number | null;
-    teamIds?: number[];
-    oAuthClientId?: string | null;
-    triggerEvent: WebhookTriggerEvents;
-  }): Promise<WebhookSubscriber[]> {
-    const { userId, eventTypeId, managedParentEventTypeId, teamIds, oAuthClientId, triggerEvent } = params;
+  private async getSubscribersRaw({
+    triggerEvent,
+    userId,
+    eventTypeId,
+    managedParentEventTypeId,
+    teamIds,
+    oAuthClientId,
+  }: WebhookQueryInput): Promise<WebhookSubscriber[]> {
+    const queryParts: Prisma.Sql[] = [];
 
-    // IMPORTANT: Explicit type casts (::int, ::text) are required for nullable params
-    // PostgreSQL can't infer types for NULL values without explicit casts
-    const results = await this.prisma.$queryRaw<WebhookQueryResult[]>`
-      -- Platform webhooks (highest priority)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        1 as priority
+    // 1. Platform webhooks (Always included)
+    queryParts.push(Prisma.sql`
+      SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 1 as priority
       FROM "Webhook"
-      WHERE active = true 
-        AND platform = true 
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-      
-      UNION ALL
-      
-      -- User-specific webhooks (only if userId provided)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        2 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${userId}::int IS NOT NULL
-        AND "userId" = ${userId}::int
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- Event type webhooks (only if eventTypeId provided)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        3 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${eventTypeId}::int IS NOT NULL
-        AND "eventTypeId" = ${eventTypeId}::int
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- Parent event type webhooks (only if managedParentEventTypeId provided)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        4 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${managedParentEventTypeId}::int IS NOT NULL
-        AND "eventTypeId" = ${managedParentEventTypeId}::int
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- Team webhooks (only if teamIds provided and not empty)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        5 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${teamIds}::int[] IS NOT NULL
-        AND cardinality(${teamIds}::int[]) > 0
-        AND "teamId" = ANY(${teamIds}::int[])
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
-      UNION ALL
-      
-      -- OAuth client webhooks (only if oAuthClientId provided)
-      SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
-        6 as priority
-      FROM "Webhook"
-      WHERE active = true 
-        AND ${oAuthClientId}::text IS NOT NULL
-        AND "platformOAuthClientId" = ${oAuthClientId}::text
-        AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
-        AND platform = false
-      
+      WHERE active = true AND platform = true AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+    `);
+
+    // 2. User-specific webhooks
+    if (userId != null) {
+      queryParts.push(Prisma.sql`
+        SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 2 as priority
+        FROM "Webhook"
+        WHERE active = true AND platform = false AND "userId" = ${userId}::int AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+      `);
+    }
+
+    // 3. Event type webhooks
+    if (eventTypeId != null) {
+      queryParts.push(Prisma.sql`
+        SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 3 as priority
+        FROM "Webhook"
+        WHERE active = true AND platform = false AND "eventTypeId" = ${eventTypeId}::int AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+      `);
+    }
+
+    // 4. Managed Parent Event Type webhooks
+    if (managedParentEventTypeId != null) {
+      queryParts.push(Prisma.sql`
+        SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 4 as priority
+        FROM "Webhook"
+        WHERE active = true AND platform = false AND "eventTypeId" = ${managedParentEventTypeId}::int AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+      `);
+    }
+
+    // 5. Team webhooks
+    if (teamIds != null && teamIds.length > 0) {
+      queryParts.push(Prisma.sql`
+        SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 5 as priority
+        FROM "Webhook"
+        WHERE active = true AND platform = false AND "teamId" = ANY(${teamIds}::int[]) AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+      `);
+    }
+
+    // 6. OAuth client webhooks
+    if (oAuthClientId != null) {
+      queryParts.push(Prisma.sql`
+        SELECT id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version, 6 as priority
+        FROM "Webhook"
+        WHERE active = true AND platform = false AND "platformOAuthClientId" = ${oAuthClientId}::text AND ${triggerEvent}::"WebhookTriggerEvents" = ANY("eventTriggers")
+      `);
+    }
+
+    const finalQuery = Prisma.sql`
+      ${Prisma.join(queryParts, " UNION ALL ")}
       ORDER BY priority, id
     `;
+
+    const results = await this.prisma.$queryRaw<WebhookQueryResult[]>(finalQuery);
 
     const uniqueWebhooks = new Map<string, WebhookSubscriber>();
     for (const webhook of results) {
