@@ -13,7 +13,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
@@ -25,6 +25,7 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  hideBranding?: boolean;
 }
 
 export const sendEmailVerification = async ({
@@ -90,6 +91,7 @@ export const sendEmailVerificationByCode = async ({
   language,
   username,
   isVerifyingEmail,
+  hideBranding,
 }: VerifyEmailType) => {
   if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
@@ -112,6 +114,7 @@ export const sendEmailVerificationByCode = async ({
       name: username,
     },
     isVerifyingEmail,
+    hideLogo: hideBranding,
   });
 
   return { ok: true, skipped: false };
