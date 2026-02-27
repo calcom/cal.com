@@ -143,6 +143,22 @@ export function hasInvalidConsecutiveChars(
   return false;
 }
 
+/**
+ * Ensures the Zoom join URL includes the passcode when the meeting has one. Appending ?pwd=PASSCODE
+ * @see https://devforum.zoom.us/t/zoom-passwords-encryption-in-url/62353
+ */
+function ensureZoomJoinUrlHasPasscode(joinUrl: string, password: string): string {
+  if (!password) return joinUrl;
+  try {
+    const url = new URL(joinUrl);
+    if (url.searchParams.has("pwd")) return joinUrl;
+    url.searchParams.set("pwd", password);
+    return url.toString();
+  } catch {
+    return joinUrl;
+  }
+}
+
 function validatePasswordAgainstRequirements(
   password: string,
   requirements: NonNullable<MeetingPasswordRequirement>
@@ -519,11 +535,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         const result = zoomEventResultSchema.parse(response);
 
         if (result.id && result.join_url) {
+          const password = result.password || "";
           return {
             type: "zoom_video",
             id: result.id.toString(),
-            password: result.password || "",
-            url: result.join_url,
+            password,
+            url: ensureZoomJoinUrlHasPasscode(result.join_url, password),
           };
         }
         throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
@@ -559,11 +576,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
         const result = zoomEventResultSchema.parse(updatedMeeting);
 
+        const password = result.password || "";
         return {
           type: "zoom_video",
           id: result.id.toString(),
-          password: result.password || "",
-          url: result.join_url,
+          password,
+          url: ensureZoomJoinUrlHasPasscode(result.join_url, password),
         };
       } catch (err) {
         log.error(
