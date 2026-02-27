@@ -4727,5 +4727,10 @@
   "paypal_step_7": "You should be all set up after this.",
   "dashboard": "dashboard",
   "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
+  "dynamic_link_description": "Create a group link for multiple users to find a time where everyone is available. <0>Learn more</0>",
+  "select_users": "Select users",
+  "selected_users": "Selected users",
+  "dynamic_link": "Dynamic link",
+  "select_at_least_two_users": "Select at least two users to generate a dynamic link.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

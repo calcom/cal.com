@@ -14,8 +14,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { Icon } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon/icon-names";
 
 export interface Option {
   platform?: boolean;
@@ -23,6 +26,12 @@ export interface Option {
   label: string | null;
   image: string | null;
   slug: string | null;
+}
+
+export interface AdditionalMenuItem {
+  label: string;
+  icon?: IconName;
+  onClick: () => void;
 }
 
 export type CreateBtnProps = {
@@ -36,6 +45,7 @@ export type CreateBtnProps = {
   "data-testid"?: string;
   color?: ButtonColor;
   className?: string;
+  additionalMenuItems?: AdditionalMenuItem[];
 };
 
 /**
@@ -56,18 +66,21 @@ export function CreateButton(props: CreateBtnProps) {
     disableMobileButton,
     subtitle,
     className,
+    additionalMenuItems,
     ...restProps
   } = props;
   const CreateDialog = createDialog ? createDialog() : null;
 
   const hasTeams = !!options.find((option) => option.teamId);
   const platform = !!options.find((option) => option.platform);
+  const hasAdditionalItems = additionalMenuItems && additionalMenuItems.length > 0;
   const hasMultipleOptions = options.length > 1;
+  const showDropdown = hasTeams || platform || hasAdditionalItems;
   const isFabVariant = !disableMobileButton;
   // On FAB variant, EndIcon shows as "plus" on mobile, so we remove StartIcon to avoid duplicate
   // On button variant, both icons work correctly
-  const startIcon = isFabVariant && hasMultipleOptions ? undefined : "plus";
-  const endIcon = hasMultipleOptions ? "chevron-down" : undefined;
+  const startIcon = isFabVariant && (hasMultipleOptions || showDropdown) ? undefined : "plus";
+  const endIcon = hasMultipleOptions || showDropdown ? "chevron-down" : undefined;
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
@@ -86,7 +99,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   return (
     <>
-      {!hasTeams && !platform ? (
+      {!showDropdown ? (
         <Button
           onClick={() =>
             CreateDialog
@@ -143,6 +156,25 @@ export function CreateButton(props: CreateBtnProps) {
                 </DropdownItem>
               </DropdownMenuItem>
             ))}
+            {hasAdditionalItems && (
+              <>
+                <DropdownMenuSeparator />
+                {additionalMenuItems?.map((item, idx) => (
+                  <DropdownMenuItem key={`additional-${idx}`}>
+                    <DropdownItem
+                      type="button"
+                      CustomStartIcon={
+                        <span className="inline-flex h-6 w-6 min-h-6 min-w-6 items-center justify-center">
+                          {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
+                        </span>
+                      }
+                      onClick={item.onClick}>
+                      <span>{item.label}</span>
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
           </DropdownMenuContent>
         </Dropdown>
       )}

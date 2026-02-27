@@ -31,6 +31,7 @@ import { ZGetWatchlistEntryDetailsInputSchema } from "./getWatchlistEntryDetails
 import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZListBookingReportsInputSchema } from "./listBookingReports.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZListMembersMinimalInputSchema } from "./listMembersMinimal.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
@@ -104,6 +105,10 @@ export const viewerOrganizationsRouter = router({
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const { default: handler } = await import("./listMembers.handler");
+    return handler(opts);
+  }),
+  listMembersMinimal: authedProcedure.input(ZListMembersMinimalInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listMembersMinimal.handler");
     return handler(opts);
   }),
   getBrand: authedProcedure.query(async (opts) => {
