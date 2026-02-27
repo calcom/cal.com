@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
@@ -66,10 +66,15 @@ export async function handler(req: NextRequest) {
         }
       }
 
+      const attendeePhoneNumber =
+        reminder.seatReferenceId && targetAttendee?.phoneNumber
+          ? targetAttendee.phoneNumber
+          : reminder.booking?.smsReminderNumber || targetAttendee?.phoneNumber;
+
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_NUMBER
           ? reminder.workflowStep.sendTo
-          : targetAttendee?.phoneNumber;
+          : attendeePhoneNumber;
 
       const userName =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_ATTENDEE ? targetAttendee?.name || "" : "";

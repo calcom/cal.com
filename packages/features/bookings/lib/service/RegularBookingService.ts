@@ -45,6 +45,10 @@ import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/book
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -78,7 +82,7 @@ import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -1485,6 +1489,11 @@ async function handler(
     where: {
       userId: organizerUser.id,
     },
+    select: {
+      organizationId: true,
+      username: true,
+      organization: { select: { hideBranding: true } },
+    },
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
@@ -1573,6 +1582,20 @@ async function handler(
     })
     .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
+    .withHideBranding(
+      await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
+        team: eventType.team
+          ? { hideBranding: eventType.team.hideBranding, parent: eventType.team.parent }
+          : null,
+        owner: {
+          id: organizerUser.id,
+          hideBranding: organizerUser.hideBranding,
+          profiles: organizerOrganizationProfile
+            ? [{ organization: organizerOrganizationProfile.organization }]
+            : [],
+        },
+      } satisfies EventTypeBrandingData)
+    )
     .build();
 
   if (!builtEvt) {
@@ -2619,7 +2642,7 @@ async function handler(
           workflows,
           smsReminderNumber: smsReminderNumber || null,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+          hideBranding: evt.hideBranding || !!platformClientId,
           seatReferenceUid: evt.attendeeSeatId,
           isDryRun,
           triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
@@ -2803,7 +2826,7 @@ async function handler(
       evt: evtWithMetadata,
       workflows,
       requiresConfirmation: !isConfirmedByDefault,
-      hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+      hideBranding: (evt.hideBranding ?? false) || !!platformClientId,
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
@@ -2818,7 +2841,7 @@ async function handler(
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+      hideBranding: evt.hideBranding || !!platformClientId,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
       isConfirmedByDefault,
