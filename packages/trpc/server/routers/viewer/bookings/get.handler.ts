@@ -564,6 +564,12 @@ export async function getBookings({
                 "EventType.length",
                 jsonObjectFrom(
                   eb
+                    .selectFrom("users")
+                    .select(["users.id", "users.email"])
+                    .whereRef("EventType.userId", "=", "users.id")
+                ).as("owner"),
+                jsonObjectFrom(
+                  eb
                     .selectFrom("Team")
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
