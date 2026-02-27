@@ -159,6 +159,7 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  guestBusyTimes?: { start: Date; end: Date; title: string }[];
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -622,6 +623,12 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...(initialData?.guestBusyTimes?.map((b) => ({
+        start: dayjs(b.start).toISOString(),
+        end: dayjs(b.end).toISOString(),
+        title: b.title || "Guest Booking",
+        source: "guest-busy-times" as const,
+      })) || []),
     ];
 
     log.debug(

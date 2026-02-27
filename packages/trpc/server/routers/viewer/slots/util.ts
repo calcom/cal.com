@@ -850,6 +850,60 @@ export class AvailableSlotsService {
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
     ]);
 
+    // Get guest busy times when rescheduling
+    let guestBusyTimes: { start: Date; end: Date; title: string }[] = [];
+    if (input.rescheduleUid) {
+      try {
+        // Get the original booking with attendees
+        const originalBooking = await bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+          bookingUid: input.rescheduleUid,
+        });
+
+        if (originalBooking && originalBooking.attendees && originalBooking.attendees.length > 0) {
+          // Collect host emails to exclude (organizer + event-type hosts)
+          const hostEmails = new Set<string>();
+          if (originalBooking.user?.email) {
+            hostEmails.add(originalBooking.user.email.toLowerCase());
+          }
+          if (originalBooking.userPrimaryEmail) {
+            hostEmails.add(originalBooking.userPrimaryEmail.toLowerCase());
+          }
+          if (originalBooking.eventType?.hosts) {
+            for (const host of originalBooking.eventType.hosts) {
+              if (host.user?.email) {
+                hostEmails.add(host.user.email.toLowerCase());
+              }
+            }
+          }
+
+          // Filter to get only guest emails (non-host attendees)
+          const guestEmails = originalBooking.attendees
+            .map((a) => a.email)
+            .filter((email) => !hostEmails.has(email.toLowerCase()));
+
+          if (guestEmails.length > 0) {
+            // Get guest's accepted bookings in the time window
+            const guestBookings = await bookingRepo.getAcceptedBookingsByAttendeeEmails({
+              emails: guestEmails,
+              startDate: startTimeDate,
+              endDate: endTimeDate,
+              excludedUid: input.rescheduleUid,
+            });
+
+            // Convert to busy times format
+            guestBusyTimes = guestBookings.map((booking) => ({
+              start: booking.startTime,
+              end: booking.endTime,
+              title: booking.title || "Guest Booking",
+            }));
+          }
+        }
+      } catch (error) {
+        // Non-fatal: if guest lookup fails, continue without guest availability
+        loggerWithEventDetails.warn("Failed to get guest availability for reschedule", { error });
+      }
+    }
+
     const bookingLimits =
       eventType?.bookingLimits &&
       typeof eventType?.bookingLimits === "object" &&
@@ -962,6 +1016,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes: guestBusyTimes.length > 0 ? guestBusyTimes : undefined,
       },
     });
     /* We get all users working hours and busy slots */

@@ -2221,3 +2221,60 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 }
+
+  /**
+   * Get accepted bookings for specific attendee emails within a date range.
+   * Used to check guest availability when host reschedules a booking.
+   */
+  async getAcceptedBookingsByAttendeeEmails({
+    emails,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    emails: string[];
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }) {
+    const where: Prisma.BookingWhereInput = {
+      status: BookingStatus.ACCEPTED,
+      startTime: {
+        gte: startDate,
+      },
+      endTime: {
+        lte: endDate,
+      },
+      attendees: {
+        some: {
+          email: {
+            in: emails,
+          },
+        },
+      },
+    };
+
+    // Exclude the booking being rescheduled
+    if (excludedUid) {
+      where.uid = {
+        not: excludedUid,
+      };
+    }
+
+    return await this.prismaClient.booking.findMany({
+      where,
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
