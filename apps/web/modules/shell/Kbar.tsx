@@ -1,4 +1,3 @@
-import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,7 +31,9 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CrowScript from "../ee/support/lib/crow/CrowScript";
 
+// biome-ignore lint/style/noProcessEnv: Next.js replaces NEXT_PUBLIC_ vars statically at compile time
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
+// biome-ignore lint/style/noProcessEnv: Next.js replaces NEXT_PUBLIC_ vars statically at compile time
 const CROW_PRODUCT_ID = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID ?? "";
 
 type CrowAskOptions = {
@@ -629,6 +630,12 @@ function CrowFallback({
     hasSentInitialRef.current = true;
     if (!triggerQuery.trim() || !CROW_API_URL || !CROW_PRODUCT_ID) return;
     sendMessage(triggerQuery, null);
+    // Reset on cleanup so React StrictMode's simulated unmount/remount retries the fetch
+    // with clean state (prevents duplicate messages from the double-invoke).
+    return () => {
+      hasSentInitialRef.current = false;
+      setState(INITIAL_CROW_STATE);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty deps: fires once when user selects AI Answer
 

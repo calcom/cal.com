@@ -1,10 +1,11 @@
-import process from "node:process";
 import Script from "next/script";
 import { z } from "zod";
 
 const nonEmptySchema = z.string().min(1);
 
+// biome-ignore lint/style/noProcessEnv: Next.js replaces NEXT_PUBLIC_ vars statically at compile time
 const apiUrl = process.env.NEXT_PUBLIC_CROW_API_URL;
+// biome-ignore lint/style/noProcessEnv: Next.js replaces NEXT_PUBLIC_ vars statically at compile time
 const productId = process.env.NEXT_PUBLIC_CROW_PRODUCT_ID;
 
 export const isCrowEnabled =
