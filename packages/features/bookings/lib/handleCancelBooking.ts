@@ -207,8 +207,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   // Determine if the canceling user is a host (owner, event type host, or org admin)
   // For event type hosts, verify they are assigned to this specific booking via attendee email
+  // Note: userId is -1 for unauthenticated webapp cancellations (e.g. cancel link from email)
   let isCancellationUserHost = false;
-  if (userId) {
+  if (userId && userId > 0) {
     if (bookingToDelete.userId === userId) {
       isCancellationUserHost = true;
     } else if (
@@ -279,7 +280,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         bookingToDelete.userId
       ));
 
-    if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
+    if (
+      !isCancellationUserHost &&
+      !userIsHost &&
+      !userIsOwnerOfEventType &&
+      !userIsOrgAdminOfBookingUser
+    ) {
       throw new HttpError({
         statusCode: 401,
         message: "User not a host of this event or an admin of the booking user",
