@@ -19,6 +19,7 @@ export type GetSlots = {
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
   datesOutOfOfficeTimeZone?: string;
+  timeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -239,6 +240,7 @@ const getSlots = ({
   datesOutOfOffice,
   showOptimizedSlots,
   datesOutOfOfficeTimeZone,
+  timeZone,
 }: GetSlots): {
   time: Dayjs;
   userIds?: number[];
@@ -252,7 +254,7 @@ const getSlots = ({
     dateRanges,
     frequency,
     eventLength,
-    timeZone: getTimeZone(inviteeDate),
+    timeZone: timeZone ?? getTimeZone(inviteeDate),
     minimumBookingNotice,
     offsetStart,
     datesOutOfOffice,

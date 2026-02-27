@@ -1290,6 +1290,7 @@ export class AvailableSlotsService {
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
       showOptimizedSlots: eventType.showOptimizedSlots,
       datesOutOfOfficeTimeZone: !isTeamEvent ? allUsersAvailability[0]?.timeZone : undefined,
+      timeZone: input.timeZone,
     });
 
     let availableTimeSlots: typeof timeSlots = [];
