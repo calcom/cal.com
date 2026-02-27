@@ -141,7 +141,7 @@ export async function handler(req: NextRequest) {
           }`,
         };
 
-        const shortener = await UrlShortenerFactory.create(teamId);
+        const shortener = await UrlShortenerFactory.create({ userId, teamId });
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
           await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
             domain: DUB_SMS_DOMAIN,
