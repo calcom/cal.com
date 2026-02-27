@@ -533,6 +533,13 @@ function CrowFallback({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const hasSentInitialRef = useRef(false);
 
+  // Abort any in-flight Crow stream when the palette closes/unmounts
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const sendMessage = useCallback(
     (message: string, convId: string | null) => {
       abortRef.current?.abort();
