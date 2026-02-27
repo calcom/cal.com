@@ -229,9 +229,6 @@ async function moveTeam({
         parentId: org.id,
       },
     });
-
-    const creditService = new CreditService();
-    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new TRPCError({
@@ -245,6 +242,21 @@ async function moveTeam({
       safeStringify({
         teamId,
         newSlug,
+        orgId: org.id,
+      })
+    );
+    throw error;
+  }
+
+  try {
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
+  } catch (error) {
+    log.error(
+      "Error while moving credits from team to organization",
+      safeStringify(error),
+      safeStringify({
+        teamId,
         orgId: org.id,
       })
     );
