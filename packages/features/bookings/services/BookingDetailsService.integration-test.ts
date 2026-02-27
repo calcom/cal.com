@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -35,12 +37,14 @@ const createdUserIds: number[] = [];
 describe("BookingDetailsService (Integration Tests)", () => {
   const timestamp = Date.now();
 
-  // Production repositories (for operations they support)
+  // Production repositories
+  const orgRepo = new OrganizationRepository({ prismaClient: prisma });
+  const bookingRepo = new BookingRepository(prisma);
   const userRepo = new UserRepository(prisma);
   const eventTypeRepo = new EventTypeRepository(prisma);
   const teamRepo = new TeamRepository(prisma);
 
-  // Test-only repositories (for operations not available in production repos)
+  // Test-only repositories (for cleanup and team creation where no production method exists)
   const testTeamRepo = new TestTeamRepository(prisma);
   const testBookingRepo = new TestBookingRepository(prisma);
   const testUserRepo = new TestUserRepository(prisma);
@@ -60,17 +64,47 @@ describe("BookingDetailsService (Integration Tests)", () => {
   let personalBookingUid: string;
 
   beforeAll(async () => {
-    // 1. Create users via UserRepository
+    // 1. Create an organization via OrganizationRepository
+    const org = await orgRepo.create({
+      name: `Test Org ${timestamp}`,
+      slug: `test-org-${timestamp}`,
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: `test-${timestamp}.com`,
+      seats: null,
+      pricePerSeat: null,
+      isPlatform: false,
+      logoUrl: null,
+      bio: null,
+      brandColor: null,
+      bannerUrl: null,
+    });
+    orgId = org.id;
+    createdTeamIds.push(org.id);
+
+    // 2. Create a team within the org via TestTeamRepository
+    //    (no production TeamRepository.create() method exists)
+    const team = await testTeamRepo.create({
+      name: `Test Team ${timestamp}`,
+      slug: `test-team-${timestamp}`,
+      parentId: org.id,
+    });
+    teamId = team.id;
+    createdTeamIds.push(team.id);
+
+    // 3. Create booking owner WITH organizationId via UserRepository
+    //    (eliminates need for separate updateOrganizationId call)
     const bookingOwner = await userRepo.create({
       email: `booking-owner-${timestamp}@test.com`,
       username: `booking-owner-${timestamp}`,
-      organizationId: null,
+      organizationId: orgId,
       creationSource: CreationSource.WEBAPP,
       locked: false,
     });
     bookingOwnerId = bookingOwner.id;
     createdUserIds.push(bookingOwner.id);
 
+    // 4. Create other users via UserRepository
     const orgAdmin = await userRepo.create({
       email: `org-admin-${timestamp}@test.com`,
       username: `org-admin-${timestamp}`,
@@ -101,28 +135,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
     regularUserId = regularUser.id;
     createdUserIds.push(regularUser.id);
 
-    // 2. Create an organization (Team with isOrganization=true) via TestTeamRepository
-    const org = await testTeamRepo.create({
-      name: `Test Org ${timestamp}`,
-      slug: `test-org-${timestamp}`,
-      isOrganization: true,
-    });
-    orgId = org.id;
-    createdTeamIds.push(org.id);
-
-    // 3. Create a team within the org via TestTeamRepository
-    const team = await testTeamRepo.create({
-      name: `Test Team ${timestamp}`,
-      slug: `test-team-${timestamp}`,
-      parentId: org.id,
-    });
-    teamId = team.id;
-    createdTeamIds.push(team.id);
-
-    // 4. Set the booking owner's organizationId via TestUserRepository
-    await testUserRepo.updateOrganizationId(bookingOwnerId, orgId);
-
-    // 5. Create memberships via MembershipRepository
+    // 5. Create memberships via MembershipRepository (static method)
     await MembershipRepository.create({
       userId: bookingOwnerId,
       teamId: orgId,
@@ -159,17 +172,24 @@ describe("BookingDetailsService (Integration Tests)", () => {
       userId: bookingOwnerId,
     });
 
-    // 7. Create a booking on the personal event type via TestBookingRepository
+    // 7. Create a booking on the personal event type via BookingRepository
     personalBookingUid = `personal-booking-${timestamp}`;
-    const booking = await testBookingRepo.create({
+    const booking = await bookingRepo.createBookingForManagedEventReassignment({
       uid: personalBookingUid,
       userId: bookingOwnerId,
+      userPrimaryEmail: `booking-owner-${timestamp}@test.com`,
       eventTypeId: personalEventType.id,
       title: `Personal Booking ${timestamp}`,
+      description: null,
       startTime: new Date("2026-03-01T10:00:00.000Z"),
       endTime: new Date("2026-03-01T10:30:00.000Z"),
       status: BookingStatus.ACCEPTED,
-      attendees: [{ email: "attendee@test.com", name: "Test Attendee", timeZone: "UTC" }],
+      location: null,
+      smsReminderNumber: null,
+      idempotencyKey: `idempotency-${timestamp}`,
+      iCalUID: `ical-${timestamp}@test.com`,
+      iCalSequence: 0,
+      attendees: [{ email: "attendee@test.com", name: "Test Attendee", timeZone: "UTC", locale: "en" }],
     });
     createdBookingIds.push(booking.id);
   });
@@ -178,21 +198,17 @@ describe("BookingDetailsService (Integration Tests)", () => {
     // Clean up bookings and attendees via TestBookingRepository
     await testBookingRepo.deleteMany(createdBookingIds);
 
-    // Reset organizationId before deleting users/teams
-    for (const userId of createdUserIds) {
-      await testUserRepo.updateOrganizationId(userId, null);
-    }
-
-    // TeamRepository.deleteById handles memberships + managed event types cleanup
-    for (const id of [...createdTeamIds].reverse()) {
-      await teamRepo.deleteById({ id });
-    }
-
     // Delete personal event types not associated with a team via TestEventTypeRepository
     await testEventTypeRepo.deleteManyByUserIds(createdUserIds);
 
-    // Delete user schedules created by UserRepository.create, then users via TestUserRepository
+    // Delete users (handles memberships, profiles, schedules, availability) via TestUserRepository
+    // Must happen before team deletion so user.organizationId FK is removed
     await testUserRepo.deleteMany(createdUserIds);
+
+    // TeamRepository.deleteById handles remaining memberships + managed event types
+    for (const id of [...createdTeamIds].reverse()) {
+      await teamRepo.deleteById({ id });
+    }
   });
 
   describe("getBookingDetails - personal event type bookings", () => {
