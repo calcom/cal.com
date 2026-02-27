@@ -20,6 +20,7 @@
   "reset_password_subject": "{{appName}}: Reset password instructions",
   "verify_email_subject": "{{appName}}: Verify your account",
   "verify_email_subject_verifying_email": "{{appName}}: Verify your email",
+  "verify_email_subject_no_branding": "Verify your email",
   "check_your_email": "Check your email",
   "old_email_address": "Old email",
   "new_email_address": "New email",
