@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { BookingDetailsService } from "./BookingDetailsService";
 
@@ -52,21 +50,15 @@ describe("BookingDetailsService", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(
-      function () {
-        return mockBookingRepo as unknown as BookingRepository;
-      } as unknown as typeof BookingRepository
-    );
-    vi.mocked(UserRepository).mockImplementation(
-      function () {
-        return mockUserRepo as unknown as UserRepository;
-      } as unknown as typeof UserRepository
-    );
-    vi.mocked(PermissionCheckService).mockImplementation(
-      function () {
-        return mockPermissionCheckService as unknown as PermissionCheckService;
-      } as unknown as typeof PermissionCheckService
-    );
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepo as unknown as BookingRepository;
+    } as unknown as typeof BookingRepository);
+    vi.mocked(UserRepository).mockImplementation(function () {
+      return mockUserRepo as unknown as UserRepository;
+    } as unknown as typeof UserRepository);
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as unknown as PermissionCheckService;
+    } as unknown as typeof PermissionCheckService);
 
     service = new BookingDetailsService(mockPrismaClient);
   });
