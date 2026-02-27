@@ -1,8 +1,9 @@
+import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { isMac } from "@calcom/lib/isMac";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import {
@@ -29,7 +30,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import CrowScript from "../ee/support/lib/crow/CrowScript";
 
 const CROW_API_URL = process.env.NEXT_PUBLIC_CROW_API_URL ?? "";
@@ -50,9 +50,8 @@ type CrowAskOptions = {
 };
 
 interface CrowWindow extends Window {
-  crow?: (command: string, options?: CrowAskOptions) => AbortController | void;
+  crow?: (command: string, options?: CrowAskOptions) => AbortController | undefined;
 }
-
 
 type ShortcutArrayType = {
   shortcuts?: string[];
@@ -261,7 +260,6 @@ function buildKbarActions(push: (href: string) => void): Action[] {
   return [...staticActions, ...appStoreActions];
 }
 
-
 function useEventTypesAction(): void {
   const router = useRouter();
   const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
@@ -296,7 +294,6 @@ function useEventTypesAction(): void {
 
   useRegisterActions(actions, [data]);
 }
-
 
 function useUpcomingBookingsAction(): void {
   const router = useRouter();
@@ -362,29 +359,29 @@ const KBarContent = (): JSX.Element => {
     <>
       <CrowScript />
       <KBarPortal>
-      <KBarPositioner className="overflow-scroll">
-        <KBarAnimator className="z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md bg-default shadow-lg">
-          <div className="flex items-center justify-center border-subtle border-b">
-            <SearchIcon className="mx-3 h-4 w-4 text-default" />
-            <KBarSearch
-              defaultPlaceholder={t("kbar_search_placeholder")}
-              className="w-full rounded-sm border-0 bg-default px-0 py-2.5 text-default placeholder:text-subtle focus:ring-0 focus-visible:outline-none"
-            />
-          </div>
-          <RenderResults />
-          <div className="hidden items-center space-x-1 border-subtle border-t px-2 py-1.5 text-subtle text-xs sm:flex">
-            <ArrowUpIcon className="h-4 w-4" />
-            <ArrowDownIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
-            <CornerDownLeftIcon className="h-4 w-4" />
-            <span className="pr-2">{t("open")}</span>
-            <CommandKey />
-            <span className="pr-1">+ K </span>
-            <span className="pr-2">{t("close")}</span>
-          </div>
-        </KBarAnimator>
-        <div className="fixed inset-0 z-1 bg-neutral-800/70" />
-      </KBarPositioner>
-    </KBarPortal>
+        <KBarPositioner className="overflow-scroll">
+          <KBarAnimator className="z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md bg-default shadow-lg">
+            <div className="flex items-center justify-center border-subtle border-b">
+              <SearchIcon className="mx-3 h-4 w-4 text-default" />
+              <KBarSearch
+                defaultPlaceholder={t("kbar_search_placeholder")}
+                className="w-full rounded-sm border-0 bg-default px-0 py-2.5 text-default placeholder:text-subtle focus:ring-0 focus-visible:outline-none"
+              />
+            </div>
+            <RenderResults />
+            <div className="hidden items-center space-x-1 border-subtle border-t px-2 py-1.5 text-subtle text-xs sm:flex">
+              <ArrowUpIcon className="h-4 w-4" />
+              <ArrowDownIcon className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
+              <CornerDownLeftIcon className="h-4 w-4" />
+              <span className="pr-2">{t("open")}</span>
+              <CommandKey />
+              <span className="pr-1">+ K </span>
+              <span className="pr-2">{t("close")}</span>
+            </div>
+          </KBarAnimator>
+          <div className="fixed inset-0 z-1 bg-neutral-800/70" />
+        </KBarPositioner>
+      </KBarPortal>
     </>
   );
 };
@@ -459,7 +456,6 @@ function renderResultItem(item: string | Action, active: boolean, t: (key: strin
     </div>
   );
 }
-
 
 function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
@@ -683,9 +679,7 @@ function CrowFallback({
         // biome-ignore lint/suspicious/noArrayIndexKey: message list is append-only
         <div key={i} className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
           {msg.role === "user" ? (
-            <div className="max-w-[75%] rounded-lg bg-subtle px-3 py-2 text-default text-sm">
-              {msg.text}
-            </div>
+            <div className="max-w-[75%] rounded-lg bg-subtle px-3 py-2 text-default text-sm">{msg.text}</div>
           ) : (
             <div className="max-w-[85%]">
               <p className="mb-1 font-medium text-subtle text-xs uppercase tracking-wide">
@@ -704,7 +698,7 @@ function CrowFallback({
                 <button
                   onClick={() => {
                     query.toggle();
-                    router.push(msg.href!);
+                    router.push(msg.href ?? "");
                   }}
                   className="mt-2 flex items-center gap-1.5 text-emphasis text-sm transition hover:underline">
                   <CornerDownLeftIcon className="h-3 w-3" />
@@ -715,7 +709,9 @@ function CrowFallback({
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                   {msg.sources.slice(0, 5).map((url, si) => {
                     const slug = url.split("/").pop() ?? "";
-                    const label = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) || t("kbar_crow_source");
+                    const label =
+                      slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ||
+                      t("kbar_crow_source");
                     return (
                       // biome-ignore lint/suspicious/noArrayIndexKey: source list is stable
                       <a
@@ -830,9 +826,7 @@ function RenderResults(): JSX.Element {
           }}
         />
       )}
-      {hasQuery && !crowConfigured && results.length === 0 && (
-        <HelpDeskLink searchQuery={searchQuery} />
-      )}
+      {hasQuery && !crowConfigured && results.length === 0 && <HelpDeskLink searchQuery={searchQuery} />}
     </>
   );
 }

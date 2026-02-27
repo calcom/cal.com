@@ -1,3 +1,4 @@
+import process from "node:process";
 import Script from "next/script";
 import { z } from "zod";
 
