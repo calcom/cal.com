@@ -15,6 +15,7 @@
     "lint:report": "biome lint --reporter json . > ../../lint-results/testing.json"
   },
   "dependencies": {
+    "@calcom/i18n": "workspace:*",
     "@calcom/lib": "workspace:*",
     "@calcom/prisma": "workspace:*"
   },
