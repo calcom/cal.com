@@ -159,6 +159,37 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
     expect(result.busy).toBeDefined();
   });
 
+  it("preserves pre-existing busyTimesFromLimitsBookings from initialData instead of overwriting with empty array", async () => {
+    const user = createMockUser();
+    const eventType = createMockEventType({ bookingLimits: { PER_DAY: 3 } });
+    const existingBusyTimes: EventBusyDetails[] = [
+      {
+        start: "2025-01-06T10:00:00Z",
+        end: "2025-01-06T23:59:59Z",
+        source: "Event Booking Limit for User: 3 per day",
+      },
+    ];
+
+    const getUserAvailabilitySpy = vi.spyOn(service, "_getUserAvailability" as keyof typeof service);
+
+    await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
+      user,
+      eventType,
+      busyTimesFromLimitsBookings: existingBusyTimes,
+    });
+
+    // Verify that the pre-existing busyTimesFromLimitsBookings is passed through
+    // and NOT overwritten with an empty array
+    expect(getUserAvailabilitySpy).toHaveBeenCalledWith(
+      createParams(),
+      expect.objectContaining({
+        user,
+        eventType,
+        busyTimesFromLimitsBookings: existingBusyTimes,
+      })
+    );
+  });
+
   it("fetches busy times when eventType has booking limits", async () => {
     const user = createMockUser();
     const eventType = createMockEventType({ bookingLimits: { PER_DAY: 3 } });
@@ -351,12 +382,29 @@ describe("UserAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimit
 
     expect(getUserAvailabilitySpy).toHaveBeenCalledWith(
       createParams(),
-      {
+      expect.objectContaining({
         user,
         eventType,
         busyTimesFromLimitsBookings: fetchedBusyTimes,
-      }
+      })
     );
+  });
+
+  it("does not pass busyTimesFromLimitsBookings when no limits and no initialData bookings", async () => {
+    const user = createMockUser();
+    const eventType = createMockEventType(); // no limits
+
+    const getUserAvailabilitySpy = vi.spyOn(service, "_getUserAvailability" as keyof typeof service);
+
+    await service.getUserAvailabilityIncludingBusyTimesFromLimits(createParams(), {
+      user,
+      eventType,
+    });
+
+    // When there are no limits and no pre-existing busyTimesFromLimitsBookings,
+    // the property should not be spread into the call
+    const callArgs = getUserAvailabilitySpy.mock.calls[0];
+    expect(callArgs[1]).not.toHaveProperty("busyTimesFromLimitsBookings");
   });
 
   it("passes rescheduleUid to getBusyTimesForLimitChecks when provided", async () => {

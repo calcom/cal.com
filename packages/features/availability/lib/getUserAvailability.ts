@@ -680,8 +680,9 @@ export class UserAvailabilityService {
 
     const { bookingLimits, durationLimits } = await this.parseLimits(eventType);
 
-    let busyTimesFromLimitsBookings: EventBusyDetails[] = [];
-    if (!initialData?.busyTimesFromLimitsBookings && eventType && (bookingLimits || durationLimits)) {
+    let busyTimesFromLimitsBookings: EventBusyDetails[] | undefined =
+      initialData?.busyTimesFromLimitsBookings;
+    if (!busyTimesFromLimitsBookings && eventType && (bookingLimits || durationLimits)) {
       const busyTimesService = getBusyTimesService();
       const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
         dateFrom.toISOString(),
@@ -709,7 +710,7 @@ export class UserAvailabilityService {
     }
     const result = await this._getUserAvailability(params, {
       ...initialData,
-      busyTimesFromLimitsBookings,
+      ...(busyTimesFromLimitsBookings ? { busyTimesFromLimitsBookings } : {}),
     });
     return result;
   }
