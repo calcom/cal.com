@@ -48,7 +48,7 @@ import {
   TextField,
 } from "@calcom/ui/components/form";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapper,
@@ -440,9 +440,9 @@ export const EventAdvancedTab = ({
   useEffect(() => {
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
-  const { hasTeamPlan } = useHasTeamPlan();
+  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
   const isRedirectUrlGrandfathered = !!eventType.successRedirectUrl;
-  const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasTeamPlan;
+  const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [noRoutingFormRedirectUrlVisible, setNoRoutingFormRedirectUrlVisible] = useState(
     !!formMethods.getValues("redirectUrlOnNoRoutingFormResponse")
