@@ -1,6 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -27,7 +28,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ReactNode } from "react";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import CrowScript from "../ee/support/lib/crow/CrowScript";
 
@@ -459,73 +460,6 @@ function renderResultItem(item: string | Action, active: boolean, t: (key: strin
   );
 }
 
-// Minimal markdown renderer — no external deps, handles bold, inline code, links, and lists.
-function renderInline(text: string): JSX.Element {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
-  return (
-    <>
-      {parts.map((part, i) =>
-        part.startsWith("**") && part.endsWith("**") ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
-          <strong key={i}>{part.slice(2, -2)}</strong>
-        ) : part.startsWith("`") && part.endsWith("`") ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
-          <code key={i} className="rounded bg-subtle px-1 font-mono text-xs">
-            {part.slice(1, -1)}
-          </code>
-        ) : part.startsWith("[") ? (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
-          (() => {
-            const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-            const safeHref = m && /^https?:\/\//.test(m[2]) ? m[2] : null;
-            return safeHref ? (
-              <a key={i} href={safeHref} target="_blank" rel="noopener noreferrer"
-                className="underline transition hover:text-default">
-                {m[1]}
-              </a>
-            ) : (
-              <Fragment key={i}>{part}</Fragment>
-            );
-          })()
-        ) : (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static split segments
-          <Fragment key={i}>{part}</Fragment>
-        )
-      )}
-    </>
-  );
-}
-
-function renderMarkdown(text: string): JSX.Element {
-  return (
-    <>
-      {text.split("\n").map((line, i) => {
-        const orderedMatch = line.match(/^(\d+)\.\s(.+)/);
-        if (orderedMatch) {
-          // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
-          return (
-            <div key={i} className="ml-3">
-              {orderedMatch[1]}. {renderInline(orderedMatch[2])}
-            </div>
-          );
-        }
-        const bulletMatch = line.match(/^[-*]\s(.+)/);
-        if (bulletMatch) {
-          // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
-          return (
-            <div key={i} className="ml-3">
-              · {renderInline(bulletMatch[1])}
-            </div>
-          );
-        }
-        // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
-        if (!line.trim()) return <div key={i} className="h-2" />;
-        // biome-ignore lint/suspicious/noArrayIndexKey: line index is stable
-        return <div key={i}>{renderInline(line)}</div>;
-      })}
-    </>
-  );
-}
 
 function HelpDeskLink({ searchQuery }: { searchQuery: string }): JSX.Element {
   const { t } = useLocale();
@@ -753,7 +687,8 @@ function CrowFallback({
                   : t("kbar_crow_ai_label")}
               </p>
               <div className="text-default text-sm">
-                {renderMarkdown(msg.text)}
+                {/* biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized by markdownToSafeHTMLClient */}
+                <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTMLClient(msg.text) }} />
                 {i === state.messages.length - 1 && state.streaming && !state.checkingDocs && (
                   <span className="ml-0.5 animate-pulse">▋</span>
                 )}
