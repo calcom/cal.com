@@ -12,16 +12,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (!url) return res.status(400).json({ message: "URL is required" });
 
-        // Strict Domain Validation (Prevent SSRF)
-        let hostname;
+        // SSRF protection: parse + validate hostname
+        let parsedUrl;
         try {
-            hostname = new URL(url).hostname;
+            parsedUrl = new URL(url);
         } catch (e) {
             return res.status(400).json({ message: "Invalid URL format" });
         }
 
+        if (parsedUrl.protocol !== "https:") {
+            return res.status(400).json({ message: "Only HTTPS URLs are allowed" });
+        }
+
         const allowedDomains = ["proton.me", "protonmail.com"];
-        const isProton = allowedDomains.some(domain => hostname === domain || hostname.endsWith("." + domain));
+        const isProton = allowedDomains.some(domain => parsedUrl.hostname === domain || parsedUrl.hostname.endsWith("." + domain));
 
         if (!isProton) {
             logger.warn("Attempted to add non-Proton URL to Proton App");
@@ -48,10 +52,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
 
         try {
-            // Verify connection before saving
             const service = BuildCalendarService({
                 id: 0,
                 ...data,
+                user: { email: user.email },
+                encryptedKey: null,
+                delegationCredentialId: null,
             });
 
             const listed = await service.listCalendars();

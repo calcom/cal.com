@@ -58,15 +58,27 @@ class ProtonCalendarService implements Calendar {
 
     events.forEach((event) => {
       if (event.isRecurring()) {
-        const iterator = event.iterator();
-        let next;
-        // Iterate through occurrences
-        while ((next = iterator.next())) {
+        // skip sub-daily recurrence types
+        const recurrenceType = event.getRecurrenceTypes();
+        if (["HOURLY", "SECONDLY", "MINUTELY"].includes(recurrenceType)) {
+          logger.warn(`Skipping unsupported recurrence type: ${recurrenceType}`);
+          return;
+        }
+
+        // begin iteration from the query window
+        const startDate = ICAL.Time.fromDateTimeString(new Date(dateFrom).toISOString());
+        startDate.hour = event.startDate.hour;
+        startDate.minute = event.startDate.minute;
+        startDate.second = event.startDate.second;
+
+        const iterator = event.iterator(startDate);
+        let next: ICAL.Time;
+        let maxIterations = 365;
+
+        while (maxIterations > 0 && (next = iterator.next())) {
+          maxIterations--;
           const start = dayjs(next.toJSDate());
 
-          // Optimization: If the occurrence starts after our range, stop iterating (assuming sorted/monotonic)
-          // However, RRULEs can be complex, but generally chronological. 
-          // We break if we assume it goes to infinity.
           if (start.isAfter(rangeEnd)) break;
 
           const duration = event.duration;
@@ -110,7 +122,12 @@ class ProtonCalendarService implements Calendar {
 
   private async fetchAndParseICS(url: string): Promise<ICAL.Event[]> {
     try {
-      const response = await fetch(url);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10_000);
+
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+
       if (!response.ok) throw new Error(`Failed to fetch Proton ICS: ${response.statusText}`);
 
       const text = await response.text();
@@ -120,10 +137,8 @@ class ProtonCalendarService implements Calendar {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       return vevents.map(v => new ICAL.Event(v));
     } catch (e) {
-    } catch (e) {
       if (e instanceof Error) {
-        // Redact the sensitive URL from the error message to avoid logging tokens
-        const safeMessage = e.message.replace(this.url, "[REDACTED_URL]");
+        const safeMessage = e.message.replaceAll(this.url, "[REDACTED_URL]");
         logger.error("Proton ICS Parse Error:", safeMessage);
       } else {
         logger.error("Proton ICS Parse Error:", e);

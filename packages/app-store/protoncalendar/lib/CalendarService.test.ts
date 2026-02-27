@@ -133,4 +133,70 @@ END:VCALENDAR`;
             new ProtonCalendarService(mockCredential);
         }).toThrow("Missing CALENDSO_ENCRYPTION_KEY");
     });
+
+    it("should return empty on fetch failure", async () => {
+        vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
+        fetchMock.mockRejectedValueOnce(new Error("Network error"));
+
+        const service = new ProtonCalendarService(mockCredential);
+        const busy = await service.getAvailability({
+            dateFrom: "2025-05-01T00:00:00Z",
+            dateTo: "2025-05-02T00:00:00Z",
+            originalDate: new Date(),
+        });
+
+        expect(busy).toEqual([]);
+    });
+
+    it("should handle empty calendar", async () => {
+        vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
+        const EMPTY_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Proton//Calendar//EN
+END:VCALENDAR`;
+
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            text: () => Promise.resolve(EMPTY_ICS),
+        });
+
+        const service = new ProtonCalendarService(mockCredential);
+        const busy = await service.getAvailability({
+            dateFrom: "2025-05-01T00:00:00Z",
+            dateTo: "2025-05-02T00:00:00Z",
+            originalDate: new Date(),
+        });
+
+        expect(busy).toEqual([]);
+    });
+
+    it("should filter events outside query range", async () => {
+        vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
+        fetchMock.mockResolvedValueOnce({
+            ok: true,
+            text: () => Promise.resolve(SAMPLE_ICS),
+        });
+
+        const service = new ProtonCalendarService(mockCredential);
+        const busy = await service.getAvailability({
+            dateFrom: "2025-06-01T00:00:00Z",
+            dateTo: "2025-06-02T00:00:00Z",
+            originalDate: new Date(),
+        });
+
+        expect(busy).toEqual([]);
+    });
+
+    it("should list calendar with correct metadata", async () => {
+        vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
+
+        const service = new ProtonCalendarService(mockCredential);
+        const calendars = await service.listCalendars();
+
+        expect(calendars.length).toBe(1);
+        expect(calendars[0].name).toBe("Proton Calendar");
+        expect(calendars[0].integration).toBe("proton_calendar");
+        expect(calendars[0].primary).toBe(true);
+        expect(calendars[0].readOnly).toBe(true);
+    });
 });
