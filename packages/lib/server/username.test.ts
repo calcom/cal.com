@@ -1,8 +1,6 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, expect, it, beforeEach } from "vitest";
-
-import { usernameCheckForSignup } from "./username";
+import { beforeEach, describe, expect, it } from "vitest";
+import { generateUsernameSuggestion, usernameCheckForSignup } from "./username";
 
 describe("usernameCheckForSignup ", async () => {
   beforeEach(() => {
@@ -54,6 +52,35 @@ describe("usernameCheckForSignup ", async () => {
       premium: false,
       suggestedUsername: "",
     });
+  });
+});
+
+describe("generateUsernameSuggestion", () => {
+  it("returns username with zero-padded number when base username is taken", async () => {
+    const result = await generateUsernameSuggestion(["john"], "john");
+    // Should be "john" + a padded number, e.g. "john001" through "john999"
+    expect(result).toMatch(/^john\d+$/);
+    expect(result).not.toBe("john");
+  });
+
+  it("avoids collisions with existing usernames in the list", async () => {
+    // Fill up several possible suggestions to force collision avoidance
+    const existing = ["alex001", "alex002", "alex003", "alex"];
+    const result = await generateUsernameSuggestion(existing, "alex");
+    expect(result).toMatch(/^alex\d+$/);
+    expect(existing).not.toContain(result);
+  });
+
+  it("handles short usernames (length < 2) with wider random range", async () => {
+    const result = await generateUsernameSuggestion(["a"], "a");
+    // For short usernames, limit is 9999 instead of 999
+    expect(result).toMatch(/^a\d+$/);
+    expect(result).not.toBe("a");
+  });
+
+  it("returns a suggestion even when no collisions exist", async () => {
+    const result = await generateUsernameSuggestion([], "newuser");
+    expect(result).toMatch(/^newuser\d+$/);
   });
 });
 
