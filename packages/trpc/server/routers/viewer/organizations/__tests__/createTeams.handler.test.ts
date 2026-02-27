@@ -1,13 +1,9 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import slugify from "@calcom/lib/slugify";
-import { MembershipRole, UserPermissionRole, CreationSource, RedirectType } from "@calcom/prisma/enums";
-
 import { Prisma } from "@calcom/prisma/client";
+import { CreationSource, MembershipRole, RedirectType, UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTeamsHandler } from "../createTeams.handler";
 
 // Helper functions for creating test data
@@ -1274,10 +1270,13 @@ describe("createTeams handler - Comprehensive Tests", () => {
       // This simulates what happens when the database rejects a duplicate slug
       const originalUpdate = prismock.team.update;
       prismock.team.update = vi.fn().mockRejectedValueOnce(
-        new Prisma.PrismaClientKnownRequestError("Unique constraint failed on the fields: (`slug`,`parentId`)", {
-          code: "P2002",
-          clientVersion: "5.0.0",
-        })
+        new Prisma.PrismaClientKnownRequestError(
+          "Unique constraint failed on the fields: (`slug`,`parentId`)",
+          {
+            code: "P2002",
+            clientVersion: "5.0.0",
+          }
+        )
       );
 
       await expect(
@@ -1303,7 +1302,7 @@ describe("createTeams handler - Comprehensive Tests", () => {
         })
       ).rejects.toMatchObject({
         code: "CONFLICT",
-        message: expect.stringContaining("conflicting-slug"),
+        message: "slug_already_in_use_in_org",
       });
 
       // Restore the original update function

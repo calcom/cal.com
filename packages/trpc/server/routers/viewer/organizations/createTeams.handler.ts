@@ -11,9 +11,7 @@ import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
 import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
@@ -238,7 +236,7 @@ async function moveTeam({
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new TRPCError({
         code: "CONFLICT",
-        message: `Slug "${newSlug}" is already in use within this organization`,
+        message: "slug_already_in_use_in_org",
       });
     }
     log.error(
