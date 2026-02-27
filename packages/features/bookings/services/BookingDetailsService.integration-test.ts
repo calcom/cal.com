@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, CreationSource, MembershipRole } from "@calcom/prisma/enums";
 
 import { BookingDetailsService } from "./BookingDetailsService";
 
@@ -19,90 +23,76 @@ import { BookingDetailsService } from "./BookingDetailsService";
  * correctly checks org/team admin access for personal event type bookings.
  */
 
-// Track all created resources for cleanup
-const cleanup = {
-  bookingIds: [] as number[],
-  eventTypeIds: [] as number[],
-  membershipIds: [] as number[],
-  teamIds: [] as number[],
-  userIds: [] as number[],
-};
-
-async function cleanupAll() {
-  if (cleanup.bookingIds.length > 0) {
-    await prisma.booking.deleteMany({ where: { id: { in: cleanup.bookingIds } } });
-  }
-  if (cleanup.eventTypeIds.length > 0) {
-    await prisma.eventType.deleteMany({ where: { id: { in: cleanup.eventTypeIds } } });
-  }
-  if (cleanup.membershipIds.length > 0) {
-    await prisma.membership.deleteMany({ where: { id: { in: cleanup.membershipIds } } });
-  }
-  if (cleanup.teamIds.length > 0) {
-    await prisma.team.deleteMany({ where: { id: { in: cleanup.teamIds } } });
-  }
-  if (cleanup.userIds.length > 0) {
-    await prisma.user.deleteMany({ where: { id: { in: cleanup.userIds } } });
-  }
-}
+// Track resources for cleanup
+const createdBookingIds: number[] = [];
+const createdTeamIds: number[] = [];
+const createdUserIds: number[] = [];
 
 describe("BookingDetailsService (Integration Tests)", () => {
   const timestamp = Date.now();
 
+  const userRepo = new UserRepository(prisma);
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const teamRepo = new TeamRepository(prisma);
+
   // Users
-  let bookingOwner: { id: number; email: string };
-  let orgAdmin: { id: number };
-  let teamAdmin: { id: number };
-  let regularUser: { id: number };
+  let bookingOwnerId: number;
+  let orgAdminId: number;
+  let teamAdminId: number;
+  let regularUserId: number;
 
   // Org and team
-  let org: { id: number };
-  let team: { id: number };
+  let orgId: number;
+  let teamId: number;
 
-  // Booking with personal event type
-  let personalEventType: { id: number };
+  // Booking
   let personalBookingUid: string;
 
   beforeAll(async () => {
-    // 1. Create users
-    bookingOwner = await prisma.user.create({
-      data: {
-        email: `booking-owner-${timestamp}@test.com`,
-        username: `booking-owner-${timestamp}`,
-      },
-      select: { id: true, email: true },
+    // 1. Create users via UserRepository
+    const bookingOwner = await userRepo.create({
+      email: `booking-owner-${timestamp}@test.com`,
+      username: `booking-owner-${timestamp}`,
+      organizationId: null,
+      creationSource: CreationSource.WEBAPP,
+      locked: false,
     });
-    cleanup.userIds.push(bookingOwner.id);
+    bookingOwnerId = bookingOwner.id;
+    createdUserIds.push(bookingOwner.id);
 
-    orgAdmin = await prisma.user.create({
-      data: {
-        email: `org-admin-${timestamp}@test.com`,
-        username: `org-admin-${timestamp}`,
-      },
-      select: { id: true },
+    const orgAdmin = await userRepo.create({
+      email: `org-admin-${timestamp}@test.com`,
+      username: `org-admin-${timestamp}`,
+      organizationId: null,
+      creationSource: CreationSource.WEBAPP,
+      locked: false,
     });
-    cleanup.userIds.push(orgAdmin.id);
+    orgAdminId = orgAdmin.id;
+    createdUserIds.push(orgAdmin.id);
 
-    teamAdmin = await prisma.user.create({
-      data: {
-        email: `team-admin-${timestamp}@test.com`,
-        username: `team-admin-${timestamp}`,
-      },
-      select: { id: true },
+    const teamAdmin = await userRepo.create({
+      email: `team-admin-${timestamp}@test.com`,
+      username: `team-admin-${timestamp}`,
+      organizationId: null,
+      creationSource: CreationSource.WEBAPP,
+      locked: false,
     });
-    cleanup.userIds.push(teamAdmin.id);
+    teamAdminId = teamAdmin.id;
+    createdUserIds.push(teamAdmin.id);
 
-    regularUser = await prisma.user.create({
-      data: {
-        email: `regular-user-${timestamp}@test.com`,
-        username: `regular-user-${timestamp}`,
-      },
-      select: { id: true },
+    const regularUser = await userRepo.create({
+      email: `regular-user-${timestamp}@test.com`,
+      username: `regular-user-${timestamp}`,
+      organizationId: null,
+      creationSource: CreationSource.WEBAPP,
+      locked: false,
     });
-    cleanup.userIds.push(regularUser.id);
+    regularUserId = regularUser.id;
+    createdUserIds.push(regularUser.id);
 
     // 2. Create an organization (Team with isOrganization=true)
-    org = await prisma.team.create({
+    // No TeamRepository.create() exists, so we use prisma directly
+    const org = await prisma.team.create({
       data: {
         name: `Test Org ${timestamp}`,
         slug: `test-org-${timestamp}`,
@@ -110,10 +100,11 @@ describe("BookingDetailsService (Integration Tests)", () => {
       },
       select: { id: true },
     });
-    cleanup.teamIds.push(org.id);
+    orgId = org.id;
+    createdTeamIds.push(org.id);
 
     // 3. Create a team within the org
-    team = await prisma.team.create({
+    const team = await prisma.team.create({
       data: {
         name: `Test Team ${timestamp}`,
         slug: `test-team-${timestamp}`,
@@ -121,74 +112,59 @@ describe("BookingDetailsService (Integration Tests)", () => {
       },
       select: { id: true },
     });
-    cleanup.teamIds.push(team.id);
+    teamId = team.id;
+    createdTeamIds.push(team.id);
 
-    // 4. Set the booking owner as a member of both org and team
+    // 4. Set the booking owner's organizationId
     await prisma.user.update({
-      where: { id: bookingOwner.id },
-      data: { organizationId: org.id },
+      where: { id: bookingOwnerId },
+      data: { organizationId: orgId },
     });
 
-    const ownerOrgMembership = await prisma.membership.create({
-      data: {
-        userId: bookingOwner.id,
-        teamId: org.id,
-        role: MembershipRole.MEMBER,
-        accepted: true,
-      },
+    // 5. Create memberships via MembershipRepository
+    await MembershipRepository.create({
+      userId: bookingOwnerId,
+      teamId: orgId,
+      role: MembershipRole.MEMBER,
+      accepted: true,
     });
-    cleanup.membershipIds.push(ownerOrgMembership.id);
 
-    const ownerTeamMembership = await prisma.membership.create({
-      data: {
-        userId: bookingOwner.id,
-        teamId: team.id,
-        role: MembershipRole.MEMBER,
-        accepted: true,
-      },
+    await MembershipRepository.create({
+      userId: bookingOwnerId,
+      teamId: teamId,
+      role: MembershipRole.MEMBER,
+      accepted: true,
     });
-    cleanup.membershipIds.push(ownerTeamMembership.id);
 
-    // 5. Set the org admin as ADMIN of the org
-    const orgAdminMembership = await prisma.membership.create({
-      data: {
-        userId: orgAdmin.id,
-        teamId: org.id,
-        role: MembershipRole.ADMIN,
-        accepted: true,
-      },
+    await MembershipRepository.create({
+      userId: orgAdminId,
+      teamId: orgId,
+      role: MembershipRole.ADMIN,
+      accepted: true,
     });
-    cleanup.membershipIds.push(orgAdminMembership.id);
 
-    // 6. Set the team admin as ADMIN of the team (but NOT the org)
-    const teamAdminMembership = await prisma.membership.create({
-      data: {
-        userId: teamAdmin.id,
-        teamId: team.id,
-        role: MembershipRole.ADMIN,
-        accepted: true,
-      },
+    await MembershipRepository.create({
+      userId: teamAdminId,
+      teamId: teamId,
+      role: MembershipRole.ADMIN,
+      accepted: true,
     });
-    cleanup.membershipIds.push(teamAdminMembership.id);
 
-    // 7. Create a personal event type (no teamId) for the booking owner
-    personalEventType = await prisma.eventType.create({
-      data: {
-        title: `Personal Event ${timestamp}`,
-        slug: `personal-event-${timestamp}`,
-        length: 30,
-        userId: bookingOwner.id,
-      },
-      select: { id: true },
+    // 6. Create a personal event type (no teamId) via EventTypeRepository
+    const personalEventType = await eventTypeRepo.create({
+      title: `Personal Event ${timestamp}`,
+      slug: `personal-event-${timestamp}`,
+      length: 30,
+      userId: bookingOwnerId,
     });
-    cleanup.eventTypeIds.push(personalEventType.id);
 
-    // 8. Create a booking on the personal event type
+    // 7. Create a booking on the personal event type
+    // No generic BookingRepository.create() exists, so we use prisma directly
     personalBookingUid = `personal-booking-${timestamp}`;
     const booking = await prisma.booking.create({
       data: {
         uid: personalBookingUid,
-        userId: bookingOwner.id,
+        userId: bookingOwnerId,
         eventTypeId: personalEventType.id,
         title: `Personal Booking ${timestamp}`,
         startTime: new Date("2026-03-01T10:00:00.000Z"),
@@ -203,16 +179,42 @@ describe("BookingDetailsService (Integration Tests)", () => {
         },
       },
     });
-    cleanup.bookingIds.push(booking.id);
+    createdBookingIds.push(booking.id);
   });
 
   afterAll(async () => {
-    // Reset organizationId before deleting users
-    await prisma.user.update({
-      where: { id: bookingOwner.id },
-      data: { organizationId: null },
+    // Clean up bookings and attendees
+    if (createdBookingIds.length > 0) {
+      await prisma.attendee.deleteMany({ where: { bookingId: { in: createdBookingIds } } });
+      await prisma.booking.deleteMany({ where: { id: { in: createdBookingIds } } });
+    }
+
+    // Reset organizationId before deleting users/teams
+    for (const userId of createdUserIds) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { organizationId: null },
+      });
+    }
+
+    // TeamRepository.deleteById handles memberships + managed event types cleanup
+    for (const id of [...createdTeamIds].reverse()) {
+      await teamRepo.deleteById({ id });
+    }
+
+    // Delete personal event types not associated with a team
+    await prisma.eventType.deleteMany({
+      where: { userId: { in: createdUserIds } },
     });
-    await cleanupAll();
+
+    // Delete user schedules created by UserRepository.create, then users
+    for (const userId of createdUserIds) {
+      await prisma.availability.deleteMany({
+        where: { Schedule: { userId } },
+      });
+      await prisma.schedule.deleteMany({ where: { userId } });
+      await prisma.user.delete({ where: { id: userId } });
+    }
   });
 
   describe("getBookingDetails - personal event type bookings", () => {
@@ -220,7 +222,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       const service = new BookingDetailsService(prisma);
 
       const result = await service.getBookingDetails({
-        userId: bookingOwner.id,
+        userId: bookingOwnerId,
         bookingUid: personalBookingUid,
       });
 
@@ -233,7 +235,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       const service = new BookingDetailsService(prisma);
 
       const result = await service.getBookingDetails({
-        userId: orgAdmin.id,
+        userId: orgAdminId,
         bookingUid: personalBookingUid,
       });
 
@@ -246,7 +248,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       const service = new BookingDetailsService(prisma);
 
       const result = await service.getBookingDetails({
-        userId: teamAdmin.id,
+        userId: teamAdminId,
         bookingUid: personalBookingUid,
       });
 
@@ -260,7 +262,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
 
       await expect(
         service.getBookingDetails({
-          userId: regularUser.id,
+          userId: regularUserId,
           bookingUid: personalBookingUid,
         })
       ).rejects.toThrow("You do not have permission to view this booking");
@@ -271,7 +273,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
 
       await expect(
         service.getBookingDetails({
-          userId: bookingOwner.id,
+          userId: bookingOwnerId,
           bookingUid: "non-existent-booking-uid",
         })
       ).rejects.toThrow("You do not have permission to view this booking");
