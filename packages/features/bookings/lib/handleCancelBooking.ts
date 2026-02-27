@@ -240,10 +240,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     });
   }
 
+  const isReasonRequired = isCancellationReasonRequired(
+    bookingToDelete.eventType?.requiresCancellationReason,
+    isCancellationUserHost
+  );
+
   if (
     !platformClientId &&
     !cancellationReason?.trim() &&
-    isCancellationUserHost &&
+    isReasonRequired &&
     !skipCancellationReasonValidation
   ) {
     throw new HttpError({
