@@ -44,6 +44,7 @@ function SingleAppPage(props: AppDataProps) {
       description={data.description}
       isGlobal={data.isGlobal}
       slug={data.slug}
+      owner_scoped_installation={data.owner_scoped_installation}
       variant={data.variant}
       type={data.type}
       logo={data.logo}

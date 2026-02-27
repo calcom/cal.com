@@ -72,7 +72,7 @@ export async function getCalIdConnectedApps({
   let userCalIdTeams: CalIdTeamQuery[] = [];
 
   if (includeCalIdTeamInstalledApps || calIdTeamId) {
-    const calIdTeamsQuery = await prisma.calIdTeam.findMany({
+    userCalIdTeams = await prisma.calIdTeam.findMany({
       where: {
         members: {
           some: {
@@ -99,14 +99,15 @@ export async function getCalIdConnectedApps({
       },
     });
 
-    userCalIdTeams = calIdTeamsQuery;
-
     const calIdTeamAppCredentials = userCalIdTeams.flatMap((calIdTeamApp) => {
       return calIdTeamApp.credentials ? buildNonDelegationCredentials(calIdTeamApp.credentials.flat()) : [];
     });
 
     // For team-specific event types, only show team-level credentials.
-    if (!includeCalIdTeamInstalledApps || calIdTeamId) {
+    if (calIdTeamId) {
+      // Filter credentials to only include those from the specific team
+      credentials = calIdTeamAppCredentials.filter((c) => c.calIdTeamId === calIdTeamId);
+    } else if (!includeCalIdTeamInstalledApps) {
       credentials = calIdTeamAppCredentials;
     } else {
       // For the general apps listing (not team-specific event types),
@@ -123,9 +124,10 @@ export async function getCalIdConnectedApps({
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2, ...app }) => {
-      const userCredentialIds = credentials
-        .filter((c) => c.appId === app.slug && !c.calIdTeamId)
-        .map((c) => c.id);
+      const userCredentialIds: Array<number> = Array.from(
+        new Set(credentials.filter((c) => c.appId === app.slug && !c.calIdTeamId).map((c) => c.id))
+      );
+
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
@@ -134,6 +136,7 @@ export async function getCalIdConnectedApps({
           .filter((c) => c.appId === app.slug && c.calIdTeamId)
           .map(async (c) => {
             const calIdTeam = userCalIdTeams.find((calIdTeam) => calIdTeam.id === c.calIdTeamId);
+            const userMembershipInTeam = calIdTeam?.members.find((member) => member.userId === user.id);
             if (!calIdTeam) {
               return null;
             }
@@ -142,8 +145,8 @@ export async function getCalIdConnectedApps({
               name: calIdTeam.name,
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
-              isAdmin: checkIfMemberAdminorOwner(calIdTeam.members[0].role),
-              userRole: calIdTeam.members[0].role,
+              isAdmin: checkIfMemberAdminorOwner(userMembershipInTeam?.role),
+              userRole: userMembershipInTeam?.role,
             };
           })
       );
@@ -215,6 +218,20 @@ export async function getCalIdConnectedApps({
         ...app,
         isInstalled: !!app.userCredentialIds?.length || !!app.calIdTeams?.length || app.isGlobal,
       }));
+
+    // For owner-scoped installations on CalId teams, only expose the app
+    // when the current user is an OWNER on the team.
+    if (extendsFeature === "EventType" && calIdTeamId) {
+      const calIdTeam = userCalIdTeams.find((calIdTeam) => calIdTeam.id === calIdTeamId);
+      const userMembershipInTeam = calIdTeam?.members.find((member) => member.userId === user.id);
+      const userRoleInCurrentTeam = userMembershipInTeam?.role;
+
+      const isOwnerOfEventCalIdTeam = userRoleInCurrentTeam === "OWNER";
+      apps = apps.filter((app) => {
+        if (!app.owner_scoped_installation) return true;
+        return isOwnerOfEventCalIdTeam;
+      });
+    }
   }
 
   if (sortByMostPopular) {
