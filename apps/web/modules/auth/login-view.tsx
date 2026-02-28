@@ -12,7 +12,7 @@ import { z } from "zod";
 import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -20,7 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { EmailField, PasswordField } from "@calcom/ui/components/form";
+import { EmailField, PasswordField, SelectField } from "@calcom/ui/components/form";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -194,6 +194,51 @@ export default function Login({
               ? LoginFooter
               : null
         }>
+        {IS_CALCOM && !twoFactorRequired && (
+          <div className="mb-4">
+            <SelectField
+              label={t("data_region")}
+              id="login-region-selector"
+              value={{
+                label: t(
+                  WEBAPP_URL.includes("cal.eu") ||
+                    (typeof window !== "undefined" &&
+                      window.location.hostname === "localhost" &&
+                      new URL(window.location.href).searchParams.get("region") === "eu")
+                    ? "european_union"
+                    : "united_states"
+                ),
+                value:
+                  WEBAPP_URL.includes("cal.eu") ||
+                    (typeof window !== "undefined" &&
+                      window.location.hostname === "localhost" &&
+                      new URL(window.location.href).searchParams.get("region") === "eu")
+                    ? "eu"
+                    : "us",
+              }}
+              options={[
+                { label: t("united_states"), value: "us" },
+                { label: t("european_union"), value: "eu" },
+              ]}
+              onChange={(option) => {
+                if (option && "value" in option) {
+                  const currentUrl = new URL(window.location.href);
+                  if (currentUrl.hostname === "localhost") {
+                    currentUrl.searchParams.set("region", option.value);
+                    window.location.href = currentUrl.toString();
+                    return;
+                  }
+                  if (option.value === "eu") {
+                    currentUrl.hostname = currentUrl.hostname.replace("cal.com", "cal.eu");
+                  } else {
+                    currentUrl.hostname = currentUrl.hostname.replace("cal.eu", "cal.com");
+                  }
+                  window.location.href = currentUrl.toString();
+                }
+              }}
+            />
+          </div>
+        )}
         <FormProvider {...methods}>
           {!twoFactorRequired && (
             <>
