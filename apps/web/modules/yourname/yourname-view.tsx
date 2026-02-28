@@ -1,6 +1,13 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@calid/features/ui/components/dialog";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Logo } from "@calid/features/ui/components/logo";
 import Link from "next/link";
@@ -43,6 +50,7 @@ export default function YournameView() {
   const [shuffleLoading, setShuffleLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const [progressKey, setProgressKey] = useState(0);
   const [placeholder, setPlaceholder] = useState("");
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -149,6 +157,7 @@ export default function YournameView() {
     setTimeout(() => {
       setClaimLoading(false);
       setModalOpen(true);
+      setProgressKey((k) => k + 1);
 
       let time = 5;
       setCountdown(time);
@@ -375,53 +384,58 @@ export default function YournameView() {
         </p>
       </footer>
 
-      {modalOpen && (
-        <div
-          className="bg-default fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="success-modal-title">
-          <div className="bg-default relative w-full max-w-md rounded-md p-8 text-center shadow-xl">
+      <Dialog open={modalOpen} onOpenChange={(open) => !open && closeModal()}>
+        <DialogContent size="sm" className="flex flex-col items-center text-center">
+          <DialogHeader
+            showIcon
+            iconName="check"
+            iconVariant="success"
+            className="flex-col items-center text-center [&>div]:text-center">
+            <DialogTitle>{t("congratulations")} 🎉</DialogTitle>
+            <DialogDescription>
+              <ServerTrans
+                t={t}
+                i18nKey="yourname_reserved"
+                values={{ username: username.trim().toLowerCase() }}
+              />
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-muted mb-6 flex w-full items-center justify-between rounded-md p-3">
+            <span className="font-semibold">
+              {prefix}/{username.trim().toLowerCase()}
+            </span>
             <button
               type="button"
-              onClick={closeModal}
-              className="text-muted hover:text-emphasis absolute right-4 top-4"
-              aria-label={t("close")}>
-              <Icon name="x" className="h-5 w-5" />
+              onClick={handleCopyLink}
+              className="text-muted hover:text-primary"
+              aria-label={t("copy")}>
+              <Icon name="copy" className="h-5 w-5" />
             </button>
-
-            <div className="bg-primary mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-              <Icon name="check" className="text-inverted h-8 w-8" />
-            </div>
-
-            <h2 id="success-modal-title" className="text-emphasis mb-2 text-2xl font-bold">
-              {t("congratulations", { defaultValue: "Congratulations" })} 🎉
-            </h2>
-            <p className="text-muted mb-6">
-              {t("yourname_reserved", { defaultValue: "The handle" })}{" "}
-              <strong>{username.trim().toLowerCase()}</strong>{" "}
-              {t("yourname_reserved_suffix", { defaultValue: "is reserved." })}
-            </p>
-
-            <div className="bg-subtle mb-6 flex items-center justify-between rounded-md p-3">
-              <span className="font-semibold">
-                {prefix}/{username.trim().toLowerCase()}
-              </span>
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="text-muted hover:text-primary"
-                aria-label={t("copy")}>
-                <Icon name="copy" className="h-5 w-5" />
-              </button>
-            </div>
-
-            <p className="text-muted text-sm">
-              {t("redirecting_in", { defaultValue: "Redirecting in" })} <strong>{countdown}</strong>s
-            </p>
           </div>
-        </div>
-      )}
+
+          <Button
+            color="primary"
+            className="mb-4 flex w-full items-center justify-center font-semibold"
+            onClick={() => {
+              if (countdownRef.current) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+              }
+              setModalOpen(false);
+              router.push(`/signup?username=${encodeURIComponent(username.trim().toLowerCase())}`);
+            }}>
+            {t("continue")}
+          </Button>
+
+          <p className="text-muted mb-2 w-full text-center text-sm">
+            {t("redirecting_in")} <strong>{countdown}</strong>s
+          </p>
+          <div className="bg-subtle h-1 w-full overflow-hidden rounded-full">
+            <div key={progressKey} className="yourname-progress-fill bg-brand-default h-full rounded-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
