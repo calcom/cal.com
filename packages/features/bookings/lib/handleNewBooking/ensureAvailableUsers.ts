@@ -1,20 +1,22 @@
-import type { Logger } from "tslog";
-
-import dayjs from "@calcom/dayjs";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
+import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
+import prisma, { userSelect } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CalendarFetchMode } from "@calcom/types/Calendar";
-
+import type { Logger } from "tslog";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
 import type { IsFixedAwareUser } from "./types";
@@ -52,6 +54,134 @@ const hasDateRangeForBooking = (
   }
 
   return dateRangeForBooking;
+};
+
+const ensureRescheduledAttendeesAreAvailable = async ({
+  originalRescheduledBooking,
+  dateFrom,
+  dateTo,
+  duration,
+  originalBookingDuration,
+  eventType,
+  loggerWithEventDetails,
+  piiFreeInputDataForLogging,
+  startDateTimeUtc,
+  endDateTimeUtc,
+  mode,
+}: {
+  originalRescheduledBooking: NonNullable<BookingType>;
+  dateFrom: string;
+  dateTo: string;
+  duration: number;
+  originalBookingDuration?: number;
+  eventType: Omit<getEventTypeResponse, "users"> & {
+    users: IsFixedAwareUser[];
+  };
+  loggerWithEventDetails: Logger<unknown>;
+  piiFreeInputDataForLogging: unknown;
+  startDateTimeUtc: dayjs.Dayjs;
+  endDateTimeUtc: dayjs.Dayjs;
+  mode?: CalendarFetchMode;
+}) => {
+  if (!originalRescheduledBooking.attendees.length) {
+    return;
+  }
+
+  const attendeeEmails = Array.from(
+    new Set(originalRescheduledBooking.attendees.map((attendee) => attendee.email))
+  );
+
+  const attendeesWithSelectedCalendars = (
+    await prisma.user.findMany({
+      where: {
+        email: {
+          in: attendeeEmails,
+        },
+      },
+      select: {
+        ...userSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    })
+  ).map((attendee) => withSelectedCalendars(attendee));
+
+  const mandatoryGuestUsers = await Promise.all(
+    attendeesWithSelectedCalendars.map((guest) =>
+      enrichUserWithDelegationCredentialsIncludeServiceAccountKey({ user: guest })
+    )
+  );
+
+  if (!mandatoryGuestUsers.length) {
+    return;
+  }
+
+  const userAvailabilityService = getUserAvailabilityService();
+  const attendeesAvailability = await userAvailabilityService.getUsersAvailability({
+    users: mandatoryGuestUsers,
+    query: {
+      dateFrom,
+      dateTo,
+      eventTypeId: eventType.id,
+      duration: originalBookingDuration,
+      returnDateOverrides: false,
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      afterEventBuffer: eventType.afterEventBuffer,
+      bypassBusyCalendarTimes: false,
+      mode,
+      withSource: true,
+    },
+    initialData: {
+      eventType,
+      rescheduleUid: originalRescheduledBooking.uid,
+      busyTimesFromLimitsBookings: [],
+    },
+  });
+
+  attendeesAvailability.forEach((attendeeAvailability, index) => {
+    const attendeeUser = mandatoryGuestUsers[index];
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = attendeeAvailability;
+
+    if (!dateRanges.length) {
+      loggerWithEventDetails.error(
+        `Mandatory guest ${attendeeUser.email} does not have availability at the requested reschedule time.`,
+        piiFreeInputDataForLogging
+      );
+      throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound, {
+        reason: "mandatory_reschedule_guest_unavailable",
+        mandatoryGuestEmail: attendeeUser.email,
+      });
+    }
+
+    if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
+      loggerWithEventDetails.error(
+        `Mandatory guest ${attendeeUser.email} is outside availability date range for the requested reschedule time.`,
+        piiFreeInputDataForLogging
+      );
+      throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound, {
+        reason: "mandatory_reschedule_guest_unavailable",
+        mandatoryGuestEmail: attendeeUser.email,
+      });
+    }
+
+    const foundConflict = checkForConflicts({
+      busy: bufferedBusyTimes,
+      time: startDateTimeUtc,
+      eventLength: duration,
+    });
+
+    if (foundConflict) {
+      loggerWithEventDetails.error(
+        `Mandatory guest ${attendeeUser.email} has a conflict in the requested reschedule time slot.`,
+        piiFreeInputDataForLogging
+      );
+      throw new ErrorWithCode(ErrorCode.NoAvailableUsersFound, ErrorCode.NoAvailableUsersFound, {
+        reason: "mandatory_reschedule_guest_busy",
+        mandatoryGuestEmail: attendeeUser.email,
+      });
+    }
+  });
 };
 
 const _ensureAvailableUsers = async (
@@ -128,6 +258,22 @@ const _ensureAvailableUsers = async (
         : undefined,
     },
   });
+
+  if (input.originalRescheduledBooking) {
+    await ensureRescheduledAttendeesAreAvailable({
+      originalRescheduledBooking: input.originalRescheduledBooking,
+      dateFrom: startDateTimeUtc.format(),
+      dateTo: endDateTimeUtc.format(),
+      duration,
+      originalBookingDuration,
+      eventType,
+      loggerWithEventDetails,
+      piiFreeInputDataForLogging,
+      startDateTimeUtc,
+      endDateTimeUtc,
+      mode,
+    });
+  }
 
   if (eventType.restrictionScheduleId) {
     try {
