@@ -3765,5 +3765,8 @@
   "yourname_description": "Claim your unique {{appName}} name before someone else does.",
   "smart_suggestions": "Smart suggestions",
   "loading_suggestions": "Loading suggestions...",
-  "shuffle": "Shuffle"
+  "shuffle": "Shuffle",
+  "congratulations": "Congratulations",
+  "redirecting_in": "Redirecting in",
+  "yourname_reserved": "The handle <strong>{{username}}</strong> is reserved."
 }
