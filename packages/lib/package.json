@@ -23,6 +23,7 @@
     "jimp": "^0.16.1",
     "next-collect": "^0.2.1",
     "next-i18next": "^15.4.2",
+    "openai": "^4.0.0",
     "rrule": "^2.7.1",
     "sharp": "^0.34.3",
     "sonner": "^1.7.4",
