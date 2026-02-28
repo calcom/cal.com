@@ -1038,6 +1038,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Host cancelling despite disableCancelling",
       },
       userId: organizer.id,
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1112,6 +1113,7 @@ describe("Cancel Booking", () => {
           cancellationReason: "Guest trying to cancel",
         },
         userId: 999, // Not the host
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("This event type does not allow cancellations");
   });
@@ -1219,6 +1221,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Event type host cancelling despite disableCancelling",
       },
       userId: eventTypeHost.id, // Event type host assigned to booking
+      actionSource: "WEBAPP",
     });
 
     expect(result.success).toBe(true);
@@ -1328,6 +1331,7 @@ describe("Cancel Booking", () => {
           cancellationReason: "Non-assigned host trying to cancel",
         },
         userId: nonAssignedHost.id, // Host on event type but not assigned to booking
+        actionSource: "WEBAPP",
       })
     ).rejects.toThrow("This event type does not allow cancellations");
   });
