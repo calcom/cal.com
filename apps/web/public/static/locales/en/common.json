@@ -3753,10 +3753,17 @@
   "claim_username_no_card_required": "No credit card required • Setup in 60 seconds",
   "claim_username_instant_setup_title": "Instant setup",
   "claim_username_instant_setup_description": "Go live in under a minute",
-  "claim_username_trusted_by_professionals_title": "100K+ Users",
-  "claim_username_trusted_by_professionals_description": "Trusted by professionals",
+  "claim_username_trusted_by_professionals_title": "Users",
+  "claim_username_trusted_by_professionals_description": "Trusted by <strong>{{count}}</strong> professionals",
   "claim_username_yours_forever_title": "Yours forever",
   "claim_username_yours_forever_description": "Once claimed, it's locked",
   "workflow_trigger": "When should this workflow be triggered?",
-  "worflow_trigger_channel": "Which channel should this workflow be triggered on?"
+  "worflow_trigger_channel": "Which channel should this workflow be triggered on?",
+  "yourname_title_page": "Yourname",
+  "yourname_description_page": "Claim your unique Cal ID name before someone else does.",
+  "yourname_title": "Own your, {{appName}} name.",
+  "yourname_description": "Claim your unique {{appName}} name before someone else does.",
+  "smart_suggestions": "Smart suggestions",
+  "loading_suggestions": "Loading suggestions...",
+  "shuffle": "Shuffle"
 }
