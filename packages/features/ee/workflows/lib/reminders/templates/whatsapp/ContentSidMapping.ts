@@ -28,10 +28,11 @@ export const getContentVariablesForTemplate = (variables: {
 }): Record<string, string> => {
   const { name, attendeeName, eventName, eventDate, startTime, timeZone } = variables;
 
+  // Variable order must match Twilio template: Hi {{1}}, ... meeting (*{{2}}*) with {{3}} ...
   const commonVariables: Record<string, string> = {
     "1": name || "",
-    "2": attendeeName || "",
-    "3": eventName || "",
+    "2": eventName || "",
+    "3": attendeeName || "",
     "4": eventDate || "",
     "5": `${startTime ?? ""} ${timeZone ?? ""}`,
   };
