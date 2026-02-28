@@ -640,14 +640,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                  id: profileOrg.id,
-                  name: profileOrg.name,
-                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                  logoUrl: profileOrg.logoUrl,
-                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                  domainSuffix: subdomainSuffix(),
-                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-                }
+                id: profileOrg.id,
+                name: profileOrg.name,
+                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                logoUrl: profileOrg.logoUrl,
+                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                domainSuffix: subdomainSuffix(),
+                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+              }
               : null,
         } as JWT;
       };
@@ -1230,8 +1230,13 @@ export const getOptions = ({
           } else {
             return true;
           }
-        } catch (err) {
-          log.error("Error creating a new user", err);
+        } catch (err: any) {
+          log.error("Error creating a new user during OAuth sign-in", {
+            email: user.email,
+            provider: account.provider,
+            error: err instanceof Error ? err.message : String(err),
+            code: err?.code,
+          });
           return `/auth/error?error=user-creation-error`;
         }
       }
