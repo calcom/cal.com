@@ -3752,9 +3752,19 @@ checksums:
     claim_username_no_card_required: cb30ec684f1dddfb921524b81510ce1d
     claim_username_instant_setup_title: 26d07881262f7b62e6fc52eb11b2f84b
     claim_username_instant_setup_description: 80b9dea06c365e0778c838f187d9f605
-    claim_username_trusted_by_professionals_title: e5c2fd33438875d603f791c1350ae7d7
-    claim_username_trusted_by_professionals_description: 531b5b61ec2b2b2899fc5a86531a8b2a
+    claim_username_trusted_by_professionals_title: fe42f97809c24d700d3912c8d02ed452
+    claim_username_trusted_by_professionals_description: 51e7ee442baf3e5ee36ec0e061bcd25d
     claim_username_yours_forever_title: ac852df940b86b0ce4a00d8e653fda02
     claim_username_yours_forever_description: 951b747e0f49e8c51c5568298c818382
     workflow_trigger: 9491a3c411c62187e75a887b6ee0c829
     worflow_trigger_channel: f17d1e60675ab8ccd347f195e59557be
+    yourname_title_page: 4bd7f31f82215d662722802b501b0901
+    yourname_description_page: caf2f2d0cde22145c6ef59e7401dc34c
+    yourname_title: 6567a23a27526071a951f05f96cb86d3
+    yourname_description: 6f948b6f9eb5164f2c3a8cda6b1d1828
+    smart_suggestions: 28b36048fd93a771131a2618a937f7ca
+    loading_suggestions: d930147165bb4b773de2343b41395b6a
+    shuffle: 4a972b43fe5a0b4b8ebda2dc165f3a1c
+    congratulations: adc7ca44f1d54c317491f1ba16750149
+    redirecting_in: e07f24ab81da60172cf248389e0fc14d
+    yourname_reserved: 4d7d8e992774e39a3ffb56088ca95b36
