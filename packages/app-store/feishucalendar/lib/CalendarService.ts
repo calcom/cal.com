@@ -4,25 +4,24 @@ import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
-  CalendarServiceEvent,
   CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
-import { handleFeishuError, isExpired, FEISHU_HOST } from "../common";
+import { FEISHU_HOST, handleFeishuError, isExpired } from "../common";
 import type {
   CreateAttendeesResp,
   CreateEventResp,
-  FreeBusyResp,
-  GetPrimaryCalendarsResp,
   FeishuAuthCredentials,
   FeishuEvent,
   FeishuEventAttendee,
+  FreeBusyResp,
+  GetPrimaryCalendarsResp,
   ListCalendarsResp,
   RefreshTokenResp,
 } from "../types/FeishuCalendar";
@@ -136,8 +135,8 @@ class FeishuCalendarService implements Calendar {
     let eventId = "";
     let eventRespData;
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === this.credential.id) ??
+        event.destinationCalendar[0])
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -175,8 +174,8 @@ class FeishuCalendarService implements Calendar {
 
   private createAttendees = async (event: CalendarEvent, eventId: string, credentialId: number) => {
     const mainHostDestinationCalendar = event.destinationCalendar
-      ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
-        event.destinationCalendar[0]
+      ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+        event.destinationCalendar[0])
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
@@ -430,7 +429,11 @@ class FeishuCalendarService implements Calendar {
     if (event.optionalGuestTeamMembers?.length) {
       const existingEmails = new Set(attendeeArray.map((a) => (a.third_party_email || "").toLowerCase()));
       event.optionalGuestTeamMembers.forEach((member) => {
-        if (member.email && !existingEmails.has(member.email.toLowerCase())) {
+        if (
+          member.email &&
+          member.email.toLowerCase() !== this.credential.user?.email?.toLowerCase() &&
+          !existingEmails.has(member.email.toLowerCase())
+        ) {
           attendeeArray.push({
             type: "third_party",
             is_optional: true,

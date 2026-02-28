@@ -1,3 +1,16 @@
+import process from "node:process";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
+import type {
+  Calendar,
+  CalendarEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  Person,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import type { FindFoldersResults, FindItemsResults } from "ews-javascript-api";
 import {
   Appointment,
@@ -25,20 +38,6 @@ import {
   WebCredentials,
   WellKnownFolderName,
 } from "ews-javascript-api";
-
-import { symmetricDecrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  GetAvailabilityParams,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { ExchangeAuthentication } from "../enums";
 
 class ExchangeCalendarService implements Calendar {
@@ -112,6 +111,7 @@ class ExchangeCalendarService implements Calendar {
       });
     }
 
+    appointment.OptionalAttendees.Clear();
     if (event.optionalGuestTeamMembers?.length) {
       event.optionalGuestTeamMembers.forEach((member) => {
         appointment.OptionalAttendees.Add(new Attendee(member.email));
@@ -227,8 +227,6 @@ class ExchangeCalendarService implements Calendar {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all EWS SDK declaration files when type-checking dependent packages.
  */
-export default function BuildCalendarService(
-  credential: CredentialPayload
-): Calendar {
+export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new ExchangeCalendarService(credential);
 }
