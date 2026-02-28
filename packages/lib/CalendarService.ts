@@ -884,31 +884,42 @@ export default abstract class BaseCalendarService implements Calendar {
         },
       });
 
-      const processedResponse = await Promise.all(
-        response.map(async (calendarObject) => {
-          const calendarObjectHasEtag = calendarObject.etag !== undefined;
-          const calendarObjectDataUndefined = calendarObject.data === undefined;
-          if (calendarObjectDataUndefined && calendarObjectHasEtag) {
-            const responseWithoutExpand = await fetchCalendarObjects({
-              urlFilter: (url) => this.isValidFormat(url),
-              calendar: {
-                url: sc.externalId,
-              },
-              headers,
-              expand: false,
-              timeRange: {
-                start: startISOString,
-                end: new Date(dateTo).toISOString(),
-              },
-            });
+      // Check if any objects need a fallback (expand not supported by server)
+      const needsFallback = response.some((obj) => obj.data === undefined && obj.etag !== undefined);
 
-            return responseWithoutExpand.find(
-              (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
-            );
-          }
+      if (!needsFallback) {
+        return response;
+      }
+
+      // Batch fallback: make ONE request without expand for this calendar
+      // instead of one per missing object (fixes N+1 performance issue)
+      const fallbackResponse = await fetchCalendarObjects({
+        urlFilter: (url) => this.isValidFormat(url),
+        calendar: {
+          url: sc.externalId,
+        },
+        headers,
+        expand: false,
+        timeRange: {
+          start: startISOString,
+          end: new Date(dateTo).toISOString(),
+        },
+      });
+
+      // Map each original object to its data source
+      const processedResponse = response.map((calendarObject) => {
+        if (calendarObject.data !== undefined) {
           return calendarObject;
-        })
-      );
+        }
+        if (calendarObject.etag === undefined) {
+          return calendarObject;
+        }
+        // Find the matching object from the single fallback response
+        return fallbackResponse.find(
+          (obj) => obj.url === calendarObject.url && obj.etag === calendarObject.etag
+        );
+      });
+
       return processedResponse;
     });
     const resolvedPromises = await Promise.allSettled(fetchPromises);

@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -8,9 +6,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { z } from "zod";
 import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -145,8 +142,29 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   }
 
   const profile = ctx.user.profile;
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+
+  // Pre-validate slug uniqueness with proper scoping.
+  // Team events (Round Robin, Collective, Managed parent) use @@unique([teamId, slug]).
+  // Personal events use @@unique([userId, slug]).
+  // This prevents confusing errors when a Round Robin event and a Managed event
+  // share the same slug but live under different URL namespaces.
+  const existingEvent = await eventTypeRepo.findFirstEventTypeId({
+    slug: rest.slug,
+    teamId: teamId ?? undefined,
+    userId: teamId ? undefined : userId,
+  });
+
+  if (existingEvent) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: teamId
+        ? "A team event type with this URL already exists for this team."
+        : "A personal event type with this URL already exists. Note: managed event types from your teams also share this namespace.",
+    });
+  }
+
   try {
-    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
     const eventType = await eventTypeRepo.create({
       ...data,
       profileId: profile.id,
@@ -156,7 +174,18 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     console.warn(e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
+        const target = e.meta?.target as string[];
+        if (target.includes("teamId")) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A team event type with this URL already exists for this team.",
+          });
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "A personal event type with this URL already exists. Note: managed event types from your teams also share this namespace.",
+        });
       }
     }
     throw new TRPCError({ code: "BAD_REQUEST" });
