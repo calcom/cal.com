@@ -14,6 +14,12 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
+import { LRUCache } from "lru-cache";
+
+const jcalCache = new LRUCache<string, ICAL.Component>({
+  max: 100,
+  ttl: 1000 * 60 * 5, // 5 minutes
+});
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
@@ -83,25 +89,30 @@ class ICSFeedCalendarService implements Calendar {
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {
-    const reqPromises = await Promise.allSettled(this.urls.map((x) => fetch(x).then((y) => [x, y])));
-    const reqs = reqPromises
-      .filter((x) => x.status === "fulfilled")
-      .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
-    const res = await Promise.all(reqs.map((x) => x[1].text().then((y) => [x[0], y])));
-    return res
-      .map((x) => {
+    const urlsToFetch = this.urls.filter((url) => !jcalCache.has(url));
+    if (urlsToFetch.length > 0) {
+      const reqPromises = await Promise.allSettled(urlsToFetch.map((x) => fetch(x).then((y) => [x, y] as [string, Response])));
+      const reqs = reqPromises
+        .filter((x) => x.status === "fulfilled")
+        .map((x) => (x as PromiseFulfilledResult<[string, Response]>).value);
+      const res = await Promise.all(reqs.map((x) => x[1].text().then((y) => [x[0], y])));
+
+      res.forEach((x) => {
         try {
           const jcalData = ICAL.parse(x[1]);
-          return {
-            url: x[0],
-            vcalendar: new ICAL.Component(jcalData),
-          };
+          jcalCache.set(x[0], new ICAL.Component(jcalData));
         } catch (e) {
-          console.error("Error parsing calendar object: ", e);
-          return null;
+          console.error(`Error parsing calendar object from ${x[0]}: `, e);
         }
+      });
+    }
+
+    return this.urls
+      .map((url) => {
+        const vcalendar = jcalCache.get(url);
+        return vcalendar ? { url, vcalendar } : null;
       })
-      .filter((x) => x !== null) as { url: string; vcalendar: ICAL.Component }[];
+      .filter((x): x is { url: string; vcalendar: ICAL.Component } => x !== null);
   };
 
   /**
@@ -149,29 +160,29 @@ class ICSFeedCalendarService implements Calendar {
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
-      vevents.forEach((vevent) => {
-        // if event status is free or transparent, DON'T return (unlike usual getAvailability)
-        //
-        // commented out because a lot of public ICS feeds that describe stuff like
-        // public holidays have them marked as transparent. if that is explicitly
-        // added to cal.com as an ICS feed, it should probably not be ignored.
-        // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
+      const vtimezones = vcalendar.getAllSubcomponents("vtimezone");
+      const timezoneCache = new Map<string, ICAL.Timezone>();
 
+      vevents.forEach((vevent) => {
         const event = new ICAL.Event(vevent);
+        // Quick check: if the event is definitely outside our range and not recurring, skip it
+        if (!event.isRecurring()) {
+          const eventStart = event.startDate.toJSDate().getTime();
+          const eventEnd = event.endDate.toJSDate().getTime();
+          if (eventEnd < dateFrom || eventStart > dateTo) return;
+        }
+
         const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
 
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
-        // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
         const isUTC = timezone === "Z";
 
-        // Fix precedence: prioritize TZID from DTSTART property, then standalone TZID, then UTC, then fallback
         const tzid: string | undefined =
           tzidFromDtstart || vevent?.getFirstPropertyValue("tzid") || (isUTC ? "UTC" : timezone);
-        // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
+
         if (!vcalendar.getFirstSubcomponent("vtimezone")) {
           const timezoneToUse = tzid || userTimeZone;
           if (timezoneToUse) {
@@ -180,37 +191,36 @@ class ICSFeedCalendarService implements Calendar {
               timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
               const standard = new ICAL.Component("standard");
 
-              // get timezone offset
               const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
               const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
 
-              // set timezone offset
               standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
               standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-              // provide a standard dtstart
               standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
               timezoneComp.addSubcomponent(standard);
               vcalendar.addSubcomponent(timezoneComp);
+              vtimezones.push(timezoneComp);
             } catch (e) {
-              // Adds try-catch to ensure the code proceeds when Apple Calendar provides non-standard TZIDs
               console.log("error in adding vtimezone", e);
             }
-          } else {
-            console.error("No timezone found");
           }
         }
 
-        let vtimezone = null;
+        let vtimezoneComp = null;
         if (tzid) {
-          const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
-          vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
+          vtimezoneComp = vtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
         }
 
-        if (!vtimezone) {
-          vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+        if (!vtimezoneComp) {
+          vtimezoneComp = vcalendar.getFirstSubcomponent("vtimezone");
         }
 
-        // mutate event to consider travel time
+        const zone = vtimezoneComp ? (timezoneCache.get(vtimezoneComp.toString()) || (() => {
+          const z = new ICAL.Timezone(vtimezoneComp);
+          timezoneCache.set(vtimezoneComp.toString(), z);
+          return z;
+        })()) : null;
+
         applyTravelDuration(event, getTravelDurationInSeconds(vevent));
 
         if (event.isRecurring()) {
@@ -228,63 +238,46 @@ class ICSFeedCalendarService implements Calendar {
           startDate.second = event.startDate.second;
           const iterator = event.iterator(startDate);
           let current: ICAL.Time;
-          let currentEvent;
-          let currentStart = null;
-          let currentError;
 
-          while (
-            maxIterations > 0 &&
-            (currentStart === null || currentStart.isAfter(end) === false) &&
-            // this iterator was poorly implemented, normally done is expected to be
-            // returned
-            (current = iterator.next())
-          ) {
+          while (maxIterations > 0 && (current = iterator.next())) {
             maxIterations -= 1;
-
+            let currentEvent;
             try {
-              // @see https://github.com/mozilla-comm/ical.js/issues/514
               currentEvent = event.getOccurrenceDetails(current);
             } catch (error) {
-              if (error instanceof Error && error.message !== currentError) {
-                currentError = error.message;
-              }
+              continue;
             }
-            if (!currentEvent) return;
-            // do not mix up caldav and icalendar! For the recurring events here, the timezone
-            // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
-            // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
-            if (vtimezone) {
-              const zone = new ICAL.Timezone(vtimezone);
+            if (!currentEvent) break;
+
+            if (zone) {
               currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
               currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
             }
-            currentStart = dayjs(currentEvent.startDate.toJSDate());
 
-            if (currentStart.isBetween(start, end) === true) {
+            const currentStartMillis = currentEvent.startDate.toJSDate().getTime();
+            const currentEndMillis = currentEvent.endDate.toJSDate().getTime();
+
+            if (currentStartMillis <= dateTo && currentEndMillis >= dateFrom) {
               events.push({
-                start: currentStart.toISOString(),
-                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+                start: currentEvent.startDate.toJSDate().toISOString(),
+                end: currentEvent.endDate.toJSDate().toISOString(),
                 title,
               });
             }
-          }
-          if (maxIterations <= 0) {
-            console.warn("could not find any occurrence for recurring event in 365 iterations");
+
+            if (currentStartMillis > dateTo) break;
           }
           return;
         }
 
-        if (vtimezone) {
-          const zone = new ICAL.Timezone(vtimezone);
+        if (zone) {
           event.startDate = event.startDate.convertToZone(zone);
           event.endDate = event.endDate.convertToZone(zone);
         }
 
-        const finalStartISO = dayjs(event.startDate.toJSDate()).toISOString();
-        const finalEndISO = dayjs(event.endDate.toJSDate()).toISOString();
-        return events.push({
-          start: finalStartISO,
-          end: finalEndISO,
+        events.push({
+          start: event.startDate.toJSDate().toISOString(),
+          end: event.endDate.toJSDate().toISOString(),
           title,
         });
       });
