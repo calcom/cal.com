@@ -1336,6 +1336,261 @@ describe("Cancel Booking", () => {
     ).rejects.toThrow("This event type does not allow cancellations");
   });
 
+  test("Should block unauthenticated cancellation when disableCancelling is enabled (security: prevent cancelledBy spoofing)", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "unauthenticated-spoof-test";
+    const idOfBookingToBeCancelled = 8094;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: true,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // Unauthenticated user (userId = -1) trying to spoof host via cancelledBy
+    // Should be blocked even though cancelledBy matches organizer email
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email, // Attempting to spoof as organizer
+          cancellationReason: "Trying to bypass disableCancelling via spoofed email",
+        },
+        userId: -1, // Unauthenticated (sentinel value from apps/web/app/api/cancel/route.ts)
+        actionSource: "WEBAPP",
+      })
+    ).rejects.toThrow("This event type does not allow cancellations");
+  });
+
+  test("Should block cancellation with invalid userId even when cancelledBy matches organizer (security: prevent cancelledBy spoofing)", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "invalid-userid-spoof-test";
+    const idOfBookingToBeCancelled = 8095;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: true,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    // Attacker with arbitrary userId trying to spoof host via cancelledBy
+    // Should be blocked - cancelledBy is untrusted user input
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email, // Attempting to spoof as organizer
+          cancellationReason: "Attacker trying to bypass disableCancelling",
+        },
+        userId: 999, // Random userId that doesn't match any host
+        actionSource: "WEBAPP",
+      })
+    ).rejects.toThrow("This event type does not allow cancellations");
+  });
+
+  test("Should treat unauthenticated cancellation as guest cancellation (requires reason based on guest rules)", async () => {
+    const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+    const booker = getBooker({
+      email: "booker@example.com",
+      name: "Booker",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+      credentials: [getGoogleCalendarCredential()],
+      selectedCalendars: [TestData.selectedCalendars.google],
+    });
+
+    const uidOfBookingToBeCancelled = "unauthenticated-reason-test";
+    const idOfBookingToBeCancelled = 8096;
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            disableCancelling: false, // Guests can cancel
+            requiresCancellationReason: "MANDATORY_ATTENDEE_ONLY", // Guests must provide reason
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            eventTypeId: 1,
+            userId: 101,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+            status: BookingStatus.ACCEPTED,
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:30:00.000Z`,
+            attendees: [
+              {
+                email: booker.email,
+                timeZone: "Asia/Kolkata",
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["daily-video"]],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/unauthenticated-reason-test`,
+      },
+    });
+
+    mockCalendarToHaveNoBusySlots("googlecalendar", {
+      create: {
+        id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID_UNAUTH_REASON",
+      },
+    });
+
+    // Unauthenticated user (userId = -1) should be treated as guest
+    // and required to provide cancellation reason per MANDATORY_ATTENDEE_ONLY rule
+    await expect(
+      handleCancelBooking({
+        bookingData: {
+          id: idOfBookingToBeCancelled,
+          uid: uidOfBookingToBeCancelled,
+          cancelledBy: organizer.email, // Even if this matches organizer
+          cancellationReason: "", // Missing required reason
+        },
+        userId: -1, // Unauthenticated
+        actionSource: "WEBAPP",
+      })
+    ).rejects.toThrow("Cancellation reason is required");
+
+    // Should succeed with reason provided
+    const result = await handleCancelBooking({
+      bookingData: {
+        id: idOfBookingToBeCancelled,
+        uid: uidOfBookingToBeCancelled,
+        cancelledBy: organizer.email,
+        cancellationReason: "Guest providing required reason",
+      },
+      userId: -1, // Unauthenticated - treated as guest
+      actionSource: "WEBAPP",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   test("Should charge cancellation fee when attendee cancels within time threshold", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
