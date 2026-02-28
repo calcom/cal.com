@@ -228,16 +228,18 @@ export async function handler(
   const guests = (reqBody.guests || []).reduce(
     (guestArray, guest) => {
       const guestEmail = typeof guest === "string" ? guest : guest.email;
+      const isOptional = typeof guest === "string" ? false : guest.isOptional ?? false;
       guestArray.push({
         email: guestEmail,
         name: "",
         timeZone: attendeeTimezone,
         locale: "en",
         phoneNumber: null,
+        isOptional,
       });
       return guestArray;
     },
-    [] as typeof invitee
+    [] as (typeof invitee[number] & { isOptional?: boolean })[]
   );
 
   const attendeesList = [...invitee, ...guests];
