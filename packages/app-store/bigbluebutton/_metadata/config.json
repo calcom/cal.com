@@ -1,0 +1,12 @@
+{
+  "name": "BigBlueButton",
+  "title": "BigBlueButton Video",
+  "description": "Host video meetings with BigBlueButton",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "logo": "/api/app-store/bigbluebutton/icon.svg",
+  "publisher": "Cal.com",
+  "url": "https://bigbluebutton.org",
+  "docsUrl": "https://docs.bigbluebutton.org",
+  "email": "support@cal.com"
+}
