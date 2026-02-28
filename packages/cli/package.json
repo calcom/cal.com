@@ -4,7 +4,7 @@
   "description": "CLI for Cal.com API v2",
   "license": "MIT",
   "bin": {
-    "cal": "./dist/index.js"
+    "calcom": "./dist/index.js"
   },
   "files": [
     "dist"

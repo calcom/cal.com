@@ -54,7 +54,7 @@ export function getAuthToken(): string {
     if (config.oauth.accessTokenExpiresAt) {
       const expiresAt = new Date(config.oauth.accessTokenExpiresAt).valueOf();
       if (Date.now() >= expiresAt) {
-        console.warn("OAuth access token has expired. Please run 'cal login --oauth' to re-authenticate.");
+        console.warn("OAuth access token has expired. Please run 'calcom login --oauth' to re-authenticate.");
         process.exit(1);
       }
     }
@@ -66,7 +66,7 @@ export function getAuthToken(): string {
   }
 
   console.error(
-    'No credentials found. Run "cal login" to authenticate with an API key or "cal login --oauth" for OAuth.'
+    'No credentials found. Run "calcom login" to authenticate with an API key or "calcom login --oauth" for OAuth.'
   );
   process.exit(1);
 }

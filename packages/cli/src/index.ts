@@ -19,7 +19,7 @@ import { registerWebhooksCommand } from "./commands/webhooks";
 const program: Command = new Command();
 
 program
-  .name("cal")
+  .name("calcom")
   .description("Cal.com CLI - Manage your Cal.com account from the command line")
   .version("0.0.1");
 

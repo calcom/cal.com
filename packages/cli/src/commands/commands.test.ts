@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, type Command as CommandType } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiRequest: ReturnType<typeof vi.fn> = vi.fn();
@@ -40,7 +40,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerAgendaCommand(program);
-      const agendaCmd = program.commands.find((c) => c.name() === "agenda");
+      const agendaCmd = program.commands.find((c: CommandType) => c.name() === "agenda");
       expect(agendaCmd).toBeDefined();
       expect(agendaCmd?.description()).toBe("Show upcoming bookings");
     });
@@ -83,7 +83,7 @@ describe("commands", () => {
       registerAgendaCommand(program);
       await program.parseAsync(["agenda"], { from: "user" });
 
-      const output = logSpy.mock.calls.map((c) => String(c[0])).join(" ");
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(" ");
       expect(output).toContain("No upcoming bookings");
     });
 
@@ -132,7 +132,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerMeCommand(program);
-      const meCmd = program.commands.find((c) => c.name() === "me");
+      const meCmd = program.commands.find((c: CommandType) => c.name() === "me");
       expect(meCmd).toBeDefined();
       expect(meCmd?.alias()).toBe("whoami");
     });
@@ -171,7 +171,7 @@ describe("commands", () => {
       registerMeCommand(program);
       await program.parseAsync(["me"], { from: "user" });
 
-      const output = logSpy.mock.calls.map((c) => String(c[0])).join(" ");
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(" ");
       expect(output).toContain("No profile data");
     });
 
@@ -204,7 +204,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerLoginCommand(program);
-      const loginCmd = program.commands.find((c) => c.name() === "login");
+      const loginCmd = program.commands.find((c: CommandType) => c.name() === "login");
       expect(loginCmd).toBeDefined();
     });
 
@@ -237,7 +237,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerLogoutCommand(program);
-      const logoutCmd = program.commands.find((c) => c.name() === "logout");
+      const logoutCmd = program.commands.find((c: CommandType) => c.name() === "logout");
       expect(logoutCmd).toBeDefined();
     });
 
@@ -258,10 +258,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
-      const bookingsCmd = program.commands.find((c) => c.name() === "bookings");
+      const bookingsCmd = program.commands.find((c: CommandType) => c.name() === "bookings");
       expect(bookingsCmd).toBeDefined();
 
-      const subcommands = bookingsCmd?.commands.map((c) => c.name());
+      const subcommands = bookingsCmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("get");
       expect(subcommands).toContain("create");
@@ -381,10 +381,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerEventTypesCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "event-types");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "event-types");
       expect(cmd).toBeDefined();
 
-      const subcommands = cmd?.commands.map((c) => c.name());
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("get");
       expect(subcommands).toContain("create");
@@ -445,10 +445,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerSchedulesCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "schedules");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "schedules");
       expect(cmd).toBeDefined();
 
-      const subcommands = cmd?.commands.map((c) => c.name());
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("get");
       expect(subcommands).toContain("get-default");
@@ -484,10 +484,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerWebhooksCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "webhooks");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "webhooks");
       expect(cmd).toBeDefined();
 
-      const subcommands = cmd?.commands.map((c) => c.name());
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("get");
       expect(subcommands).toContain("create");
@@ -514,7 +514,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerCalendarsCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "calendars");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "calendars");
       expect(cmd).toBeDefined();
     });
 
@@ -546,10 +546,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerConferencingCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "conferencing");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "conferencing");
       expect(cmd).toBeDefined();
 
-      const subcommands = cmd?.commands.map((c) => c.name());
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("default");
       expect(subcommands).toContain("disconnect");
@@ -562,10 +562,10 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerApiKeysCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "api-keys");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "api-keys");
       expect(cmd).toBeDefined();
 
-      const subcommands = cmd?.commands.map((c) => c.name());
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
       expect(subcommands).toContain("list");
       expect(subcommands).toContain("get");
       expect(subcommands).toContain("create");
@@ -579,7 +579,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerTimezonesCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "timezones");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "timezones");
       expect(cmd).toBeDefined();
     });
 
@@ -596,7 +596,7 @@ describe("commands", () => {
       await program.parseAsync(["timezones"], { from: "user" });
 
       expect(mockApiRequest).toHaveBeenCalledWith("/v2/timezones");
-      const output = logSpy.mock.calls.map((c) => String(c[0])).join("\n");
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
       expect(output).toContain("America/New_York");
     });
 
@@ -609,7 +609,7 @@ describe("commands", () => {
       registerTimezonesCommand(program);
       await program.parseAsync(["timezones"], { from: "user" });
 
-      const output = logSpy.mock.calls.map((c) => String(c[0])).join("\n");
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
       expect(output).toContain("No timezones");
     });
   });
@@ -620,7 +620,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerSlotsCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "slots");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "slots");
       expect(cmd).toBeDefined();
     });
   });
@@ -631,7 +631,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerDestinationCalendarsCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "destination-calendars");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "destination-calendars");
       expect(cmd).toBeDefined();
     });
   });
@@ -642,7 +642,7 @@ describe("commands", () => {
       const program = new Command();
       program.exitOverride();
       registerSelectedCalendarsCommand(program);
-      const cmd = program.commands.find((c) => c.name() === "selected-calendars");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "selected-calendars");
       expect(cmd).toBeDefined();
     });
   });
