@@ -8,15 +8,19 @@ import {
 } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -360,6 +364,25 @@ const handleMarkNoShow = async ({
                 }
               : undefined;
 
+            const hideBranding = await getEventTypeService().shouldHideBrandingForEventType(
+              booking.eventType.id,
+              {
+                team: booking.eventType.team
+                  ? {
+                      hideBranding: booking.eventType.team.hideBranding,
+                      parent: booking.eventType.team.parent,
+                    }
+                  : null,
+                owner: booking.eventType.owner
+                  ? {
+                      id: booking.eventType.owner.id,
+                      hideBranding: booking.eventType.owner.hideBranding,
+                      profiles: booking.eventType.owner.profiles ?? [],
+                    }
+                  : null,
+              } satisfies EventTypeBrandingData
+            );
+
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,
               title: booking.title,
@@ -394,6 +417,7 @@ const handleMarkNoShow = async ({
               eventTypeId: booking.eventType?.id,
               customReplyToEmail: booking.eventType?.customReplyToEmail,
               team,
+              hideBranding,
             };
 
             const creditService = new CreditService();
@@ -401,7 +425,7 @@ const handleMarkNoShow = async ({
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
-              hideBranding: booking.eventType.owner?.hideBranding,
+              hideBranding: calendarEvent.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
               creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
