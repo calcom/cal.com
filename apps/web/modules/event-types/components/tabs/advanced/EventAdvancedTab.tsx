@@ -69,6 +69,7 @@ import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { DisableReschedulingCustomClassNames } from "./DisableReschedulingController";
 import DisableReschedulingController from "./DisableReschedulingController";
 import { FormBuilder } from "./FormBuilder";
+import OptionalTeamGuestSetting from "./OptionalTeamGuestSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -1577,6 +1578,10 @@ export const EventAdvancedTab = ({
             </>
           )}
         />
+      )}
+
+      {team?.members && team.members.length > 0 && (
+        <OptionalTeamGuestSetting teamMembers={team.members} />
       )}
 
       {team?.parentId && (

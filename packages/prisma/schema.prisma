@@ -290,6 +290,7 @@ model EventType {
   rrHostSubsetEnabled           Boolean                        @default(false)
   requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
   enablePerHostLocations        Boolean                        @default(false)
+  optionalGuestTeamMembers      User[]                         @relation("optional_guest_team_members")
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
@@ -519,6 +520,8 @@ model User {
   agents                         Agent[]
   oAuthClients                   OAuthClient[]
   holidaySettings                UserHolidaySettings?
+
+  optionalGuestEventTypes EventType[] @relation("optional_guest_team_members")
 
   autoOptInFeatures Boolean @default(false)
 

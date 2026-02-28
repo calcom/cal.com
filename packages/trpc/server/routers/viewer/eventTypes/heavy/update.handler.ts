@@ -103,6 +103,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettings,
     hostGroups,
     enablePerHostLocations,
+    optionalGuestTeamMembers,
     ...rest
   } = input;
 
@@ -258,6 +259,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
     ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
+    ...(optionalGuestTeamMembers !== undefined && {
+      optionalGuestTeamMembers: {
+        set: (optionalGuestTeamMembers || []).map((m) => ({ id: m.id })),
+      },
+    }),
   };
   data.locations = locations ?? undefined;
 

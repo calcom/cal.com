@@ -231,6 +231,7 @@ export interface CalendarEvent {
     category: string; // Translated label like "Routed", "Reassigned", etc.
     details?: string | null; // The detailed reason string
   } | null;
+  optionalGuestTeamMembers?: { name: string; email: string }[];
 }
 
 export interface EntryPoint {

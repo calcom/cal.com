@@ -149,6 +149,8 @@ export const useEventTypeForm = ({
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
       showOptimizedSlots: eventType.showOptimizedSlots ?? false,
       enablePerHostLocations: eventType.enablePerHostLocations ?? false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      optionalGuestTeamMembers: ((eventType as any).optionalGuestTeamMembers || []).map((m: { id: number }) => ({ id: m.id })),
     };
   }, [eventType, periodDates]);
 

@@ -564,6 +564,14 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withOptionalGuestTeamMembers(members?: { name: string; email: string }[]) {
+    this.event = {
+      ...this.event,
+      optionalGuestTeamMembers: members || [],
+    };
+    return this;
+  }
+
   withHideBranding(hideBranding?: boolean) {
     this.event = {
       ...this.event,

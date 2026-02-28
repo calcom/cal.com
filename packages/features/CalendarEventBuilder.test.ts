@@ -692,6 +692,77 @@ describe("CalendarEventBuilder", () => {
     }
   });
 
+  it("should create an event with optional guest team members", () => {
+    const optionalGuests = [
+      { name: "Alice Smith", email: "alice@example.com" },
+      { name: "Bob Jones", email: "bob@example.com" },
+    ];
+
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withOptionalGuestTeamMembers(optionalGuests)
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.optionalGuestTeamMembers).toEqual(optionalGuests);
+      expect(event.optionalGuestTeamMembers).toHaveLength(2);
+      expect(event.optionalGuestTeamMembers?.[0].email).toBe("alice@example.com");
+      expect(event.optionalGuestTeamMembers?.[1].name).toBe("Bob Jones");
+    }
+  });
+
+  it("should create an event with empty optional guest team members", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withOptionalGuestTeamMembers([])
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.optionalGuestTeamMembers).toEqual([]);
+    }
+  });
+
+  it("should default optional guest team members to empty array when undefined", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withOptionalGuestTeamMembers(undefined)
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.optionalGuestTeamMembers).toEqual([]);
+    }
+  });
+
   it("should create a complete calendar event with all properties", () => {
     const event = new CalendarEventBuilder()
       .withBasicDetails({
