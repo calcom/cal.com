@@ -40,8 +40,8 @@ describe("Sheet", () => {
     expect(SheetDescription.displayName).toBe("SheetDescription");
   });
 
-  it("SheetContent has correct displayName for content", () => {
-    expect(SheetContent.displayName).toBe("SheetContent");
+  it("SheetFooter has correct displayName", () => {
+    expect(SheetFooter.displayName).toBe("SheetFooter");
   });
 
   it("exports SheetClose", () => {
