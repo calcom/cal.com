@@ -1,18 +1,6 @@
 import { isValidPhoneNumber, parsePhoneNumberFromString } from "libphonenumber-js/max";
 import { describe, expect, it } from "vitest";
-
-/**
- * Mirror of CUSTOM_PHONE_MASKS from PhoneInput.tsx.
- * We duplicate it here because the component file has React/DOM dependencies
- * that make it hard to import in a pure unit test without a full browser env.
- */
-const CUSTOM_PHONE_MASKS: Record<string, string> = {
-  ci: ".. .. .. .. ..",
-  bj: ".. .. .. .. ..",
-  at: "... ..........",
-  ar: "(..) .........",
-  fi: ".. ... .. ...",
-};
+import { CUSTOM_PHONE_MASKS } from "./phone-masks";
 
 /** Count the digit placeholders (dots) in a react-phone-input-2 mask */
 const countMaskDigits = (mask: string): number => (mask.match(/\./g) || []).length;
@@ -46,7 +34,7 @@ describe("CUSTOM_PHONE_MASKS", () => {
         const parsed = parsePhoneNumberFromString(number);
         expect(parsed, `Failed to parse ${description}: ${number}`).toBeTruthy();
 
-        const nationalDigits = parsed!.nationalNumber.length;
+        const nationalDigits = parsed?.nationalNumber.length ?? 0;
         expect(maskDigits).toBeGreaterThanOrEqual(
           nationalDigits,
           `Mask for ${countryCode} has ${maskDigits} digit slots but ${description} (${number}) needs ${nationalDigits} national digits`
