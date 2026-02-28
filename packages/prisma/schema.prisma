@@ -853,6 +853,7 @@ model Attendee {
   bookingId   Int?
   bookingSeat BookingSeat?
   noShow      Boolean?     @default(false)
+  ional       Boolean      @default(false)
 
   @@index([email])
   @@index([bookingId])

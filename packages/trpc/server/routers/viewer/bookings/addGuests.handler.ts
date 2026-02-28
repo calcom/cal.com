@@ -68,6 +68,7 @@ export const addGuestsHandler = async ({
     email: guest.email,
     timeZone: guest.timeZone || organizer.timeZone,
     locale: guest.language || organizer.locale,
+    isOptional: guest.isOptional ?? false,
   }));
 
   const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
@@ -226,6 +227,7 @@ export async function sanitizeAndFilterGuests(
     timeZone?: string;
     phoneNumber?: string;
     language?: string;
+    isOptional?: boolean;
   }>,
   booking: Booking
 ): Promise<
@@ -235,6 +237,7 @@ export async function sanitizeAndFilterGuests(
     timeZone?: string;
     phoneNumber?: string;
     language?: string;
+    isOptional?: boolean;
   }>
 > {
   const guestEmails = guests.map((guest) => guest.email);

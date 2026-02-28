@@ -227,8 +227,9 @@ export async function handler(
 
   const guests = (reqBody.guests || []).reduce(
     (guestArray, guest) => {
+      const guestEmail = typeof guest === "string" ? guest : guest.email;
       guestArray.push({
-        email: guest,
+        email: guestEmail,
         name: "",
         timeZone: attendeeTimezone,
         locale: "en",

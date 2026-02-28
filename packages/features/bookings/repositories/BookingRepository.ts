@@ -1845,6 +1845,7 @@ export class BookingRepository implements IBookingRepository {
       timeZone: string;
       locale: string | null;
       phoneNumber?: string | null;
+      isOptional?: boolean;
     }[];
     updatedResponses: Prisma.InputJsonValue;
   }) {

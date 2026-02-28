@@ -6,6 +6,7 @@ type TGuestSchema = {
   timeZone?: string;
   phoneNumber?: string;
   language?: string;
+  isOptional?: boolean;
 };
 
 const ZGuestSchema: z.ZodType<TGuestSchema> = z.object({
@@ -14,6 +15,7 @@ const ZGuestSchema: z.ZodType<TGuestSchema> = z.object({
   timeZone: z.string().optional(),
   phoneNumber: z.string().optional(),
   language: z.string().optional(),
+  isOptional: z.boolean().optional(),
 });
 
 export type TAddGuestsInputSchema = {

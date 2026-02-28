@@ -54,7 +54,7 @@ export function getiCalEventAsString(
         name: booking.attendees[0].name,
         email: booking.attendees[0].email,
         partstat: "ACCEPTED",
-        role: "REQ-PARTICIPANT",
+        role: booking.attendees[0].isOptional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT",
         rsvp: true,
       },
     ],

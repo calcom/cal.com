@@ -102,7 +102,17 @@ export type ExtendedBookingCreateBody = z.input<typeof extendedBookingCreateBody
 export const bookingCreateSchemaLegacyPropsForApi = z.object({
   email: z.string(),
   name: z.string(),
-  guests: z.array(z.string()).optional(),
+  guests: z
+    .array(
+      z.union([
+        z.string(),
+        z.object({
+          email: z.string(),
+          isOptional: z.boolean().optional(),
+        }),
+      ])
+    )
+    .optional(),
   notes: z.string().optional(),
   location: z.string(),
   smsReminderNumber: z.string().optional().nullable(),

@@ -1394,7 +1394,9 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
-  const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
+  const guestEmails = (reqGuests || []).map((guest) =>
+    extractBaseEmail(typeof guest === "string" ? guest : guest.email).toLowerCase()
+  );
   const guestUsers = await deps.userRepository.findManyByEmailsWithEmailVerificationSettings({
     emails: guestEmails,
   });
@@ -1407,24 +1409,25 @@ async function handler(
 
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
-    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    const guestEmail = typeof guest === "string" ? guest : guest.email;
+    const baseGuestEmail = extractBaseEmail(guestEmail).toLowerCase();
 
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
-      guestsRemoved.push(guest);
+      guestsRemoved.push(guestEmail);
       return guestArray;
     }
 
     if (emailToRequiresVerification.get(baseGuestEmail)) {
-      guestsRemoved.push(guest);
+      guestsRemoved.push(guestEmail);
       return guestArray;
     }
 
     // If it's a team event, remove the team member from guests
-    if (isTeamEventType && users.some((user) => user.email === guest)) {
+    if (isTeamEventType && users.some((user) => user.email === guestEmail)) {
       return guestArray;
     }
     guestArray.push({
-      email: guest,
+      email: guestEmail,
       name: "",
       firstName: "",
       lastName: "",

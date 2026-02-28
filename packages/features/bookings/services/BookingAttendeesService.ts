@@ -64,6 +64,7 @@ export class BookingAttendeesService {
       timeZone: a.timeZone || organizer.timeZone,
       locale: a.language || organizer.locale,
       phoneNumber: a.phoneNumber || null,
+      isOptional: a.isOptional ?? false,
     }));
 
     const attendeeEmail = attendee.email;
