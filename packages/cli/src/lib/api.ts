@@ -7,6 +7,33 @@ interface ApiRequestOptions {
   headers?: Record<string, string>;
 }
 
+interface ValidationConstraints {
+  [key: string]: string;
+}
+
+interface ValidationError {
+  property?: string;
+  constraints?: ValidationConstraints;
+  children?: ValidationError[];
+}
+
+interface ApiErrorDetails {
+  message?: string;
+  errors?: ValidationError[];
+}
+
+interface ApiErrorBody {
+  status?: string;
+  message?: string;
+  error?:
+    | string
+    | {
+        code?: string;
+        message?: string;
+        details?: string | ApiErrorDetails;
+      };
+}
+
 interface ApiResponse<T = unknown> {
   status: string;
   data?: T;
@@ -19,7 +46,7 @@ interface ApiResponse<T = unknown> {
   };
 }
 
-export async function apiRequest<T = unknown>(
+async function apiRequest<T = unknown>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<ApiResponse<T>> {
@@ -69,12 +96,15 @@ export async function apiRequest<T = unknown>(
     let errorBody: string;
     try {
       errorBody = await response.text();
+      if (!errorBody) {
+        errorBody = `HTTP ${response.status} ${response.statusText}`;
+      }
     } catch {
       errorBody = `HTTP ${response.status} ${response.statusText}`;
     }
     try {
-      const parsed = JSON.parse(errorBody) as { message?: string; error?: string };
-      const message = parsed.message || parsed.error || errorBody;
+      const parsed = JSON.parse(errorBody) as ApiErrorBody;
+      const message = formatApiError(parsed);
       throw new Error(`API Error (${response.status}): ${message}`);
     } catch (e) {
       if (e instanceof Error && e.message.startsWith("API Error")) {
@@ -86,3 +116,78 @@ export async function apiRequest<T = unknown>(
 
   return (await response.json()) as ApiResponse<T>;
 }
+
+function extractValidationMessages(errors: ValidationError[]): string[] {
+  const messages: string[] = [];
+  for (const err of errors) {
+    if (err.constraints) {
+      const constraintValues = Object.values(err.constraints);
+      for (const msg of constraintValues) {
+        if (err.property) {
+          messages.push(`${err.property}: ${msg}`);
+        } else {
+          messages.push(msg);
+        }
+      }
+    }
+    if (err.children && err.children.length > 0) {
+      const childMessages = extractValidationMessages(err.children);
+      for (const childMsg of childMessages) {
+        if (err.property) {
+          messages.push(`${err.property}.${childMsg}`);
+        } else {
+          messages.push(childMsg);
+        }
+      }
+    }
+  }
+  return messages;
+}
+
+function formatApiError(body: ApiErrorBody): string {
+  // Case 1: error is an object (HttpExceptionFilter, ZodExceptionFilter, etc.)
+  if (body.error && typeof body.error === "object") {
+    const errorObj = body.error;
+
+    // Case 1a: error.details contains validation errors array
+    if (errorObj.details && typeof errorObj.details === "object") {
+      const details = errorObj.details;
+      if (details.errors && Array.isArray(details.errors) && details.errors.length > 0) {
+        const validationMessages = extractValidationMessages(details.errors);
+        if (validationMessages.length > 0) {
+          return validationMessages.join("; ");
+        }
+      }
+    }
+
+    // Case 1b: error.message is a string
+    if (typeof errorObj.message === "string" && errorObj.message.length > 0) {
+      return errorObj.message;
+    }
+
+    // Case 1c: error.details is a plain string
+    if (typeof errorObj.details === "string" && errorObj.details.length > 0) {
+      return errorObj.details;
+    }
+
+    // Case 1d: error.code is present but no message
+    if (typeof errorObj.code === "string" && errorObj.code.length > 0) {
+      return errorObj.code;
+    }
+  }
+
+  // Case 2: error is a plain string
+  if (typeof body.error === "string" && body.error.length > 0) {
+    return body.error;
+  }
+
+  // Case 3: top-level message (some simpler error responses)
+  if (typeof body.message === "string" && body.message.length > 0) {
+    return body.message;
+  }
+
+  // Case 4: fallback to JSON representation
+  return JSON.stringify(body);
+}
+
+export { apiRequest, formatApiError };
