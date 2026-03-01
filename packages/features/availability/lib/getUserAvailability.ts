@@ -148,6 +148,12 @@ export type GetUserAvailabilityInitialData = {
   })[];
   busyTimesFromLimitsBookings?: EventBusyDetails[];
   busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
+  /**
+   * Busy times of guests (attendees who are not the host) from the booking being rescheduled.
+   * Injected by the slots service when `rescheduleUid` is present so that the availability
+   * calculation blocks any slot that conflicts with a guest's existing accepted booking.
+   */
+  guestBusyTimes?: EventBusyDetails[];
   eventTypeForLimits?: {
     id: number;
     bookingLimits?: unknown;
@@ -622,6 +628,8 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      // Guest busy times from the booking being rescheduled: prevents double-booking guests.
+      ...(initialData?.guestBusyTimes ?? []),
     ];
 
     log.debug(
