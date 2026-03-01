@@ -10,7 +10,7 @@ type HasActiveTeamPlanOptions = {
 };
 
 export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlanOptions) => {
-  return checkUserHasActivePaidTeamPlan(ctx.user.id, { ownerOnly: input?.ownerOnly });
+  return await checkUserHasActivePaidTeamPlan(ctx.user.id, { ownerOnly: input?.ownerOnly });
 };
 
 export default hasActiveTeamPlanHandler;

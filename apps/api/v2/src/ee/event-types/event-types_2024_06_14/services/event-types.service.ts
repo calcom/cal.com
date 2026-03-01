@@ -315,12 +315,6 @@ export class EventTypesService_2024_06_14 {
       this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
     }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
-    if (body.successRedirectUrl) {
-      const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({ userId: user.id, eventTypeId });
-      if (!redirectUrlCheck.allowed) {
-        throw new ForbiddenException(redirectUrlCheck.reason);
-      }
-    }
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
     await updateEventType({

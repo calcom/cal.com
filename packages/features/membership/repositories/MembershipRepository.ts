@@ -145,20 +145,6 @@ export class MembershipRepository {
     });
   }
 
-  static async hasAcceptedPublishedTeamMembership(userId: number): Promise<boolean> {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId,
-        accepted: true,
-        team: {
-          slug: { not: null },
-        },
-      },
-      select: { id: true },
-    });
-    return !!membership;
-  }
-
   static async findAcceptedMembershipsByUserIdsInTeam({
     userIds,
     teamId,
