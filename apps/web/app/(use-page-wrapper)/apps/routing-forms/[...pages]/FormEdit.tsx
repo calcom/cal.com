@@ -3,7 +3,6 @@
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -98,39 +97,6 @@ function Field({
         <FormCardBody>
           <div className="mb-3 w-full">
             <TextField
-              data-testid={`${hookFieldNamespace}.label`}
-              disabled={!!router}
-              label="Label"
-              className="grow"
-              placeholder={t("this_is_what_your_users_would_see")}
-              defaultValue={label || routerField?.label || "Field"}
-              required
-              {...hookForm.register(`${hookFieldNamespace}.label`)}
-              onChange={(e) => {
-                const newLabel = e.target.value;
-                // Use label from useWatch which is guaranteed to be the previous value
-                // since useWatch updates reactively (after re-render), not synchronously
-                const previousLabel = label || "";
-                hookForm.setValue(`${hookFieldNamespace}.label`, newLabel, {
-                  shouldDirty: true,
-                });
-                const currentIdentifier = hookForm.getValues(`${hookFieldNamespace}.identifier`);
-                // Only auto-update identifier if it was auto-generated from the previous label
-                // This preserves manual identifier changes
-                const isIdentifierGeneratedFromPreviousLabel =
-                  currentIdentifier === getFieldIdentifier(previousLabel).toLowerCase();
-                if (!currentIdentifier || isIdentifierGeneratedFromPreviousLabel) {
-                  hookForm.setValue(
-                    `${hookFieldNamespace}.identifier`,
-                    getFieldIdentifier(newLabel).toLowerCase(),
-                    { shouldDirty: true }
-                  );
-                }
-              }}
-            />
-          </div>
-          <div className="mb-3 w-full">
-            <TextField
               disabled={!!router}
               label={t("identifier_url_parameter")}
               hint={
@@ -143,12 +109,24 @@ function Field({
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
-              value={identifier || routerField?.identifier || label || routerField?.label || ""}
+              value={identifier || routerField?.identifier || ""}
               onChange={(e) => {
                 hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value.toLowerCase(), {
                   shouldDirty: true,
                 });
               }}
+            />
+          </div>
+          <div className="mb-3 w-full">
+            <TextField
+              data-testid={`${hookFieldNamespace}.label`}
+              disabled={!!router}
+              label="Label"
+              className="grow"
+              placeholder={t("this_is_what_your_users_would_see")}
+              defaultValue={label || routerField?.label || "Field"}
+              required
+              {...hookForm.register(`${hookFieldNamespace}.label`)}
             />
           </div>
           <div className="mb-3 w-full">
@@ -208,7 +186,7 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(fieldType) ? (
+          {["select", "multiselect", "radio", "checkbox"].includes(fieldType) ? (
             <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
