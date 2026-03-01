@@ -21,38 +21,24 @@ const log = logger.getSubLogger({ prefix: ["ProtonCalendarService"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-/**
- * The maximum number of recurrence iterations to expand per event.
- * Guards against infinite or extremely long RRULE expansions.
- */
+/** Guards against infinite or extremely long RRULE expansions. */
 const MAX_RECURRENCE_ITERATIONS = 365;
 
-/**
- * Network timeout for fetching the ICS feed from Proton servers (ms).
- */
+/** Network timeout for fetching the ICS feed (ms). */
 const FETCH_TIMEOUT_MS = 15_000;
 
 /**
- * Proton Calendar integration service.
+ * Proton Calendar integration — read-only ICS feed.
  *
- * Proton Calendar uses end-to-end encryption, which means there is no
- * traditional OAuth or CalDAV API available. The only supported external
- * integration method is via ICS feed URLs that Proton exposes through
- * Calendar → Settings → Share → "Link to calendar".
+ * Proton Calendar uses end-to-end encryption; no OAuth or CalDAV API is
+ * available. Integration is via the ICS share link in Proton Calendar settings.
  *
- * This service is intentionally **read-only**: it fetches the ICS feed,
- * parses events (including recurring ones), and returns busy times for
- * Cal.com's availability engine.
- *
- * Key Proton-specific behaviours handled:
- * 1. **Ghost events** — Proton includes STATUS:CANCELLED events in feeds.
- *    These must be filtered out or they create phantom busy slots.
- * 2. **Cancelled recurring occurrences** — Individual occurrences of a
- *    recurring event can be cancelled via a standalone VEVENT with
- *    STATUS:CANCELLED + RECURRENCE-ID. We track these and skip them
- *    during recurrence expansion.
- * 3. **Calendar name fallback** — x-wr-calname is often missing from
- *    Proton feeds, so we default to "Proton Calendar".
+ * Proton-specific behaviours handled:
+ * 1. Ghost events — STATUS:CANCELLED events are included in feeds and must be
+ *    filtered to avoid phantom busy slots.
+ * 2. Cancelled recurring occurrences — individual cancelled occurrences appear
+ *    as standalone VEVENTs with STATUS:CANCELLED + RECURRENCE-ID.
+ * 3. Calendar name fallback — x-wr-calname is often absent from Proton feeds.
  */
 class ProtonCalendarService implements Calendar {
   private url: string = "";
@@ -66,10 +52,6 @@ class ProtonCalendarService implements Calendar {
     const parsed = JSON.parse(decrypted);
     this.url = parsed.url;
   }
-
-  // ---------------------------------------------------------------------------
-  // Write stubs — Proton Calendar is E2E encrypted, writes are not possible
-  // ---------------------------------------------------------------------------
 
   createEvent(_event: CalendarEvent, _credentialId: number): Promise<NewCalendarEventType> {
     log.warn("createEvent called on Proton Calendar (read-only)");
@@ -108,10 +90,6 @@ class ProtonCalendarService implements Calendar {
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Core: availability — the primary value of this integration
-  // ---------------------------------------------------------------------------
-
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo } = params;
     const rangeStart = dayjs(dateFrom);
@@ -122,9 +100,6 @@ class ProtonCalendarService implements Calendar {
     const busyTimes: EventBusyDate[] = [];
 
     for (const event of events) {
-      // ----- Proton Fix #1: Skip STATUS:CANCELLED ghost events -----
-      // Proton includes cancelled events in its ICS feeds. The generic
-      // ICS feed app does not filter these, causing phantom busy slots.
       const status = event.component.getFirstPropertyValue("status") as string | null;
       if (status && status.toUpperCase() === "CANCELLED") {
         log.debug("Skipping CANCELLED event: %s", event.uid);
@@ -134,14 +109,11 @@ class ProtonCalendarService implements Calendar {
       if (event.isRecurring()) {
         const recurrenceType = event.getRecurrenceTypes();
 
-        // Skip sub-daily recurrence types (not meaningful for availability)
         if (["HOURLY", "SECONDLY", "MINUTELY"].includes(recurrenceType)) {
           log.warn("Skipping unsupported recurrence type: %s", recurrenceType);
           continue;
         }
 
-        // Begin iteration from the query window start, preserving the
-        // original event's time-of-day so we don't miss edge cases.
         const startDate = ICAL.Time.fromDateTimeString(startISOString);
         startDate.hour = event.startDate.hour;
         startDate.minute = event.startDate.minute;
@@ -157,10 +129,6 @@ class ProtonCalendarService implements Calendar {
 
           if (occurrenceStart.isAfter(rangeEnd)) break;
 
-          // ----- Proton Fix #2: Skip cancelled recurring occurrences -----
-          // When a single occurrence of a recurring event is cancelled in
-          // Proton, it appears as a standalone VEVENT with STATUS:CANCELLED
-          // and a RECURRENCE-ID matching this specific date/time.
           const occurrenceKey = `${event.uid}:${next.toISOString()}`;
           if (cancelledOccurrences.has(occurrenceKey)) {
             log.debug("Skipping cancelled recurring occurrence: %s", occurrenceKey);
@@ -182,7 +150,6 @@ class ProtonCalendarService implements Calendar {
           log.warn("Hit max iterations for recurring event %s", event.uid);
         }
       } else {
-        // Non-recurring event
         const start = dayjs(event.startDate.toJSDate());
         const end = dayjs(event.endDate.toJSDate());
 
@@ -198,20 +165,14 @@ class ProtonCalendarService implements Calendar {
     return busyTimes;
   }
 
-  // ---------------------------------------------------------------------------
-  // Calendar listing — also validates the URL works during credential setup
-  // ---------------------------------------------------------------------------
-
   async listCalendars(): Promise<IntegrationCalendar[]> {
     const { events, vcalendar } = await this.fetchAndParseICSRaw();
 
-    // If the ICS feed is unreachable or unparseable, this will throw and
-    // the credential setup in api/add.ts will catch and return an error.
     if (!vcalendar) {
       throw new Error("Could not reach Proton Calendar ICS feed");
     }
 
-    // Proton feeds often omit x-wr-calname, so we provide a sensible default.
+    // Proton feeds often omit x-wr-calname; fall back to a sensible default.
     const calName: string =
       vcalendar.getFirstPropertyValue("x-wr-calname") || "Proton Calendar";
 
@@ -226,14 +187,6 @@ class ProtonCalendarService implements Calendar {
     ];
   }
 
-  // ---------------------------------------------------------------------------
-  // ICS fetcher with Proton-specific parsing
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Fetches the ICS feed and returns parsed events + cancelled occurrence set.
-   * This is the main parsing entry point used by `getAvailability`.
-   */
   private async fetchAndParseICS(): Promise<{
     events: ICAL.Event[];
     cancelledOccurrences: Set<string>;
@@ -245,10 +198,6 @@ class ProtonCalendarService implements Calendar {
     };
   }
 
-  /**
-   * Low-level ICS fetcher that also returns the raw VCALENDAR component
-   * (needed by `listCalendars` for extracting calendar metadata).
-   */
   private async fetchAndParseICSRaw(): Promise<{
     events: ICAL.Event[];
     cancelledOccurrences: Set<string>;
@@ -267,7 +216,6 @@ class ProtonCalendarService implements Calendar {
       clearTimeout(timeout);
 
       if (!response.ok) {
-        // Provide Proton-specific guidance for common error codes
         if (response.status === 401 || response.status === 403) {
           throw new Error(
             `ICS fetch failed: HTTP ${response.status} — the Proton Calendar share link may have expired or been revoked. Please re-generate the link in Proton Calendar settings.`
@@ -283,7 +231,6 @@ class ProtonCalendarService implements Calendar {
 
       const text = await response.text();
 
-      // Sanity check — ensure we received a valid iCalendar document
       if (!text.includes("BEGIN:VCALENDAR")) {
         throw new Error("Response is not a valid iCalendar document");
       }
@@ -300,15 +247,12 @@ class ProtonCalendarService implements Calendar {
         const eventStatus = vevent.getFirstPropertyValue("status") as string | null;
         const recurrenceId = vevent.getFirstProperty("recurrence-id");
 
-        // Detect individually-cancelled occurrences of recurring events.
-        // These are standalone VEVENT entries with STATUS:CANCELLED and a
-        // RECURRENCE-ID pointing to the specific occurrence date/time.
         if (eventStatus?.toUpperCase() === "CANCELLED" && recurrenceId) {
           const rid = recurrenceId.getFirstValue() as ICAL.Time;
           const key = `${event.uid}:${rid.toISOString()}`;
           cancelledOccurrences.add(key);
           log.debug("Tracked cancelled occurrence: %s at %s", event.uid, rid.toISOString());
-          continue; // Do not add to events — this is only a cancellation marker
+          continue;
         }
 
         events.push(event);
@@ -319,12 +263,9 @@ class ProtonCalendarService implements Calendar {
       clearTimeout(timeout);
 
       if (e instanceof Error) {
-        // Redact the ICS URL from logs to avoid leaking user credentials
         const safeMessage = e.message.replaceAll(this.url, "[REDACTED_URL]");
         log.error("Proton ICS error: %s", safeMessage);
       } else {
-        // Use String() explicitly — never serialize unknown objects with %o
-        // which could inadvertently stringify objects that reference the URL.
         log.error("Proton ICS unexpected error: %s", String(e));
       }
 
@@ -333,12 +274,6 @@ class ProtonCalendarService implements Calendar {
   }
 }
 
-/**
- * Factory function that creates a Proton Calendar service instance.
- * Exported instead of the class to prevent internal types from leaking
- * into the emitted .d.ts file — follows the same pattern as the
- * ICS Feed Calendar service.
- */
 export default function BuildCalendarService(credential: CredentialPayload): Calendar {
   return new ProtonCalendarService(credential);
 }

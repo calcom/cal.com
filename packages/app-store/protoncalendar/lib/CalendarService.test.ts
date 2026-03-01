@@ -82,9 +82,6 @@ describe("ProtonCalendarService", () => {
         vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "test-key-123");
     });
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
 
     describe("constructor", () => {
         it("should decrypt the ICS URL from the credential", () => {
@@ -99,9 +96,6 @@ describe("ProtonCalendarService", () => {
         });
     });
 
-    // -------------------------------------------------------------------------
-    // getAvailability — basic events
-    // -------------------------------------------------------------------------
 
     describe("getAvailability", () => {
         it("should return busy times for events within the query range", async () => {
@@ -169,9 +163,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // getAvailability — recurring events
-    // -------------------------------------------------------------------------
 
     describe("recurring events", () => {
         it("should expand recurring events within the query range", async () => {
@@ -198,9 +189,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // Proton Fix #1: Ghost events (STATUS:CANCELLED)
-    // -------------------------------------------------------------------------
 
     describe("Proton-specific: ghost event filtering", () => {
         it("should filter out STATUS:CANCELLED events that Proton includes in feeds", async () => {
@@ -252,9 +240,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // Proton Fix #2: Cancelled recurring occurrences (RECURRENCE-ID)
-    // -------------------------------------------------------------------------
 
     describe("Proton-specific: cancelled recurring occurrences", () => {
         it("should skip individually-cancelled occurrences of recurring events", async () => {
@@ -290,9 +275,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // listCalendars
-    // -------------------------------------------------------------------------
 
     describe("listCalendars", () => {
         it("should return calendar metadata with correct fields", async () => {
@@ -323,9 +305,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // Write stubs (read-only)
-    // -------------------------------------------------------------------------
 
     describe("write operations (read-only stubs)", () => {
         it("createEvent should resolve with a warning", async () => {
@@ -349,9 +328,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // HTTP error handling — Proton-specific error messages
-    // -------------------------------------------------------------------------
 
     describe("HTTP error handling", () => {
         it("should return empty and not throw on HTTP 401 (expired share link)", async () => {
@@ -407,9 +383,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // Security: ICS URL must never appear in logs
-    // -------------------------------------------------------------------------
 
     describe("security: URL redaction in logs", () => {
         it("should NOT log the raw ICS URL when a fetch error occurs", async () => {
@@ -432,9 +405,6 @@ END:VEVENT
         });
     });
 
-    // -------------------------------------------------------------------------
-    // All-day events (DATE format, not DATETIME)
-    // -------------------------------------------------------------------------
 
     describe("all-day events", () => {
         it("should handle all-day events (DATE format) within the query range", async () => {
