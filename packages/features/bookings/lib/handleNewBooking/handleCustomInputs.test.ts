@@ -1,65 +1,88 @@
+import type { EventTypeCustomInput } from "@calcom/prisma/client";
 import { describe, expect, it } from "vitest";
 import { handleCustomInputs } from "./handleCustomInputs";
 
+function makeCustomInput(overrides: Partial<EventTypeCustomInput> = {}): EventTypeCustomInput {
+  return {
+    id: 1,
+    eventTypeId: 1,
+    label: "Company Name",
+    type: "TEXT",
+    required: true,
+    placeholder: "",
+    options: null,
+    hasToBeCreated: true,
+    ...overrides,
+  } as EventTypeCustomInput;
+}
+
 describe("handleCustomInputs", () => {
-  it("validates required text inputs", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Company", type: "TEXT", required: true, placeholder: "" },
-    ];
-    const reqCustomInputs = [{ label: "Company", value: "Cal.com" }];
+  it("passes when all required inputs are provided", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Company Name", required: true })];
+    const reqInputs = [{ label: "Company Name", value: "Acme Corp" }];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, reqCustomInputs)).not.toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).not.toThrow();
   });
 
-  it("throws when required text input is missing", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Company", type: "TEXT", required: true, placeholder: "" },
-    ];
+  it("throws when a required TEXT input is missing", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Company Name", required: true, type: "TEXT" })];
+    const reqInputs: { label: string; value: string | boolean }[] = [];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, [])).toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).toThrow();
   });
 
-  it("validates required boolean inputs", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Agree to TOS", type: "BOOL", required: true, placeholder: "" },
-    ];
-    const reqCustomInputs = [{ label: "Agree to TOS", value: true }];
+  it("throws when a required TEXT input has empty value", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Company Name", required: true, type: "TEXT" })];
+    const reqInputs = [{ label: "Company Name", value: "" }];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, reqCustomInputs)).not.toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).toThrow();
   });
 
-  it("throws when required boolean is false", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Agree to TOS", type: "BOOL", required: true, placeholder: "" },
-    ];
-    const reqCustomInputs = [{ label: "Agree to TOS", value: false }];
+  it("does not throw for non-required inputs that are missing", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Notes", required: false, type: "TEXT" })];
+    const reqInputs: { label: string; value: string | boolean }[] = [];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, reqCustomInputs)).toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).not.toThrow();
   });
 
-  it("validates required phone inputs", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Phone", type: "PHONE", required: true, placeholder: "" },
-    ];
-    const reqCustomInputs = [{ label: "Phone", value: "+14155551234" }];
+  it("throws when a required BOOL input is not true", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Agree to Terms", required: true, type: "BOOL" })];
+    const reqInputs = [{ label: "Agree to Terms", value: false }];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, reqCustomInputs)).not.toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).toThrow();
   });
 
-  it("throws for invalid phone number", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Phone", type: "PHONE", required: true, placeholder: "" },
-    ];
-    const reqCustomInputs = [{ label: "Phone", value: "not-a-phone" }];
+  it("passes when a required BOOL input is true", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Agree to Terms", required: true, type: "BOOL" })];
+    const reqInputs = [{ label: "Agree to Terms", value: true }];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, reqCustomInputs)).toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).not.toThrow();
   });
 
-  it("skips validation for non-required inputs", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Notes", type: "TEXTLONG", required: false, placeholder: "" },
+  it("throws when a required PHONE input has an invalid phone number", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Phone", required: true, type: "PHONE" })];
+    const reqInputs = [{ label: "Phone", value: "not-a-phone" }];
+
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).toThrow();
+  });
+
+  it("passes when a required PHONE input has a valid phone number", () => {
+    const eventTypeInputs = [makeCustomInput({ label: "Phone", required: true, type: "PHONE" })];
+    const reqInputs = [{ label: "Phone", value: "+14155552671" }];
+
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).not.toThrow();
+  });
+
+  it("validates multiple required inputs", () => {
+    const eventTypeInputs = [
+      makeCustomInput({ id: 1, label: "Company", required: true, type: "TEXT" }),
+      makeCustomInput({ id: 2, label: "Agree", required: true, type: "BOOL" }),
+    ];
+    const reqInputs = [
+      { label: "Company", value: "Acme" },
+      { label: "Agree", value: true },
     ];
 
-    expect(() => handleCustomInputs(eventTypeCustomInputs as never, [])).not.toThrow();
+    expect(() => handleCustomInputs(eventTypeInputs, reqInputs)).not.toThrow();
   });
 });

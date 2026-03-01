@@ -1,74 +1,100 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    getSubLogger: () => ({
+      debug: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn(),
+    }),
+  },
+}));
+
+vi.mock("@calcom/lib/safeStringify", () => ({
+  safeStringify: (v: unknown) => JSON.stringify(v),
+}));
+
+vi.mock("@calcom/lib/server/getServerErrorFromUnknown", () => ({
+  getServerErrorFromUnknown: (error: Error) => error,
+}));
+
+const mockGetOrgDomainConfig = vi.fn();
 vi.mock("@calcom/features/ee/organizations/lib/orgDomains", () => ({
-  getOrgDomainConfig: vi.fn().mockReturnValue({ currentOrgDomain: null }),
+  getOrgDomainConfig: (...args: unknown[]) => mockGetOrgDomainConfig(...args),
 }));
 
+const mockGetRoutedUsersWithContactOwnerAndFixedUsers = vi.fn();
+const mockGetNormalizedHosts = vi.fn();
+const mockFindMatchingHostsWithEventSegment = vi.fn();
 vi.mock("@calcom/features/users/lib/getRoutedUsers", () => ({
-  findMatchingHostsWithEventSegment: vi.fn().mockResolvedValue([
-    {
-      user: { id: 1, email: "host@test.com", name: "Host" },
-      isFixed: false,
-      priority: 0,
-      weight: 100,
-      createdAt: new Date(),
-      groupId: null,
-    },
-  ]),
-  getNormalizedHosts: vi.fn().mockReturnValue({
-    hosts: [{ user: { id: 1, email: "host@test.com" }, isFixed: false }],
-    fallbackHosts: [],
-  }),
-  getRoutedUsersWithContactOwnerAndFixedUsers: vi.fn().mockReturnValue([]),
+  getRoutedUsersWithContactOwnerAndFixedUsers: (...args: unknown[]) =>
+    mockGetRoutedUsersWithContactOwnerAndFixedUsers(...args),
+  getNormalizedHosts: (...args: unknown[]) => mockGetNormalizedHosts(...args),
+  findMatchingHostsWithEventSegment: (...args: unknown[]) => mockFindMatchingHostsWithEventSegment(...args),
 }));
 
-vi.mock("@calcom/features/users/repositories/UserRepository", () => {
-  class MockUserRepository {
-    _getWhereClauseForFindingUsersByUsername = vi.fn().mockResolvedValue({ where: {}, profiles: [] });
-  }
-  return {
-    UserRepository: MockUserRepository,
-    withSelectedCalendars: vi.fn((user: Record<string, unknown>) => user),
-  };
-});
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
+  UserRepository: vi.fn().mockImplementation(() => ({
+    _getWhereClauseForFindingUsersByUsername: vi.fn().mockResolvedValue({ where: {}, profiles: [] }),
+  })),
+  withSelectedCalendars: (user: Record<string, unknown>) => ({
+    ...user,
+    userLevelSelectedCalendars: [],
+    allSelectedCalendars: [],
+  }),
+}));
 
 vi.mock("@calcom/prisma", () => ({
   default: {
     user: {
-      findMany: vi
-        .fn()
-        .mockResolvedValue([{ id: 1, email: "user@test.com", username: "testuser", name: "Test" }]),
+      findMany: vi.fn().mockResolvedValue([]),
     },
   },
-  userSelect: {},
+  userSelect: { id: true, name: true, email: true, username: true },
 }));
 
 vi.mock("@calcom/prisma/selects/credential", () => ({
-  credentialForCalendarServiceSelect: {},
+  credentialForCalendarServiceSelect: { id: true, type: true },
 }));
 
 import { loadUsers } from "./loadUsers";
 
-const makeEventType = (overrides = {}) => ({
-  id: 1,
-  hosts: [{ user: { id: 1 }, isFixed: false }],
-  users: [{ id: 1 }],
-  schedulingType: null,
-  team: null,
-  assignAllTeamMembers: false,
-  assignRRMembersUsingSegment: false,
-  rrSegmentQueryValue: null,
-  ...overrides,
-});
-
 describe("loadUsers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetOrgDomainConfig.mockReturnValue({ currentOrgDomain: null });
+    mockGetRoutedUsersWithContactOwnerAndFixedUsers.mockReturnValue([]);
   });
 
-  it("loads users by event type when eventType.id exists", async () => {
+  const makeEventType = (overrides: Record<string, unknown> = {}) => ({
+    id: 1,
+    hosts: [],
+    users: [],
+    schedulingType: null,
+    team: null,
+    assignAllTeamMembers: false,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
+    ...overrides,
+  });
+
+  it("loads users by event type when eventType.id is set", async () => {
+    const hosts = [
+      {
+        user: { id: 1, name: "Host 1", username: "host1" },
+        isFixed: true,
+        priority: 1,
+        weight: 100,
+        createdAt: new Date(),
+        groupId: null,
+      },
+    ];
+    mockGetNormalizedHosts.mockReturnValue({ hosts, fallbackHosts: [] });
+    mockFindMatchingHostsWithEventSegment.mockResolvedValue(hosts);
+
     const result = await loadUsers({
-      eventType: makeEventType() as never,
+      eventType: makeEventType({ id: 1, hosts }) as Parameters<typeof loadUsers>[0]["eventType"],
       dynamicUserList: [],
       hostname: "cal.com",
       forcedSlug: undefined,
@@ -78,28 +104,42 @@ describe("loadUsers", () => {
     });
 
     expect(result).toHaveLength(1);
-    expect(result[0]).toHaveProperty("id", 1);
+    expect(result[0].id).toBe(1);
   });
 
-  it("loads dynamic users when eventType.id is 0", async () => {
+  it("returns routed users when routedTeamMemberIds match", async () => {
+    const hosts = [
+      {
+        user: { id: 1, name: "Host 1", username: "host1" },
+        isFixed: true,
+        priority: 1,
+        weight: 100,
+        createdAt: new Date(),
+        groupId: null,
+      },
+    ];
+    const routedUsers = [{ id: 1, name: "Host 1", username: "host1", isFixed: true }];
+    mockGetNormalizedHosts.mockReturnValue({ hosts, fallbackHosts: [] });
+    mockFindMatchingHostsWithEventSegment.mockResolvedValue(hosts);
+    mockGetRoutedUsersWithContactOwnerAndFixedUsers.mockReturnValue(routedUsers);
+
     const result = await loadUsers({
-      eventType: makeEventType({ id: 0 }) as never,
-      dynamicUserList: ["testuser"],
+      eventType: makeEventType({ id: 1, hosts }) as Parameters<typeof loadUsers>[0]["eventType"],
+      dynamicUserList: [],
       hostname: "cal.com",
       forcedSlug: undefined,
       isPlatform: false,
-      routedTeamMemberIds: null,
+      routedTeamMemberIds: [1],
       contactOwnerEmail: null,
     });
 
-    expect(result).toBeDefined();
-    expect(Array.isArray(result)).toBe(true);
+    expect(result).toEqual(routedUsers);
   });
 
-  it("throws when dynamic user list is empty and eventType.id is 0", async () => {
+  it("throws error when dynamicUserList is empty for dynamic booking", async () => {
     await expect(
       loadUsers({
-        eventType: makeEventType({ id: 0 }) as never,
+        eventType: makeEventType({ id: 0 }) as Parameters<typeof loadUsers>[0]["eventType"],
         dynamicUserList: [],
         hostname: "cal.com",
         forcedSlug: undefined,
@@ -107,28 +147,27 @@ describe("loadUsers", () => {
         routedTeamMemberIds: null,
         contactOwnerEmail: null,
       })
-    ).rejects.toThrow();
+    ).rejects.toThrow("dynamicUserList is not properly defined or empty.");
   });
 
-  it("returns routed users when routedTeamMemberIds match", async () => {
-    const { getRoutedUsersWithContactOwnerAndFixedUsers } = await import(
-      "@calcom/features/users/lib/getRoutedUsers"
-    );
-    vi.mocked(getRoutedUsersWithContactOwnerAndFixedUsers).mockReturnValue([
-      { id: 2, email: "routed@test.com" },
-    ] as never);
+  it("passes hostname and forcedSlug to getOrgDomainConfig", async () => {
+    mockGetNormalizedHosts.mockReturnValue({ hosts: [], fallbackHosts: [] });
+    mockFindMatchingHostsWithEventSegment.mockResolvedValue([]);
 
-    const result = await loadUsers({
-      eventType: makeEventType() as never,
+    await loadUsers({
+      eventType: makeEventType({ id: 1 }) as Parameters<typeof loadUsers>[0]["eventType"],
       dynamicUserList: [],
-      hostname: "cal.com",
-      forcedSlug: undefined,
-      isPlatform: false,
-      routedTeamMemberIds: [2],
+      hostname: "acme.cal.com",
+      forcedSlug: "acme",
+      isPlatform: true,
+      routedTeamMemberIds: null,
       contactOwnerEmail: null,
     });
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toHaveProperty("id", 2);
+    expect(mockGetOrgDomainConfig).toHaveBeenCalledWith({
+      hostname: "acme.cal.com",
+      forcedSlug: "acme",
+      isPlatform: true,
+    });
   });
 });

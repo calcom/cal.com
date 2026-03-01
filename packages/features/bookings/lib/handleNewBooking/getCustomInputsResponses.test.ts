@@ -2,58 +2,126 @@ import { describe, expect, it } from "vitest";
 import { getCustomInputsResponses } from "./getCustomInputsResponses";
 
 describe("getCustomInputsResponses", () => {
-  it("maps customInputs array to label-value record", () => {
-    const result = getCustomInputsResponses(
-      {
+  describe("when reqBody has customInputs", () => {
+    it("maps customInputs array to a label-value record", () => {
+      const reqBody = {
         customInputs: [
-          { label: "Company", value: "Acme Corp" },
-          { label: "Phone", value: "+1234567890" },
+          { label: "Company Name", value: "Acme Corp" },
+          { label: "Notes", value: "Please call ahead" },
         ],
-      },
-      []
-    );
+      };
 
-    expect(result).toEqual({ Company: "Acme Corp", Phone: "+1234567890" });
+      const result = getCustomInputsResponses(reqBody, []);
+
+      expect(result).toEqual({
+        "Company Name": "Acme Corp",
+        Notes: "Please call ahead",
+      });
+    });
+
+    it("handles boolean custom input values", () => {
+      const reqBody = {
+        customInputs: [{ label: "Agree to Terms", value: true }],
+      };
+
+      const result = getCustomInputsResponses(reqBody, []);
+
+      expect(result).toEqual({ "Agree to Terms": true });
+    });
   });
 
-  it("maps responses to customInputs format using event type custom inputs", () => {
-    const eventTypeCustomInputs = [
-      { id: 1, eventTypeId: 1, label: "Company Name", type: "TEXT", required: false, placeholder: "" },
-    ];
+  describe("when reqBody has responses (new format)", () => {
+    it("maps responses to custom input labels via slugified matching", () => {
+      const reqBody = {
+        responses: {
+          "company-name": { value: "Acme Corp" },
+        },
+      };
+      const eventTypeCustomInputs = [
+        {
+          id: 1,
+          eventTypeId: 1,
+          label: "Company Name",
+          type: "TEXT",
+          required: true,
+          placeholder: "",
+          options: null,
+          hasToBeCreated: true,
+        },
+      ];
 
-    const result = getCustomInputsResponses(
-      { responses: { "company-name": { value: "Acme" } as unknown as object } },
-      eventTypeCustomInputs as never
-    );
+      const result = getCustomInputsResponses(
+        reqBody,
+        eventTypeCustomInputs as Parameters<typeof getCustomInputsResponses>[1]
+      );
 
-    expect(result).toHaveProperty("Company Name");
+      expect(result).toEqual({
+        "Company Name": { value: "Acme Corp" },
+      });
+    });
+
+    it("ignores responses that do not match any custom input", () => {
+      const reqBody = {
+        responses: {
+          "unknown-field": { value: "ignored" },
+        },
+      };
+      const eventTypeCustomInputs = [
+        {
+          id: 1,
+          eventTypeId: 1,
+          label: "Company Name",
+          type: "TEXT",
+          required: true,
+          placeholder: "",
+          options: null,
+          hasToBeCreated: true,
+        },
+      ];
+
+      const result = getCustomInputsResponses(
+        reqBody,
+        eventTypeCustomInputs as Parameters<typeof getCustomInputsResponses>[1]
+      );
+
+      expect(result).toEqual({});
+    });
   });
 
-  it("returns empty object when no customInputs and no matching responses", () => {
-    const result = getCustomInputsResponses({ responses: { unknownField: {} } }, []);
-    expect(result).toEqual({});
+  describe("when reqBody has neither customInputs nor responses", () => {
+    it("returns an empty object", () => {
+      const result = getCustomInputsResponses({}, []);
+      expect(result).toEqual({});
+    });
   });
 
-  it("returns empty object when reqBody has empty customInputs", () => {
-    const result = getCustomInputsResponses({ customInputs: [] }, []);
-    expect(result).toEqual({});
-  });
+  describe("when customInputs is empty array", () => {
+    it("falls back to responses mapping", () => {
+      const reqBody = {
+        customInputs: [],
+        responses: {
+          notes: { value: "test" },
+        },
+      };
+      const eventTypeCustomInputs = [
+        {
+          id: 1,
+          eventTypeId: 1,
+          label: "Notes",
+          type: "TEXTLONG",
+          required: false,
+          placeholder: "",
+          options: null,
+          hasToBeCreated: true,
+        },
+      ];
 
-  it("prefers customInputs over responses when both exist", () => {
-    const result = getCustomInputsResponses(
-      {
-        customInputs: [{ label: "Company", value: "From CustomInputs" }],
-        responses: { company: { value: "From Responses" } as unknown as object },
-      },
-      []
-    );
+      const result = getCustomInputsResponses(
+        reqBody,
+        eventTypeCustomInputs as Parameters<typeof getCustomInputsResponses>[1]
+      );
 
-    expect(result).toEqual({ Company: "From CustomInputs" });
-  });
-
-  it("handles boolean custom input values", () => {
-    const result = getCustomInputsResponses({ customInputs: [{ label: "Agree to Terms", value: true }] }, []);
-
-    expect(result).toEqual({ "Agree to Terms": true });
+      expect(result).toEqual({ Notes: { value: "test" } });
+    });
   });
 });

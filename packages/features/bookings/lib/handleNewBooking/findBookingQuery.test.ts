@@ -1,19 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@calcom/prisma", () => {
-  const mockPrisma = {
-    booking: {
-      findUnique: vi.fn(),
-    },
-  };
-  return { default: mockPrisma };
-});
-
 vi.mock("@calcom/lib/sentryWrapper", () => ({
-  withReporting: vi.fn((fn: (...args: never[]) => unknown) => fn),
+  withReporting: (fn: (...args: never[]) => unknown) => fn,
 }));
 
-import prisma from "@calcom/prisma";
+const mockFindUnique = vi.fn();
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    booking: {
+      findUnique: (...args: unknown[]) => mockFindUnique(...args),
+    },
+  },
+}));
+
 import { findBookingQuery } from "./findBookingQuery";
 
 describe("findBookingQuery", () => {
@@ -21,29 +20,29 @@ describe("findBookingQuery", () => {
     vi.clearAllMocks();
   });
 
-  it("returns booking data when found", async () => {
+  it("returns the booking when found", async () => {
     const mockBooking = {
-      uid: "test-uid",
-      location: "zoom",
-      startTime: new Date("2024-01-15T10:00:00Z"),
-      endTime: new Date("2024-01-15T10:30:00Z"),
-      title: "Meeting",
-      description: "A meeting",
+      uid: "uid-123",
+      location: "https://meet.example.com",
+      startTime: new Date("2025-06-01T10:00:00Z"),
+      endTime: new Date("2025-06-01T10:30:00Z"),
+      title: "Test Booking",
+      description: "A test",
       status: "ACCEPTED",
       responses: {},
       metadata: {},
       user: {
-        uuid: "u-1",
-        name: "Host",
-        email: "host@test.com",
+        uuid: "user-uuid",
+        name: "Test User",
+        email: "test@example.com",
         timeZone: "UTC",
-        username: "host",
+        username: "testuser",
         isPlatformManaged: false,
       },
       eventType: {
-        title: "30 Min",
-        description: null,
-        currency: "usd",
+        title: "30 Min Meeting",
+        description: "Quick call",
+        currency: "USD",
         length: 30,
         lockTimeZoneToggleOnBookingPage: false,
         requiresConfirmation: false,
@@ -51,27 +50,54 @@ describe("findBookingQuery", () => {
         price: 0,
       },
     };
-    vi.mocked(prisma.booking.findUnique).mockResolvedValue(mockBooking as never);
+    mockFindUnique.mockResolvedValue(mockBooking);
 
     const result = await findBookingQuery(1);
+
     expect(result).toEqual(mockBooking);
-    expect(prisma.booking.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 1 } }));
+    expect(mockFindUnique).toHaveBeenCalledWith({
+      where: { id: 1 },
+      select: expect.objectContaining({
+        uid: true,
+        location: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        description: true,
+        status: true,
+        responses: true,
+        metadata: true,
+        user: expect.objectContaining({
+          select: expect.objectContaining({
+            name: true,
+            email: true,
+          }),
+        }),
+        eventType: expect.objectContaining({
+          select: expect.objectContaining({
+            title: true,
+            price: true,
+          }),
+        }),
+      }),
+    });
   });
 
-  it("throws when booking is not found", async () => {
-    vi.mocked(prisma.booking.findUnique).mockResolvedValue(null);
+  it("throws error when booking is not found", async () => {
+    mockFindUnique.mockResolvedValue(null);
 
     await expect(findBookingQuery(999)).rejects.toThrow("Internal Error. Couldn't find booking");
   });
 
-  it("uses select to avoid leaking sensitive data", async () => {
-    vi.mocked(prisma.booking.findUnique).mockResolvedValue({ uid: "test" } as never);
+  it("queries by booking id", async () => {
+    mockFindUnique.mockResolvedValue({ uid: "test" });
 
-    await findBookingQuery(1);
-    const callArgs = vi.mocked(prisma.booking.findUnique).mock.calls[0][0];
-    expect(callArgs).toHaveProperty("select");
-    expect(callArgs.select).toHaveProperty("uid");
-    expect(callArgs.select).toHaveProperty("status");
-    expect(callArgs.select).not.toHaveProperty("include");
+    await findBookingQuery(42);
+
+    expect(mockFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 42 },
+      })
+    );
   });
 });
