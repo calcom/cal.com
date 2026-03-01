@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/lib/currencyConversions";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, Payment } from "@calcom/prisma/client";
@@ -83,7 +84,7 @@ export const PaymentFormComponent = (
         <div className="bg-cal-info mb-5 mt-2 rounded-md p-3">
           <CheckboxField
             description={t("acknowledge_booking_no_show_fee", {
-              amount: props.payment.amount / 100,
+              amount: convertFromSmallestToPresentableCurrencyUnit(props.payment.amount, props.payment.currency),
               formatParams: { amount: { currency: props.payment.currency } },
             })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
