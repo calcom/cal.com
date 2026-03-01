@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
-
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { getBookingData } from "./getBookingData";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
@@ -215,6 +213,325 @@ describe("getBookingData", () => {
 
       // The location should be the conferencing type, NOT the URL
       expect(result.location).toBe(OrganizerDefaultConferencingAppType);
+    });
+  });
+
+  describe("end time auto-calculation", () => {
+    it("should auto-set end time from start + eventType.length when end is not provided", async () => {
+      const mockEventType = createMockEventType({ length: 45 });
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.end).toBe("2024-01-15T10:45:00Z");
+    });
+
+    it("should preserve explicitly provided end time", async () => {
+      const mockEventType = createMockEventType({ length: 30 });
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T11:00:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.end).toBe("2024-01-15T11:00:00.000Z");
+    });
+  });
+
+  describe("response field mapping", () => {
+    it("should extract name and email from responses", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "John Doe",
+          email: "john@example.com",
+          notes: "Please call me 5 min early",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.name).toBe("John Doe");
+      expect(result.email).toBe("john@example.com");
+      expect(result.notes).toBe("Please call me 5 min early");
+    });
+
+    it("should default notes to empty string when not provided", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.notes).toBe("");
+    });
+
+    it("should default guests to empty array when not provided", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.guests).toEqual([]);
+    });
+
+    it("should pass through guests array from responses", async () => {
+      const schema = z.object({
+        eventTypeId: z.number(),
+        start: z.string(),
+        end: z.string().optional(),
+        timeZone: z.string(),
+        language: z.string(),
+        metadata: z.record(z.string()),
+        responses: z.object({
+          name: z.string(),
+          email: z.string(),
+          guests: z.array(z.string()).optional(),
+        }),
+      });
+
+      const mockEventType = createMockEventType();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+          guests: ["guest1@example.com", "guest2@example.com"],
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.guests).toEqual(["guest1@example.com", "guest2@example.com"]);
+    });
+
+    it("should extract attendeePhoneNumber from responses", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+          attendeePhoneNumber: "+15559876543",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.attendeePhoneNumber).toBe("+15559876543");
+    });
+
+    it("should extract rescheduleReason from responses", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+          rescheduleReason: "Conflicting meeting",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.rescheduleReason).toBe("Conflicting meeting");
+    });
+
+    it("should set customInputs to undefined when using responses path", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      const result = await getBookingData({
+        reqBody,
+        eventType: mockEventType,
+        schema,
+      });
+
+      expect(result.customInputs).toBeUndefined();
+    });
+  });
+
+  describe("error handling", () => {
+    it("should throw when responses is nullish", async () => {
+      const mockEventType = createMockEventType();
+      const schema = z.object({
+        eventTypeId: z.number(),
+        start: z.string(),
+        end: z.string().optional(),
+        timeZone: z.string(),
+        language: z.string(),
+        metadata: z.record(z.string()),
+        responses: z
+          .object({
+            name: z.string(),
+            email: z.string(),
+          })
+          .nullish(),
+      });
+
+      const reqBody = {
+        eventTypeId: 1,
+        start: "2024-01-15T10:00:00.000Z",
+        end: "2024-01-15T10:30:00.000Z",
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: null,
+      };
+
+      await expect(
+        getBookingData({
+          reqBody,
+          eventType: mockEventType,
+          schema,
+        })
+      ).rejects.toThrow("`responses` must not be nullish");
+    });
+
+    it("should throw on schema validation failure", async () => {
+      const mockEventType = createMockEventType();
+      const schema = createMockSchema();
+
+      const reqBody = {
+        // Missing required 'start' field
+        eventTypeId: 1,
+        timeZone: "America/New_York",
+        language: "en",
+        metadata: {},
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+        },
+      };
+
+      await expect(
+        getBookingData({
+          reqBody,
+          eventType: mockEventType,
+          schema,
+        })
+      ).rejects.toThrow();
     });
   });
 });

@@ -1,8 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
-
 import type { Prisma } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
+import { describe, expect, it, vi } from "vitest";
 import { _getLocationValuesForDb } from "../getLocationValuesForDb";
 
 vi.mock("@calcom/prisma/zod-utils", () => ({
@@ -160,14 +158,146 @@ describe("_getLocationValuesForDb", () => {
         credentials: [],
       },
     ];
-    // yanni is first in dynamicUserList, but zara is first in users array
     const result = _getLocationValuesForDb({
       dynamicUserList: ["yanni", "zara"],
       users,
       location: "https://meet.example.com/group",
     });
-    // After sorting, yanni is first, has no preference, so fallback to location
     expect(result.locationBodyString).toBe("https://meet.example.com/group");
     expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
+  });
+
+  it("returns undefined for organizerOrFirstDynamicGroupMemberDefaultLocationUrl with single user", () => {
+    const users: TestUser[] = [
+      {
+        username: "solo",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "zoom",
+            appLink: "https://zoom.us/solo",
+          },
+        },
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["solo"],
+      users,
+      location: "https://meet.example.com/solo",
+    });
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
+  });
+
+  it("prefers appLink from metadata over delegation credential", () => {
+    const users: TestUser[] = [
+      {
+        username: "alice",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "zoom",
+            appLink: "https://zoom.us/alice",
+          },
+        },
+        credentials: [
+          {
+            __test__appLink: "https://meet.google.com/delegation",
+          } as unknown as CredentialForCalendarService,
+        ],
+      },
+      {
+        username: "bob",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["alice", "bob"],
+      users,
+      location: "https://fallback.example.com",
+    });
+    expect(result.locationBodyString).toBe("https://zoom.us/alice");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBe("https://zoom.us/alice");
+  });
+
+  it("handles null metadata gracefully for dynamic group", () => {
+    const users: TestUser[] = [
+      {
+        username: "nullmeta",
+        metadata: null,
+        credentials: [],
+      },
+      {
+        username: "other",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["nullmeta", "other"],
+      users,
+      location: "https://meet.example.com/group",
+    });
+    expect(result.locationBodyString).toBe("https://meet.example.com/group");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
+  });
+
+  it("handles appSlug set without appLink for dynamic group", () => {
+    const users: TestUser[] = [
+      {
+        username: "slugonly",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "daily-video",
+          },
+        },
+        credentials: [
+          {
+            __test__appLink: "https://daily.co/delegation",
+          } as unknown as CredentialForCalendarService,
+        ],
+      },
+      {
+        username: "member2",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["slugonly", "member2"],
+      users,
+      location: "https://fallback.example.com",
+    });
+    // hasMemberSetConferencingPreference is true (appSlug is set), so appLink is used (undefined),
+    // falling back to null, then locationBodyString uses original location
+    expect(result.locationBodyString).toBe("https://fallback.example.com");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
+  });
+
+  it("uses delegation credential when user has no conferencing preference at all", () => {
+    const users: TestUser[] = [
+      {
+        username: "nodefs",
+        metadata: {},
+        credentials: [
+          {
+            __test__appLink: "https://teams.microsoft.com/delegation",
+          } as unknown as CredentialForCalendarService,
+        ],
+      },
+      {
+        username: "partner",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["nodefs", "partner"],
+      users,
+      location: "https://fallback.example.com",
+    });
+    expect(result.locationBodyString).toBe("https://teams.microsoft.com/delegation");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBe(
+      "https://teams.microsoft.com/delegation"
+    );
   });
 });

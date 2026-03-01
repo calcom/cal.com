@@ -9,8 +9,8 @@
  * - Throws NoAvailableUsersFound when no user is available
  */
 import dayjs from "@calcom/dayjs";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ensureAvailableUsers } from "./ensureAvailableUsers";
 
 const mockGetBusyTimesForLimitChecks = vi.fn();
@@ -38,7 +38,7 @@ const logger = {
   warn: vi.fn(),
   info: vi.fn(),
   silly: vi.fn(),
-} as any;
+} as unknown as Parameters<typeof ensureAvailableUsers>[2];
 
 function makeUser(id: number, isFixed = false) {
   return {
@@ -51,7 +51,7 @@ function makeUser(id: number, isFixed = false) {
     credentials: [],
     userLevelSelectedCalendars: [],
     allSelectedCalendars: [],
-  } as any;
+  } as unknown as ReturnType<typeof makeUser>;
 }
 
 function makeDateRange(start: string, end: string) {
@@ -88,7 +88,7 @@ describe("ensureAvailableUsers", () => {
     timeZone: "UTC",
   };
 
-  const baseEventType = (users: any[], overrides: Record<string, unknown> = {}) =>
+  const baseEventType = (users: unknown[], overrides: Record<string, unknown> = {}) =>
     ({
       id: 1,
       users,
@@ -98,7 +98,7 @@ describe("ensureAvailableUsers", () => {
       durationLimits: null,
       restrictionScheduleId: null,
       ...overrides,
-    }) as any;
+    }) as unknown as Parameters<typeof ensureAvailableUsers>[0];
 
   it("returns single user when one user is available (date range includes slot, no conflict)", async () => {
     const user = makeUser(1);
@@ -132,9 +132,7 @@ describe("ensureAvailableUsers", () => {
     const user = makeUser(1);
     const eventType = baseEventType([user]);
 
-    mockGetUsersAvailability.mockResolvedValue([
-      makeAvailability({ dateRanges: [] }),
-    ]);
+    mockGetUsersAvailability.mockResolvedValue([makeAvailability({ dateRanges: [] })]);
 
     await expect(ensureAvailableUsers(eventType, baseInput, logger)).rejects.toThrow(
       ErrorCode.NoAvailableUsersFound
@@ -189,9 +187,7 @@ describe("ensureAvailableUsers", () => {
       makeAvailability({ dateRanges: slotRange, busy: [] }),
       makeAvailability({
         dateRanges: slotRange,
-        busy: [
-          { start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") },
-        ],
+        busy: [{ start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") }],
       }),
     ]);
 
@@ -213,9 +209,7 @@ describe("ensureAvailableUsers", () => {
       makeAvailability({ dateRanges: slotRange, busy: [] }),
       makeAvailability({
         dateRanges: slotRange,
-        busy: [
-          { start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") },
-        ],
+        busy: [{ start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") }],
       }),
     ]);
 
@@ -231,9 +225,7 @@ describe("ensureAvailableUsers", () => {
     const eventType = baseEventType([user1, user2]);
 
     const slotRange = [makeDateRange("2025-06-01T08:00:00Z", "2025-06-01T18:00:00Z")];
-    const busySlot = [
-      { start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") },
-    ];
+    const busySlot = [{ start: new Date("2025-06-01T14:00:00Z"), end: new Date("2025-06-01T14:30:00Z") }];
     mockGetUsersAvailability.mockResolvedValue([
       makeAvailability({ dateRanges: [], busy: [] }),
       makeAvailability({ dateRanges: slotRange, busy: busySlot }),
