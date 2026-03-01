@@ -2129,8 +2129,6 @@ __metadata:
     react-use: "npm:17.6.0"
     tailwind-merge: "npm:1.13.2"
     tailwindcss: "npm:4.1.17"
-    tailwindcss-animate: "npm:1.0.7"
-    tailwindcss-v3: "npm:tailwindcss@^3.4"
     ts-jest: "npm:29.1.4"
     typescript: "npm:5.9.3"
     vite: "npm:6.4.1"
@@ -2434,9 +2432,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/examples-one@workspace:packages/platform/examples/examples-one":
+"@calcom/examples-one@workspace:packages/platform/examples/examples-tw3":
   version: 0.0.0-use.local
-  resolution: "@calcom/examples-one@workspace:packages/platform/examples/examples-one"
+  resolution: "@calcom/examples-one@workspace:packages/platform/examples/examples-tw3"
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@playwright/test": "npm:1.57.0"
@@ -26737,7 +26735,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^1.17.1, jiti@npm:^1.19.1, jiti@npm:^1.21.6, jiti@npm:^1.21.7":
+"jiti@npm:^1.17.1, jiti@npm:^1.19.1, jiti@npm:^1.21.6":
   version: 1.21.7
   resolution: "jiti@npm:1.21.7"
   bin:
@@ -32323,29 +32321,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-load-config@npm:^4.0.2 || ^5.0 || ^6.0":
-  version: 6.0.1
-  resolution: "postcss-load-config@npm:6.0.1"
-  dependencies:
-    lilconfig: "npm:^3.1.1"
-  peerDependencies:
-    jiti: ">=1.21.0"
-    postcss: ">=8.0.9"
-    tsx: ^4.8.1
-    yaml: ^2.4.2
-  peerDependenciesMeta:
-    jiti:
-      optional: true
-    postcss:
-      optional: true
-    tsx:
-      optional: true
-    yaml:
-      optional: true
-  checksum: 10/1691cfc94948a9373d4f7b3b7a8500cfaf8cb2dcc2107c14f90f2a711a9892a362b0866894ac5bb723455fa685a15116d9ed3252188689c4502b137c19d6bdc4
-  languageName: node
-  linkType: hard
-
 "postcss-load-config@npm:^5.0.0":
   version: 5.1.0
   resolution: "postcss-load-config@npm:5.1.0"
@@ -36861,54 +36836,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss-animate@npm:1.0.7":
-  version: 1.0.7
-  resolution: "tailwindcss-animate@npm:1.0.7"
-  peerDependencies:
-    tailwindcss: "*"
-  checksum: 10/ef176fbb0bf9dca84178b35b6a9615cd756358ea80be9c575456d12ecd7f3c431e9e571915c7df72959dc798a730959e9a4739d59eab55d8cc6db390870ff0d2
-  languageName: node
-  linkType: hard
-
 "tailwindcss-radix@npm:4.0.2":
   version: 4.0.2
   resolution: "tailwindcss-radix@npm:4.0.2"
   peerDependencies:
     tailwindcss: ^3.0 || ^4.0
   checksum: 10/80dca6b1363aa35e966dc348fdd3b74e1e0dbf3c3e5f08fa68ed2591baf442308c0cb38ce0294f357f98f4a131637a5a55f93010d2f8617fc40ecf8dd7098d35
-  languageName: node
-  linkType: hard
-
-"tailwindcss-v3@npm:tailwindcss@^3.4":
-  version: 3.4.19
-  resolution: "tailwindcss@npm:3.4.19"
-  dependencies:
-    "@alloc/quick-lru": "npm:^5.2.0"
-    arg: "npm:^5.0.2"
-    chokidar: "npm:^3.6.0"
-    didyoumean: "npm:^1.2.2"
-    dlv: "npm:^1.1.3"
-    fast-glob: "npm:^3.3.2"
-    glob-parent: "npm:^6.0.2"
-    is-glob: "npm:^4.0.3"
-    jiti: "npm:^1.21.7"
-    lilconfig: "npm:^3.1.3"
-    micromatch: "npm:^4.0.8"
-    normalize-path: "npm:^3.0.0"
-    object-hash: "npm:^3.0.0"
-    picocolors: "npm:^1.1.1"
-    postcss: "npm:^8.4.47"
-    postcss-import: "npm:^15.1.0"
-    postcss-js: "npm:^4.0.1"
-    postcss-load-config: "npm:^4.0.2 || ^5.0 || ^6.0"
-    postcss-nested: "npm:^6.2.0"
-    postcss-selector-parser: "npm:^6.1.2"
-    resolve: "npm:^1.22.8"
-    sucrase: "npm:^3.35.0"
-  bin:
-    tailwind: lib/cli.js
-    tailwindcss: lib/cli.js
-  checksum: 10/f4e5e3dc3e1d96c453520f6787d0f36a9b9ae20bfa443102181fb772ba236e796eaf0888181becd5f00ffa6e99c17605224db216ff660a4ed7e7bb2d94b0b071
   languageName: node
   linkType: hard
 
