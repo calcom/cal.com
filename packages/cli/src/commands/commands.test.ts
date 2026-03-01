@@ -646,4 +646,291 @@ describe("commands", () => {
       expect(cmd).toBeDefined();
     });
   });
+
+  describe("registerOooCommand", () => {
+    it("registers ooo command with subcommands", async () => {
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      const cmd = program.commands.find((c: CommandType) => c.name() === "ooo");
+      expect(cmd).toBeDefined();
+      expect(cmd?.description()).toBe("Manage out-of-office entries");
+
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
+      expect(subcommands).toContain("list");
+      expect(subcommands).toContain("create");
+      expect(subcommands).toContain("update");
+      expect(subcommands).toContain("delete");
+    });
+
+    it("lists ooo entries", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({
+          status: "success",
+          data: [
+            {
+              id: 1,
+              uuid: "ooo-uuid-1",
+              userId: 42,
+              start: "2026-06-01T00:00:00.000Z",
+              end: "2026-06-10T23:59:59.999Z",
+              reason: "vacation",
+              notes: "Beach trip",
+            },
+          ],
+        });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(["ooo", "list"], { from: "user" });
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/me");
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/organizations/10/users/42/ooo",
+        expect.objectContaining({ query: {} })
+      );
+      expect(logSpy).toHaveBeenCalled();
+    });
+
+    it("lists ooo entries with sort options", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({ status: "success", data: [] });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(["ooo", "list", "--sort-start", "desc"], { from: "user" });
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/organizations/10/users/42/ooo",
+        expect.objectContaining({ query: { sortStart: "desc" } })
+      );
+    });
+
+    it("handles empty ooo list", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({ status: "success", data: [] });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(["ooo", "list"], { from: "user" });
+
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(" ");
+      expect(output).toContain("No out-of-office entries found");
+    });
+
+    it("creates ooo entry", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({
+          status: "success",
+          data: {
+            id: 5,
+            uuid: "ooo-uuid-5",
+            userId: 42,
+            start: "2026-07-01T00:00:00.000Z",
+            end: "2026-07-05T23:59:59.999Z",
+            reason: "vacation",
+            notes: "Hawaii",
+          },
+        });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(
+        [
+          "ooo",
+          "create",
+          "--start",
+          "2026-07-01T00:00:00.000Z",
+          "--end",
+          "2026-07-05T23:59:59.999Z",
+          "--reason",
+          "vacation",
+          "--notes",
+          "Hawaii",
+        ],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/organizations/10/users/42/ooo", {
+        method: "POST",
+        body: {
+          start: "2026-07-01T00:00:00.000Z",
+          end: "2026-07-05T23:59:59.999Z",
+          reason: "vacation",
+          notes: "Hawaii",
+        },
+      });
+    });
+
+    it("creates ooo entry with --to-user-id", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({
+          status: "success",
+          data: {
+            id: 6,
+            uuid: "ooo-uuid-6",
+            userId: 42,
+            toUserId: 99,
+            start: "2026-08-01T00:00:00.000Z",
+            end: "2026-08-03T23:59:59.999Z",
+            reason: "sick",
+          },
+        });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(
+        [
+          "ooo",
+          "create",
+          "--start",
+          "2026-08-01T00:00:00.000Z",
+          "--end",
+          "2026-08-03T23:59:59.999Z",
+          "--reason",
+          "sick",
+          "--to-user-id",
+          "99",
+        ],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/organizations/10/users/42/ooo", {
+        method: "POST",
+        body: {
+          start: "2026-08-01T00:00:00.000Z",
+          end: "2026-08-03T23:59:59.999Z",
+          reason: "sick",
+          toUserId: 99,
+        },
+      });
+    });
+
+    it("deletes ooo entry", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({ status: "success", data: {} });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(["ooo", "delete", "5"], { from: "user" });
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/organizations/10/users/42/ooo/5", {
+        method: "DELETE",
+      });
+    });
+
+    it("updates ooo entry", async () => {
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({
+          status: "success",
+          data: {
+            id: 5,
+            uuid: "ooo-uuid-5",
+            userId: 42,
+            start: "2026-07-01T00:00:00.000Z",
+            end: "2026-07-10T23:59:59.999Z",
+            reason: "travel",
+          },
+        });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(
+        ["ooo", "update", "5", "--end", "2026-07-10T23:59:59.999Z", "--reason", "travel"],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/organizations/10/users/42/ooo/5", {
+        method: "PATCH",
+        body: {
+          end: "2026-07-10T23:59:59.999Z",
+          reason: "travel",
+        },
+      });
+    });
+
+    it("outputs JSON when --json flag is used", async () => {
+      const oooData = [
+        {
+          id: 1,
+          uuid: "ooo-uuid-1",
+          userId: 42,
+          start: "2026-06-01T00:00:00.000Z",
+          end: "2026-06-10T23:59:59.999Z",
+          reason: "vacation",
+        },
+      ];
+      mockApiRequest
+        .mockResolvedValueOnce({
+          status: "success",
+          data: { id: 42, organizationId: 10 },
+        })
+        .mockResolvedValueOnce({ status: "success", data: oooData });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+      await program.parseAsync(["ooo", "list", "--json"], { from: "user" });
+
+      expect(logSpy).toHaveBeenCalledWith(JSON.stringify(oooData, null, 2));
+    });
+
+    it("throws error when user has no organization", async () => {
+      mockApiRequest.mockResolvedValueOnce({
+        status: "success",
+        data: { id: 42, organizationId: null },
+      });
+
+      const { registerOooCommand } = await import("./ooo");
+      const program = new Command();
+      program.exitOverride();
+      registerOooCommand(program);
+
+      await expect(program.parseAsync(["ooo", "list"], { from: "user" })).rejects.toThrow("organization");
+    });
+  });
 });
