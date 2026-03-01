@@ -1,0 +1,15 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton-calendar_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Check availability from Proton Calendar using ICS feed URLs. Proton Calendar is a privacy-focused calendar from Proton.",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}

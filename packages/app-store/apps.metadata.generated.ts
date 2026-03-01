@@ -48,6 +48,7 @@ import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
+import protoncalendar_config_json from "./protoncalendar/config.json";
 import insihts_config_json from "./insihts/config.json";
 import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
@@ -183,6 +184,7 @@ export const appStoreMetadata = {
   "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,
   posthog: posthog_config_json,
+  protoncalendar: protoncalendar_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
   "retell-ai": retell_ai_config_json,
