@@ -2193,8 +2193,12 @@ export class BookingRepository implements IBookingRepository {
     return this.prismaClient.booking.findMany({
       where: {
         status: BookingStatus.ACCEPTED,
-        startTime: { gte: startDate },
-        endTime: { lte: endDate },
+        // Use overlap semantics: any booking whose time range intersects [startDate, endDate].
+        // A booking overlaps the window when it starts before the window ends AND ends after
+        // the window starts.  The previous condition (gte/lte) missed bookings that straddle
+        // a window boundary (e.g. started before startDate but ends inside the window).
+        startTime: { lt: endDate },
+        endTime: { gt: startDate },
         ...(excludedUid ? { uid: { not: excludedUid } } : {}),
         attendees: {
           some: {
