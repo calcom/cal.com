@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - main
+      - cal.com-main-repo
       - gh-actions-test-branch
 
   workflow_dispatch:
