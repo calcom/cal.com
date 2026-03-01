@@ -8,6 +8,7 @@ import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadat
 import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
+import { metadata as bigbluebutton__metadata_ts } from "./bigbluebutton/_metadata";
 import basecamp3_config_json from "./basecamp3/config.json";
 import bolna_config_json from "./bolna/config.json";
 import btcpayserver_config_json from "./btcpayserver/config.json";
@@ -119,6 +120,7 @@ export const appStoreMetadata = {
   attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
+  bigbluebutton: bigbluebutton__metadata_ts,
   basecamp3: basecamp3_config_json,
   bolna: bolna_config_json,
   btcpayserver: btcpayserver_config_json,
