@@ -22,6 +22,7 @@ export const VerifyCodeDialog = ({
   setIsPending,
   isPending,
   error,
+  isPlatform = false,
 }: {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
@@ -33,6 +34,7 @@ export const VerifyCodeDialog = ({
   isPending: boolean;
   setIsPending: (status: boolean) => void;
   error: string;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
   const [value, setValue] = useState("");
@@ -86,6 +88,7 @@ export const VerifyCodeDialog = ({
 
   return (
     <Dialog
+      isPlatform={isPlatform}
       open={isOpenDialog}
       onOpenChange={() => {
         resetErrors();

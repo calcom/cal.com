@@ -29,6 +29,7 @@ interface IDialog {
   option: CheckedSelectOption;
   options: Options<CheckedSelectOption>;
   onChange: (value: readonly CheckedSelectOption[]) => void;
+  isPlatform?: boolean;
 }
 
 export type PriorityDialogCustomClassNames = SelectClassNames & {
@@ -41,7 +42,7 @@ export const PriorityDialog = (
   }
 ) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames, isPlatform = false } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
@@ -101,7 +102,7 @@ export const PriorityDialog = (
     setIsOpenDialog(false);
   };
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog isPlatform={isPlatform} open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent title={t("set_priority")}>
         <div className={classNames("mb-4", customClassNames?.container)}>
           <Label className={customClassNames?.label}>
@@ -136,7 +137,7 @@ export type WeightDialogCustomClassNames = {
 };
 export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogCustomClassNames }) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames, isPlatform = false } = props;
   const { getValues } = useFormContext<FormValues>();
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
@@ -210,7 +211,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   };
 
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog isPlatform={isPlatform} open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent title={t("set_weight")} description={<WeightDescription t={t} />}>
         <div className={classNames("mb-4 mt-2", customClassNames?.container)}>
           <Label className={customClassNames?.label}>

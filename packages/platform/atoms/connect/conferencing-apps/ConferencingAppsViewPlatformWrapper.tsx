@@ -340,6 +340,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
             />
           </div>
           <DisconnectIntegrationModal
+            isPlatform={true}
             handleModelClose={handleModelClose}
             isOpen={modal.isOpen}
             credentialId={modal.credentialId}
@@ -348,6 +349,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
           />
 
           <AccountDialog
+            isPlatform={true}
             open={isAccountModalOpen}
             onOpenChange={setIsAccountModalOpen}
             handleSubmit={() => connect(OFFICE_365_VIDEO)}

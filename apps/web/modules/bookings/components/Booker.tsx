@@ -636,6 +636,7 @@ const BookerComponent = ({
             resetErrors={verifyCode.resetErrors}
             isPending={verifyCode.isPending}
             setIsPending={verifyCode.setIsPending}
+            isPlatform={isPlatform}
           />
         ) : (
           <></>
@@ -646,7 +647,7 @@ const BookerComponent = ({
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
-      <Dialog open={isMobile && isSlotSelectionModalVisible}>
+      <Dialog isPlatform={isPlatform} open={isMobile && isSlotSelectionModalVisible}>
         <DialogContent
           type={undefined}
           enableOverflow

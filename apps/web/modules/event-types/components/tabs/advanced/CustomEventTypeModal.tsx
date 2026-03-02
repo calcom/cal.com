@@ -363,11 +363,12 @@ interface CustomEventTypeModalProps {
   event: EventNameObjectType;
   isNameFieldSplit: boolean;
   customClassNames?: CustomEventTypeModalClassNames;
+  isPlatform?: boolean;
 }
 
 const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   const { t } = useLocale();
-  const { defaultValue, placeHolder, close, setValue, event, isNameFieldSplit, customClassNames } = props;
+  const { defaultValue, placeHolder, close, setValue, event, isNameFieldSplit, customClassNames, isPlatform = false } = props;
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -376,7 +377,7 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   });
 
   return (
-    <Dialog open={true} onOpenChange={close}>
+    <Dialog isPlatform={isPlatform} open={true} onOpenChange={close}>
       <DialogContent
         title={t("custom_event_name")}
         description={t("custom_event_name_description")}

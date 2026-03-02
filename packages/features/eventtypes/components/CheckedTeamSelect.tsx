@@ -4,7 +4,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Options, Props } from "react-select";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -55,6 +54,7 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled,
   customClassNames,
   groupId,
+  isPlatform = false,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   options?: Options<CheckedSelectOption>;
@@ -63,8 +63,8 @@ export const CheckedTeamSelect = ({
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
   groupId: string | null;
+  isPlatform?: boolean;
 }) => {
-  const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
 
@@ -188,6 +188,7 @@ export const CheckedTeamSelect = ({
       {currentOption && !currentOption.isFixed ? (
         <>
           <PriorityDialog
+            isPlatform={isPlatform}
             isOpenDialog={priorityDialogOpen}
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
@@ -196,6 +197,7 @@ export const CheckedTeamSelect = ({
             customClassNames={customClassNames?.priorityDialog}
           />
           <WeightDialog
+            isPlatform={isPlatform}
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}

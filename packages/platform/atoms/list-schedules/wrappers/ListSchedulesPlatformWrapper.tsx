@@ -101,6 +101,7 @@ export const ListSchedulesPlatformWrapper = ({ getScheduleUrl }: ListSchedulesPl
         <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
           {transformedSchedules?.map((schedule) => (
             <ScheduleListItem
+              isPlatform={true}
               displayOptions={{
                 hour12: user?.data.timeFormat ? user.data.timeFormat === 12 : undefined,
                 timeZone: user?.data.timeZone,

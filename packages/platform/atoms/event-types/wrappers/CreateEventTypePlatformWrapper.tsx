@@ -84,6 +84,7 @@ export const CreateEventTypePlatformWrapper = ({
   return teamId && team ? (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <TeamEventTypeForm
+        isPlatform={true}
         teamSlug={team?.slug}
         teamId={teamId}
         permissions={permissions}
@@ -117,6 +118,7 @@ export const CreateEventTypePlatformWrapper = ({
   ) : (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <CreateEventTypeForm
+        isPlatform={true}
         urlPrefix=""
         isPending={createEventTypeQuery.isPending}
         form={form}

@@ -96,7 +96,7 @@ export const BookFormAsModal = ({
   const isPlatform = useIsPlatform();
 
   return (
-    <Dialog open={visible} onOpenChange={onCancel}>
+    <Dialog isPlatform={isPlatform} open={visible} onOpenChange={onCancel}>
       <DialogContent
         type={undefined}
         enableOverflow

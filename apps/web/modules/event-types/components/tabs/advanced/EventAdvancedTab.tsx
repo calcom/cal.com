@@ -1592,6 +1592,7 @@ export const EventAdvancedTab = ({
                     recipient="attendees"
                     customClassNames={customClassNames?.emailNotifications}
                     t={t}
+                    isPlatform={isPlatform}
                   />
                 </>
               );
@@ -1608,6 +1609,7 @@ export const EventAdvancedTab = ({
                   recipient="hosts"
                   customClassNames={customClassNames?.emailNotifications}
                   t={t}
+                  isPlatform={isPlatform}
                 />
               </>
             )}
@@ -1623,6 +1625,7 @@ export const EventAdvancedTab = ({
           isNameFieldSplit={isSplit}
           event={eventNameObject}
           customClassNames={customClassNames?.customEventTypeModal}
+          isPlatform={isPlatform}
         />
       )}
     </div>

@@ -45,6 +45,7 @@ export function ScheduleListItem({
   isDeletable,
   duplicateFunction,
   redirectUrl,
+  isPlatform = false,
 }: {
   schedule: Schedule;
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -57,6 +58,7 @@ export function ScheduleListItem({
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
   redirectUrl: string;
+  isPlatform?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -158,7 +160,7 @@ export function ScheduleListItem({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <Dialog isPlatform={isPlatform} open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <ConfirmationDialogContent
             variety="danger"
             title={t("delete_schedule")}

@@ -119,12 +119,13 @@ export const EventTypeCalendarViewComponent = (
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableTimeSlots= useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
+  const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
   return (
     <AtomsWrapper>
       <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
         <Header
+          isPlatform={true}
           isCalendarView={true}
           isMyLink={true}
           eventSlug={props.eventSlug}

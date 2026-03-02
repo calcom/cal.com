@@ -213,6 +213,7 @@ const DateOverrideInputDialog = ({
   userTimeFormat,
   weekStart = 0,
   className,
+  isPlatform = false,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -224,10 +225,11 @@ const DateOverrideInputDialog = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
   isDryRun?: boolean;
+  isPlatform?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog isPlatform={isPlatform} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
       <DialogContent enableOverflow={true} size="md" className={cs("p-0", className)}>

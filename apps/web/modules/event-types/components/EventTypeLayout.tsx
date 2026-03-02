@@ -321,6 +321,7 @@ function EventTypeSingleLayout({
         </div>
       </Suspense>
       <DeleteDialog
+        isPlatform={isPlatform}
         eventTypeId={eventType.id}
         isManagedEvent={isManagedEvent}
         open={deleteDialogOpen}

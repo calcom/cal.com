@@ -10,16 +10,17 @@ export function DeleteDialog({
   onOpenChange,
   onDelete,
   isDeleting,
+  isPlatform = false,
 }: {
   isManagedEvent: string;
   eventTypeId: number;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-} & Pick<ControlledDialogProps, "open" | "onOpenChange">) {
+} & Pick<ControlledDialogProps, "open" | "onOpenChange" | "isPlatform">) {
   const { t } = useLocale();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog isPlatform={isPlatform} open={open} onOpenChange={onOpenChange}>
       <ConfirmationDialogContent
         isPending={isDeleting}
         variety="danger"

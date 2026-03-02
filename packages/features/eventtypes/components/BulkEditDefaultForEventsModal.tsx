@@ -19,6 +19,7 @@ export type EventTypes = Array<{ id: number; title: string }>;
 export function BulkEditDefaultForEventsModal({
   eventTypes,
   isEventTypesFetching,
+  isPlatform = false,
   ...props
 }: {
   open: boolean;
@@ -29,6 +30,7 @@ export function BulkEditDefaultForEventsModal({
   isEventTypesFetching?: boolean;
   eventTypes?: EventTypes;
   handleBulkEditDialogToggle: () => void;
+  isPlatform?: boolean;
 }) {
   const { t } = useLocale();
 
@@ -45,7 +47,7 @@ export function BulkEditDefaultForEventsModal({
   if (isEventTypesFetching || !open || !eventTypes) return null;
 
   return (
-    <Dialog name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
+    <Dialog isPlatform={isPlatform} name="Bulk Default Location Update" open={props.open} onOpenChange={props.setOpen}>
       <DialogContent
         type="creation"
         title={t("default_conferencing_bulk_title")}

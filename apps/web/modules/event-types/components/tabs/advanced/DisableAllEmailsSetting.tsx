@@ -30,6 +30,7 @@ interface DisableEmailsSettingProps {
   recipient: "attendees" | "hosts";
   t: TFunction;
   customClassNames?: EmailNotificationToggleCustomClassNames;
+  isPlatform?: boolean;
 }
 
 export const DisableAllEmailsSetting = ({
@@ -38,6 +39,7 @@ export const DisableAllEmailsSetting = ({
   recipient,
   t,
   customClassNames,
+  isPlatform = false,
 }: DisableEmailsSettingProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -48,7 +50,7 @@ export const DisableAllEmailsSetting = ({
 
   return (
     <div>
-      <Dialog open={dialogOpen} onOpenChange={(e) => setDialogOpen(e)}>
+      <Dialog isPlatform={isPlatform} open={dialogOpen} onOpenChange={(e) => setDialogOpen(e)}>
         <DialogContent
           title={title}
           Icon="circle-alert"

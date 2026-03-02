@@ -10,6 +10,7 @@ export const CalendarViewComponent = () => {
     <AtomsWrapper>
       <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
         <Header
+          isPlatform={true}
           isCalendarView={true}
           isMyLink={true}
           eventSlug="calendar-view"

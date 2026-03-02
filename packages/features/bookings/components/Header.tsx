@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -28,6 +27,7 @@ export function Header({
   isMyLink,
   renderOverlay,
   isCalendarView,
+  isPlatform = false,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -37,10 +37,10 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
   isCalendarView?: boolean;
+  isPlatform?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
-  const isPlatform = useIsPlatform();
   const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
@@ -85,6 +85,7 @@ export function Header({
           layout={layout}
           enabledLayouts={enabledLayouts}
           onLayoutToggle={onLayoutToggle}
+          isPlatform={isPlatform}
         />
       </div>
     );
@@ -155,6 +156,7 @@ export function Header({
             layout={layout}
             enabledLayouts={enabledLayouts}
             onLayoutToggle={onLayoutToggle}
+            isPlatform={isPlatform}
           />
         </div>
         {/*
@@ -169,6 +171,7 @@ export function Header({
             layout={layout}
             enabledLayouts={enabledLayouts}
             onLayoutToggle={onLayoutToggle}
+            isPlatform={isPlatform}
           />
         </div>
       </div>
@@ -180,13 +183,14 @@ const LayoutToggle = ({
   onLayoutToggle,
   layout,
   enabledLayouts,
+  isPlatform = false,
 }: {
   onLayoutToggle: (layout: string) => void;
   layout: string;
   enabledLayouts?: BookerLayouts[];
+  isPlatform?: boolean;
 }) => {
   const isEmbed = useIsEmbed();
-  const isPlatform = useIsPlatform();
   const { t } = useLocale();
 
   const layoutOptions = useMemo(() => {
@@ -248,12 +252,14 @@ const LayoutToggleWithData = ({
   enabledLayouts,
   onLayoutToggle,
   layout,
+  isPlatform = false,
 }: {
   enabledLayouts: BookerLayouts[];
   onLayoutToggle: (layout: string) => void;
   layout: string;
+  isPlatform?: boolean;
 }) => {
   return enabledLayouts.length <= 1 ? null : (
-    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} />
+    <LayoutToggle onLayoutToggle={onLayoutToggle} layout={layout} enabledLayouts={enabledLayouts} isPlatform={isPlatform} />
   );
 };

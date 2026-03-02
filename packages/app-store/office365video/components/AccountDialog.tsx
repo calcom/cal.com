@@ -1,17 +1,15 @@
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { DialogProps as ControlledDialogProps } from "@calcom/features/components/controlled-dialog";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { Dialog, type DialogProps } from "@calcom/features/components/controlled-dialog";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 
 export function AccountDialog(
-  props: ControlledDialogProps & {
+  props: DialogProps & {
     handleSubmit: () => void;
   }
-) {
+){
   return (
-    <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
+    <Dialog isPlatform={props.isPlatform} name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
         type="creation"
         title="Connecting with MS Teams requires a work/school Microsoft account."

@@ -616,7 +616,7 @@ function FieldEditDialog({
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+    <Dialog isPlatform={isPlatform} open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh]">

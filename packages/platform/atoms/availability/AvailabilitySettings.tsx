@@ -139,17 +139,19 @@ const DeleteDialogButton = ({
   isPending,
   onDeleteConfirmed,
   handleDelete,
+  isPlatform = false,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
   isPending: boolean;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
 
   return (
-    <Dialog>
+    <Dialog isPlatform={isPlatform}>
       <DialogTrigger asChild>
         <Button
           StartIcon="trash"
@@ -197,6 +199,7 @@ const DateOverride = ({
   classNames,
   handleSubmit,
   isDryRun = false,
+  isPlatform = false,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
@@ -211,6 +214,7 @@ const DateOverride = ({
   };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isDryRun?: boolean;
+  isPlatform?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -241,6 +245,7 @@ const DateOverride = ({
       </p>
       <div className="stack-y-2">
         <DateOverrideList
+          isPlatform={isPlatform}
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
@@ -253,6 +258,7 @@ const DateOverride = ({
           isDryRun={isDryRun}
         />
         <DateOverrideInputDialog
+          isPlatform={isPlatform}
           className={overridesModalClassNames}
           workingHours={workingHours}
           excludedDates={excludedDates}
@@ -485,6 +491,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
             {bulkUpdateModalProps && bulkUpdateModalProps?.isOpen && (
               <BulkEditDefaultForEventsModal
+                isPlatform={isPlatform}
                 isPending={bulkUpdateModalProps?.isSaving}
                 open={bulkUpdateModalProps?.isOpen}
                 setOpen={bulkUpdateModalProps.setIsOpen}
@@ -500,6 +507,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               <>
                 <VerticalDivider className="hidden sm:inline" />
                 <DeleteDialogButton
+                  isPlatform={isPlatform}
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                   disabled={schedule.isLastSchedule}
                   isPending={isDeleting}
@@ -526,6 +534,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       <p className="-ml-2">{t("availability_settings")}</p>
                       {allowDelete && (
                         <DeleteDialogButton
+                          isPlatform={isPlatform}
                           buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
                           disabled={schedule.isLastSchedule}
                           isPending={isDeleting}
@@ -706,6 +715,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div className="border-subtle rounded-md border mb-6">
                   <BookerStoreProvider>
                     <DateOverride
+                      isPlatform={isPlatform}
                       isDryRun={isDryRun}
                       workingHours={schedule.workingHours}
                       userTimeFormat={timeFormat}

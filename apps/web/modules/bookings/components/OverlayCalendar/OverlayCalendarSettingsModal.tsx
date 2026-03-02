@@ -114,7 +114,7 @@ export function OverlayCalendarSettingsModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog isPlatform={isPlatform} open={open} onOpenChange={onClose}>
       <DialogContent
         enableOverflow
         type="creation"
