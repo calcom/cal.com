@@ -71,11 +71,6 @@ export type DisplayField = {
  */
 export interface IAuditActionService {
   /**
-   * Current version number for this action type
-   */
-  readonly VERSION: number;
-
-  /**
    * Parse given fields against latest schema and wrap with version
    * @param fields - Raw input fields (just the audit fields)
    * @returns Parsed data with version wrapper { version, fields }
@@ -136,14 +131,14 @@ export interface IAuditActionService {
   getDisplayFields?(params: GetDisplayFieldsParams): Promise<DisplayField[]>;
 
   /**
-   * Validate task payload data against latest schema
+   * Parse versioned task payload data against all supported schema versions.
    *
-   * Task payloads are always created with the latest schema version,
-   * so this simply validates the data without any migration logic.
-   * For reading historical data from the database, use parseStored instead.
+   * Task payloads are stamped with a version at enqueue time by the producer.
+   * This method accepts any supported version from the task payload (union of all versions),
+   * enabling safe retries across deployments.
    *
-   * @param data - Data from task payload (always latest version)
-   * @returns Validated data matching latest schema
+   * @param data - Versioned data from task payload { version, fields }
+   * @returns Parsed versioned data { version, fields }
    */
-  parse(data: unknown): Record<string, unknown>;
+  parse(data: unknown): BaseStoredAuditData;
 }

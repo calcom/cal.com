@@ -84,7 +84,7 @@ describe("Cancelled Action Integration", () => {
       const cancellationReason = "Schedule conflict";
       const cancelledBy = "owner";
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "CANCELLED",
@@ -98,6 +98,8 @@ describe("Cancelled Action Integration", () => {
             new: BookingStatus.CANCELLED,
           },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 

@@ -15,6 +15,7 @@ import type {
   IBookingAuditRepository,
 } from "../../repository/IBookingAuditRepository";
 import { BookingAuditErrorCode, BookingAuditPermissionError } from "../BookingAuditAccessService";
+import { BookingAuditActionServiceRegistry } from "../BookingAuditActionServiceRegistry";
 import { BookingAuditViewerService } from "../BookingAuditViewerService";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
@@ -323,6 +324,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       attendeeRepository: mockAttendeeRepository as unknown as IAttendeeRepository,
       credentialRepository: mockCredentialRepository as unknown as CredentialRepository,
       log: mockLog as unknown as ISimpleLogger,
+      actionServiceRegistry: new BookingAuditActionServiceRegistry(),
     });
   });
 

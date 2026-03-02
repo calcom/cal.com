@@ -89,7 +89,7 @@ describe("Accepted Action Integration", () => {
     it("should create audit record and retrieve it with correct data formatting", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "ACCEPTED",
@@ -98,6 +98,8 @@ describe("Accepted Action Integration", () => {
         data: {
           status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -126,7 +128,7 @@ describe("Accepted Action Integration", () => {
     it("should enrich actor information with user details from database", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "ACCEPTED",
@@ -135,6 +137,8 @@ describe("Accepted Action Integration", () => {
         data: {
           status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -183,37 +187,35 @@ describe("Accepted Action Integration", () => {
       const operationId = `bulk-op-${Date.now()}`;
       const timestamp = Date.now();
 
-      await bookingAuditTaskConsumer.processBulkAuditTask(
-        {
-          isBulk: true,
-          bookings: [
-            {
-              bookingUid: testData.booking.uid,
-              data: {
-                status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
-              },
+      await bookingAuditTaskConsumer.processBulkAuditTask({
+        isBulk: true,
+        bookings: [
+          {
+            bookingUid: testData.booking.uid,
+            data: {
+              status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
             },
-            {
-              bookingUid: booking2.uid,
-              data: {
-                status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
-              },
+          },
+          {
+            bookingUid: booking2.uid,
+            data: {
+              status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
             },
-            {
-              bookingUid: booking3.uid,
-              data: {
-                status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
-              },
+          },
+          {
+            bookingUid: booking3.uid,
+            data: {
+              status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
             },
-          ],
-          actor,
-          action: "ACCEPTED",
-          source: "WEBAPP",
-          operationId,
-          timestamp,
-          organizationId: testData.organization.id,
-        }
-      );
+          },
+        ],
+        actor,
+        action: "ACCEPTED",
+        source: "WEBAPP",
+        operationId,
+        timestamp,
+        organizationId: testData.organization.id,
+      });
 
       const result1 = await bookingAuditViewerService.getAuditLogsForBooking({
         bookingUid: testData.booking.uid,

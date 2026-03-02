@@ -33,7 +33,7 @@ const fieldsSchemaV1 = z
   });
 
 export class NoShowUpdatedAuditActionService implements IAuditActionService {
-  readonly VERSION = 1;
+  static readonly VERSION = 1;
   public static readonly TYPE = "NO_SHOW_UPDATED" as const;
   private static dataSchemaV1 = z.object({
     version: z.literal(1),
@@ -52,7 +52,7 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
-      latestVersion: this.VERSION,
+      latestVersion: NoShowUpdatedAuditActionService.VERSION,
       latestFieldsSchema: NoShowUpdatedAuditActionService.latestFieldsSchema,
       storedDataSchema: NoShowUpdatedAuditActionService.storedDataSchema,
     });
@@ -70,8 +70,8 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): Record<string, unknown> {
-    return fieldsSchemaV1.parse(data);
+  parse(data: unknown): BaseStoredAuditData {
+    return this.helper.parse(data);
   }
 
   private isHostSet(fields: NoShowUpdatedAuditData): fields is Ensure<NoShowUpdatedAuditData, "host"> {
@@ -115,14 +115,16 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     const displayFields: DisplayField[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-        const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map((attendee) => ({
+      const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map(
+        (attendee) => ({
           key: attendee.noShow.new
             ? "booking_audit_action.attendee_no_show_status_yes"
             : "booking_audit_action.attendee_no_show_status_no",
           params: {
             email: attendee.attendeeEmail,
           },
-        }));
+        })
+      );
       displayFields.push({
         labelKey: "booking_audit_action.attendees",
         fieldValue: {

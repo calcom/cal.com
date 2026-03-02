@@ -32,7 +32,6 @@ describe("Location Changed Action Integration", () => {
     bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
     bookingAuditViewerService = getBookingAuditViewerService();
 
-    // Setup basic test data using Test Data Builder pattern
     const owner = await createTestUser({ name: "Location Audit User" });
     const organization = await createTestOrganization();
     await createTestMembership(owner.id, organization.id);
@@ -83,8 +82,7 @@ describe("Location Changed Action Integration", () => {
       const actor = makeUserActor(testData.owner.uuid);
       const operationId = `op-${Date.now()}`;
 
-      // Simulate LOCATION_CHANGED action
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "LOCATION_CHANGED",
@@ -96,10 +94,11 @@ describe("Location Changed Action Integration", () => {
             new: "Google Meet",
           },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
-      // Retrieve logs
       const result = await bookingAuditViewerService.getAuditLogsForBooking({
         bookingUid: testData.booking.uid,
         userId: testData.owner.id,
@@ -110,19 +109,16 @@ describe("Location Changed Action Integration", () => {
 
       expect(result.bookingUid).toBe(testData.booking.uid);
 
-      // Find the specific log we just created
       const auditLog = result.auditLogs.find((log) => log.operationId === operationId);
       expect(auditLog).toBeDefined();
 
       if (!auditLog) throw new Error("Audit log not found");
 
       expect(auditLog.action).toBe("LOCATION_CHANGED");
-      // The type identifier from the service
       expect(auditLog.type).toBe("RECORD_UPDATED");
 
       expect(auditLog.displayJson).toBeNull();
 
-      // Verify the title params are correct
       expect(auditLog.actionDisplayTitle).toBeDefined();
       expect(auditLog.actionDisplayTitle.key).toBe("booking_audit_action.location_changed_from_to");
       expect(auditLog.actionDisplayTitle.params).toEqual({
@@ -135,8 +131,7 @@ describe("Location Changed Action Integration", () => {
       const actor = makeUserActor(testData.owner.uuid);
       const operationId = `op-initial-${Date.now()}`;
 
-      // Simulate setting location for the first time (old is null)
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "LOCATION_CHANGED",
@@ -148,6 +143,8 @@ describe("Location Changed Action Integration", () => {
             new: "In Person",
           },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 

@@ -17,7 +17,7 @@ import type {
 import type { ActionSource } from "../types/actionSource";
 import { enrichActor, getActorDataRequirements } from "./ActorStrategies";
 import { BookingAuditAccessService } from "./BookingAuditAccessService";
-import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
+import type { IBookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 import { type DataRequirements, EnrichmentDataStore } from "./EnrichmentDataStore";
 
 interface BookingAuditViewerServiceDeps {
@@ -28,6 +28,7 @@ interface BookingAuditViewerServiceDeps {
   attendeeRepository: IAttendeeRepository;
   log: ISimpleLogger;
   credentialRepository: CredentialRepository;
+  actionServiceRegistry: IBookingAuditActionServiceRegistry;
 }
 
 type EnrichedAuditLog = {
@@ -67,7 +68,7 @@ export type DisplayBookingAuditLog = EnrichedAuditLog;
  * BookingAuditViewerService - Service for viewing and formatting booking audit logs
  */
 export class BookingAuditViewerService {
-  private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
+  private readonly actionServiceRegistry: IBookingAuditActionServiceRegistry;
   private readonly bookingAuditRepository: IBookingAuditRepository;
   private readonly userRepository: UserRepository;
   private readonly bookingRepository: BookingRepository;
@@ -78,7 +79,7 @@ export class BookingAuditViewerService {
   private readonly accessService: BookingAuditAccessService;
   private readonly log: BookingAuditViewerServiceDeps["log"];
 
-  constructor(private readonly deps: BookingAuditViewerServiceDeps) {
+  constructor(deps: BookingAuditViewerServiceDeps) {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.userRepository = deps.userRepository;
     this.bookingRepository = deps.bookingRepository;
@@ -86,12 +87,12 @@ export class BookingAuditViewerService {
     this.attendeeRepository = deps.attendeeRepository;
     this.credentialRepository = deps.credentialRepository;
     this.log = deps.log;
+    this.actionServiceRegistry = deps.actionServiceRegistry;
     this.rescheduledAuditActionService = new RescheduledAuditActionService();
     this.accessService = new BookingAuditAccessService({
       bookingRepository: this.bookingRepository,
       membershipRepository: this.membershipRepository,
     });
-    this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
   }
 
   /**

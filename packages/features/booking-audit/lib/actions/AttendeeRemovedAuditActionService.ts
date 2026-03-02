@@ -3,6 +3,7 @@ import { StringArrayChangeSchema } from "../common/changeSchemas";
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
@@ -20,7 +21,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class AttendeeRemovedAuditActionService implements IAuditActionService {
-  readonly VERSION = 1;
+  static readonly VERSION = 1;
   public static readonly TYPE = "ATTENDEE_REMOVED" as const;
   private static dataSchemaV1 = z.object({
     version: z.literal(1),
@@ -39,7 +40,7 @@ export class AttendeeRemovedAuditActionService implements IAuditActionService {
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
-      latestVersion: this.VERSION,
+      latestVersion: AttendeeRemovedAuditActionService.VERSION,
       latestFieldsSchema: AttendeeRemovedAuditActionService.latestFieldsSchema,
       storedDataSchema: AttendeeRemovedAuditActionService.storedDataSchema,
     });
@@ -57,8 +58,8 @@ export class AttendeeRemovedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): Record<string, unknown> {
-    return fieldsSchemaV1.parse(data);
+  parse(data: unknown): BaseStoredAuditData {
+    return this.helper.parse(data);
   }
 
   getDataRequirements(): DataRequirements {

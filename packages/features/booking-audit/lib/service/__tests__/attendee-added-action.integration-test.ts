@@ -82,7 +82,7 @@ describe("Attendee Added Action Integration", () => {
       const actor = makeUserActor(testData.owner.uuid);
       const newGuestEmails = ["guest1@example.com", "guest2@example.com"];
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "ATTENDEE_ADDED",
@@ -91,6 +91,8 @@ describe("Attendee Added Action Integration", () => {
         data: {
           added: newGuestEmails,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 

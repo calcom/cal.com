@@ -87,19 +87,20 @@ describe("No-Show Updated Action Integration", () => {
     it("should create audit record with host field containing userUuid and noShow", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
         source: "WEBAPP",
         operationId: `op-${Date.now()}`,
         data: {
-          // New schema: host contains userUuid and noShow change
           host: {
             userUuid: testData.owner.uuid,
             noShow: { old: null, new: true },
           },
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -132,7 +133,7 @@ describe("No-Show Updated Action Integration", () => {
 
       const attendeesNoShow = [{ attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } }];
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -141,6 +142,8 @@ describe("No-Show Updated Action Integration", () => {
         data: {
           attendeesNoShow,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -193,7 +196,7 @@ describe("No-Show Updated Action Integration", () => {
         { attendeeEmail: secondAttendeeEmail, noShow: { old: false, new: true } },
       ];
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -202,6 +205,8 @@ describe("No-Show Updated Action Integration", () => {
         data: {
           attendeesNoShow,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -233,7 +238,7 @@ describe("No-Show Updated Action Integration", () => {
     it("should create single audit record with both host and attendeesNoShow fields", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -246,6 +251,8 @@ describe("No-Show Updated Action Integration", () => {
           },
           attendeesNoShow: [{ attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } }],
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -282,17 +289,17 @@ describe("No-Show Updated Action Integration", () => {
     it("should accept attendeesNoShow data with array format", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      const dataWithArrayFormat = {
-        attendeesNoShow: [{ attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } }],
-      };
-
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
         source: "WEBAPP",
         operationId: `op-${Date.now()}`,
-        data: dataWithArrayFormat,
+        data: {
+          attendeesNoShow: [{ attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } }],
+        },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 

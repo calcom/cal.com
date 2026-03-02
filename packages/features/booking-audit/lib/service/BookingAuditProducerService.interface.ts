@@ -1,20 +1,19 @@
-import { z } from "zod";
-
+import type { z } from "zod";
+import type { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
+import type { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
+import type { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
+import type { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
+import type { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
+import type { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
+import type { NoShowUpdatedAuditActionService } from "../actions/NoShowUpdatedAuditActionService";
+import type { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
+import type { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
+import type { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import type { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
+import type { SeatBookedAuditActionService } from "../actions/SeatBookedAuditActionService";
+import type { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAuditActionService";
 import type { Actor, BookingAuditContext } from "../dto/types";
 import type { ActionSource } from "../types/actionSource";
-import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
-import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
-import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
-import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
-import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
-import { NoShowUpdatedAuditActionService } from "../actions/NoShowUpdatedAuditActionService";
-import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
-import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
-import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
-import { SeatBookedAuditActionService } from "../actions/SeatBookedAuditActionService";
-import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAuditActionService";
 
 /**
  * BookingAuditProducerService Interface
@@ -30,6 +29,19 @@ import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAud
  * - BookingAuditTriggerProducerService: (Future) Uses Trigger.dev for cloud jobs
  */
 export interface BookingAuditProducerService {
+  queueTask(params: {
+    bookingUid: string;
+    actor: Actor;
+    organizationId: number | null;
+    action: string;
+    source: ActionSource;
+    version: number;
+    data: unknown;
+    context?: BookingAuditContext;
+    isBookingAuditEnabled: boolean;
+    operationId?: string | null;
+  }): Promise<void>;
+
   queueCreatedAudit(params: {
     bookingUid: string;
     actor: Actor;

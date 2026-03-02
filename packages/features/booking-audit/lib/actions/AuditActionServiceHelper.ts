@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { formatInTimeZone } from "date-fns-tz";
+import { z } from "zod";
 
 /**
  * Audit Action Service Helper
@@ -45,6 +45,24 @@ export class AuditActionServiceHelper<
       version: this.latestVersion,
       fields: parsed,
     };
+  }
+
+  /**
+   * Parse versioned task payload data against all supported schema versions.
+   */
+  parse(data: unknown): z.infer<TStoredDataSchema> {
+    const normalized = this.normalizeToVersioned(data);
+    return this.storedDataSchema.parse(normalized);
+  }
+
+  /**
+   * If `data` lacks a `version` envelope, wrap it as `{ version: 1, fields: data }`.
+   */
+  private normalizeToVersioned(data: unknown): unknown {
+    if (typeof data === "object" && data !== null && !("version" in data)) {
+      return { version: 1, fields: data };
+    }
+    return data;
   }
 
   /**

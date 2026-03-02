@@ -3,6 +3,7 @@ import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas"
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
@@ -24,7 +25,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class SeatRescheduledAuditActionService implements IAuditActionService {
-  readonly VERSION = 1;
+  static readonly VERSION = 1;
   public static readonly TYPE = "SEAT_RESCHEDULED" as const;
   private static dataSchemaV1 = z.object({
     version: z.literal(1),
@@ -43,7 +44,7 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
-      latestVersion: this.VERSION,
+      latestVersion: SeatRescheduledAuditActionService.VERSION,
       latestFieldsSchema: SeatRescheduledAuditActionService.latestFieldsSchema,
       storedDataSchema: SeatRescheduledAuditActionService.storedDataSchema,
     });
@@ -61,8 +62,8 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): Record<string, unknown> {
-    return fieldsSchemaV1.parse(data);
+  parse(data: unknown): BaseStoredAuditData {
+    return this.helper.parse(data);
   }
 
   getDataRequirements(): DataRequirements {
@@ -87,9 +88,9 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
         oldDate,
         newDate,
       },
-            components: rescheduledToBookingUid
-              ? [{ type: "link", href: `/bookings?uid=${rescheduledToBookingUid}&activeSegment=history` }]
-              : undefined,
+      components: rescheduledToBookingUid
+        ? [{ type: "link", href: `/bookings?uid=${rescheduledToBookingUid}&activeSegment=history` }]
+        : undefined,
     };
   }
 

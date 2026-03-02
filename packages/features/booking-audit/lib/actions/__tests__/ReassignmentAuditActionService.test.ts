@@ -111,16 +111,34 @@ describe("ReassignmentAuditActionService", () => {
   });
 
   describe("parse", () => {
-    it("should validate and return data for V1", () => {
-      const fields = {
+    it("should validate and return versioned data when given unversioned data", () => {
+      const unversionedData = {
         organizerUuid: { old: "organizer-old", new: "organizer-new" },
         reassignmentReason: "Host unavailable",
         reassignmentType: "manual" as const,
       };
 
-      const result = service.parse(fields);
+      const result = service.parse(unversionedData);
 
-      expect(result).toEqual(fields);
+      expect(result).toEqual({
+        version: 1,
+        fields: unversionedData,
+      });
+    });
+
+    it("should validate and return versioned data for V1", () => {
+      const versionedData = {
+        version: 1,
+        fields: {
+          organizerUuid: { old: "organizer-old", new: "organizer-new" },
+          reassignmentReason: "Host unavailable",
+          reassignmentType: "manual" as const,
+        },
+      };
+
+      const result = service.parse(versionedData);
+
+      expect(result).toEqual(versionedData);
     });
   });
 

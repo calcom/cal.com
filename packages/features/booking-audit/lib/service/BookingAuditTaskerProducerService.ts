@@ -1,14 +1,8 @@
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-
-import type { BookingAuditAction } from "../types/bookingAuditTask";
-import type { ActionSource } from "../types/actionSource";
-import type { PiiFreeActor, Actor, BookingAuditContext } from "../dto/types";
-import { makeActorById, buildActorEmail } from "../makeActor";
-import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
+import { v4 as uuidv4 } from "uuid";
+import type { z } from "zod";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
@@ -18,10 +12,15 @@ import { LocationChangedAuditActionService } from "../actions/LocationChangedAud
 import { NoShowUpdatedAuditActionService } from "../actions/NoShowUpdatedAuditActionService";
 import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
 import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
 import { SeatBookedAuditActionService } from "../actions/SeatBookedAuditActionService";
 import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAuditActionService";
+import type { Actor, BookingAuditContext, PiiFreeActor } from "../dto/types";
+import { buildActorEmail, makeActorById } from "../makeActor";
+import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
+import type { ActionSource } from "../types/actionSource";
+import type { BookingAuditAction } from "../types/bookingAuditTask";
 import type { BookingAuditProducerService } from "./BookingAuditProducerService.interface";
 
 interface BookingAuditTaskerProducerServiceDeps {
@@ -89,13 +88,14 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
    * @param params.isBookingAuditEnabled - Flag indicating if booking audit is enabled for the organization.
    *        When false, skips queueing.
    */
-  private async queueTask(params: {
+  public async queueTask(params: {
     bookingUid: string;
     actor: Actor;
     organizationId: number | null;
     action: string;
     source: ActionSource;
     operationId?: string | null;
+    version: number;
     data: unknown;
     context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
@@ -129,7 +129,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
         action: params.action as BookingAuditAction,
         source: params.source,
         operationId,
-        data: params.data,
+        data: { version: params.version, fields: params.data },
         context: params.context,
       });
     } catch (error) {
@@ -150,6 +150,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: CreatedAuditActionService.TYPE,
+      version: CreatedAuditActionService.VERSION,
     });
   }
 
@@ -166,6 +167,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: RescheduledAuditActionService.TYPE,
+      version: RescheduledAuditActionService.VERSION,
     });
   }
 
@@ -182,6 +184,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: AcceptedAuditActionService.TYPE,
+      version: AcceptedAuditActionService.VERSION,
     });
   }
 
@@ -198,6 +201,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: CancelledAuditActionService.TYPE,
+      version: CancelledAuditActionService.VERSION,
     });
   }
 
@@ -214,6 +218,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: RescheduleRequestedAuditActionService.TYPE,
+      version: RescheduleRequestedAuditActionService.VERSION,
     });
   }
 
@@ -230,6 +235,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: AttendeeAddedAuditActionService.TYPE,
+      version: AttendeeAddedAuditActionService.VERSION,
     });
   }
 
@@ -246,6 +252,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: NoShowUpdatedAuditActionService.TYPE,
+      version: NoShowUpdatedAuditActionService.VERSION,
     });
   }
 
@@ -262,6 +269,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: RejectedAuditActionService.TYPE,
+      version: RejectedAuditActionService.VERSION,
     });
   }
 
@@ -278,6 +286,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: AttendeeRemovedAuditActionService.TYPE,
+      version: AttendeeRemovedAuditActionService.VERSION,
     });
   }
 
@@ -294,6 +303,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: ReassignmentAuditActionService.TYPE,
+      version: ReassignmentAuditActionService.VERSION,
     });
   }
 
@@ -310,6 +320,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: LocationChangedAuditActionService.TYPE,
+      version: LocationChangedAuditActionService.VERSION,
     });
   }
 
@@ -326,6 +337,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: SeatBookedAuditActionService.TYPE,
+      version: SeatBookedAuditActionService.VERSION,
     });
   }
 
@@ -342,6 +354,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueTask({
       ...params,
       action: SeatRescheduledAuditActionService.TYPE,
+      version: SeatRescheduledAuditActionService.VERSION,
     });
   }
 
@@ -355,6 +368,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     action: string;
     source: ActionSource;
     operationId?: string | null;
+    version: number;
     context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void> {
@@ -379,7 +393,10 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
       await this.tasker.create("bookingAudit", {
         isBulk: true,
-        bookings: params.bookings,
+        bookings: params.bookings.map((b) => ({
+          bookingUid: b.bookingUid,
+          data: { version: params.version, fields: b.data },
+        })),
         actor: piiFreeActor,
         organizationId: params.organizationId,
         timestamp: Date.now(),
@@ -408,6 +425,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueBulkTask({
       ...params,
       action: AcceptedAuditActionService.TYPE,
+      version: AcceptedAuditActionService.VERSION,
     });
   }
 
@@ -426,6 +444,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueBulkTask({
       ...params,
       action: CancelledAuditActionService.TYPE,
+      version: CancelledAuditActionService.VERSION,
     });
   }
 
@@ -443,6 +462,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueBulkTask({
       ...params,
       action: CreatedAuditActionService.TYPE,
+      version: CreatedAuditActionService.VERSION,
     });
   }
 
@@ -460,6 +480,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueBulkTask({
       ...params,
       action: RescheduledAuditActionService.TYPE,
+      version: RescheduledAuditActionService.VERSION,
     });
   }
 
@@ -478,6 +499,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     await this.queueBulkTask({
       ...params,
       action: RejectedAuditActionService.TYPE,
+      version: RejectedAuditActionService.VERSION,
     });
   }
 }

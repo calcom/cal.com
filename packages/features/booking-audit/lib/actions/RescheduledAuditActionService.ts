@@ -23,7 +23,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class RescheduledAuditActionService implements IAuditActionService {
-  readonly VERSION = 1;
+  static readonly VERSION = 1;
   public static readonly TYPE = "RESCHEDULED" as const;
   private static dataSchemaV1 = z.object({
     version: z.literal(1),
@@ -42,7 +42,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
-      latestVersion: this.VERSION,
+      latestVersion: RescheduledAuditActionService.VERSION,
       latestFieldsSchema: RescheduledAuditActionService.latestFieldsSchema,
       storedDataSchema: RescheduledAuditActionService.storedDataSchema,
     });
@@ -60,8 +60,8 @@ export class RescheduledAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): Record<string, unknown> {
-    return fieldsSchemaV1.parse(data);
+  parse(data: unknown): BaseStoredAuditData {
+    return this.helper.parse(data);
   }
 
   getDataRequirements(): DataRequirements {

@@ -61,6 +61,10 @@ export type AuditActionData =
   | SeatBookedAuditData
   | SeatRescheduledAuditData;
 
+export interface IBookingAuditActionServiceRegistry {
+  getActionService(action: BookingAuditAction): IAuditActionService;
+}
+
 /**
  * BookingAuditActionServiceRegistry
  *
@@ -68,7 +72,7 @@ export type AuditActionData =
  * Provides a single source of truth for action service mapping and eliminates
  * code duplication between consumer and viewer services.
  */
-export class BookingAuditActionServiceRegistry {
+export class BookingAuditActionServiceRegistry implements IBookingAuditActionServiceRegistry {
   private readonly actionServices: Map<BookingAuditAction, IAuditActionService>;
 
   constructor() {

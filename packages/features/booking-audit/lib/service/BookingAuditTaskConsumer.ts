@@ -4,6 +4,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { JsonValue } from "@calcom/types/Json";
+import type { BaseStoredAuditData } from "../actions/IAuditActionService";
 import type { BookingAuditContext, PiiFreeActor } from "../dto/types";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
 import type {
@@ -14,11 +15,10 @@ import type {
 } from "../repository/IBookingAuditRepository";
 import type { ActionSource } from "../types/actionSource";
 import type {
-  BookingAuditTaskConsumerPayload,
   BulkBookingAuditTaskConsumerPayload,
   SingleBookingAuditTaskConsumerPayload,
 } from "../types/bookingAuditTask";
-import { BookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
+import type { IBookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 
 interface BookingAuditTaskConsumerDeps {
   bookingAuditRepository: IBookingAuditRepository;
@@ -26,6 +26,7 @@ interface BookingAuditTaskConsumerDeps {
   featuresRepository: IFeaturesRepository;
   attendeeRepository: IAttendeeRepository;
   userRepository: UserRepository;
+  actionServiceRegistry: IBookingAuditActionServiceRegistry;
 }
 
 type CreateBookingAuditInput = {
@@ -69,7 +70,7 @@ type BookingAudit = {
  *   pass dependencies through intermediate layers.
  */
 export class BookingAuditTaskConsumer {
-  private readonly actionServiceRegistry: BookingAuditActionServiceRegistry;
+  private readonly actionServiceRegistry: IBookingAuditActionServiceRegistry;
   private readonly bookingAuditRepository: IBookingAuditRepository;
   private readonly auditActorRepository: IAuditActorRepository;
   private readonly featuresRepository: IFeaturesRepository;
@@ -78,8 +79,7 @@ export class BookingAuditTaskConsumer {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.auditActorRepository = deps.auditActorRepository;
     this.featuresRepository = deps.featuresRepository;
-
-    this.actionServiceRegistry = new BookingAuditActionServiceRegistry();
+    this.actionServiceRegistry = deps.actionServiceRegistry;
   }
 
   /**
@@ -145,28 +145,16 @@ export class BookingAuditTaskConsumer {
     });
   }
 
-  /**
-   * Validate data against latest schema for the given action.
-   *
-   * Task payloads are always created with the latest schema version,
-   * so this simply validates the data without any migration logic.
-   */
-  private validate(params: { action: BookingAuditAction; data: unknown }): Record<string, unknown> {
+  private validate(params: { action: BookingAuditAction; data: unknown }): BaseStoredAuditData {
     const { action, data } = params;
     const actionService = this.actionServiceRegistry.getActionService(action);
     return actionService.parse(data);
   }
 
-  /**
-   * Validate all bookings' data against latest schema in a bulk operation.
-   *
-   * Since all bookings in a bulk operation share the same action type,
-   * they all use the same action service for validation.
-   */
   private bulkValidate(params: {
     bookings: BulkBookingAuditTaskConsumerPayload["bookings"];
     action: BookingAuditAction;
-  }): Array<{ bookingUid: string; data: Record<string, unknown> }> {
+  }): Array<{ bookingUid: string; data: BaseStoredAuditData }> {
     const { bookings, action } = params;
     const actionService = this.actionServiceRegistry.getActionService(action);
 
@@ -236,7 +224,7 @@ export class BookingAuditTaskConsumer {
 
   /**
    * Creates a booking audit record
-   * Action services handle their own version wrapping
+   * Data is already versioned (stamped by producer or normalized from legacy format)
    */
   private async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
     logger.info(
@@ -308,7 +296,7 @@ export class BookingAuditTaskConsumer {
   }
 
   private async onBulkBookingActions(params: {
-    bookings: Array<{ bookingUid: string; data: Record<string, unknown> }>;
+    bookings: Array<{ bookingUid: string; data: BaseStoredAuditData }>;
     actor: PiiFreeActor;
     action: BookingAuditAction;
     source: ActionSource;
@@ -320,22 +308,18 @@ export class BookingAuditTaskConsumer {
 
     const actorId = await this.resolveActorId(actor);
     const recordType = this.getRecordType({ action });
-    const actionService = this.actionServiceRegistry.getActionService(action);
 
-    const auditRecordsToCreate: BookingAuditCreateInput[] = bookings.map((booking) => {
-      const versionedData = actionService.getVersionedData(booking.data);
-      return {
-        bookingUid: booking.bookingUid,
-        actorId,
-        type: recordType,
-        action,
-        source,
-        operationId,
-        data: versionedData as JsonValue,
-        timestamp: new Date(timestamp),
-        context,
-      };
-    });
+    const auditRecordsToCreate: BookingAuditCreateInput[] = bookings.map((booking) => ({
+      bookingUid: booking.bookingUid,
+      actorId,
+      type: recordType,
+      action,
+      source,
+      operationId,
+      data: booking.data as JsonValue,
+      timestamp: new Date(timestamp),
+      context,
+    }));
 
     await this.bookingAuditRepository.createMany(auditRecordsToCreate);
 
@@ -350,13 +334,11 @@ export class BookingAuditTaskConsumer {
     action: BookingAuditAction;
     source: ActionSource;
     operationId: string;
-    data: Record<string, unknown>;
+    data: BaseStoredAuditData;
     timestamp: number;
     context?: BookingAuditContext;
   }): Promise<BookingAudit> {
     const { bookingUid, actor, action, source, operationId, data, timestamp, context } = params;
-    const actionService = this.actionServiceRegistry.getActionService(action);
-    const versionedData = actionService.getVersionedData(data);
     const actorId = await this.resolveActorId(actor);
     const recordType = this.getRecordType({ action });
 
@@ -367,8 +349,7 @@ export class BookingAuditTaskConsumer {
       action,
       source,
       operationId,
-      // versionedData is { version: number; fields: unknown } which is JsonValue-compatible
-      data: versionedData as JsonValue,
+      data: data as JsonValue,
       timestamp: new Date(timestamp),
       context,
     });

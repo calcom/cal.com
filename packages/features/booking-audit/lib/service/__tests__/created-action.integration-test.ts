@@ -82,7 +82,7 @@ describe("Created Action Integration", () => {
     it("should create audit record and retrieve it with correct data formatting", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
@@ -94,6 +94,8 @@ describe("Created Action Integration", () => {
           status: testData.booking.status,
           hostUserUuid: testData.owner.uuid,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -129,7 +131,7 @@ describe("Created Action Integration", () => {
     it("should enrich actor information with user details from database", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
@@ -141,6 +143,8 @@ describe("Created Action Integration", () => {
           status: testData.booking.status,
           hostUserUuid: testData.owner.uuid,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -159,12 +163,11 @@ describe("Created Action Integration", () => {
     });
 
     it("should include impersonator details when context has impersonatedBy", async () => {
-      // Create a second user to act as impersonator
       const impersonator = await createTestUser({ name: "Admin Impersonator" });
 
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
@@ -176,6 +179,8 @@ describe("Created Action Integration", () => {
           status: testData.booking.status,
           hostUserUuid: testData.owner.uuid,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
         context: {
           impersonatedBy: impersonator.uuid,
@@ -197,14 +202,13 @@ describe("Created Action Integration", () => {
       expect(auditLog.impersonatedBy?.displayName).toBe("Admin Impersonator");
       expect(auditLog.impersonatedBy?.displayEmail).toBe(impersonator.email);
 
-      // Cleanup impersonator user
       await prisma.user.delete({ where: { id: impersonator.id } });
     });
 
     it.skip("should deny access to unauthorized users viewing audit logs", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.onBookingAction({
+      await bookingAuditTaskConsumer.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "CREATED",
@@ -216,6 +220,8 @@ describe("Created Action Integration", () => {
           status: testData.booking.status,
           hostUserUuid: testData.owner.uuid,
         },
+        isBulk: false,
+        organizationId: testData.organization.id,
         timestamp: Date.now(),
       });
 
@@ -269,46 +275,44 @@ describe("Created Action Integration", () => {
       const operationId = `bulk-op-${Date.now()}`;
       const timestamp = Date.now();
 
-      await bookingAuditTaskConsumer.processBulkAuditTask(
-        {
-          isBulk: true,
-          bookings: [
-            {
-              bookingUid: testData.booking.uid,
-              data: {
-                startTime: testData.booking.startTime.getTime(),
-                endTime: testData.booking.endTime.getTime(),
-                status: testData.booking.status,
-                hostUserUuid: testData.owner.uuid,
-              },
+      await bookingAuditTaskConsumer.processBulkAuditTask({
+        isBulk: true,
+        bookings: [
+          {
+            bookingUid: testData.booking.uid,
+            data: {
+              startTime: testData.booking.startTime.getTime(),
+              endTime: testData.booking.endTime.getTime(),
+              status: testData.booking.status,
+              hostUserUuid: testData.owner.uuid,
             },
-            {
-              bookingUid: booking2.uid,
-              data: {
-                startTime: booking2.startTime.getTime(),
-                endTime: booking2.endTime.getTime(),
-                status: booking2.status,
-                hostUserUuid: testData.owner.uuid,
-              },
+          },
+          {
+            bookingUid: booking2.uid,
+            data: {
+              startTime: booking2.startTime.getTime(),
+              endTime: booking2.endTime.getTime(),
+              status: booking2.status,
+              hostUserUuid: testData.owner.uuid,
             },
-            {
-              bookingUid: booking3.uid,
-              data: {
-                startTime: booking3.startTime.getTime(),
-                endTime: booking3.endTime.getTime(),
-                status: booking3.status,
-                hostUserUuid: testData.owner.uuid,
-              },
+          },
+          {
+            bookingUid: booking3.uid,
+            data: {
+              startTime: booking3.startTime.getTime(),
+              endTime: booking3.endTime.getTime(),
+              status: booking3.status,
+              hostUserUuid: testData.owner.uuid,
             },
-          ],
-          actor,
-          action: "CREATED",
-          source: "WEBAPP",
-          operationId,
-          timestamp,
-          organizationId: testData.organization.id,
-        }
-      );
+          },
+        ],
+        actor,
+        action: "CREATED",
+        source: "WEBAPP",
+        operationId,
+        timestamp,
+        organizationId: testData.organization.id,
+      });
 
       const result1 = await bookingAuditViewerService.getAuditLogsForBooking({
         bookingUid: testData.booking.uid,
@@ -342,7 +346,6 @@ describe("Created Action Integration", () => {
       expect(result2.auditLogs[0].action).toBe("CREATED");
       expect(result3.auditLogs[0].action).toBe("CREATED");
 
-      // Verify all bookings share the same operationId
       expect(result1.auditLogs[0].operationId).toBe(operationId);
       expect(result2.auditLogs[0].operationId).toBe(operationId);
       expect(result3.auditLogs[0].operationId).toBe(operationId);

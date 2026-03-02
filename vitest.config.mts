@@ -1,4 +1,5 @@
 import path from "node:path";
+import process from "node:process";
 import react from "@vitejs/plugin-react";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
@@ -65,6 +66,10 @@ export default defineConfig({
       {
         find: /^\.\/tailwind\.generated\.css\?inline$/,
         replacement: path.resolve(__dirname, "vitest-mocks/tailwind.generated.css"),
+      },
+      {
+        find: "@calcom/i18n/server",
+        replacement: path.resolve(__dirname, "packages/i18n/server.ts"),
       },
       // Alias Node.js built-ins for jsdom environment
       { find: "crypto", replacement: "node:crypto" },

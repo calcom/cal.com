@@ -32,7 +32,7 @@ const fieldsSchemaV1 = z.object({
 });
 
 export class ReassignmentAuditActionService implements IAuditActionService {
-  readonly VERSION = 1;
+  static readonly VERSION = 1;
   public static readonly TYPE = "REASSIGNMENT" as const;
   private static dataSchemaV1 = z.object({
     version: z.literal(1),
@@ -51,7 +51,7 @@ export class ReassignmentAuditActionService implements IAuditActionService {
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
-      latestVersion: this.VERSION,
+      latestVersion: ReassignmentAuditActionService.VERSION,
       latestFieldsSchema: ReassignmentAuditActionService.latestFieldsSchema,
       storedDataSchema: ReassignmentAuditActionService.storedDataSchema,
     });
@@ -69,8 +69,8 @@ export class ReassignmentAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): Record<string, unknown> {
-    return fieldsSchemaV1.parse(data);
+  parse(data: unknown): BaseStoredAuditData {
+    return this.helper.parse(data);
   }
 
   getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
