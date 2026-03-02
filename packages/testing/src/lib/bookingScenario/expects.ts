@@ -1152,12 +1152,14 @@ export function expectBookingCancelledWebhookToHaveBeenFired({
   location,
   subscriberUrl,
   payload,
+  metadata,
 }: {
   organizer: { email: string; name: string; username?: string; usernameInOrg?: string };
   booker: { email: string; name: string };
   subscriberUrl: string;
   location: string;
   payload?: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
 }) {
   const organizerPayload = {
     username: organizer.username,
@@ -1169,7 +1171,7 @@ export function expectBookingCancelledWebhookToHaveBeenFired({
     payload: {
       ...payload,
       organizer: organizerPayload,
-      metadata: null,
+      ...(metadata !== undefined ? { metadata } : {}),
       responses: {
         name: {
           label: "name",
