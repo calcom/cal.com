@@ -3,15 +3,14 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
 import type {
-  PermissionString,
-  Resource,
   CrudAction,
   CustomAction,
+  PermissionString,
+  Resource,
 } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
@@ -338,6 +337,32 @@ export class PermissionCheckService {
       this.logger.error(error);
       return [];
     }
+  }
+
+  /**
+   * Checks if a user can update a personal event booking (event type has no teamId).
+   */
+  async canUpdatePersonalEventBooking({
+    userId,
+    organizerUserId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    organizerUserId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<boolean> {
+    const teamIdsWithUpdatePermission = await this.getTeamIdsWithPermission({
+      userId,
+      permission,
+      fallbackRoles,
+    });
+    if (teamIdsWithUpdatePermission.length === 0) return false;
+    return this.membershipRepository.hasUserInAnyOfTeams({
+      userId: organizerUserId,
+      teamIds: teamIdsWithUpdatePermission,
+    });
   }
 
   /**

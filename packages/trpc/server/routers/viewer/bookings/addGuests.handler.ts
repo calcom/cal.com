@@ -15,10 +15,10 @@ import {
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -136,6 +136,17 @@ export async function validateUserPermissions(booking: Booking, user: TUser): Pr
     hasBookingUpdatePermission = await permissionCheckService.checkPermission({
       userId: user.id,
       teamId: booking.eventType.teamId,
+      permission: "booking.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+  }
+
+  // Allow team owners/admins to add guests to their members' personal event bookings
+  if (!hasBookingUpdatePermission && !booking.eventType?.teamId && booking.userId) {
+    const permissionCheckService = new PermissionCheckService();
+    hasBookingUpdatePermission = await permissionCheckService.canUpdatePersonalEventBooking({
+      userId: user.id,
+      organizerUserId: booking.userId,
       permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
