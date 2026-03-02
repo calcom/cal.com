@@ -1,5 +1,6 @@
 import { describe, it, vi, expect, beforeAll, afterAll, afterEach } from "vitest";
 
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
@@ -90,11 +91,9 @@ const createTestBooking = async (params: {
   startTime: Date;
   endTime: Date;
 }) => {
-  const uniqueId = `test-idempotency-${Date.now()}-${Math.random()}`;
   const booking = await prisma.booking.create({
     data: {
-      uid: `test-booking-${uniqueId}`,
-      idempotencyKey: `test-idempotency-${uniqueId}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Test Booking",
       startTime: params.startTime,
       endTime: params.endTime,

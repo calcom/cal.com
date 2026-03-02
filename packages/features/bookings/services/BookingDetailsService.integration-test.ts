@@ -1,9 +1,8 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { BookingDetailsService } from "./BookingDetailsService";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testEventTypeId: number | null = null;
@@ -36,7 +35,7 @@ async function createTestBooking(
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `details-svc-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Details Service Test Booking",
       startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
       endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
@@ -68,7 +67,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Details Svc Test Event",
-          slug: `details-svc-test-${testRunId}`,
+          slug: `details-svc-test-${randomString()}`,
           length: 30,
           userId: testUserId,
         },
@@ -151,7 +150,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       const newOffset = bookingTimeOffset++;
       const newBooking = await prisma.booking.create({
         data: {
-          uid: `details-svc-test-${testRunId}-new-rescheduled`,
+          uid: `booking-uid-${randomString()}`,
           title: "Rescheduled Booking",
           startTime: new Date(`2025-06-02T${String(10 + newOffset).padStart(2, "0")}:00:00.000Z`),
           endTime: new Date(`2025-06-02T${String(11 + newOffset).padStart(2, "0")}:00:00.000Z`),
@@ -178,7 +177,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
       const curOffset = bookingTimeOffset++;
       const currentBooking = await prisma.booking.create({
         data: {
-          uid: `details-svc-test-${testRunId}-current`,
+          uid: `booking-uid-${randomString()}`,
           title: "Current Booking",
           startTime: new Date(`2025-06-02T${String(10 + curOffset).padStart(2, "0")}:00:00.000Z`),
           endTime: new Date(`2025-06-02T${String(11 + curOffset).padStart(2, "0")}:00:00.000Z`),

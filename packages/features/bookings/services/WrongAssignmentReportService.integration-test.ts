@@ -1,4 +1,5 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import type { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -24,8 +25,6 @@ vi.mock("@calcom/lib/logger", () => ({
     }),
   },
 }));
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testTeamId: number;
@@ -64,10 +63,10 @@ async function createTestBooking(uid: string) {
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `wrong-assign-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Wrong Assignment Test Booking",
-      startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-      endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+      startTime: new Date(`2025-06-18T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+      endTime: new Date(`2025-06-18T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
       userId: testUserId,
       eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
@@ -104,7 +103,7 @@ describe("WrongAssignmentReportService (Integration Tests)", () => {
       team = await prisma.team.create({
         data: {
           name: "Wrong Assignment Test Team",
-          slug: `wrong-assign-test-${testRunId}`,
+          slug: `wrong-assign-test-${randomString()}`,
         },
       });
       createdTeam = true;
@@ -119,7 +118,7 @@ describe("WrongAssignmentReportService (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Wrong Assign Test Event",
-          slug: `wrong-assign-test-${testRunId}`,
+          slug: `wrong-assign-test-${randomString()}`,
           length: 30,
           userId: testUserId,
           teamId: testTeamId,

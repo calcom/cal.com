@@ -1,10 +1,9 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import type { Booking, Credential } from "@calcom/prisma/client";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { BookingReferenceRepository } from "./BookingReferenceRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testCredential: Credential;
@@ -54,8 +53,8 @@ describe("BookingReferenceRepository Integration Tests", () => {
     if (!testUser) {
       testUser = await prisma.user.create({
         data: {
-          email: `bookingreference-test-${testRunId}@example.com`,
-          username: `bookingreference-test-${testRunId}`,
+          email: `bookingreference-test-${randomString()}@example.com`,
+          username: `bookingreference-test-${randomString()}`,
         },
       });
     }
@@ -80,7 +79,7 @@ describe("BookingReferenceRepository Integration Tests", () => {
   beforeEach(async () => {
     testBooking = await prisma.booking.create({
       data: {
-        uid: `test-booking-uid-${testRunId}-${Date.now()}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Test Booking",
         startTime: new Date(),
         endTime: new Date(),

@@ -1,9 +1,8 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PrismaBookingPaymentRepository } from "./PrismaBookingPaymentRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testEventTypeId: number | null = null;
@@ -37,10 +36,10 @@ async function createTestBooking(uid: string) {
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `payment-repo-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Payment Test Booking",
-      startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-      endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+      startTime: new Date(`2025-06-15T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+      endTime: new Date(`2025-06-15T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
       userId: testUserId,
       eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
@@ -67,7 +66,7 @@ describe("PrismaBookingPaymentRepository (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Payment Repo Test Event",
-          slug: `payment-repo-test-${testRunId}`,
+          slug: `payment-repo-test-${randomString()}`,
           length: 30,
           userId: testUserId,
         },
@@ -98,16 +97,16 @@ describe("PrismaBookingPaymentRepository (Integration Tests)", () => {
       const stripeApp = await prisma.app.findUnique({ where: { slug: "stripe" } });
 
       const paymentData = {
-        uid: `payment-uid-${testRunId}-1`,
+        uid: `payment-uid-${randomString()}-1`,
         ...(stripeApp ? { app: { connect: { slug: "stripe" } } } : {}),
         booking: { connect: { id: booking.id } },
         amount: 5000,
         fee: 100,
-        externalId: `ext-${testRunId}-1`,
+        externalId: `ext-${randomString()}-1`,
         refunded: false,
         success: true,
         currency: "usd",
-        data: { paymentIntentId: `pi_${testRunId}` },
+        data: { paymentIntentId: `pi_${randomString()}` },
       };
 
       const result = await repo.createPaymentRecord(paymentData);
@@ -129,11 +128,11 @@ describe("PrismaBookingPaymentRepository (Integration Tests)", () => {
 
       const payment = await prisma.payment.create({
         data: {
-          uid: `payment-uid-${testRunId}-find-1`,
+          uid: `payment-uid-${randomString()}-find-1`,
           bookingId: booking.id,
           amount: 1000,
           fee: 50,
-          externalId: `ext-find-${testRunId}-1`,
+          externalId: `ext-find-${randomString()}-1`,
           refunded: false,
           success: true,
           currency: "usd",
@@ -170,11 +169,11 @@ describe("PrismaBookingPaymentRepository (Integration Tests)", () => {
 
       const payment = await prisma.payment.create({
         data: {
-          uid: `payment-uid-${testRunId}-await-1`,
+          uid: `payment-uid-${randomString()}-await-1`,
           bookingId: booking.id,
           amount: 2500,
           fee: 75,
-          externalId: `ext-await-${testRunId}-1`,
+          externalId: `ext-await-${randomString()}-1`,
           refunded: false,
           success: false,
           currency: "usd",

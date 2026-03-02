@@ -1,9 +1,8 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PrismaBookingAttendeeRepository } from "./PrismaBookingAttendeeRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testEventTypeId: number | null = null;
@@ -27,10 +26,10 @@ async function createTestBookingWithAttendees(uid: string, attendeeCount: number
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `attendee-del-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Test Booking",
-      startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-      endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+      startTime: new Date(`2025-06-16T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+      endTime: new Date(`2025-06-16T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
       userId: testUserId,
       eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
@@ -41,7 +40,7 @@ async function createTestBookingWithAttendees(uid: string, attendeeCount: number
   for (let i = 0; i < attendeeCount; i++) {
     await prisma.attendee.create({
       data: {
-        email: `attendee-${i}-${testRunId}@test.com`,
+        email: `attendee-${i}-${randomString()}@test.com`,
         name: `Attendee ${i}`,
         timeZone: "UTC",
         bookingId: booking.id,
@@ -69,7 +68,7 @@ describe("PrismaBookingAttendeeRepository (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Attendee Delete Test Event",
-          slug: `attendee-del-test-${testRunId}`,
+          slug: `attendee-del-test-${randomString()}`,
           length: 30,
           userId: testUserId,
         },
@@ -111,10 +110,10 @@ describe("PrismaBookingAttendeeRepository (Integration Tests)", () => {
       const offset = bookingTimeOffset++;
       const booking = await prisma.booking.create({
         data: {
-          uid: `attendee-del-test-${testRunId}-no-attendees`,
+          uid: `booking-uid-${randomString()}`,
           title: "Empty Booking",
-          startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-          endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+          startTime: new Date(`2025-06-16T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+          endTime: new Date(`2025-06-16T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
           userId: testUserId,
           eventTypeId: testEventTypeId,
           status: BookingStatus.ACCEPTED,

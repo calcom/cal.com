@@ -1,3 +1,4 @@
+import { randomString } from "@calcom/lib/random";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { prisma } from "@calcom/prisma";
@@ -6,7 +7,6 @@ import { DunningStatus } from "@calcom/prisma/enums";
 import { TeamRepository } from "../../../teams/repositories/TeamRepository";
 import { TeamDunningRepository } from "./TeamDunningRepository";
 
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testBillingId: string;
 let secondBillingId: string;
@@ -39,16 +39,16 @@ describe("TeamDunningRepository (Integration Tests)", () => {
   async function createTestTeamWithBilling(suffix: string): Promise<string> {
     const team = await teamRepository.create({
       name: `Dunning Test Team ${suffix}`,
-      slug: `dunning-test-${testRunId}-${suffix}`,
+      slug: `dunning-test-${randomString()}-${suffix}`,
     });
     createdTeamIds.push(team.id);
 
     const billing = await prisma.teamBilling.create({
       data: {
         teamId: team.id,
-        subscriptionId: `sub_test_${testRunId}_${suffix}`,
-        subscriptionItemId: `si_test_${testRunId}_${suffix}`,
-        customerId: `cus_test_${testRunId}_${suffix}`,
+        subscriptionId: `sub_test_${randomString()}_${suffix}`,
+        subscriptionItemId: `si_test_${randomString()}_${suffix}`,
+        customerId: `cus_test_${randomString()}_${suffix}`,
         status: "active",
         planName: "TEAM",
       },

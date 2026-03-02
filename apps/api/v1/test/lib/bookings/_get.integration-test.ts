@@ -4,6 +4,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { ZodError } from "zod";
 
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 
 import { handler } from "../../../pages/api/bookings/_get";
@@ -38,12 +39,13 @@ describe("GET /api/bookings", () => {
       }
     });
 
+    const baseMs = Date.now();
     memberUserBooking = await prisma.booking.create({
       data: {
-        uid: `test-member-booking-${Date.now()}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Member Test Booking",
-        startTime: new Date(Date.now() + 86400000), // Tomorrow
-        endTime: new Date(Date.now() + 90000000),   // Tomorrow + 1 hour
+        startTime: new Date(baseMs + 86400000), // Tomorrow
+        endTime: new Date(baseMs + 90000000), // Tomorrow + 1 hour
         userId: memberUser.id,
         eventTypeId: memberEventType?.id,
         status: "ACCEPTED",

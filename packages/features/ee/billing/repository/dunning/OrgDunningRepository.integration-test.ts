@@ -1,11 +1,10 @@
+import { randomString } from "@calcom/lib/random";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 import { DunningStatus } from "@calcom/prisma/enums";
 
 import { OrgDunningRepository } from "./OrgDunningRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testBillingId: string;
 let secondBillingId: string;
@@ -37,7 +36,7 @@ describe("OrgDunningRepository (Integration Tests)", () => {
     const team = await prisma.team.create({
       data: {
         name: `Dunning Test Org ${suffix}`,
-        slug: `dunning-org-test-${testRunId}-${suffix}`,
+        slug: `dunning-org-test-${randomString()}-${suffix}`,
         isOrganization: true,
       },
       select: { id: true },
@@ -47,9 +46,9 @@ describe("OrgDunningRepository (Integration Tests)", () => {
     const billing = await prisma.organizationBilling.create({
       data: {
         teamId: team.id,
-        subscriptionId: `sub_org_test_${testRunId}_${suffix}`,
-        subscriptionItemId: `si_org_test_${testRunId}_${suffix}`,
-        customerId: `cus_org_test_${testRunId}_${suffix}`,
+        subscriptionId: `sub_org_test_${randomString()}_${suffix}`,
+        subscriptionItemId: `si_org_test_${randomString()}_${suffix}`,
+        customerId: `cus_org_test_${randomString()}_${suffix}`,
         status: "active",
         planName: "ORGANIZATION",
       },

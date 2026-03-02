@@ -1,3 +1,4 @@
+import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import kysely from "@calcom/kysely";
 import type { Booking, EventType, Team, User } from "@calcom/prisma/client";
@@ -73,7 +74,7 @@ describe("getBookings - integration", () => {
 
     booking1 = await prisma.booking.create({
       data: {
-        uid: `getbookings-booking1-${timestamp}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Booking 1",
         startTime: futureDate,
         endTime: new Date(futureDate.getTime() + 30 * 60 * 1000),
@@ -92,7 +93,7 @@ describe("getBookings - integration", () => {
 
     booking2 = await prisma.booking.create({
       data: {
-        uid: `getbookings-booking2-${timestamp}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Booking 2",
         startTime: futureDate2,
         endTime: new Date(futureDate2.getTime() + 30 * 60 * 1000),
@@ -111,7 +112,7 @@ describe("getBookings - integration", () => {
 
     booking3 = await prisma.booking.create({
       data: {
-        uid: `getbookings-booking3-${timestamp}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Booking 3",
         startTime: futureDate3,
         endTime: new Date(futureDate3.getTime() + 30 * 60 * 1000),
@@ -140,7 +141,7 @@ describe("getBookings - integration", () => {
     const futureDate4 = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     booking4 = await prisma.booking.create({
       data: {
-        uid: `getbookings-booking4-${timestamp}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Team Booking - multi branch",
         startTime: futureDate4,
         endTime: new Date(futureDate4.getTime() + 30 * 60 * 1000),

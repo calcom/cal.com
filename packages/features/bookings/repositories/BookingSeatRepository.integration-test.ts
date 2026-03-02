@@ -1,9 +1,8 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { BookingSeatRepository } from "./BookingSeatRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testEventTypeId: number | null = null;
@@ -31,10 +30,10 @@ async function createTestBookingWithSeat(uid: string, attendeeEmail: string, sea
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `seat-repo-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Seated Test Booking",
-      startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-      endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+      startTime: new Date(`2025-06-19T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+      endTime: new Date(`2025-06-19T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
       userId: testUserId,
       eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
@@ -82,7 +81,7 @@ describe("BookingSeatRepository (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Seat Repo Test Event",
-          slug: `seat-repo-test-${testRunId}`,
+          slug: `seat-repo-test-${randomString()}`,
           length: 30,
           userId: testUserId,
         },
@@ -107,7 +106,7 @@ describe("BookingSeatRepository (Integration Tests)", () => {
 
   describe("getByUidIncludeAttendee", () => {
     it("returns attendee email for a given seat uid", async () => {
-      const seatRef = `seat-uid-${testRunId}-1`;
+      const seatRef = `seat-uid-${randomString()}-1`;
       await createTestBookingWithSeat("seat-1", "seated-attendee@test.com", seatRef);
 
       const result = await repo.getByUidIncludeAttendee(seatRef);
@@ -125,7 +124,7 @@ describe("BookingSeatRepository (Integration Tests)", () => {
 
   describe("getByReferenceUidWithAttendeeDetails", () => {
     it("returns full attendee details for a given reference uid", async () => {
-      const seatRef = `seat-details-${testRunId}-1`;
+      const seatRef = `seat-details-${randomString()}-1`;
       const { attendee } = await createTestBookingWithSeat("details-1", "details@test.com", seatRef);
 
       const result = await repo.getByReferenceUidWithAttendeeDetails(seatRef);
@@ -151,14 +150,14 @@ describe("BookingSeatRepository (Integration Tests)", () => {
     });
 
     it("returns attendee with null optional fields", async () => {
-      const seatRef = `seat-nulls-${testRunId}-1`;
+      const seatRef = `seat-nulls-${randomString()}-1`;
       const offset = bookingTimeOffset++;
       const booking = await prisma.booking.create({
         data: {
-          uid: `seat-repo-test-${testRunId}-nulls`,
+          uid: `booking-uid-${randomString()}`,
           title: "Null Fields Test",
-          startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-          endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+          startTime: new Date(`2025-06-19T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+          endTime: new Date(`2025-06-19T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
           userId: testUserId,
           eventTypeId: testEventTypeId,
           status: BookingStatus.ACCEPTED,

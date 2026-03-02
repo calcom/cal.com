@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
+import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
 import handler from "../../../../pages/api/bookings/[id]/_patch";
@@ -25,13 +26,13 @@ describe("PATCH /api/bookings", () => {
       where: { email: "member0-acme@example.com" },
     });
 
-    // Create bookings for testing
+    const baseMs = Date.now();
     member1Booking = await prisma.booking.create({
       data: {
-        uid: `test-member1-booking-${Date.now()}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Member 1 Test Booking",
-        startTime: new Date(Date.now() + 86400000), // Tomorrow
-        endTime: new Date(Date.now() + 90000000), // Tomorrow + 1 hour
+        startTime: new Date(baseMs + 86400000), // Tomorrow
+        endTime: new Date(baseMs + 90000000), // Tomorrow + 1 hour
         userId: member1.id,
         status: "ACCEPTED",
       },
@@ -40,10 +41,10 @@ describe("PATCH /api/bookings", () => {
 
     member0Booking = await prisma.booking.create({
       data: {
-        uid: `test-member0-booking-${Date.now()}`,
+        uid: `booking-uid-${randomString()}`,
         title: "Member 0 Test Booking",
-        startTime: new Date(Date.now() + 172800000), // Day after tomorrow
-        endTime: new Date(Date.now() + 176400000), // Day after tomorrow + 1 hour
+        startTime: new Date(baseMs + 172800000), // Day after tomorrow
+        endTime: new Date(baseMs + 176400000), // Day after tomorrow + 1 hour
         userId: member0.id,
         status: "ACCEPTED",
       },

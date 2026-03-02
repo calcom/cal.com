@@ -1,9 +1,8 @@
+import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PrismaTrackingRepository } from "./PrismaTrackingRepository";
-
-const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 
 let testUserId: number;
 let testEventTypeId: number | null = null;
@@ -39,10 +38,10 @@ async function createTestBookingWithTracking(
   const offset = bookingTimeOffset++;
   const booking = await prisma.booking.create({
     data: {
-      uid: `tracking-repo-test-${testRunId}-${uid}`,
+      uid: `booking-uid-${randomString()}`,
       title: "Tracking Test Booking",
-      startTime: new Date(`2025-06-01T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
-      endTime: new Date(`2025-06-01T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
+      startTime: new Date(`2025-06-20T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+      endTime: new Date(`2025-06-20T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
       userId: testUserId,
       eventTypeId: testEventTypeId,
       status: BookingStatus.ACCEPTED,
@@ -77,7 +76,7 @@ describe("PrismaTrackingRepository (Integration Tests)", () => {
       eventType = await prisma.eventType.create({
         data: {
           title: "Tracking Repo Test Event",
-          slug: `tracking-repo-test-${testRunId}`,
+          slug: `tracking-repo-test-${randomString()}`,
           length: 30,
           userId: testUserId,
         },
@@ -147,12 +146,13 @@ describe("PrismaTrackingRepository (Integration Tests)", () => {
     });
 
     it("returns null for booking without tracking data", async () => {
+      const offset = bookingTimeOffset++;
       const booking = await prisma.booking.create({
         data: {
-          uid: `tracking-repo-test-${testRunId}-no-tracking`,
+          uid: `booking-uid-${randomString()}`,
           title: "No Tracking Booking",
-          startTime: new Date("2025-06-01T10:00:00.000Z"),
-          endTime: new Date("2025-06-01T11:00:00.000Z"),
+          startTime: new Date(`2025-06-20T${String(10 + offset).padStart(2, "0")}:00:00.000Z`),
+          endTime: new Date(`2025-06-20T${String(11 + offset).padStart(2, "0")}:00:00.000Z`),
           userId: testUserId,
           eventTypeId: testEventTypeId,
           status: BookingStatus.ACCEPTED,
