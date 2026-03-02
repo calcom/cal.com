@@ -15,6 +15,7 @@ import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.r
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/constants/constants";
@@ -396,6 +397,41 @@ describe("OAuth Client Users Endpoints", () => {
       await userDoesNotHaveDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
       await userHasOnlyOneSchedule(responseBody.data.user.id);
+    });
+
+    it(`/POST should call getCalendars with onboarding=true when creating managed user`, async () => {
+      const onboardingTestEmail = `oauth-client-users-onboarding-${randomString()}@api.com`;
+      const requestBody: CreateManagedUserInput = {
+        email: onboardingTestEmail,
+        timeZone: "Europe/Rome",
+        name: "Onboarding Test User",
+      };
+
+      const getCalendarsSpy = jest
+        .spyOn(CalendarsService.prototype, "getCalendars")
+        .mockResolvedValue({
+          connectedCalendars: [],
+          destinationCalendar: { integration: "", externalId: "" },
+        });
+
+      let createdUserId: number | undefined;
+      try {
+        const response = await request(app.getHttpServer())
+          .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+          .set("x-cal-secret-key", oAuthClient.secret)
+          .send(requestBody)
+          .expect(201);
+
+        const responseBody: CreateManagedUserOutput = response.body;
+        createdUserId = responseBody.data.user.id;
+
+        expect(getCalendarsSpy).toHaveBeenCalledWith(createdUserId, true);
+      } finally {
+        getCalendarsSpy.mockRestore();
+        if (createdUserId) {
+          await userRepositoryFixture.delete(createdUserId);
+        }
+      }
     });
 
     async function userConnectedToOAuth(oAuthClientId: string, userEmail: string, usersCount: number) {
