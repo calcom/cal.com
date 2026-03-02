@@ -4,7 +4,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";

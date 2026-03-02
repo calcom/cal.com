@@ -2,9 +2,13 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -18,12 +22,7 @@ export type Booking = NonNullable<
   Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>
 >;
 
-export type OrganizerData = {
-  name: string | null;
-  email: string;
-  timeZone: string;
-  locale: string | null;
-};
+export type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export async function getBooking(bookingId: number): Promise<Booking> {
   const bookingRepository = new BookingRepository(prisma);
@@ -56,7 +55,7 @@ export async function validateUserPermissions(booking: Booking, user: TUser): Pr
   }
 }
 
-export async function getOrganizerData(userId: number | null): Promise<OrganizerData> {
+export async function getOrganizerData(userId: number | null) {
   if (!userId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
   }
@@ -66,10 +65,17 @@ export async function getOrganizerData(userId: number | null): Promise<Organizer
       id: userId,
     },
     select: {
+      id: true,
       name: true,
       email: true,
       timeZone: true,
       locale: true,
+      hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   });
 }
@@ -125,6 +131,18 @@ export async function buildCalendarEvent(
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: organizer.id,
+            hideBranding: organizer.hideBranding,
+            profiles: organizer.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   if (videoCallReference) {

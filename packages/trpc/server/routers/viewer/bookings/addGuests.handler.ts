@@ -1,17 +1,18 @@
 import process from "node:process";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 import {
@@ -19,11 +20,15 @@ import {
   buildCalendarEvent,
   getBooking,
   getOrganizerData,
+  type OrganizerData,
   prepareAttendeesList,
   type TUser,
   updateCalendarEvent,
   validateUserPermissions,
 } from "./bookingAttendees.utils";
+
+export type { Booking, OrganizerData, TUser } from "./bookingAttendees.utils";
+export { getBooking, validateUserPermissions, getOrganizerData, prepareAttendeesList, buildCalendarEvent, updateCalendarEvent } from "./bookingAttendees.utils";
 
 type AddGuestsOptions = {
   ctx: {
@@ -31,7 +36,7 @@ type AddGuestsOptions = {
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
 };
 
 export const addGuestsHandler = async ({
@@ -103,7 +108,7 @@ export const addGuestsHandler = async ({
   return { message: "Guests added" };
 };
 
-function validateGuestsFieldEnabled(booking: Booking): void {
+export function validateGuestsFieldEnabled(booking: Booking): void {
   const parsedBookingFields = booking?.eventType?.bookingFields
     ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
     : [];
@@ -137,7 +142,9 @@ function getBlacklistedEmails(): string[] {
 
 async function getEmailVerificationRequirements(guestEmails: string[]): Promise<Map<string, boolean>> {
   const userRepo = new UserRepository(prisma);
-  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
+  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {
@@ -148,7 +155,7 @@ async function getEmailVerificationRequirements(guestEmails: string[]): Promise<
   return emailToRequiresVerification;
 }
 
-async function sanitizeAndFilterGuests(
+export async function sanitizeAndFilterGuests(
   guests: Array<{
     email: string;
     name?: string;
@@ -189,7 +196,10 @@ async function sanitizeAndFilterGuests(
   });
 
   if (uniqueGuestEmails.length === 0) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "emails_must_be_unique_valid",
+    });
   }
 
   // Return the full guest objects for unique emails
@@ -198,9 +208,14 @@ async function sanitizeAndFilterGuests(
     .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
 }
 
-async function updateBookingAttendees(
+export async function updateBookingAttendees(
   bookingId: number,
-  newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
+  newAttendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+  }[],
   uniqueGuestEmails: string[],
   booking: Booking
 ) {
@@ -217,8 +232,8 @@ async function updateBookingAttendees(
   });
 }
 
-async function sendGuestNotifications(
-  evt: Awaited<ReturnType<typeof buildCalendarEvent>>,
+export async function sendGuestNotifications(
+  evt: CalendarEvent,
   booking: Booking,
   uniqueGuests: string[]
 ): Promise<void> {

@@ -92,7 +92,7 @@ export const getBookingWithResponses = <
     select: BookingSelect & {
       responses: true;
     };
-  }>
+  }>,
 >(
   booking: T
 ) => {

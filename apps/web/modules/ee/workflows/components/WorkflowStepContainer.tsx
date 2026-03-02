@@ -1,23 +1,22 @@
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/web/components/phone-input";
 import {
-  isSMSAction,
-  isWhatsappAction,
   getTemplateBodyForAction,
-  shouldScheduleEmailReminder,
-  isSMSOrWhatsappAction,
+  hasCalAIAction,
   isCalAIAction,
   isFormTrigger,
-  hasCalAIAction,
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+  shouldScheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "@calcom/features/ee/workflows/lib/constants";
 import {
@@ -27,6 +26,7 @@ import {
 import emailRatingTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
+import PhoneInput from "@calcom/web/components/phone-input";
 import "@calcom/features/ee/workflows/style/styles.css";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
@@ -48,7 +48,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge, InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -56,26 +56,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { EmailField } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { MultiSelectCheckbox } from "@calcom/ui/components/form";
+import { AddVariablesDropdown, Editor } from "@calcom/ui/components/editor";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  CheckboxField,
+  EmailField,
+  Input,
+  Label,
+  MultiSelectCheckbox,
+  Select,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
+import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
+import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { AgentConfigurationSheet }from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
-import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -477,7 +477,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
-      setEmailVerified(true);
+      setEmailVerified(isVerified);
       if (
         step &&
         form?.formState?.errors?.steps &&
@@ -688,7 +688,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           )}
           {!!timeSectionText && steps.some((s) => isSMSAction(s.action)) && (
             <div className="mt-1 flex text-gray-500">
-              <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+              <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
               <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
             </div>
           )}
@@ -800,6 +800,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                         }
 
+                        if (
+                          val.value !== WorkflowActions.EMAIL_ATTENDEE &&
+                          val.value !== WorkflowActions.SMS_ATTENDEE
+                        ) {
+                          form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, false, {
+                            shouldDirty: true,
+                          });
+                        }
+
                         form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
                         form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                         form.setValue(`steps.${step.stepNumber - 1}.action`, val.value, {
@@ -835,7 +844,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
                       <div className="mt-1.5 flex items-center gap-1">
-                        <Icon name="info" size="10" className="text-gray-500" />
+                        <InfoIcon size={10} className="text-gray-500" />
                         <div className="text-subtle text-xs">{t("sender_id_info")}</div>
                       </div>
                     </div>
@@ -910,7 +919,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
                     <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
+                      <PhoneIcon className="text-emphasis h-4 w-4" />
                       <span className="text-emphasis text-sm">
                         {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
                       </span>
@@ -1433,11 +1442,54 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   />
                 </div>
               )}
+              {(step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                step.action === WorkflowActions.SMS_ATTENDEE) && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.autoTranslateEnabled`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly || !props.user.organizationId}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.autoTranslateEnabled`) || false
+                          }
+                          description={t("auto_translate_for_attendees")}
+                          descriptionClassName="ml-0"
+                          onChange={(e) =>
+                            form.setValue(
+                              `steps.${step.stepNumber - 1}.autoTranslateEnabled`,
+                              e.target.checked,
+                              { shouldDirty: true }
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {!props.user.organizationId && (
+                      <Badge variant="gray" size="sm">
+                        {t("upgrade_to_organizations")}
+                      </Badge>
+                    )}
+                  </div>
+                  {props.user.organizationId &&
+                    form.watch(`steps.${step.stepNumber - 1}.autoTranslateEnabled`) && (
+                      <p className="text-subtle ml-6 mt-1 text-xs">
+                        {t("auto_translate_source_language_hint", {
+                          language: new Intl.DisplayNames([i18n.language], { type: "language" }).of(
+                            props.user.locale || "en"
+                          ),
+                        })}
+                      </p>
+                    )}
+                </div>
+              )}
               {!props.readOnly && (
                 <div className="ml-1 mt-2">
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
-                      <Icon name="circle-help" className="h-3 w-3" />
+                      <CircleHelpIcon className="h-3 w-3" />
                       <p className="text-left text-xs">
                         {isFormTrigger(trigger)
                           ? t("using_form_responses_as_variables")
@@ -1676,7 +1728,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ).length > 0 && (
                 <div className="bg-cal-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <PhoneIcon className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
                       {formatPhoneNumber(
                         getActivePhoneNumbers(
@@ -1737,7 +1789,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <>
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                          <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
+                          <InfoIcon className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
                             <ul className="text-attention stack-y-1 list-inside list-disc text-sm">
@@ -1752,7 +1804,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {relevantPhoneNumbers.map((phone) => (
                         <div key={phone.phoneNumber} className="bg-cal-muted rounded-lg p-3">
                           <div className="flex items-center gap-2">
-                            <Icon name="phone" className="text-emphasis h-4 w-4" />
+                            <PhoneIcon className="text-emphasis h-4 w-4" />
                             <span className="text-emphasis text-sm font-medium">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
