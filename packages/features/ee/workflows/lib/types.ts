@@ -39,6 +39,8 @@ export type WorkflowStep = {
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
   verifiedAt?: Date | null;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 export const ZWorkflow: z.ZodType<Workflow> = z.object({

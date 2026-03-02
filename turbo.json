@@ -537,10 +537,7 @@
     },
     "post-install": {
       "dependsOn": [],
-      "outputs": [
-        "../../node_modules/@prisma/client/**",
-        "../../node_modules/@prisma/admin-client/**"
-      ],
+      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
       "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
       "env": ["PRISMA_GENERATE_DATAPROXY"]
     },
@@ -581,10 +578,7 @@
         "../../packages/app-store/**/pages/**",
         "../../packages/app-store-cli/src/**"
       ],
-      "outputs": [
-        "../../packages/app-store/*.generated.ts",
-        "../../packages/app-store/*.generated.tsx"
-      ]
+      "outputs": ["../../packages/app-store/*.generated.ts", "../../packages/app-store/*.generated.tsx"]
     },
     "@calcom/embed-react#type-check": {
       "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],
