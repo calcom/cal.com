@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -100,15 +102,7 @@ export function UserPage(props: PageProps) {
                   />
                 )}
               </h1>
-              {!isBioEmpty && (
-                <>
-                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
-                  <div
-                    className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
-                  />
-                </>
-              )}
+              {!isBioEmpty && <BioSection safeBio={props.safeBio} />}
             </div>
           </div>
 
@@ -152,6 +146,29 @@ export function UserPage(props: PageProps) {
         <Toaster position="bottom-right" />
       </div>
     </>
+  );
+}
+
+function BioSection({ safeBio }: { safeBio: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div>
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
+      <div
+        className={classNames(
+          "text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+          !isExpanded && "line-clamp-3"
+        )}
+        dangerouslySetInnerHTML={{ __html: safeBio }}
+      />
+      <button
+        type="button"
+        className="text-emphasis hover:text-default mt-1 text-xs font-medium"
+        onClick={() => setIsExpanded(!isExpanded)}>
+        {isExpanded ? "Read less" : "Read more"}
+      </button>
+    </div>
   );
 }
 
