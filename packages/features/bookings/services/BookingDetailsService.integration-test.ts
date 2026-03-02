@@ -10,10 +10,6 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus, CreationSource, MembershipRole } from "@calcom/prisma/enums";
 
 import { BookingDetailsService } from "./BookingDetailsService";
-import { TestBookingRepository } from "./test/TestBookingRepository";
-import { TestEventTypeRepository } from "./test/TestEventTypeRepository";
-import { TestTeamRepository } from "./test/TestTeamRepository";
-import { TestUserRepository } from "./test/TestUserRepository";
 
 /**
  * Integration tests for BookingDetailsService.getBookingDetails
@@ -37,18 +33,11 @@ const createdUserIds: number[] = [];
 describe("BookingDetailsService (Integration Tests)", () => {
   const timestamp = Date.now();
 
-  // Production repositories
   const orgRepo = new OrganizationRepository({ prismaClient: prisma });
   const bookingRepo = new BookingRepository(prisma);
   const userRepo = new UserRepository(prisma);
   const eventTypeRepo = new EventTypeRepository(prisma);
   const teamRepo = new TeamRepository(prisma);
-
-  // Test-only repositories (for cleanup and team creation where no production method exists)
-  const testTeamRepo = new TestTeamRepository(prisma);
-  const testBookingRepo = new TestBookingRepository(prisma);
-  const testUserRepo = new TestUserRepository(prisma);
-  const testEventTypeRepo = new TestEventTypeRepository(prisma);
 
   // Users
   let bookingOwnerId: number;
@@ -82,12 +71,14 @@ describe("BookingDetailsService (Integration Tests)", () => {
     orgId = org.id;
     createdTeamIds.push(org.id);
 
-    // 2. Create a team within the org via TestTeamRepository
-    //    (no production TeamRepository.create() method exists)
-    const team = await testTeamRepo.create({
-      name: `Test Team ${timestamp}`,
-      slug: `test-team-${timestamp}`,
-      parentId: org.id,
+    // 2. Create a team within the org (no production TeamRepository.create() exists)
+    const team = await prisma.team.create({
+      data: {
+        name: `Test Team ${timestamp}`,
+        slug: `test-team-${timestamp}`,
+        parentId: org.id,
+      },
+      select: { id: true },
     });
     teamId = team.id;
     createdTeamIds.push(team.id);
@@ -195,15 +186,28 @@ describe("BookingDetailsService (Integration Tests)", () => {
   });
 
   afterAll(async () => {
-    // Clean up bookings and attendees via TestBookingRepository
-    await testBookingRepo.deleteMany(createdBookingIds);
+    // Clean up bookings and attendees
+    if (createdBookingIds.length > 0) {
+      await prisma.attendee.deleteMany({ where: { bookingId: { in: createdBookingIds } } });
+      await prisma.booking.deleteMany({ where: { id: { in: createdBookingIds } } });
+    }
 
-    // Delete personal event types not associated with a team via TestEventTypeRepository
-    await testEventTypeRepo.deleteManyByUserIds(createdUserIds);
+    // Delete personal event types not associated with a team
+    if (createdUserIds.length > 0) {
+      await prisma.eventType.deleteMany({ where: { userId: { in: createdUserIds } } });
+    }
 
-    // Delete users (handles memberships, profiles, schedules, availability) via TestUserRepository
+    // Delete users (memberships, profiles, schedules, availability)
     // Must happen before team deletion so user.organizationId FK is removed
-    await testUserRepo.deleteMany(createdUserIds);
+    if (createdUserIds.length > 0) {
+      await prisma.membership.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await prisma.profile.deleteMany({ where: { userId: { in: createdUserIds } } });
+      for (const userId of createdUserIds) {
+        await prisma.availability.deleteMany({ where: { Schedule: { userId } } });
+        await prisma.schedule.deleteMany({ where: { userId } });
+        await prisma.user.delete({ where: { id: userId } });
+      }
+    }
 
     // TeamRepository.deleteById handles remaining memberships + managed event types
     for (const id of [...createdTeamIds].reverse()) {
