@@ -52,6 +52,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const [user] = eventType?.users.length
     ? eventType.users
     : [{ name: null, theme: null, hideBranding: null, username: null }];
+  const orgAwareUsername = eventType.profile?.username ?? user?.username ?? null;
   const profile = {
     name: eventType.team?.name || user?.name || null,
     theme: (!eventType.team?.name && user?.theme) || null,
@@ -78,7 +79,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      user,
+      user: { ...user, orgAwareUsername },
       eventType: {
         ...eventType,
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),

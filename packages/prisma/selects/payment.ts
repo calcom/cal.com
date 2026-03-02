@@ -47,6 +47,11 @@ export const paymentDataSelect = {
           requiresConfirmation: true,
           userId: true,
           metadata: true,
+          profile: {
+            select: {
+              username: true,
+            },
+          },
           users: {
             select: {
               id: true,

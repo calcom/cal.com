@@ -29,6 +29,7 @@ export type Props = {
   };
   user: {
     username: string | null;
+    orgAwareUsername?: string | null;
   };
   location?: string | null;
   clientSecret: string;
@@ -132,7 +133,7 @@ export const PaymentFormComponent = (
 
 const PaymentForm = (props: Props) => {
   const {
-    user: { username },
+    user: { username, orgAwareUsername },
   } = props;
   const { t } = useLocale();
   const router = useRouter();
@@ -224,8 +225,8 @@ const PaymentForm = (props: Props) => {
       state={state}
       onSubmit={handleSubmit}
       onCancel={() => {
-        if (username) {
-          return router.push(`/${username}`);
+        if (orgAwareUsername) {
+          return router.push(`/${orgAwareUsername}`);
         }
         return router.back();
       }}
