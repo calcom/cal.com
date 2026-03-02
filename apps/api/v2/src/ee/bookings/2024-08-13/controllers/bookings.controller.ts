@@ -11,6 +11,7 @@ import {
   CreateRecurringBookingInput_2024_08_13,
   DeclineBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
+  RequestRescheduleInput_2024_08_13,
   GetBookingRecordingsOutput,
   GetBookingsInput_2024_08_13,
   GetBookingsOutput_2024_08_13,
@@ -51,6 +52,7 @@ import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-1
 import { BookingReferencesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/booking-references.output";
 import { CalendarLinksOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/cancel-booking.output";
+import { RequestRescheduleOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/request-reschedule.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
@@ -529,6 +531,30 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: booking,
+    };
+  }
+
+  @Post("/:bookingUid/request-reschedule")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Request to reschedule a booking",
+    description: `Request to reschedule a booking. The booking will be cancelled and the attendee will receive an email with a link to reschedule.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
+  })
+  async requestReschedule(
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: RequestRescheduleInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<RequestRescheduleOutput_2024_08_13> {
+    await this.bookingsService.requestReschedule(bookingUid, user, body.rescheduleReason);
+
+    return {
+      status: SUCCESS_STATUS,
     };
   }
 

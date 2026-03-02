@@ -5,6 +5,7 @@ import {
   getTranslation,
   handleCancelBooking,
   handleMarkNoShow,
+  requestRescheduleHandler,
   roundRobinManualReassignment,
   roundRobinReassignment,
 } from "@calcom/platform-libraries";
@@ -1281,6 +1282,24 @@ export class BookingsService_2024_08_13 {
     });
 
     return this.getBooking(bookingUid, requestUser);
+  }
+
+  async requestReschedule(bookingUid: string, requestUser: ApiAuthGuardUser, rescheduleReason?: string) {
+    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    await requestRescheduleHandler({
+      ctx: {
+        user: requestUser,
+      },
+      input: {
+        bookingUid,
+        rescheduleReason,
+      },
+      source: "API_V2",
+    });
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
