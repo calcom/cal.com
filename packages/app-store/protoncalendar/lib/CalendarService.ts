@@ -32,13 +32,6 @@ const FETCH_TIMEOUT_MS = 15_000;
  *
  * Proton Calendar uses end-to-end encryption; no OAuth or CalDAV API is
  * available. Integration is via the ICS share link in Proton Calendar settings.
- *
- * Proton-specific behaviours handled:
- * 1. Ghost events — STATUS:CANCELLED events are included in feeds and must be
- *    filtered to avoid phantom busy slots.
- * 2. Cancelled recurring occurrences — individual cancelled occurrences appear
- *    as standalone VEVENTs with STATUS:CANCELLED + RECURRENCE-ID.
- * 3. Calendar name fallback — x-wr-calname is often absent from Proton feeds.
  */
 class ProtonCalendarService implements Calendar {
   private url: string = "";

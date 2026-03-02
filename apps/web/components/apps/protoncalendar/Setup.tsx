@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -35,8 +36,7 @@ export default function ProtonCalendarSetup() {
         <div style={{ minHeight: "100vh", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 12, padding: 40, maxWidth: 520, width: "100%", boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
-                    {/* eslint-disable @next/next/no-img-element */}
-                    <img src="/api/app-store/protoncalendar/icon.svg" alt="Proton Calendar" style={{ width: 48, height: 48 }} />
+                    <Image src="/api/app-store/protoncalendar/icon.svg" alt="Proton Calendar" width={48} height={48} />
                     <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#111" }}>Connect Proton Calendar</h1>
                 </div>
                 <p style={{ color: "#6b7280", marginBottom: 24, fontSize: 14 }}>
