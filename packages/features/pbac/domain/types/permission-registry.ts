@@ -44,6 +44,7 @@ export enum CustomAction {
 export enum Scope {
   Team = "team",
   Organization = "organization",
+  System = "system",
 }
 
 export interface PermissionDetails {

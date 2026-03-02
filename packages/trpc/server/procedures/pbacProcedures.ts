@@ -1,12 +1,9 @@
-import { z } from "zod";
-
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
-import authedProcedure from "./authedProcedure";
+import { z } from "zod";
+import authedProcedure, { authedAdminProcedure } from "./authedProcedure";
 
 /**
  * Creates a procedure that checks team-level PBAC permissions.
@@ -92,4 +89,41 @@ function createOrgPbacProcedure(
   });
 }
 
-export { createTeamPbacProcedure, createOrgPbacProcedure };
+/**
+ * Creates a procedure for system admin endpoints. Caller must already be User.role === ADMIN
+ * (enforced by authedAdminProcedure). Then checks org-level PBAC for the given permission.
+ * If the admin has no org, grants full access (backward compatible).
+ * When PBAC is disabled, checkPermission falls back to membership role check — we pass all
+ * roles so any org membership grants access (safe because authedAdminProcedure already
+ * guarantees User.role === ADMIN).
+ *
+ * @param permission - System-scoped permission (e.g. "watchlist.read", "watchlist.create")
+ */
+function createSystemPbacProcedure(permission: PermissionString) {
+  return authedAdminProcedure.use(async ({ ctx, next }) => {
+    const organizationId = ctx.user.organizationId;
+
+    if (!organizationId) {
+      return next({ ctx });
+    }
+
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: organizationId,
+      permission,
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+    });
+
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Permission required: ${permission}`,
+      });
+    }
+
+    return next({ ctx });
+  });
+}
+
+export { createTeamPbacProcedure, createOrgPbacProcedure, createSystemPbacProcedure };

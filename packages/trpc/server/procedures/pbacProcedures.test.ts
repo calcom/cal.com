@@ -6,10 +6,10 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "./authedProcedure";
+import { authedAdminProcedure } from "./authedProcedure";
 // Import after mocks are set up
-import { createTeamPbacProcedure, createOrgPbacProcedure } from "./pbacProcedures";
+import { createTeamPbacProcedure, createOrgPbacProcedure, createSystemPbacProcedure } from "./pbacProcedures";
 
-// Mock dependencies - use factory functions to avoid hoisting issues
 const mockCheckPermission = vi.fn();
 
 vi.mock("@calcom/features/pbac/services/permission-check.service", () => {
@@ -25,11 +25,18 @@ vi.mock("./authedProcedure", () => ({
     input: vi.fn().mockReturnThis(),
     use: vi.fn(),
   },
+  authedAdminProcedure: {
+    use: vi.fn(),
+  },
 }));
 
-// Cast the mocked authedProcedure to access mock methods
+// Cast the mocked procedures to access mock methods
 const mockAuthedProcedure = authedProcedure as unknown as {
   input: ReturnType<typeof vi.fn> & { mockReturnThis: () => void };
+  use: ReturnType<typeof vi.fn>;
+};
+
+const mockAuthedAdminProcedure = authedAdminProcedure as unknown as {
   use: ReturnType<typeof vi.fn>;
 };
 
@@ -39,6 +46,7 @@ describe("Feature Opt-In PBAC Procedures", () => {
     mockCheckPermission.mockReset();
     mockAuthedProcedure.use.mockClear();
     mockAuthedProcedure.input.mockClear();
+    mockAuthedAdminProcedure.use.mockClear();
   });
 
   describe("createTeamPbacProcedure", () => {
@@ -324,6 +332,69 @@ describe("Feature Opt-In PBAC Procedures", () => {
             fallbackRoles: ["ADMIN", "OWNER"],
           });
         });
+      });
+    });
+  });
+
+  describe("createSystemPbacProcedure", () => {
+    const testPermission: PermissionString = "watchlist.read";
+
+    it("should create a procedure using authedAdminProcedure", () => {
+      createSystemPbacProcedure(testPermission);
+      expect(mockAuthedAdminProcedure.use).toHaveBeenCalled();
+    });
+
+    describe("middleware behavior", () => {
+      it("should grant full access when user has no organization", async () => {
+        createSystemPbacProcedure(testPermission);
+        const middleware = mockAuthedAdminProcedure.use.mock.calls[0][0];
+
+        const mockCtx = { user: { id: 1, organizationId: null } };
+        const next = vi.fn().mockResolvedValue("success");
+
+        const result = await middleware({ ctx: mockCtx, next });
+
+        expect(result).toBe("success");
+        expect(next).toHaveBeenCalledWith({ ctx: mockCtx });
+        expect(mockCheckPermission).not.toHaveBeenCalled();
+      });
+
+      it("should delegate to checkPermission and grant access when permitted", async () => {
+        createSystemPbacProcedure(testPermission);
+        const middleware = mockAuthedAdminProcedure.use.mock.calls[0][0];
+
+        mockCheckPermission.mockResolvedValue(true);
+
+        const mockCtx = { user: { id: 1, organizationId: 100 } };
+        const next = vi.fn().mockResolvedValue("success");
+
+        const result = await middleware({ ctx: mockCtx, next });
+
+        expect(result).toBe("success");
+        expect(mockCheckPermission).toHaveBeenCalledWith({
+          userId: 1,
+          teamId: 100,
+          permission: testPermission,
+          fallbackRoles: ["ADMIN", "OWNER", "MEMBER"],
+        });
+      });
+
+      it("should throw FORBIDDEN when checkPermission denies access", async () => {
+        createSystemPbacProcedure(testPermission);
+        const middleware = mockAuthedAdminProcedure.use.mock.calls[0][0];
+
+        mockCheckPermission.mockResolvedValue(false);
+
+        const mockCtx = { user: { id: 1, organizationId: 100 } };
+        const next = vi.fn();
+
+        await expect(middleware({ ctx: mockCtx, next })).rejects.toThrow(
+          new TRPCError({
+            code: "FORBIDDEN",
+            message: `Permission required: ${testPermission}`,
+          })
+        );
+        expect(next).not.toHaveBeenCalled();
       });
     });
   });
