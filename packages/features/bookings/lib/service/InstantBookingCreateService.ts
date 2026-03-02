@@ -351,25 +351,60 @@ export async function handler(
     prismaClient: prisma,
   });
 
-  // Fire booking audit event
+  await fireBookingEvents({
+    booking: newBooking,
+    bookerEmail,
+    bookerName: fullName,
+    eventType,
+    creationSource: bookingData.creationSource ?? null,
+    orgId: eventType.team?.parentId ?? null,
+    deps,
+  });
+
+  return {
+    message: "Success",
+    meetingTokenId: instantMeetingToken.id,
+    bookingId: newBooking.id,
+    bookingUid: newBooking.uid,
+    expires: instantMeetingToken.expires,
+    userId: newBooking.userId,
+  } satisfies InstantBookingCreateResult;
+}
+
+async function fireBookingEvents({
+  booking,
+  bookerEmail,
+  bookerName,
+  eventType,
+  creationSource,
+  orgId,
+  deps,
+}: {
+  booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus; userId: number | null; attendees?: Array<{ id: number; email: string }> };
+  bookerEmail: string;
+  bookerName: string;
+  eventType: { id: number };
+  creationSource: string | null;
+  orgId: number | null;
+  deps: IInstantBookingCreateServiceDependencies;
+}) {
   try {
-    const orgId = eventType.team?.parentId ?? null;
     const isBookingAuditEnabled = orgId
       ? await deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
       : false;
 
     const actionSource: ActionSource = getAuditActionSource({
-      creationSource: bookingData.creationSource ?? null,
+      creationSource,
       eventTypeId: eventType.id,
       rescheduleUid: null,
     });
 
-    const bookerAttendeeId = newBooking.attendees?.find((a) => a.email === bookerEmail)?.id ?? null;
+    const bookerAttendeeId = booking.attendees?.find((a) => a.email === bookerEmail)?.id ?? null;
     const auditActor = getBookingAuditActorForNewBooking({
       bookerAttendeeId,
       actorUserUuid: null,
       bookerEmail,
-      bookerName: fullName,
+      bookerName,
       rescheduledBy: null,
       logger,
     });
@@ -379,20 +414,20 @@ export async function handler(
         config: { isDryRun: false },
         bookingFormData: { hashedLink: null },
         booking: {
-          uid: newBooking.uid,
-          startTime: newBooking.startTime,
-          endTime: newBooking.endTime,
-          status: newBooking.status,
-          userId: newBooking.userId,
+          uid: booking.uid,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
+          userId: booking.userId,
         },
         organizationId: orgId,
       },
       actor: auditActor,
       auditData: buildBookingCreatedAuditData({
         booking: {
-          startTime: newBooking.startTime,
-          endTime: newBooking.endTime,
-          status: newBooking.status,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
           userUuid: null,
         },
         attendeeSeatId: null,
@@ -404,15 +439,6 @@ export async function handler(
   } catch (error) {
     logger.error("Error firing booking audit event for instant booking", error);
   }
-
-  return {
-    message: "Success",
-    meetingTokenId: instantMeetingToken.id,
-    bookingId: newBooking.id,
-    bookingUid: newBooking.uid,
-    expires: instantMeetingToken.expires,
-    userId: newBooking.userId,
-  } satisfies InstantBookingCreateResult;
 }
 
 /**
