@@ -8,6 +8,7 @@ import { Button } from "@coss/ui/components/button";
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
+import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
 import { useState } from "react";
 import type { UpgradeTarget } from "./types";
 
@@ -68,7 +69,10 @@ export function WideUpgradeBanner({
   children,
 }: WideUpgradeBannerProps) {
   const { t } = useLocale();
-  const [visible, setVisible] = useState(() => !isDismissed(tracking));
+  const [visible, setVisible] = useState(false);
+  useClientOnly(() => {
+    setVisible(!isDismissed(tracking));
+  });
 
   if (!visible) return null;
 
