@@ -46,6 +46,14 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
           id: true,
           name: true,
           username: true,
+          profiles: {
+            where: {
+              organizationId,
+            },
+            select: {
+              username: true,
+            },
+          },
         },
       },
     },
@@ -58,12 +66,17 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
   });
 
   const items = members
-    .filter((m): m is typeof m & { user: { username: string } } => m.user.username !== null)
-    .map((m) => ({
-      id: m.user.id,
-      name: m.user.name ?? m.user.username,
-      username: m.user.username,
-    }));
+    .map((m) => {
+      // Use profile username for org context, fallback to user username
+      const username = m.user.profiles[0]?.username ?? m.user.username;
+      if (!username) return null;
+      return {
+        id: m.user.id,
+        name: m.user.name ?? username,
+        username,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   let nextCursor: number | null = null;
   if (items.length > limit) {
