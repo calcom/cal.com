@@ -24478,6 +24478,7 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
+              "ROUTING_FORM_FALLBACK_HIT",
               "DELEGATION_CREDENTIAL_ERROR",
               "WRONG_ASSIGNMENT_REPORT"
             ]
@@ -24553,6 +24554,7 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
+              "ROUTING_FORM_FALLBACK_HIT",
               "DELEGATION_CREDENTIAL_ERROR",
               "WRONG_ASSIGNMENT_REPORT"
             ]
@@ -31761,7 +31763,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/BookingAttendee"
+            "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
           }
         },
         "required": ["status", "data"]
