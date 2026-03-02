@@ -29,7 +29,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, CreationSource, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
 import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
@@ -191,6 +191,12 @@ export async function handler(
     throw new Error("Only Team Event Types are supported for Instant Meeting");
   }
 
+  if (!bookingData.creationSource) {
+    throw new Error("creationSource is required for instant bookings");
+  }
+
+  const creationSource: CreationSource = bookingData.creationSource;
+
   const schema = getBookingDataSchema({
     view: bookingData?.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
@@ -289,7 +295,7 @@ export async function handler(
         data: attendeesList,
       },
     },
-    creationSource: bookingData.creationSource,
+    creationSource,
   };
 
   const createBookingObj = {
@@ -358,7 +364,7 @@ export async function handler(
     bookerEmail,
     bookerName: fullName,
     eventType,
-    creationSource: bookingData.creationSource ?? null,
+    creationSource,
     orgId,
     deps,
   });
@@ -386,7 +392,7 @@ async function fireBookingEvents({
   bookerEmail: string;
   bookerName: string;
   eventType: { id: number };
-  creationSource: string | null;
+  creationSource: CreationSource;
   orgId: number | null;
   deps: IInstantBookingCreateServiceDependencies;
 }) {
