@@ -708,7 +708,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     await upsertAIAgentCallPhoneNumberFieldForEventTypes({
       activeOn: activeOnWithChildren,
       workflowId: id,
-      isAIAgentCallPhoneNumberRequired: steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL),
+      isAIAgentCallPhoneNumberRequired: steps.some(
+        (s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL && s.numberRequired
+      ),
       isOrg,
     });
   }
