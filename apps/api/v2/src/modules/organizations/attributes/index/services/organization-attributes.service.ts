@@ -19,7 +19,6 @@ export class OrganizationAttributesService {
       attributeData
     );
 
-    // Create options if attribute type supports them
     if ((attribute.type === "SINGLE_SELECT" || attribute.type === "MULTI_SELECT") && options?.length) {
       await this.organizationAttributeOptionRepository.createManyOrganizationAttributeOptions(
         attribute.id,
