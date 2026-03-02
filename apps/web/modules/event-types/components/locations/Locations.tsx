@@ -1,15 +1,8 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { ErrorMessage } from "@hookform/error-message";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useFieldArray } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
-
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
-import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -18,9 +11,15 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { CheckIcon, CornerDownRightIcon, XIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { CheckIcon, CornerDownRightIcon, XIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { ErrorMessage } from "@hookform/error-message";
+import Link from "next/link";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
+import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import CalVideoSettings from "./CalVideoSettings";
 import DefaultLocationSettings from "./DefaultLocationSettings";
 import LocationInput from "./LocationInput";
@@ -424,9 +423,33 @@ const Locations: React.FC<LocationsProps> = ({
               <Link
                 key="cant_find_the_right_conferencing_app_visit_our_app_store"
                 className="cursor-pointer text-blue-500 underline"
-                href="/apps/categories/conferencing">
+                href="/apps/categories/conferencing"
+                onClick={() =>
+                  posthog.capture("app_store_link_clicked", { location: "event_type_locations" })
+                }>
                 App Store
               </Link>,
+            ]}
+          />
+        </p>
+      )}
+      {team && !isPlatform && (
+        <p className="text-default mt-2 text-sm">
+          <ServerTrans
+            t={t}
+            i18nKey="need_help_setting_up_team_event_locations"
+            components={[
+              <a
+                key="need_help_setting_up_team_event_locations"
+                className="cursor-pointer text-blue-500 underline"
+                href="https://cal.com/help/event-types/setup-location#setting-up-location-of-team-events-on-cal-com"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() =>
+                  posthog.capture("support_docs_link_clicked", { location: "event_type_locations" })
+                }>
+                See support docs
+              </a>,
             ]}
           />
         </p>
