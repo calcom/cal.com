@@ -1,3 +1,4 @@
+import { getTranslation } from "@calcom/i18n/server";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -13,7 +14,6 @@ import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
@@ -28,6 +28,8 @@ export {
   DEFAULT_WEBHOOK_VERSION,
   WebhookVersion,
 } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export {
   AttributeType,
   CreationSource,

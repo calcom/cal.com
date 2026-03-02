@@ -2,7 +2,10 @@ import { lookup } from "node:dns";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
-import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
+import {
+  sendAdminOrganizationNotification,
+  sendOrganizationCreationEmail,
+} from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -14,7 +17,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 

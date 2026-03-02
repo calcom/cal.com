@@ -1,11 +1,10 @@
 import { canAccessOrganization } from "@calcom/features/ee/sso/lib/saml";
-import prisma from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import prisma from "@calcom/prisma";
 
 const userCanCreateTeamGroupMapping = async (
-  user: NonNullable<TrpcSessionUser>,
+  user: { id: number; email: string },
   organizationId: number | null,
   teamId?: number
 ) => {
