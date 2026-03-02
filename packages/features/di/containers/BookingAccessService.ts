@@ -9,5 +9,3 @@ export function getBookingAccessService() {
   bookingAccessServiceModuleLoader.loadModule(container);
   return container.get<BookingAccessService>(bookingAccessServiceModuleLoader.token);
 }
-
-

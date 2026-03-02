@@ -1,14 +1,12 @@
-import { z } from "zod";
-
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
-
+import { z } from "zod";
 import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export {
-  zodNonRouterField,
-  routingFormResponseInDbSchema,
   type FieldOption,
+  routingFormResponseInDbSchema,
   type TNonRouterField,
+  zodNonRouterField,
 } from "@calcom/features/routing-forms/lib/zod";
 
 import type { TNonRouterField } from "@calcom/features/routing-forms/lib/zod";
@@ -92,6 +90,17 @@ export const zodNonRouterRoute = z.object({
     eventTypeId: z.number().optional(),
     value: z.string(),
   }),
+  /**
+   * Fallback action used when the main attributes query finds no matching team members
+   * and no CRM contact owner (if configured to check) exists.
+   */
+  fallbackAction: z
+    .object({
+      type: routeActionTypeSchema,
+      eventTypeId: z.number().optional(),
+      value: z.string(),
+    })
+    .optional(),
 });
 
 export const zodNonRouterRouteView = zodNonRouterRoute;

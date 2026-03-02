@@ -113,7 +113,7 @@ vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi
     .fn()
     .mockResolvedValue((key: string, opts?: { x?: string }) => (opts?.x ? `${opts.x} ${key}` : key)),
@@ -793,9 +793,9 @@ describe("handleMarkNoShow", () => {
 
       const call = mockOnNoShowUpdated.mock.calls[0][0];
       expect(call.auditData.attendeesNoShow).toHaveLength(2);
-      expect(call.auditData.attendeesNoShow.map((a: { attendeeEmail: string }) => a.attendeeEmail)).not.toContain(
-        "attendee2@example.com"
-      );
+      expect(
+        call.auditData.attendeesNoShow.map((a: { attendeeEmail: string }) => a.attendeeEmail)
+      ).not.toContain("attendee2@example.com");
     });
 
     it("should not fire audit event when nothing changed", async () => {

@@ -6,9 +6,7 @@ export const DOCUMENT_CATEGORIES = {
 
 export type DocumentCategory = (typeof DOCUMENT_CATEGORIES)[keyof typeof DOCUMENT_CATEGORIES];
 
-export type DocumentSource =
-  | { type: "url"; url: string }
-  | { type: "b2"; fileName: string }; // fileName is the path in B2 bucket
+export type DocumentSource = { type: "url"; url: string } | { type: "b2"; fileName: string }; // fileName is the path in B2 bucket
 
 export interface ComplianceDocument {
   id: string;

@@ -1,16 +1,43 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { HttpError } from "@calcom/lib/http-error";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import { z } from "zod";
+import type { UserFromSession } from "@calcom/features/auth/lib/userFromSessionUtils";
 import { ScheduleRepository } from "../repositories/ScheduleRepository";
+
+export const ZUpdateInputSchema = z.object({
+  scheduleId: z.number(),
+  timeZone: timeZoneSchema.optional(),
+  name: z.string().trim().min(1, "Schedule name cannot be empty").optional(),
+  isDefault: z.boolean().optional(),
+  schedule: z
+    .array(
+      z.array(
+        z.object({
+          start: z.date(),
+          end: z.date(),
+        })
+      )
+    )
+    .optional(),
+  dateOverrides: z
+    .array(
+      z.object({
+        start: z.date(),
+        end: z.date(),
+      })
+    )
+    .optional(),
+});
+
+export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;
 
 interface IUpdateScheduleOptions {
   input: TUpdateInputSchema;
-  user: Pick<NonNullable<TrpcSessionUser>, "id" | "defaultScheduleId" | "timeZone">;
+  user: Pick<NonNullable<UserFromSession>, "id" | "defaultScheduleId" | "timeZone">;
 }
 
 export type UpdateScheduleResponse = Awaited<ReturnType<ScheduleService["update"]>>;

@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
 import { makeSystemActor } from "@calcom/features/booking-audit/lib/makeActor";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -176,6 +177,11 @@ export const fireNoShowUpdatedEvent = async ({
     });
 
     const bookingEventHandlerService = getBookingEventHandlerService();
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       // This action is taken by the scheduled tasker job, so we use the system actor
@@ -193,6 +199,7 @@ export const fireNoShowUpdatedEvent = async ({
           : {}),
         ...(hasAttendeesNoShow ? { attendeesNoShow: attendeesNoShowAudit } : {}),
       },
+      isBookingAuditEnabled,
     });
   } catch (error) {
     log.error("Error logging audit for automatic no-show", error);

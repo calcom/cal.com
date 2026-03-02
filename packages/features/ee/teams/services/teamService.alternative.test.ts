@@ -50,7 +50,9 @@ const mockTeamRepo = {
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-vi.mocked(TeamRepository).mockImplementation(function() { return mockTeamRepo; });
+vi.mocked(TeamRepository).mockImplementation(function () {
+  return mockTeamRepo;
+});
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {
   database.domains.delete(slug);
@@ -63,7 +65,7 @@ vi.mocked(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).mockImplementati
 describe("TeamService", () => {
   beforeEach(async () => {
     database.clear();
-    
+
     const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
     vi.mocked(getTeamBillingServiceFactory).mockReturnValue({
       findAndInit: vi.fn().mockImplementation(async (teamId) => {
