@@ -1,4 +1,4 @@
-import { checkSuccessRedirectUrlAllowed, dynamicEvent } from "@calcom/platform-libraries";
+import { dynamicEvent } from "@calcom/platform-libraries";
 import {
   createEventType,
   EventTypesPublic,
@@ -42,12 +42,6 @@ export class EventTypesService_2024_06_14 {
       this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
     }
     await this.checkCanCreateEventType(user.id, body);
-    if (body.successRedirectUrl) {
-      const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({ userId: user.id });
-      if (!redirectUrlCheck.allowed) {
-        throw new ForbiddenException(redirectUrlCheck.reason);
-      }
-    }
     const eventTypeUser = await this.getUserToCreateEvent(user);
 
     const { destinationCalendar: _destinationCalendar, ...rest } = body;

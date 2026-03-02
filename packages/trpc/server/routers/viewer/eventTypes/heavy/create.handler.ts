@@ -2,6 +2,7 @@ import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
+import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
@@ -141,6 +142,17 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         `User ${userId} does not have permission to create this new event type - Locked status: ${orgHasLockedEventTypes}`
       );
       throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  }
+
+  const successRedirectUrl = (rest as { successRedirectUrl?: string }).successRedirectUrl;
+  if (successRedirectUrl) {
+    const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({ userId: ctx.user.id });
+    if (!redirectUrlCheck.allowed) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: redirectUrlCheck.reason,
+      });
     }
   }
 
