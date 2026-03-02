@@ -680,6 +680,117 @@ describe("Event types Endpoints", () => {
       hiddenEventType = responseBody.data;
     });
 
+    it("should create an event type with customName containing booking field variables", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Booking fields custom name test",
+        slug: `booking-fields-custom-name-${randomString()}`,
+        description: "Test custom name with booking field variables.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "text",
+            label: "Company name",
+            slug: "company-name",
+            required: true,
+            placeholder: "enter company name",
+          },
+        ],
+        customName: `{title} with {Organiser} - {company-name}`,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+      expect(createdEventType.customName).toEqual(body.customName);
+
+      await eventTypesRepositoryFixture.delete(createdEventType.id);
+    });
+
+    it("should create an event type with customName containing default booking field variables like {title} and {notes}", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Default fields custom name test",
+        slug: `default-fields-custom-name-${randomString()}`,
+        description: "Test custom name with default booking field variables.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        customName: `{title} - {notes} with {Scheduler}`,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+      expect(createdEventType.customName).toEqual(body.customName);
+
+      await eventTypesRepositoryFixture.delete(createdEventType.id);
+    });
+
+    it("should reject creating an event type with customName containing invalid variables", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Invalid custom name test",
+        slug: `invalid-custom-name-${randomString()}`,
+        description: "Test custom name with invalid variables.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        customName: `{nonExistentVariable} with {Organiser}`,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toContain("Invalid event name variables");
+    });
+
+    it("should update event type customName with booking field variables", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        customName: `{title} - {notes} - {Organiser} and {Scheduler}`,
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      expect(responseBody.data.customName).toEqual(body.customName);
+
+      // Restore the original customName
+      eventType.customName = responseBody.data.customName;
+    });
+
     it(`/GET/event-types by username with sortCreatedAt=desc`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${user.username}&sortCreatedAt=desc`)

@@ -50,6 +50,7 @@ interface ValidationContext {
   locations?: InputEventTransformed_2024_06_14["locations"];
   requiresConfirmation?: boolean;
   eventName?: string;
+  bookingFields?: { name: string }[];
 }
 
 @Injectable()
@@ -72,6 +73,7 @@ export class InputEventTypesService_2024_06_14 {
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
+      bookingFields: transformedBody.bookingFields,
     });
 
     if (transformedBody.destinationCalendar) {
@@ -97,10 +99,12 @@ export class InputEventTypesService_2024_06_14 {
     await this.validateEventTypeInputs({
       eventTypeId: eventTypeId,
       seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
-      hasRecurrenceEnabled: transformedBody.recurringEvent !== undefined ? !!transformedBody.recurringEvent : undefined,
+      hasRecurrenceEnabled:
+        transformedBody.recurringEvent !== undefined ? !!transformedBody.recurringEvent : undefined,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
+      bookingFields: transformedBody.bookingFields,
     });
 
     if (transformedBody.destinationCalendar) {
@@ -439,11 +443,13 @@ export class InputEventTypesService_2024_06_14 {
     locations,
     requiresConfirmation,
     eventName,
+    bookingFields,
   }: ValidationContext) {
     let seatsPerTimeSlotDb: number | null = null;
     let hasRecurrenceEnabledDb = false;
     let locationsDb: ReturnType<typeof this.transformLocations> = [];
     let requiresConfirmationDb = false;
+    let bookingFieldNamesDb: string[] = [];
 
     if (eventTypeId != null) {
       const eventTypeDb = await this.eventTypesRepository.getEventTypeWithSeats(eventTypeId);
@@ -451,6 +457,7 @@ export class InputEventTypesService_2024_06_14 {
       hasRecurrenceEnabledDb = !!eventTypeDb?.recurringEvent;
       locationsDb = this.transformLocations(eventTypeDb?.locations) ?? [];
       requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
+      bookingFieldNamesDb = this.extractBookingFieldNames(eventTypeDb?.bookingFields);
     }
 
     const seatsPerTimeSlotFinal = seatsPerTimeSlot ? seatsPerTimeSlot : seatsPerTimeSlotDb;
@@ -462,6 +469,8 @@ export class InputEventTypesService_2024_06_14 {
     const locationsFinal = locations !== undefined ? locations : locationsDb;
     const requiresConfirmationFinal =
       requiresConfirmation !== undefined ? requiresConfirmation : requiresConfirmationDb;
+    const bookingFieldNamesFinal =
+      bookingFields !== undefined ? bookingFields.map((field) => field.name) : bookingFieldNamesDb;
     this.validateSeatsSingleLocationRule(seatsEnabledFinal, locationsFinal);
     this.validateSeatsRequiresConfirmationFalseRule(seatsEnabledFinal, requiresConfirmationFinal);
     this.validateSeatsRecurringEventRule(seatsEnabledFinal, recurringEnabledFinal);
@@ -469,7 +478,7 @@ export class InputEventTypesService_2024_06_14 {
     this.validateRequiresConfirmationSeatsDisabledRule(requiresConfirmationFinal, seatsEnabledFinal);
 
     if (eventName) {
-      await this.validateCustomEventNameInput(eventName);
+      this.validateCustomEventNameInput(eventName, bookingFieldNamesFinal);
     }
   }
   validateSeatsSingleLocationRule(
@@ -533,12 +542,25 @@ export class InputEventTypesService_2024_06_14 {
     }
   }
 
-  async validateCustomEventNameInput(value: string) {
-    const validationResult = validateCustomEventName(value);
+  validateCustomEventNameInput(value: string, bookingFieldNames: string[]) {
+    const bookingFieldsLookup: Record<string, string> = {};
+    for (const name of bookingFieldNames) {
+      bookingFieldsLookup[name] = name;
+    }
+    const validationResult = validateCustomEventName(value, bookingFieldsLookup);
     if (validationResult !== true) {
       throw new BadRequestException(`Invalid event name variables: ${validationResult}`);
     }
-    return;
+  }
+
+  private extractBookingFieldNames(bookingFields: unknown): string[] {
+    if (!Array.isArray(bookingFields)) return [];
+    return bookingFields
+      .filter(
+        (field): field is { name: string } =>
+          typeof field === "object" && field !== null && "name" in field && typeof field.name === "string"
+      )
+      .map((field) => field.name);
   }
 
   async validateInputDestinationCalendar(

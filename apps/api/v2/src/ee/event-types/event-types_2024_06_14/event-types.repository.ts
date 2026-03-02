@@ -43,6 +43,7 @@ export class EventTypesRepository_2024_06_14 {
         locations: true,
         requiresConfirmation: true,
         recurringEvent: true,
+        bookingFields: true,
       },
     });
   }
