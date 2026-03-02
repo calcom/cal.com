@@ -11,6 +11,7 @@ import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/inte
 import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/webhook";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 import { type Container, createContainer } from "@evyweb/ioctopus";
+import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
@@ -21,7 +22,7 @@ import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.mo
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
-import { webhookProducerServiceModule } from "../modules/WebhookProducerService.module";
+import { moduleLoader as webhookProducerServiceModuleLoader } from "../modules/WebhookProducerService.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
@@ -30,6 +31,7 @@ const webhookContainer: Container = createContainer();
 // Load shared infrastructure
 loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
+bookingRepositoryModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 // Load webhook module (includes cross-table repositories + all webhook services)
@@ -53,7 +55,8 @@ webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDat
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
 
 // Load Producer/Consumer modules
-webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_PRODUCER_SERVICE, webhookProducerServiceModule);
+// Use moduleLoader pattern for producer service to load WebhookTasker dependencies
+webhookProducerServiceModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER, webhookTaskConsumerModule);
 
 export { webhookContainer };

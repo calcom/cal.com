@@ -5,9 +5,10 @@ import { z, ZodError } from "zod";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { PrismaPendingRoutingTraceRepository } from "@calcom/features/routing-trace/repositories/PrismaPendingRoutingTraceRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import prisma from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
@@ -58,7 +59,25 @@ export const queuedResponseHandler = async ({
     chosenRouteId: queuedFormResponse.chosenRouteId,
   });
 
+  // Link the pending routing trace to the new formResponseId so it can be found when booking is created
+  try {
+    const pendingTraceRepo = new PrismaPendingRoutingTraceRepository(prisma);
+    await pendingTraceRepo.linkToFormResponse({
+      queuedFormResponseId: queuedFormResponse.id,
+      formResponseId: formResponse.id,
+    });
+  } catch (error) {
+    // Log but don't fail - trace linking is not critical
+    logger.warn("Failed to link pending routing trace to form response", safeStringify(error));
+  }
+
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
+  const fallbackAction = queuedFormResponse.fallbackAction as {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+    eventTypeId?: number;
+  } | null;
+
   await onSubmissionOfFormResponse({
     form: {
       ...queuedFormResponse.form,
@@ -66,6 +85,7 @@ export const queuedResponseHandler = async ({
     },
     formResponseInDb: formResponse,
     chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+    fallbackAction,
   });
 
   return {

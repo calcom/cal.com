@@ -17,6 +17,7 @@ import {
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
@@ -639,14 +640,14 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
               : null,
         } as JWT;
       };
@@ -730,12 +731,13 @@ export const getOptions = ({
             token_type: account.token_type,
             expires_at: account.expires_at,
           };
-          const gcalCredential = await CredentialRepository.create({
+          const gcalCredentialData = buildCredentialCreateData({
             userId: Number(user.id),
             key: credentialkey,
             appId: "google-calendar",
             type: "google_calendar",
           });
+          const gcalCredential = await CredentialRepository.create(gcalCredentialData);
           const gCalService = createGoogleCalendarServiceWithGoogleType({
             ...gcalCredential,
             user: null,
@@ -748,12 +750,13 @@ export const getOptions = ({
               type: "google_video",
             }))
           ) {
-            await CredentialRepository.create({
+            const googleMeetCredentialData = buildCredentialCreateData({
               type: "google_video",
               key: {},
               userId: Number(user.id),
               appId: "google-meet",
             });
+            await CredentialRepository.create(googleMeetCredentialData);
           }
 
           const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
@@ -878,7 +881,10 @@ export const getOptions = ({
       }
 
       if (!user.name) {
-        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
+        log.warn("callbacks:signIn - user name is missing", {
+          emailDomain: user.email.split("@")[1],
+          provider: account?.provider,
+        });
         return false;
       }
       if (account?.provider) {
@@ -1021,7 +1027,11 @@ export const getOptions = ({
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
-              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              const validation = await validateSamlAccountConversion(
+                samlTenant,
+                user.email,
+                "SelfHosted→SAML"
+              );
               if (!validation.allowed) {
                 return validation.errorUrl;
               }
@@ -1106,12 +1116,8 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (
-            existingUserWithEmail.identityProvider === IdentityProvider.CAL
-          ) {
-            log.error(
-              `Userid ${user.id} already exists with CAL identity provider`
-            );
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+            log.error(`Userid ${user.id} already exists with CAL identity provider`);
             return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
@@ -1140,17 +1146,14 @@ export const getOptions = ({
               return true;
             }
           }
-          log.error(
-            `Userid ${user.id} trying to login with the wrong provider`,
-            {
-              userId: user.id,
-              account: {
-                providerAccountId: account?.providerAccountId,
-                type: account?.type,
-                provider: account?.provider,
-              },
-            }
-          );
+          log.error(`Userid ${user.id} trying to login with the wrong provider`, {
+            userId: user.id,
+            account: {
+              providerAccountId: account?.providerAccountId,
+              type: account?.type,
+              provider: account?.provider,
+            },
+          });
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 

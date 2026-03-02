@@ -13,7 +13,7 @@ export type TListMembersSchema = {
   limit: number;
   offset: number;
   searchTerm?: string;
-  expand?: ("attributes")[];
+  expand?: "attributes"[];
   filters?: { id: string; value: z.infer<typeof ZFilterValue> }[];
   oAuthClientId?: string;
 };

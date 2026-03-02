@@ -152,6 +152,8 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
           numberVerificationPending: true,
           includeCalendarEvent: true,
           verifiedAt: true,
+          autoTranslateEnabled: true,
+          sourceLocale: true,
         },
       },
     },

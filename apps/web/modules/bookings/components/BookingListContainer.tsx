@@ -1,7 +1,8 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { useDataTable, useDisplayedFilterCount } from "@calcom/features/data-table";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -12,14 +13,14 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useBookingListColumns } from "~/bookings/hooks/useBookingListColumns";
 import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
-import { useListNavigationCapabilities } from "~/bookings/hooks/useListNavigationCapabilities";
+import { useSwitchToCorrectStatusTab } from "~/bookings/hooks/useSwitchToCorrectStatusTab";
 import { DataTableFilters, DataTableSegment } from "~/data-table/components";
 import {
   BookingDetailsSheetStoreProvider,
@@ -28,7 +29,6 @@ import {
 import type { BookingListingStatus, BookingsGetOutput, RowData } from "../types";
 import { BookingDetailsSheet } from "./BookingDetailsSheet";
 import { BookingList } from "./BookingList";
-import { BookingsCsvDownload } from "./BookingsCsvDownload";
 import { ViewToggleButton } from "./ViewToggleButton";
 
 interface FilterButtonProps {
@@ -189,7 +189,7 @@ function BookingListInner({
         <div className="hidden grow md:block" />
 
         <DataTableSegment.Select />
-        <BookingsCsvDownload status={status} />
+        {/* <BookingsCsvDownload status={status} /> */}
         {bookingsV3Enabled && <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />}
       </div>
       {displayedFilterCount > 0 && showFilters && (
@@ -232,9 +232,13 @@ function BookingListInner({
 }
 
 export function BookingListContainer(props: BookingListContainerProps) {
-  const { limit, offset, setPageIndex } = useDataTable();
+  const { limit, offset, isValidatorPending } = useDataTable();
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
+
+  const { resolvedTabStatus, isResolvingTabStatus, preSelectedBooking } = useSwitchToCorrectStatusTab({
+    defaultStatus: props.status,
+  });
 
   // Build query input once - shared between query and prefetching
   const queryInput = useMemo(
@@ -242,7 +246,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
       limit,
       offset,
       filters: {
-        statuses: [props.status],
+        statuses: [resolvedTabStatus],
         eventTypeIds,
         teamIds,
         userIds,
@@ -258,7 +262,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
     [
       limit,
       offset,
-      props.status,
+      resolvedTabStatus,
       eventTypeIds,
       teamIds,
       userIds,
@@ -272,24 +276,35 @@ export function BookingListContainer(props: BookingListContainerProps) {
   const query = trpc.viewer.bookings.get.useQuery(queryInput, {
     staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
     gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+    // We wait for tab status to be resolved before fetching, so that we can fetch the correct bookings as per resolved tab status
+    enabled: !isValidatorPending && !isResolvingTabStatus, // Wait for validator to be ready before fetching
   });
 
-  const bookings = useMemo(() => query.data?.bookings ?? [], [query.data?.bookings]);
+  const bookings = useMemo(() => {
+    const queryBookings = query.data?.bookings ?? [];
+    if (!preSelectedBooking) return queryBookings;
+    if (queryBookings.some((b) => b.uid === preSelectedBooking.uid)) return queryBookings;
+    // It ensures that the drawer opens for a booking that isn't even in the bookings list
+    // Note that, bookings list doesn't use this so, it won't be visible in the list view but drawer will open for it
+    // We don't want to show this booking in the list view, as it might not match the filters/pagination applied
+    return [...queryBookings, preSelectedBooking];
+  }, [query.data?.bookings, preSelectedBooking]);
 
   // Always call the hook and provide navigation capabilities
   // The BookingDetailsSheet is only rendered when bookingsV3Enabled is true (see line 212)
-  const capabilities = useListNavigationCapabilities({
-    limit,
-    offset,
-    totalCount: query.data?.totalCount,
-    setPageIndex,
-    queryInput,
-  });
+  // const capabilities = useListNavigationCapabilities({
+  //   limit,
+  //   offset,
+  //   totalCount: query.data?.totalCount,
+  //   setPageIndex,
+  //   queryInput,
+  // });
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingListInner
         {...props}
+        status={resolvedTabStatus}
         data={query.data}
         isPending={query.isPending}
         hasError={!!query.error}

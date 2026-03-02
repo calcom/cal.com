@@ -115,7 +115,6 @@ export default function AppCard({
             ) : (
               <OmniInstallAppButton
                 className="ml-auto flex items-center"
-                appId={app.slug}
                 app={app}
                 returnTo={returnTo}
                 teamId={teamId}

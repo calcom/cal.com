@@ -21,6 +21,9 @@ type TaskPayloads = {
   translateEventTypeData: z.infer<
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
+  translateWorkflowStepData: z.infer<
+    typeof import("./tasks/translateWorkflowStepData").ZTranslateWorkflowStepDataPayloadSchema
+  >;
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;
@@ -41,6 +44,15 @@ type TaskPayloads = {
   bookingAudit: BookingAuditTaskConsumerPayload;
   sendAwaitingPaymentEmail: z.infer<
     typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema
+  >;
+  sendProrationInvoiceEmail: z.infer<
+    typeof import("./tasks/sendProrationInvoiceEmail").sendProrationInvoiceEmailPayloadSchema
+  >;
+  sendProrationReminderEmail: z.infer<
+    typeof import("./tasks/sendProrationReminderEmail").sendProrationReminderEmailPayloadSchema
+  >;
+  cancelProrationReminder: z.infer<
+    typeof import("./tasks/cancelProrationReminder").cancelProrationReminderPayloadSchema
   >;
   webhookDelivery: z.infer<
     typeof import("@calcom/features/webhooks/lib/types/webhookTask").webhookTaskPayloadSchema

@@ -5,7 +5,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -81,6 +81,7 @@ const teamSelect = {
 
 const userSelect = {
   id: true,
+  uuid: true,
   username: true,
   name: true,
   email: true,
@@ -423,6 +424,24 @@ export class UserRepository {
         },
       },
       select: userSelect,
+    });
+  }
+
+  async findByUuids({ uuids }: { uuids: string[] }) {
+    if (uuids.length === 0) return [];
+    return this.prismaClient.user.findMany({
+      where: {
+        uuid: {
+          in: uuids,
+        },
+      },
+      select: {
+        id: true,
+        uuid: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
     });
   }
 
@@ -1110,6 +1129,7 @@ export class UserRepository {
         movedToProfileId: true,
         selectedCalendars: {
           select: {
+            id: true,
             eventTypeId: true,
             externalId: true,
             integration: true,
@@ -1338,6 +1358,17 @@ export class UserRepository {
     });
   }
 
+  async findForPasswordReset({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        name: true,
+        locale: true,
+      },
+    });
+  }
+
   /**
    * Finds a user by ID returning only their username
    * @param userId - The user ID
@@ -1397,5 +1428,32 @@ export class UserRepository {
         destinationCalendar: true,
       },
     });
+  }
+
+  async lockByEmail({ email }: { email: string }) {
+    await this.prismaClient.user.updateMany({
+      where: { email },
+      data: { locked: true },
+    });
+  }
+
+  async unlockByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<{ email: string; username: string | null } | null> {
+    const user = await this.prismaClient.user.findFirst({
+      where: { email, locked: true },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) return null;
+
+    await this.prismaClient.user.update({
+      where: { id: user.id },
+      data: { locked: false },
+    });
+
+    return { email: user.email, username: user.username };
   }
 }

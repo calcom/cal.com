@@ -11,6 +11,7 @@ type SignupData = {
 type SignupSuccessResponse = {
   message: string;
   stripeCustomerId?: string;
+  accountUnderReview?: boolean;
 };
 
 type SignupErrorResponse = {
@@ -20,9 +21,9 @@ type SignupErrorResponse = {
 
 type SignupResponse = SignupSuccessResponse | SignupErrorResponse;
 
-export type SignupResult =
-  | { ok: true; data: SignupSuccessResponse }
-  | { ok: false; status: number; error: SignupErrorResponse };
+export type SignupSuccessResult = { ok: true; data: SignupSuccessResponse };
+
+export type SignupResult = SignupSuccessResult | { ok: false; status: number; error: SignupErrorResponse };
 
 export async function fetchSignup(data: SignupData, cfToken?: string): Promise<SignupResult> {
   const allParams = new URLSearchParams(window.location.search);
@@ -90,4 +91,8 @@ export function hasCheckoutSession(
   result: SignupResult
 ): result is { ok: false; status: number; error: SignupErrorResponse & { checkoutSessionId: string } } {
   return !result.ok && !!result.error.checkoutSessionId;
+}
+
+export function isAccountUnderReview(result: SignupResult): boolean {
+  return result.ok && result.data.accountUnderReview === true;
 }

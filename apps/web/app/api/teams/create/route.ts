@@ -133,7 +133,7 @@ async function getHandler(req: NextRequest) {
 
   // redirect to team screen
   return NextResponse.redirect(
-    new URL(`/settings/teams/${team.id}/onboard-members?event=team_created`, req.nextUrl.origin),
+    new URL(`/settings/teams/${team.id}/onboard-members?event=team_created`, WEBAPP_URL),
     { status: 302 }
   );
 }

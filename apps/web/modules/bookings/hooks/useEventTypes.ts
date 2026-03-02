@@ -20,19 +20,22 @@ export function useEventTypes() {
     const individualEvents = eventTypes.filter((el) => !el.team);
 
     // Group team events by team
-    const teamEventsMap = eventTypes.reduce((acc, event) => {
-      if (!event.team) return acc;
+    const teamEventsMap = eventTypes.reduce(
+      (acc, event) => {
+        if (!event.team) return acc;
 
-      const teamId = event.team.id;
-      if (!acc[teamId]) {
-        acc[teamId] = {
-          teamName: event.team.name,
-          events: [],
-        };
-      }
-      acc[teamId].events.push(event);
-      return acc;
-    }, {} as Record<number, { teamName: string; events: typeof eventTypes }>);
+        const teamId = event.team.id;
+        if (!acc[teamId]) {
+          acc[teamId] = {
+            teamName: event.team.name,
+            events: [],
+          };
+        }
+        acc[teamId].events.push(event);
+        return acc;
+      },
+      {} as Record<number, { teamName: string; events: typeof eventTypes }>
+    );
 
     // Create flat array with section markers
     const flatArray: FacetedValue[] = [];
