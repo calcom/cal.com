@@ -53,7 +53,7 @@ import { signIn, useSession } from "next-auth/react";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import posthog from "posthog-js";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useReducer, useState } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
 import {
   DataTableFilters,
   DataTableSelectionBar,
@@ -186,7 +186,7 @@ function MemberListContent(props: Props) {
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
-  const tableContainerRef = useFillRemainingHeight(88);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const { searchTerm } = useDataTable();
