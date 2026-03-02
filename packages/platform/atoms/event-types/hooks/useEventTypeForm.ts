@@ -3,6 +3,7 @@ import { locationsResolver } from "@calcom/app-store/locations";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
 import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type {
   EventTypeSetupProps,
   EventTypeUpdateInput,
@@ -384,15 +385,7 @@ export const useEventTypeForm = ({
     // The full children objects contain avatar, profile, and other display-only
     // data that bloats the request payload. With many assigned users (~85+),
     // this can push the request body over the 1MB server limit.
-    const strippedChildren = children?.map((child) => ({
-      hidden: child.hidden,
-      owner: {
-        id: child.owner.id,
-        name: child.owner.name,
-        email: child.owner.email,
-        eventTypeSlugs: child.owner.eventTypeSlugs,
-      },
-    }));
+    const strippedChildren = children ? stripChildrenForPayload(children) : undefined;
 
     const payload = {
       ...rest,

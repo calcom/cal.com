@@ -1,24 +1,8 @@
 import { describe, it, expect } from "vitest";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
+import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-/**
- * Extracts only the fields needed by the server from a ChildrenEventType array.
- * This mirrors the stripping logic in useEventTypeForm's handleSubmit to ensure
- * that display-only fields (avatar, profile, etc.) are not sent in the payload.
- */
-function stripChildrenForPayload(children: ChildrenEventType[]) {
-  return children.map((child) => ({
-    hidden: child.hidden,
-    owner: {
-      id: child.owner.id,
-      name: child.owner.name,
-      email: child.owner.email,
-      eventTypeSlugs: child.owner.eventTypeSlugs,
-    },
-  }));
-}
 
 describe("useEventTypeForm - children payload stripping", () => {
   it("should strip avatar, profile, username, and membership from children payload", () => {
