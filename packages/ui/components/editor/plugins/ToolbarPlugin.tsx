@@ -31,6 +31,8 @@ import { Button } from "../../button";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Icon } from "../../icon";
 import type { TextEditorProps } from "../types";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
@@ -453,6 +455,15 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     [editor, isLink]
   );
 
+  const onEmojiClick = (emojiData: { emoji: string }) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        selection.insertText(emojiData.emoji);
+      }
+    });
+  };
+
   if (!props.editable) return null;
   return (
     <div className="toolbar flex gap-1" ref={toolbarRef}>
@@ -537,6 +548,26 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                aria-label="Emoji"
+                color="minimal"
+                variant="icon"
+                type="button"
+                StartIcon="sparkles"
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-full border-none p-0" sideOffset={10}>
+              <EmojiPicker
+                onEmojiClick={onEmojiClick}
+                autoFocusSearch={false}
+                emojiStyle={EmojiStyle.NATIVE}
+                width={350}
+                height={400}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         {props.variables && (
           <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
