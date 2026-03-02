@@ -361,8 +361,21 @@ describe("assertSafeResolvedIp", () => {
   it("rejects 100.100.100.200 (Alibaba Cloud ECS metadata — CGNAT range, may bypass range checks)", () => {
     // Alibaba Cloud metadata endpoint lives in 100.64.0.0/10 (RFC 6598 CGNAT),
     // which is NOT RFC-1918 and is not matched by the privateIPv4Ranges regexes.
-    // Must be blocked explicitly here so DNS-resolved addresses are validated.
-    expect(() => assertSafeResolvedIp("100.100.100.200")).toThrow(/metadata|not allowed/i);
+    // Must be blocked by the CGNAT range check so DNS-resolved addresses are validated.
+    expect(() => assertSafeResolvedIp("100.100.100.200")).toThrow(/not allowed/i);
+  });
+
+  it("rejects arbitrary CGNAT addresses (100.64.0.0/10) to prevent SSRF via shared address space", () => {
+    // RFC 6598 CGNAT range 100.64.0.0–100.127.255.255 is not RFC-1918 and bypasses
+    // the privateIPv4Ranges checks.  The entire /10 must be blocked.
+    expect(() => assertSafeResolvedIp("100.64.0.1")).toThrow(/not allowed/i);
+    expect(() => assertSafeResolvedIp("100.72.1.1")).toThrow(/not allowed/i);
+    expect(() => assertSafeResolvedIp("100.100.0.1")).toThrow(/not allowed/i);
+    expect(() => assertSafeResolvedIp("100.127.255.255")).toThrow(/not allowed/i);
+    // Addresses just outside the CGNAT range should NOT be caught here
+    // (100.0.x.x and 100.63.x.x are public; 100.128.x.x is also public)
+    expect(() => assertSafeResolvedIp("100.63.255.255")).not.toThrow();
+    expect(() => assertSafeResolvedIp("100.128.0.1")).not.toThrow();
   });
 });
 

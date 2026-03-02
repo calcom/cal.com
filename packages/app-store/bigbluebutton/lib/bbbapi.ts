@@ -37,9 +37,26 @@ export function assertSafeResolvedIp(ip: string): void {
   // Blocking them here (after normalisation, before the range checks) ensures
   // that a hostname which DNS-resolves to one of these IPs is rejected by
   // assertSafeResolvedIp() — the layer that validates post-DNS addresses.
+  // Individual public IPs used exclusively as cloud metadata endpoints.
   const blockedMetadataIPs = new Set(["168.63.129.16", "100.100.100.200"]);
   if (blockedMetadataIPs.has(normalized)) {
     throw new Error("Cloud metadata endpoint URLs are not allowed");
+  }
+
+  // ── CGNAT range (100.64.0.0/10, RFC 6598) ────────────────────────────────
+  // This shared address space is not RFC 1918, so it passes the private-range
+  // regexes below.  In self-hosted or cloud deployments it may be internally
+  // routable, making any host in 100.64.0.0–100.127.255.255 reachable — which
+  // includes 100.100.100.200 (Alibaba Cloud metadata) and potentially other
+  // cloud-provider or operator services.  Block the entire /10 to prevent any
+  // SSRF bypass via CGNAT addresses.
+  const cgnatMatch = normalized.match(/^100\.(\d+)\./);
+  if (cgnatMatch) {
+    const secondOctet = parseInt(cgnatMatch[1], 10);
+    // 100.64.0.0/10 covers 100.64.x.x through 100.127.x.x (second octet 64–127)
+    if (secondOctet >= 64 && secondOctet <= 127) {
+      throw new Error("Private/internal network URLs are not allowed");
+    }
   }
 
   // ── IPv4 loopback / private / link-local ──────────────────────────────────
