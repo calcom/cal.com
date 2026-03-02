@@ -34,8 +34,8 @@ export class GetBookingAttendeeOutput_2024_08_13 {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @ApiProperty({ type: BookingAttendee })
+  @ApiProperty({ type: BookingAttendeeWithId_2024_08_13 })
   @ValidateNested()
-  @Type(() => BookingAttendee)
-  data!: BookingAttendee;
+  @Type(() => BookingAttendeeWithId_2024_08_13)
+  data!: BookingAttendeeWithId_2024_08_13;
 }

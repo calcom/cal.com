@@ -355,7 +355,7 @@ describe("Bookings Endpoints 2024-08-13 get attendees", () => {
 
         const attendee = getAttendeeResponseBody.data;
 
-        expect(attendee).not.toHaveProperty("id");
+        expect(typeof attendee.id).toBe("number");
         expect(typeof attendee.name).toBe("string");
         expect(typeof attendee.email).toBe("string");
         expect(typeof attendee.timeZone).toBe("string");

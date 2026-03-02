@@ -1,7 +1,6 @@
 import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { BookingAttendee } from "@calcom/platform-types";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
@@ -51,7 +50,7 @@ export class BookingAttendeesService_2024_08_13 {
   async getBookingAttendee(
     bookingUid: string,
     attendeeId: number
-  ): Promise<BookingAttendee> {
+  ): Promise<BookingAttendeeWithId_2024_08_13> {
     try {
       const attendee = await this.bookingAttendeesService.getBookingAttendee(
         bookingUid,
@@ -59,8 +58,9 @@ export class BookingAttendeesService_2024_08_13 {
       );
 
       return plainToClass(
-        BookingAttendee,
+        BookingAttendeeWithId_2024_08_13,
         {
+          id: attendee.id,
           name: attendee.name,
           email: attendee.email,
           displayEmail: this.getDisplayEmail(attendee.email),
