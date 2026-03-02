@@ -24,7 +24,6 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
@@ -45,9 +44,10 @@ const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
   teamId: number;
+  orgId: number;
   prismaClient: PrismaClient;
 }) => {
-  const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: args.teamId })) ?? 0;
+  const orgId = args.orgId;
   const { prismaClient: prisma } = args;
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
@@ -327,6 +327,7 @@ export async function handler(
   });
 
   // Trigger Webhook
+  const orgId = eventType.team?.parentId ?? null;
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
     uid: newBooking.uid,
@@ -341,6 +342,7 @@ export async function handler(
     eventTypeId: eventType.id,
     webhookData,
     teamId: eventType.team?.id,
+    orgId: orgId ?? 0,
     prismaClient: prisma,
   });
 
@@ -357,7 +359,7 @@ export async function handler(
     bookerName: fullName,
     eventType,
     creationSource: bookingData.creationSource ?? null,
-    orgId: eventType.team?.parentId ?? null,
+    orgId,
     deps,
   });
 
