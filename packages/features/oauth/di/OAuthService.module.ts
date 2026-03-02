@@ -1,8 +1,8 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
-
 import { moduleLoader as accessCodeRepositoryModuleLoader } from "./AccessCodeRepository.module";
 import { moduleLoader as oAuthClientRepositoryModuleLoader } from "./OAuthClientRepository.module";
+import { moduleLoader as oAuthRefreshTokenRepositoryModuleLoader } from "./OAuthRefreshTokenRepository.module";
 import { moduleLoader as teamRepositoryModuleLoader } from "./TeamRepository.module";
 import { OAUTH_DI_TOKENS } from "./tokens";
 
@@ -18,6 +18,7 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     oAuthClientRepository: oAuthClientRepositoryModuleLoader,
     accessCodeRepository: accessCodeRepositoryModuleLoader,
+    oAuthRefreshTokenRepository: oAuthRefreshTokenRepositoryModuleLoader,
     teamsRepository: teamRepositoryModuleLoader,
   },
 });

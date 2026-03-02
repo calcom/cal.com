@@ -16,3 +16,4 @@ export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repos
 export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export { AccessCodeRepository as PrismaAccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 export { OAuthClientRepository as PrismaOAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+export { OAuthRefreshTokenRepository as PrismaOAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";

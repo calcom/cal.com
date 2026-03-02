@@ -3,6 +3,7 @@ import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
+import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -10,6 +11,7 @@ import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { OAuthClientStatus } from "@calcom/prisma/enums";
 import jwt from "jsonwebtoken";
+import logger from "@calcom/lib/logger";
 
 export interface OAuth2Client {
   clientId: string;
@@ -44,6 +46,7 @@ interface DecodedRefreshToken {
   scope: AccessScope[];
   token_type: string;
   clientId: string;
+  secret?: string;
   codeChallenge?: string | null;
   codeChallengeMethod?: string | null;
 }
@@ -52,17 +55,20 @@ export class OAuthService {
   private readonly accessCodeRepository: AccessCodeRepository;
   private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
+  private readonly oAuthRefreshTokenRepository: OAuthRefreshTokenRepository;
 
   constructor(
     private readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
       accessCodeRepository: AccessCodeRepository;
+      oAuthRefreshTokenRepository: OAuthRefreshTokenRepository;
       teamsRepository: TeamRepository;
     }
   ) {
     this.accessCodeRepository = deps.accessCodeRepository;
     this.teamsRepository = deps.teamsRepository;
     this.oAuthClientRepository = deps.oAuthClientRepository;
+    this.oAuthRefreshTokenRepository = deps.oAuthRefreshTokenRepository;
   }
 
   async getClient(clientId: string): Promise<OAuth2Client> {
@@ -311,13 +317,21 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, pkceError.error, { reason: pkceError.reason });
     }
 
-    const tokens = this.createTokens({
+    const tokens = this.mintTokens({
       clientId,
       userId: accessCode.userId,
       teamId: accessCode.teamId,
       scopes: accessCode.scopes,
       codeChallenge: accessCode.codeChallenge,
       codeChallengeMethod: accessCode.codeChallengeMethod,
+    });
+
+    await this.oAuthRefreshTokenRepository.create({
+      secret: tokens.refreshTokenSecret,
+      clientId,
+      userId: accessCode.userId,
+      teamId: accessCode.teamId,
+      expiresInSeconds: tokens.refreshTokenExpiresIn,
     });
 
     return tokens;
@@ -352,12 +366,39 @@ export class OAuthService {
 
     this.ensureClientAccessAllowed(client, decodedToken.userId);
 
-    const tokens = this.createTokens({
+    // note(Lauris): legacy tokens (issued before invalidating old refresh tokens was implemented) won't have a secret,
+    // so we accept them once and issue new tokens with a secret.
+    if (decodedToken.secret) {
+      const storedToken = await this.oAuthRefreshTokenRepository.findBySecret(decodedToken.secret);
+      if (!storedToken) {
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "refresh_token_revoked" });
+      }
+    }
+
+    const tokens = this.mintTokens({
       clientId,
       userId: decodedToken.userId,
       teamId: decodedToken.teamId,
       scopes: decodedToken.scope,
     });
+
+    if (decodedToken.userId) {
+      await this.oAuthRefreshTokenRepository.rotateTokenForUser({
+        clientId,
+        userId: decodedToken.userId,
+        newSecret: tokens.refreshTokenSecret,
+        expiresInSeconds: tokens.refreshTokenExpiresIn,
+      });
+    } else if (decodedToken.teamId) {
+      await this.oAuthRefreshTokenRepository.rotateTokenForTeam({
+        clientId,
+        teamId: decodedToken.teamId,
+        newSecret: tokens.refreshTokenSecret,
+        expiresInSeconds: tokens.refreshTokenExpiresIn,
+      });
+    } else {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "invalid_refresh_token" });
+    }
 
     return tokens;
   }
@@ -408,20 +449,23 @@ export class OAuthService {
     return randomBytesValue.toString("base64").replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
   }
 
-  private createTokens(input: {
+  private mintTokens(input: {
     clientId: string;
     userId?: number | null;
     teamId?: number | null;
     scopes: AccessScope[];
     codeChallenge?: string | null;
     codeChallengeMethod?: string | null;
-  }): OAuth2Tokens {
+  }): OAuth2Tokens & { refreshTokenSecret: string; refreshTokenExpiresIn: number } {
     const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
     if (!secretKey) {
       throw new ErrorWithCode(ErrorCode.InternalServerError, "server_error", {
         reason: "encryption_key_missing",
       });
     }
+
+    const refreshTokenSecret = randomBytes(32).toString("base64url");
+    const refreshTokenExpiresIn = 30 * 24 * 60 * 60; // 30 days
 
     const accessTokenPayload = {
       userId: input.userId,
@@ -437,6 +481,7 @@ export class OAuthService {
       scope: input.scopes,
       token_type: "Refresh Token",
       clientId: input.clientId,
+      secret: refreshTokenSecret,
       ...(input.codeChallenge && {
         codeChallenge: input.codeChallenge,
         codeChallengeMethod: input.codeChallengeMethod,
@@ -450,7 +495,7 @@ export class OAuthService {
     });
 
     const refreshToken = jwt.sign(refreshTokenPayload, secretKey, {
-      expiresIn: 30 * 24 * 60 * 60, // 30 days
+      expiresIn: refreshTokenExpiresIn,
     });
 
     return {
@@ -458,6 +503,8 @@ export class OAuthService {
       tokenType: "bearer",
       refreshToken,
       expiresIn: accessTokenExpiresIn,
+      refreshTokenSecret,
+      refreshTokenExpiresIn,
     };
   }
 
@@ -492,6 +539,7 @@ export type OAuthErrorReason =
   | "pkce_missing_parameters_or_invalid_method"
   | "pkce_verification_failed"
   | "invalid_refresh_token"
+  | "refresh_token_revoked"
   | "client_id_mismatch"
   | "encryption_key_missing";
 
@@ -510,6 +558,7 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   pkce_missing_parameters_or_invalid_method: "invalid_request",
   pkce_verification_failed: "invalid_grant",
   invalid_refresh_token: "invalid_grant",
+  refresh_token_revoked: "invalid_grant",
   client_id_mismatch: "invalid_grant",
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
 };

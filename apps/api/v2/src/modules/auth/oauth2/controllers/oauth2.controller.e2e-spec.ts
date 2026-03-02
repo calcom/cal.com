@@ -5,6 +5,7 @@ import type { INestApplication } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
+import jwt from "jsonwebtoken";
 import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -91,8 +92,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
     /** Generate an authorization code directly via the service (bypasses HTTP layer). */
     async function generateAuthCode(
-      scopes: AccessScope[] = [AccessScope.READ_BOOKING],
-      teamSlug?: string
+      scopes: AccessScope[] = [AccessScope.READ_BOOKING]
     ): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         testClientId,
@@ -100,7 +100,7 @@ describe("OAuth2 Controller Endpoints", () => {
         testRedirectUri,
         scopes,
         undefined,
-        teamSlug ?? team.slug
+        team.slug ?? undefined
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;
@@ -381,6 +381,113 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.refresh_token).toBeDefined();
           expect(response.body.token_type).toBe("bearer");
           expect(response.body.expires_in).toBe(1800);
+
+          refreshToken = response.body.refresh_token;
+        });
+
+        it("should reject reuse of old refresh token after rotation", async () => {
+          // Get a fresh token pair
+          const code = await generateAuthCode();
+          const tokenResponse = await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "authorization_code",
+              code,
+              client_secret: testClientSecret,
+              redirect_uri: testRedirectUri,
+            })
+            .expect(200);
+
+          const oldRefreshToken = tokenResponse.body.refresh_token;
+
+          // Use the refresh token once (rotates it)
+          await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "refresh_token",
+              refresh_token: oldRefreshToken,
+              client_secret: testClientSecret,
+            })
+            .expect(200);
+
+          // Try to reuse the old refresh token — should be rejected
+          const response = await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "refresh_token",
+              refresh_token: oldRefreshToken,
+              client_secret: testClientSecret,
+            })
+            .expect(400);
+
+          expect(response.body.error).toBe("invalid_grant");
+          expect(response.body.error_description).toBe("refresh_token_revoked");
+        });
+
+        it("should accept legacy refresh token without secret and reject it after rotation", async () => {
+          const secretKey = process.env.CALENDSO_ENCRYPTION_KEY;
+          // Sign a legacy refresh token (no secret field)
+          const legacyRefreshToken = jwt.sign(
+            {
+              userId: authenticatedUser.id,
+              teamId: team.id,
+              scope: [AccessScope.READ_BOOKING],
+              token_type: "Refresh Token",
+              clientId: testClientId,
+            },
+            secretKey!,
+            { expiresIn: 30 * 24 * 60 * 60 }
+          );
+
+          // Legacy token should be accepted (one-time pass)
+          const firstResponse = await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "refresh_token",
+              refresh_token: legacyRefreshToken,
+              client_secret: testClientSecret,
+            })
+            .expect(200);
+
+          expect(firstResponse.body.access_token).toBeDefined();
+          expect(firstResponse.body.refresh_token).toBeDefined();
+
+          const newRefreshToken = firstResponse.body.refresh_token;
+
+          // Use the new token (has secret, triggers rotation)
+          await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "refresh_token",
+              refresh_token: newRefreshToken,
+              client_secret: testClientSecret,
+            })
+            .expect(200);
+
+          // Reuse the new token — should be rejected
+          const reuseResponse = await request(app.getHttpServer())
+            .post("/api/v2/auth/oauth2/token")
+            .type("form")
+            .send({
+              client_id: testClientId,
+              grant_type: "refresh_token",
+              refresh_token: newRefreshToken,
+              client_secret: testClientSecret,
+            })
+            .expect(400);
+
+          expect(reuseResponse.body.error).toBe("invalid_grant");
+          expect(reuseResponse.body.error_description).toBe("refresh_token_revoked");
         });
       });
 
