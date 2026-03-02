@@ -1,9 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { renderHook, act } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-
 import { useToggleableLegend } from "./useToggleableLegend";
 
 describe("useToggleableLegend", () => {
@@ -69,5 +68,12 @@ describe("useToggleableLegend", () => {
 
     // All original items still enabled (the non-existent label gets added to enabledSeries but doesn't match any legend item)
     expect(result.current.enabledLegend).toEqual(legend);
+  });
+
+  it("should maintain stable toggleSeries reference across re-renders", () => {
+    const { result, rerender } = renderHook(() => useToggleableLegend(legend));
+    const firstToggle = result.current.toggleSeries;
+    rerender();
+    expect(result.current.toggleSeries).toBe(firstToggle);
   });
 });
