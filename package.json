@@ -118,6 +118,7 @@
     "vitest-mock-extended": "3.1.0"
   },
   "resolutions": {
+    "pg": "^8.16.0",
     "@isaacs/brace-expansion": "5.0.1",
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
