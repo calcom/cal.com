@@ -2,6 +2,7 @@ import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
@@ -74,10 +75,16 @@ export const removeAttendeeHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const organizationId = user.organizationId ?? null;
+  const isBookingAuditEnabled = organizationId
+    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    : false;
+
   await bookingEventHandlerService.onAttendeeRemoved({
     bookingUid: booking.uid,
     actor: makeUserActor(user.uuid),
-    organizationId: user.organizationId ?? null,
+    organizationId,
     source: actionSource,
     auditData: {
       attendees: {
@@ -85,6 +92,7 @@ export const removeAttendeeHandler = async ({
         new: newAttendeeEmails,
       },
     },
+    isBookingAuditEnabled,
   });
 
   return {
