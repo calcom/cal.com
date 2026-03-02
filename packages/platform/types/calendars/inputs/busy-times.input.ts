@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
   IsArray,
@@ -41,11 +41,11 @@ function ValidateTimezoneRequired(
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value, 10))
   @IsNumber()
-  @ApiProperty()
+  @ApiHideProperty()
   credentialId!: number;
 
   @IsString()
-  @ApiProperty()
+  @ApiHideProperty()
   externalId!: string;
 }
 
@@ -73,7 +73,6 @@ export class CalendarBusyTimesInput {
   timeZone?: string;
 
   @ApiProperty({
-    required: false,
     description: "The starting date for the busy times query",
     example: "2023-10-01",
   })
@@ -82,7 +81,6 @@ export class CalendarBusyTimesInput {
   dateFrom!: string;
 
   @ApiProperty({
-    required: false,
     description: "The ending date for the busy times query",
     example: "2023-10-31",
   })
@@ -90,12 +88,7 @@ export class CalendarBusyTimesInput {
   @IsDateString()
   dateTo!: string;
 
-  @ApiProperty({
-    type: [Calendar],
-    required: true,
-    description: "An array of Calendar objects representing the calendars to be loaded",
-    example: `[{ credentialId: "1", externalId: "AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA" }, { credentialId: "2", externalId: "AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB" }]`,
-  })
+  @ApiHideProperty()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Calendar)

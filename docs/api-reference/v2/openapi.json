@@ -10499,7 +10499,7 @@
           },
           {
             "name": "dateFrom",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "The starting date for the busy times query",
             "schema": {
@@ -10509,7 +10509,7 @@
           },
           {
             "name": "dateTo",
-            "required": false,
+            "required": true,
             "in": "query",
             "description": "The ending date for the busy times query",
             "schema": {
@@ -10518,19 +10518,26 @@
             }
           },
           {
-            "name": "credentialId",
-            "in": "query",
+            "name": "calendarsToLoad",
             "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "externalId",
             "in": "query",
-            "required": true,
+            "description": "An array of Calendar objects representing the calendars to be loaded. Use bracket notation in the URL, e.g.: calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=email@example.com",
             "schema": {
-              "type": "string"
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "credentialId": {
+                    "type": "number",
+                    "example": 135
+                  },
+                  "externalId": {
+                    "type": "string",
+                    "example": "email@example.com"
+                  }
+                },
+                "required": ["credentialId", "externalId"]
+              }
             }
           },
           {

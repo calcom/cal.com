@@ -15,3 +15,8 @@ GET /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request
 DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
 GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
 GET /v2/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/calendars/busy-times added the new required 'query' request parameter 'calendarsToLoad'
+GET /v2/calendars/busy-times the 'query' request parameter 'dateFrom' became required
+GET /v2/calendars/busy-times the 'query' request parameter 'dateTo' became required
+GET /v2/calendars/busy-times deleted the 'query' request parameter 'credentialId'
+GET /v2/calendars/busy-times deleted the 'query' request parameter 'externalId'

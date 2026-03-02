@@ -116,6 +116,23 @@ export class CalendarsController {
     description:
       "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?timeZone=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`. Note: loggedInUsersTz is deprecated, use timeZone instead.",
   })
+  @ApiQuery({
+    name: "calendarsToLoad",
+    required: true,
+    description:
+      "An array of Calendar objects representing the calendars to be loaded. Use bracket notation in the URL, e.g.: calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=email@example.com",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          credentialId: { type: "number", example: 135 },
+          externalId: { type: "string", example: "email@example.com" },
+        },
+        required: ["credentialId", "externalId"],
+      },
+    },
+  })
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
