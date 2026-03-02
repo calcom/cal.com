@@ -1,4 +1,6 @@
 #!/bin/bash
+# Demo setup script for local development only.
+# NOT intended for production use.
 set -e
 echo "=== Cal.com Proton Calendar Demo Setup ==="
 
@@ -23,7 +25,8 @@ echo 'NEXTAUTH_SECRET=supersecret1234567890123456789012' >> .env
 echo 'CALENDSO_ENCRYPTION_KEY=12345678901234567890123456789012' >> .env
 echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/calendso"' >> .env
 echo 'DATABASE_DIRECT_URL="postgresql://postgres:postgres@localhost:5432/calendso"' >> .env
-echo 'NEXTAUTH_URL="http://localhost:3000/api/auth"' >> .env
+# NEXTAUTH_URL must be the base URL without path (per .env.example guidance)
+echo 'NEXTAUTH_URL="http://localhost:3000"' >> .env
 echo 'NEXT_PUBLIC_WEBAPP_URL="http://localhost:3000"' >> .env
 
 # 3. Install packages
@@ -35,18 +38,33 @@ echo "Setting up database..."
 yarn prisma migrate deploy
 yarn prisma db seed
 
-# 5. Patch domain validation to allow localhost for demo
+# 5. Temporarily patch domain validation to allow localhost for local dev testing only.
+# This patch is reverted automatically after the dev server exits.
+PATCH_FILE="./packages/app-store/protoncalendar/api/add.ts"
+BACKUP_FILE="${PATCH_FILE}.bak"
+
+cp "$PATCH_FILE" "$BACKUP_FILE"
+
 node -e "
 const fs = require('fs');
-const f = './packages/app-store/protoncalendar/api/add.ts';
+const f = '$PATCH_FILE';
 let c = fs.readFileSync(f, 'utf8');
-c = c.replace('if (parsedUrl.protocol !== \"https:\")', 'if (parsedUrl.protocol !== \"https:\" && parsedUrl.protocol !== \"http:\")');
-c = c.replace('if (!isProtonDomain)', 'if (!isProtonDomain && ![\"localhost\",\"127.0.0.1\"].includes(parsedUrl.hostname))');
+c = c.replace(
+  'if (parsedUrl.protocol !== \"https:\")',
+  'if (parsedUrl.protocol !== \"https:\" && parsedUrl.protocol !== \"http:\")'
+);
+c = c.replace(
+  'if (!isProtonDomain)',
+  'if (!isProtonDomain && ![\"localhost\",\"127.0.0.1\"].includes(parsedUrl.hostname))'
+);
 fs.writeFileSync(f, c);
-console.log('Patched add.ts for demo!');
+console.log('Patched add.ts for local dev (backup at add.ts.bak)');
 "
 
-# 6. Start ICS server in background
+# Ensure patch is reverted on exit
+trap "cp '$BACKUP_FILE' '$PATCH_FILE' && rm -f '$BACKUP_FILE' && echo 'Reverted add.ts to original'" EXIT
+
+# 6. Start ICS server in background (serves a demo busy slot for local testing)
 node -e "
 const h=require('http');
 const ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:demo-busy-1\r\nDTSTAMP:20260302T000000Z\r\nDTSTART:20260302T083000Z\r\nDTEND:20260302T093000Z\r\nSUMMARY:Busy (Proton Calendar)\r\nTRANSP:OPAQUE\r\nEND:VEVENT\r\nEND:VCALENDAR';
@@ -56,9 +74,8 @@ h.createServer((_,r)=>{r.writeHead(200,{'Content-Type':'text/calendar','Access-C
 echo ""
 echo "==================================================="
 echo "Setup complete! Starting Cal.com dev server..."
-echo "==================================================="
-echo "Login: admin@example.com / ADMINadmin2022!"
-echo "ICS URL to paste: http://localhost:8080"
+echo "See packages/prisma/seed.ts for default credentials"
+echo "ICS test URL: http://localhost:8080"
 echo "==================================================="
 
 # 7. Start dev server
