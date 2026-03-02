@@ -287,8 +287,6 @@ export const useEventTypeForm = ({
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
