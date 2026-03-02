@@ -131,11 +131,11 @@ export class AgentService {
       const apiKey =
         RETELL_AI_TEST_MODE && process.env.RETELL_AI_TEST_CAL_API_KEY
           ? process.env.RETELL_AI_TEST_CAL_API_KEY
-          : reusableKey ??
+          : (reusableKey ??
             (await this.createApiKey({
               userId: data.userId,
               teamId: data.teamId || undefined,
-            }));
+            })));
 
       const newEventTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [];
       if (!hasCheck) {
