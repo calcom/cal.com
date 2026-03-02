@@ -103,7 +103,7 @@ export class BookingsController_2024_08_13 {
     private readonly usersService: UsersService,
     private readonly bookingReferencesService: BookingReferencesService_2024_08_13,
     private readonly calVideoService: CalVideoService
-  ) { }
+  ) {}
 
   @Post("/")
   @UseGuards(OptionalApiAuthGuard)
