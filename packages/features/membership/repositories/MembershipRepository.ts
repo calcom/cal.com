@@ -706,6 +706,26 @@ export class MembershipRepository {
    * Used during onboarding to detect users who signed up via invite token,
    * where the membership is auto-accepted.
    */
+  async findAcceptedMembersWithUserProfile({ teamId }: { teamId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+      orderBy: { user: { id: "asc" } },
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+  }
+
   static async hasAnyTeamMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
     const membership = await prisma.membership.findFirst({
       where: {

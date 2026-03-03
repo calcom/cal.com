@@ -1,5 +1,7 @@
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -27,9 +29,10 @@ export type ExportHostsForWeightsResponse = {
 
 async function getSegmentMemberIds(
   ctx: ExportHostsForWeightsInput["ctx"],
+  teamId: number,
   input: ExportHostsForWeightsInput["input"]
 ): Promise<Set<number> | null> {
-  if (!input.assignRRMembersUsingSegment || !input.attributesQueryValue || !input.teamId) {
+  if (!input.assignRRMembersUsingSegment || !input.attributesQueryValue) {
     return null;
   }
 
@@ -38,7 +41,7 @@ async function getSegmentMemberIds(
 
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic(
     {
-      teamId: input.teamId,
+      teamId,
       attributesQueryValue: input.attributesQueryValue,
       orgId,
     },
@@ -54,27 +57,16 @@ export const exportHostsForWeightsHandler = async ({
   ctx,
   input,
 }: ExportHostsForWeightsInput): Promise<ExportHostsForWeightsResponse> => {
-  const segmentMemberIds = await getSegmentMemberIds(ctx, input);
+  // Derive teamId from the event type to prevent cross-team enumeration
+  const eventTypeRepository = new EventTypeRepository(ctx.prisma);
+  const eventType = await eventTypeRepository.getTeamIdByEventTypeId({ id: input.eventTypeId });
+  const teamId = eventType?.teamId;
 
-  if (input.assignAllTeamMembers && input.teamId) {
-    // Fetch all accepted team members
-    const memberships = await ctx.prisma.membership.findMany({
-      where: {
-        teamId: input.teamId,
-        accepted: true,
-      },
-      orderBy: { user: { id: "asc" } },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-        },
-      },
-    });
+  const segmentMemberIds = teamId ? await getSegmentMemberIds(ctx, teamId, input) : null;
+
+  if (input.assignAllTeamMembers && teamId) {
+    const membershipRepository = new MembershipRepository(ctx.prisma);
+    const memberships = await membershipRepository.findAcceptedMembersWithUserProfile({ teamId });
 
     let members: ExportedWeightMember[] = memberships.map((m) => ({
       userId: m.user.id,
