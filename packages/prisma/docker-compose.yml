@@ -2,7 +2,7 @@
 # starts a postgres instance on port 5450 to use as a local db
 services:
   postgres:
-    image: postgres:13
+    image: postgres:18
     ports:
       - "5450:5432" # expose pg on port 5450 to not collide with pg from elsewhere
     restart: always
