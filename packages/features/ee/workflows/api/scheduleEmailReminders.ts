@@ -8,9 +8,9 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { getTranslation } from "@calcom/i18n/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -336,6 +336,14 @@ async function handler(req: NextRequest) {
 
           const attendees = await Promise.all(attendeePromises);
 
+          // For seated events with EMAIL_ATTENDEE, only include the target attendee in the ICS
+          // to prevent leaking other attendees' emails via the calendar attachment.
+          const isSeatedAttendeeEmail =
+            reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE && reminder.seatReferenceId;
+          const icsAttendees = isSeatedAttendeeEmail
+            ? attendees.filter((a) => a.email === targetAttendee?.email)
+            : attendees;
+
           const event = {
             ...booking,
             startTime: dayjs(booking.startTime).utc().format(),
@@ -347,17 +355,16 @@ async function handler(req: NextRequest) {
               timeZone: booking.user?.timeZone ?? "",
               language: { translate: t, locale: booking.user?.locale ?? "en" },
             },
-            attendees,
+            attendees: icsAttendees,
             location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
             title: booking.title || booking.eventType?.title || "",
           };
 
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-              const fallbackReplyTo =
-                reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
-              const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
-                ? customReplyTo
-                : customReplyTo ?? fallbackReplyTo;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : (customReplyTo ?? fallbackReplyTo);
 
           const mailData = {
             subject: emailContent.emailSubject,
@@ -374,8 +381,8 @@ async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
-          ...(replyTo ? { replyTo } : {}),
-        };
+            ...(replyTo ? { replyTo } : {}),
+          };
 
           if (isSendgridEnabled) {
             sendEmailPromises.push(
@@ -451,8 +458,7 @@ async function handler(req: NextRequest) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-          const fallbackReplyTo =
-            reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
           const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
             ? customReplyTo
             : customReplyTo || fallbackReplyTo;

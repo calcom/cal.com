@@ -8,10 +8,10 @@ import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builde
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -576,6 +576,15 @@ export class EmailWorkflowService {
       })
     );
 
+    // For EMAIL_ATTENDEE with seated events, only include the target attendee in the ICS
+    // to prevent leaking other attendees' emails via the calendar attachment.
+    // Email clients (Outlook, Apple Mail) display ICS ATTENDEE fields in the "To:" header,
+    // so including all attendees would expose everyone's email to each recipient.
+    const isEmailAttendeeSeatedEvent = action === WorkflowActions.EMAIL_ATTENDEE && seatReferenceUid;
+    const icsAttendees = isEmailAttendeeSeatedEvent
+      ? processedAttendees.filter((a) => a.email === attendeeToBeUsedInMail.email)
+      : processedAttendees;
+
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
@@ -583,7 +592,7 @@ export class EmailWorkflowService {
         ...evt.organizer,
         language: { ...evt.organizer.language, translate: organizerT },
       },
-      attendees: processedAttendees,
+      attendees: icsAttendees,
       location: bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl || evt.location,
     };
 
@@ -608,9 +617,7 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
-    const replyTo = evt.hideOrganizerEmail
-      ? customReplyToEmail
-      : customReplyToEmail || evt.organizer.email;
+    const replyTo = evt.hideOrganizerEmail ? customReplyToEmail : customReplyToEmail || evt.organizer.email;
 
     return {
       subject: emailContent.emailSubject,

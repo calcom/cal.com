@@ -59,8 +59,12 @@ const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findById
   findByIdIncludeStepAndWorkflow: vi.fn(),
 };
 
-const mockBookingSeatRepository: Pick<BookingSeatRepository, "getByUidIncludeAttendee"> = {
+const mockBookingSeatRepository: Pick<
+  BookingSeatRepository,
+  "getByUidIncludeAttendee" | "getByReferenceUidWithAttendeeDetails"
+> = {
   getByUidIncludeAttendee: vi.fn(),
+  getByReferenceUidWithAttendeeDetails: vi.fn(),
 };
 
 describe("EmailWorkflowService", () => {
@@ -602,6 +606,128 @@ describe("EmailWorkflowService", () => {
       });
 
       expect(result.attachments).toBeUndefined();
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Seated event ICS attendee filtering", () => {
+    const mockSeatedBookingInfo = {
+      uid: "booking-seated-123",
+      bookerUrl: "https://cal.com",
+      title: "Seated Event Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+      },
+      attendees: [
+        {
+          name: "Attendee One",
+          email: "attendee1@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+        {
+          name: "Attendee Two",
+          email: "attendee2@example.com",
+          timeZone: "America/New_York",
+          language: { locale: "en" },
+        },
+        {
+          name: "Attendee Three",
+          email: "attendee3@example.com",
+          timeZone: "Europe/London",
+          language: { locale: "en" },
+        },
+      ],
+    };
+
+    test("should only include target attendee in ICS for seated event with EMAIL_ATTENDEE", async () => {
+      const generateIcsString = (await import("@calcom/emails/lib/generateIcsString")).default;
+
+      vi.mocked(mockBookingSeatRepository.getByReferenceUidWithAttendeeDetails).mockResolvedValue({
+        attendee: {
+          name: "Attendee Two",
+          email: "attendee2@example.com",
+          phoneNumber: null,
+          timeZone: "America/New_York",
+          locale: "en",
+        },
+      });
+
+      await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockSeatedBookingInfo,
+        sendTo: ["attendee2@example.com"],
+        seatReferenceUid: "seat-ref-123",
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // Verify generateIcsString was called with only the target attendee
+      expect(generateIcsString).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: expect.objectContaining({
+            attendees: expect.arrayContaining([expect.objectContaining({ email: "attendee2@example.com" })]),
+          }),
+        })
+      );
+
+      // Verify other attendees are NOT in the ICS
+      const icsCall = vi.mocked(generateIcsString).mock.calls[0][0];
+      expect(icsCall.event.attendees).toHaveLength(1);
+      expect(icsCall.event.attendees[0].email).toBe("attendee2@example.com");
+    });
+
+    test("should include all attendees in ICS for non-seated event with EMAIL_ATTENDEE", async () => {
+      const generateIcsString = (await import("@calcom/emails/lib/generateIcsString")).default;
+
+      await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockSeatedBookingInfo,
+        sendTo: ["attendee1@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        // No seatReferenceUid = non-seated event
+      });
+
+      const icsCall = vi.mocked(generateIcsString).mock.calls[0][0];
+      expect(icsCall.event.attendees).toHaveLength(3);
+    });
+
+    test("should include all attendees in ICS for seated event with EMAIL_HOST", async () => {
+      const generateIcsString = (await import("@calcom/emails/lib/generateIcsString")).default;
+
+      await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockSeatedBookingInfo,
+        sendTo: ["organizer@example.com"],
+        seatReferenceUid: "seat-ref-123",
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_HOST,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // EMAIL_HOST should still include all attendees even for seated events
+      const icsCall = vi.mocked(generateIcsString).mock.calls[0][0];
+      expect(icsCall.event.attendees).toHaveLength(3);
     });
   });
 
