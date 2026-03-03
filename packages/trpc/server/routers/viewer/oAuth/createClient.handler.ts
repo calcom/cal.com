@@ -11,7 +11,7 @@ type AddClientOptions = {
 };
 
 export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
+  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, scopes } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
@@ -32,6 +32,7 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     websiteUrl,
     enablePkce,
     status: "APPROVED",
+    scopes,
   });
 
   return {
@@ -44,5 +45,6 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     clientSecret: plainSecret,
     isPkceEnabled: enablePkce,
     status: client.status,
+    scopes: client.scopes,
   };
 };

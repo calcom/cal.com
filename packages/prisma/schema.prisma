@@ -1849,6 +1849,7 @@ model OAuthClient {
   isTrusted       Boolean           @default(false)
   accessCodes     AccessCode[]
   status          OAuthClientStatus @default(APPROVED)
+  scopes          AccessScope[]
   userId          Int?
   user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt       DateTime          @default(now())

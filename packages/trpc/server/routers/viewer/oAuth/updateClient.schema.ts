@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { OAuthClientStatus } from "@calcom/prisma/enums";
+import { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
 
 export const ZUpdateClientInputSchema = z
   .object({
@@ -18,6 +18,7 @@ export const ZUpdateClientInputSchema = z
       (value) => (typeof value === "string" && value.trim() === "" ? null : value),
       z.string().url().nullable().optional()
     ),
+    scopes: z.array(z.nativeEnum(AccessScope)).optional(),
   })
   .superRefine((val, ctx) => {
     if (val.status === OAuthClientStatus.REJECTED && !val.rejectionReason) {

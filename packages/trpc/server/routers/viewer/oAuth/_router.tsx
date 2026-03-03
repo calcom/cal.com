@@ -84,4 +84,12 @@ export const oAuthRouter = router({
       input,
     });
   }),
+
+  notifyLegacyOAuthClients: authedAdminProcedure.mutation(async ({ ctx }) => {
+    const { notifyLegacyOAuthClientsHandler } = await import("./notifyLegacyOAuthClients.handler");
+
+    return notifyLegacyOAuthClientsHandler({
+      ctx,
+    });
+  }),
 });

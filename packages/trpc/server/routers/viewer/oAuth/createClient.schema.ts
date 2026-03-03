@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { AccessScope } from "@calcom/prisma/enums";
+
 export type TCreateClientInputSchemaInput = {
   name: string;
   purpose: string;
@@ -7,6 +9,7 @@ export type TCreateClientInputSchemaInput = {
   logo?: string;
   websiteUrl?: string;
   enablePkce?: boolean;
+  scopes?: AccessScope[];
 };
 
 export type TCreateClientInputSchema = {
@@ -16,6 +19,7 @@ export type TCreateClientInputSchema = {
   logo?: string;
   websiteUrl?: string;
   enablePkce: boolean;
+  scopes: AccessScope[];
 };
 
 export const ZCreateClientInputSchema: z.ZodType<
@@ -35,4 +39,5 @@ export const ZCreateClientInputSchema: z.ZodType<
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
   enablePkce: z.boolean().optional().default(false),
+  scopes: z.array(z.nativeEnum(AccessScope)).optional().default([]),
 });

@@ -6,6 +6,8 @@ import type { OAuthClientApprovedNotification } from "./templates/oauth-client-a
 import OAuthClientApprovedEmail from "./templates/oauth-client-approved-notification";
 import type { OAuthClientRejectedNotification } from "./templates/oauth-client-rejected-notification";
 import OAuthClientRejectedEmail from "./templates/oauth-client-rejected-notification";
+import type { OAuthLegacyScopeNotification } from "./templates/oauth-legacy-scope-notification";
+import OAuthLegacyScopeNotificationEmail from "./templates/oauth-legacy-scope-notification";
 
 const sendEmail = async (prepare: () => BaseEmail) => {
   let email: BaseEmail | undefined;
@@ -33,4 +35,8 @@ export const sendOAuthClientApprovedNotification = async (input: OAuthClientAppr
 
 export const sendOAuthClientRejectedNotification = async (input: OAuthClientRejectedNotification) => {
   await sendEmail(() => new OAuthClientRejectedEmail(input));
+};
+
+export const sendOAuthLegacyScopeNotification = async (input: OAuthLegacyScopeNotification) => {
+  await sendEmail(() => new OAuthLegacyScopeNotificationEmail(input));
 };

@@ -18,6 +18,7 @@ export interface OAuth2Client {
   logo: string | null;
   isTrusted: boolean;
   clientType: OAuthClientType;
+  scopes: AccessScope[];
 }
 
 export interface OAuth2Tokens {
@@ -79,6 +80,7 @@ export class OAuthService {
       logo: client.logo,
       isTrusted: client.isTrusted,
       clientType: client.clientType,
+      scopes: client.scopes,
     };
   }
 
@@ -104,6 +106,7 @@ export class OAuthService {
       logo: client.logo,
       isTrusted: client.isTrusted,
       clientType: client.clientType,
+      scopes: client.scopes,
     };
   }
 
@@ -141,6 +144,17 @@ export class OAuthService {
       if (codeChallenge && (!codeChallengeMethod || codeChallengeMethod !== "S256")) {
         throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", {
           reason: "invalid_code_challenge_method",
+        });
+      }
+    }
+
+    // Clients with scopes defined enforce which scopes can be requested.
+    // Legacy clients (empty scopes array) allow any scope for backward compatibility.
+    if (client.scopes.length > 0) {
+      const disallowedScopes = scopes.filter((scope) => !client.scopes.includes(scope));
+      if (disallowedScopes.length > 0) {
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", {
+          reason: "requested_scopes_not_allowed",
         });
       }
     }
@@ -493,7 +507,8 @@ export type OAuthErrorReason =
   | "pkce_verification_failed"
   | "invalid_refresh_token"
   | "client_id_mismatch"
-  | "encryption_key_missing";
+  | "encryption_key_missing"
+  | "requested_scopes_not_allowed";
 
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
@@ -512,4 +527,5 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   invalid_refresh_token: "invalid_grant",
   client_id_mismatch: "invalid_grant",
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
+  requested_scopes_not_allowed: "One or more requested scopes are not allowed for this client",
 };

@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 
 import type { PrismaClient } from "@calcom/prisma";
-import type { OAuthClientStatus } from "@calcom/prisma/enums";
+import type { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
 
 export class OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -22,6 +22,7 @@ export class OAuthClientRepository {
         websiteUrl: true,
         rejectionReason: true,
         status: true,
+        scopes: true,
         userId: true,
         createdAt: true,
       },
@@ -56,6 +57,7 @@ export class OAuthClientRepository {
         rejectionReason: true,
         isTrusted: true,
         status: true,
+        scopes: true,
         userId: true,
         createdAt: true,
         user: {
@@ -82,6 +84,7 @@ export class OAuthClientRepository {
         rejectionReason: true,
         clientType: true,
         status: true,
+        scopes: true,
         userId: true,
         createdAt: true,
       },
@@ -108,6 +111,30 @@ export class OAuthClientRepository {
         rejectionReason: true,
         clientType: true,
         status: true,
+        scopes: true,
+        userId: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async findLegacyClients() {
+    return this.prisma.oAuthClient.findMany({
+      where: {
+        scopes: { isEmpty: true },
+        status: "APPROVED",
+      },
+      select: {
+        clientId: true,
+        name: true,
         userId: true,
         createdAt: true,
         user: {
@@ -135,6 +162,7 @@ export class OAuthClientRepository {
         rejectionReason: true,
         clientType: true,
         status: true,
+        scopes: true,
         userId: true,
         createdAt: true,
         user: {
@@ -159,8 +187,10 @@ export class OAuthClientRepository {
     enablePkce?: boolean;
     userId?: number;
     status: OAuthClientStatus;
+    scopes?: AccessScope[];
   }) {
-    const { name, purpose, redirectUri, clientSecret, logo, websiteUrl, enablePkce, userId, status } = data;
+    const { name, purpose, redirectUri, clientSecret, logo, websiteUrl, enablePkce, userId, status, scopes } =
+      data;
 
     const clientId = randomBytes(32).toString("hex");
 
@@ -175,6 +205,7 @@ export class OAuthClientRepository {
         websiteUrl,
         status,
         clientSecret,
+        scopes: scopes ?? [],
         ...(userId && {
           user: {
             connect: { id: userId },
@@ -193,6 +224,7 @@ export class OAuthClientRepository {
       clientSecret: client.clientSecret,
       isPkceEnabled: enablePkce,
       status: client.status,
+      scopes: client.scopes,
     };
   }
 
@@ -211,6 +243,7 @@ export class OAuthClientRepository {
       redirectUri?: string;
       logo?: string;
       websiteUrl?: string;
+      scopes?: AccessScope[];
     }
   ) {
     return this.prisma.oAuthClient.update({

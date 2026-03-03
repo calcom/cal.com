@@ -25,6 +25,7 @@ export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { NoShowFeeChargedEmail } from "./NoShowFeeChargedEmail";
 export { OAuthClientApprovedNotificationEmail } from "./OAuthClientApprovedNotificationEmail";
 export { OAuthClientRejectedNotificationEmail } from "./OAuthClientRejectedNotificationEmail";
+export { OAuthLegacyScopeNotificationEmail } from "./OAuthLegacyScopeNotificationEmail";
 export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";
 export { OrganisationAccountVerifyEmail } from "./OrganizationAccountVerifyEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
