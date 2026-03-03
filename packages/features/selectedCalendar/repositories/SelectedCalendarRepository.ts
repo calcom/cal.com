@@ -80,6 +80,10 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
       syncSubscribedErrorCount: { lt: MAX_SUBSCRIBE_ERRORS },
     };
 
+    const hasCredentialsFilter: Prisma.SelectedCalendarWhereInput = {
+      OR: [{ credentialId: { not: null } }, { delegationCredentialId: { not: null } }],
+    };
+
     const suffixFilters =
       genericCalendarSuffixes?.map<Prisma.SelectedCalendarWhereInput>((suffix) => ({
         NOT: { externalId: { endsWith: suffix } },
@@ -89,6 +93,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
       needsSubscriptionFilter,
       retryableWindowFilter,
       retryableErrorCountFilter,
+      hasCredentialsFilter,
       ...suffixFilters,
     ];
 

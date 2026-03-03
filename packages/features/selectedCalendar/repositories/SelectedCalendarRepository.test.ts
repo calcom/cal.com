@@ -150,6 +150,9 @@ describe("SelectedCalendarRepository", () => {
             {
               syncSubscribedErrorCount: { lt: 3 },
             },
+            {
+              OR: [{ credentialId: { not: null } }, { delegationCredentialId: { not: null } }],
+            },
           ],
         },
         take: 10,
@@ -192,6 +195,9 @@ describe("SelectedCalendarRepository", () => {
             },
             {
               syncSubscribedErrorCount: { lt: 3 },
+            },
+            {
+              OR: [{ credentialId: { not: null } }, { delegationCredentialId: { not: null } }],
             },
           ],
         },
@@ -238,6 +244,9 @@ describe("SelectedCalendarRepository", () => {
             },
             {
               syncSubscribedErrorCount: { lt: 3 },
+            },
+            {
+              OR: [{ credentialId: { not: null } }, { delegationCredentialId: { not: null } }],
             },
             { NOT: { externalId: { endsWith: "@group.v.calendar.google.com" } } },
             { NOT: { externalId: { endsWith: "@group.calendar.google.com" } } },
