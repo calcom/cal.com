@@ -203,7 +203,7 @@ export class HostRepository {
     search?: string;
     memberUserIds?: number[];
   }) {
-    const userIdFilter = memberUserIds
+    const userIdFilter = memberUserIds?.length
       ? cursor
         ? { in: memberUserIds, gt: cursor }
         : { in: memberUserIds }
