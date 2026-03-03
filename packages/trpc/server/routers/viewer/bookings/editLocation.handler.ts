@@ -15,7 +15,7 @@ import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
@@ -137,7 +137,9 @@ async function getAllCredentialsIncludeServiceAccountKey({
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential: Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>> | undefined;
+  let conferenceCredential:
+    | Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>>
+    | undefined;
 
   if (conferenceCredentialId) {
     // Validate that the credential is accessible before fetching it

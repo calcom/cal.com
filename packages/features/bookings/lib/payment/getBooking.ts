@@ -2,10 +2,14 @@ import { enrichUserWithDelegationCredentials } from "@calcom/app-store/delegatio
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -86,6 +90,8 @@ export async function getBooking(bookingId: number) {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           seatsPerTimeSlot: true,
@@ -115,6 +121,12 @@ export async function getBooking(bookingId: number) {
           locale: true,
           destinationCalendar: true,
           isPlatformManaged: true,
+          hideBranding: true,
+          profiles: {
+            select: {
+              organization: { select: { hideBranding: true } },
+            },
+          },
         },
       },
     },
@@ -202,6 +214,18 @@ export async function getBooking(bookingId: number) {
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: userWithoutDelegationCredentials.hideBranding,
+            profiles: userWithoutDelegationCredentials.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
     disableCancelling: booking.eventType?.disableCancelling ?? false,
     disableRescheduling: booking.eventType?.disableRescheduling ?? false,
   };

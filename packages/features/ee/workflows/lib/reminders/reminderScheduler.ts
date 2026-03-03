@@ -2,27 +2,24 @@ import { BookingSeatRepository } from "@calcom/features/bookings/repositories/Bo
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import {
   isAttendeeAction,
+  isCalAIAction,
+  isEmailAction,
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
-  isCalAIAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { type SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import type { FormSubmissionData } from "../types";
-import type { BookingInfo } from "../types";
+import type { BookingInfo, FormSubmissionData } from "../types";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
 
 export type WorkflowContextData =
@@ -137,6 +134,8 @@ const processWorkflowStep = async (
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
       sender: step.sender,
+      autoTranslateEnabled: step.autoTranslateEnabled,
+      sourceLocale: step.sourceLocale,
       isVerificationPending: step.numberVerificationPending,
       ...contextData,
     });
@@ -180,6 +179,8 @@ const processWorkflowStep = async (
       reminderPhone: sendTo,
       action: step.action as ScheduleTextReminderAction,
       message: step.reminderBody || "",
+      autoTranslateEnabled: step.autoTranslateEnabled,
+      sourceLocale: step.sourceLocale,
       isVerificationPending: step.numberVerificationPending,
       evt,
     });

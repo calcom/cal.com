@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "@calcom/dayjs";
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +9,8 @@ import { Button } from "@calcom/ui/components/button";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+import { format, formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -28,6 +29,17 @@ type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
+type DisplayFieldValue =
+    | { type: "translationKey"; valueKey: string }
+    | { type: "rawValue"; value: string }
+    | { type: "rawValues"; values: string[] }
+    | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
+
+type DisplayField = {
+    labelKey: string;
+    fieldValue: DisplayFieldValue;
+};
+
 type AuditLog = {
   id: string;
   action: string;
@@ -36,7 +48,7 @@ type AuditLog = {
   source: string;
   displayJson?: Record<string, unknown> | null;
   actionDisplayTitle: TranslationWithParams;
-  displayFields?: Array<{ labelKey: string; valueKey?: string; value?: string; values?: string[] }> | null;
+  displayFields?: DisplayField[] | null;
   actor: {
     type: AuditActorType;
     displayName: string | null;
@@ -139,7 +151,13 @@ function ActionTitle({ actionDisplayTitle }: { actionDisplayTitle: TranslationWi
         values={actionDisplayTitle.params}
         components={actionDisplayTitle.components.map((comp) =>
           comp.type === "link" ? (
-            <Link key={comp.href} href={comp.href} className="text-emphasis underline hover:no-underline" />
+            <Link
+              key={comp.href}
+              href={comp.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emphasis underline hover:no-underline"
+            />
           ) : (
             <span key={comp.href} />
           )
@@ -181,30 +199,39 @@ function JsonViewer({ data }: JsonViewerProps) {
   );
 }
 
-interface DisplayFieldValueProps {
-  field: {
-    valueKey?: string;
-    value?: string;
-    values?: string[];
-  };
+interface DisplayFieldValueComponentProps {
+  fieldValue: DisplayFieldValue;
 }
 
-function DisplayFieldValue({ field }: DisplayFieldValueProps) {
+function DisplayFieldValueComponent({ fieldValue }: DisplayFieldValueComponentProps) {
   const { t } = useLocale();
 
-  if (field.values) {
-    return (
-      <span className="flex flex-col">
-        {field.values.map((v, i) => (
-          <span className="p-0.5" key={i}>
-            {v}
-          </span>
-        ))}
-      </span>
-    );
+  switch (fieldValue.type) {
+    case "translationsWithParams":
+      return (
+        <span className="flex flex-col">
+          {fieldValue.valuesWithParams.map((v, i) => (
+            <span className="p-0.5" key={i}>
+              {t(v.key, v.params)}
+            </span>
+          ))}
+        </span>
+      );
+    case "rawValues":
+      return (
+        <span className="flex flex-col">
+          {fieldValue.values.map((v, i) => (
+            <span className="p-0.5" key={i}>
+              {v}
+            </span>
+          ))}
+        </span>
+      );
+    case "rawValue":
+      return <>{fieldValue.value}</>;
+    case "translationKey":
+      return <>{t(fieldValue.valueKey)}</>;
   }
-
-  return <>{field.value ?? (field.valueKey ? t(field.valueKey) : "")}</>;
 }
 
 function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
@@ -280,7 +307,9 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                         {actorRole && <span>{` (${t(actorRole)})`}</span>}
                       </span>
                       <span>•</span>
-                      <span>{dayjs(log.timestamp).fromNow()}</span>
+                      <Tooltip content={format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}>
+                        <span>{formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}</span>
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
@@ -304,15 +333,15 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                       {/* Render displayFields if available, otherwise show type */}
                       {log.displayFields && log.displayFields.length > 0
                         ? log.displayFields.map((field, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                              <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
-                              <span className="font-medium">
-                                <DisplayFieldValue field={field} />
-                              </span>
-                            </div>
-                          ))
+                          <div
+                            key={idx}
+                            className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                            <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
+                            <span className="font-medium">
+                              <DisplayFieldValueComponent fieldValue={field.fieldValue} />
+                            </span>
+                          </div>
+                        ))
                         : null}
                       <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("actor")}</span>
@@ -337,7 +366,7 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                       <div className="flex items-start gap-2 py-2 px-3 border-b border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("timestamp")}</span>
                         <span className="text-default">
-                          {dayjs(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}
+                          {format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss")}
                         </span>
                       </div>
                       {log.displayJson && Object.keys(log.displayJson).length > 0 && (
@@ -368,28 +397,44 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
 }
 
 function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorFilter: string | null) {
+  const { t } = useLocale();
+
   const filteredLogs = auditLogs.filter((log) => {
     const doesMatchDisplayFields = (): boolean => {
       return (
         log.displayFields?.some((field) => {
           const searchLower = searchTerm.toLowerCase();
-          return (
-            field.valueKey?.toLowerCase().includes(searchLower) ||
-            field.labelKey?.toLowerCase().includes(searchLower) ||
-            field.value?.toLowerCase().includes(searchLower) ||
-            field.values?.some((v) => v.toLowerCase().includes(searchLower))
-          );
+          const translatedLabel = field.labelKey ? t(field.labelKey) : "";
+          if (translatedLabel.toLowerCase().includes(searchLower)) {
+            return true;
+          }
+          const { fieldValue } = field;
+          switch (fieldValue.type) {
+            case "translationKey":
+              return t(fieldValue.valueKey).toLowerCase().includes(searchLower);
+            case "rawValue":
+              return fieldValue.value.toLowerCase().includes(searchLower);
+            case "rawValues":
+              return fieldValue.values.some((v) => v.toLowerCase().includes(searchLower));
+            case "translationsWithParams":
+              return fieldValue.valuesWithParams.some(
+                (v) =>
+                  t(v.key, v.params).toLowerCase().includes(searchLower) ||
+                  Object.values(v.params ?? {}).some((param) =>
+                    param?.toString().toLowerCase().includes(searchLower)
+                  )
+              );
+          }
         }) ?? false
       );
     };
 
     const doesMatchActionDisplayTitle = (): boolean => {
-      return (
-        log.actionDisplayTitle.key?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        Object.values(log.actionDisplayTitle.params ?? {}).some((param) =>
-          param?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
+      const translatedTitle = log.actionDisplayTitle.key
+        ? t(log.actionDisplayTitle.key, log.actionDisplayTitle.params ?? {})
+        : "";
+
+      return translatedTitle.toLowerCase().includes(searchTerm.toLowerCase());
     };
 
     const matchesSearch =
