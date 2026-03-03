@@ -68,7 +68,7 @@ describe("StripeBillingService", () => {
       },
     });
     await expect(stripeBillingService.handleSubscriptionUpdate(args)).rejects.toThrow(
-      "Subscription not found"
+      "Subscription item not found"
     );
   });
 

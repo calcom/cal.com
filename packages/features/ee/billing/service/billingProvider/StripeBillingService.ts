@@ -140,10 +140,8 @@ export class StripeBillingService implements IBillingProviderService {
   async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
     const { subscriptionId, subscriptionItemId, membershipCount, prorationBehavior } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-    const subscriptionQuantity = subscription.items.data.find(
-      (sub) => sub.id === subscriptionItemId
-    )?.quantity;
-    if (!subscriptionQuantity) throw new Error("Subscription not found");
+    const subscriptionItem = subscription.items.data.find((sub) => sub.id === subscriptionItemId);
+    if (subscriptionItem === undefined) throw new Error("Subscription item not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
       ...(prorationBehavior ? { proration_behavior: prorationBehavior } : {}),

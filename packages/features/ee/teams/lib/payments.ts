@@ -343,10 +343,8 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     const { subscriptionId, subscriptionItemId } = team.metadata;
     const membershipCount = team.members.length;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const subscriptionQuantity = subscription.items.data.find(
-      (sub) => sub.id === subscriptionItemId
-    )?.quantity;
-    if (!subscriptionQuantity) throw new Error("Subscription not found");
+    const subscriptionItem = subscription.items.data.find((sub) => sub.id === subscriptionItemId);
+    if (subscriptionItem === undefined) throw new Error("Subscription item not found");
 
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],

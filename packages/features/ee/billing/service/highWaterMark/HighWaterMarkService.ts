@@ -216,6 +216,12 @@ export class HighWaterMarkService {
       }
     }
 
+    // Enforce minimum of 1 paid seat
+    if (highWaterMark < 1) {
+      this.logger.warn(`High water mark for team ${teamId} is ${highWaterMark}, enforcing minimum of 1`);
+      highWaterMark = 1;
+    }
+
     // If HWM equals paid seats, no update needed
     if (highWaterMark === paidSeats) {
       this.logger.debug(`No HWM update needed for team ${teamId} - already at correct quantity`, {
@@ -310,8 +316,11 @@ export class HighWaterMarkService {
       return false;
     }
 
+    // Enforce minimum of 1 paid seat
+    const effectiveMemberCount = Math.max(memberCount, 1);
+
     // If current members equals paid seats, no update needed
-    if (memberCount === paidSeats) {
+    if (effectiveMemberCount === paidSeats) {
       this.logger.debug(`No reset needed for team ${teamId} - already at correct quantity`, {
         memberCount,
         paidSeats,
@@ -330,16 +339,17 @@ export class HighWaterMarkService {
 
     this.logger.info(`Resetting subscription for team ${teamId} after renewal`, {
       currentMembers: memberCount,
+      effectiveMembers: effectiveMemberCount,
       previousPaidSeats: paidSeats,
       subscriptionId,
-      direction: memberCount < (paidSeats ?? 0) ? "down" : "up",
+      direction: effectiveMemberCount < (paidSeats ?? 0) ? "down" : "up",
     });
 
-    // Update the subscription quantity to current member count
+    // Update the subscription quantity (enforcing minimum of 1 paid seat)
     await this.billingService.handleSubscriptionUpdate({
       subscriptionId,
       subscriptionItemId,
-      membershipCount: memberCount,
+      membershipCount: effectiveMemberCount,
       prorationBehavior: "none",
     });
 
@@ -347,7 +357,7 @@ export class HighWaterMarkService {
     await this.repository.reset({
       teamId,
       isOrganization,
-      currentSeatCount: memberCount,
+      currentSeatCount: effectiveMemberCount,
       newPeriodStart,
     });
 
@@ -355,12 +365,12 @@ export class HighWaterMarkService {
     await this.repository.updateQuantityAfterStripeSync({
       teamId,
       isOrganization,
-      paidSeats: memberCount,
+      paidSeats: effectiveMemberCount,
     });
 
     this.logger.info(`Successfully reset subscription for team ${teamId}`, {
-      newPaidSeats: memberCount,
-      newHighWaterMark: memberCount,
+      newPaidSeats: effectiveMemberCount,
+      newHighWaterMark: effectiveMemberCount,
       newPeriodStart,
     });
 

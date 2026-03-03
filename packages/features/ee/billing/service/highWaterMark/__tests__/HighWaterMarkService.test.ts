@@ -302,6 +302,28 @@ describe("HighWaterMarkService", () => {
       expect(result).toBe(true); // HWM (6) > paidSeats (4) -> scale up
     });
 
+    it("enforces minimum of 1 paid seat when HWM is 0", async () => {
+      mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+      mockRepository.getBySubscriptionId.mockResolvedValue({
+        teamId: 123,
+        subscriptionItemId: "si_123",
+        isOrganization: false,
+        billingPeriod: "MONTHLY",
+        highWaterMark: 0,
+        paidSeats: 0,
+      });
+
+      const result = await service.applyHighWaterMarkToSubscription(subscriptionId);
+
+      expect(result).toBe(true);
+      expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId,
+        subscriptionItemId: "si_123",
+        membershipCount: 1,
+        prorationBehavior: "none",
+      });
+    });
+
     it("scales up subscription when HWM > paidSeats", async () => {
       mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
       mockRepository.getBySubscriptionId.mockResolvedValue({
@@ -405,6 +427,37 @@ describe("HighWaterMarkService", () => {
         newPeriodStart,
       });
       expect(mockBillingService.handleSubscriptionUpdate).not.toHaveBeenCalled();
+    });
+
+    it("enforces minimum of 1 paid seat when memberCount is 0", async () => {
+      mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+      mockRepository.getBySubscriptionId.mockResolvedValue({
+        teamId: 123,
+        subscriptionItemId: "si_123",
+        isOrganization: false,
+        billingPeriod: "MONTHLY",
+        paidSeats: 5,
+      });
+      mockTeamRepository.getTeamMemberCount.mockResolvedValue(0);
+
+      const result = await service.resetSubscriptionAfterRenewal({
+        subscriptionId,
+        newPeriodStart,
+      });
+
+      expect(result).toBe(true);
+      expect(mockBillingService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+        subscriptionId,
+        subscriptionItemId: "si_123",
+        membershipCount: 1,
+        prorationBehavior: "none",
+      });
+      expect(mockRepository.reset).toHaveBeenCalledWith({
+        teamId: 123,
+        isOrganization: false,
+        currentSeatCount: 1,
+        newPeriodStart,
+      });
     });
 
     it("scales down subscription when memberCount < paidSeats", async () => {
