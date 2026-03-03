@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -26,6 +26,7 @@ import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
+import UnsavedChangesDialog from "./dialogs/UnsavedChangesDialog";
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
 import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
@@ -146,6 +147,9 @@ const EventTypeWeb = ({
   const leaveWithoutAssigningHosts = useRef(false);
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
+  const [isOpenUnsavedChangesDialog, setIsOpenUnsavedChangesDialog] = useState(false);
+  const unsavedChangesPendingUrl = useRef<string | null>(null);
+  const formIsDirtyRef = useRef(false);
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
@@ -301,6 +305,11 @@ const EventTypeWeb = ({
     },
   });
 
+  // Keep ref in sync with form dirty state
+  useEffect(() => {
+    formIsDirtyRef.current = form.formState.isDirty;
+  }, [form.formState.isDirty]);
+
   // Warn before closing/refreshing the page with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -313,6 +322,24 @@ const EventTypeWeb = ({
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [form.formState.isDirty]);
+
+  // Intercept in-app navigation when form has unsaved changes
+  useEffect(() => {
+    const originalPushState = window.history.pushState.bind(window.history);
+
+    window.history.pushState = function (state: unknown, title: string, url?: string | URL | null) {
+      if (formIsDirtyRef.current && url) {
+        unsavedChangesPendingUrl.current = url.toString();
+        setIsOpenUnsavedChangesDialog(true);
+        return;
+      }
+      originalPushState(state, title, url);
+    };
+
+    return () => {
+      window.history.pushState = originalPushState;
+    };
+  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -446,6 +473,16 @@ const EventTypeWeb = ({
           pendingRoute={pendingRoute}
           leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
           id={eventType.id}
+        />
+        <UnsavedChangesDialog
+          isOpen={isOpenUnsavedChangesDialog}
+          setIsOpen={setIsOpenUnsavedChangesDialog}
+          onDiscard={() => {
+            formIsDirtyRef.current = false;
+            if (unsavedChangesPendingUrl.current) {
+              appRouter.push(unsavedChangesPendingUrl.current);
+            }
+          }}
         />
       </>
     </EventTypeComponent>
