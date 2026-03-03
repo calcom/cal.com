@@ -57,7 +57,7 @@ export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
     posthog.capture("onboarding_company_email_verify_clicked");
     setErrorMessage("");
     const qs = searchParams?.toString() ?? "";
-    const redirectTo = qs ? `${pathname}?${qs}` : pathname;
+    const redirectTo = qs ? `${pathname ?? ""}?${qs}` : pathname ?? undefined;
     addSecondaryEmailMutation.mutate({
       email: values.email,
       makePrimary: true,
