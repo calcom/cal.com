@@ -1743,7 +1743,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     };
   }
 
-  async findChildrenByParentId(parentId: number) {
+  async findChildrenByParentIdIncludeOwner(parentId: number) {
     return this.prismaClient.eventType.findMany({
       where: { parentId },
       select: {
