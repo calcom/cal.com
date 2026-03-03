@@ -576,10 +576,8 @@ export class EmailWorkflowService {
       })
     );
 
-    // For EMAIL_ATTENDEE with seated events, only include the target attendee in the ICS
-    // to prevent leaking other attendees' emails via the calendar attachment.
-    // Email clients (Outlook, Apple Mail) display ICS ATTENDEE fields in the "To:" header,
-    // so including all attendees would expose everyone's email to each recipient.
+    // Email clients display ICS ATTENDEE fields in the "To:" header, so for seated events
+    // we must filter to only the target attendee to avoid leaking other attendees' emails.
     const isEmailAttendeeSeatedEvent = action === WorkflowActions.EMAIL_ATTENDEE && seatReferenceUid;
     const icsAttendees = isEmailAttendeeSeatedEvent
       ? processedAttendees.filter((a) => a.email === attendeeToBeUsedInMail.email)

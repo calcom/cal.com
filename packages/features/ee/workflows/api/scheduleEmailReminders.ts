@@ -336,8 +336,8 @@ async function handler(req: NextRequest) {
 
           const attendees = await Promise.all(attendeePromises);
 
-          // For seated events with EMAIL_ATTENDEE, only include the target attendee in the ICS
-          // to prevent leaking other attendees' emails via the calendar attachment.
+          // Email clients display ICS ATTENDEE fields in the "To:" header, so for seated events
+          // we must filter to only the target attendee to avoid leaking other attendees' emails.
           const isSeatedAttendeeEmail =
             reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE && reminder.seatReferenceId;
           const icsAttendees = isSeatedAttendeeEmail
