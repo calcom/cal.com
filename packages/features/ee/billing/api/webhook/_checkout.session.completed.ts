@@ -49,6 +49,17 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     return await handleTeamCreationCheckoutSessionComplete(session);
   }
 
+  // Subscription checkouts (org/team purchases) are handled via invoice.paid webhook, not here.
+  // Only credit purchases (mode: "payment") should proceed below.
+  if (session.mode === "subscription") {
+    log.info("Subscription checkout session completed - handled via invoice.paid", {
+      sessionId: session.id,
+      organizationOnboardingId: session.metadata?.organizationOnboardingId,
+      teamId: session.metadata?.teamId,
+    });
+    return { success: true, message: "Subscription checkout handled via invoice.paid" };
+  }
+
   // Handle credit purchases (existing logic)
   if (!session.amount_total) {
     throw new HttpCode(400, "Missing required payment details");
@@ -83,30 +94,18 @@ async function saveToCreditBalance({
   teamId?: number;
   nrOfCredits: number;
 }) {
-  const creditBalance = await CreditsRepository.findCreditBalance({ teamId, userId });
-
-  let creditBalanceId = creditBalance?.id;
-
-  if (creditBalance) {
-    await CreditsRepository.updateCreditBalance({
-      id: creditBalance.id,
-      data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null, warningSentAt: null },
-    });
-  } else {
-    const newCreditBalance = await CreditsRepository.createCreditBalance({
-      teamId: teamId,
-      userId: !teamId ? userId : undefined,
-      additionalCredits: nrOfCredits,
-    });
-    creditBalanceId = newCreditBalance.id;
+  if (!teamId && !userId) {
+    throw new HttpCode(400, "Team id and user id are missing, but at least one is required");
   }
 
-  if (creditBalanceId) {
-    await CreditsRepository.createCreditPurchaseLog({
-      credits: nrOfCredits,
-      creditBalanceId,
-    });
-  }
+  const creditBalance = teamId
+    ? await CreditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits })
+    : await CreditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits });
+
+  await CreditsRepository.createCreditPurchaseLog({
+    credits: nrOfCredits,
+    creditBalanceId: creditBalance.id,
+  });
 }
 
 async function handleTeamCreationCheckoutSessionComplete(

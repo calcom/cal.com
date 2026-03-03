@@ -21,7 +21,7 @@ const invoicePaidSchema = z.object({
     lines: z.object({
       data: z.array(
         z.object({
-          subscription_item: z.string(),
+          subscription_item: z.string().nullable(),
           period: z
             .object({
               start: z.number(),
@@ -51,8 +51,18 @@ async function handlePaymentReceivedForOnboarding({
 
 const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
-  const subscriptionItemId = invoice.lines.data[0]?.subscription_item;
   const subscriptionId = invoice.subscription;
+
+  // Trial invoices don't have subscription_item on line items, so resolve it from the subscription object
+  const subscriptionItemId =
+    invoice.lines.data[0]?.subscription_item ??
+    (await stripe.subscriptions.retrieve(subscriptionId)).items.data[0]?.id;
+
+  if (!subscriptionItemId) {
+    logger.error(`No subscription item found for subscription ${subscriptionId}`);
+    return { success: false, message: "No subscription item found" };
+  }
+
   logger.debug(
     `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
   );

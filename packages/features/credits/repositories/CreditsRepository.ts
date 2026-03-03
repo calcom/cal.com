@@ -197,6 +197,36 @@ export class CreditsRepository {
     return null;
   }
 
+  static async upsertTeamBalance(
+    { teamId, additionalCredits }: { teamId: number; additionalCredits: number },
+    tx?: PrismaTransaction
+  ) {
+    return (tx ?? prisma).creditBalance.upsert({
+      where: { teamId },
+      create: { teamId, additionalCredits },
+      update: {
+        additionalCredits: { increment: additionalCredits },
+        limitReachedAt: null,
+        warningSentAt: null,
+      },
+    });
+  }
+
+  static async upsertUserBalance(
+    { userId, additionalCredits }: { userId: number; additionalCredits: number },
+    tx?: PrismaTransaction
+  ) {
+    return (tx ?? prisma).creditBalance.upsert({
+      where: { userId },
+      create: { userId, additionalCredits },
+      update: {
+        additionalCredits: { increment: additionalCredits },
+        limitReachedAt: null,
+        warningSentAt: null,
+      },
+    });
+  }
+
   static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
     const { teamId, userId } = data;
 

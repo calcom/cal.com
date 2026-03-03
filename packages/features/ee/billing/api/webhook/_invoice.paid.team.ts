@@ -14,7 +14,7 @@ const invoicePaidSchema = z.object({
     lines: z.object({
       data: z.array(
         z.object({
-          subscription_item: z.string(),
+          subscription_item: z.string().nullable(),
           period: z
             .object({
               start: z.number(),
