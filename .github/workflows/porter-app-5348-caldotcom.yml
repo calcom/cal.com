@@ -7,7 +7,7 @@
 name: Deploy to caldotcom
 jobs:
     porter-deploy:
-        runs-on: ubuntu-latest
+        runs-on: linux-arm64
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
