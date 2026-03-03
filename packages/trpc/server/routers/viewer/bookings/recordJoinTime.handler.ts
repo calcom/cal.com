@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -6,12 +7,12 @@ import type { TRecordJoinTimeSchema } from "./recordJoinTime.schema";
 interface RecordJoinTimeOptions {
   ctx: {
     user: TrpcSessionUser;
-    prisma: any;
+    prisma: PrismaClient;
   };
   input: TRecordJoinTimeSchema;
 }
 
-export const recordJoinTimeHandler = async ({ ctx, input }: RecordJoinTimeOptions): Promise<any> => {
+export const recordJoinTimeHandler = async ({ ctx, input }: RecordJoinTimeOptions) => {
   const { prisma, user } = ctx;
   const { bookingId, attendeeId } = input;
 
@@ -24,7 +25,7 @@ export const recordJoinTimeHandler = async ({ ctx, input }: RecordJoinTimeOption
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
   }
 
-  const attendee = booking.attendees.find((a: any) => a.id === attendeeId);
+  const attendee = booking.attendees.find((a) => a.id === attendeeId);
   if (!attendee) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Attendee not found" });
   }

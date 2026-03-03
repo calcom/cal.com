@@ -284,16 +284,25 @@ type RowToRender<TData> = {
   virtualItem?: VirtualItem;
 };
 
-function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRow; className?: string }) {
+function SeparatorRowRenderer({
+  separator,
+  className,
+  colSpan,
+}: {
+  separator: SeparatorRow;
+  className?: string;
+  colSpan: number;
+}) {
   return (
-    <div
+    <TableCell
+      colSpan={colSpan}
       className={classNames(
         "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
         separator.className,
         className
       )}>
       {separator.label}
-    </div>
+    </TableCell>
   );
 }
 
@@ -343,9 +352,9 @@ function DataTableBody<TData>({
   const rowsToRender = useMemo<RowToRender<TData>[]>(() => {
     return paginationMode === "infinite"
       ? virtualItems.map((virtualItem) => ({
-          row: filteredRows[virtualItem.index] as Row<TData>,
-          virtualItem,
-        }))
+        row: filteredRows[virtualItem.index] as Row<TData>,
+        virtualItem,
+      }))
       : filteredRows.map((row) => ({ row }));
   }, [paginationMode, virtualItems, filteredRows]);
 
@@ -384,7 +393,11 @@ function DataTableBody<TData>({
                 }),
               }}
               className="hover:bg-subtle border-muted flex w-full border-b">
-              <SeparatorRowRenderer separator={row.original as SeparatorRow} className={separatorClassName} />
+              <SeparatorRowRenderer
+                separator={row.original as SeparatorRow}
+                className={separatorClassName}
+                colSpan={table.getAllColumns().length}
+              />
             </TableRow>
           );
         }
@@ -433,7 +446,7 @@ function DataTableBody<TData>({
                     "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                     variant === "compact" && "p-0",
                     column.getIsPinned() &&
-                      "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                    "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
                   )}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>

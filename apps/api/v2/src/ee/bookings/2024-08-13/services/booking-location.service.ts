@@ -12,6 +12,7 @@ import type {
 import { Booking } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
@@ -35,7 +36,7 @@ export class BookingLocationService_2024_08_13 {
     private readonly eventTypeAccessService: EventTypeAccessService,
     private readonly bookingEventHandlerService: BookingEventHandlerService,
     private readonly featuresRepository: PrismaFeaturesRepository
-  ) {}
+  ) { }
 
   async updateBookingLocation(
     bookingUid: string,
