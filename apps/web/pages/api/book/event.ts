@@ -51,6 +51,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,
+      userUuid: session?.user?.uuid,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       traceContext: req.traceContext,

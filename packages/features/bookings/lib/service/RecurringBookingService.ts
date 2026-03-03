@@ -52,6 +52,7 @@ export const handleNewRecurringBooking = async function (
 
   const handleBookingMeta = {
     userId: input.userId,
+    userUuid: input.userUuid,
     platformClientId: input.platformClientId,
     platformRescheduleUrl: input.platformRescheduleUrl,
     platformCancelUrl: input.platformCancelUrl,

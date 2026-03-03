@@ -215,6 +215,7 @@ export class BookingsController_2024_04_15 {
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId,
+          userUuid: bookingRequest.userUuid,
           hostname: bookingRequest.headers?.host || "",
           forcedSlug: orgSlug,
           platformClientId: bookingRequest.platformClientId,
@@ -347,6 +348,7 @@ export class BookingsController_2024_04_15 {
         bookingData: body.map((booking) => ({ ...booking, creationSource: CreationSource.API_V2 })),
         bookingMeta: {
           userId: bookingRequest.userId,
+          userUuid: bookingRequest.userUuid,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,

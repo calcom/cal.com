@@ -460,6 +460,7 @@ export class BookingsService_2024_08_13 {
       bookingData: bookingRequest.body,
       bookingMeta: {
         userId: bookingRequest.userId,
+        userUuid: bookingRequest.userUuid,
         hostname: bookingRequest.headers?.host || "",
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -490,6 +491,7 @@ export class BookingsService_2024_08_13 {
       bookingData: bookingRequest.body,
       bookingMeta: {
         userId: bookingRequest.userId,
+        userUuid: bookingRequest.userUuid,
         hostname: bookingRequest.headers?.host || "",
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -520,6 +522,7 @@ export class BookingsService_2024_08_13 {
       bookingData: bookingRequest.body,
       bookingMeta: {
         userId: bookingRequest.userId,
+        userUuid: bookingRequest.userUuid,
         hostname: bookingRequest.headers?.host || "",
         platformClientId: bookingRequest.platformClientId,
         platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -562,6 +565,7 @@ export class BookingsService_2024_08_13 {
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId,
+          userUuid: bookingRequest.userUuid,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -821,6 +825,7 @@ export class BookingsService_2024_08_13 {
         bookingData: bookingRequest.body,
         bookingMeta: {
           userId: bookingRequest.userId ?? authUser?.id,
+          userUuid: bookingRequest.userUuid ?? authUser?.uuid,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,

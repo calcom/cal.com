@@ -52,7 +52,8 @@ import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/boo
 import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
-  userId: number | undefined;
+  userId?: number;
+  userUuid?: string;
   noEmail: boolean | undefined;
 } & OAuthRequestParams;
 
@@ -116,24 +117,23 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const owner = await this.getOwner(request);
 
     this.logger.log(`createBookingRequest_2024_08_13`, {
       requestId: request.get("X-Request-Id"),
-      ownerId: userId,
+      ownerId: owner?.id,
       oAuthClientParams,
     });
 
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId, ...oAuthClientParams });
+      Object.assign(newRequest, { userId: owner?.id, userUuid: owner?.uuid, ...oAuthClientParams });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
         creationSource: CreationSource.API_V2,
       };
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId: owner?.id, userUuid: owner?.uuid });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: false,
@@ -279,17 +279,17 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const owner = await this.getOwner(request);
 
     if (oAuthClientParams) {
       Object.assign(newRequest, {
-        userId,
+        userId: owner?.id,
+        userUuid: owner?.uuid,
         ...oAuthClientParams,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
       });
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId: owner?.id, userUuid: owner?.uuid });
     }
 
     newRequest.body = bodyTransformed.map((event) => ({
@@ -587,7 +587,7 @@ export class InputBookingsService_2024_08_13 {
       );
 
     const newRequest = { ...request };
-    let userId: number | undefined = undefined;
+    let rescheduledByUser: { id: number; uuid: string } | undefined;
 
     if (
       oAuthClientParams &&
@@ -602,16 +602,18 @@ export class InputBookingsService_2024_08_13 {
 
     if (request.body.rescheduledBy) {
       if (request.body.rescheduledBy !== bodyTransformed.responses.email) {
-        userId = (
-          await this.usersRepository.findByEmail(request.body.rescheduledBy)
-        )?.id;
+        const foundUser = await this.usersRepository.findByEmail(request.body.rescheduledBy);
+        if (foundUser) {
+          rescheduledByUser = { id: foundUser.id, uuid: foundUser.uuid };
+        }
       }
     }
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
       Object.assign(newRequest, {
-        userId,
+        userId: rescheduledByUser?.id,
+        userUuid: rescheduledByUser?.uuid,
         ...oAuthClientParams,
         platformBookingLocation: location,
       });
@@ -622,7 +624,7 @@ export class InputBookingsService_2024_08_13 {
         creationSource: CreationSource.API_V2,
       };
     } else {
-      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      Object.assign(newRequest, { userId: rescheduledByUser?.id, userUuid: rescheduledByUser?.uuid, platformBookingLocation: location });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: false,
@@ -818,35 +820,48 @@ export class InputBookingsService_2024_08_13 {
     return booking.location;
   }
 
-  private async createBookingRequestOwnerId(
-    req: Request
-  ): Promise<number | undefined> {
+  private async getOwner(req: Request): Promise<{ id: number; uuid: string } | null> {
     try {
       const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
-      if (bearerToken) {
-        if (
-          isApiKey(
-            bearerToken,
-            this.config.get<string>("api.apiKeyPrefix") ?? "cal_"
-          )
-        ) {
-          const strippedApiKey = stripApiKey(
-            bearerToken,
-            this.config.get<string>("api.keyPrefix")
-          );
-          const apiKeyHash = sha256Hash(strippedApiKey);
-          const keyData = await this.apiKeyRepository.getApiKeyFromHash(
-            apiKeyHash
-          );
-          return keyData?.userId;
-        } else {
-          // Access Token
-          const ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
-          return ownerId;
-        }
+      if (!bearerToken) {
+        return null;
       }
+
+      let ownerId: number | null = null;
+
+      if (
+        isApiKey(
+          bearerToken,
+          this.config.get<string>("api.apiKeyPrefix") ?? "cal_"
+        )
+      ) {
+        const strippedApiKey = stripApiKey(
+          bearerToken,
+          this.config.get<string>("api.keyPrefix")
+        );
+        const apiKeyHash = sha256Hash(strippedApiKey);
+        const keyData = await this.apiKeyRepository.getApiKeyFromHash(
+          apiKeyHash
+        );
+        ownerId = keyData?.userId ?? null;
+      } else {
+        // Access Token
+        ownerId = await this.oAuthFlowService.getOwnerId(bearerToken);
+      }
+
+      if (!ownerId) {
+        return null;
+      }
+
+      const user = await this.usersRepository.findById(ownerId);
+      if (!user) {
+        return null;
+      }
+
+      return { id: user.id, uuid: user.uuid };
     } catch (err) {
       this.logger.error(err);
+      return null;
     }
   }
 
@@ -915,17 +930,16 @@ export class InputBookingsService_2024_08_13 {
       : undefined;
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const owner = await this.getOwner(request);
 
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId, ...oAuthClientParams });
+      Object.assign(newRequest, { userId: owner?.id, ...oAuthClientParams });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
       };
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId: owner?.id });
       newRequest.body = { ...bodyTransformed, noEmail: false };
     }
 
