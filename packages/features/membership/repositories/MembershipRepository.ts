@@ -696,7 +696,7 @@ export class MembershipRepository {
 
     const hasMore = memberships.length > limit;
     const items = hasMore ? memberships.slice(0, limit) : memberships;
-    const nextCursor = items.length > 0 ? items[items.length - 1].user.id : undefined;
+    const nextCursor = hasMore ? items[items.length - 1].user.id : undefined;
 
     return { memberships: items, nextCursor, hasMore };
   }
