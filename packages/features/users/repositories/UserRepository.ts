@@ -468,16 +468,20 @@ export class UserRepository {
     const items = hasMore ? users.slice(0, limit) : users;
     const nextCursor = hasMore ? items[items.length - 1].id : undefined;
 
-    const countWhere: Record<string, unknown> = {
-      id: { in: ids },
-    };
-    if (search) {
-      countWhere.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-      ];
+    // Only count on the first page to avoid an extra query on every scroll
+    let total: number | undefined;
+    if (!cursor) {
+      const countWhere: Record<string, unknown> = {
+        id: { in: ids },
+      };
+      if (search) {
+        countWhere.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ];
+      }
+      total = await this.prismaClient.user.count({ where: countWhere });
     }
-    const total = await this.prismaClient.user.count({ where: countWhere });
 
     return { users: items, nextCursor, total };
   }
