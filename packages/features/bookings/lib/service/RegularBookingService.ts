@@ -643,6 +643,7 @@ async function handler(
     routingFormResponseId,
     rrHostSubsetIds,
     _isDryRun: isDryRun = false,
+    forceConfirm,
     ...reqBody
   } = bookingData;
 
@@ -738,14 +739,19 @@ async function handler(
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
-    eventType,
-    bookingStartTime: reqBody.start,
-    userId,
-    originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
-    paymentAppData,
-    bookerEmail,
-  });
+  const { userReschedulingIsOwner, isConfirmedByDefault: isConfirmedByDefaultFromFlags } =
+    await getRequiresConfirmationFlags({
+      eventType,
+      bookingStartTime: reqBody.start,
+      userId,
+      originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+      paymentAppData,
+      bookerEmail,
+    });
+
+  // Allow callers to force-confirm a booking even when the event type requires confirmation.
+  // When forceConfirm is true, the booking is created as ACCEPTED regardless of requiresConfirmation.
+  const isConfirmedByDefault = isConfirmedByDefaultFromFlags || !!forceConfirm;
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
   if (
@@ -1477,8 +1483,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -2109,6 +2115,17 @@ async function handler(
         });
       }
     }
+    const updateManager = !skipCalendarSyncTaskCreation
+      ? await eventManager.reschedule(
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
+      : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
