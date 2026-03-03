@@ -203,7 +203,7 @@ export class HostRepository {
     search?: string;
     memberUserIds?: number[];
   }) {
-    const userIdFilter = memberUserIds?.length
+    const userIdFilter = memberUserIds !== undefined
       ? cursor
         ? { in: memberUserIds, gt: cursor }
         : { in: memberUserIds }
