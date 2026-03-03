@@ -701,11 +701,6 @@ export class MembershipRepository {
     return { memberships: items, nextCursor, hasMore };
   }
 
-  /**
-   * Checks if a user has any team membership (pending or accepted).
-   * Used during onboarding to detect users who signed up via invite token,
-   * where the membership is auto-accepted.
-   */
   async findAcceptedMembersWithUserProfile({ teamId }: { teamId: number }) {
     return this.prismaClient.membership.findMany({
       where: {
@@ -726,6 +721,11 @@ export class MembershipRepository {
     });
   }
 
+  /**
+   * Checks if a user has any team membership (pending or accepted).
+   * Used during onboarding to detect users who signed up via invite token,
+   * where the membership is auto-accepted.
+   */
   static async hasAnyTeamMembershipByUserId({ userId }: { userId: number }): Promise<boolean> {
     const membership = await prisma.membership.findFirst({
       where: {
