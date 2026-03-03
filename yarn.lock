@@ -3000,6 +3000,8 @@ __metadata:
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
     zod-prisma-types: "npm:3.2.4"
+  bin:
+    prisma-enum-generator: ./run-enum-generator.js
   languageName: unknown
   linkType: soft
 
