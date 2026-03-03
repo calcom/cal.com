@@ -1,5 +1,6 @@
 import AttendeeAddGuestsEmail from "@calcom/emails/templates/attendee-add-guests-email";
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
+import AttendeeWasRequestedToRescheduleEmail from "@calcom/emails/templates/attendee-was-requested-to-reschedule-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
 import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
 import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
@@ -10,6 +11,7 @@ import OrganizerAddGuestsEmail from "@calcom/emails/templates/organizer-add-gues
 import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
 import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
 import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
+import OrganizerRequestedToRescheduleEmail from "@calcom/emails/templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import {
@@ -44,6 +46,10 @@ export { AttendeeRescheduledEmail };
 export { AttendeeUpdatedEmail };
 
 export { OrganizerRequestEmail };
+
+export { OrganizerRequestedToRescheduleEmail };
+
+export { AttendeeWasRequestedToRescheduleEmail };
 
 export { AttendeeRequestEmail };
 
