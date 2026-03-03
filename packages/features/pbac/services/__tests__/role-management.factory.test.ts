@@ -1,18 +1,20 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
-
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleManagementError, RoleManagementErrorCode } from "../../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../../lib/constants";
 import { PermissionCheckService } from "../permission-check.service";
-import { RoleManagementFactory } from "../role-management.factory";
 import { RoleService } from "../role.service";
+import { RoleManagementFactory } from "../role-management.factory";
 
 // Mock dependencies
-vi.mock("@calcom/features/flags/features.repository");
+const mockCheckIfTeamHasFeature = vi.fn();
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(() => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  })),
+}));
 vi.mock("../role.service");
 vi.mock("../permission-check.service");
 vi.mock("@calcom/prisma", () => ({
@@ -36,7 +38,6 @@ describe("RoleManagementFactory", () => {
   const role = MembershipRole.ADMIN;
 
   let factory: RoleManagementFactory;
-  let mockFeaturesRepository: { checkIfTeamHasFeature: ReturnType<typeof vi.fn> };
   let mockRoleService: {
     assignRoleToMember: ReturnType<typeof vi.fn>;
     roleBelongsToTeam: ReturnType<typeof vi.fn>;
@@ -47,10 +48,6 @@ describe("RoleManagementFactory", () => {
     vi.resetAllMocks();
 
     // Setup mocks
-    mockFeaturesRepository = {
-      checkIfTeamHasFeature: vi.fn(),
-    };
-
     mockRoleService = {
       assignRoleToMember: vi.fn(),
       roleBelongsToTeam: vi.fn(),
@@ -66,9 +63,6 @@ describe("RoleManagementFactory", () => {
       writable: true,
     });
 
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockImplementation(
-      mockFeaturesRepository.checkIfTeamHasFeature
-    );
     vi.spyOn(RoleService.prototype, "assignRoleToMember").mockImplementation(
       mockRoleService.assignRoleToMember
     );
@@ -92,13 +86,13 @@ describe("RoleManagementFactory", () => {
 
   describe("createRoleManager", () => {
     it("should create PBACRoleManager when PBAC is enabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockCheckIfTeamHasFeature.mockResolvedValue(true);
       const manager = await factory.createRoleManager(organizationId);
       expect(manager.constructor.name).toBe("PBACRoleManager");
     });
 
     it("should create LegacyRoleManager when PBAC is disabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockCheckIfTeamHasFeature.mockResolvedValue(false);
       const manager = await factory.createRoleManager(organizationId);
       expect(manager.constructor.name).toBe("LegacyRoleManager");
     });
@@ -106,7 +100,7 @@ describe("RoleManagementFactory", () => {
 
   describe("PBACRoleManager", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(true);
+      mockCheckIfTeamHasFeature.mockResolvedValue(true);
     });
 
     describe("checkPermissionToChangeRole", () => {
@@ -364,7 +358,7 @@ describe("RoleManagementFactory", () => {
 
   describe("LegacyRoleManager", () => {
     beforeEach(() => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValue(false);
+      mockCheckIfTeamHasFeature.mockResolvedValue(false);
       vi.mocked(prisma.membership.update).mockResolvedValue({
         id: 1,
         teamId: organizationId,

@@ -1,10 +1,7 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listMembersHandler } from "./listMembers.handler";
 
 vi.mock("@calcom/prisma", () => ({
@@ -12,14 +9,12 @@ vi.mock("@calcom/prisma", () => ({
   default: prisma, // Add default export for db
 }));
 
-// Mock FeaturesRepository
+// Mock TeamFeatureRepository
 const mockCheckIfTeamHasFeature = vi.fn();
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function () {
-    return {
-      checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
-    };
-  }),
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn(() => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  })),
 }));
 
 // Mock PBAC permissions
