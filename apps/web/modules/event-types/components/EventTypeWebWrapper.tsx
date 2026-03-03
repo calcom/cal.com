@@ -326,6 +326,8 @@ const EventTypeWeb = ({
   // Intercept in-app navigation when form has unsaved changes
   useEffect(() => {
     const originalPushState = window.history.pushState.bind(window.history);
+    const originalReplaceState = window.history.replaceState.bind(window.history);
+    const currentPageUrl = window.location.href;
 
     window.history.pushState = function (state: unknown, title: string, url?: string | URL | null) {
       if (formIsDirtyRef.current && url) {
@@ -336,8 +338,32 @@ const EventTypeWeb = ({
       originalPushState(state, title, url);
     };
 
+    window.history.replaceState = function (state: unknown, title: string, url?: string | URL | null) {
+      if (formIsDirtyRef.current && url) {
+        const newUrl = new URL(url.toString(), window.location.origin);
+        if (newUrl.pathname !== window.location.pathname) {
+          unsavedChangesPendingUrl.current = url.toString();
+          setIsOpenUnsavedChangesDialog(true);
+          return;
+        }
+      }
+      originalReplaceState(state, title, url);
+    };
+
+    const handlePopState = () => {
+      if (formIsDirtyRef.current) {
+        unsavedChangesPendingUrl.current = window.location.href;
+        originalPushState(null, "", currentPageUrl);
+        setIsOpenUnsavedChangesDialog(true);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
     return () => {
       window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
