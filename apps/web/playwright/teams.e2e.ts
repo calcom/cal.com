@@ -136,18 +136,17 @@ test.describe("Teams - NonOrg", () => {
       const org = await owner.getOrgMembership();
       const subTeam = await prisma.team.findFirst({
         where: { parentId: org.teamId },
+        select: { id: true },
       });
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (subTeam) {
-        await prisma.membership.create({
-          data: {
-            teamId: subTeam.id,
-            userId: memberUser.id,
-            role: "MEMBER",
-            accepted: true,
-          },
-        });
-      }
+      if (!subTeam) throw new Error("Expected a sub-team under the org, but none was found");
+      await prisma.membership.create({
+        data: {
+          teamId: subTeam.id,
+          userId: memberUser.id,
+          role: "MEMBER",
+          accepted: true,
+        },
+      });
 
       await memberUser.apiLogin();
 
