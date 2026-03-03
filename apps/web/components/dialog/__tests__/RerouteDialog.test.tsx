@@ -1,3 +1,4 @@
+import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { Session } from "next-auth";
@@ -328,6 +329,7 @@ describe("RerouteDialog", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    constantsScenarios.setWebsiteUrl("https://cal.com");
   });
 
   test("renders the dialog when open", () => {
