@@ -8,6 +8,7 @@ import { IsEnum, IsIn, IsNumber, IsObject, IsOptional, IsString, IsTimeZone, IsU
 import { ValidateMetadata } from "@calcom/platform-types";
 
 export class UpdateManagedUserInput {
+  @Transform(({ value }) => (typeof value === "string" ? value.toLowerCase() : value))
   @IsString()
   @IsOptional()
   @ApiPropertyOptional()

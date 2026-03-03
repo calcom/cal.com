@@ -9,6 +9,7 @@ import { ValidateMetadata } from "@calcom/platform-types";
 export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
 export type TimeFormat = 12 | 24;
 export class CreateManagedUserInput {
+  @Transform(({ value }) => (typeof value === "string" ? value.toLowerCase() : value))
   @IsString()
   @ApiProperty({ example: "alice@example.com" })
   email!: string;
