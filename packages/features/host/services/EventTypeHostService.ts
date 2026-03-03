@@ -213,8 +213,6 @@ export class EventTypeHostService {
     return { children, nextCursor, hasMore };
   }
 
-  // Membership check ensures only accepted team members can search.
-  // Search logic delegated to MembershipRepository.searchMembers per @eunjae-lee's review on PR #27371.
   async searchTeamMembers({
     teamId,
     userId,
@@ -269,9 +267,7 @@ export class EventTypeHostService {
     attributesQueryValue?: AttributesQueryValue | null;
     organizationId: number | null;
   }): Promise<ExportWeightsResponse> {
-    // Derive teamId from the event type to prevent cross-team enumeration.
-    // Security fix per @hariombalhara's review: trusting client-supplied teamId allowed
-    // an ADMIN on Team A to enumerate members of Team B by passing a different teamId.
+    // Derive teamId from the event type to prevent cross-team enumeration
     const eventType = await this.eventTypeRepository.getTeamIdByEventTypeId({ id: eventTypeId });
     const teamId = eventType?.teamId;
 
@@ -285,7 +281,6 @@ export class EventTypeHostService {
       : null;
 
     if (assignAllTeamMembers && teamId) {
-      // Use repository method instead of direct Prisma query (per @hariombalhara's review).
       const memberships = await this.membershipRepository.findAcceptedMembersWithUserProfile({
         teamId,
       });
