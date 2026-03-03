@@ -120,6 +120,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   }));
 
   const createCustomReason = trpc.viewer.ooo.outOfOfficeCreateReason.useMutation({
+    mutationKey: ["createCustomReason"],
     onSuccess: (data) => {
       showToast(t("custom_reason_created"), "success");
       setShowCustomReasonForm(false);
@@ -134,17 +135,18 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   });
 
   const deleteCustomReason = trpc.viewer.ooo.outOfOfficeDeleteReason.useMutation({
+    mutationKey: ["deleteCustomReason"],
     onSuccess: (_data, variables) => {
       showToast(t("custom_reason_deleted"), "success");
 
       const currentReasonId = getValues("reasonId");
 
       if (currentReasonId === variables.id) {
-      const fallbackReason = reasonList.find((r) => !r.isCustom);
+        const fallbackReason = reasonList.find((r) => !r.isCustom);
         setValue("reasonId", fallbackReason?.value ?? 1);
       }
-    
-    utils.viewer.ooo.outOfOfficeReasonList.invalidate();
+
+      utils.viewer.ooo.outOfOfficeReasonList.invalidate();
     },
     onError: (error) => {
       showToast(t(error.message), "error");
@@ -388,6 +390,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                         <Label className="text-emphasis text-xs">{t("emoji")}</Label>
                         <Input
                           value={customEmoji}
+                          onChange={(e) => {
                             const value = e.target.value;
                             if (value !== "" && !emojiPattern.test(value)) return;
                             setCustomEmoji(value);

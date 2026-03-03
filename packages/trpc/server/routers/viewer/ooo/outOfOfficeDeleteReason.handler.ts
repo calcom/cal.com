@@ -11,37 +11,35 @@ type DeleteOptions = {
 };
 
 export const outOfOfficeDeleteReason = async ({ ctx, input }: DeleteOptions) => {
-  try {
-    const existingOutOfOfficeEntryWithCustomReason = await prisma.outOfOfficeEntry.findMany({
-      where: {
-        reasonId: input.id,
-        userId: ctx.user.id,
-      }
-    })
+  const existingOutOfOfficeEntryWithCustomReason = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      reasonId: input.id,
+      userId: ctx.user.id,
+    },
+  });
 
-    if(existingOutOfOfficeEntryWithCustomReason.length > 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Your custom reason already in use",
-      });
-    }
-
-    await prisma.outOfOfficeReason.delete({
-      where: {
-        id: input.id,
-        userId: ctx.user.id,
-      },
-    });
-
-    return { success: true };
-  } catch (error) {
-    let errorMessage = "Failed to delete custom reason."
-    if(error instanceof Error){
-      errorMessage = error.message;
-    }
+  if (existingOutOfOfficeEntryWithCustomReason.length > 0) {
     throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: errorMessage,
+      code: "BAD_REQUEST",
+      message: "Your custom reason already in use",
     });
   }
+
+  const reason = await prisma.outOfOfficeReason.findFirst({
+    where: { id: input.id, userId: ctx.user.id },
+  });
+  if (!reason) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Custom reason not found" });
+  }
+
+  try {
+    await prisma.outOfOfficeReason.delete({ where: { id: input.id } });
+  } catch (error) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to delete custom reason",
+    });
+  }
+
+  return { success: true };
 };

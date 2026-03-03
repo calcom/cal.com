@@ -11,6 +11,7 @@ vi.mock("@calcom/prisma", () => {
       },
       outOfOfficeReason: {
         delete: vi.fn(),
+        findFirst: vi.fn(),
       },
     },
   };
@@ -19,6 +20,28 @@ vi.mock("@calcom/prisma", () => {
 const mockUser = {
   id: 4,
 } as NonNullable<TrpcSessionUser>;
+
+const mockDeletedReason = {
+  id: 5,
+  userId: 4,
+  emoji: "💼",
+  reason: "Vacation",
+  enabled: true,
+};
+
+const mockOutOfOfficeEntry = {
+  id: 1,
+  uuid: "test-uuid",
+  userId: 4,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  start: new Date(),
+  end: new Date(),
+  notes: null,
+  showNotePublicly: false,
+  toUserId: null,
+  reasonId: 5,
+};
 
 describe("outOfOfficeDeleteReason", () => {
   beforeEach(() => {
@@ -31,7 +54,8 @@ describe("outOfOfficeDeleteReason", () => {
     };
 
     vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([]);
-    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce({} as any);
+    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(mockDeletedReason);
+    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce(mockDeletedReason);
 
     const result = await outOfOfficeDeleteReason({ ctx: { user: mockUser }, input });
 
@@ -45,7 +69,6 @@ describe("outOfOfficeDeleteReason", () => {
     expect(prisma.outOfOfficeReason.delete).toHaveBeenCalledWith({
       where: {
         id: 5,
-        userId: 4,
       },
     });
 
@@ -57,9 +80,7 @@ describe("outOfOfficeDeleteReason", () => {
       id: 5,
     };
 
-    vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([
-      { id: 1, reasonId: 5, userId: 4 },
-    ] as any);
+    vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([mockOutOfOfficeEntry]);
 
     await expect(outOfOfficeDeleteReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
       "Your custom reason already in use"
@@ -75,37 +96,39 @@ describe("outOfOfficeDeleteReason", () => {
     expect(prisma.outOfOfficeReason.delete).not.toHaveBeenCalled();
   });
 
-  it("should throw BAD_REQUEST error if reason does not belong to user", async () => {
+  it("should throw NOT_FOUND if reason does not belong to user", async () => {
     const input = {
       id: 999,
     };
 
     vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([]);
-    vi.mocked(prisma.outOfOfficeReason.delete).mockRejectedValueOnce(new Error("Record not found"));
+    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(null);
 
     await expect(outOfOfficeDeleteReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
-      "Record not found"
+      "Custom reason not found"
     );
 
-    expect(prisma.outOfOfficeReason.delete).toHaveBeenCalledWith({
+    expect(prisma.outOfOfficeReason.findFirst).toHaveBeenCalledWith({
       where: {
         id: 999,
         userId: 4,
       },
     });
+
+    expect(prisma.outOfOfficeReason.delete).not.toHaveBeenCalled();
   });
 
-  it("should throw BAD_REQUEST error if reason does not exist", async () => {
+  it("should throw INTERNAL_SERVER_ERROR if delete fails unexpectedly", async () => {
     const input = {
       id: 100,
     };
 
     vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([]);
-    const notFoundError = new Error("Record to delete does not exist");
-    vi.mocked(prisma.outOfOfficeReason.delete).mockRejectedValueOnce(notFoundError);
+    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce(mockDeletedReason);
+    vi.mocked(prisma.outOfOfficeReason.delete).mockRejectedValueOnce(new Error("Database connection error"));
 
     await expect(outOfOfficeDeleteReason({ ctx: { user: mockUser }, input })).rejects.toThrow(
-      "Record to delete does not exist"
+      "Failed to delete custom reason"
     );
   });
 
@@ -115,7 +138,8 @@ describe("outOfOfficeDeleteReason", () => {
     };
 
     vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([]);
-    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce({} as any);
+    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce({ ...mockDeletedReason, id: 6 });
+    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce({ ...mockDeletedReason, id: 6 });
 
     await outOfOfficeDeleteReason({ ctx: { user: mockUser }, input });
 
@@ -129,7 +153,6 @@ describe("outOfOfficeDeleteReason", () => {
     expect(prisma.outOfOfficeReason.delete).toHaveBeenCalledWith({
       where: {
         id: 6,
-        userId: 4,
       },
     });
   });
@@ -145,7 +168,16 @@ describe("outOfOfficeDeleteReason", () => {
     };
 
     vi.mocked(prisma.outOfOfficeEntry.findMany).mockResolvedValueOnce([]);
-    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce({} as any);
+    vi.mocked(prisma.outOfOfficeReason.findFirst).mockResolvedValueOnce({
+      ...mockDeletedReason,
+      id: 7,
+      userId: 10,
+    });
+    vi.mocked(prisma.outOfOfficeReason.delete).mockResolvedValueOnce({
+      ...mockDeletedReason,
+      id: 7,
+      userId: 10,
+    });
 
     await outOfOfficeDeleteReason({ ctx: { user: differentUser }, input });
 
@@ -159,7 +191,6 @@ describe("outOfOfficeDeleteReason", () => {
     expect(prisma.outOfOfficeReason.delete).toHaveBeenCalledWith({
       where: {
         id: 7,
-        userId: 10,
       },
     });
   });
