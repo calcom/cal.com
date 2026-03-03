@@ -136,7 +136,7 @@ export class HostRepository {
     });
 
     const hasMore = hosts.length > limit;
-    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const items = hasMore ? hosts.slice(0, limit) : hosts;
     const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
 
     return { items, nextCursor, hasMore };
@@ -184,7 +184,7 @@ export class HostRepository {
     });
 
     const hasMore = hosts.length > limit;
-    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const items = hasMore ? hosts.slice(0, limit) : hosts;
     const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
 
     return { items, nextCursor, hasMore };
@@ -242,7 +242,7 @@ export class HostRepository {
     });
 
     const hasMore = hosts.length > limit;
-    const items = hasMore ? hosts.slice(0, -1) : hosts;
+    const items = hasMore ? hosts.slice(0, limit) : hosts;
     const nextCursor = hasMore ? items[items.length - 1].userId : undefined;
 
     // Only check on the first page to avoid an extra query on every scroll
@@ -318,7 +318,7 @@ export class HostRepository {
     });
 
     const hasMore = children.length > limit;
-    const items = hasMore ? children.slice(0, -1) : children;
+    const items = hasMore ? children.slice(0, limit) : children;
     const nextCursor = hasMore ? items[items.length - 1].id : undefined;
 
     return { items, nextCursor, hasMore };
