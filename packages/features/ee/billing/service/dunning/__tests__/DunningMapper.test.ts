@@ -281,8 +281,8 @@ describe("DunningState.advance", () => {
     expect(result!.to).toBe("HARD_BLOCKED");
   });
 
-  it("advances HARD_BLOCKED to CANCELLED after 30 days", () => {
-    const firstFailed = new Date("2026-01-19T11:00:00Z");
+  it("advances HARD_BLOCKED to CANCELLED after 90 days", () => {
+    const firstFailed = new Date("2025-11-20T11:00:00Z");
     const now = new Date("2026-02-18T12:00:00Z");
     const state = DunningState.fromRecord(makeRaw({ status: "HARD_BLOCKED", firstFailedAt: firstFailed }), "team");
 

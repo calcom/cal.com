@@ -88,8 +88,8 @@ describe("BaseDunningService", () => {
       expect(HARD_BLOCK_DAYS).toBe(14);
     });
 
-    it("defines CANCEL_DAYS as 30", () => {
-      expect(CANCEL_DAYS).toBe(30);
+    it("defines CANCEL_DAYS as 90", () => {
+      expect(CANCEL_DAYS).toBe(90);
     });
   });
 
@@ -369,12 +369,12 @@ describe("BaseDunningService", () => {
       expect(result).toEqual({ advanced: true, from: "WARNING", to: "HARD_BLOCKED" });
     });
 
-    it("advances HARD_BLOCKED to CANCELLED after 30 days", async () => {
+    it("advances HARD_BLOCKED to CANCELLED after 90 days", async () => {
       mockRepo.findByBillingId.mockResolvedValue(
         makeRawRecord({
           billingFk: "billing_6",
           status: "HARD_BLOCKED",
-          firstFailedAt: new Date("2026-01-19T11:00:00Z"),
+          firstFailedAt: new Date("2025-11-20T11:00:00Z"),
         })
       );
 
@@ -384,11 +384,11 @@ describe("BaseDunningService", () => {
       expect(result).toEqual({ advanced: true, from: "HARD_BLOCKED", to: "CANCELLED" });
     });
 
-    it("does not advance HARD_BLOCKED before 30 days", async () => {
+    it("does not advance HARD_BLOCKED before 90 days", async () => {
       mockRepo.findByBillingId.mockResolvedValue(
         makeRawRecord({
           status: "HARD_BLOCKED",
-          firstFailedAt: new Date("2026-01-20T13:00:00Z"),
+          firstFailedAt: new Date("2025-11-21T13:00:00Z"),
         })
       );
 

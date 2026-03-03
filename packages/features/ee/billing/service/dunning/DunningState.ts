@@ -23,7 +23,7 @@ export type DunningStatus =
 
 export const SOFT_BLOCK_DAYS = 7;
 export const HARD_BLOCK_DAYS = 14;
-export const CANCEL_DAYS = 30;
+export const CANCEL_DAYS = 90;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
