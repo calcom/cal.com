@@ -1,13 +1,11 @@
 import type { TFunction } from "i18next";
 import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
 
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { Prisma } from "@calcom/prisma/client";
 import type {
   AdditionalInformation,
   AppsStatus,
-  CalendarEvent,
   CalEventResponses,
   Person,
   RecurringEvent,

@@ -73,6 +73,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
     { value: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, label: "form_submitted_no_event" },
+    { value: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT, label: "routing_form_fallback_hit_trigger" },
   ],
 } as const;
 
