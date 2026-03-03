@@ -6,7 +6,7 @@ const onRenewalPaid = vi.fn().mockResolvedValue({});
 const createBySubscriptionId = vi.fn().mockResolvedValue({ onRenewalPaid });
 
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
-  getSeatBillingStrategyFactory: () => ({ createBySubscriptionId }),
+  getDunningStrategyFactory: () => ({ createBySubscriptionId }),
 }));
 
 import handler from "./_invoice.paid.team";
