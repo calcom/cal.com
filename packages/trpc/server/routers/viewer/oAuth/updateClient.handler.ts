@@ -87,6 +87,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
       logo: clientWithUser.logo,
       websiteUrl: clientWithUser.websiteUrl,
       redirectUri: clientWithUser.redirectUri,
+      scopes: clientWithUser.scopes,
     },
     proposedUpdates: {
       name,
@@ -167,6 +168,7 @@ type ClientFieldsForReapprovalCheck = {
   logo: string | null;
   websiteUrl: string | null;
   redirectUri: string;
+  scopes: AccessScope[];
 };
 
 function triggersReapprovalForOwnerEdit(params: {
@@ -208,6 +210,17 @@ function triggersReapprovalForOwnerEdit(params: {
     proposedUpdates.redirectUri !== currentClient.redirectUri
   ) {
     return true;
+  }
+
+  if (proposedUpdates.scopes !== undefined) {
+    const currentSorted = [...currentClient.scopes].sort();
+    const proposedSorted = [...proposedUpdates.scopes].sort();
+    if (
+      currentSorted.length !== proposedSorted.length ||
+      currentSorted.some((s, i) => s !== proposedSorted[i])
+    ) {
+      return true;
+    }
   }
 
   return false;
