@@ -1,8 +1,8 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
@@ -23,10 +23,9 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled =
-    await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
-  const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const featureRepository = getFeatureRepository();
+  const emailVerificationEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const signupDisabled = await featureRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
     .string()

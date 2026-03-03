@@ -201,3 +201,68 @@ describe("Memoize decorator", () => {
     expect(mockRedis.set).not.toHaveBeenCalled();
   });
 });
+
+describe("Memoize decorator (TC39 2023-05 format)", () => {
+  beforeEach(() => {
+    mockRedis = createMockRedis();
+    vi.clearAllMocks();
+  });
+
+  function applyTC39Decorator(method: (...args: unknown[]) => Promise<unknown>, config: { key: (...args: unknown[]) => string; ttl?: number; schema?: import("zod").ZodSchema }) {
+    const decorator = Memoize(config);
+    const context = { kind: "method", name: "testMethod" };
+    return (decorator as unknown as (value: Function, context: unknown) => Function)(method, context);
+  }
+
+  it("should return cached value on cache hit", async () => {
+    const cachedValue = { id: 1, name: "test" };
+    vi.mocked(mockRedis.get).mockResolvedValue(cachedValue);
+
+    const originalMethod = vi.fn().mockResolvedValue({ id: 1, name: "from-db" });
+    const wrappedMethod = applyTC39Decorator(originalMethod, { key: (id: unknown) => `test:${id}` });
+
+    const result = await wrappedMethod(1);
+
+    expect(result).toEqual(cachedValue);
+    expect(mockRedis.get).toHaveBeenCalledWith("test:1");
+    expect(originalMethod).not.toHaveBeenCalled();
+  });
+
+  it("should fetch from source and cache on cache miss", async () => {
+    vi.mocked(mockRedis.get).mockResolvedValue(null);
+    vi.mocked(mockRedis.set).mockResolvedValue("OK");
+
+    const originalMethod = vi.fn().mockResolvedValue({ id: 1, name: "from-db" });
+    const wrappedMethod = applyTC39Decorator(originalMethod, { key: (id: unknown) => `test:${id}` });
+
+    const result = await wrappedMethod(1);
+
+    expect(result).toEqual({ id: 1, name: "from-db" });
+    expect(mockRedis.get).toHaveBeenCalledWith("test:1");
+    expect(mockRedis.set).toHaveBeenCalledWith("test:1", { id: 1, name: "from-db" }, { ttl: DEFAULT_TTL_MS });
+  });
+
+  it("should not cache null results", async () => {
+    vi.mocked(mockRedis.get).mockResolvedValue(null);
+
+    const originalMethod = vi.fn().mockResolvedValue(null);
+    const wrappedMethod = applyTC39Decorator(originalMethod, { key: (id: unknown) => `test:${id}` });
+
+    const result = await wrappedMethod(1);
+
+    expect(result).toBeNull();
+    expect(mockRedis.set).not.toHaveBeenCalled();
+  });
+
+  it("should use custom TTL when provided", async () => {
+    vi.mocked(mockRedis.get).mockResolvedValue(null);
+    vi.mocked(mockRedis.set).mockResolvedValue("OK");
+
+    const originalMethod = vi.fn().mockResolvedValue({ id: 1 });
+    const wrappedMethod = applyTC39Decorator(originalMethod, { key: (id: unknown) => `test:${id}`, ttl: 5000 });
+
+    await wrappedMethod(1);
+
+    expect(mockRedis.set).toHaveBeenCalledWith("test:1", { id: 1 }, { ttl: 5000 });
+  });
+});

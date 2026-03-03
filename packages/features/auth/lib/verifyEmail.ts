@@ -1,20 +1,20 @@
-import { randomBytes, createHash } from "node:crypto";
-import { totp } from "otplib";
-
+import { createHash, randomBytes } from "node:crypto";
+import process from "node:process";
 import {
+  sendChangeOfEmailVerificationLink,
   sendEmailVerificationCode,
   sendEmailVerificationLink,
-  sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { getTranslation } from "@calcom/i18n/server";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
-import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
+import { totp } from "otplib";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -37,8 +37,8 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const featureRepository = getFeatureRepository();
+  const emailVerification = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
@@ -132,8 +132,8 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+  const featureRepository = getFeatureRepository();
+  const emailVerification = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");

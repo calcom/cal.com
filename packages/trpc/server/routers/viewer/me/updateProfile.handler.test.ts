@@ -54,10 +54,10 @@ vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
   updateNewTeamMemberEventTypes: vi.fn(),
 }));
 
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: class {
-    checkIfFeatureIsEnabledGlobally = vi.fn().mockResolvedValue(false);
-  },
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: vi.fn(() => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  })),
 }));
 
 vi.mock("@calcom/features/profile/lib/checkUsername", () => ({

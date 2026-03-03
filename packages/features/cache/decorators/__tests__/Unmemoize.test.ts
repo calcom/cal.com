@@ -194,3 +194,63 @@ describe("Unmemoize decorator", () => {
     expect(mockRedis.del).not.toHaveBeenCalled();
   });
 });
+
+describe("Unmemoize decorator (TC39 2023-05 format)", () => {
+  beforeEach(() => {
+    mockRedis = createMockRedis();
+    vi.clearAllMocks();
+  });
+
+  function applyTC39Decorator(method: (...args: unknown[]) => Promise<unknown>, config: { keys: (...args: unknown[]) => string[] }) {
+    const decorator = Unmemoize(config);
+    const context = { kind: "method", name: "testMethod" };
+    return (decorator as unknown as (value: Function, context: unknown) => Function)(method, context);
+  }
+
+  it("should invalidate cache keys after method execution", async () => {
+    vi.mocked(mockRedis.del).mockResolvedValue(1);
+
+    const originalMethod = vi.fn().mockResolvedValue(undefined);
+    const wrappedMethod = applyTC39Decorator(originalMethod, { keys: (id: unknown) => [`test:${id}`] });
+
+    await wrappedMethod(1);
+
+    expect(originalMethod).toHaveBeenCalledWith(1);
+    expect(mockRedis.del).toHaveBeenCalledWith("test:1");
+  });
+
+  it("should return the method result correctly", async () => {
+    vi.mocked(mockRedis.del).mockResolvedValue(1);
+
+    const originalMethod = vi.fn().mockResolvedValue({ id: 1, updated: true });
+    const wrappedMethod = applyTC39Decorator(originalMethod, { keys: (id: unknown) => [`test:${id}`] });
+
+    const result = await wrappedMethod(1);
+
+    expect(result).toEqual({ id: 1, updated: true });
+  });
+
+  it("should invalidate multiple cache keys", async () => {
+    vi.mocked(mockRedis.del).mockResolvedValue(1);
+
+    const originalMethod = vi.fn().mockResolvedValue(undefined);
+    const wrappedMethod = applyTC39Decorator(originalMethod, {
+      keys: (id: unknown) => [`test:${id}`, `test:all`, `test:list:${id}`],
+    });
+
+    await wrappedMethod(1);
+
+    expect(mockRedis.del).toHaveBeenCalledTimes(3);
+    expect(mockRedis.del).toHaveBeenCalledWith("test:1");
+    expect(mockRedis.del).toHaveBeenCalledWith("test:all");
+    expect(mockRedis.del).toHaveBeenCalledWith("test:list:1");
+  });
+
+  it("should propagate errors from the original method", async () => {
+    const originalMethod = vi.fn().mockRejectedValue(new Error("Database error"));
+    const wrappedMethod = applyTC39Decorator(originalMethod, { keys: (id: unknown) => [`test:${id}`] });
+
+    await expect(wrappedMethod(1)).rejects.toThrow("Database error");
+    expect(mockRedis.del).not.toHaveBeenCalled();
+  });
+});

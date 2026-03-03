@@ -13,18 +13,8 @@ interface MemoizeOptions {
 }
 
 export function Memoize(config: MemoizeOptions) {
-  return <T>(
-    _target: object,
-    _propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<T>
-  ): TypedPropertyDescriptor<T> => {
-    const originalMethod = descriptor.value as ((...args: unknown[]) => Promise<unknown>) | undefined;
-
-    if (!originalMethod || typeof originalMethod !== "function") {
-      throw new Error(`@Memoize can only be applied to methods`);
-    }
-
-    const wrappedMethod = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
+  function wrapMethod(originalMethod: (...args: unknown[]) => Promise<unknown>) {
+    return async function (this: unknown, ...args: unknown[]): Promise<unknown> {
       const cacheKey = config.key(...args) as string;
 
       // Try to get from cache, but don't let Redis failures break the flow
@@ -64,9 +54,25 @@ export function Memoize(config: MemoizeOptions) {
 
       return result;
     };
+  }
 
-    descriptor.value = wrappedMethod as T;
+  // Support both legacy (experimentalDecorators) and TC39 2023-05 decorator formats.
+  // Playwright's Babel transpiler uses TC39 2023-05 which passes (value, context),
+  // while TypeScript's experimentalDecorators passes (target, propertyKey, descriptor).
+  return function decoratorFn(...args: unknown[]): unknown {
+    if (args.length === 2 && typeof args[0] === "function") {
+      // TC39 2023-05 format: (value: Function, context: DecoratorContext)
+      const originalMethod = args[0] as (...a: unknown[]) => Promise<unknown>;
+      return wrapMethod(originalMethod);
+    }
 
+    // Legacy format: (target, propertyKey, descriptor)
+    const descriptor = args[2] as TypedPropertyDescriptor<unknown>;
+    const originalMethod = descriptor.value as ((...a: unknown[]) => Promise<unknown>) | undefined;
+    if (!originalMethod || typeof originalMethod !== "function") {
+      throw new Error(`@Memoize can only be applied to methods`);
+    }
+    descriptor.value = wrapMethod(originalMethod);
     return descriptor;
-  };
+  } as <T>(_target: object, _propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>;
 }
