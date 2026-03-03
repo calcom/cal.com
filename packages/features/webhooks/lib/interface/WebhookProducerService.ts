@@ -169,6 +169,11 @@ export interface IWebhookProducerService {
   queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void>;
 
   /**
+   * Queue a webhook delivery task for BOOKING_LOCATION_UPDATED event
+   */
+  queueBookingLocationUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+
+  /**
    * Queue a webhook delivery task for OOO_CREATED event
    */
   queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void>;

@@ -73,6 +73,10 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, params);
   }
 
+  async queueBookingLocationUpdatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
+    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_LOCATION_UPDATED, params);
+  }
+
   async queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void> {
     const operationId = params.operationId || uuidv4();
 

@@ -20,7 +20,7 @@ export const getWebhookPayloadForBooking = ({
     userId: number | null;
   };
   evt: CalendarEvent;
-}) => {
+}): EventPayloadType => {
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: booking.eventType?.title,
     eventDescription: booking.eventType?.description,
@@ -35,6 +35,7 @@ export const getWebhookPayloadForBooking = ({
     ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
     bookingId: booking.id,
+    metadata: (booking as any).metadata,
   };
 
   return payload;

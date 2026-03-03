@@ -46,6 +46,22 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     creationSource: CreationSource.WEBAPP,
   };
 
+  const { skipAvailabilityCheck, skipEventLimitsCheck } = req.body;
+
+  let bypassAvailability = false;
+  let bypassEventLimits = false;
+
+  if (session?.user?.id && (skipAvailabilityCheck || skipEventLimitsCheck)) {
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: req.body.eventTypeId },
+      select: { userId: true },
+    });
+    if (eventType?.userId === session.user.id) {
+      bypassAvailability = !!skipAvailabilityCheck;
+      bypassEventLimits = !!skipEventLimitsCheck;
+    }
+  }
+
   const regularBookingService = getRegularBookingService();
   const booking = await regularBookingService.createBooking({
     bookingData: req.body,
@@ -55,6 +71,8 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       traceContext: req.traceContext,
       impersonatedByUserUuid: session?.user?.impersonatedBy?.uuid,
+      skipAvailabilityCheck: bypassAvailability,
+      skipEventLimitsCheck: bypassEventLimits,
     },
   });
 

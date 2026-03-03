@@ -32,6 +32,8 @@ type UseHandleBookingProps = {
   routingFormSearchParams?: RoutingFormSearchParams;
   isBookingDryRun?: boolean;
   rrHostSubsetIds?: number[];
+  skipAvailabilityCheck?: boolean;
+  skipEventLimitsCheck?: boolean;
 };
 
 export const useHandleBookEvent = ({
@@ -93,8 +95,8 @@ export const useHandleBookEvent = ({
       const validDuration = event.data.isDynamic
         ? duration || event.data.length
         : duration && event.data.metadata?.multipleDuration?.includes(duration)
-        ? duration
-        : event.data.length;
+          ? duration
+          : event.data.length;
 
       const bookingInput = {
         values,

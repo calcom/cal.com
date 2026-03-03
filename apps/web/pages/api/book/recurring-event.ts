@@ -7,6 +7,7 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { prisma } from "@calcom/prisma";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
@@ -42,6 +43,22 @@ async function handler(req: NextApiRequest & RequestMeta) {
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
+  const { skipAvailabilityCheck, skipEventLimitsCheck, eventTypeId } = req.body[0] || {};
+
+  let bypassAvailability = false;
+  let bypassEventLimits = false;
+
+  if (session?.user?.id && (skipAvailabilityCheck || skipEventLimitsCheck)) {
+    const eventType = await prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { userId: true },
+    });
+    if (eventType?.userId === session.user.id) {
+      bypassAvailability = !!skipAvailabilityCheck;
+      bypassEventLimits = !!skipEventLimitsCheck;
+    }
+  }
+
   const recurringBookingService = getRecurringBookingService();
   const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
     bookingData: req.body,
@@ -53,6 +70,8 @@ async function handler(req: NextApiRequest & RequestMeta) {
       platformRescheduleUrl: req.platformRescheduleUrl,
       platformBookingLocation: req.platformBookingLocation,
       noEmail: req.noEmail,
+      skipAvailabilityCheck: bypassAvailability,
+      skipEventLimitsCheck: bypassEventLimits,
     },
     creationSource: "WEBAPP",
   });

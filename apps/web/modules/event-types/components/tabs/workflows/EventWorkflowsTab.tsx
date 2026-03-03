@@ -1,9 +1,3 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { getActionIcon } from "@calcom/features/ee/workflows/lib/getActionIcon";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -18,11 +12,15 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
-import { LockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-
+import { LockIcon } from "@coss/ui/icons";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import SkeletonLoader from "~/ee/workflows/components/SkeletonLoaderEventWorkflowsTab";
 import type { WorkflowType } from "~/ee/workflows/components/WorkflowListPage";
 
@@ -290,14 +288,23 @@ function EventWorkflowsTab(props: Props) {
                 headline={t("workflows")}
                 description={t("no_workflows_description")}
                 buttonRaw={
-                  <Button
-                    disabled={workflowsDisableProps.isLocked && !isManagedEventType}
-                    target="_blank"
-                    color="secondary"
-                    onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
-                    loading={createMutation.isPending}>
-                    {t("create_workflow")}
-                  </Button>
+                  <Tooltip
+                    content={
+                      workflowsDisableProps.isLocked && !isManagedEventType
+                        ? (t("upgrade_to_create_workflows") as string)
+                        : undefined
+                    }>
+                    <div>
+                      <Button
+                        disabled={workflowsDisableProps.isLocked && !isManagedEventType}
+                        target="_blank"
+                        color="secondary"
+                        onClick={() => createMutation.mutate({ teamId: eventType.team?.id })}
+                        loading={createMutation.isPending}>
+                        {t("create_workflow")}
+                      </Button>
+                    </div>
+                  </Tooltip>
                 }
               />
             </div>

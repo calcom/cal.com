@@ -1,10 +1,16 @@
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type {
   BookingInputLocation_2024_08_13,
+  BookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
   UpdateBookingLocationInput_2024_08_13,
 } from "@calcom/platform-types";
 import { Booking } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
@@ -35,7 +41,14 @@ export class BookingLocationService_2024_08_13 {
     bookingUid: string,
     input: UpdateBookingLocationInput_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
+  ): Promise<
+    | BookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13
+    | GetSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13[]
+    | GetRecurringSeatedBookingOutput_2024_08_13[]
+  > {
     const existingBooking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!existingBooking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
@@ -68,7 +81,14 @@ export class BookingLocationService_2024_08_13 {
     existingBooking: Booking,
     inputLocation: UpdateBookingInputLocation_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
+  ): Promise<
+    | BookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13
+    | GetSeatedBookingOutput_2024_08_13
+    | GetRecurringSeatedBookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13[]
+    | GetRecurringSeatedBookingOutput_2024_08_13[]
+  > {
     const bookingUid = existingBooking.uid;
     const oldLocation = existingBooking.location;
     const bookingLocation = this.getLocationValue(inputLocation) ?? existingBooking.location;
@@ -119,6 +139,32 @@ export class BookingLocationService_2024_08_13 {
       },
       isBookingAuditEnabled,
     });
+
+    // Trigger BOOKING_LOCATION_UPDATED webhook
+    try {
+      const webhooks = await WebhookService.init({
+        triggerEvent: WebhookTriggerEvents.BOOKING_LOCATION_UPDATED,
+        userId: existingBooking.userId ?? undefined,
+        eventTypeId: existingBooking.eventTypeId ?? undefined,
+        teamId: null,
+        orgId: organizationId ?? undefined,
+      });
+      await webhooks.sendPayload({
+        type: existingBooking.eventType?.title ?? "",
+        title: existingBooking.title,
+        description: "",
+        startTime: existingBooking.startTime.toISOString(),
+        endTime: existingBooking.endTime.toISOString(),
+        organizer: { name: existingBookingHost.name ?? "", email: existingBookingHost.email },
+        attendees: [],
+        uid: existingBooking.uid,
+        location: bookingLocation,
+        bookingId: existingBooking.id,
+        status: existingBooking.status,
+      });
+    } catch (e) {
+      this.logger.error(`BOOKING_LOCATION_UPDATED webhook failed for ${existingBooking.uid}`, e);
+    }
 
     return this.bookingsService.getBooking(updatedBooking.uid, user);
   }

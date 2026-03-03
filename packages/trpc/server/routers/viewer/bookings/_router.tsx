@@ -17,6 +17,7 @@ import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
 import { ZHasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
+import { ZRecordJoinTimeSchema } from "./recordJoinTime.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
@@ -185,4 +186,12 @@ export const bookingsRouter = router({
         input,
       });
     }),
+  recordJoinTime: bookingsProcedure.input(ZRecordJoinTimeSchema).mutation(async ({ input, ctx }) => {
+    const { recordJoinTimeHandler } = await import("./recordJoinTime.handler");
+
+    return recordJoinTimeHandler({
+      ctx,
+      input,
+    });
+  }),
 });
