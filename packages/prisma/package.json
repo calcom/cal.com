@@ -2,6 +2,9 @@
   "name": "@calcom/prisma",
   "version": "0.0.0",
   "private": true,
+  "bin": {
+    "prisma-enum-generator": "./run-enum-generator.js"
+  },
   "scripts": {
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "build": "ts-node --transpile-only ./auto-migrations.ts",
