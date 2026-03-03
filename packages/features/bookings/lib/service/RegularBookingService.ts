@@ -94,6 +94,7 @@ import {
   SchedulingType,
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
+  UserPermissionRole,
 } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type {
@@ -751,7 +752,17 @@ async function handler(
 
   // Allow callers to force-confirm a booking even when the event type requires confirmation.
   // When forceConfirm is true, the booking is created as ACCEPTED regardless of requiresConfirmation.
-  const isConfirmedByDefault = isConfirmedByDefaultFromFlags || !!forceConfirm;
+  // Security Fix: Only the event type owner or an admin can use the forceConfirm flag.
+  const isOwner = !!(userId && (eventType.userId === userId || eventType.users?.some((u) => u.id === userId)));
+  let callerIsOwnerOrAdmin = isOwner;
+  if (!callerIsOwnerOrAdmin && userId) {
+    const caller = await deps.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    callerIsOwnerOrAdmin = caller?.role === UserPermissionRole.ADMIN;
+  }
+  const isConfirmedByDefault = isConfirmedByDefaultFromFlags || (!!forceConfirm && callerIsOwnerOrAdmin);
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
   if (
