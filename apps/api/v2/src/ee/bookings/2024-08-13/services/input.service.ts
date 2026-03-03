@@ -933,13 +933,13 @@ export class InputBookingsService_2024_08_13 {
     const owner = await this.getOwner(request);
 
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId: owner?.id, ...oAuthClientParams });
+      Object.assign(newRequest, { userId: owner?.id, userUuid: owner?.uuid, ...oAuthClientParams });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
       };
     } else {
-      Object.assign(newRequest, { userId: owner?.id });
+      Object.assign(newRequest, { userId: owner?.id, userUuid: owner?.uuid });
       newRequest.body = { ...bodyTransformed, noEmail: false };
     }
 
