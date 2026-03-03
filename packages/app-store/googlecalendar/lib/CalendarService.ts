@@ -28,9 +28,15 @@ import { RRule } from "rrule";
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
 
-type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
+type FreeBusyArgs = {
+  timeMin: string;
+  timeMax: string;
+  items: { id: string }[];
+};
 
-const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
+const log = logger.getSubLogger({
+  prefix: ["app-store/googlecalendar/lib/CalendarService"],
+});
 
 /**
  * Google system calendars that don't return proper free/busy information,
@@ -43,9 +49,13 @@ const GOOGLE_SYSTEM_CALENDAR_SUFFIXES = [
   "#contacts@group.v.calendar.google.com",
 ];
 
-function isGoogleSystemCalendar(calendarId: string | null | undefined): boolean {
+function isGoogleSystemCalendar(
+  calendarId: string | null | undefined
+): boolean {
   if (!calendarId) return false;
-  return GOOGLE_SYSTEM_CALENDAR_SUFFIXES.some((suffix) => calendarId.endsWith(suffix));
+  return GOOGLE_SYSTEM_CALENDAR_SUFFIXES.some((suffix) =>
+    calendarId.endsWith(suffix)
+  );
 }
 
 /**
@@ -54,14 +64,22 @@ function isGoogleSystemCalendar(calendarId: string | null | undefined): boolean 
  * that need access to Google-specific functionality beyond the generic Calendar interface.
  */
 export interface GoogleCalendar extends Calendar {
-  getPrimaryCalendar(calendar?: unknown): Promise<{ id?: string | null; timeZone?: string | null } | null>;
+  getPrimaryCalendar(
+    calendar?: unknown
+  ): Promise<{ id?: string | null; timeZone?: string | null } | null>;
 
   upsertSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+    data: Omit<
+      Prisma.SelectedCalendarUncheckedCreateInput,
+      "integration" | "credentialId" | "userId"
+    >
   ): Promise<unknown>;
 
   createSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+    data: Omit<
+      Prisma.SelectedCalendarUncheckedCreateInput,
+      "integration" | "credentialId"
+    >
   ): Promise<unknown>;
 
   authedCalendar(): Promise<calendar_v3.Calendar>;
@@ -71,9 +89,13 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
-const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+const isGaxiosResponse = (
+  error: unknown
+): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn not available in all build targets
-  typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
+  typeof error === "object" &&
+  !!error &&
+  Object.prototype.hasOwnProperty.call(error, "config");
 
 class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -88,12 +110,19 @@ class GoogleCalendarService implements Calendar {
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private async getReminderDuration(credentialId: number): Promise<number | null> {
+  private async getReminderDuration(
+    credentialId: number
+  ): Promise<number | null> {
     try {
       const destinationCalendarRepository = getDestinationCalendarRepository();
-      return await destinationCalendarRepository.getCustomReminderByCredentialId(credentialId);
+      return await destinationCalendarRepository.getCustomReminderByCredentialId(
+        credentialId
+      );
     } catch (error) {
-      this.log.warn("Failed to fetch custom calendar reminder", safeStringify(error));
+      this.log.warn(
+        "Failed to fetch custom calendar reminder",
+        safeStringify(error)
+      );
       return null;
     }
   }
@@ -137,7 +166,9 @@ class GoogleCalendarService implements Calendar {
 
     const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
       .filter((domain) => domain.trim() !== "")
-      .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+      .some((domain) =>
+        event.organizer.email.toLowerCase().endsWith(domain.toLowerCase())
+      );
 
     const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
       ...rest,
@@ -153,7 +184,10 @@ class GoogleCalendarService implements Calendar {
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
         // We use || instead of ?? here to handle empty strings
-        email: hostExternalCalendarId || selectedHostDestinationCalendar?.externalId || event.organizer.email,
+        email:
+          hostExternalCalendarId ||
+          selectedHostDestinationCalendar?.externalId ||
+          event.organizer.email,
       },
       ...(event.hideOrganizerEmail && !isOrganizerExempt ? [] : eventAttendees),
     ];
@@ -164,7 +198,9 @@ class GoogleCalendarService implements Calendar {
         .filter((member) => member.email !== this.credential.user?.email)
         .map((m) => {
           const teamMemberDestinationCalendar = event.destinationCalendar?.find(
-            (calendar) => calendar.integration === "google_calendar" && calendar.userId === m.id
+            (calendar) =>
+              calendar.integration === "google_calendar" &&
+              calendar.userId === m.id
           );
           return {
             email: teamMemberDestinationCalendar?.externalId ?? m.email,
@@ -199,9 +235,14 @@ class GoogleCalendarService implements Calendar {
         dateTime: calEvent.endTime,
         timeZone: calEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({
+        event: calEvent,
+        hostExternalCalendarId: externalCalendarId,
+      }),
       reminders: this.getReminders(customReminderMinutes),
-      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot
+        ? calEvent.seatsShowAttendees
+        : true,
       iCalUID: calEvent.iCalUID,
     };
     if (calEvent.hideCalendarEventDetails) {
@@ -235,7 +276,9 @@ class GoogleCalendarService implements Calendar {
 
     const selectedCalendar =
       externalCalendarId ??
-      (calEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+      (calEvent.destinationCalendar?.find(
+        (cal) => cal.credentialId === credentialId
+      )?.externalId ||
         "primary");
 
     try {
@@ -252,7 +295,9 @@ class GoogleCalendarService implements Calendar {
           const calComEventStartTimeMs = new Date(calEvent.startTime).getTime();
           for (let i = 0; i < recurringEventInstances.data.items.length; i++) {
             const instance = recurringEventInstances.data.items[i];
-            const instanceStartTimeMs = new Date(instance.start?.dateTime || "").getTime();
+            const instanceStartTimeMs = new Date(
+              instance.start?.dateTime || ""
+            ).getTime();
 
             if (instanceStartTimeMs === calComEventStartTimeMs) {
               event = instance;
@@ -292,8 +337,28 @@ class GoogleCalendarService implements Calendar {
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
-            event = await this.getFirstEventInRecurrence(recurringEventId, selectedCalendar, calendar);
+            event = await this.getFirstEventInRecurrence(
+              recurringEventId,
+              selectedCalendar,
+              calendar
+            );
           }
+        }
+      }
+
+      if (calEvent.location === MeetLocationType) {
+        const conferenceStatus =
+          event?.conferenceData?.createRequest?.status?.statusCode;
+        if (conferenceStatus && conferenceStatus !== "success") {
+          this.log.warn(
+            "Google Meet conference creation did not succeed",
+            safeStringify({
+              statusCode: conferenceStatus,
+              eventId: event?.id,
+              selectedCalendar,
+              credentialId,
+            })
+          );
         }
       }
 
@@ -363,9 +428,15 @@ class GoogleCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string
+  ): Promise<any> {
     // Fetch custom reminder duration for this credential's destination calendar
-    const customReminderMinutes = await this.getReminderDuration(this.credential.id);
+    const customReminderMinutes = await this.getReminderDuration(
+      this.credential.id
+    );
 
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
@@ -378,9 +449,14 @@ class GoogleCalendarService implements Calendar {
         dateTime: event.endTime,
         timeZone: event.organizer.timeZone,
       },
-      attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
+      attendees: this.getAttendees({
+        event,
+        hostExternalCalendarId: externalCalendarId,
+      }),
       reminders: this.getReminders(customReminderMinutes),
-      guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: event.seatsPerTimeSlot
+        ? event.seatsShowAttendees
+        : true,
     };
 
     if (event.location) {
@@ -400,7 +476,9 @@ class GoogleCalendarService implements Calendar {
 
     const selectedCalendar =
       (externalCalendarId
-        ? event.destinationCalendar?.find((cal) => cal.externalId === externalCalendarId)?.externalId
+        ? event.destinationCalendar?.find(
+            (cal) => cal.externalId === externalCalendarId
+          )?.externalId
         : undefined) || "primary";
 
     try {
@@ -418,7 +496,12 @@ class GoogleCalendarService implements Calendar {
         endTime: evt?.data.end,
       });
 
-      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+      if (
+        evt &&
+        evt.data.id &&
+        evt.data.hangoutLink &&
+        event.location === MeetLocationType
+      ) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
@@ -462,7 +545,11 @@ class GoogleCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
+  async deleteEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string | null
+  ): Promise<void> {
     const calendar = await this.authedCalendar();
 
     const selectedCalendar = externalCalendarId || "primary";
@@ -486,22 +573,32 @@ class GoogleCalendarService implements Calendar {
        *  404 is when the event is on a different calendar
        */
       if (err.code === 410) return;
-      console.error("There was an error contacting google calendar service: ", err);
+      console.error(
+        "There was an error contacting google calendar service: ",
+        err
+      );
       if (err.code === 404) return;
       throw err;
     }
   }
 
-  async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+  async fetchAvailability(
+    requestBody: FreeBusyArgs
+  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     log.debug("fetchAvailability", safeStringify({ requestBody }));
     const calendar = await this.authedCalendar();
     const apiResponse = await this.auth.authManager.request(
-      async () => new AxiosLikeResponseToFetchResponse(await calendar.freebusy.query({ requestBody }))
+      async () =>
+        new AxiosLikeResponseToFetchResponse(
+          await calendar.freebusy.query({ requestBody })
+        )
     );
     return apiResponse.json;
   }
 
-  async getFreeBusyResult(args: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
+  async getFreeBusyResult(
+    args: FreeBusyArgs
+  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     return await this.fetchAvailability(args);
   }
 
@@ -518,7 +615,9 @@ class GoogleCalendarService implements Calendar {
     return validCals[0];
   }
 
-  async getFreeBusyData(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
+  async getFreeBusyData(
+    args: FreeBusyArgs
+  ): Promise<(EventBusyDate & { id: string })[] | null> {
     const freeBusyResult = await this.getFreeBusyResult(args);
     if (!freeBusyResult.calendars) return null;
 
@@ -539,7 +638,9 @@ class GoogleCalendarService implements Calendar {
     return result;
   }
 
-  async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+  async getAvailabilityWithTimeZones(
+    params: GetAvailabilityParams
+  ): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
@@ -577,7 +678,9 @@ class GoogleCalendarService implements Calendar {
 
     try {
       const calIdsWithTimeZone = await getCalIdsWithTimeZone();
-      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
+      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({
+        id: calIdWithTimeZone.id,
+      }));
       const freeBusyData = await this.getFreeBusyData({
         timeMin: dateFrom,
         timeMax: dateTo,
@@ -585,7 +688,9 @@ class GoogleCalendarService implements Calendar {
       });
       if (!freeBusyData) throw new Error("No response from google calendar");
 
-      const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
+      const timeZoneMap = new Map(
+        calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone])
+      );
 
       const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
         return {
@@ -667,7 +772,10 @@ class GoogleCalendarService implements Calendar {
       });
 
       if (!freeBusyData) throw new Error("No response from google calendar");
-      return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
+      return freeBusyData.map((freeBusy) => ({
+        start: freeBusy.start,
+        end: freeBusy.end,
+      }));
     }
 
     // Handle longer periods by chunking into 90-day periods
@@ -693,7 +801,12 @@ class GoogleCalendarService implements Calendar {
       });
 
       if (chunkData) {
-        busyData.push(...chunkData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end })));
+        busyData.push(
+          ...chunkData.map((freeBusy) => ({
+            start: freeBusy.start,
+            end: freeBusy.end,
+          }))
+        );
       }
 
       currentStartTime = currentEndTime + oneMinuteMs;
@@ -702,9 +815,14 @@ class GoogleCalendarService implements Calendar {
     return busyData;
   }
 
-  async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
+  async getAvailability(
+    params: GetAvailabilityParams
+  ): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars, fallbackToPrimary } = params;
-    this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
+    this.log.debug(
+      "Getting availability",
+      safeStringify({ dateFrom, dateTo, selectedCalendars })
+    );
 
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
@@ -716,7 +834,10 @@ class GoogleCalendarService implements Calendar {
     }
 
     try {
-      const calendarIds = await this.getCalendarIds(selectedCalendarIds, fallbackToPrimary);
+      const calendarIds = await this.getCalendarIds(
+        selectedCalendarIds,
+        fallbackToPrimary
+      );
       return await this.fetchAvailabilityData(calendarIds, dateFrom, dateTo);
     } catch (error) {
       this.log.error(
@@ -745,7 +866,9 @@ class GoogleCalendarService implements Calendar {
       if (!cals.items) return [];
 
       // Filter out Google system calendars (holidays, birthdays) as they don't return proper free/busy information
-      const filteredCalendars = cals.items.filter((cal) => !isGoogleSystemCalendar(cal.id));
+      const filteredCalendars = cals.items.filter(
+        (cal) => !isGoogleSystemCalendar(cal.id)
+      );
 
       return filteredCalendars.map(
         (cal) =>
@@ -754,12 +877,17 @@ class GoogleCalendarService implements Calendar {
             integration: this.integrationName,
             name: cal.summary ?? "No name",
             primary: cal.primary ?? false,
-            readOnly: !(cal.accessRole === "writer" || cal.accessRole === "owner") && true,
+            readOnly:
+              !(cal.accessRole === "writer" || cal.accessRole === "owner") &&
+              true,
             email: cal.id ?? "",
-          }) satisfies IntegrationCalendar
+          } satisfies IntegrationCalendar)
       );
     } catch (error) {
-      this.log.error("There was an error getting calendars: ", safeStringify(error));
+      this.log.error(
+        "There was an error getting calendars: ",
+        safeStringify(error)
+      );
       throw error;
     }
   }
@@ -770,18 +898,26 @@ class GoogleCalendarService implements Calendar {
       const calendar = await this.authedCalendar();
       const cals = await calendar.calendarList.list({ fields: "items(id)" });
       if (!cals.data.items) {
-        throw new Error("No calendars found - delegation credential may not have proper access");
+        throw new Error(
+          "No calendars found - delegation credential may not have proper access"
+        );
       }
     } catch (error) {
       const googleError = error as { code?: number; message?: string };
       if (googleError.code === 401) {
         throw new Error(
-          `Google API authentication failed: ${googleError.message || "Invalid credentials or insufficient permissions"}`
+          `Google API authentication failed: ${
+            googleError.message ||
+            "Invalid credentials or insufficient permissions"
+          }`
         );
       }
       if (googleError.code === 403) {
         throw new Error(
-          `Google API access denied: ${googleError.message || "The service account may not have domain-wide delegation enabled or the required scopes"}`
+          `Google API access denied: ${
+            googleError.message ||
+            "The service account may not have domain-wide delegation enabled or the required scopes"
+          }`
         );
       }
       throw error;
@@ -789,7 +925,10 @@ class GoogleCalendarService implements Calendar {
   }
 
   async createSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId">
+    data: Omit<
+      Prisma.SelectedCalendarUncheckedCreateInput,
+      "integration" | "credentialId"
+    >
   ) {
     return await SelectedCalendarRepository.create({
       ...data,
@@ -799,7 +938,10 @@ class GoogleCalendarService implements Calendar {
   }
 
   async upsertSelectedCalendar(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">
+    data: Omit<
+      Prisma.SelectedCalendarUncheckedCreateInput,
+      "integration" | "credentialId" | "userId"
+    >
   ) {
     if (!this.credential.userId) {
       logger.error("upsertSelectedCalendar failed. userId is missing.");
@@ -815,7 +957,10 @@ class GoogleCalendarService implements Calendar {
   }
 
   async upsertSelectedCalendarsForEventTypeIds(
-    data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
+    data: Omit<
+      Prisma.SelectedCalendarUncheckedCreateInput,
+      "integration" | "credentialId" | "userId"
+    >,
     eventTypeIds: SelectedCalendarEventTypeIds
   ) {
     log.debug(
@@ -823,7 +968,9 @@ class GoogleCalendarService implements Calendar {
       safeStringify({ data, eventTypeIds, credential: this.credential })
     );
     if (!this.credential.userId) {
-      logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
+      logger.error(
+        "upsertSelectedCalendarsForEventTypeIds failed. userId is missing."
+      );
       return;
     }
 
@@ -865,7 +1012,9 @@ class GoogleCalendarService implements Calendar {
     }
   }
 
-  async getPrimaryCalendar(_calendar?: calendar_v3.Calendar): Promise<calendar_v3.Schema$Calendar | null> {
+  async getPrimaryCalendar(
+    _calendar?: calendar_v3.Calendar
+  ): Promise<calendar_v3.Schema$Calendar | null> {
     try {
       const calendar = _calendar ?? (await this.authedCalendar());
       const response = await calendar.calendars.get({
@@ -883,12 +1032,16 @@ class GoogleCalendarService implements Calendar {
     try {
       const primaryCalendar = await this.getPrimaryCalendar();
       if (!primaryCalendar?.timeZone) {
-        this.log.warn("No timezone found in primary calendar, defaulting to UTC");
+        this.log.warn(
+          "No timezone found in primary calendar, defaulting to UTC"
+        );
         return "UTC";
       }
       return primaryCalendar.timeZone;
     } catch (error) {
-      this.log.error("Error getting main timezone from Google Calendar", { error });
+      this.log.error("Error getting main timezone from Google Calendar", {
+        error,
+      });
       throw error;
     }
   }
@@ -900,7 +1053,9 @@ class GoogleCalendarService implements Calendar {
  * from leaking into the emitted .d.ts file, which would cause TypeScript to load
  * all Google API SDK declaration files when type-checking dependent packages.
  */
-export default function BuildCalendarService(credential: CredentialForCalendarServiceWithEmail): Calendar {
+export default function BuildCalendarService(
+  credential: CredentialForCalendarServiceWithEmail
+): Calendar {
   return new GoogleCalendarService(credential);
 }
 
