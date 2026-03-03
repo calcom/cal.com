@@ -39,7 +39,7 @@ export const getHostsForAssignmentHandler = async ({
 
   const hostRepository = new HostRepository(ctx.prisma);
   const { items, nextCursor, hasMore, hasFixedHosts } =
-    await hostRepository.findHostsForAssignmentPaginated({
+    await hostRepository.findHostsPaginatedIncludeUserForAssignment({
       eventTypeId,
       cursor: cursor ?? undefined,
       limit,

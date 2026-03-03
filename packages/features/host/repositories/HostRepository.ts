@@ -142,7 +142,7 @@ export class HostRepository {
     return { items, nextCursor, hasMore };
   }
 
-  async findHostsForAvailabilityPaginated({
+  async findHostsPaginatedIncludeUser({
     eventTypeId,
     cursor,
     limit = 20,
@@ -190,7 +190,7 @@ export class HostRepository {
     return { items, nextCursor, hasMore };
   }
 
-  async findHostsForAssignmentPaginated({
+  async findHostsPaginatedIncludeUserForAssignment({
     eventTypeId,
     cursor,
     limit = 20,

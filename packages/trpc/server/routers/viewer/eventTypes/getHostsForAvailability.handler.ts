@@ -36,7 +36,7 @@ export const getHostsForAvailabilityHandler = async ({
   const { eventTypeId, cursor, limit, search } = input;
 
   const hostRepository = new HostRepository(ctx.prisma);
-  const { items, nextCursor, hasMore } = await hostRepository.findHostsForAvailabilityPaginated({
+  const { items, nextCursor, hasMore } = await hostRepository.findHostsPaginatedIncludeUser({
     eventTypeId,
     cursor: cursor ?? undefined,
     limit,
