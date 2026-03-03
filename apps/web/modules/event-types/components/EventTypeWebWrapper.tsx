@@ -301,6 +301,19 @@ const EventTypeWeb = ({
     },
   });
 
+  // Warn before closing/refreshing the page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (form.formState.isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [form.formState.isDirty]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       const Components = [
