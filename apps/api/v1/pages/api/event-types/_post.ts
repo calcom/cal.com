@@ -1,15 +1,13 @@
-import type { NextApiRequest } from "next";
-
+import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { eventTypeSelect } from "~/lib/selects/event-type";
 import { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
-
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
 import checkUserMembership from "./_utils/checkUserMembership";
@@ -290,6 +288,15 @@ async function postHandler(req: NextApiRequest) {
   };
 
   await checkPermissions(req);
+
+  if (parsedBody.successRedirectUrl) {
+    const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({
+      userId: req.userId,
+    });
+    if (!redirectUrlCheck.allowed) {
+      throw new HttpError({ statusCode: 403, message: redirectUrlCheck.reason });
+    }
+  }
 
   if (parsedBody.parentId) {
     await checkParentEventOwnership(req);

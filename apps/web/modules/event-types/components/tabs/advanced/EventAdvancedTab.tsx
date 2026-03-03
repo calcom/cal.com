@@ -48,6 +48,8 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
+import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import {
   SelectedCalendarSettingsScope,
@@ -439,6 +441,10 @@ export const EventAdvancedTab = ({
   useEffect(() => {
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
+  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
+  const isRedirectUrlGrandfathered = !!eventType.successRedirectUrl;
+  const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
+
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [noRoutingFormRedirectUrlVisible, setNoRoutingFormRedirectUrlVisible] = useState(
     !!formMethods.getValues("redirectUrlOnNoRoutingFormResponse")
@@ -922,9 +928,11 @@ export const EventAdvancedTab = ({
               )}
               childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
               descriptionClassName={customClassNames?.bookingRedirect?.description}
+              Badge={!isRedirectUrlGrandfathered ? <UpgradeTeamsBadge checkForActiveStatus /> : undefined}
               title={t("redirect_success_booking")}
               data-testid="redirect-success-booking"
               {...successRedirectUrlLocked}
+              disabled={isRedirectUrlDisabled || successRedirectUrlLocked.disabled}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
               onCheckedChange={(e) => {

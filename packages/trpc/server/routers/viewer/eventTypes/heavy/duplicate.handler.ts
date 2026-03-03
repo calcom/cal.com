@@ -1,4 +1,5 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { prisma } from "@calcom/prisma";
@@ -80,6 +81,14 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       }
     }
 
+    let canUseSuccessRedirectUrl = true;
+    if (eventType.successRedirectUrl) {
+      const redirectUrlCheck = await checkSuccessRedirectUrlAllowed({
+        userId: ctx.user.id,
+      });
+      canUseSuccessRedirectUrl = redirectUrlCheck.allowed;
+    }
+
     const {
       customInputs,
       users,
@@ -107,6 +116,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       instantMeetingScheduleId: _instantMeetingScheduleId,
       restrictionScheduleId: _restrictionScheduleId,
       calVideoSettings,
+      successRedirectUrl,
       ...rest
     } = eventType;
 
@@ -138,6 +148,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       durationLimits: durationLimits ?? undefined,
       eventTypeColor: eventTypeColor ?? undefined,
       customReplyToEmail: customReplyToEmail ?? undefined,
+      successRedirectUrl: canUseSuccessRedirectUrl ? successRedirectUrl : null,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:
@@ -154,7 +165,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         },
       });
       // Make sure the secondary email id belongs to the current user and its a verified one
-      if (secondaryEmail && secondaryEmail.emailVerified) {
+      if (secondaryEmail?.emailVerified) {
         data.secondaryEmail = {
           connect: {
             id: secondaryEmailId,
