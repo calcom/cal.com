@@ -1,0 +1,32 @@
+"on":
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+name: Deploy to caldotcom
+jobs:
+    porter-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+            - name: Set Github tag
+              id: vars
+              run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            - name: Setup porter
+              uses: porter-dev/setup-porter@v0.1.0
+            - name: Deploy stack
+              timeout-minutes: 30
+              run: porter apply
+              env:
+                PORTER_APP_NAME: caldotcom
+                PORTER_CLUSTER: "5348"
+                PORTER_DEPLOYMENT_TARGET_ID: fbd28a2c-3213-43b3-903b-b11ed9094385
+                PORTER_HOST: https://dashboard.porter.run
+                PORTER_PROJECT: "12178"
+                PORTER_TAG: ${{ steps.vars.outputs.sha_short }}
+                PORTER_TOKEN: ${{ secrets.PORTER_APP_12178_1170730211 }}
+                DOCKER_BUILDKIT: '1'
+                PORTER_BUILDKIT_ARGS: --platform linux/arm64
+                PORTER_BUILDKIT_PUSH_ARGS: --platform linux/arm64
