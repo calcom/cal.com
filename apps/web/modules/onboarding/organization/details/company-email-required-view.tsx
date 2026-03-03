@@ -1,5 +1,6 @@
 "use client";
 
+import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -31,7 +32,9 @@ export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(
       z.object({
-        email: emailSchema,
+        email: emailSchema.refine((val) => isCompanyEmail(val), {
+          message: t("use_company_email_to_create_an_organization"),
+        }),
       })
     ),
   });
@@ -53,7 +56,7 @@ export const CompanyEmailRequired = ({ userEmail }: { userEmail: string }) => {
   const handleSubmit = (values: FormValues) => {
     posthog.capture("onboarding_company_email_verify_clicked");
     setErrorMessage("");
-    const qs = searchParams.toString();
+    const qs = searchParams?.toString() ?? "";
     const redirectTo = qs ? `${pathname}?${qs}` : pathname;
     addSecondaryEmailMutation.mutate({
       email: values.email,

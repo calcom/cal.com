@@ -162,13 +162,9 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
       <DialogPopup className="max-w-3xl" showCloseButton={false} bottomStickOnMobile={false}>
         <DialogHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center justify-between max-sm:w-full">
-              <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
-              <DialogClose className="sm:hidden" render={<Button size="icon" variant="ghost" />}>
-                <Icon name="x" />
-              </DialogClose>
-            </div>
-            <ToggleGroup
+            <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
+            <div className="flex items-center gap-1 max-sm:order-last">
+              <ToggleGroup
               value={[billingPeriod]}
               onValueChange={(value): void => {
                 if (value.length > 0) {
@@ -181,7 +177,7 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                   });
                 }
               }}
-              className="max-sm:order-last rounded-lg bg-muted p-1"
+              className="rounded-lg bg-muted p-1"
               size="sm">
               <Toggle
                 value="annual"
@@ -197,6 +193,10 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
                 {t("monthly")}
               </Toggle>
             </ToggleGroup>
+              <DialogClose render={<Button size="icon" variant="ghost" />}>
+                <Icon name="x" />
+              </DialogClose>
+            </div>
             {info && (
               <Alert variant="info" className="w-full">
                 <AlertTitle>{info.title}</AlertTitle>
