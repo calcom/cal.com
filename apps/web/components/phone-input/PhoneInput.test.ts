@@ -35,10 +35,10 @@ describe("CUSTOM_PHONE_MASKS", () => {
         expect(parsed, `Failed to parse ${description}: ${number}`).toBeTruthy();
 
         const nationalDigits = parsed?.nationalNumber.length ?? 0;
-        expect(maskDigits).toBeGreaterThanOrEqual(
-          nationalDigits,
+        expect(
+          maskDigits,
           `Mask for ${countryCode} has ${maskDigits} digit slots but ${description} (${number}) needs ${nationalDigits} national digits`
-        );
+        ).toBeGreaterThanOrEqual(nationalDigits);
       }
     });
 
