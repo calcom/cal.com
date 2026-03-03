@@ -623,6 +623,16 @@ async function handler(
     eventTypeSlug: rawBookingData.eventTypeSlug,
   });
 
+  if (eventType.teamId) {
+    const { getDunningGuard } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    const dunningGuard = getDunningGuard();
+    const billingTeamId = eventType.team?.parentId ?? eventType.teamId;
+    const dunningCheck = await dunningGuard.canPerformAction(billingTeamId, "CREATE_BOOKING");
+    if (!dunningCheck.allowed) {
+      throw new ErrorWithCode(ErrorCode.Forbidden, "team_is_unpublished");
+    }
+  }
+
   // Early validation: Check reschedule restrictions if rescheduling
   await validateRescheduleRestrictions({
     rescheduleUid: rawBookingData.rescheduleUid,

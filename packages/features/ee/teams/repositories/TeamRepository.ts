@@ -436,6 +436,7 @@ export class TeamRepository {
       },
       select: {
         slug: true,
+        parentId: true,
       },
     });
   }

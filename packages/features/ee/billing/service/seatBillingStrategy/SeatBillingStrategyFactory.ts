@@ -1,6 +1,5 @@
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
-
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
@@ -56,9 +55,7 @@ export class SeatBillingStrategyFactory {
     if (!info.isInTrial && info.subscriptionStart) {
       if (info.billingMode === "ACTIVE_USERS") {
         const enabled =
-          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally(
-            "active-user-billing"
-          );
+          await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("active-user-billing");
         if (enabled) return this.activeUserStrategy;
       }
       if (info.billingPeriod === "ANNUALLY") {

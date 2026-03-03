@@ -13,6 +13,7 @@ function createMockDunningService(): { [K in keyof IDunningService]: ReturnType<
     getBillingIdsToAdvance: vi.fn(),
     advanceDunning: vi.fn(),
     getStatus: vi.fn().mockResolvedValue("CURRENT"),
+    findRecord: vi.fn().mockResolvedValue(null),
   };
 }
 

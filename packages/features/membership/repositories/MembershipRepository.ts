@@ -575,6 +575,28 @@ export class MembershipRepository {
     });
   }
 
+  async areAllEmailsAcceptedMembers({
+    emails,
+    teamId,
+  }: {
+    emails: string[];
+    teamId: number;
+  }): Promise<boolean> {
+    if (emails.length === 0) return true;
+
+    const members = await this.prismaClient.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+        user: { email: { in: emails } },
+      },
+      select: { user: { select: { email: true } } },
+    });
+
+    const memberEmails = new Set(members.map((m) => m.user.email.toLowerCase()));
+    return emails.every((e) => memberEmails.has(e.toLowerCase()));
+  }
+
   // Two indexed lookups instead of JOIN with ILIKE (which bypasses index)
   async hasAcceptedMembershipByEmail({ email, teamId }: { email: string; teamId: number }): Promise<boolean> {
     const user = await this.prismaClient.user.findUnique({

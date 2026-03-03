@@ -1,4 +1,4 @@
-import type { DunningStatus } from "@calcom/prisma/client";
+import type { DunningState, DunningStatus } from "./DunningState";
 
 export interface PaymentFailedParams {
   billingId: string;
@@ -14,4 +14,5 @@ export interface IDunningService {
   getBillingIdsToAdvance(): Promise<string[]>;
   advanceDunning(billingId: string): Promise<{ advanced: boolean; from?: DunningStatus; to?: DunningStatus }>;
   getStatus(billingId: string): Promise<DunningStatus>;
+  findRecord(billingId: string): Promise<DunningState | null>;
 }

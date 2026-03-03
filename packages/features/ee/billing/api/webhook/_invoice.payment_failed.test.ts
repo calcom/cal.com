@@ -12,7 +12,7 @@ vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: () => ({
     getPaymentIntentFailureReason,
   }),
-  getSeatBillingStrategyFactory: () => ({ createBySubscriptionId }),
+  getDunningStrategyFactory: () => ({ createBySubscriptionId }),
 }));
 
 describe("invoice.payment_failed webhook", () => {

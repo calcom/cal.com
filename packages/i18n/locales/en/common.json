@@ -4736,5 +4736,14 @@
   "selected_users": "Selected users",
   "dynamic_link": "Dynamic link",
   "select_at_least_two_users": "Select at least two users to generate a dynamic link.",
+  "dunning_blocked_invite": "Member invitations are blocked due to an overdue invoice. Please pay your outstanding invoice to continue.",
+  "dunning_blocked_event_type": "Event type creation is blocked due to an overdue invoice. Please pay your outstanding invoice to continue.",
+  "dunning_blocked_booking": "Bookings are blocked due to a critically overdue invoice. Please pay immediately to restore service.",
+  "dunning_blocked_api": "API access is blocked due to a critically overdue invoice. Please pay immediately to restore service.",
+  "dunning_warning_banner": "Your payment for \"{{teamName}}\" failed. Please update your payment method to avoid service interruption.",
+  "dunning_soft_blocked_banner": "Your invoice for \"{{teamName}}\" is overdue. Member invitations and event type creation are blocked until payment.",
+  "dunning_hard_blocked_banner": "Your invoice for \"{{teamName}}\" is critically overdue. Bookings and API access are blocked. Pay now to restore service.",
+  "dunning_cancelled_banner": "Your subscription for \"{{teamName}}\" has been cancelled due to non-payment. Please pay your outstanding invoice to restore service.",
+  "dunning_enterprise_banner": "You have an unpaid invoice for \"{{teamName}}\". Please contact your account manager.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

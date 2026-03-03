@@ -1,4 +1,4 @@
-import { getSeatBillingStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getDunningStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 import { z } from "zod";
 
@@ -44,7 +44,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     }
 
     log.info(`Processing renewal invoice for team subscription ${subscriptionId}`);
-    const factory = getSeatBillingStrategyFactory();
+    const factory = getDunningStrategyFactory();
     const strategy = await factory.createBySubscriptionId(subscriptionId);
     await strategy.onRenewalPaid(subscriptionId, new Date(periodStart * 1000));
   }

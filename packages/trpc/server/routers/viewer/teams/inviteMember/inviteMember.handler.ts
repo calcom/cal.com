@@ -1,21 +1,18 @@
-import { type TFunction } from "i18next";
-
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
-import { DueInvoiceService } from "@calcom/features/ee/billing/service/dueInvoice/DueInvoiceService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/i18n/server";
-import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
+import type { TFunction } from "i18next";
 import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
 import type { Invitation } from "./utils";
@@ -268,24 +265,33 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     });
   }
 
-  // Check if invitations are blocked due to unpaid invoices
-  const dueInvoiceService = new DueInvoiceService();
-  const inviteeEmails = (typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail).map(
-    (u) => (typeof u === "string" ? u : u.email)
-  );
-  const canInvite = await dueInvoiceService.canInviteToTeam({
-    teamId: team.id,
-    inviteeEmails,
-    isSubTeam: !!team.parentId,
-    parentOrgId: team.parentId,
-  });
+  // Check if invitations are blocked due to dunning (overdue invoices)
+  let skipDunningCheck = false;
 
-  if (!canInvite.allowed) {
-    const translation = await getTranslation(input.language ?? "en", "common");
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: translation(canInvite.reason ?? "invitations_blocked_unpaid_invoice"),
+  // Sub-team exception: allow inviting existing org members to sub-teams even when dunning is active
+  if (team.parentId) {
+    const inviteeEmails = (typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail).map(
+      (u) => (typeof u === "string" ? u : u.email)
+    );
+    const membershipRepository = new MembershipRepository();
+    skipDunningCheck = await membershipRepository.areAllEmailsAcceptedMembers({
+      emails: inviteeEmails,
+      teamId: team.parentId,
     });
+  }
+
+  if (!skipDunningCheck) {
+    const { getDunningGuard } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    const dunningGuard = getDunningGuard();
+    const dunningCheck = await dunningGuard.canPerformAction(team.id, "INVITE_MEMBER");
+
+    if (!dunningCheck.allowed) {
+      const translation = await getTranslation(input.language ?? "en", "common");
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: translation(dunningCheck.reason ?? "dunning_blocked_invite"),
+      });
+    }
   }
 
   const requestedSlugForTeam = team?.metadata?.requestedSlug ?? null;

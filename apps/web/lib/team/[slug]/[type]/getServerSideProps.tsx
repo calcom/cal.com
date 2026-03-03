@@ -6,6 +6,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import logger from "@calcom/lib/logger";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import { getDunningGuard } from "@calcom/features/ee/billing/di/containers/Billing";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -110,7 +111,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Run independent queries in parallel — these all depend on team/eventData but not on each other
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
   const featureRepo = new FeaturesRepository(prisma);
-  const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
+  const billingTeamId = team.parent?.id ?? team.id;
+
+  const [eventHostsUserData, crmResult, teamHasApiV2Route, booking, isDunningBlocked] = await Promise.all([
     getUsersData(
       team.isPrivate,
       eventTypeId,
@@ -141,6 +144,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             throw err;
           })
       : Promise.resolve(null),
+    getDunningGuard()
+      .canPerformAction(billingTeamId, "CREATE_BOOKING")
+      .then((result) => !result.allowed)
+      .catch(() => false),
   ]);
 
   if (
@@ -181,7 +188,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventTypeId,
         entity: {
           fromRedirectOfNonOrgLink,
-          considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
+          considerUnpublished: isDunningBlocked || (isUnpublished && !fromRedirectOfNonOrgLink),
           orgSlug,
           teamSlug: team.slug ?? null,
           name,
@@ -241,6 +248,7 @@ const getTeamWithEventsData = async (
       hideBranding: true,
       parent: {
         select: {
+          id: true,
           slug: true,
           name: true,
           bannerUrl: true,

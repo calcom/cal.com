@@ -1,4 +1,4 @@
-import { getSeatBillingStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getDunningStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 import type { SWHMap } from "./__handler";
 
@@ -24,7 +24,7 @@ const handler = async (data: Data) => {
   });
 
   try {
-    const factory = getSeatBillingStrategyFactory();
+    const factory = getDunningStrategyFactory();
     const strategy = await factory.createBySubscriptionId(subscriptionId);
     const { applied } = await strategy.onInvoiceUpcoming(subscriptionId);
 

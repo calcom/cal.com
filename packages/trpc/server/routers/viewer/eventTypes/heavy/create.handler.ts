@@ -1,17 +1,15 @@
-import type { z } from "zod";
-
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { eventTypeLocations } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { z } from "zod";
 import type { TrpcSessionUser } from "../../../../types";
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -114,6 +112,17 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       // which means the user is not admin of the team nor the org.
       console.warn(`User ${userId} does not have eventType.create permission for team ${teamId}`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    const { getDunningGuard } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    const dunningGuard = getDunningGuard();
+    const dunningCheck = await dunningGuard.canPerformAction(teamId, "CREATE_EVENT_TYPE");
+    if (!dunningCheck.allowed) {
+      const t = await getTranslation("en", "common");
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: t(dunningCheck.reason ?? "dunning_blocked_event_type"),
+      });
     }
 
     data.team = {

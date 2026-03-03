@@ -9,6 +9,8 @@ export interface SeatChangeContext {
 }
 
 export interface StripeInvoiceData {
+  id?: string;
+  hosted_invoice_url?: string | null;
   lines: {
     data: Array<{
       metadata?: Record<string, string | null | undefined> | null;

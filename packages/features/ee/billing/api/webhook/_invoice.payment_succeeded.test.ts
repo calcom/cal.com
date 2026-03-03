@@ -8,7 +8,7 @@ const onPaymentSucceeded = vi.fn().mockResolvedValue({ handled: true });
 const createBySubscriptionId = vi.fn().mockResolvedValue({ onPaymentSucceeded });
 
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
-  getSeatBillingStrategyFactory: () => ({ createBySubscriptionId }),
+  getDunningStrategyFactory: () => ({ createBySubscriptionId }),
 }));
 
 describe("invoice.payment_succeeded webhook", () => {

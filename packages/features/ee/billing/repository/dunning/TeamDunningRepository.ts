@@ -2,7 +2,13 @@ import type { PrismaClient } from "@calcom/prisma";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { DunningStatus } from "@calcom/prisma/client";
 
-import type { IDunningRepository, RawDunningRecord, RawDunningRecordForBilling, UpsertData } from "./IDunningRepository";
+import type {
+  IDunningRepository,
+  RawDunningRecord,
+  RawDunningRecordForBanner,
+  RawDunningRecordForBilling,
+  UpsertData,
+} from "./IDunningRepository";
 
 const selectFields = {
   id: true,
@@ -72,6 +78,37 @@ export class TeamDunningRepository implements IDunningRepository {
       failureReason: r.failureReason,
       entityName: r.teamBilling.team?.name ?? null,
       isOrganization: r.teamBilling.team?.isOrganization ?? false,
+    }));
+  }
+
+  async findByTeamIds(teamIds: number[]): Promise<RawDunningRecordForBanner[]> {
+    const results = await this.prisma.teamDunningStatus.findMany({
+      where: {
+        teamBilling: { teamId: { in: teamIds } },
+        status: { not: "CURRENT" },
+      },
+      select: {
+        status: true,
+        firstFailedAt: true,
+        subscriptionId: true,
+        failureReason: true,
+        teamBilling: {
+          select: {
+            teamId: true,
+            team: { select: { name: true, slug: true, isOrganization: true } },
+          },
+        },
+      },
+    });
+    return results.map((r) => ({
+      teamId: r.teamBilling.teamId,
+      entityName: r.teamBilling.team?.name ?? null,
+      entitySlug: r.teamBilling.team?.slug ?? null,
+      isOrganization: r.teamBilling.team?.isOrganization ?? false,
+      status: r.status,
+      firstFailedAt: r.firstFailedAt,
+      subscriptionId: r.subscriptionId,
+      failureReason: r.failureReason,
     }));
   }
 

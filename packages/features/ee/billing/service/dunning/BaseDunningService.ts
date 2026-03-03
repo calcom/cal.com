@@ -1,23 +1,13 @@
 import logger from "@calcom/lib/logger";
-import type { DunningStatus } from "@calcom/prisma/client";
+
 import type { IDunningRepository } from "../../repository/dunning/IDunningRepository";
-import { type DunningEntityType, toDunningRecord } from "./DunningMapper";
+import type { DunningEntityType, DunningStatus } from "./DunningState";
+import { DunningState } from "./DunningState";
 import type { IDunningService, PaymentFailedParams } from "./IDunningService";
 
+export { SOFT_BLOCK_DAYS, HARD_BLOCK_DAYS, CANCEL_DAYS } from "./DunningState";
+
 const log = logger.getSubLogger({ prefix: ["DunningService"] });
-
-export const SOFT_BLOCK_DAYS = 7;
-export const HARD_BLOCK_DAYS = 14;
-export const CANCEL_DAYS = 30;
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-const DUNNING_TRANSITIONS: Array<{ from: DunningStatus; to: DunningStatus; afterDays: number }> = [
-  { from: "HARD_BLOCKED", to: "CANCELLED", afterDays: CANCEL_DAYS },
-  { from: "WARNING", to: "HARD_BLOCKED", afterDays: HARD_BLOCK_DAYS },
-  { from: "SOFT_BLOCKED", to: "HARD_BLOCKED", afterDays: HARD_BLOCK_DAYS },
-  { from: "WARNING", to: "SOFT_BLOCKED", afterDays: SOFT_BLOCK_DAYS },
-];
 
 export interface IBaseDunningServiceDeps {
   dunningRepository: IDunningRepository;
@@ -31,44 +21,47 @@ export class BaseDunningService implements IDunningService {
 
   async onPaymentFailed(params: PaymentFailedParams): Promise<{ isNewDunningRecord: boolean }> {
     const { billingId, subscriptionId, failedInvoiceId, invoiceUrl, failureReason } = params;
-    const now = new Date();
 
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
-    const existing = raw ? toDunningRecord(raw, this.entityType) : null;
+    const state = raw ? DunningState.fromRecord(raw, this.entityType) : DunningState.initial(billingId, this.entityType);
 
-    const isCurrent = existing?.status === "CURRENT";
-    const isNewDunningRecord = !existing || isCurrent;
-    const status: DunningStatus = existing && !isCurrent ? existing.status : "WARNING";
-    const firstFailedAt = existing && !isCurrent ? existing.firstFailedAt : now;
-
-    await this.deps.dunningRepository.upsert(billingId, {
-      status,
-      firstFailedAt: firstFailedAt ?? undefined,
-      lastFailedAt: now,
-      resolvedAt: null,
+    const { state: next, isNewDunningRecord } = state.recordPaymentFailure({
       subscriptionId,
       failedInvoiceId,
       invoiceUrl,
       failureReason,
     });
 
-    log.info(`Payment failed for ${this.entityType} billing ${billingId}, dunning status set to ${status}`);
+    await this.deps.dunningRepository.upsert(billingId, {
+      status: next.status,
+      firstFailedAt: next.firstFailedAt ?? undefined,
+      lastFailedAt: next.lastFailedAt ?? undefined,
+      resolvedAt: next.resolvedAt,
+      subscriptionId: next.subscriptionId,
+      failedInvoiceId: next.failedInvoiceId,
+      invoiceUrl: next.invoiceUrl,
+      failureReason: next.failureReason,
+    });
+
+    log.info(`Payment failed for ${this.entityType} billing ${billingId}, dunning status set to ${next.status}`);
     return { isNewDunningRecord };
   }
 
   async onPaymentSucceeded(billingId: string): Promise<void> {
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
-    const existing = raw ? toDunningRecord(raw, this.entityType) : null;
+    if (!raw) return;
 
-    if (!existing || existing.status === "CURRENT") return;
+    const state = DunningState.fromRecord(raw, this.entityType);
+    if (!state.isInDunning) return;
 
-    const previousStatus = existing.status;
+    const previousStatus = state.status;
+    const next = state.resolve();
 
-    await this.deps.dunningRepository.upsert(existing.billingId, {
-      status: "CURRENT",
-      resolvedAt: new Date(),
-      failedInvoiceId: null,
-      invoiceUrl: null,
+    await this.deps.dunningRepository.upsert(billingId, {
+      status: next.status,
+      resolvedAt: next.resolvedAt,
+      failedInvoiceId: next.failedInvoiceId,
+      invoiceUrl: next.invoiceUrl,
     });
 
     log.info(
@@ -85,34 +78,35 @@ export class BaseDunningService implements IDunningService {
     billingId: string
   ): Promise<{ advanced: boolean; from?: DunningStatus; to?: DunningStatus }> {
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
-    const record = raw ? toDunningRecord(raw, this.entityType) : null;
+    if (!raw) return { advanced: false };
 
-    if (!record || record.status === "CURRENT") return { advanced: false };
+    const state = DunningState.fromRecord(raw, this.entityType);
 
-    if (!record.firstFailedAt) {
+    if (!state.firstFailedAt && state.isInDunning) {
       log.warn(`Skipping ${this.entityType} billing ${billingId}: firstFailedAt is null`);
       return { advanced: false };
     }
 
-    const daysSinceFirstFailure = (Date.now() - record.firstFailedAt.getTime()) / MS_PER_DAY;
+    const result = state.advance(new Date());
+    if (!result) return { advanced: false };
 
-    const transition = DUNNING_TRANSITIONS.find(
-      (t) => t.from === record.status && daysSinceFirstFailure >= t.afterDays
+    await this.deps.dunningRepository.advanceStatus(billingId, result.to);
+    const daysSinceFirstFailure = state.firstFailedAt
+      ? Math.floor((Date.now() - state.firstFailedAt.getTime()) / (24 * 60 * 60 * 1000))
+      : 0;
+    log.info(
+      `Advanced ${this.entityType} billing ${billingId} from ${result.from} to ${result.to} (${daysSinceFirstFailure} days since first failure)`
     );
-
-    if (transition) {
-      await this.deps.dunningRepository.advanceStatus(record.billingId, transition.to);
-      log.info(
-        `Advanced ${this.entityType} billing ${billingId} from ${record.status} to ${transition.to} (${Math.floor(daysSinceFirstFailure)} days since first failure)`
-      );
-      return { advanced: true, from: record.status, to: transition.to };
-    }
-
-    return { advanced: false };
+    return { advanced: true, from: result.from, to: result.to };
   }
 
   async getStatus(billingId: string): Promise<DunningStatus> {
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
     return raw ? raw.status : "CURRENT";
+  }
+
+  async findRecord(billingId: string): Promise<DunningState | null> {
+    const raw = await this.deps.dunningRepository.findByBillingId(billingId);
+    return raw ? DunningState.fromRecord(raw, this.entityType) : null;
   }
 }

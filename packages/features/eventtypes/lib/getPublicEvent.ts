@@ -549,6 +549,16 @@ export const getPublicEvent = async (
     users = [];
   }
 
+  // Check if team bookings are blocked due to dunning (overdue invoices)
+  let isDunningBlocked = false;
+  if (event.teamId) {
+    const { getDunningGuard } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    const billingTeamId = event.team?.parentId ?? event.teamId;
+    const dunningGuard = getDunningGuard();
+    const result = await dunningGuard.canPerformAction(billingTeamId, "CREATE_BOOKING");
+    isDunningBlocked = !result.allowed;
+  }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -567,10 +577,11 @@ export const getPublicEvent = async (
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished:
-        !fromRedirectOfNonOrgLink &&
-        (eventWithUserProfiles.team?.slug === null ||
-          eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
-          eventWithUserProfiles.team?.parent?.slug === null),
+        isDunningBlocked ||
+        (!fromRedirectOfNonOrgLink &&
+          (eventWithUserProfiles.team?.slug === null ||
+            eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
+            eventWithUserProfiles.team?.parent?.slug === null)),
       orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:

@@ -38,6 +38,17 @@ export interface RawDunningRecordForBilling {
   isOrganization: boolean;
 }
 
+export interface RawDunningRecordForBanner {
+  teamId: number;
+  entityName: string | null;
+  entitySlug: string | null;
+  isOrganization: boolean;
+  status: DunningStatus;
+  firstFailedAt: Date | null;
+  subscriptionId: string | null;
+  failureReason: string | null;
+}
+
 export interface IDunningRepository {
   findByBillingId(billingId: string): Promise<RawDunningRecord | null>;
   upsert(billingId: string, data: UpsertData): Promise<RawDunningRecord>;

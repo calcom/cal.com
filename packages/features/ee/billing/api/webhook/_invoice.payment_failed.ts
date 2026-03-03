@@ -1,6 +1,6 @@
 import {
   getBillingProviderService,
-  getSeatBillingStrategyFactory,
+  getDunningStrategyFactory,
 } from "@calcom/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
 
@@ -31,9 +31,12 @@ const handler = async (data: Data) => {
     failureReason = paymentFailureReason ?? failureReason;
   }
 
-  const factory = getSeatBillingStrategyFactory();
+  const factory = getDunningStrategyFactory();
   const strategy = await factory.createBySubscriptionId(subscriptionId);
-  const { handled } = await strategy.onPaymentFailed({ lines: invoice.lines }, failureReason);
+  const { handled } = await strategy.onPaymentFailed(
+    { id: invoice.id, hosted_invoice_url: invoice.hosted_invoice_url, lines: invoice.lines },
+    failureReason
+  );
 
   if (handled) {
     log.info("Strategy handled payment failure", { subscriptionId, failureReason });
