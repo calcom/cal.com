@@ -295,7 +295,16 @@ export class InsightsRoutingBaseService {
         rfrd."bookingUserName",
         rfrd."bookingUserEmail",
         rfrd."bookingUserAvatarUrl",
-        rfrd."bookingAssignmentReason",
+        COALESCE(
+          (
+            SELECT ar."reasonString"
+            FROM "AssignmentReason" ar
+            WHERE ar."bookingId" = rfrd."bookingId"
+            ORDER BY ar."createdAt" ASC
+            LIMIT 1
+          ),
+          ''
+        ) as "bookingAssignmentReason",
         rfrd."bookingStartTime",
         rfrd."bookingEndTime",
         rfrd."eventTypeId",
