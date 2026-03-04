@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe("FilterHostsService", () => {
-  it("skips filter if rescheduleWithSameRoundRobinHost set to false", async () => {
+  it("skips filter if roundRobinRescheduleOption is ROUND_ROBIN", async () => {
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
@@ -26,12 +26,13 @@ describe("FilterHostsService", () => {
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
-        rescheduleWithSameRoundRobinHost: false,
+        roundRobinRescheduleOption: "ROUND_ROBIN",
         routedTeamMemberIds: null,
       })
     ).resolves.toStrictEqual(hosts);
   });
-  it("skips filter if rerouting", async () => {
+
+  it("skips filter if rerouting (routedTeamMemberIds set)", async () => {
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
@@ -39,13 +40,13 @@ describe("FilterHostsService", () => {
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
-        rescheduleWithSameRoundRobinHost: true,
+        roundRobinRescheduleOption: "SAME_HOST",
         routedTeamMemberIds: [23],
       })
     ).resolves.toStrictEqual(hosts);
   });
 
-  it("correctly selects the same host if the filter applies and the host is in the RR users", async () => {
+  it("correctly selects the same host if SAME_HOST is set and the host is in the RR users", async () => {
     (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockResolvedValue({ userId: 1 });
 
     const hosts = [
@@ -56,10 +57,62 @@ describe("FilterHostsService", () => {
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
-        rescheduleWithSameRoundRobinHost: true,
+        roundRobinRescheduleOption: "SAME_HOST",
         routedTeamMemberIds: null,
       })
     ).resolves.toStrictEqual([hosts[0]]);
+  });
+
+  describe("ATTENDEE_CHOICE mode", () => {
+    it("uses same host when attendeeReschedulePreference is true", async () => {
+      (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockResolvedValue({ userId: 1 });
+
+      const hosts = [
+        { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+        { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
+      ];
+      expect(
+        filterHostsService.filterHostsBySameRoundRobinHost({
+          hosts,
+          rescheduleUid: "some-uid",
+          roundRobinRescheduleOption: "ATTENDEE_CHOICE",
+          routedTeamMemberIds: null,
+          attendeeReschedulePreference: true,
+        })
+      ).resolves.toStrictEqual([hosts[0]]);
+    });
+
+    it("returns all hosts when attendeeReschedulePreference is false", async () => {
+      const hosts = [
+        { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+        { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
+      ];
+      expect(
+        filterHostsService.filterHostsBySameRoundRobinHost({
+          hosts,
+          rescheduleUid: "some-uid",
+          roundRobinRescheduleOption: "ATTENDEE_CHOICE",
+          routedTeamMemberIds: null,
+          attendeeReschedulePreference: false,
+        })
+      ).resolves.toStrictEqual(hosts);
+    });
+
+    it("defaults to any host (returns all) when attendeeReschedulePreference is null", async () => {
+      const hosts = [
+        { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+        { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
+      ];
+      expect(
+        filterHostsService.filterHostsBySameRoundRobinHost({
+          hosts,
+          rescheduleUid: "some-uid",
+          roundRobinRescheduleOption: "ATTENDEE_CHOICE",
+          routedTeamMemberIds: null,
+          attendeeReschedulePreference: null,
+        })
+      ).resolves.toStrictEqual(hosts);
+    });
   });
 
   // Tests for bookings that have more than one host
@@ -84,7 +137,7 @@ describe("FilterHostsService", () => {
       const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
-        rescheduleWithSameRoundRobinHost: true,
+        roundRobinRescheduleOption: "SAME_HOST",
         routedTeamMemberIds: null,
       });
 
@@ -114,7 +167,7 @@ describe("FilterHostsService", () => {
       const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
-        rescheduleWithSameRoundRobinHost: true,
+        roundRobinRescheduleOption: "SAME_HOST",
         routedTeamMemberIds: null,
       });
 

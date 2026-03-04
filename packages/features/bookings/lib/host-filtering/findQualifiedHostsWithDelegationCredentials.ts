@@ -11,7 +11,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
-import type { FilterHostsService } from "./filterHostsBySameRoundRobinHost";
+import type { FilterHostsService, RoundRobinRescheduleOption } from "./filterHostsBySameRoundRobinHost";
 
 export interface IQualifiedHostsService {
   bookingRepo: BookingRepository;
@@ -89,6 +89,7 @@ export class QualifiedHostsService {
     contactOwnerEmail,
     routingFormResponse,
     rrHostSubsetIds,
+    attendeeReschedulePreference,
   }: {
     eventType: {
       id: number;
@@ -97,7 +98,8 @@ export class QualifiedHostsService {
       users: T[];
       schedulingType: SchedulingType | null;
       isRRWeightsEnabled: boolean;
-      rescheduleWithSameRoundRobinHost: boolean;
+      /** New 3-option field — takes precedence. */
+      roundRobinRescheduleOption: RoundRobinRescheduleOption;
       includeNoShowInRRCalculation: boolean;
       rrHostSubsetEnabled?: boolean;
     } & EventType;
@@ -106,6 +108,8 @@ export class QualifiedHostsService {
     contactOwnerEmail: string | null;
     routingFormResponse: RoutingFormResponse | null;
     rrHostSubsetIds?: number[];
+    /** Attendee's host preference, used when roundRobinRescheduleOption is ATTENDEE_CHOICE */
+    attendeeReschedulePreference?: boolean | null;
   }): Promise<{
     qualifiedRRHosts: {
       isFixed: boolean;
@@ -160,8 +164,9 @@ export class QualifiedHostsService {
       await this.dependencies.filterHostsService.filterHostsBySameRoundRobinHost({
         hosts: roundRobinHosts,
         rescheduleUid,
-        rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
+        roundRobinRescheduleOption: eventType.roundRobinRescheduleOption,
         routedTeamMemberIds,
+        attendeeReschedulePreference,
       })
     );
 

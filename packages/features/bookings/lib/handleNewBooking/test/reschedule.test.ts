@@ -2150,6 +2150,7 @@ describe("handleNewBooking", () => {
                   ],
                   schedulingType: SchedulingType.ROUND_ROBIN,
                   rescheduleWithSameRoundRobinHost: true,
+                  roundRobinRescheduleOption: "SAME_HOST" as const,
                 },
               ],
               bookings: [
@@ -2307,6 +2308,7 @@ describe("handleNewBooking", () => {
                   ],
                   schedulingType: SchedulingType.ROUND_ROBIN,
                   rescheduleWithSameRoundRobinHost: true,
+                  roundRobinRescheduleOption: "SAME_HOST" as const,
                 },
               ],
               bookings: [

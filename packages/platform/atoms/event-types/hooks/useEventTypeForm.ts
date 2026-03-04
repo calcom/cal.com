@@ -124,6 +124,7 @@ export const useEventTypeForm = ({
       autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       autoTranslateInstantMeetingTitleEnabled: eventType.autoTranslateInstantMeetingTitleEnabled ?? true,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
+      roundRobinRescheduleOption: eventType.roundRobinRescheduleOption,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
       rrSegmentQueryValue: eventType.rrSegmentQueryValue,

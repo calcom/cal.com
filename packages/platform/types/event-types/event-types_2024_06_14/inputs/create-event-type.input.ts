@@ -707,9 +707,19 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+    description:
+      "Deprecated: use roundRobinRescheduleOption instead. Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsEnum(["ROUND_ROBIN", "SAME_HOST", "ATTENDEE_CHOICE"])
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "Controls rescheduling host assignment. ROUND_ROBIN: any available host; SAME_HOST: original host only; ATTENDEE_CHOICE: attendee selects at reschedule time.",
+    enum: ["ROUND_ROBIN", "SAME_HOST", "ATTENDEE_CHOICE"],
+  })
+  roundRobinRescheduleOption?: "ROUND_ROBIN" | "SAME_HOST" | "ATTENDEE_CHOICE";
 
   @IsBoolean()
   @IsOptional()

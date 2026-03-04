@@ -40,6 +40,9 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  /** Only relevant when the event type has roundRobinRescheduleOption = ATTENDEE_CHOICE.
+   *  true = show only original host's availability; false = show all hosts' availability */
+  reschedulePreference: z.boolean().nullish(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject

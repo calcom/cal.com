@@ -10,6 +10,7 @@ import type {
   HostInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
+import { RoundRobinRescheduleOption } from "@calcom/prisma/enums";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -201,6 +202,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     customReplyToEmail: z.string().nullable().optional(),
     eventTypeColor: eventTypeColor.nullable().optional(),
     rescheduleWithSameRoundRobinHost: z.boolean().optional(),
+    roundRobinRescheduleOption: z.nativeEnum(RoundRobinRescheduleOption).optional(),
     secondaryEmailId: z.number().int().nullable().optional(),
     useBookerTimezone: z.boolean().optional(),
     restrictionScheduleId: z.number().int().nullable().optional(),

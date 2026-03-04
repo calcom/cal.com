@@ -31,7 +31,7 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import { CancellationReasonRequirement, SchedulingType } from "@calcom/prisma/enums";
+import { CancellationReasonRequirement, RoundRobinRescheduleOption, SchedulingType } from "@calcom/prisma/enums";
 import type { EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -1515,21 +1515,62 @@ export const EventAdvancedTab = ({
       />
       {isRoundRobinEventType && (
         <Controller
-          name="rescheduleWithSameRoundRobinHost"
+          name="roundRobinRescheduleOption"
           render={({ field: { value, onChange } }) => (
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.roundRobinReschedule?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
+            <div
+              className={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
                 customClassNames?.roundRobinReschedule?.container
-              )}
-              title={t("reschedule_with_same_round_robin_host_title")}
-              description={t("reschedule_with_same_round_robin_host_description")}
-              descriptionClassName={customClassNames?.roundRobinReschedule?.description}
-              checked={value}
-              onCheckedChange={(e) => onChange(e)}
-            />
+              )}>
+              <Label className={classNames("text-sm font-semibold", customClassNames?.roundRobinReschedule?.label)}>
+                {t("reschedule_with_same_round_robin_host_title")}
+              </Label>
+              <p
+                className={classNames(
+                  "text-subtle text-sm",
+                  customClassNames?.roundRobinReschedule?.description
+                )}>
+                {t("reschedule_round_robin_host_option_description")}
+              </p>
+              <div className="mt-4 space-y-3">
+                {(
+                  [
+                    {
+                      value: RoundRobinRescheduleOption.ROUND_ROBIN,
+                      label: t("reschedule_round_robin_any_host"),
+                      description: t("reschedule_round_robin_any_host_description"),
+                    },
+                    {
+                      value: RoundRobinRescheduleOption.SAME_HOST,
+                      label: t("reschedule_round_robin_same_host"),
+                      description: t("reschedule_round_robin_same_host_description"),
+                    },
+                    {
+                      value: RoundRobinRescheduleOption.ATTENDEE_CHOICE,
+                      label: t("reschedule_round_robin_attendee_choice"),
+                      description: t("reschedule_round_robin_attendee_choice_description"),
+                    },
+                  ] as const
+                ).map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="radio"
+                      name="roundRobinRescheduleOption"
+                      value={option.value}
+                      checked={value === option.value}
+                      onChange={() => onChange(option.value)}
+                      className="border-default mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-full"
+                    />
+                    <div>
+                      <span className="text-emphasis text-sm font-medium">{option.label}</span>
+                      <p className="text-subtle text-sm">{option.description}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           )}
         />
       )}

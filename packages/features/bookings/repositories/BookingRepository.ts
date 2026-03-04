@@ -1531,6 +1531,7 @@ export class BookingRepository implements IBookingRepository {
       },
       select: {
         userId: true,
+        reschedulePreference: true,
         attendees: {
           select: {
             email: true,

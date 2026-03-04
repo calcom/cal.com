@@ -50,7 +50,7 @@ type EventType = Pick<
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
   | "isRRWeightsEnabled"
-  | "rescheduleWithSameRoundRobinHost"
+  | "roundRobinRescheduleOption"
   | "teamId"
   | "includeNoShowInRRCalculation"
   | "rrHostSubsetEnabled"
@@ -69,6 +69,8 @@ type InputProps = {
   hostname: string | undefined;
   forcedSlug: string | undefined;
   rrHostSubsetIds?: number[];
+  /** Attendee's host preference when event uses ATTENDEE_CHOICE mode */
+  attendeeReschedulePreference?: boolean | null;
 };
 
 const _loadAndValidateUsers = async ({
@@ -84,6 +86,7 @@ const _loadAndValidateUsers = async ({
   hostname,
   forcedSlug,
   rrHostSubsetIds,
+  attendeeReschedulePreference,
 }: InputProps): Promise<{
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
@@ -173,6 +176,7 @@ const _loadAndValidateUsers = async ({
       contactOwnerEmail,
       routingFormResponse,
       rrHostSubsetIds,
+      attendeeReschedulePreference,
     });
   const allQualifiedHostsHashMap = [...qualifiedRRHosts, ...(allFallbackRRHosts ?? []), ...fixedHosts].reduce(
     (acc, host) => {

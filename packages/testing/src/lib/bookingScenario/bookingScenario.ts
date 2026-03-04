@@ -279,6 +279,7 @@ export type InputEventType = {
   owner?: number;
   metadata?: z.infer<typeof EventTypeMetaDataSchema>;
   rescheduleWithSameRoundRobinHost?: boolean;
+  roundRobinRescheduleOption?: "ROUND_ROBIN" | "SAME_HOST" | "ATTENDEE_CHOICE";
   restrictionSchedule?: {
     create: {
       name: string;
@@ -595,6 +596,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
       schedulingType: eventType.schedulingType,
       parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
+      roundRobinRescheduleOption: eventType.roundRobinRescheduleOption,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));

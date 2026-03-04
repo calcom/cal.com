@@ -1155,6 +1155,7 @@ export class AvailableSlotsService {
         contactOwnerEmail,
         routingFormResponse,
         rrHostSubsetIds: input.rrHostSubsetIds ?? undefined,
+        attendeeReschedulePreference: input.reschedulePreference ?? null,
       });
 
     // Filter out blocked hosts BEFORE calculating availability (batched - single DB query)

@@ -86,6 +86,7 @@ type Input = Pick<
   | "hidden"
   | "bookingRequiresAuthentication"
   | "rescheduleWithSameRoundRobinHost"
+  | "roundRobinRescheduleOption"
   | "maxActiveBookingPerBookerOfferReschedule"
   | "maxActiveBookingsPerBooker"
   | "disableCancelling"
@@ -118,6 +119,7 @@ export class OutputOrganizationsEventTypesService {
       parentId,
       assignAllTeamMembers,
       rescheduleWithSameRoundRobinHost,
+      roundRobinRescheduleOption,
       rrHostSubsetEnabled,
     } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,6 +156,7 @@ export class OutputOrganizationsEventTypesService {
         theme: databaseEventType?.team?.theme,
       },
       rescheduleWithSameRoundRobinHost,
+      roundRobinRescheduleOption,
       rrHostSubsetEnabled,
     };
   }

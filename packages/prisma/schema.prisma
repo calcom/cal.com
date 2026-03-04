@@ -276,7 +276,8 @@ model EventType {
 
   /// @zod.import(["import { eventTypeColor } from '../../zod-utils'"]).custom.use(eventTypeColor)
   eventTypeColor                   Json?
-  rescheduleWithSameRoundRobinHost Boolean @default(false)
+  rescheduleWithSameRoundRobinHost Boolean                    @default(false)
+  roundRobinRescheduleOption       RoundRobinRescheduleOption @default(ROUND_ROBIN)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -936,6 +937,9 @@ model Booking {
   report                       BookingReport?
   wrongAssignmentReports       WrongAssignmentReport[]
   routingTrace                 RoutingTrace?
+  // Stores attendee's rescheduling host preference when event type uses ATTENDEE_CHOICE mode.
+  // true = reschedule with same host, false = reschedule with any host, null = not applicable
+  reschedulePreference         Boolean?
 
   // @@partial_index([reassignById])
 
@@ -1800,6 +1804,12 @@ enum FeatureType {
   OPERATIONAL
   KILL_SWITCH
   PERMISSION
+}
+
+enum RoundRobinRescheduleOption {
+  ROUND_ROBIN
+  SAME_HOST
+  ATTENDEE_CHOICE
 }
 
 enum RRResetInterval {

@@ -612,9 +612,19 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @IsOptional()
   @ApiPropertyOptional({
-    description: "Rescheduled events will be assigned to the same host as initially scheduled.",
+    description:
+      "Deprecated: use roundRobinRescheduleOption. Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
+
+  @IsEnum(["ROUND_ROBIN", "SAME_HOST", "ATTENDEE_CHOICE"])
+  @IsOptional()
+  @ApiPropertyOptional({
+    description:
+      "Controls rescheduling host assignment. ROUND_ROBIN: any available host; SAME_HOST: original host only; ATTENDEE_CHOICE: attendee selects at reschedule time.",
+    enum: ["ROUND_ROBIN", "SAME_HOST", "ATTENDEE_CHOICE"],
+  })
+  roundRobinRescheduleOption?: "ROUND_ROBIN" | "SAME_HOST" | "ATTENDEE_CHOICE";
 
   @IsBoolean()
   @IsOptional()
