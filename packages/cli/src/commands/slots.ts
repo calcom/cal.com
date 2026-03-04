@@ -3,11 +3,11 @@ import { apiRequest } from "../lib/api";
 import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/output";
 
-interface Slot {
+interface SlotRange {
   start: string;
 }
 
-type AvailableSlotsResponse = Record<string, Slot[]>;
+type AvailableSlotsResponse = Record<string, (string | SlotRange)[]>;
 
 interface ReservedSlot {
   uid: string;
@@ -63,9 +63,10 @@ export function registerSlotsCommand(program: Command): void {
           const rows: string[][] = [];
           for (const [date, dateSlots] of Object.entries(data)) {
             for (const slot of dateSlots) {
+              const timeValue = typeof slot === "string" ? slot : slot.start;
               rows.push([
                 date,
-                new Date(slot.start).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+                new Date(timeValue).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
               ]);
             }
           }

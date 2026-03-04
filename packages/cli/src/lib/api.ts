@@ -82,9 +82,7 @@ async function apiRequest<T = unknown>(
     ...headers,
   };
 
-  if (apiVersion) {
-    fetchHeaders["cal-api-version"] = apiVersion;
-  }
+  fetchHeaders["cal-api-version"] = apiVersion ?? "2024-08-13";
 
   const fetchOptions: RequestInit = {
     method,
