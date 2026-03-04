@@ -18,6 +18,6 @@ runs:
       env:
         CACHE_NAME: cache-db
         PATH_KEY: ${{ inputs.path }}
-        PRISMA_HASH: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
+        PRISMA_HASH: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts', 'scripts/seed.ts', 'scripts/seed-utils.ts') }}
       run: |
         echo "key=${CACHE_NAME}-${PATH_KEY}-${PRISMA_HASH}" >> $GITHUB_OUTPUT
