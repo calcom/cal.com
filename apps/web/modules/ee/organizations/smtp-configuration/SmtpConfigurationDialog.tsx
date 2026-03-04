@@ -9,6 +9,7 @@ import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/com
 import { Divider } from "@calcom/ui/components/divider";
 import { Form, Switch, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -280,12 +281,19 @@ const SmtpConfigurationDialog = ({ open, onOpenChange, config }: SmtpConfigurati
 
           <div className="flex items-center justify-end gap-2 bg-muted px-4 py-3">
             <DialogClose />
-            <Button
-              type="submit"
-              loading={isSubmitting}
-              disabled={requiresTest && !connectionStatus?.success}>
-              {isEditing ? t("save") : t("create")}
-            </Button>
+            {requiresTest && !connectionStatus?.success ? (
+              <Tooltip content={t("test_connection_first")}>
+                <span>
+                  <Button type="submit" loading={isSubmitting} disabled>
+                    {isEditing ? t("save") : t("create")}
+                  </Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button type="submit" loading={isSubmitting}>
+                {isEditing ? t("save") : t("create")}
+              </Button>
+            )}
           </div>
         </Form>
       </DialogContent>

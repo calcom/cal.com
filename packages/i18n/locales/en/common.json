@@ -3003,6 +3003,7 @@
   "connection_ssl_tls": "SSL/TLS",
   "connection_starttls": "STARTTLS",
   "test_connection": "Test Connection",
+  "test_connection_first": "Test the SMTP connection first",
   "smtp_connection_success": "SMTP connection successful",
   "smtp_connection_failed": "SMTP connection failed",
   "fill_smtp_fields": "Please fill in all SMTP fields first",
