@@ -900,18 +900,11 @@ export const getOptions = ({
         }
 
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        const { upId, id: visitorProfileId } = determineProfile({
-          profiles: allProfiles,
-          token,
-        });
-        log.debug(
-          "callbacks:jwt:accountType:oauth:existingUser",
-          safeStringify({ userId: existingUser.id, upId })
-        );
-        const finalJwt = {
+        const { upId } = determineProfile({ profiles: allProfiles, token });
+        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
+        return {
           ...token,
           upId,
-          profileId: visitorProfileId ?? token.profileId ?? null,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
@@ -924,8 +917,6 @@ export const getOptions = ({
           orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
         } as JWT;
-
-        return finalJwt;
       }
 
       if (account.type === "email") {
