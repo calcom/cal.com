@@ -10,13 +10,13 @@ type ListWithTeamOptions = {
 
 export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
   const userId = ctx.user.id;
-  const query = Prisma.sql`SELECT "public"."EventType"."id", "public"."EventType"."teamId", "public"."EventType"."title", "public"."EventType"."slug", "public"."EventType"."length", "j1"."name" as "teamName", "u"."username" as "username"
+  const query = Prisma.sql`SELECT "public"."EventType"."id", "public"."EventType"."teamId", "public"."EventType"."title", "public"."EventType"."slug", "public"."EventType"."length", "public"."EventType"."metadata", "j1"."name" as "teamName", "u"."username" as "username"
     FROM "public"."EventType"
     LEFT JOIN "public"."Team" AS "j1" ON ("j1"."id") = ("public"."EventType"."teamId")
     LEFT JOIN "public"."users" AS "u" ON ("u"."id") = ("public"."EventType"."userId")
     WHERE "public"."EventType"."userId" = ${userId}
     UNION
-    SELECT "public"."EventType"."id", "public"."EventType"."teamId", "public"."EventType"."title", "public"."EventType"."slug", "public"."EventType"."length", "j1"."name" as "teamName", "u"."username" as "username"
+    SELECT "public"."EventType"."id", "public"."EventType"."teamId", "public"."EventType"."title", "public"."EventType"."slug", "public"."EventType"."length", "public"."EventType"."metadata", "j1"."name" as "teamName", "u"."username" as "username"
     FROM "public"."EventType"
     INNER JOIN "public"."Team" AS "j1" ON ("j1"."id") = ("public"."EventType"."teamId")
     INNER JOIN "public"."Membership" AS "t2" ON "t2"."teamId" = "j1"."id"
@@ -31,6 +31,7 @@ export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
         title: string;
         slug: string;
         length: number;
+        metadata: Prisma.JsonValue;
         teamName: string | null;
         username: string | null;
       }[]
@@ -40,7 +41,7 @@ export const listWithTeamHandler = async ({ ctx }: ListWithTeamOptions) => {
     id: row.id,
     team: row.teamId ? { id: row.teamId, name: row.teamName || "" } : null,
     title: row.title,
-    slug: row.slug,
+    slug: (row.metadata as any)?.managedEventProfileSlug || row.slug,
     length: row.length,
     username: row.teamId ? null : row.username,
   }));

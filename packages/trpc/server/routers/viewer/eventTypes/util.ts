@@ -303,28 +303,32 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   }
 }
 
-export const mapEventType = async (eventType: EventType) => ({
-  ...eventType,
-  safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-  users: await Promise.all(
-    (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>
-      new UserRepository(prisma).enrichUserWithItsProfile({
-        user: u,
-      })
-    )
-  ),
-  metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
-  children: await Promise.all(
-    (eventType.children || []).map(async (c) => ({
-      ...c,
-      users: await Promise.all(
-        c.users.map(
-          async (u) =>
-            await new UserRepository(prisma).enrichUserWithItsProfile({
-              user: u,
-            })
-        )
-      ),
-    }))
-  ),
-});
+export const mapEventType = async (eventType: EventType) => {
+  const metadata = eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null;
+  return {
+    ...eventType,
+    slug: (metadata as any)?.managedEventProfileSlug || eventType.slug,
+    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+    users: await Promise.all(
+      (eventType?.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users).map(async (u) =>
+        new UserRepository(prisma).enrichUserWithItsProfile({
+          user: u,
+        })
+      )
+    ),
+    metadata,
+    children: await Promise.all(
+      (eventType.children || []).map(async (c) => ({
+        ...c,
+        users: await Promise.all(
+          c.users.map(
+            async (u) =>
+              await new UserRepository(prisma).enrichUserWithItsProfile({
+                user: u,
+              })
+          )
+        ),
+      }))
+    ),
+  };
+};

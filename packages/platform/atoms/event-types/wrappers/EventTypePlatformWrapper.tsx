@@ -67,6 +67,7 @@ export type EventTypePlatformWrapperProps = {
     dirtyFields: Partial<FormValues>;
     values: FormValues;
   }) => void;
+  hiddenSettings?: HiddenSettings;
 };
 
 const EventType = forwardRef<
@@ -239,6 +240,7 @@ const EventType = forwardRef<
         teamMembers={teamMembers}
         destinationCalendar={destinationCalendar}
         customClassNames={customClassNames?.eventSetupTab}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>

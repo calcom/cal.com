@@ -3,6 +3,7 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type {
   EventTypeSetupProps,
   FormValues,
+  HiddenSettings,
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
@@ -71,6 +72,7 @@ export type EventLimitsTabCustomClassNames = {
 
 export type EventLimitsTabProps = Pick<EventTypeSetupProps, "eventType"> & {
   customClassNames?: EventLimitsTabCustomClassNames;
+  hiddenSettings?: HiddenSettings;
 };
 
 /**
@@ -313,19 +315,19 @@ const MinimumBookingNoticeInput = React.forwardRef<
     value: DurationType;
     label: string;
   }[] = [
-    {
-      label: t("minutes"),
-      value: "minutes",
-    },
-    {
-      label: t("hours"),
-      value: "hours",
-    },
-    {
-      label: t("days"),
-      value: "days",
-    },
-  ];
+      {
+        label: t("minutes"),
+        value: "minutes",
+      },
+      {
+        label: t("hours"),
+        value: "hours",
+      },
+      {
+        label: t("days"),
+        value: "days",
+      },
+    ];
 
   const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
     type: DurationType;
@@ -408,9 +410,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
       | undefined;
     const parentTeam = (
       eventType.parent as
-        | { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } }
-        | null
-        | undefined
+      | { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } }
+      | null
+      | undefined
     )?.team;
 
     const teamHasLimits = !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
@@ -480,12 +482,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + watchOffsetStartValue * 60 * 1000);
 
   return (
-    <div>
-      <div
-        className={classNames(
-          "border-subtle stack-y-6 rounded-lg border p-6",
-          customClassNames?.bufferAndNoticeSection?.container
-        )}>
+        </div >
+      )}
         <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           <div
             className={classNames(
@@ -647,7 +645,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
             />
           </div>
         </div>
-      </div>
+      </div >
       <Controller
         name="bookingLimits"
         render={({ field: { value } }) => {
@@ -859,50 +857,52 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
         }}
       />
 
-      {formMethods.getValues("offsetStart") > 0 && (
-        <SettingsToggle
-          labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
-          toggleSwitchAtTheEnd={true}
-          switchContainerClassName={classNames(
-            "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-            offsetToggle && "rounded-b-none",
-            customClassNames?.offsetStartTimes?.container
-          )}
-          childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
-          title={t("offset_toggle")}
-          descriptionClassName={customClassNames?.offsetStartTimes?.description}
-          description={t("offset_toggle_description")}
-          {...offsetStartLockedProps}
-          checked={offsetToggle}
-          onCheckedChange={(active) => {
-            setOffsetToggle(active);
-            if (!active) {
-              formMethods.setValue("offsetStart", 0, { shouldDirty: true });
-            }
-          }}>
-          <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
-            <TextField
-              required
-              type="number"
-              containerClassName={classNames(
-                "max-w-80",
-                customClassNames?.offsetStartTimes?.offsetInput?.container
-              )}
-              labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
-              addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
-              className={customClassNames?.offsetStartTimes?.offsetInput?.input}
-              label={t("offset_start")}
-              {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
-              addOnSuffix={<>{t("minutes")}</>}
-              hint={t("offset_start_description", {
-                originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-                adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-              })}
-            />
-          </div>
-        </SettingsToggle>
+{
+  formMethods.getValues("offsetStart") > 0 && (
+    <SettingsToggle
+      labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
+      toggleSwitchAtTheEnd={true}
+      switchContainerClassName={classNames(
+        "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+        offsetToggle && "rounded-b-none",
+        customClassNames?.offsetStartTimes?.container
       )}
-    </div>
+      childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
+      title={t("offset_toggle")}
+      descriptionClassName={customClassNames?.offsetStartTimes?.description}
+      description={t("offset_toggle_description")}
+      {...offsetStartLockedProps}
+      checked={offsetToggle}
+      onCheckedChange={(active) => {
+        setOffsetToggle(active);
+        if (!active) {
+          formMethods.setValue("offsetStart", 0, { shouldDirty: true });
+        }
+      }}>
+      <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
+        <TextField
+          required
+          type="number"
+          containerClassName={classNames(
+            "max-w-80",
+            customClassNames?.offsetStartTimes?.offsetInput?.container
+          )}
+          labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
+          addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
+          className={customClassNames?.offsetStartTimes?.offsetInput?.input}
+          label={t("offset_start")}
+          {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
+          addOnSuffix={<>{t("minutes")}</>}
+          hint={t("offset_start_description", {
+            originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+            adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+          })}
+        />
+      </div>
+    </SettingsToggle>
+  )
+}
+    </div >
   );
 };
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { useBeforeUnload } from "@calcom/lib/hooks/useBeforeUnload";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -158,6 +159,8 @@ const PasswordView = ({ user }: PasswordViewProps) => {
   }));
 
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
+
+  useBeforeUnload(formMethods.formState.isDirty);
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";

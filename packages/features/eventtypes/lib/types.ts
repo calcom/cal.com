@@ -197,6 +197,12 @@ export type FormValues = {
   enablePerHostLocations: boolean;
 };
 
+export type HiddenSettings = {
+  setup?: ("title" | "description" | "slug")[];
+  duration?: ("duration" | "multiple-durations")[];
+  location?: ("location")[];
+};
+
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
 
 export type EventTypeAssignedUsers = {

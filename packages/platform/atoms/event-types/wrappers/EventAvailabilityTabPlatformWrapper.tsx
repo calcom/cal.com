@@ -22,8 +22,9 @@ type EventAvailabilityTabPlatformWrapperProps = {
 const EventAvailabilityTabPlatformWrapper = ({
   user,
   teamId,
+  hiddenSettings,
   ...props
-}: EventAvailabilityTabPlatformWrapperProps) => {
+}: EventAvailabilityTabPlatformWrapperProps & { hiddenSettings?: HiddenSettings }) => {
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
 
@@ -41,6 +42,7 @@ const EventAvailabilityTabPlatformWrapper = ({
   return (
     <EventAvailabilityTab
       {...props}
+      hiddenSettings={hiddenSettings}
       user={user}
       teamMembers={
         teamMembers?.map((member) => ({

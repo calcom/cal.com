@@ -92,8 +92,8 @@ export const getEventTypeById = async ({
       ...child,
       owner: child.owner
         ? await userRepo.enrichUserWithItsProfile({
-            user: child.owner,
-          })
+          user: child.owner,
+        })
         : null,
     });
   }
@@ -118,6 +118,7 @@ export const getEventTypeById = async ({
 
   const eventType = {
     ...restEventType,
+    slug: (parsedMetaData as any)?.managedEventProfileSlug || restEventType.slug,
     schedule:
       rawEventType.schedule?.id ||
       (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
@@ -143,19 +144,19 @@ export const getEventTypeById = async ({
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
-            ...ch,
-            owner: {
-              ...ch.owner,
-              avatar: getUserAvatarUrl(ch.owner),
-              email: ch.owner.email,
-              name: ch.owner.name ?? "",
-              username: ch.owner.username ?? "",
-              membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
-            },
-            created: true,
-          }
+          ...ch,
+          owner: {
+            ...ch.owner,
+            avatar: getUserAvatarUrl(ch.owner),
+            email: ch.owner.email,
+            name: ch.owner.name ?? "",
+            username: ch.owner.username ?? "",
+            membership:
+              restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+              MembershipRole.MEMBER,
+          },
+          created: true,
+        }
         : []
     ),
   };
@@ -226,19 +227,19 @@ export const getEventTypeById = async ({
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.accepted || isOrgEventType)
-        .map((member) => {
-          const user: typeof member.user & { avatar: string } = {
-            ...member.user,
-            avatar: getUserAvatarUrl(member.user),
-          };
-          return {
-            ...user,
-            profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-            membership: member.role,
-          };
-        })
+      .filter((member) => member.accepted || isOrgEventType)
+      .map((member) => {
+        const user: typeof member.user & { avatar: string } = {
+          ...member.user,
+          avatar: getUserAvatarUrl(member.user),
+        };
+        return {
+          ...user,
+          profileId: user.profile.id,
+          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+          membership: member.role,
+        };
+      })
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.

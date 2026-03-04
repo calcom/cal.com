@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
@@ -72,10 +73,25 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
 
+  // For managed event types, store the real slug in metadata and use a unique
+  // DB slug to avoid @@unique([teamId, slug]) collisions with other team events
+  // (e.g. Round Robin events sharing the same user-facing URL).
+  let dbSlug = rest.slug;
+  let mergedMetadata = (metadata as Prisma.InputJsonObject) ?? {};
+  if (isManagedEventType && teamId) {
+    const suffix = crypto.randomBytes(4).toString("hex");
+    mergedMetadata = {
+      ...mergedMetadata,
+      managedEventProfileSlug: rest.slug,
+    };
+    dbSlug = `${rest.slug}-managed-${suffix}`;
+  }
+
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
+    slug: dbSlug,
     owner: teamId ? undefined : { connect: { id: userId } },
-    metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
+    metadata: mergedMetadata,
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,

@@ -3,6 +3,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type {
   EventTypeSetupProps,
   FormValues,
+  HiddenSettings,
   InputClassNames,
   LocationFormValues,
   SelectClassNames,
@@ -64,6 +65,7 @@ export type EventSetupTabProps = Pick<
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 > & {
   customClassNames?: EventSetupTabCustomClassNames;
+  hiddenSettings?: HiddenSettings;
 };
 export const EventSetupTab = (
   props: EventSetupTabProps & {
@@ -76,7 +78,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId, hiddenSettings } = props;
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -119,80 +121,87 @@ export const EventSetupTab = (
             "stack-y-6 rounded-lg border border-subtle p-6",
             customClassNames?.titleSection?.container
           )}>
-          <TextField
-            required
-            containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
-            labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
-            className={classNames(customClassNames?.titleSection?.titleInput?.input)}
-            label={t("title")}
-            {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
-            defaultValue={eventType.title}
-            data-testid="event-title"
-            {...formMethods.register("title")}
-          />
-          <div>
-            {isPlatform ? (
-              <TextAreaField
-                {...formMethods.register("description", {
-                  disabled: descriptionLockedProps.disabled,
-                })}
-                placeholder={t("quick_video_meeting")}
-                className={customClassNames?.titleSection?.descriptionInput?.input}
-                labelProps={{
-                  className: customClassNames?.titleSection?.descriptionInput?.label,
-                }}
-              />
-            ) : (
-              <>
-                <Label htmlFor="editor">
-                  {t("description")}
-                  {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
-                </Label>
-                <Editor
-                  getText={() => md.render(formMethods.getValues("description") || "")}
-                  setText={(value: string) => {
-                    // Clean up non-breaking spaces
-                    const cleanedValue = value.replace(/&nbsp;/g, " ");
-                    const markdownValue = turndown(cleanedValue);
-                    formMethods.setValue("description", markdownValue, { shouldDirty: true });
-                  }}
+          {!hiddenSettings?.setup?.includes("title") && (
+            <TextField
+              required
+              containerClassName={classNames(customClassNames?.titleSection?.titleInput?.container)}
+              labelClassName={classNames(customClassNames?.titleSection?.titleInput?.label)}
+              className={classNames(customClassNames?.titleSection?.titleInput?.input)}
+              label={t("title")}
+              {...(isManagedEventType || isChildrenManagedEventType ? titleLockedProps : {})}
+              defaultValue={eventType.title}
+              data-testid="event-title"
+              {...formMethods.register("title")}
+            />
+          )}
+          {!hiddenSettings?.setup?.includes("description") && (
+            <div>
+              {isPlatform ? (
+                <TextAreaField
+                  {...formMethods.register("description", {
+                    disabled: descriptionLockedProps.disabled,
+                  })}
                   placeholder={t("quick_video_meeting")}
-                  editable={!descriptionLockedProps.disabled}
-                  firstRender={firstRender}
-                  setFirstRender={setFirstRender}
+                  className={customClassNames?.titleSection?.descriptionInput?.input}
+                  labelProps={{
+                    className: customClassNames?.titleSection?.descriptionInput?.label,
+                  }}
                 />
-              </>
-            )}
-          </div>
-          <TextField
-            required
-            label={isPlatform ? "Slug" : t("URL")}
-            {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
-            defaultValue={eventType.slug}
-            data-testid="event-slug"
-            containerClassName={classNames(
-              "[&>div]:gap-0",
-              customClassNames?.titleSection?.urlInput?.container
-            )}
-            labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
-            className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
-            addOnLeading={
-              isPlatform ? undefined : (
-                <span className="inline-block min-w-0 max-w-24 overflow-hidden text-ellipsis whitespace-nowrap md:max-w-56">
-                  {urlPrefix}/
-                  {!isManagedEventType
-                    ? team
-                      ? (hasOrgBranding ? "" : "team/") + team.slug
-                      : formMethods.getValues("users")[0].username
-                    : t("username_placeholder")}
-                  /
-                </span>
-              )
-            }
-            {...formMethods.register("slug", {
-              setValueAs: (v) => slugify(v),
-            })}
-          />
+              ) : (
+                <>
+                  <Label htmlFor="editor">
+                    {t("description")}
+                    {(isManagedEventType || isChildrenManagedEventType) &&
+                      shouldLockIndicator("description")}
+                  </Label>
+                  <Editor
+                    getText={() => md.render(formMethods.getValues("description") || "")}
+                    setText={(value: string) => {
+                      // Clean up non-breaking spaces
+                      const cleanedValue = value.replace(/&nbsp;/g, " ");
+                      const markdownValue = turndown(cleanedValue);
+                      formMethods.setValue("description", markdownValue, { shouldDirty: true });
+                    }}
+                    placeholder={t("quick_video_meeting")}
+                    editable={!descriptionLockedProps.disabled}
+                    firstRender={firstRender}
+                    setFirstRender={setFirstRender}
+                  />
+                </>
+              )}
+            </div>
+          )}
+          {!hiddenSettings?.setup?.includes("slug") && (
+            <TextField
+              required
+              label={isPlatform ? "Slug" : t("URL")}
+              {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
+              defaultValue={eventType.slug}
+              data-testid="event-slug"
+              containerClassName={classNames(
+                "[&>div]:gap-0",
+                customClassNames?.titleSection?.urlInput?.container
+              )}
+              labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
+              className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
+              addOnLeading={
+                isPlatform ? undefined : (
+                  <span className="inline-block min-w-0 max-w-24 overflow-hidden text-ellipsis whitespace-nowrap md:max-w-56">
+                    {urlPrefix}/
+                    {!isManagedEventType
+                      ? team
+                        ? (hasOrgBranding ? "" : "team/") + team.slug
+                        : formMethods.getValues("users")[0].username
+                      : t("username_placeholder")}
+                    /
+                  </span>
+                )
+              }
+              {...formMethods.register("slug", {
+                setValueAs: (v) => slugify(v),
+              })}
+            />
+          )}
         </div>
         <div
           className={classNames(
@@ -200,113 +209,115 @@ export const EventSetupTab = (
             customClassNames?.durationSection?.container
           )}>
           {multipleDuration ? (
-            <div
-              className={classNames(
-                "stack-y-6",
-                customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.container
-              )}>
-              <div>
-                <Skeleton
-                  as={Label}
-                  loadingClassName="w-16"
-                  className={
-                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.label
-                  }>
-                  {t("available_durations")}
-                </Skeleton>
-                <Select
-                  isMulti
-                  defaultValue={selectedMultipleDuration}
-                  name="metadata.multipleDuration"
-                  isSearchable={false}
-                  isDisabled={lengthLockedProps.disabled}
-                  className={classNames(
-                    "h-auto min-h-[36px]! text-sm",
-                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
-                  )}
-                  innerClassNames={
-                    customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect
-                      ?.innerClassNames
-                  }
-                  options={multipleDurationOptions}
-                  value={selectedMultipleDuration}
-                  onChange={(options) => {
-                    let newOptions = [...options];
-                    newOptions = newOptions.sort((a, b) => {
-                      return a?.value - b?.value;
-                    });
-                    const values = newOptions.map((opt) => opt.value);
-                    setMultipleDuration(values);
-                    setSelectedMultipleDuration(newOptions);
-                    if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
-                      if (newOptions.length > 0) {
+            !hiddenSettings?.duration?.includes("duration") ? (
+              <div
+                className={classNames(
+                  "stack-y-6",
+                  customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.container
+                )}>
+                <div>
+                  <Skeleton
+                    as={Label}
+                    loadingClassName="w-16"
+                    className={
+                      customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.label
+                    }>
+                    {t("available_durations")}
+                  </Skeleton>
+                  <Select
+                    isMulti
+                    defaultValue={selectedMultipleDuration}
+                    name="metadata.multipleDuration"
+                    isSearchable={false}
+                    isDisabled={lengthLockedProps.disabled}
+                    className={classNames(
+                      "h-auto min-h-[36px]! text-sm",
+                      customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
+                    )}
+                    innerClassNames={
+                      customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect
+                        ?.innerClassNames
+                    }
+                    options={multipleDurationOptions}
+                    value={selectedMultipleDuration}
+                    onChange={(options) => {
+                      let newOptions = [...options];
+                      newOptions = newOptions.sort((a, b) => {
+                        return a?.value - b?.value;
+                      });
+                      const values = newOptions.map((opt) => opt.value);
+                      setMultipleDuration(values);
+                      setSelectedMultipleDuration(newOptions);
+                      if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                        if (newOptions.length > 0) {
+                          setDefaultDuration(newOptions[0]);
+                          formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
+                        } else {
+                          setDefaultDuration(null);
+                        }
+                      }
+                      if (newOptions.length === 1 && defaultDuration === null) {
                         setDefaultDuration(newOptions[0]);
                         formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
-                      } else {
-                        setDefaultDuration(null);
                       }
-                    }
-                    if (newOptions.length === 1 && defaultDuration === null) {
-                      setDefaultDuration(newOptions[0]);
-                      formMethods.setValue("length", newOptions[0].value, { shouldDirty: true });
-                    }
-                    formMethods.setValue("metadata.multipleDuration", values, { shouldDirty: true });
-                  }}
-                />
-              </div>
-              <div
-                className={
-                  customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.container
-                }>
-                <Skeleton
-                  as={Label}
-                  loadingClassName="w-16"
+                      formMethods.setValue("metadata.multipleDuration", values, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div
                   className={
-                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.label
+                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.container
                   }>
-                  {t("default_duration")}
-                  {shouldLockIndicator("length")}
-                </Skeleton>
-                <Select
-                  value={defaultDuration}
-                  isSearchable={false}
-                  name="length"
-                  className={classNames(
-                    "text-sm",
-                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.select
-                  )}
-                  innerClassNames={
-                    customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect
-                      ?.innerClassNames
-                  }
-                  isDisabled={lengthLockedProps.disabled}
-                  noOptionsMessage={() => t("default_duration_no_options")}
-                  options={selectedMultipleDuration}
-                  onChange={(option) => {
-                    setDefaultDuration(
-                      selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
-                    );
-                    if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
-                  }}
-                />
+                  <Skeleton
+                    as={Label}
+                    loadingClassName="w-16"
+                    className={
+                      customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.label
+                    }>
+                    {t("default_duration")}
+                    {shouldLockIndicator("length")}
+                  </Skeleton>
+                  <Select
+                    value={defaultDuration}
+                    isSearchable={false}
+                    name="length"
+                    className={classNames(
+                      "text-sm",
+                      customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect?.select
+                    )}
+                    innerClassNames={
+                      customClassNames?.durationSection?.multipleDuration?.defaultDurationSelect
+                        ?.innerClassNames
+                    }
+                    isDisabled={lengthLockedProps.disabled}
+                    noOptionsMessage={() => t("default_duration_no_options")}
+                    options={selectedMultipleDuration}
+                    onChange={(option) => {
+                      setDefaultDuration(
+                        selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
+                      );
+                      if (option) formMethods.setValue("length", option.value, { shouldDirty: true });
+                    }}
+                  />
+                </div>
+                <div className="mt-4">
+                  <Controller
+                    name="metadata.hideDurationSelectorInBookingPage"
+                    control={formMethods.control}
+                    render={({ field: { value, onChange } }) => (
+                      <CheckboxField
+                        data-testid="hide-duration-selector-checkbox"
+                        checked={value ?? false}
+                        onChange={(e) => onChange(e.target.checked)}
+                        description={t("hide_duration_selector_in_booking_page")}
+                        disabled={lengthLockedProps.disabled}
+                      />
+                    )}
+                  />
+                </div>
               </div>
-              <div className="mt-4">
-                <Controller
-                  name="metadata.hideDurationSelectorInBookingPage"
-                  control={formMethods.control}
-                  render={({ field: { value, onChange } }) => (
-                    <CheckboxField
-                      data-testid="hide-duration-selector-checkbox"
-                      checked={value ?? false}
-                      onChange={(e) => onChange(e.target.checked)}
-                      description={t("hide_duration_selector_in_booking_page")}
-                      disabled={lengthLockedProps.disabled}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-          ) : (
+            ) : null
+          ) : !hiddenSettings?.duration?.includes("duration") ? (
             <TextField
               required
               type="number"
@@ -334,8 +345,8 @@ export const EventSetupTab = (
               min={MIN_EVENT_DURATION_MINUTES}
               max={MAX_EVENT_DURATION_MINUTES}
             />
-          )}
-          {!lengthLockedProps.disabled && (
+          ) : null}
+          {!lengthLockedProps.disabled && !hiddenSettings?.duration?.includes("multiple-durations") && (
             <div className="mt-4! [&_label]:my-1 [&_label]:font-normal">
               <SettingsToggle
                 title={t("allow_multiple_durations")}
@@ -371,49 +382,56 @@ export const EventSetupTab = (
               ? undefined
               : false
           }>
-          <div
-            className={classNames(
-              "rounded-lg border border-subtle p-6",
-              customClassNames?.locationSection?.container,
-              eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+          {!hiddenSettings?.location?.includes("location") && (
+            <div
+              className={classNames(
+                "rounded-lg border border-subtle p-6",
+                customClassNames?.locationSection?.container,
+                eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
                 enablePerHostLocations &&
                 "cursor-not-allowed opacity-60"
-            )}>
-            <div>
-              <Skeleton
-                as={Label}
-                loadingClassName="w-16"
-                htmlFor="locations"
-                className={customClassNames?.locationSection?.label}>
-                {t("location")}
-                {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
+              )}>
+              <div>
+                <Skeleton
+                  as={Label}
+                  loadingClassName="w-16"
+                  htmlFor="locations"
+                  className={customClassNames?.locationSection?.label}>
+                  {t("location")}
+                  {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
                 based on Managed Event type or not.*/}
-                {shouldLockIndicator("locations")}
-              </Skeleton>
-              <Controller
-                name="locations"
-                control={formMethods.control}
-                defaultValue={eventType.locations || []}
-                render={() => (
-                  <Locations
-                    showAppStoreLink={true}
-                    isChildrenManagedEventType={isChildrenManagedEventType}
-                    isManagedEventType={isManagedEventType}
-                    disableLocationProp={
-                      shouldLockDisableProps("locations").disabled ||
-                      (eventType.schedulingType === SchedulingType.ROUND_ROBIN && enablePerHostLocations)
-                    }
-                    getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
-                    setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
-                    control={formMethods.control as unknown as Control<LocationFormValues>}
-                    formState={formMethods.formState as unknown as FormState<LocationFormValues>}
-                    {...props}
-                    customClassNames={customClassNames?.locationSection}
-                  />
-                )}
-              />
+                  {shouldLockIndicator("locations")}
+                </Skeleton>
+                <Controller
+                  name="locations"
+                  control={formMethods.control}
+                  defaultValue={eventType.locations || []}
+                  render={() => (
+                    <Locations
+                      showAppStoreLink={true}
+                      isChildrenManagedEventType={isChildrenManagedEventType}
+                      isManagedEventType={isManagedEventType}
+                      disableLocationProp={
+                        shouldLockDisableProps("locations").disabled ||
+                        (eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+                          enablePerHostLocations)
+                      }
+                      getValues={
+                        formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>
+                      }
+                      setValue={
+                        formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>
+                      }
+                      control={formMethods.control as unknown as Control<LocationFormValues>}
+                      formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+                      {...props}
+                      customClassNames={customClassNames?.locationSection}
+                    />
+                  )}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </Tooltip>
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isPlatform && (
           <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />

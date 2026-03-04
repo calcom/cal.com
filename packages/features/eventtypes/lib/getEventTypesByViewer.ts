@@ -80,24 +80,24 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     ),
     shouldListUserEvents
       ? eventTypeRepo.findAllByUpId(
-          {
-            upId: userProfile.upId,
-            userId: user.id,
+        {
+          upId: userProfile.upId,
+          userId: user.id,
+        },
+        {
+          where: {
+            teamId: null,
           },
-          {
-            where: {
-              teamId: null,
+          orderBy: [
+            {
+              position: "desc",
             },
-            orderBy: [
-              {
-                position: "desc",
-              },
-              {
-                id: "asc",
-              },
-            ],
-          }
-        )
+            {
+              id: "asc",
+            },
+          ],
+        }
+      )
       : [],
   ]);
 
@@ -139,11 +139,13 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       users: c.users.map((user) => enrichedUsersMap.get(user.id)).filter((user) => !!user),
     }));
 
+    const metadata = eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null;
     return {
       ...eventType,
+      slug: (metadata as any)?.managedEventProfileSlug || eventType.slug,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
       users: enrichedUsers,
-      metadata: eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null,
+      metadata,
       children: enrichedChildren,
     };
   };

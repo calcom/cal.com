@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
@@ -103,12 +104,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettings,
     hostGroups,
     enablePerHostLocations,
+    slug,
+    metadata,
+    schedulingType,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      schedulingType: true,
+      metadata: true,
       title: true,
       locations: true,
       description: true,
@@ -233,8 +239,29 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     (!hostGroups && eventType.hostGroups && eventType.hostGroups.length > 1)
   );
 
+  const isManagedEventType = (schedulingType || eventType.schedulingType) === SchedulingType.MANAGED;
+
+  // For managed event types, store the real slug in metadata and use a unique
+  // DB slug to avoid @@unique([teamId, slug]) collisions with other team events
+  // (e.g. Round Robin events sharing the same user-facing URL).
+  let dbSlug = slug;
+  let finalMetadata = metadata;
+  if (isManagedEventType && teamId && slug) {
+    const suffix = crypto.randomBytes(4).toString("hex");
+    const currentMetadata = (metadata as Prisma.InputJsonObject) ?? (eventType.metadata as Prisma.InputJsonObject) ?? {};
+    finalMetadata = {
+      ...currentMetadata,
+      managedEventProfileSlug: slug,
+    };
+    dbSlug = `${slug}-managed-${suffix}`;
+  }
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
+    // Only update schedulingType when explicitly provided
+    ...(schedulingType !== undefined && { schedulingType }),
+    // Only update slug when explicitly provided
+    ...(dbSlug !== undefined && { slug: dbSlug }),
     // Only update autoTranslateInstantMeetingTitleEnabled when explicitly provided to avoid overwriting saved opt-out
     ...(autoTranslateInstantMeetingTitleEnabled !== undefined && { autoTranslateInstantMeetingTitleEnabled }),
     // Only set if explicitly provided to avoid overwriting existing value with false
@@ -249,7 +276,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     rrSegmentQueryValue:
       rest.rrSegmentQueryValue === null ? Prisma.DbNull : (rest.rrSegmentQueryValue as Prisma.InputJsonValue),
-    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    metadata: finalMetadata === null ? Prisma.DbNull : (finalMetadata as Prisma.InputJsonObject | undefined),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     // Only set disableGuests if bookingFields is explicitly provided to avoid overwriting existing value
     ...(bookingFields !== undefined && {
@@ -739,7 +766,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

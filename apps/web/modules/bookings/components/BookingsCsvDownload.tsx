@@ -1,6 +1,7 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -21,13 +22,13 @@ interface BookingsCsvDownloadProps {
   status: BookingListingStatus;
 }
 
-function transformBookingToCsv(booking: BookingOutput, t: TranslationFunction) {
+function transformBookingToCsv(booking: BookingOutput, t: TranslationFunction, timezone: string) {
   return {
     [t("booking_uid")]: booking.uid,
     [t("title")]: booking.title,
     [t("status")]: booking.status,
-    [t("start_time")]: dayjs(booking.startTime).format("YYYY-MM-DD HH:mm:ss"),
-    [t("end_time")]: dayjs(booking.endTime).format("YYYY-MM-DD HH:mm:ss"),
+    [t("start_time")]: dayjs(booking.startTime).tz(timezone).format("YYYY-MM-DD HH:mm:ss"),
+    [t("end_time")]: dayjs(booking.endTime).tz(timezone).format("YYYY-MM-DD HH:mm:ss"),
     [t("attendee_name")]: booking.attendees.map((a) => a.name).join("; "),
     [t("email")]: booking.attendees.map((a) => a.email).join("; "),
     [t("event_type")]: booking.eventType?.title ?? "",
@@ -39,6 +40,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
   const { t } = useLocale();
   const { data: user, isPending: isUserPending } = useMeQuery();
   const [isDownloading, setIsDownloading] = useState(false);
+  const { timezone } = useTimePreferences();
   const utils = trpc.useUtils();
 
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
@@ -100,7 +102,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
       showProgressToast(100);
 
       // Transform and download
-      const csvData = allBookings.map((booking) => transformBookingToCsv(booking, t));
+      const csvData = allBookings.map((booking) => transformBookingToCsv(booking, t, timezone));
       const filename = `${t("bookings").toLowerCase()}-${status}-${dayjs().format("YYYY-MM-DD")}.csv`;
       downloadAsCsv(csvData, filename);
     } catch {

@@ -7,6 +7,7 @@ import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
+import { useBeforeUnload } from "@calcom/lib/hooks/useBeforeUnload";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -614,6 +615,8 @@ const ProfileForm = ({
   const {
     formState: { isSubmitting, isDirty },
   } = formMethods;
+
+  useBeforeUnload(isDirty);
 
   const isDisabled = isSubmitting || !isDirty;
   return (

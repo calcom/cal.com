@@ -15,6 +15,7 @@ import type {
   AvailabilityOption,
   FormValues,
   EventTypeSetup,
+  HiddenSettings,
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
@@ -87,17 +88,17 @@ type EventTypeScheduleDetailsProps = {
 type HostSchedulesQueryType =
   | GetAllSchedulesByUserIdQueryType
   | (({ userId }: { userId: number }) => UseQueryResult<
-      {
-        schedules: {
-          id: number;
-          name: string;
-          isDefault: boolean;
-          userId: number;
-          readOnly: boolean;
-        }[];
-      },
-      Error
-    >);
+    {
+      schedules: {
+        id: number;
+        name: string;
+        isDefault: boolean;
+        userId: number;
+        readOnly: boolean;
+      }[];
+    },
+    Error
+  >);
 
 type EventTypeTeamScheduleProps = {
   hostSchedulesQuery: HostSchedulesQueryType;
@@ -136,6 +137,7 @@ type UseTeamEventScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customCl
 type EventAvailabilityTabProps = EventAvailabilityTabBaserProps &
   Omit<EventTypeScheduleProps, "customClassNames"> & {
     customClassNames?: EventAvailabilityTabCustomClassNames;
+    hiddenSettings?: HiddenSettings;
   };
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
@@ -823,12 +825,11 @@ const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null
   };
 };
 
-const UseTeamEventScheduleSettingsToggle = ({
-  eventType,
-  customClassNames,
+customClassNames,
   isRestrictionScheduleEnabled,
+  hiddenSettings,
   ...rest
-}: UseTeamEventScheduleSettingsToggle) => {
+}: UseTeamEventScheduleSettingsToggle & { hiddenSettings?: HiddenSettings }) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
@@ -844,12 +845,14 @@ const UseTeamEventScheduleSettingsToggle = ({
           onCheckedChange={toggleScheduleState}
           title={t("choose_common_schedule_team_event")}
           description={t("choose_common_schedule_team_event_description")}>
-          <EventTypeSchedule
-            customClassNames={customClassNames?.userAvailability}
-            eventType={eventType}
-            fieldName="schedule"
-            {...rest}
-          />
+          {!hiddenSettings?.location?.includes("location") && (
+            <EventTypeSchedule
+              customClassNames={customClassNames?.userAvailability}
+              eventType={eventType}
+              fieldName="schedule"
+              {...rest}
+            />
+          )}
         </SettingsToggle>
         {useHostSchedulesForTeamEvent && (
           <div className="lg:ml-14">
@@ -868,12 +871,14 @@ const UseTeamEventScheduleSettingsToggle = ({
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
             description={t("restriction_schedule_description")}>
-            <EventTypeSchedule
-              customClassNames={customClassNames?.userAvailability}
-              eventType={eventType}
-              fieldName="restrictionSchedule"
-              {...rest}
-            />
+            {!hiddenSettings?.location?.includes("location") && (
+              <EventTypeSchedule
+                customClassNames={customClassNames?.userAvailability}
+                eventType={eventType}
+                fieldName="restrictionSchedule"
+                {...rest}
+              />
+            )}
           </SettingsToggle>
         </div>
       ) : (
@@ -883,14 +888,27 @@ const UseTeamEventScheduleSettingsToggle = ({
   );
 };
 
-export const EventAvailabilityTab = ({ eventType, isTeamEvent, ...rest }: EventAvailabilityTabProps) => {
+export const EventAvailabilityTab = ({
+  eventType,
+  isTeamEvent,
+  hiddenSettings,
+  ...rest
+}: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseTeamEventScheduleSettingsToggle eventType={eventType} {...rest} />
-  ) : (
-    <EventTypeSchedule
+    <UseTeamEventScheduleSettingsToggle
       eventType={eventType}
+      hiddenSettings={hiddenSettings}
       {...rest}
-      customClassNames={rest?.customClassNames?.userAvailability}
     />
+  ) : (
+    <>
+      {!hiddenSettings?.location?.includes("location") && (
+        <EventTypeSchedule
+          eventType={eventType}
+          {...rest}
+          customClassNames={rest?.customClassNames?.userAvailability}
+        />
+      )}
+    </>
   );
 };

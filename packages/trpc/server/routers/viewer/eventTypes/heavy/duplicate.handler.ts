@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
@@ -110,10 +111,23 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       ...rest
     } = eventType;
 
+    // For managed event types, store the real slug in metadata and use a unique
+    // DB slug to avoid @@unique([teamId, slug]) collisions with other team events.
+    let dbSlug = newSlug;
+    let mergedMetadata = (metadata as Prisma.InputJsonObject) ?? {};
+    if (eventType.schedulingType === SchedulingType.MANAGED && eventType.teamId) {
+      const suffix = crypto.randomBytes(4).toString("hex");
+      mergedMetadata = {
+        ...mergedMetadata,
+        managedEventProfileSlug: newSlug,
+      };
+      dbSlug = `${newSlug}-managed-${suffix}`;
+    }
+
     const data: Prisma.EventTypeCreateInput = {
       ...rest,
       title: newEventTitle,
-      slug: newSlug,
+      slug: dbSlug,
       description: newDescription,
       length: newLength,
       locations: locations ?? undefined,
@@ -121,24 +135,24 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
       hosts: hosts
         ? {
-            createMany: {
-              data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
-            },
-          }
+          createMany: {
+            data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
+          },
+        }
         : undefined,
       restrictionSchedule: _restrictionScheduleId
         ? {
-            connect: {
-              id: _restrictionScheduleId,
-            },
-          }
+          connect: {
+            id: _restrictionScheduleId,
+          },
+        }
         : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
       eventTypeColor: eventTypeColor ?? undefined,
       customReplyToEmail: customReplyToEmail ?? undefined,
-      metadata: metadata === null ? Prisma.DbNull : metadata,
+      metadata: mergedMetadata === null ? Prisma.DbNull : mergedMetadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:
         eventType.rrSegmentQueryValue === null ? Prisma.DbNull : eventType.rrSegmentQueryValue,

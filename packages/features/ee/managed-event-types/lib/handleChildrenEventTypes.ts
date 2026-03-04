@@ -28,16 +28,16 @@ interface handleChildrenEventTypesProps {
     workflows?: { workflowId: number }[];
   } | null;
   children:
-    | {
-        hidden: boolean;
-        owner: {
-          id: number;
-          name: string;
-          email: string;
-          eventTypeSlugs: string[];
-        };
-      }[]
-    | undefined;
+  | {
+    hidden: boolean;
+    owner: {
+      id: number;
+      name: string;
+      email: string;
+      eventTypeSlugs: string[];
+    };
+  }[]
+  | undefined;
   prisma: PrismaClient | DeepMockProxy<PrismaClient>;
   updatedValues: Prisma.EventTypeUpdateInput;
   calVideoSettings?: {
@@ -213,7 +213,10 @@ export default async function handleChildrenEventTypes({
 
     // Create event types for new users added
     const eventTypesToCreateData = newUserIds.map((userId) => {
+      const realSlug =
+        (managedEventTypeValues.metadata as any)?.managedEventProfileSlug || managedEventTypeValues.slug;
       return {
+        slug: realSlug,
         instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
         profileId: profileId ?? null,
         ...managedEventTypeValues,
@@ -331,10 +334,16 @@ export default async function handleChildrenEventTypes({
     }, {});
 
     // Prepare payload: Omit unlocked fields and the "children" property
+    const realSlug = (eventType.metadata as any)?.managedEventProfileSlug || eventType.slug;
     const updatePayload = allManagedEventTypePropsZod.omit(unlockedFieldProps).parse(eventType);
     const updatePayloadFiltered = Object.entries(updatePayload)
       .filter(([key, _]) => key !== "children")
-      .reduce((newObj, [key, value]) => ({ ...newObj, [key]: value }), {});
+      .reduce((newObj, [key, value]) => {
+        if (key === "slug") {
+          return { ...newObj, [key]: realSlug };
+        }
+        return { ...newObj, [key]: value };
+      }, {});
 
     // 2. Data Fetching Optimization
     const existingRecords = await prisma.eventType.findMany({

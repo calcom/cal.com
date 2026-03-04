@@ -15,6 +15,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useBeforeUnload } from "@calcom/lib/hooks/useBeforeUnload";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -122,12 +123,21 @@ const AppearanceView = ({
     reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
+  useBeforeUnload(
+    isUserAppThemeDirty || isUserThemeDirty || isBookerLayoutFormDirty || isBrandColorsFormDirty
+  );
+
   const selectedTheme = userThemeFormMethods.watch("theme");
   const selectedThemeIsDark =
     selectedTheme === "dark" ||
     (selectedTheme === "" &&
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark"));
+
+  // Warn the user if any appearance form has unsaved changes and they try to navigate away
+  useBeforeUnload(
+    isUserAppThemeDirty || isUserThemeDirty || isBookerLayoutFormDirty || isBrandColorsFormDirty
+  );
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (data) => {
