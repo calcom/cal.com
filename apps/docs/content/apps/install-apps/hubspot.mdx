@@ -1,0 +1,34 @@
+# HubSpot
+
+### Obtaining HubSpot Client ID and Secret
+
+1. **Sign into HubSpot Developer** - Go to [HubSpot Developer](https://developers.hubspot.com/) and sign into your account, or create a new one.
+
+2. **Navigate to Manage Apps** - From the Developer account home page, go to "Manage apps".
+
+3. **Create a new app** - Click the "Create app" button located at the top right corner of the page.
+
+4. **Fill in App Information** - In the "App info" tab, fill in any information you want for your app.
+
+5. **Go to the Auth tab** - Navigate to the "Auth" tab to set up authentication for the app.
+
+6. **Copy Client ID and Client Secret** - Copy the Client ID and Client Secret and add them to your `.env` file under the fields:
+
+```
+HUBSPOT_CLIENT_ID
+HUBSPOT_CLIENT_SECRET
+```
+
+7. **Set the Redirect URL for OAuth** - Set the Redirect URL for OAuth to:
+
+```
+<Cal.com URL>/api/integrations/hubspot/callback
+```
+
+Replace `<Cal.com URL>` with the URL where your application is hosted.
+
+8. **Select Required Scopes** - In the "Scopes" section, select "Read" and "Write" for the scope called `crm.objects.contacts`.
+
+9. **Save the Application** - Click the "Save" button at the bottom of the page.
+
+10. **Complete HubSpot Integration** - You're all set! Any booking in Cal.com will now be created as a meeting in HubSpot for your contacts.
