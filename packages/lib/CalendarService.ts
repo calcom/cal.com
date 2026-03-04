@@ -434,7 +434,8 @@ export default abstract class BaseCalendarService implements Calendar {
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
-        duration: getDuration(event.startTime, event.endTime),
+        endInputType: "utc",
+        end: convertDate(event.endTime),
         title: event.title,
         description: event.calendarDescription,
         location: getLocation(event),
@@ -515,7 +516,8 @@ export default abstract class BaseCalendarService implements Calendar {
         uid,
         startInputType: "utc",
         start: convertDate(event.startTime),
-        duration: getDuration(event.startTime, event.endTime),
+        endInputType: "utc",
+        end: convertDate(event.endTime),
         title: event.title,
         description: getRichDescription(event),
         location: getLocation(event),
@@ -955,13 +957,16 @@ export default abstract class BaseCalendarService implements Calendar {
           const calendarTimezone =
             vcalendar.getFirstSubcomponent("vtimezone")?.getFirstPropertyValue<string>("tzid") || "";
 
-          const startDate = calendarTimezone
-            ? dayjs.tz(event.startDate.toString(), calendarTimezone)
-            : new Date(event.startDate.toUnixTime() * 1000);
+          const getCorrectDate = (evDate: ICAL.Time) => {
+            const isUTC = evDate.zone.tzid === "UTC" || evDate.zone.tzid === "Z";
+            if (isUTC || !calendarTimezone) {
+              return new Date(evDate.toUnixTime() * 1000);
+            }
+            return dayjs.tz(evDate.toString(), calendarTimezone).toDate();
+          };
 
-          const endDate = calendarTimezone
-            ? dayjs.tz(event.endDate.toString(), calendarTimezone)
-            : new Date(event.endDate.toUnixTime() * 1000);
+          const startDate = getCorrectDate(event.startDate);
+          const endDate = getCorrectDate(event.endDate);
 
           return {
             uid: event.uid,
