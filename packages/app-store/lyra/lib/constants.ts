@@ -1,1 +1,1 @@
-export const LYRA_API_URL = "http://localhost:3001";
+export const LYRA_API_URL = "https://app.lyra.so";
