@@ -10,7 +10,8 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Use `ErrorWithCode` for errors in non-tRPC files (services, repositories, utilities); use `TRPCError` only in tRPC routers
 - Use conventional commits: `feat:`, `fix:`, `refactor:`
 - Create PRs in draft mode by default
-- Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
+- Run `yarn type-check:ci --affected` to type-check only packages affected by your branch changes
+- Use `yarn type-check:ci --force` only when you need a full check (e.g. comparing branches)
 - Import directly from source files, not barrel files (e.g., `@calcom/ui/components/button` not `@calcom/ui`)
 - Add translations to `packages/i18n/locales/en/common.json` for all UI strings
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
@@ -80,7 +81,8 @@ When a task requires extensive changes, break it into multiple PRs:
 See [agents/commands.md](agents/commands.md) for full reference. Key commands:
 
 ```bash
-yarn type-check:ci --force  # Type check (always run before pushing)
+yarn type-check:ci --affected  # Type check only affected packages (recommended before pushing)
+yarn type-check:ci --force     # Type check all packages ignoring cache (for full verification)
 yarn biome check --write .  # Lint and format
 TZ=UTC yarn test            # Run unit tests
 yarn prisma generate        # Regenerate types after schema changes
@@ -90,7 +92,7 @@ yarn prisma generate        # Regenerate types after schema changes
 ## Boundaries
 
 ### Always do
-- Run type check on changed files before committing
+- Run type check on affected packages before committing (`--affected`)
 - Run relevant tests before pushing
 - Use `select` in Prisma queries
 - Follow conventional commits for PR titles
@@ -210,7 +212,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 ## PR Checklist
 
 - [ ] Title follows conventional commits: `feat(scope): description`
-- [ ] Type check passes: `yarn type-check:ci --force`
+- [ ] Type check passes: `yarn type-check:ci --affected`
 - [ ] Lint passes: `yarn lint:fix`
 - [ ] Relevant tests pass
 - [ ] Diff is small and focused (<500 lines, <10 files)

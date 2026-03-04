@@ -31,6 +31,6 @@ Create pull requests in draft mode by default, so that a human reviewer can mark
 
 ## Before Pushing
 
-1. Run `yarn type-check:ci --force` to check types
+1. Run `yarn type-check:ci --affected` to check types on changed packages
 2. Run `yarn biome check --write .` to lint and format
 3. Run relevant tests locally

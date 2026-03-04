@@ -30,4 +30,4 @@ These errors are related to SAML database misconfiguration on CI and should be i
 
 ## Before Blaming CI
 
-Always run type checks locally using `yarn type-check:ci --force` before concluding that CI failures are unrelated to your changes. Even if errors appear in files you haven't directly modified, your changes might still be causing type issues through dependencies or type inference.
+Always run type checks locally using `yarn type-check:ci --affected` before concluding that CI failures are unrelated to your changes. The `--affected` flag ensures only packages changed on the current branch (compared to `main`) are checked. Even if errors appear in files you haven't directly modified, your changes might still be causing type issues through dependencies or type inference. If you need a full check across all packages, use `yarn type-check:ci --force`.

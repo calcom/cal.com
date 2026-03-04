@@ -20,6 +20,8 @@
 - `yarn lint:fix` - Run Biome and apply safe fixes
 - `yarn lint:report` - Generate Biome lint report
 - `yarn type-check` - Run TypeScript type checking
+- `yarn type-check:ci --affected` - Type check only packages affected by changes on the current branch (recommended for local development)
+- `yarn type-check:ci --force` - Type check all packages ignoring cache (use for full verification or comparing branches)
 - `yarn format` - Format code with Biome
 
 ## Testing Commands

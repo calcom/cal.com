@@ -11,9 +11,11 @@ tags: ci, typescript, type-check, workflow
 
 When working on the Cal.com repository, prioritize fixing type issues before addressing failing tests.
 
-1. Run `yarn type-check:ci --force` first
+1. Run `yarn type-check:ci --affected` first (only checks packages affected by your changes)
 2. Fix all TypeScript errors
 3. Then run tests with `TZ=UTC yarn test`
+
+> **Note:** The `--affected` flag uses Turbo's built-in git diff detection (`...[main...HEAD]`) to only type-check packages that have changed on the current branch compared to `main`. This is significantly faster than checking the entire monorepo.
 
 ## Why Type Check First
 
@@ -24,7 +26,7 @@ Type errors are often the root cause of test failures. Fixing types first:
 
 ## Comparing Branches
 
-Compare type check results between the main branch and your feature branch to confirm whether you've introduced new type errors:
+If you need to do a full comparison between branches (e.g. to confirm whether errors are pre-existing), use `--force` to ignore cache:
 
 ```bash
 # On your branch

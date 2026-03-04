@@ -15,7 +15,7 @@ This methodical approach makes it easier to identify and resolve specific issues
 
 ## Recommended Order
 
-1. Run `yarn type-check:ci --force` to identify TypeScript type errors
+1. Run `yarn type-check:ci --affected` to identify TypeScript type errors in changed packages
 2. Run `yarn test` to identify failing unit tests
 3. Address both type errors and failing tests before considering the task complete
 4. Type errors often need to be fixed first as they may be causing the test failures

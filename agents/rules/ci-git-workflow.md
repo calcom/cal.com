@@ -15,7 +15,7 @@ Waiting for CI checks on unpushed local commits is backwards - the CI runs on th
 
 **Proper sequence:**
 1. Commit locally
-2. Run local checks (`yarn type-check:ci --force`, `yarn biome check --write .`)
+2. Run local checks (`yarn type-check:ci --affected`, `yarn biome check --write .`)
 3. Push to remote
 4. Monitor CI status
 
