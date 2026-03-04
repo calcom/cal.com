@@ -324,10 +324,12 @@ const EventTypeWeb = ({
   }, [form.formState.isDirty]);
 
   // Intercept in-app navigation when form has unsaved changes
+  const currentPageUrlRef = useRef(typeof window !== "undefined" ? window.location.href : "");
+
   useEffect(() => {
     const originalPushState = window.history.pushState.bind(window.history);
     const originalReplaceState = window.history.replaceState.bind(window.history);
-    const currentPageUrl = window.location.href;
+    currentPageUrlRef.current = window.location.href;
 
     window.history.pushState = function (state: unknown, title: string, url?: string | URL | null) {
       if (formIsDirtyRef.current && url) {
@@ -336,6 +338,7 @@ const EventTypeWeb = ({
         return;
       }
       originalPushState(state, title, url);
+      currentPageUrlRef.current = window.location.href;
     };
 
     window.history.replaceState = function (state: unknown, title: string, url?: string | URL | null) {
@@ -348,13 +351,16 @@ const EventTypeWeb = ({
         }
       }
       originalReplaceState(state, title, url);
+      currentPageUrlRef.current = window.location.href;
     };
 
     const handlePopState = () => {
       if (formIsDirtyRef.current) {
         unsavedChangesPendingUrl.current = window.location.href;
-        originalPushState(null, "", currentPageUrl);
+        originalPushState(null, "", currentPageUrlRef.current);
         setIsOpenUnsavedChangesDialog(true);
+      } else {
+        currentPageUrlRef.current = window.location.href;
       }
     };
 
