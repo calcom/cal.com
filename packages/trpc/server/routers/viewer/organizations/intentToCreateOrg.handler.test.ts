@@ -44,13 +44,15 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
   inviteMembersWithNoInviterPermissionCheck: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
-  getTranslation: vi.fn().mockImplementation(async (locale: string, namespace: string) => {
-    const t = (key: string) => key;
-    t.locale = locale;
-    t.namespace = namespace;
-    return t;
-  }),
+vi.mock("@calcom/i18n/server", () => ({
+  getTranslation: vi
+    .fn()
+    .mockImplementation(async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    }),
 }));
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({

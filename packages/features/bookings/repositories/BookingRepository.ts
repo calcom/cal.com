@@ -249,8 +249,14 @@ const selectStatementToGetBookingForCalEventBuilder = {
       timeZone: true,
       locale: true,
       timeFormat: true,
+      hideBranding: true,
       destinationCalendar: true,
-      profiles: { select: { organizationId: true } },
+      profiles: {
+        select: {
+          organizationId: true,
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   },
   // destination calendar of the Organizer
@@ -284,6 +290,8 @@ const selectStatementToGetBookingForCalEventBuilder = {
           id: true,
           name: true,
           parentId: true,
+          hideBranding: true,
+          parent: { select: { hideBranding: true } },
           members: {
             select: {
               user: {
@@ -459,11 +467,17 @@ export class BookingRepository implements IBookingRepository {
             },
             owner: {
               select: {
+                id: true,
                 hideBranding: true,
                 email: true,
                 name: true,
                 timeZone: true,
                 locale: true,
+                profiles: {
+                  select: {
+                    organization: { select: { hideBranding: true } },
+                  },
+                },
               },
             },
             team: {
@@ -471,6 +485,8 @@ export class BookingRepository implements IBookingRepository {
                 parentId: true,
                 name: true,
                 id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
               },
             },
           },
@@ -1497,7 +1513,12 @@ export class BookingRepository implements IBookingRepository {
         AND "endTime" <= ${endDate};
     `;
     }
-    return totalBookingTime.totalMinutes ?? 0;
+
+    // PostgreSQL 16+ returns `numeric` type from EXTRACT(EPOCH FROM ...) instead of `double precision`.
+    // Prisma maps `numeric` to a JavaScript Decimal object, which causes string concatenation
+    // instead of numeric addition when used with the `+` operator (e.g., Decimal(30) + 30 = "3030").
+    // Explicitly convert to a plain number to ensure correct arithmetic in all callers.
+    return Number(totalBookingTime.totalMinutes ?? 0);
   }
 
   async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
@@ -1548,17 +1569,27 @@ export class BookingRepository implements IBookingRepository {
             hideOrganizerEmail: true,
             teamId: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
           },
         },
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             timeZone: true,
             locale: true,
+            hideBranding: true,
             profiles: {
               select: {
                 organizationId: true,
+                organization: { select: { hideBranding: true } },
               },
             },
           },
@@ -1678,7 +1709,28 @@ export class BookingRepository implements IBookingRepository {
       },
       include: {
         attendees: true,
-        eventType: true,
+        eventType: {
+          select: {
+            teamId: true,
+            bookingFields: true,
+            title: true,
+            hideOrganizerEmail: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            customReplyToEmail: true,
+            metadata: true,
+            schedulingType: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
         destinationCalendar: true,
         references: true,
         user: {
@@ -1688,6 +1740,7 @@ export class BookingRepository implements IBookingRepository {
             profiles: {
               select: {
                 organizationId: true,
+                organization: { select: { hideBranding: true } },
               },
             },
           },
