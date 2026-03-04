@@ -12,6 +12,7 @@ import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -37,6 +38,10 @@ export type FormValues = {
     label: string | number;
   };
   weekStart: {
+    value: string;
+    label: string;
+  };
+  defaultHomeView: {
     value: string;
     label: string;
   };
@@ -104,6 +109,13 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
 
+  const defaultHomeViewOptions = [
+    { value: "event-types", label: t("event_types") },
+    { value: "bookings", label: t("bookings") },
+  ];
+
+  const parsedMetadata = userMetadataSchema.parse(user.metadata);
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       locale: {
@@ -118,6 +130,13 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       weekStart: {
         value: user.weekStart,
         label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
+      },
+      defaultHomeView: {
+        value: parsedMetadata?.defaultHomeView || "event-types",
+        label:
+          defaultHomeViewOptions.find(
+            (option) => option.value === (parsedMetadata?.defaultHomeView || "event-types")
+          )?.label || "",
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -166,6 +185,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               locale: values.locale.value,
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
+              metadata: { defaultHomeView: values.defaultHomeView.value as "event-types" | "bookings" },
             });
           }}>
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
@@ -308,6 +328,26 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     options={weekStartOptions}
                     onChange={(event) => {
                       if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                    }}
+                  />
+                </>
+              )}
+            />
+            <Controller
+              name="defaultHomeView"
+              control={formMethods.control}
+              render={({ field: { value } }) => (
+                <>
+                  <Label className="text-emphasis mt-6">
+                    <>{t("default_home_view")}</>
+                  </Label>
+                  <p className="text-subtle mb-2 text-sm">{t("default_home_view_description")}</p>
+                  <Select
+                    value={value}
+                    options={defaultHomeViewOptions}
+                    onChange={(event) => {
+                      if (event)
+                        formMethods.setValue("defaultHomeView", { ...event }, { shouldDirty: true });
                     }}
                   />
                 </>

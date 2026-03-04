@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import prisma from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -23,7 +25,13 @@ const RedirectPage = async () => {
     redirect(onboardingPath);
   }
 
-  redirect("/event-types");
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { metadata: true },
+  });
+  const metadata = userMetadata.parse(user?.metadata);
+  const defaultView = metadata?.defaultHomeView || "event-types";
+  redirect(`/${defaultView}`);
 };
 
 export default RedirectPage;

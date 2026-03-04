@@ -7,11 +7,13 @@ import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 export type TUpdateUserMetadataAllowedKeys = {
   sessionTimeout?: number;
   defaultBookerLayouts?: z.infer<typeof bookerLayouts>;
+  defaultHomeView?: "event-types" | "bookings";
 };
 
 export const updateUserMetadataAllowedKeys: z.ZodType<TUpdateUserMetadataAllowedKeys> = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   defaultBookerLayouts: bookerLayouts.optional(),
+  defaultHomeView: z.enum(["event-types", "bookings"]).optional(),
 });
 
 export type TUpdateProfileInputSchemaInput = {
