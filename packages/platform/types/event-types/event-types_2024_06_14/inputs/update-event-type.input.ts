@@ -20,7 +20,6 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-
 import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
@@ -148,6 +147,7 @@ class BaseUpdateEventTypeInput {
   @IsInt({ each: true })
   @Min(1, { each: true })
   @DocsPropertyOptional({
+    type: [Number],
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",

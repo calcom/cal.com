@@ -15,6 +15,18 @@ GET /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request
 DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
 GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
 GET /v2/webhooks/{webhookId} added the new path request parameter 'webhookId'
+POST /v2/event-types the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+PATCH /v2/event-types/{eventTypeId} the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId} the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+POST /v2/teams/{teamId}/event-types the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId} the 'lengthInMinutesOptions/items/' request property type/format changed from 'string'/'' to 'number'/''
+POST /v2/event-types removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
+PATCH /v2/event-types/{eventTypeId} removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId} removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
+POST /v2/teams/{teamId}/event-types removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId} removed the request property 'bookingLimitsCount/oneOf[#/components/schemas/BaseBookingLimitsCount_2024_06_14]/disabled'
 GET /v2/calendars/busy-times added the new required 'query' request parameter 'calendarsToLoad'
 GET /v2/calendars/busy-times the 'query' request parameter 'dateFrom' became required
 GET /v2/calendars/busy-times the 'query' request parameter 'dateTo' became required

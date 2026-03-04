@@ -18435,10 +18435,6 @@
             "type": "number",
             "description": "The number of bookings per year",
             "example": 4
-          },
-          "disabled": {
-            "type": "boolean",
-            "default": false
           }
         }
       },
@@ -18881,7 +18877,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           },
           "title": {
@@ -20999,7 +20995,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           },
           "title": {
@@ -22702,7 +22698,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           },
           "title": {
@@ -23250,7 +23246,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           },
           "title": {
