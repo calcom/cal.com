@@ -146,6 +146,7 @@ export type GetUserAvailabilityInitialData = {
     toUser: Pick<User, "id" | "username" | "name"> | null;
     reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
   })[];
+  guestBusyTimes?: (Pick<Booking, "id" | "uid" | "startTime" | "endTime" | "title">)[];
   busyTimesFromLimitsBookings?: EventBusyDetails[];
   busyTimesFromLimits?: Map<number, EventBusyDetails[]>;
   eventTypeForLimits?: {
@@ -622,6 +623,12 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      // Add guest busy times for rescheduling scenarios
+      ...(initialData?.guestBusyTimes?.map((booking) => ({
+        start: dayjs(booking.startTime).toISOString(),
+        end: dayjs(booking.endTime).toISOString(),
+        title: booking.title,
+      })) || []),
     ];
 
     log.debug(

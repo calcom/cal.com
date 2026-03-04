@@ -2225,3 +2225,44 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 }
+
+  async getAcceptedBookingsByAttendeeEmails({
+    emails,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    emails: string[];
+    startDate: string;
+    endDate: string;
+    excludedUid?: string;
+  }) {
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        startTime: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+        attendees: {
+          some: {
+            email: {
+              in: emails,
+            },
+          },
+        },
+        ...(excludedUid && {
+          uid: {
+            not: excludedUid,
+          },
+        }),
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+      },
+    });
+  }

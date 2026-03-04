@@ -839,6 +839,38 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
+    
+    // Fetch guest busy times when rescheduling to prevent double-booking guests
+    let guestBusyTimes: Awaited<ReturnType<typeof bookingRepo.getAcceptedBookingsByAttendeeEmails>> = [];
+    if (input.rescheduleUid) {
+      try {
+        const originalBooking = await bookingRepo.findByUid(input.rescheduleUid);
+        if (originalBooking?.attendees && originalBooking.attendees.length > 0) {
+          // Get all attendee emails
+          const allAttendeeEmails = originalBooking.attendees.map((a) => a.email);
+          
+          // Get host emails to exclude them (we only want guest busy times)
+          const hostEmails = new Set(
+            usersWithCredentials.map((user) => user.email)
+          );
+          
+          // Filter to only guest emails (non-hosts)
+          const guestEmails = allAttendeeEmails.filter((email) => !hostEmails.has(email));
+          
+          if (guestEmails.length > 0) {
+            guestBusyTimes = await bookingRepo.getAcceptedBookingsByAttendeeEmails({
+              emails: guestEmails,
+              startDate: startTime.format(),
+              endDate: endTime.format(),
+              excludedUid: input.rescheduleUid,
+            });
+          }
+        }
+      } catch (error) {
+        loggerWithEventDetails.warn("Failed to fetch guest busy times", error);
+      }
+    }
+
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
