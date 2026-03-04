@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
+import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputTable } from "../lib/output";
 
 interface BookingAttendee {
@@ -21,6 +22,8 @@ interface Booking {
   meetingUrl?: string;
   location?: string;
 }
+
+type BookingsResponse = Booking[];
 
 function formatAgendaRow(booking: Booking): string[] {
   const start = new Date(booking.start);
@@ -59,15 +62,17 @@ export function registerAgendaCommand(program: Command): void {
     .option("--take <n>", "Number of bookings to show", "25")
     .option("--json", "Output as JSON")
     .action(async (options: { take: string; json?: boolean }) => {
-      const response = await apiRequest<Booking[]>("/v2/bookings", {
+      const response = await apiRequest<BookingsResponse>("/v2/bookings", {
         query: {
           status: "upcoming",
           sortStart: "asc",
           take: options.take,
         },
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
-      handleOutput(response.data, options, (data) => {
+      const bookings = response.data;
+      handleOutput(bookings, options, (data) => {
         if (!data || data.length === 0) {
           console.log(chalk.dim("No upcoming bookings."));
           return;

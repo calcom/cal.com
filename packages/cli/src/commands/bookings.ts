@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
+import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/output";
 
 interface BookingAttendee {
@@ -23,6 +24,8 @@ interface Booking {
   meetingUrl?: string;
   location?: string;
 }
+
+type BookingsResponse = Booking[];
 
 function formatBookingRow(booking: Booking): string[] {
   const start = new Date(booking.start);
@@ -111,9 +114,13 @@ function registerBookingQueryCommands(bookings: Command): void {
         if (options.take) query.take = options.take;
         if (options.skip) query.skip = options.skip;
 
-        const response = await apiRequest<Booking[]>("/v2/bookings", { query });
+        const response = await apiRequest<BookingsResponse>("/v2/bookings", {
+          query,
+          apiVersion: API_VERSION.V_2024_08_13,
+        });
 
-        handleOutput(response.data, options, (data) => {
+        const bookings = response.data;
+        handleOutput(bookings, options, (data) => {
           if (!data || data.length === 0) {
             console.log("No bookings found.");
             return;
@@ -128,7 +135,9 @@ function registerBookingQueryCommands(bookings: Command): void {
     .description("Get a booking by UID")
     .option("--json", "Output as JSON")
     .action(async (bookingUid: string, options: { json?: boolean }) => {
-      const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}`);
+      const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}`, {
+        apiVersion: API_VERSION.V_2024_08_13,
+      });
 
       handleOutput(response.data, options, (data) => {
         if (!data) {
@@ -180,6 +189,7 @@ function registerBookingCreateCommand(bookings: Command): void {
         const response = await apiRequest<Booking>("/v2/bookings", {
           method: "POST",
           body,
+          apiVersion: API_VERSION.V_2024_08_13,
         });
 
         handleOutput(response.data, options, (data) => {
@@ -209,6 +219,7 @@ function registerBookingActionCommands(bookings: Command): void {
       const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}/cancel`, {
         method: "POST",
         body,
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
       handleOutput(response.data, options, () => {
@@ -233,6 +244,7 @@ function registerBookingActionCommands(bookings: Command): void {
       const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}/reschedule`, {
         method: "POST",
         body,
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -253,6 +265,7 @@ function registerBookingActionCommands(bookings: Command): void {
       const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}/confirm`, {
         method: "POST",
         body: {},
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
       handleOutput(response.data, options, () => {
@@ -274,6 +287,7 @@ function registerBookingActionCommands(bookings: Command): void {
       const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}/decline`, {
         method: "POST",
         body,
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
       handleOutput(response.data, options, () => {
@@ -289,6 +303,7 @@ function registerBookingActionCommands(bookings: Command): void {
       const response = await apiRequest<Booking>(`/v2/bookings/${bookingUid}/reassign`, {
         method: "POST",
         body: {},
+        apiVersion: API_VERSION.V_2024_08_13,
       });
 
       handleOutput(response.data, options, () => {
