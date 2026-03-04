@@ -933,4 +933,250 @@ describe("commands", () => {
       await expect(program.parseAsync(["ooo", "list"], { from: "user" })).rejects.toThrow("organization");
     });
   });
+
+  describe("registerPrivateLinksCommand", () => {
+    it("registers private-links command with subcommands", async () => {
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      const cmd = program.commands.find((c: CommandType) => c.name() === "private-links");
+      expect(cmd).toBeDefined();
+
+      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
+      expect(subcommands).toContain("list");
+      expect(subcommands).toContain("get");
+      expect(subcommands).toContain("create");
+      expect(subcommands).toContain("update");
+      expect(subcommands).toContain("delete");
+    });
+
+    it("lists private links for an event type", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: [
+          {
+            linkId: "abc123",
+            eventTypeId: 42,
+            isExpired: false,
+            bookingUrl: "https://cal.com/d/abc123/30min",
+            expiresAt: "2026-12-31T23:59:59.000Z",
+          },
+          {
+            linkId: "def456",
+            eventTypeId: 42,
+            isExpired: false,
+            bookingUrl: "https://cal.com/d/def456/30min",
+            maxUsageCount: 10,
+            usageCount: 3,
+          },
+        ],
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "list", "--event-type-id", "42"], { from: "user" });
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/event-types/42/private-links");
+      expect(logSpy).toHaveBeenCalled();
+    });
+
+    it("handles empty private links list", async () => {
+      mockApiRequest.mockResolvedValue({ status: "success", data: [] });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "list", "--event-type-id", "42"], { from: "user" });
+
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(" ");
+      expect(output).toContain("No private links found");
+    });
+
+    it("gets a specific private link by ID", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: [
+          {
+            linkId: "abc123",
+            eventTypeId: 42,
+            isExpired: false,
+            bookingUrl: "https://cal.com/d/abc123/30min",
+            maxUsageCount: 5,
+            usageCount: 2,
+          },
+        ],
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "get", "abc123", "--event-type-id", "42"], { from: "user" });
+
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/event-types/42/private-links");
+      const output = logSpy.mock.calls.map((c: unknown[]) => String(c[0])).join(" ");
+      expect(output).toContain("abc123");
+    });
+
+    it("creates a private link with expiration", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: {
+          linkId: "new123",
+          eventTypeId: 42,
+          isExpired: false,
+          bookingUrl: "https://cal.com/d/new123/30min",
+          expiresAt: "2026-12-31T23:59:59.000Z",
+        },
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(
+        ["private-links", "create", "--event-type-id", "42", "--expires-at", "2026-12-31T23:59:59.000Z"],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types/42/private-links",
+        expect.objectContaining({
+          method: "POST",
+          body: { expiresAt: "2026-12-31T23:59:59.000Z" },
+        })
+      );
+    });
+
+    it("creates a private link with max usage count", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: {
+          linkId: "usage123",
+          eventTypeId: 42,
+          isExpired: false,
+          bookingUrl: "https://cal.com/d/usage123/30min",
+          maxUsageCount: 10,
+          usageCount: 0,
+        },
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(
+        ["private-links", "create", "--event-type-id", "42", "--max-usage-count", "10"],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types/42/private-links",
+        expect.objectContaining({
+          method: "POST",
+          body: { maxUsageCount: 10 },
+        })
+      );
+    });
+
+    it("updates a private link", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: {
+          linkId: "abc123",
+          eventTypeId: 42,
+          isExpired: false,
+          bookingUrl: "https://cal.com/d/abc123/30min",
+          maxUsageCount: 20,
+          usageCount: 3,
+        },
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(
+        ["private-links", "update", "abc123", "--event-type-id", "42", "--max-usage-count", "20"],
+        { from: "user" }
+      );
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types/42/private-links/abc123",
+        expect.objectContaining({
+          method: "PATCH",
+          body: { maxUsageCount: 20 },
+        })
+      );
+    });
+
+    it("deletes a private link", async () => {
+      mockApiRequest.mockResolvedValue({
+        status: "success",
+        data: { linkId: "abc123", message: "Private link deleted successfully" },
+      });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "delete", "abc123", "--event-type-id", "42"], {
+        from: "user",
+      });
+
+      expect(mockApiRequest).toHaveBeenCalledWith(
+        "/v2/event-types/42/private-links/abc123",
+        expect.objectContaining({ method: "DELETE" })
+      );
+    });
+
+    it("outputs JSON for list command", async () => {
+      const linksData = [
+        {
+          linkId: "abc123",
+          eventTypeId: 42,
+          isExpired: false,
+          bookingUrl: "https://cal.com/d/abc123/30min",
+          expiresAt: "2026-12-31T23:59:59.000Z",
+        },
+      ];
+      mockApiRequest.mockResolvedValue({ status: "success", data: linksData });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "list", "--event-type-id", "42", "--json"], {
+        from: "user",
+      });
+
+      expect(logSpy).toHaveBeenCalledWith(JSON.stringify(linksData, null, 2));
+    });
+
+    it("outputs JSON for create command", async () => {
+      const linkData = {
+        linkId: "new123",
+        eventTypeId: 42,
+        isExpired: false,
+        bookingUrl: "https://cal.com/d/new123/30min",
+        maxUsageCount: 1,
+        usageCount: 0,
+      };
+      mockApiRequest.mockResolvedValue({ status: "success", data: linkData });
+
+      const { registerPrivateLinksCommand } = await import("./private-links");
+      const program = new Command();
+      program.exitOverride();
+      registerPrivateLinksCommand(program);
+      await program.parseAsync(["private-links", "create", "--event-type-id", "42", "--json"], {
+        from: "user",
+      });
+
+      expect(logSpy).toHaveBeenCalledWith(JSON.stringify(linkData, null, 2));
+    });
+  });
 });

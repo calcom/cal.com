@@ -11,6 +11,7 @@ import { registerEventTypesCommand } from "./commands/event-types";
 import { registerLoginCommand, registerLogoutCommand } from "./commands/login";
 import { registerMeCommand } from "./commands/me";
 import { registerOooCommand } from "./commands/ooo";
+import { registerPrivateLinksCommand } from "./commands/private-links";
 import { registerSchedulesCommand } from "./commands/schedules";
 import { registerSelectedCalendarsCommand } from "./commands/selected-calendars";
 import { registerSlotsCommand } from "./commands/slots";
@@ -47,6 +48,7 @@ registerSelectedCalendarsCommand(program);
 registerApiKeysCommand(program);
 registerTimezonesCommand(program);
 registerOooCommand(program);
+registerPrivateLinksCommand(program);
 
 program.parseAsync(process.argv).catch((err: Error) => {
   console.error(`Error: ${err.message}`);
