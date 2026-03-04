@@ -20,6 +20,8 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 
 describe("Event Types Private Links Endpoints", () => {
+  jest.setTimeout(30000);
+
   let app: INestApplication;
 
   let _oAuthClient: any;

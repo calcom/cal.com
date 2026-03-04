@@ -1,7 +1,9 @@
 import { Logger, Module } from "@nestjs/common";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
-import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
+import { OrganizationsEventTypesPrivateLinksController_2024_06_14 } from "@/ee/event-types-private-links/2024-06-14/controllers/organizations-event-types-private-links.controller";
+import { OrganizationsEventTypesPrivateLinksController_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/controllers/organizations-event-types-private-links.controller";
+import { EventTypesPrivateLinksModule_2024_06_14 } from "@/ee/event-types-private-links/2024-06-14/event-types-private-links.module";
+import { EventTypesPrivateLinksModule_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/event-types-private-links.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
@@ -105,7 +107,8 @@ import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,
     OrganizationsConferencingModule,
-    EventTypesPrivateLinksModule,
+    EventTypesPrivateLinksModule_2024_09_04,
+    EventTypesPrivateLinksModule_2024_06_14,
   ],
   providers: [
     OrganizationsRepository,
@@ -201,7 +204,8 @@ import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
     OrganizationTeamWorkflowsController,
-    OrganizationsEventTypesPrivateLinksController,
+    OrganizationsEventTypesPrivateLinksController_2024_06_14,
+    OrganizationsEventTypesPrivateLinksController_2024_09_04,
   ],
 })
 export class OrganizationsModule {}

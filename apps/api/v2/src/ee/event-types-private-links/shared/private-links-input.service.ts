@@ -1,6 +1,5 @@
-import { Injectable } from "@nestjs/common";
-
 import { CreatePrivateLinkInput, UpdatePrivateLinkInput } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class PrivateLinksInputService {

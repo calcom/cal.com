@@ -4366,9 +4366,19 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links": {
       "post": {
-        "operationId": "OrganizationsEventTypesPrivateLinksController_createPrivateLink",
+        "operationId": "OrganizationsEventTypesPrivateLinksController_2024_09_04_createPrivateLink",
         "summary": "Create a private link for a team event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -4438,9 +4448,19 @@
         "tags": ["Orgs / Teams / Event Types / Private Links"]
       },
       "get": {
-        "operationId": "OrganizationsEventTypesPrivateLinksController_getPrivateLinks",
+        "operationId": "OrganizationsEventTypesPrivateLinksController_2024_09_04_getPrivateLinks",
         "summary": "Get all private links for a team event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -4502,9 +4522,19 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}": {
       "patch": {
-        "operationId": "OrganizationsEventTypesPrivateLinksController_updatePrivateLink",
+        "operationId": "OrganizationsEventTypesPrivateLinksController_2024_09_04_updatePrivateLink",
         "summary": "Update a private link for a team event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -4572,9 +4602,19 @@
         "tags": ["Orgs / Teams / Event Types / Private Links"]
       },
       "delete": {
-        "operationId": "OrganizationsEventTypesPrivateLinksController_deletePrivateLink",
+        "operationId": "OrganizationsEventTypesPrivateLinksController_2024_09_04_deletePrivateLink",
         "summary": "Delete a private link for a team event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -10234,6 +10274,64 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/attendees": {
+      "post": {
+        "operationId": "BookingAttendeesController_2024_08_13_addAttendee",
+        "summary": "Add an attendee to a booking",
+        "description": "Add a new attendee to an existing booking by its UID.\n\n      **Side effects:**\n      - The booking's attendee list is updated in the database\n      - The calendar event is updated on connected calendars (Google Calendar, Outlook, etc.) to include the new attendee\n      - An email notification is sent to the new attendee with the booking details\n\n      **Permissions:**\n      - The authenticated user must be either the booking organizer, an existing attendee, or have the `booking.update` permission for the team\n\n      <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAttendeeInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddAttendeeOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      }
+    },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
         "operationId": "BookingGuestsController_2024_08_13_addGuests",
@@ -12545,9 +12643,19 @@
     },
     "/v2/event-types/{eventTypeId}/private-links": {
       "post": {
-        "operationId": "EventTypesPrivateLinksController_createPrivateLink",
+        "operationId": "EventTypesPrivateLinksController_2024_09_04_createPrivateLink",
         "summary": "Create a private link for an event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -12591,9 +12699,19 @@
         "tags": ["Event Types Private Links"]
       },
       "get": {
-        "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
+        "operationId": "EventTypesPrivateLinksController_2024_09_04_getPrivateLinks",
         "summary": "Get all private links for an event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -12629,9 +12747,19 @@
     },
     "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
       "patch": {
-        "operationId": "EventTypesPrivateLinksController_updatePrivateLink",
+        "operationId": "EventTypesPrivateLinksController_2024_09_04_updatePrivateLink",
         "summary": "Update a private link for an event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -12683,9 +12811,19 @@
         "tags": ["Event Types Private Links"]
       },
       "delete": {
-        "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
+        "operationId": "EventTypesPrivateLinksController_2024_09_04_deletePrivateLink",
         "summary": "Delete a private link for an event type",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`. Returns the full booking URL including org slug and event slug.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -24321,6 +24459,7 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
+              "ROUTING_FORM_FALLBACK_HIT",
               "DELEGATION_CREDENTIAL_ERROR",
               "WRONG_ASSIGNMENT_REPORT"
             ]
@@ -24396,6 +24535,7 @@
               "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT",
+              "ROUTING_FORM_FALLBACK_HIT",
               "DELEGATION_CREDENTIAL_ERROR",
               "WRONG_ASSIGNMENT_REPORT"
             ]
@@ -26519,9 +26659,9 @@
           },
           "bookingUrl": {
             "type": "string",
-            "description": "Full booking URL for this private link",
+            "description": "Full booking URL for this private link (deprecated endpoints return hash-only URL without event slug)",
             "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
+            "example": "https://cal.com/d/abc123def456"
           },
           "expiresAt": {
             "type": "string",
@@ -26552,9 +26692,9 @@
           },
           "bookingUrl": {
             "type": "string",
-            "description": "Full booking URL for this private link",
+            "description": "Full booking URL for this private link (deprecated endpoints return hash-only URL without event slug)",
             "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
+            "example": "https://cal.com/d/abc123def456"
           },
           "maxUsageCount": {
             "type": "number",
@@ -29306,11 +29446,6 @@
             "description": "The name of the attendee.",
             "example": "John Doe"
           },
-          "email": {
-            "type": "string",
-            "description": "The email of the attendee.",
-            "example": "john.doe@example.com"
-          },
           "timeZone": {
             "type": "string",
             "description": "The time zone of the attendee.",
@@ -29371,6 +29506,11 @@
             "description": "The preferred language of the attendee. Used for booking confirmation.",
             "example": "it",
             "default": "en"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
           }
         },
         "required": ["name", "timeZone"]
@@ -31490,6 +31630,185 @@
           },
           "error": {
             "type": "object"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "AddAttendeeInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the attendee.",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The time zone of the attendee.",
+            "example": "America/New_York"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "description": "The preferred language of the attendee. Used for booking confirmation.",
+            "example": "it",
+            "default": "en"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": ["name", "timeZone", "email"]
+      },
+      "BookingAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "id": {
+            "type": "number",
+            "example": 251
+          },
+          "bookingId": {
+            "type": "number",
+            "example": 313
+          }
+        },
+        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id", "bookingId"]
+      },
+      "AddAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingAttendeeOutput_2024_08_13"
           }
         },
         "required": ["status", "data"]

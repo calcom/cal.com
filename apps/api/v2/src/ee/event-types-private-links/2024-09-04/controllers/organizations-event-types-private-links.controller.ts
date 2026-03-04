@@ -1,4 +1,16 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CreatePrivateLinkInput,
+  CreatePrivateLinkOutput,
+  DeletePrivateLinkOutput,
+  GetPrivateLinksOutput,
+  UpdatePrivateLinkInput,
+  UpdatePrivateLinkOutput,
+} from "@calcom/platform-types";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { PrivateLinksService_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/services/private-links.service";
+import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
@@ -13,32 +25,27 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CreatePrivateLinkInput,
-  CreatePrivateLinkOutput,
-  DeletePrivateLinkOutput,
-  GetPrivateLinksOutput,
-  UpdatePrivateLinkInput,
-  UpdatePrivateLinkOutput,
-} from "@calcom/platform-types";
-
-import { PrivateLinksService } from "../services/private-links.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links",
-  version: API_VERSIONS_VALUES,
+  version: VERSION_2024_09_04,
 })
 @DocsTags("Orgs / Teams / Event Types / Private Links")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
-export class OrganizationsEventTypesPrivateLinksController {
+@ApiHeader({
+  name: "cal-api-version",
+  description: `Must be set to \`2024-09-04\`. Returns the full booking URL including org slug and event slug.`,
+  example: "2024-09-04",
+  required: true,
+  schema: {
+    default: "2024-09-04",
+  },
+})
+export class OrganizationsEventTypesPrivateLinksController_2024_09_04 {
   constructor(
-    private readonly privateLinksService: PrivateLinksService,
+    private readonly privateLinksService: PrivateLinksService_2024_09_04,
     private readonly teamsEventTypesService: TeamsEventTypesService
   ) {}
 
@@ -53,7 +60,6 @@ export class OrganizationsEventTypesPrivateLinksController {
     @Body() body: CreatePrivateLinkInput
   ): Promise<CreatePrivateLinkOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    // Use teamId as the seed for link generation in org/team context
     const privateLink = await this.privateLinksService.createPrivateLink(eventTypeId, teamId, body);
     return {
       status: SUCCESS_STATUS,

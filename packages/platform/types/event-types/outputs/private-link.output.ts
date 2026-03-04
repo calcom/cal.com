@@ -24,10 +24,11 @@ abstract class BasePrivateLinkOutput {
   isExpired!: boolean;
 
   @ApiProperty({
-    description: "Full booking URL for this private link",
+    description:
+      "Full booking URL for this private link (deprecated endpoints return hash-only URL without event slug)",
     type: String,
     format: "uri",
-    example: "https://cal.com/d/abc123def456/30min",
+    example: "https://cal.com/d/abc123def456",
   })
   bookingUrl!: string;
 }
