@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./config", () => ({
-  getAuthToken: vi.fn().mockReturnValue("cal_test_key"),
-  getApiKey: vi.fn().mockReturnValue("cal_test_key"),
+  getAuthToken: vi.fn().mockResolvedValue("cal_test_key"),
+  getApiKey: vi.fn().mockResolvedValue("cal_test_key"),
   getApiUrl: vi.fn().mockReturnValue("https://api.cal.com"),
 }));
 

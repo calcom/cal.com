@@ -51,7 +51,7 @@ async function apiRequest<T = unknown>(
   options: ApiRequestOptions = {}
 ): Promise<ApiResponse<T>> {
   const apiUrl = getApiUrl();
-  const apiKey = getAuthToken();
+  const apiKey = await getAuthToken();
   const { method = "GET", body, query, headers = {} } = options;
 
   let url = `${apiUrl}${path}`;
