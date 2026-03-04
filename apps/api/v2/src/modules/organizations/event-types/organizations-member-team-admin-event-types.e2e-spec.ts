@@ -1516,6 +1516,83 @@ describe("Organizations Event Types Endpoints", () => {
       expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
     });
 
+    it("should create a collective team event-type with customName containing booking field variables", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Custom name booking fields test",
+        slug: `custom-name-booking-fields-${randomString()}`,
+        description: "Test custom name with booking field variables.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "text",
+            label: "Company name",
+            slug: "company-name",
+            required: true,
+            placeholder: "enter company name",
+          },
+        ],
+        customName: "{title} with {Organiser} - {company-name}",
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+          {
+            userId: teammate2.id,
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data.customName).toEqual(body.customName);
+
+      await eventTypesRepositoryFixture.delete(responseBody.data.id);
+    });
+
+    it("should reject creating a team event-type with customName containing invalid variables", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Invalid custom name test",
+        slug: `invalid-custom-name-${randomString()}`,
+        description: "Test custom name with invalid variables.",
+        lengthInMinutes: 30,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        customName: "{nonExistentVariable} with {Organiser}",
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+          },
+          {
+            userId: teammate2.id,
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.error.message).toContain("Invalid event name variables");
+    });
+
     function evaluateHost(expected: Host, received: Host | undefined) {
       expect(expected.userId).toEqual(received?.userId);
       expect(expected.mandatory).toEqual(received?.mandatory);

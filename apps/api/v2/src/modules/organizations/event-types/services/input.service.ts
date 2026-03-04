@@ -55,6 +55,7 @@ export class InputOrganizationsEventTypesService {
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
+      bookingFields: transformedBody.bookingFields,
     });
 
     if (transformedBody.destinationCalendar) {
@@ -96,10 +97,12 @@ export class InputOrganizationsEventTypesService {
     await this.inputEventTypesService.validateEventTypeInputs({
       eventTypeId: eventTypeId,
       seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
-      hasRecurrenceEnabled: transformedBody.recurringEvent !== undefined ? !!transformedBody.recurringEvent : undefined,
+      hasRecurrenceEnabled:
+        transformedBody.recurringEvent !== undefined ? !!transformedBody.recurringEvent : undefined,
       locations: transformedBody.locations,
       requiresConfirmation: transformedBody.requiresConfirmation,
       eventName: transformedBody.eventName,
+      bookingFields: transformedBody.bookingFields,
     });
 
     if (transformedBody.destinationCalendar) {
