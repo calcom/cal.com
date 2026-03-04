@@ -25,6 +25,7 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
 
   const where: Prisma.MembershipWhereInput = {
     teamId: organizationId,
+    accepted: true,
     user: {
       username: { not: null },
       isPlatformManaged: false,

@@ -2,8 +2,6 @@ import type { NextApiRequest } from "next";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
-import { ZGetActiveUserBookingsInputSchema } from "./getActiveUserBookings.schema";
-import { ZGetActiveUserBreakdownInputSchema } from "./getActiveUserBreakdown.schema";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
@@ -12,6 +10,8 @@ import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetSchema } from "./get.schema";
+import { ZGetActiveUserBookingsInputSchema } from "./getActiveUserBookings.schema";
+import { ZGetActiveUserBreakdownInputSchema } from "./getActiveUserBreakdown.schema";
 import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
@@ -25,6 +25,7 @@ import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListInvoicesInputSchema } from "./listInvoices.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZListMembersMinimalInputSchema } from "./listMembersMinimal.schema";
 import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
 import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
 import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
@@ -111,6 +112,10 @@ export const viewerTeamsRouter = router({
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const { default: handler } = await import("./listMembers.handler");
+    return handler(opts);
+  }),
+  listMembersMinimal: authedProcedure.input(ZListMembersMinimalInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listMembersMinimal.handler");
     return handler(opts);
   }),
   listSimpleMembers: authedProcedure.query(async (opts) => {

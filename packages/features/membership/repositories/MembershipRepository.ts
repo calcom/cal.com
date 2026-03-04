@@ -648,4 +648,75 @@ export class MembershipRepository {
     });
     return !!membership;
   }
+
+  /**
+   * Find team IDs where user has accepted membership in non-private, non-organization teams
+   */
+  async findAcceptedNonPrivateTeamIdsByUserId({ userId }: { userId: number }): Promise<number[]> {
+    const memberships = await this.prismaClient.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+        team: {
+          isPrivate: false,
+          isOrganization: false,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+    return memberships.map((m) => m.teamId);
+  }
+
+  /**
+   * Find distinct members from given teams with pagination and optional search
+   */
+  async findDistinctMembersFromTeams({
+    teamIds,
+    cursor,
+    searchTerm,
+    limit,
+  }: {
+    teamIds: number[];
+    cursor?: number | null;
+    searchTerm?: string;
+    limit: number;
+  }) {
+    const where: Prisma.MembershipWhereInput = {
+      teamId: { in: teamIds },
+      accepted: true,
+      user: {
+        username: { not: null },
+        isPlatformManaged: false,
+        ...(cursor && { id: { gt: cursor } }),
+        ...(searchTerm && {
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" } },
+            { username: { contains: searchTerm, mode: "insensitive" } },
+          ],
+        }),
+      },
+    };
+
+    return this.prismaClient.membership.findMany({
+      where,
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+          },
+        },
+      },
+      distinct: ["userId"],
+      take: limit,
+      orderBy: {
+        user: {
+          id: "asc",
+        },
+      },
+    });
+  }
 }

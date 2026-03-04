@@ -3,10 +3,7 @@
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import {
-  extractHostTimezone,
-  filterActiveLinks,
-} from "@calcom/lib/hashedLinksUtils";
+import { extractHostTimezone, filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -65,17 +62,13 @@ import type { FC } from "react";
 import { createContext, memo, useContext, useEffect, useState } from "react";
 import { z } from "zod";
 
-type GetUserEventGroupsResponse =
-  RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
-type GetEventTypesFromGroupsResponse =
-  RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
+type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
 
-type InfiniteEventTypeGroup =
-  GetUserEventGroupsResponse["eventTypeGroups"][number];
+type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
 type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 
-type EventTypeGroups =
-  RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
@@ -88,8 +81,9 @@ interface SearchContextType {
   debouncedSearchTerm: string;
 }
 
-const SearchContextInternal: React.Context<SearchContextType | undefined> =
-  createContext<SearchContextType | undefined>(undefined);
+const SearchContextInternal: React.Context<SearchContextType | undefined> = createContext<
+  SearchContextType | undefined
+>(undefined);
 
 const useSearchContext = (): SearchContextType => {
   const context = useContext(SearchContextInternal);
@@ -122,9 +116,7 @@ const querySchema = z.object({
   teamId: z.nullable(z.coerce.number()).optional().default(null),
 });
 
-const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
-  props: InfiniteTeamsTabProps
-) => {
+const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props: InfiniteTeamsTabProps) => {
   const { activeEventTypeGroup } = props;
   const { debouncedSearchTerm } = useSearchContext();
   const { t } = useLocale();
@@ -142,8 +134,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
       refetchOnWindowFocus: true,
       refetchOnMount: true,
       staleTime: 0,
-      getNextPageParam: (lastPage: { nextCursor: number | null | undefined }) =>
-        lastPage.nextCursor,
+      getNextPageParam: (lastPage: { nextCursor: number | null | undefined }) => lastPage.nextCursor,
     }
   );
 
@@ -165,20 +156,18 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (
           debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
-      {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 &&
-        query.hasNextPage && (
-          <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-            <Button
-              color="minimal"
-              loading={query.isFetchingNextPage}
-              onClick={(): void => {
-                query.fetchNextPage();
-              }}
-            >
-              {t("load_more_results")}
-            </Button>
-          </div>
-        )}
+      {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && query.hasNextPage && (
+        <div className="p-4 text-center text-default" ref={buttonInView.ref}>
+          <Button
+            color="minimal"
+            loading={query.isFetchingNextPage}
+            onClick={(): void => {
+              query.fetchNextPage();
+            }}>
+            {t("load_more_results")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -197,38 +186,29 @@ const Item = ({
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
-    parsedeventTypeColor &&
-    parsedeventTypeColor[
-      hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"
-    ];
+    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
   const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
   const isRoundRobinOrCollective =
-    type.schedulingType === SchedulingType.ROUND_ROBIN ||
-    type.schedulingType === SchedulingType.COLLECTIVE;
-  const isCurrentUserHost =
-    "isCurrentUserHost" in type && type.isCurrentUserHost;
+    type.schedulingType === SchedulingType.ROUND_ROBIN || type.schedulingType === SchedulingType.COLLECTIVE;
+  const isCurrentUserHost = "isCurrentUserHost" in type && type.isCurrentUserHost;
   const showAssignedBadge = isRoundRobinOrCollective && isCurrentUserHost;
 
   const content = (): JSX.Element => (
     <div>
       <span
-        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
-        data-testid={`event-type-title-${type.id}`}
-      >
+        className="font-semibold break-words text-default ltr:mr-1 rtl:ml-1"
+        data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
       {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
-          className="text-subtle hidden font-normal leading-4 sm:inline"
-          data-testid={`event-type-slug-${type.id}`}
-        >
+          className="hidden font-normal leading-4 text-subtle sm:inline"
+          data-testid={`event-type-slug-${type.id}`}>
           {`/${group.profile.slug}/${type.slug}`}
         </small>
       ) : null}
       {!isManagedEventType && type.hidden && (
-        <span className="ml-2 text-sm text-gray-400 sm:hidden">
-          {t("hidden")}
-        </span>
+        <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
       )}
       {readOnly && (
         <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
@@ -246,17 +226,9 @@ const Item = ({
   );
 
   return (
-    <div
-      className={classNames(
-        eventTypeColor && "-ml-3",
-        "relative flex-1 overflow-hidden pr-4 text-sm"
-      )}
-    >
+    <div className={classNames(eventTypeColor && "-ml-3", "relative flex-1 overflow-hidden pr-4 text-sm")}>
       {eventTypeColor && (
-        <div
-          className="absolute h-full w-0.5"
-          style={{ backgroundColor: eventTypeColor }}
-        />
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
       )}
       <div className={classNames(eventTypeColor && "ml-3")}>
         {readOnly ? (
@@ -265,47 +237,31 @@ const Item = ({
             <EventTypeDescription eventType={type} shortenDescription />
           </div>
         ) : (
-          <Link
-            href={`/event-types/${type.id}?tabName=setup`}
-            title={type.title}
-          >
+          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
-                data-testid={`event-type-title-${type.id}`}
-              >
+                className="font-semibold break-words text-default ltr:mr-1 rtl:ml-1"
+                data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
-              {group.profile.slug &&
-              type.schedulingType !== SchedulingType.MANAGED ? (
+              {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
-                  className="text-subtle hidden font-normal leading-4 sm:inline"
-                  data-testid={`event-type-slug-${type.id}`}
-                >
+                  className="hidden font-normal leading-4 text-subtle sm:inline"
+                  data-testid={`event-type-slug-${type.id}`}>
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
               ) : null}
               {!isManagedEventType && type.hidden && (
-                <span className="ml-2 text-sm text-gray-400 sm:hidden">
-                  {t("hidden")}
-                </span>
+                <span className="ml-2 text-sm text-gray-400 sm:hidden">{t("hidden")}</span>
               )}
               {readOnly && (
-                <Badge
-                  variant="gray"
-                  className="ml-2"
-                  data-testid="readonly-badge"
-                >
+                <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
                   {t("readonly")}
                 </Badge>
               )}
               {showAssignedBadge && (
                 <Tooltip content={t("you_are_assigned_to_this_event")}>
-                  <Badge
-                    variant="blue"
-                    className="ml-2"
-                    data-testid="assigned-badge"
-                  >
+                  <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
                     {t("assigned")}
                   </Badge>
                 </Tooltip>
@@ -344,11 +300,10 @@ export const InfiniteEventTypeList = ({
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
-  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] =
-    useState<SchedulingType | null>(null);
-  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<
-    Record<string, number>
-  >({});
+  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
+    null
+  );
+  const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
@@ -362,12 +317,11 @@ export const InfiniteEventTypeList = ({
   const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onMutate: async (data: { id: number; hidden?: boolean }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue =
-        utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-          limit: LIMIT,
-          searchQuery: debouncedSearchTerm,
-          group: { teamId: group?.teamId, parentId: group?.parentId },
-        });
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
@@ -388,9 +342,7 @@ export const InfiniteEventTypeList = ({
               pages: oldData.pages.map((page) => ({
                 ...page,
                 eventTypes: page.eventTypes.map((eventType) =>
-                  eventType.id === data.id
-                    ? { ...eventType, hidden: !eventType.hidden }
-                    : eventType
+                  eventType.id === data.id ? { ...eventType, hidden: !eventType.hidden } : eventType
                 ),
               })),
             };
@@ -415,10 +367,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  async function moveEventType(
-    index: number,
-    increment: 1 | -1
-  ): Promise<void> {
+  async function moveEventType(index: number, increment: 1 | -1): Promise<void> {
     if (!pages) return;
     const newOrder = pages;
     const pageNo = Math.floor(index / LIMIT);
@@ -431,8 +380,8 @@ export const InfiniteEventTypeList = ({
           ? pageNo - 1
           : pageNo
         : index % LIMIT === LIMIT - 1
-        ? pageNo + 1
-        : pageNo;
+          ? pageNo + 1
+          : pageNo;
 
     const newIdx = (index + increment) % LIMIT;
     const newPositionEventType = newOrder[newPageNo].eventTypes[newIdx];
@@ -441,12 +390,11 @@ export const InfiniteEventTypeList = ({
     newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
 
     await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-    const previousValue =
-      utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-        limit: LIMIT,
-        searchQuery: debouncedSearchTerm,
-        group: { teamId: group?.teamId, parentId: group?.parentId },
-      });
+    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      limit: LIMIT,
+      searchQuery: debouncedSearchTerm,
+      group: { teamId: group?.teamId, parentId: group?.parentId },
+    });
 
     if (previousValue) {
       utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
@@ -480,17 +428,9 @@ export const InfiniteEventTypeList = ({
   }
 
   // inject selection data into url for correct router history
-  const openDuplicateModal = (
-    eventType: InfiniteEventType,
-    group: InfiniteEventTypeGroup
-  ): void => {
-    const newSearchParams = new URLSearchParams(
-      searchParams?.toString() ?? undefined
-    );
-    function setParamsIfDefined(
-      key: string,
-      value: string | number | boolean | null | undefined
-    ) {
+  const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup): void => {
+    const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
+    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
     }
@@ -512,12 +452,11 @@ export const InfiniteEventTypeList = ({
     },
     onMutate: async ({ id }) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue =
-        utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-          limit: LIMIT,
-          searchQuery: debouncedSearchTerm,
-          group: { teamId: group?.teamId, parentId: group?.parentId },
-        });
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        searchQuery: debouncedSearchTerm,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
 
       if (previousValue) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
@@ -581,24 +520,16 @@ export const InfiniteEventTypeList = ({
     return group.teamId ? (
       <EmptyEventTypeList group={group} searchTerm={debouncedSearchTerm} />
     ) : !group.profile.eventTypesLockedByOrg ? (
-      <CreateFirstEventTypeView
-        slug={group.profile.slug ?? ""}
-        searchTerm={debouncedSearchTerm}
-      />
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} searchTerm={debouncedSearchTerm} />
     ) : (
       <></>
     );
   }
 
   const firstItem = pages?.[0]?.eventTypes[0];
-  const lastItem =
-    pages?.[pages.length - 1]?.eventTypes[
-      pages?.[pages.length - 1].eventTypes.length - 1
-    ];
+  const lastItem = pages?.[pages.length - 1]?.eventTypes[pages?.[pages.length - 1].eventTypes.length - 1];
   const isManagedEventPrefix = () => {
-    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED
-      ? "_managed"
-      : "";
+    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
 
   const userTimezone = extractHostTimezone({
@@ -610,66 +541,46 @@ export const InfiniteEventTypeList = ({
   });
 
   return (
-    <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-      <ul
-        ref={parent}
-        className="divide-subtle static! w-full divide-y"
-        data-testid="event-types"
-      >
+    <div className="flex overflow-hidden flex-col rounded-md border bg-default border-subtle">
+      <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
 
-            const activeHashedLinks = type.hashedLink
-              ? filterActiveLinks(type.hashedLink, userTimezone)
-              : [];
+            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
 
             // Ensure index is within bounds for active links
             const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;
-            const safeIndex =
-              activeHashedLinks.length > 0
-                ? currentIndex % activeHashedLinks.length
-                : 0;
+            const safeIndex = activeHashedLinks.length > 0 ? currentIndex % activeHashedLinks.length : 0;
 
             const isPrivateURLEnabled =
-              activeHashedLinks.length > 0
-                ? activeHashedLinks[safeIndex]?.link
-                : "";
+              activeHashedLinks.length > 0 ? activeHashedLinks[safeIndex]?.link : "";
             const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
 
-            const isManagedEventType =
-              type.schedulingType === SchedulingType.MANAGED;
+            const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
               type.metadata?.managedEventConfig !== undefined &&
               type.schedulingType !== SchedulingType.MANAGED;
             return (
               <li key={type.id}>
-                <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
-                  <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+                <div className="flex justify-between items-center w-full transition hover:bg-cal-muted">
+                  <div className="flex overflow-hidden justify-between items-center px-4 py-4 w-full max-w-full group sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
                       <ArrowButton
-                        onClick={() =>
-                          moveEventType(LIMIT * pageIdx + index, -1)
-                        }
+                        onClick={() => moveEventType(LIMIT * pageIdx + index, -1)}
                         arrowDirection="up"
                       />
                     )}
 
                     {!(lastItem && lastItem.id === type.id) && (
                       <ArrowButton
-                        onClick={() =>
-                          moveEventType(LIMIT * pageIdx + index, 1)
-                        }
+                        onClick={() => moveEventType(LIMIT * pageIdx + index, 1)}
                         arrowDirection="down"
                       />
                     )}
-                    <MemoizedItem
-                      type={type}
-                      group={group}
-                      readOnly={readOnly}
-                    />
-                    <div className="mt-4 hidden sm:mt-0 sm:flex">
+                    <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                    <div className="hidden mt-4 sm:mt-0 sm:flex">
                       <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                         {!!type.teamId && !isManagedEventType && (
                           <UserAvatarGroup
@@ -680,35 +591,24 @@ export const InfiniteEventTypeList = ({
                             users={type?.users ?? []}
                           />
                         )}
-                        {isManagedEventType &&
-                          type?.children &&
-                          type.children?.length > 0 && (
-                            <UserAvatarGroup
-                              className="relative right-3"
-                              size="sm"
-                              truncateAfter={4}
-                              hideTruncatedAvatarsCount={true}
-                              users={
-                                type?.children.flatMap((ch) => ch.users) ?? []
-                              }
-                            />
-                          )}
-                        <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
+                        {isManagedEventType && type?.children && type.children?.length > 0 && (
+                          <UserAvatarGroup
+                            className="relative right-3"
+                            size="sm"
+                            truncateAfter={4}
+                            hideTruncatedAvatarsCount={true}
+                            users={type?.children.flatMap((ch) => ch.users) ?? []}
+                          />
+                        )}
+                        <div className="flex justify-between items-center space-x-2 rtl:space-x-reverse">
                           {!isManagedEventType && (
                             <>
-                              {type.hidden && (
-                                <span className="text-sm text-gray-400">
-                                  {t("hidden")}
-                                </span>
-                              )}
+                              {type.hidden && <span className="text-sm text-gray-400">{t("hidden")}</span>}
                               <Tooltip
                                 content={
-                                  type.hidden
-                                    ? t("show_eventtype_on_profile")
-                                    : t("hide_from_profile")
-                                }
-                              >
-                                <div className="self-center rounded-md p-2">
+                                  type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                                }>
+                                <div className="self-center p-2 rounded-md">
                                   <Switch
                                     name="Hidden"
                                     disabled={lockedByOrg}
@@ -752,25 +652,17 @@ export const InfiniteEventTypeList = ({
                                 </Tooltip>
 
                                 {isPrivateURLEnabled && (
-                                  <Tooltip
-                                    content={t("copy_private_link_to_event")}
-                                  >
+                                  <Tooltip content={t("copy_private_link_to_event")}>
                                     <Button
                                       color="secondary"
                                       variant="icon"
                                       StartIcon="venetian-mask"
                                       onClick={() => {
-                                        showToast(
-                                          t("private_link_copied"),
-                                          "success"
-                                        );
+                                        showToast(t("private_link_copied"), "success");
                                         copyToClipboard(placeholderHashedLink);
                                         setPrivateLinkCopyIndices((prev) => {
-                                          const prevIndex =
-                                            prev[type.slug] ?? 0;
-                                          const nextIndex =
-                                            (prevIndex + 1) %
-                                            activeHashedLinks.length;
+                                          const prevIndex = prev[type.slug] ?? 0;
+                                          const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
                                           return {
                                             ...prev,
                                             [type.slug]: nextIndex,
@@ -783,10 +675,7 @@ export const InfiniteEventTypeList = ({
                               </>
                             )}
                             <Dropdown modal={false}>
-                              <DropdownMenuTrigger
-                                asChild
-                                data-testid={`event-type-options-${type.id}`}
-                              >
+                              <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                                 <Button
                                   type="button"
                                   variant="icon"
@@ -803,10 +692,7 @@ export const InfiniteEventTypeList = ({
                                       type="button"
                                       data-testid={`event-type-edit-${type.id}`}
                                       StartIcon="pencil"
-                                      onClick={() =>
-                                        router.push(`/event-types/${type.id}`)
-                                      }
-                                    >
+                                      onClick={() => router.push(`/event-types/${type.id}`)}>
                                       {t("edit")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
@@ -818,10 +704,7 @@ export const InfiniteEventTypeList = ({
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
                                       StartIcon="copy"
-                                      onClick={() =>
-                                        openDuplicateModal(type, group)
-                                      }
-                                    >
+                                      onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
@@ -835,8 +718,7 @@ export const InfiniteEventTypeList = ({
                                       StartIcon="code"
                                       className="w-full rounded-none"
                                       embedUrl={encodeURIComponent(embedLink)}
-                                      eventId={type.id}
-                                    >
+                                      eventId={type.id}>
                                       {t("embed")}
                                     </EventTypeEmbedButton>
                                   </DropdownMenuItem>
@@ -851,13 +733,10 @@ export const InfiniteEventTypeList = ({
                                         onClick={() => {
                                           setDeleteDialogOpen(true);
                                           setDeleteDialogTypeId(type.id);
-                                          setDeleteDialogSchedulingType(
-                                            type.schedulingType
-                                          );
+                                          setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-t-none"
-                                      >
+                                        className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -870,18 +749,10 @@ export const InfiniteEventTypeList = ({
                       </div>
                     </div>
                   </div>
-                  <div className="min-w-9 mx-5 flex sm:hidden">
+                  <div className="flex mx-5 min-w-9 sm:hidden">
                     <Dropdown>
-                      <DropdownMenuTrigger
-                        asChild
-                        data-testid={`event-type-options-${type.id}`}
-                      >
-                        <Button
-                          type="button"
-                          variant="icon"
-                          color="secondary"
-                          StartIcon="ellipsis"
-                        />
+                      <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
+                        <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuContent>
@@ -892,8 +763,7 @@ export const InfiniteEventTypeList = ({
                                   href={calLink}
                                   target="_blank"
                                   StartIcon="external-link"
-                                  className="w-full rounded-none"
-                                >
+                                  className="w-full rounded-none">
                                   {t("preview")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -905,8 +775,7 @@ export const InfiniteEventTypeList = ({
                                     showToast(t("link_copied"), "success");
                                   }}
                                   StartIcon="clipboard"
-                                  className="w-full rounded-none text-left"
-                                >
+                                  className="w-full text-left rounded-none">
                                   {t("copy_link")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -925,16 +794,11 @@ export const InfiniteEventTypeList = ({
                                       }),
                                       url: calLink,
                                     })
-                                    .then(() =>
-                                      showToast(t("link_shared"), "success")
-                                    )
-                                    .catch(() =>
-                                      showToast(t("failed"), "error")
-                                    );
+                                    .then(() => showToast(t("link_shared"), "success"))
+                                    .catch(() => showToast(t("failed"), "error"));
                                 }}
                                 StartIcon="upload"
-                                className="w-full rounded-none"
-                              >
+                                className="w-full rounded-none">
                                 {t("share")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -942,12 +806,9 @@ export const InfiniteEventTypeList = ({
                           {!readOnly && (
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
-                                onClick={() =>
-                                  router.push(`/event-types/${type.id}`)
-                                }
+                                onClick={() => router.push(`/event-types/${type.id}`)}
                                 StartIcon="pencil"
-                                className="w-full rounded-none"
-                              >
+                                className="w-full rounded-none">
                                 {t("edit")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -957,8 +818,7 @@ export const InfiniteEventTypeList = ({
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
                                 StartIcon="copy"
-                                data-testid={`event-type-duplicate-${type.id}`}
-                              >
+                                data-testid={`event-type-duplicate-${type.id}`}>
                                 {t("duplicate")}
                               </DropdownItem>
                             </DropdownMenuItem>
@@ -972,13 +832,10 @@ export const InfiniteEventTypeList = ({
                                   onClick={() => {
                                     setDeleteDialogOpen(true);
                                     setDeleteDialogTypeId(type.id);
-                                    setDeleteDialogSchedulingType(
-                                      type.schedulingType
-                                    );
+                                    setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-t-none"
-                                >
+                                  className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -986,15 +843,12 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
+                            <div className="flex flex-row justify-between items-center px-4 py-2 h-9 rounded-b-lg transition cursor-pointer hover:bg-subtle">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
-                                className="mt-2 inline cursor-pointer self-center pr-2 "
-                              >
-                                {type.hidden
-                                  ? t("show_eventtype_on_profile")
-                                  : t("hide_from_profile")}
+                                className="inline self-center pr-2 mt-2 cursor-pointer">
+                                {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
                               </Skeleton>
                               <Switch
                                 id="hiddenSwitch"
@@ -1030,8 +884,7 @@ export const InfiniteEventTypeList = ({
           onConfirm={(e) => {
             e.preventDefault();
             deleteEventTypeHandler(deleteDialogTypeId);
-          }}
-        >
+          }}>
           <p className="mt-5">
             {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
               <ul className="ml-4 list-disc">
@@ -1048,23 +901,13 @@ export const InfiniteEventTypeList = ({
   );
 };
 
-const CreateFirstEventTypeView = ({
-  slug,
-  searchTerm,
-}: {
-  slug: string;
-  searchTerm?: string;
-}) => {
+const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTerm?: string }) => {
   const { t } = useLocale();
 
   return (
     <EmptyScreen
       Icon="link"
-      headline={
-        searchTerm
-          ? t("no_result_found_for", { searchTerm })
-          : t("new_event_type_heading")
-      }
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
@@ -1079,37 +922,44 @@ const CreateFirstEventTypeView = ({
 const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   const { t } = useLocale();
   const { searchTerm, setSearchTerm } = useSearchContext();
-  const [isDynamicLinkDialogOpen, setIsDynamicLinkDialogOpen] = useState(false);
+  const [dynamicLinkDialogSource, setDynamicLinkDialogSource] = useState<"org" | "team" | null>(null);
   const orgBranding = useOrgBranding();
 
   const isOrg = !!orgBranding;
 
-  const { data: orgMembers } =
-    trpc.viewer.organizations.listMembersMinimal.useQuery(
-      { limit: 1 },
-      { enabled: isOrg }
-    );
+  const { data: orgMembers } = trpc.viewer.organizations.listMembersMinimal.useQuery(
+    { limit: 1 },
+    { enabled: isOrg }
+  );
 
-  const showDynamicEvent = isOrg && (orgMembers?.items?.length ?? 0) > 0;
+  // Check for team members when not in an organization
+  const { data: teamMembers } = trpc.viewer.teams.listMembersMinimal.useQuery(
+    { limit: 1 },
+    { enabled: !isOrg }
+  );
 
-  const additionalMenuItems: AdditionalMenuItem[] = showDynamicEvent
-    ? [
-        {
-          label: t("dynamic_link"),
-          icon: "users",
-          onClick: () => setIsDynamicLinkDialogOpen(true),
-        },
-      ]
-    : [];
+  const showOrgDynamicLink = isOrg && (orgMembers?.items?.length ?? 0) > 0;
+  const showTeamDynamicLink = !isOrg && (teamMembers?.items?.length ?? 0) > 0;
+
+  const additionalMenuItems: AdditionalMenuItem[] = [];
+
+  if (showOrgDynamicLink || showTeamDynamicLink) {
+    additionalMenuItems.push({
+      label: t("dynamic_link"),
+      icon: "users",
+      onClick: () => setDynamicLinkDialogSource(showOrgDynamicLink ? "org" : "team"),
+    });
+  }
+
 
   if (!profileOptions.length) return null;
 
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="flex gap-4 items-center">
         <TextField
           className="max-w-64"
-          addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
+          addOnLeading={<SearchIcon className="w-4 h-4 text-subtle" />}
           containerClassName="max-w-64 focus:ring-offset-0!"
           type="search"
           value={searchTerm}
@@ -1123,16 +973,17 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
           data-testid="new-event-type"
           subtitle={t("create_event_on").toUpperCase()}
           options={profileOptions}
-          createDialog={() => (
-            <CreateEventTypeDialog profileOptions={profileOptions} />
-          )}
+          createDialog={() => <CreateEventTypeDialog profileOptions={profileOptions} />}
           additionalMenuItems={additionalMenuItems}
         />
       </div>
-      <DynamicLinkDialog
-        isOpen={isDynamicLinkDialogOpen}
-        onClose={() => setIsDynamicLinkDialogOpen(false)}
-      />
+      {dynamicLinkDialogSource && (
+        <DynamicLinkDialog
+          isOpen={!!dynamicLinkDialogSource}
+          onClose={() => setDynamicLinkDialogSource(null)}
+          memberSource={dynamicLinkDialogSource}
+        />
+      )}
     </>
   );
 };
@@ -1149,18 +1000,13 @@ const EmptyEventTypeList = ({
     <>
       <EmptyScreen
         Icon="link"
-        headline={
-          searchTerm
-            ? t("no_result_found_for", { searchTerm })
-            : t("team_no_event_types")
-        }
+        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         description={t("new_team_event_type_description")}
         className="mb-16"
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
-            variant="button"
-          >
+            variant="button">
             {t("create")}
           </Button>
         }
@@ -1189,8 +1035,7 @@ const InfiniteScrollMain = ({
   }));
 
   const activeEventTypeGroup =
-    eventTypeGroups.filter((item) => item.teamId === data.teamId) ??
-    eventTypeGroups[0];
+    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
@@ -1199,8 +1044,7 @@ const InfiniteScrollMain = ({
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
     orgBranding &&
-    (activeEventTypeGroup[0].teamId === orgBranding.id ||
-      activeEventTypeGroup[0].parentId === orgBranding.id)
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -1208,12 +1052,8 @@ const InfiniteScrollMain = ({
   return (
     <>
       {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
-      {eventTypeGroups.length >= 1 && (
-        <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
-      )}
-      {eventTypeGroups.length === 0 && (
-        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
-      )}
+      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
+      {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
@@ -1248,8 +1088,7 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
 
         // Fallback: allow admin and owner roles
         return (
-          profile.membershipRole === MembershipRole.ADMIN ||
-          profile.membershipRole === MembershipRole.OWNER
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
         );
       })
       ?.map((profile) => {
@@ -1292,9 +1131,7 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
 
   useEffect(() => {
     setShowProfileBanner(
-      !!orgBranding &&
-        !document.cookie.includes("calcom-profile-banner=1") &&
-        !user?.completedOnboarding
+      !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
     );
   }, [orgBranding, user]);
 
@@ -1306,7 +1143,6 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   );
 };
 
-export const SearchContext: React.Context<SearchContextType | undefined> =
-  SearchContextInternal;
+export const SearchContext: React.Context<SearchContextType | undefined> = SearchContextInternal;
 
 export default EventTypesPage;
