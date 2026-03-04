@@ -4673,6 +4673,7 @@
   "no_opt_in_features_available": "No opt-in features are currently available",
   "enabled_via_auto_opt_in": "Enabled via auto opt-in",
   "account_already_exists_please_login": "An account with this email already exists. Please log in to accept the invitation.",
+  "account_already_exists": "An account with this email already exists. Please log in instead.",
   "unverified_email_oauth_error": "Please verify your email address before signing in with Google or SAML. Sign in with your password to resend the verification email.",
   "connect_your_first_calendar": "Connect your first calendar",
   "routing_that_grows_with_you": "Routing that grows with you",

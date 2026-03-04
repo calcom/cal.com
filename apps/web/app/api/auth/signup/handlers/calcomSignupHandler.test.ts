@@ -110,7 +110,9 @@ vi.mock("@calcom/lib/server/username", () => ({
 
 // Import after mocks
 import "./calcomSignupHandler";
+import { runEmailAlreadyExistsTestSuite } from "@calcom/features/auth/signup/handlers/__tests__/email-already-exists.test-suite";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 
 function callHandler(body: SignupBody): Promise<MockResponse> {
   if (!mockCapturedHandler) throw new Error("Handler not captured");
@@ -121,11 +123,17 @@ function callHandler(body: SignupBody): Promise<MockResponse> {
   });
 }
 
-runP2002TestSuite("calcomHandler", callHandler, () => {
+const setupMocks = () => {
   vi.clearAllMocks();
   resetPrismaMock();
   mockFindTokenByToken.mockResolvedValue(createMockFoundToken());
   mockValidateAndGetCorrectedUsernameForTeam.mockResolvedValue("testuser");
   prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
   prismaMock.verificationToken.delete.mockResolvedValue({} as never);
+};
+
+runP2002TestSuite("calcomHandler", callHandler, setupMocks);
+
+runEmailAlreadyExistsTestSuite("calcomHandler", callHandler, setupMocks, (result) => {
+  vi.mocked(validateAndGetCorrectedUsernameAndEmail).mockResolvedValue(result);
 });

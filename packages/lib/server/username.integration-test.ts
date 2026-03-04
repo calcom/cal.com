@@ -1,9 +1,7 @@
 import "@calcom/testing/lib/__mocks__/prisma";
-import { describe, it, expect } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import {
   generateUsernameSuggestion,
   isUsernameReservedDueToMigration,
@@ -68,7 +66,7 @@ describe("username.ts integration tests", () => {
       expect(result.suggestedUsername).toBe("");
     });
 
-    it("returns available true when existing user claims their own username", async () => {
+    it("returns available true when invited user (no password) claims their own username", async () => {
       const username = `claimer-${Date.now()}`;
       const email = `${username}@test.com`;
       await prisma.user.create({
@@ -77,9 +75,40 @@ describe("username.ts integration tests", () => {
 
       const result = await usernameCheckForSignup({ username, email });
       expect(result.available).toBe(true);
+      expect(result.emailRegistered).toBe(false);
     });
 
-    it("returns available false when existing user tries a different username", async () => {
+    it("returns available false with emailRegistered when fully registered user re-signs up with same username", async () => {
+      const username = `registered-${Date.now()}`;
+      const email = `${username}@test.com`;
+      await prisma.user.create({
+        data: { email, username, password: { create: { hash: "hashed-password" } } },
+      });
+
+      const result = await usernameCheckForSignup({ username, email });
+      expect(result.available).toBe(false);
+      expect(result.emailRegistered).toBe(true);
+    });
+
+    it("returns available false with emailRegistered when fully registered user re-signs up with different username", async () => {
+      const email = `reregistered-${Date.now()}@test.com`;
+      await prisma.user.create({
+        data: {
+          email,
+          username: `original-${Date.now()}`,
+          password: { create: { hash: "hashed-password" } },
+        },
+      });
+
+      const result = await usernameCheckForSignup({
+        username: `different-${Date.now()}`,
+        email,
+      });
+      expect(result.available).toBe(false);
+      expect(result.emailRegistered).toBe(true);
+    });
+
+    it("returns available false when invited user (no password) tries a different username", async () => {
       const email = `existing-${Date.now()}@test.com`;
       await prisma.user.create({
         data: { email, username: `existing-${Date.now()}` },
@@ -90,6 +119,7 @@ describe("username.ts integration tests", () => {
         email,
       });
       expect(result.available).toBe(false);
+      expect(result.emailRegistered).toBe(false);
       expect(result.suggestedUsername).toBeTruthy();
     });
 

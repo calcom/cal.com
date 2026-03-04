@@ -53,9 +53,8 @@ test.describe("Email Signup Flow Test", async () => {
     await users.deleteAll();
   });
   test("Username is taken", async ({ page, users }) => {
-    // log in trail user
     await test.step("Sign up", async () => {
-      await users.create({
+      const user = await users.create({
         username: "pro",
       });
 
@@ -65,22 +64,29 @@ test.describe("Email Signup Flow Test", async () => {
       await expect(continueWithEmailButton).toBeVisible();
       await continueWithEmailButton.click();
 
-      const alertMessage = "Username or email is already taken";
-
-      // Fill form
-      await page.locator('input[name="username"]').fill("pro");
-      await page.locator('input[name="email"]').fill("pro@example.com");
+      // Fill form with the existing user's username and email
+      await page.locator('input[name="username"]').fill(user.username!);
+      await page.locator('input[name="email"]').fill(user.email);
       await page.locator('input[name="password"]').fill("Password99!");
+
+      // Intercept the signup API request to verify 409 response
+      const responsePromise = page.waitForResponse(
+        (response) => response.url().includes("/api/auth/signup") && response.request().method() === "POST"
+      );
 
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
       await submitButton.click();
 
-      const alert = await page.waitForSelector('[data-testid="alert"]');
-      const alertMessageInner = await alert.innerText();
+      // Verify API returns 409 (user already exists)
+      const response = await responsePromise;
+      expect(response.status()).toBe(409);
 
-      expect(alertMessage).toBeDefined();
-      expect(alertMessageInner).toContain(alertMessageInner);
+      const responseBody = await response.json();
+      expect(responseBody.message).toBe("user_already_exists");
+
+      // Should redirect to login (toast shows and redirects after 3s)
+      await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
     });
   });
   test("Email is taken", async ({ page, users }) => {
@@ -96,22 +102,29 @@ test.describe("Email Signup Flow Test", async () => {
       await expect(continueWithEmailButton).toBeVisible();
       await continueWithEmailButton.click();
 
-      const alertMessage = "Username or email is already taken";
-
-      // Fill form
+      // Fill form with a new username but an already-registered email
       await page.locator('input[name="username"]').fill("randomuserwhodoesntexist");
       await page.locator('input[name="email"]').fill(user.email);
       await page.locator('input[name="password"]').fill("Password99!");
+
+      // Intercept the signup API request to verify 409 response
+      const responsePromise = page.waitForResponse(
+        (response) => response.url().includes("/api/auth/signup") && response.request().method() === "POST"
+      );
 
       // Submit form
       const submitButton = page.getByTestId("signup-submit-button");
       await submitButton.click();
 
-      const alert = await page.waitForSelector('[data-testid="alert"]');
-      const alertMessageInner = await alert.innerText();
+      // Verify API returns 409 (user already exists)
+      const response = await responsePromise;
+      expect(response.status()).toBe(409);
 
-      expect(alertMessage).toBeDefined();
-      expect(alertMessageInner).toContain(alertMessageInner);
+      const responseBody = await response.json();
+      expect(responseBody.message).toBe("user_already_exists");
+
+      // Should redirect to login (toast shows and redirects after 3s)
+      await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
     });
   });
 

@@ -1,11 +1,9 @@
-import type { NextResponse } from "next/server";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-
+import { NextResponse } from "next/server";
 import { IS_PREMIUM_USERNAME_ENABLED } from "../constants";
 import logger from "../logger";
 import notEmpty from "../notEmpty";
@@ -90,6 +88,12 @@ const usernameHandler =
   (handler: CustomNextApiHandler) => async (body: Record<string, string>, query: Record<string, string>) => {
     const username = slugify(body.username);
     const check = await usernameCheckForSignup({ username, email: body.email });
+
+    // If the email belongs to a fully registered user, short-circuit with the
+    // standard 409 response so the frontend can redirect to login.
+    if (check.emailRegistered) {
+      return NextResponse.json({ message: "user_already_exists" }, { status: 409 });
+    }
 
     let result: Parameters<typeof processResult>[0] = "ok";
     if (check.premium) result = "is_premium";
@@ -220,6 +224,7 @@ const usernameCheckForSignup = async ({
     available: true,
     premium: false,
     suggestedUsername: "",
+    emailRegistered: false,
   };
 
   const username = slugify(usernameRaw);
@@ -232,10 +237,19 @@ const usernameCheckForSignup = async ({
       id: true,
       username: true,
       organizationId: true,
+      password: { select: { hash: true } },
     },
   });
 
   if (user) {
+    // A user who already has a password is fully registered and cannot re-signup.
+    const isFullyRegistered = !!user.password;
+    if (isFullyRegistered) {
+      response.available = false;
+      response.emailRegistered = true;
+      return response;
+    }
+
     // TODO: When supporting multiple profiles of a user, we would need to check if the user has a membership with the correct organization
     const userIsAMemberOfAnOrg = await prisma.membership.findFirst({
       where: {

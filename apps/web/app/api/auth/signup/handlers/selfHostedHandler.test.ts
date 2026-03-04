@@ -1,15 +1,14 @@
-import type { Mock } from "vitest";
-import { vi } from "vitest";
-
 import {
   prismaMock,
   resetPrismaMock,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks";
-import {
-  createMockTeam,
-  createMockFoundToken,
-} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import {
+  createMockFoundToken,
+  createMockTeam,
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { Mock } from "vitest";
+import { vi } from "vitest";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -33,7 +32,13 @@ vi.mock("@calcom/prisma/client", async () => {
   return createPrismaMock();
 });
 vi.mock("@calcom/lib/logger", () => ({
-  default: { getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }) },
+  default: {
+    getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+  },
 }));
 vi.mock("@calcom/lib/auth/hashPassword", () => ({ hashPassword: vi.fn().mockResolvedValue("hashed") }));
 vi.mock("@calcom/lib/slugify", () => ({ default: vi.fn((s: string) => s.toLowerCase()) }));
@@ -57,19 +62,27 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
     mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
+import { runEmailAlreadyExistsTestSuite } from "@calcom/features/auth/signup/handlers/__tests__/email-already-exists.test-suite";
+import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 // Import after mocks
 import handler from "./selfHostedHandler";
-import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
 function callHandler(body: SignupBody): ReturnType<typeof handler> {
   return handler(body as unknown as Record<string, string>);
 }
 
-runP2002TestSuite("selfHostedHandler", callHandler, () => {
+const setupMocks = () => {
   vi.clearAllMocks();
   resetPrismaMock();
   mockFindTokenByToken.mockResolvedValue(createMockFoundToken());
   mockValidateAndGetCorrectedUsernameForTeam.mockResolvedValue("testuser");
   prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
   prismaMock.verificationToken.delete.mockResolvedValue({} as never);
+};
+
+runP2002TestSuite("selfHostedHandler", callHandler, setupMocks);
+
+runEmailAlreadyExistsTestSuite("selfHostedHandler", callHandler, setupMocks, (result) => {
+  vi.mocked(validateAndGetCorrectedUsernameAndEmail).mockResolvedValue(result);
 });

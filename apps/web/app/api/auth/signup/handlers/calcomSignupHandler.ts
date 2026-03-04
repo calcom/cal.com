@@ -83,8 +83,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
   const email = _email.toLowerCase();
 
-  let foundToken: { id: number; teamId: number | null; expires: Date } | null =
-    null;
+  let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
     foundToken = await findTokenByToken({ token });
     throwIfTokenExpired(foundToken?.expires);
@@ -101,24 +100,17 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         select: { invitedTo: true },
       });
       if (existingUser && existingUser.invitedTo !== foundToken.teamId) {
-        return NextResponse.json(
-          { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-          { status: 409 }
-        );
+        return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
     }
   } else {
-    const usernameAndEmailValidation =
-      await validateAndGetCorrectedUsernameAndEmail({
-        username,
-        email,
-        isSignup: true,
-      });
+    const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
+      username,
+      email,
+      isSignup: true,
+    });
     if (!usernameAndEmailValidation.isValid) {
-      throw new HttpError({
-        statusCode: 409,
-        message: "Username or email is already taken",
-      });
+      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
     }
 
     if (!usernameAndEmailValidation.username) {
@@ -133,9 +125,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
   // Create the customer in Stripe with ad tracking metadata
   const cookieStore = await cookies();
-  const cookiesObj = Object.fromEntries(
-    cookieStore.getAll().map((c) => [c.name, c.value])
-  );
+  const cookiesObj = Object.fromEntries(cookieStore.getAll().map((c) => [c.name, c.value]));
   const tracking = getTrackingFromCookies(cookiesObj, query);
 
   const customer = await billingService.createCustomer({
@@ -197,9 +187,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       },
     });
     if (team) {
-      const organizationId = team.isOrganization
-        ? team.id
-        : team.parent?.id ?? null;
+      const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
 
       if (username) {
         const existingUserByUsername = await prisma.user.findFirst({
@@ -211,10 +199,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
           select: { id: true },
         });
         if (existingUserByUsername) {
-          return NextResponse.json(
-            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-            { status: 409 }
-          );
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
         }
       }
 
@@ -248,10 +233,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         if (isPrismaError(error) && error.code === "P2002") {
           const target = String(error.meta?.target ?? "");
           if (target.includes("email") || target.includes("username")) {
-            return NextResponse.json(
-              { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-              { status: 409 }
-            );
+            return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
           }
         }
         throw error;
@@ -306,10 +288,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
       if (isPrismaError(error) && error.code === "P2002") {
         const target = String(error.meta?.target ?? "");
         if (target.includes("email") || target.includes("username")) {
-          return NextResponse.json(
-            { message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS },
-            { status: 409 }
-          );
+          return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
         }
       }
       throw error;
@@ -321,16 +300,12 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
   const featureRepository = getFeatureRepository();
   const signupWatchlistReviewEnabled =
-    await featureRepository.checkIfFeatureIsEnabledGlobally(
-      "signup-watchlist-review"
-    );
+    await featureRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
 
   if (signupWatchlistReviewEnabled && !token) {
     const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
     const normalizedEmail = normalizeEmail(email);
-    const existing = await globalWatchlistRepo.findBlockedEmail(
-      normalizedEmail
-    );
+    const existing = await globalWatchlistRepo.findBlockedEmail(normalizedEmail);
 
     if (!existing) {
       await globalWatchlistRepo.createEntry({
@@ -358,9 +333,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   if (!checkoutSessionId && !token) {
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(
-        buildLegacyRequest(await headers(), await cookies())
-      ),
+      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
       username: username || "",
     });
   }
