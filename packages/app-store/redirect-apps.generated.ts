@@ -28,6 +28,7 @@ export const REDIRECT_APPS = [
   "retell-ai",
   "synthflow",
   "telli",
+  "link-as-an-app",
   "vimcal",
   "wordpress",
   "zapier",
