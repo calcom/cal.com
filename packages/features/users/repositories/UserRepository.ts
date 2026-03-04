@@ -122,6 +122,28 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
+  /**
+   * Find Cal.com users by a list of emails, matching primary or verified secondary emails case-insensitively.
+   */
+  async findByEmails(emails: string[]): Promise<{ id: string; email: string }[]> {
+    const lowerEmails = emails.map((e) => e.toLowerCase());
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { email: { in: lowerEmails } },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: lowerEmails },
+                verified: true,
+              },
+            },
+          },
+        ],
+      },
+      select: { id: true, email: true },
+    });
+  }
   constructor(private prismaClient: PrismaClient) {}
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
