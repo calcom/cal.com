@@ -1,7 +1,6 @@
-import { describe, expect, vi, beforeEach, test } from "vitest";
-
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import {
   SchedulingType,
   TimeUnit,
@@ -9,9 +8,8 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { EmailWorkflowService } from "./EmailWorkflowService";
 
 vi.mock("@calcom/emails/workflow-email-service", () => ({
@@ -22,7 +20,7 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
@@ -33,6 +31,14 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("@calcom/emails/lib/generateIcsString", () => ({
   default: vi.fn().mockReturnValue("mock-ics-content"),
+}));
+
+const mockTranslationService = vi.hoisted(() => ({
+  getWorkflowStepTranslation: vi.fn(),
+}));
+
+vi.mock("@calcom/features/di/containers/TranslationService", () => ({
+  getTranslationService: vi.fn().mockResolvedValue(mockTranslationService),
 }));
 
 vi.mock("@calcom/lib/constants", async () => {
@@ -62,6 +68,7 @@ describe("EmailWorkflowService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockReset();
     emailWorkflowService = new EmailWorkflowService(
       mockWorkflowReminderRepository as WorkflowReminderRepository,
       mockBookingSeatRepository as BookingSeatRepository
@@ -595,6 +602,129 @@ describe("EmailWorkflowService", () => {
       });
 
       expect(result.attachments).toBeUndefined();
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Auto Translation", () => {
+    const mockBookingInfo = {
+      uid: "booking-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+      },
+      attendees: [
+        {
+          name: "Spanish Attendee",
+          email: "attendee@example.com",
+          timeZone: "Europe/Madrid",
+          language: { locale: "es" },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockReset();
+    });
+
+    test("should use translated content when autoTranslateEnabled is true and translation exists", async () => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockResolvedValue({
+        translatedBody: "Cuerpo traducido",
+        translatedSubject: "Asunto traducido",
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).toHaveBeenCalledTimes(1);
+      expect(result.subject).toBe("Asunto traducido");
+      expect(result.html).toContain("Cuerpo traducido");
+    });
+
+    test("should use original content when autoTranslateEnabled is false", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: false,
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).not.toHaveBeenCalled();
+      expect(result.subject).toBe("Original Subject");
+    });
+
+    test("should fallback to original content when translation not found", async () => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockResolvedValue({
+        translatedBody: null,
+        translatedSubject: null,
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).toHaveBeenCalledTimes(1);
+      expect(result.subject).toBe("Original Subject");
+    });
+
+    test("should not translate for non-attendee actions", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["organizer@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_HOST,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).not.toHaveBeenCalled();
+      expect(result.subject).toBe("Original Subject");
     });
   });
 
