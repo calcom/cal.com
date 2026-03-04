@@ -11,10 +11,10 @@ interface CalConfig {
   apiUrl?: string;
   oauth?: {
     clientId: string;
+    clientSecret: string;
     accessToken: string;
     refreshToken: string;
     accessTokenExpiresAt: string;
-    refreshTokenExpiresAt: string;
   };
 }
 

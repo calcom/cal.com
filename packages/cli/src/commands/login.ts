@@ -1,67 +1,7 @@
-import process from "node:process";
-import * as readline from "node:readline";
 import type { Command } from "commander";
-import { readConfig, writeConfig } from "../lib/config";
-import { performOAuthLogin } from "../lib/oauth";
+import { ApiKeyAuth, OAuthAuth, promptAuthMethod } from "../lib/auth";
+import { writeConfig } from "../lib/config";
 import { outputSuccess } from "../lib/output";
-
-function prompt(question: string): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.trim());
-    });
-  });
-}
-
-async function handleApiKeyLogin(options: { apiKey?: string; apiUrl?: string }): Promise<void> {
-  const config = readConfig();
-
-  const apiKey = options.apiKey || (await prompt("Enter your Cal.com API key: "));
-  if (!apiKey) {
-    console.error("API key is required.");
-    process.exit(1);
-  }
-
-  config.apiKey = apiKey;
-  if (options.apiUrl) {
-    config.apiUrl = options.apiUrl;
-  }
-
-  writeConfig(config);
-  outputSuccess("Logged in successfully. Credentials saved to ~/.calcom/config.json");
-}
-
-async function handleOAuthLogin(options: {
-  clientId?: string;
-  clientSecret?: string;
-  port?: number;
-  apiUrl?: string;
-}): Promise<void> {
-  const clientId = options.clientId || (await prompt("Enter your OAuth Client ID: "));
-  if (!clientId) {
-    console.error("OAuth Client ID is required.");
-    process.exit(1);
-  }
-
-  const clientSecret = options.clientSecret || (await prompt("Enter your OAuth Client Secret: "));
-  if (!clientSecret) {
-    console.error("OAuth Client Secret is required.");
-    process.exit(1);
-  }
-
-  if (options.apiUrl) {
-    const config = readConfig();
-    config.apiUrl = options.apiUrl;
-    writeConfig(config);
-  }
-
-  await performOAuthLogin(clientId, clientSecret, options.port);
-}
 
 export function registerLoginCommand(program: Command): void {
   program
@@ -82,29 +22,33 @@ export function registerLoginCommand(program: Command): void {
         port?: number;
         apiUrl?: string;
       }) => {
-        if (options.oauth || options.clientId || options.clientSecret) {
-          await handleOAuthLogin({
+        const isOAuth = options.oauth || options.clientId || options.clientSecret;
+
+        if (isOAuth) {
+          const auth = new OAuthAuth({
             clientId: options.clientId,
             clientSecret: options.clientSecret,
             port: options.port,
             apiUrl: options.apiUrl,
           });
+          await auth.login();
           return;
         }
 
         if (options.apiKey) {
-          await handleApiKeyLogin({ apiKey: options.apiKey, apiUrl: options.apiUrl });
+          const auth = new ApiKeyAuth({ apiKey: options.apiKey, apiUrl: options.apiUrl });
+          await auth.login();
           return;
         }
 
-        const method = await prompt(
-          "Choose authentication method:\n  1) API Key\n  2) OAuth\nEnter choice (1 or 2): "
-        );
+        const method = await promptAuthMethod();
 
-        if (method === "2") {
-          await handleOAuthLogin({ apiUrl: options.apiUrl });
+        if (method === "oauth") {
+          const auth = new OAuthAuth({ apiUrl: options.apiUrl });
+          await auth.login();
         } else {
-          await handleApiKeyLogin({ apiUrl: options.apiUrl });
+          const auth = new ApiKeyAuth({ apiUrl: options.apiUrl });
+          await auth.login();
         }
       }
     );

@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && cp -r src/templates dist/",
     "dev": "ts-node --transpile-only src/index.ts",
     "type-check": "tsc --noEmit"
   },
