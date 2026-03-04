@@ -77,6 +77,7 @@ export const buildBooking = (
     ratingFeedback: null,
     attendees: [],
     oneTimePassword: null,
+    reschedulePreference: null,
     creationSource: CreationSource.WEBAPP,
     ...booking,
   };
@@ -141,7 +142,6 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     durationLimits: null,
     assignAllTeamMembers: false,
     rescheduleWithSameRoundRobinHost: false,
-    roundRobinRescheduleOption: "ROUND_ROBIN" as const,
     price: 0,
     currency: "usd",
     slotInterval: null,
@@ -172,6 +172,11 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     requiresCancellationReason: null,
     enablePerHostLocations: false,
     ...eventType,
+    // Derive roundRobinRescheduleOption from the legacy boolean when the caller doesn't explicitly
+    // provide it, so both fields always stay consistent and tests exercise the correct branch.
+    roundRobinRescheduleOption:
+      eventType?.roundRobinRescheduleOption ??
+      ((eventType?.rescheduleWithSameRoundRobinHost ?? false) ? "SAME_HOST" : "ROUND_ROBIN"),
   };
 };
 

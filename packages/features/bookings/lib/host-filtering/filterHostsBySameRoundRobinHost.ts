@@ -34,7 +34,7 @@ export class FilterHostsService {
       return hosts;
     }
 
-    // Determine the effective mode: for ATTENDEE_CHOICE, fall back to the booking-level preference,
+    // for ATTENDEE_CHOICE, fall back to the booking-level preference,
     // defaulting to any-host (ROUND_ROBIN) when no preference is stored yet.
     let effectiveSameHost: boolean;
     if (roundRobinRescheduleOption === "SAME_HOST") {
@@ -43,7 +43,7 @@ export class FilterHostsService {
       // Use stored preference from the booking being rescheduled, default to any-host if not set
       effectiveSameHost = attendeeReschedulePreference ?? false;
     } else {
-      // ROUND_ROBIN: always any host
+      // always any host
       return hosts;
     }
 

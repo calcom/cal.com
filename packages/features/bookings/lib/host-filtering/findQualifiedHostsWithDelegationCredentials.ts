@@ -98,7 +98,7 @@ export class QualifiedHostsService {
       users: T[];
       schedulingType: SchedulingType | null;
       isRRWeightsEnabled: boolean;
-      /** New 3-option field — takes precedence. */
+      /** New 3-option field */
       roundRobinRescheduleOption: RoundRobinRescheduleOption;
       includeNoShowInRRCalculation: boolean;
       rrHostSubsetEnabled?: boolean;

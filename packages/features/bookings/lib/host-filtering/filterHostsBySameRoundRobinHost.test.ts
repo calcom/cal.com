@@ -22,7 +22,7 @@ describe("FilterHostsService", () => {
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
-    expect(
+    await expect(
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
@@ -36,7 +36,7 @@ describe("FilterHostsService", () => {
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
-    expect(
+    await expect(
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
@@ -53,7 +53,7 @@ describe("FilterHostsService", () => {
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
       { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
     ];
-    expect(
+    await expect(
       filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
@@ -71,7 +71,7 @@ describe("FilterHostsService", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
         { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
       ];
-      expect(
+      await expect(
         filterHostsService.filterHostsBySameRoundRobinHost({
           hosts,
           rescheduleUid: "some-uid",
@@ -87,7 +87,7 @@ describe("FilterHostsService", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
         { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
       ];
-      expect(
+      await expect(
         filterHostsService.filterHostsBySameRoundRobinHost({
           hosts,
           rescheduleUid: "some-uid",
@@ -103,7 +103,7 @@ describe("FilterHostsService", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
         { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
       ];
-      expect(
+      await expect(
         filterHostsService.filterHostsBySameRoundRobinHost({
           hosts,
           rescheduleUid: "some-uid",
