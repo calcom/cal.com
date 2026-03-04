@@ -3,32 +3,6 @@ import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
 import { handleOutput, outputTable } from "../lib/output";
 
-interface ConnectedCalendar {
-  credentialId: number;
-  integration: {
-    type: string;
-    title: string;
-  };
-  primary?: {
-    externalId: string;
-    name: string;
-    readOnly: boolean;
-    isSelected: boolean;
-  };
-  calendars: Array<{
-    externalId: string;
-    name: string;
-    readOnly: boolean;
-    isSelected: boolean;
-  }>;
-}
-
-interface BusyTime {
-  start: string;
-  end: string;
-  source?: string;
-}
-
 function formatSelectedLabel(isSelected: boolean): string {
   if (isSelected) {
     return chalk.green("[selected]");
@@ -51,17 +25,23 @@ function formatCalendarFlags(readOnly: boolean, isSelected: boolean): string {
   return "";
 }
 
-export function registerCalendarsCommand(program: Command): void {
-  const calendars = program.command("calendars").description("Manage calendars");
-
+function registerCalendarQueryCommands(calendars: Command): void {
   calendars
     .command("list")
     .description("List connected calendars")
     .option("--json", "Output as JSON")
     .action(async (options: { json?: boolean }) => {
-      const response = await apiRequest<ConnectedCalendar[]>("/v2/calendars");
+      const response = await apiRequest<{
+        connectedCalendars: Array<{
+          credentialId: number;
+          integration: { title: string };
+          primary?: { externalId: string; name: string; isSelected: boolean };
+          calendars?: Array<{ externalId: string; name: string; readOnly: boolean; isSelected: boolean }>;
+        }>;
+      }>("/v2/calendars");
 
-      handleOutput(response.data, options, (data) => {
+      const calendarData = response.data?.connectedCalendars;
+      handleOutput(calendarData, options, (data) => {
         if (!data || data.length === 0) {
           console.log("No connected calendars.");
           return;
@@ -89,30 +69,30 @@ export function registerCalendarsCommand(program: Command): void {
     .requiredOption("--date-from <date>", "Start date (YYYY-MM-DD)")
     .requiredOption("--date-to <date>", "End date (YYYY-MM-DD)")
     .requiredOption("--timezone <tz>", "Timezone (e.g. Europe/Madrid)")
-    .option("--credential-id <id>", "Credential ID to load calendars from")
-    .option("--external-id <id>", "External calendar ID to load")
+    .requiredOption("--credential-id <id>", "Credential ID (from 'calendars list')")
+    .requiredOption("--external-id <id>", "Calendar external ID (from 'calendars list')")
     .option("--json", "Output as JSON")
     .action(
       async (options: {
         dateFrom: string;
         dateTo: string;
         timezone: string;
-        credentialId?: string;
-        externalId?: string;
+        credentialId: string;
+        externalId: string;
         json?: boolean;
       }) => {
-        const query: Record<string, string | undefined> = {
+        const query: Record<string, string> = {
           dateFrom: options.dateFrom,
           dateTo: options.dateTo,
           timeZone: options.timezone,
+          "calendarsToLoad[0][credentialId]": options.credentialId,
+          "calendarsToLoad[0][externalId]": options.externalId,
         };
 
-        if (options.credentialId && options.externalId) {
-          query["calendarsToLoad[0][credentialId]"] = options.credentialId;
-          query["calendarsToLoad[0][externalId]"] = options.externalId;
-        }
-
-        const response = await apiRequest<BusyTime[]>("/v2/calendars/busy-times", { query });
+        const response = await apiRequest<Array<{ start: string; end: string; source?: string }>>(
+          "/v2/calendars/busy-times",
+          { query }
+        );
 
         handleOutput(response.data, options, (data) => {
           if (!data || data.length === 0) {
@@ -130,4 +110,9 @@ export function registerCalendarsCommand(program: Command): void {
         });
       }
     );
+}
+
+export function registerCalendarsCommand(program: Command): void {
+  const calendars = program.command("calendars").description("Manage calendars");
+  registerCalendarQueryCommands(calendars);
 }
