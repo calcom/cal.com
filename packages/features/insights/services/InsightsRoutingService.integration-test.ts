@@ -212,7 +212,7 @@ async function createTestData({
     await prisma.app_RoutingForms_FormResponse.delete({
       where: { id: formResponse.id },
     });
-    await prisma.booking.delete({
+    await prisma.booking.deleteMany({
       where: { id: booking.id },
     });
     await prisma.eventType.delete({

@@ -1806,6 +1806,35 @@ enum FeatureType {
   PERMISSION
 }
 
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  STOPPED
+  ROLLED_OUT
+}
+
+model Experiment {
+  slug      String              @id
+  status    ExperimentStatus    @default(DRAFT)
+  winner    String?
+  startedAt DateTime?
+  stoppedAt DateTime?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  variants  ExperimentVariant[]
+
+  @@index([status])
+}
+
+model ExperimentVariant {
+  experimentSlug String
+  variantSlug    String
+  weight         Int
+  experiment     Experiment @relation(fields: [experimentSlug], references: [slug], onDelete: Cascade)
+
+  @@id([experimentSlug, variantSlug])
+}
+
 enum RRResetInterval {
   MONTH
   DAY

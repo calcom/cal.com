@@ -103,12 +103,10 @@ const createTestBooking = async (params: {
   startTime: Date;
   endTime: Date;
 }) => {
-  const idempotencyKey = `test-idempotency-${Date.now()}-${Math.random()}`;
   const booking = await prisma.booking.create({
     data: {
       uid: `test-booking-${Date.now()}-${Math.random()}`,
       title: "Test Booking",
-      idempotencyKey,
       startTime: params.startTime,
       endTime: params.endTime,
       eventTypeId: params.eventTypeId,
@@ -235,11 +233,11 @@ describe("managedEventReassignment - Integration Tests", () => {
       ],
     });
 
-    // Schedule booking tomorrow at 10am UTC (within 9am-5pm availability window)
+    // Schedule booking tomorrow at 14:00 UTC (within 9am-5pm availability window)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setUTCHours(10, 0, 0, 0);
-    const startTime = tomorrow;
+    tomorrow.setUTCHours(14, 0, 0, 0);
+    const startTime = new Date(tomorrow);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
     const originalBooking = await createTestBooking({
       eventTypeId: childEventTypes[0].id,
@@ -264,6 +262,7 @@ describe("managedEventReassignment - Integration Tests", () => {
     // Verify a new booking was created for another user
     const newBooking = await prisma.booking.findFirst({
       where: {
+        eventTypeId: { in: childEventTypes.map((et) => et.id) },
         userId: { not: user1.id },
         startTime,
         endTime,
@@ -304,11 +303,11 @@ describe("managedEventReassignment - Integration Tests", () => {
       ],
     });
 
-    // Schedule booking tomorrow at 10am UTC (within 9am-5pm availability window)
+    // Schedule booking tomorrow at 15:00 UTC (within 9am-5pm availability window)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setUTCHours(10, 0, 0, 0);
-    const startTime = tomorrow;
+    tomorrow.setUTCHours(15, 0, 0, 0);
+    const startTime = new Date(tomorrow);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
     const originalBooking = await createTestBooking({
       eventTypeId: childEventTypes[0].id,
@@ -367,10 +366,11 @@ describe("managedEventReassignment - Integration Tests", () => {
       ],
     });
 
+    // Schedule booking tomorrow at 16:00 UTC (within 9am-5pm availability window)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setUTCHours(10, 0, 0, 0);
-    const startTime = tomorrow;
+    tomorrow.setUTCHours(16, 0, 0, 0);
+    const startTime = new Date(tomorrow);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
     const originalBooking = await createTestBooking({
       eventTypeId: childEventTypes[0].id,
