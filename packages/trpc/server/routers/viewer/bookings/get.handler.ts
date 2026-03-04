@@ -529,6 +529,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.disableReassignment",
                 "EventType.minimumRescheduleNotice",
                 "EventType.teamId",
                 "EventType.parentId",

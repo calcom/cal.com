@@ -66,6 +66,7 @@ export const eventTypeSelect = {
   isRRWeightsEnabled: true,
   enablePerHostLocations: true,
   rescheduleWithSameRoundRobinHost: true,
+  disableReassignment: true,
   recurringEvent: true,
   locations: true,
   bookingFields: true,

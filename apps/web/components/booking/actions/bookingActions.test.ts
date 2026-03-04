@@ -1,20 +1,19 @@
-import { describe, it, expect } from "vitest";
-
 import { BookingReportReason, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { describe, expect, it } from "vitest";
 
 import {
-  getPendingActions,
-  getCancelEventAction,
-  getVideoOptionsActions,
-  getEditEventActions,
-  getReportAction,
-  getAfterEventActions,
-  shouldShowPendingActions,
-  shouldShowEditActions,
-  shouldShowRecurringCancelAction,
-  isActionDisabled,
-  getActionLabel,
   type BookingActionContext,
+  getActionLabel,
+  getAfterEventActions,
+  getCancelEventAction,
+  getEditEventActions,
+  getPendingActions,
+  getReportAction,
+  getVideoOptionsActions,
+  isActionDisabled,
+  shouldShowEditActions,
+  shouldShowPendingActions,
+  shouldShowRecurringCancelAction,
 } from "./bookingActions";
 
 const mockT = (key: string) => key;
@@ -75,6 +74,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
         },
         disableCancelling: false,
         disableRescheduling: false,
+        disableReassignment: false,
         disableGuests: false,
         allowReschedulingPastBookings: false,
         recurringEvent: null,
@@ -340,6 +340,43 @@ describe("Booking Actions", () => {
             ...createMockContext().booking.eventType,
             schedulingType: SchedulingType.COLLECTIVE,
             hostGroups: [],
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const reassignAction = actions.find((a) => a.id === "reassign");
+      expect(reassignAction).toBeUndefined();
+    });
+
+    it("should exclude reassign action when disableReassignment is true for round robin events", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          eventType: {
+            ...createMockContext().booking.eventType,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            hostGroups: [],
+            disableReassignment: true,
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const reassignAction = actions.find((a) => a.id === "reassign");
+      expect(reassignAction).toBeUndefined();
+    });
+
+    it("should exclude reassign action when disableReassignment is true for managed event types", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          eventType: {
+            ...createMockContext().booking.eventType,
+            schedulingType: SchedulingType.COLLECTIVE,
+            parentId: 123,
+            hostGroups: [],
+            disableReassignment: true,
           },
         },
       });

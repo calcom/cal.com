@@ -1,3 +1,4 @@
+// Cache bust: added disableReassignment to eventType
 import { getEventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import type { PrismaClient } from "@calcom/prisma";

@@ -142,6 +142,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     durationLimits: null,
     assignAllTeamMembers: false,
     rescheduleWithSameRoundRobinHost: false,
+    disableReassignment: false,
     price: 0,
     currency: "usd",
     slotInterval: null,

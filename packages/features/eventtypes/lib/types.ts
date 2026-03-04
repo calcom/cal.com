@@ -184,6 +184,7 @@ export type FormValues = {
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null;
   rescheduleWithSameRoundRobinHost: boolean;
+  disableReassignment: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
@@ -421,6 +422,7 @@ export type EventTypeUpdateInput = {
   customReplyToEmail?: string | null;
   eventTypeColor?: EventTypeColorInput;
   rescheduleWithSameRoundRobinHost?: boolean;
+  disableReassignment?: boolean;
   secondaryEmailId?: number | null;
   useBookerTimezone?: boolean;
   restrictionScheduleId?: number | null;
@@ -495,7 +497,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;

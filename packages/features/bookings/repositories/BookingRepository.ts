@@ -281,6 +281,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
       customReplyToEmail: true,
       disableRescheduling: true,
       disableCancelling: true,
+      disableReassignment: true,
       requiresConfirmation: true,
       recurringEvent: true,
       bookingFields: true,
