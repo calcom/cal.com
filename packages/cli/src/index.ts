@@ -2,7 +2,7 @@
 import process from "node:process";
 import { Command } from "commander";
 import { registerAgendaCommand } from "./commands/agenda";
-import { registerApiKeysCommand } from "./commands/api-keys";
+import { registerApiKeysCommand } from "./commands/api-key";
 import { registerBookingsCommand } from "./commands/bookings";
 import { registerCalendarsCommand } from "./commands/calendars";
 import { registerConferencingCommand } from "./commands/conferencing";
