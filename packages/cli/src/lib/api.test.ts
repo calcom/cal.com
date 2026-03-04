@@ -34,7 +34,7 @@ describe("apiRequest", () => {
     expect(options.method).toBe("GET");
     expect(options.headers.Authorization).toBe("Bearer cal_test_key");
     expect(options.headers["Content-Type"]).toBe("application/json");
-    expect(options.headers["cal-api-version"]).toBe("2024-08-13");
+    expect(options.headers["cal-api-version"]).toBeUndefined();
   });
 
   it("returns parsed JSON response", async () => {

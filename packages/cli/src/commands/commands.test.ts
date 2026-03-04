@@ -1,5 +1,6 @@
 import { Command, type Command as CommandType } from "commander";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { API_VERSION } from "../lib/constants";
 
 const mockApiRequest: ReturnType<typeof vi.fn> = vi.fn();
 vi.mock("../lib/api", () => ({
@@ -70,6 +71,7 @@ describe("commands", () => {
 
       expect(mockApiRequest).toHaveBeenCalledWith("/v2/bookings", {
         query: { status: "upcoming", sortStart: "asc", take: "25" },
+        apiVersion: API_VERSION.V_2024_08_13,
       });
       expect(logSpy).toHaveBeenCalled();
     });
@@ -122,6 +124,7 @@ describe("commands", () => {
 
       expect(mockApiRequest).toHaveBeenCalledWith("/v2/bookings", {
         query: { status: "upcoming", sortStart: "asc", take: "5" },
+        apiVersion: API_VERSION.V_2024_08_13,
       });
     });
   });
@@ -308,7 +311,9 @@ describe("commands", () => {
       registerBookingsCommand(program);
       await program.parseAsync(["bookings", "get", "test-uid-123"], { from: "user" });
 
-      expect(mockApiRequest).toHaveBeenCalledWith("/v2/bookings/test-uid-123");
+      expect(mockApiRequest).toHaveBeenCalledWith("/v2/bookings/test-uid-123", {
+        apiVersion: API_VERSION.V_2024_08_13,
+      });
     });
 
     it("cancels a booking", async () => {
@@ -415,7 +420,7 @@ describe("commands", () => {
       expect(mockApiRequest).toHaveBeenCalledWith(
         "/v2/event-types",
         expect.objectContaining({
-          headers: { "cal-api-version": "2024-06-14" },
+          apiVersion: API_VERSION.V_2024_06_14,
         })
       );
     });
@@ -433,7 +438,7 @@ describe("commands", () => {
         "/v2/event-types/42",
         expect.objectContaining({
           method: "DELETE",
-          headers: { "cal-api-version": "2024-06-14" },
+          apiVersion: API_VERSION.V_2024_06_14,
         })
       );
     });
@@ -472,7 +477,7 @@ describe("commands", () => {
       expect(mockApiRequest).toHaveBeenCalledWith(
         "/v2/schedules",
         expect.objectContaining({
-          headers: { "cal-api-version": "2024-06-11" },
+          apiVersion: API_VERSION.V_2024_06_11,
         })
       );
     });
@@ -557,19 +562,13 @@ describe("commands", () => {
   });
 
   describe("registerApiKeysCommand", () => {
-    it("registers api-keys command", async () => {
-      const { registerApiKeysCommand } = await import("./api-keys");
+    it("registers api-key-refresh command", async () => {
+      const { registerApiKeysCommand } = await import("./api-key");
       const program = new Command();
       program.exitOverride();
       registerApiKeysCommand(program);
-      const cmd = program.commands.find((c: CommandType) => c.name() === "api-keys");
+      const cmd = program.commands.find((c: CommandType) => c.name() === "api-key-refresh");
       expect(cmd).toBeDefined();
-
-      const subcommands = cmd?.commands.map((c: CommandType) => c.name());
-      expect(subcommands).toContain("list");
-      expect(subcommands).toContain("get");
-      expect(subcommands).toContain("create");
-      expect(subcommands).toContain("delete");
     });
   });
 
