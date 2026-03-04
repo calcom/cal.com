@@ -1,14 +1,13 @@
 import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
+import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/output";
 
 interface Slot {
-  time: string;
+  start: string;
 }
 
-interface AvailableSlotsResponse {
-  slots: Record<string, Slot[]>;
-}
+type AvailableSlotsResponse = Record<string, Slot[]>;
 
 interface ReservedSlot {
   uid: string;
@@ -42,8 +41,8 @@ export function registerSlotsCommand(program: Command): void {
         json?: boolean;
       }) => {
         const query: Record<string, string | undefined> = {
-          startTime: options.start,
-          endTime: options.end,
+          start: options.start,
+          end: options.end,
         };
         if (options.eventTypeId) query.eventTypeId = options.eventTypeId;
         if (options.eventTypeSlug) query.eventTypeSlug = options.eventTypeSlug;
@@ -51,22 +50,22 @@ export function registerSlotsCommand(program: Command): void {
         if (options.timezone) query.timeZone = options.timezone;
         if (options.duration) query.duration = options.duration;
 
-        const response = await apiRequest<AvailableSlotsResponse>("/v2/slots/available", {
+        const response = await apiRequest<AvailableSlotsResponse>("/v2/slots", {
           query,
-          headers: { "cal-api-version": "2024-09-04" },
+          apiVersion: API_VERSION.V_2024_09_04,
         });
 
         handleOutput(response.data, options, (data) => {
-          if (!data || !data.slots || Object.keys(data.slots).length === 0) {
+          if (!data || Object.keys(data).length === 0) {
             console.log("No available slots found.");
             return;
           }
           const rows: string[][] = [];
-          for (const [date, dateSlots] of Object.entries(data.slots)) {
+          for (const [date, dateSlots] of Object.entries(data)) {
             for (const slot of dateSlots) {
               rows.push([
                 date,
-                new Date(slot.time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+                new Date(slot.start).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
               ]);
             }
           }
@@ -89,10 +88,10 @@ export function registerSlotsCommand(program: Command): void {
         slotEnd: options.slotEnd,
       };
 
-      const response = await apiRequest<ReservedSlot>("/v2/slots/reserve", {
+      const response = await apiRequest<ReservedSlot>("/v2/slots/reservations", {
         method: "POST",
         body,
-        headers: { "cal-api-version": "2024-09-04" },
+        apiVersion: API_VERSION.V_2024_09_04,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -109,9 +108,9 @@ export function registerSlotsCommand(program: Command): void {
     .description("Delete a reserved slot")
     .option("--json", "Output as JSON")
     .action(async (uid: string, options: { json?: boolean }) => {
-      await apiRequest<void>(`/v2/slots/${uid}`, {
+      await apiRequest<void>(`/v2/slots/reservations/${uid}`, {
         method: "DELETE",
-        headers: { "cal-api-version": "2024-09-04" },
+        apiVersion: API_VERSION.V_2024_09_04,
       });
 
       if (options.json) {

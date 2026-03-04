@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
+import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/output";
 
 interface ScheduleAvailability {
@@ -46,7 +47,7 @@ function registerScheduleQueryCommands(schedules: Command): void {
     .option("--json", "Output as JSON")
     .action(async (options: { json?: boolean }) => {
       const response = await apiRequest<Schedule[]>("/v2/schedules", {
-        headers: { "cal-api-version": "2024-06-11" },
+        apiVersion: API_VERSION.V_2024_06_11,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -69,7 +70,7 @@ function registerScheduleQueryCommands(schedules: Command): void {
     .option("--json", "Output as JSON")
     .action(async (scheduleId: string, options: { json?: boolean }) => {
       const response = await apiRequest<Schedule>(`/v2/schedules/${scheduleId}`, {
-        headers: { "cal-api-version": "2024-06-11" },
+        apiVersion: API_VERSION.V_2024_06_11,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -87,7 +88,7 @@ function registerScheduleQueryCommands(schedules: Command): void {
     .option("--json", "Output as JSON")
     .action(async (options: { json?: boolean }) => {
       const response = await apiRequest<Schedule>("/v2/schedules/default", {
-        headers: { "cal-api-version": "2024-06-11" },
+        apiVersion: API_VERSION.V_2024_06_11,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -118,7 +119,7 @@ function registerScheduleMutationCommands(schedules: Command): void {
       const response = await apiRequest<Schedule>("/v2/schedules", {
         method: "POST",
         body,
-        headers: { "cal-api-version": "2024-06-11" },
+        apiVersion: API_VERSION.V_2024_06_11,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -155,7 +156,7 @@ function registerScheduleMutationCommands(schedules: Command): void {
         const response = await apiRequest<Schedule>(`/v2/schedules/${scheduleId}`, {
           method: "PATCH",
           body,
-          headers: { "cal-api-version": "2024-06-11" },
+          apiVersion: API_VERSION.V_2024_06_11,
         });
 
         handleOutput(response.data, options, (data) => {
@@ -175,7 +176,7 @@ function registerScheduleMutationCommands(schedules: Command): void {
     .action(async (scheduleId: string, options: { json?: boolean }) => {
       await apiRequest<void>(`/v2/schedules/${scheduleId}`, {
         method: "DELETE",
-        headers: { "cal-api-version": "2024-06-11" },
+        apiVersion: API_VERSION.V_2024_06_11,
       });
 
       if (options.json) {

@@ -1,10 +1,12 @@
 import { getApiUrl, getAuthToken } from "./config";
+import type { ApiVersionValue } from "./constants";
 
 interface ApiRequestOptions {
   method?: string;
   body?: Record<string, unknown>;
   query?: Record<string, string | string[] | undefined>;
   headers?: Record<string, string>;
+  apiVersion?: ApiVersionValue;
 }
 
 interface ValidationConstraints {
@@ -52,7 +54,7 @@ async function apiRequest<T = unknown>(
 ): Promise<ApiResponse<T>> {
   const apiUrl = getApiUrl();
   const apiKey = await getAuthToken();
-  const { method = "GET", body, query, headers = {} } = options;
+  const { method = "GET", body, query, headers = {}, apiVersion } = options;
 
   let url = `${apiUrl}${path}`;
 
@@ -77,9 +79,12 @@ async function apiRequest<T = unknown>(
   const fetchHeaders: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
-    "cal-api-version": "2024-08-13",
     ...headers,
   };
+
+  if (apiVersion) {
+    fetchHeaders["cal-api-version"] = apiVersion;
+  }
 
   const fetchOptions: RequestInit = {
     method,

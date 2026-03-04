@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import type { Command } from "commander";
 import { apiRequest } from "../lib/api";
+import { API_VERSION } from "../lib/constants";
 import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/output";
 
 interface EventType {
@@ -42,7 +43,7 @@ function registerListAndGetCommands(eventTypes: Command): void {
 
         const response = await apiRequest<EventType[]>("/v2/event-types", {
           query,
-          headers: { "cal-api-version": "2024-06-14" },
+          apiVersion: API_VERSION.V_2024_06_14,
         });
 
         handleOutput(response.data, options, (data) => {
@@ -70,7 +71,7 @@ function registerListAndGetCommands(eventTypes: Command): void {
     .option("--json", "Output as JSON")
     .action(async (eventTypeId: string, options: { json?: boolean }) => {
       const response = await apiRequest<EventType>(`/v2/event-types/${eventTypeId}`, {
-        headers: { "cal-api-version": "2024-06-14" },
+        apiVersion: API_VERSION.V_2024_06_14,
       });
 
       handleOutput(response.data, options, (data) => {
@@ -122,7 +123,7 @@ function registerMutationCommands(eventTypes: Command): void {
         const response = await apiRequest<EventType>("/v2/event-types", {
           method: "POST",
           body,
-          headers: { "cal-api-version": "2024-06-14" },
+          apiVersion: API_VERSION.V_2024_06_14,
         });
 
         handleOutput(response.data, options, (data) => {
@@ -166,7 +167,7 @@ function registerMutationCommands(eventTypes: Command): void {
         const response = await apiRequest<EventType>(`/v2/event-types/${eventTypeId}`, {
           method: "PATCH",
           body,
-          headers: { "cal-api-version": "2024-06-14" },
+          apiVersion: API_VERSION.V_2024_06_14,
         });
 
         handleOutput(response.data, options, (data) => {
@@ -186,7 +187,7 @@ function registerMutationCommands(eventTypes: Command): void {
     .action(async (eventTypeId: string, options: { json?: boolean }) => {
       const response = await apiRequest<{ id: number; title: string }>(`/v2/event-types/${eventTypeId}`, {
         method: "DELETE",
-        headers: { "cal-api-version": "2024-06-14" },
+        apiVersion: API_VERSION.V_2024_06_14,
       });
 
       handleOutput(response.data, options, (data) => {
