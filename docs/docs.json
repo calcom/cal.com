@@ -46,17 +46,11 @@
           },
           {
             "group": "Booking",
-            "pages": [
-              "atoms/booker",
-              "atoms/booker-embed"
-            ]
+            "pages": ["atoms/booker", "atoms/booker-embed"]
           },
           {
             "group": "Event Types",
-            "pages": [
-              "atoms/event-type",
-              "atoms/list-event-types"
-            ]
+            "pages": ["atoms/event-type", "atoms/list-event-types"]
           },
           {
             "group": "Availability",
@@ -86,9 +80,7 @@
           },
           {
             "group": "Utility",
-            "pages": [
-              "atoms/troubleshooter"
-            ]
+            "pages": ["atoms/troubleshooter"]
           },
           {
             "group": "Guides",
@@ -98,6 +90,16 @@
               "atoms/guides/custom-slot-select-flow",
               "atoms/guides/replacing-toasts"
             ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "atoms/hooks/bookings-hooks",
+              "atoms/hooks/calendar-hooks",
+              "atoms/hooks/event-types-hooks",
+              "atoms/hooks/team-hooks",
+              "atoms/hooks/user-hooks"
+            ]
           }
         ]
       },
@@ -106,9 +108,7 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": [
-              "developing/local-development"
-            ]
+            "pages": ["developing/local-development"]
           },
           {
             "group": "Open Source Contribution",
@@ -150,16 +150,12 @@
               {
                 "group": "Automation",
                 "icon": "webhook",
-                "pages": [
-                  "developing/guides/automation/webhooks"
-                ]
+                "pages": ["developing/guides/automation/webhooks"]
               },
               {
                 "group": "Atoms",
                 "icon": "atom",
-                "pages": [
-                  "developing/guides/atoms/add-changesets"
-                ]
+                "pages": ["developing/guides/atoms/add-changesets"]
               },
               {
                 "group": "Email",
@@ -171,16 +167,12 @@
               {
                 "group": "Embeds",
                 "icon": "code-simple",
-                "pages": [
-                  "developing/guides/embeds/embed-events"
-                ]
+                "pages": ["developing/guides/embeds/embed-events"]
               },
               {
                 "group": "Insights",
                 "icon": "chart-bar",
-                "pages": [
-                  "developing/guides/insights/add-new-booking-charts"
-                ]
+                "pages": ["developing/guides/insights/add-new-booking-charts"]
               }
             ]
           }

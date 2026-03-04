@@ -19,27 +19,7 @@ Your OAuth client will be reviewed by Cal.com. Once approved, you can use it to 
 
 See the [OAuth documentation](/api-reference/v2/oauth) for complete details.
 
-## 2. Install the atoms package
-
-<Tabs>
-  <Tab title="npm">
-    ```bash
-    npm i @calcom/atoms
-    ```
-  </Tab>
-  <Tab title="yarn">
-    ```bash
-    yarn add @calcom/atoms
-    ```
-  </Tab>
-  <Tab title="pnpm">
-    ```bash
-    pnpm add @calcom/atoms
-    ```
-  </Tab>
-</Tabs>
-
-## 3. Implement the OAuth flow
+## 2. Implement the OAuth flow
 
 When a user wants to connect their Cal.com account:
 
@@ -73,7 +53,7 @@ const { access_token, refresh_token, expires_in } = await response.json();
 // Store these tokens securely
 ```
 
-## 4. Set up a token refresh endpoint
+## 3. Set up a token refresh endpoint
 
 Access tokens expire after 30 minutes. Create an endpoint that atoms can call to refresh tokens:
 
@@ -104,8 +84,45 @@ export default async function handler(req, res) {
   res.json({ accessToken: tokens.access_token });
 }
 ```
+## 4. Install the atoms package
 
-## 5. Configure the OAuth provider
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm i @calcom/atoms
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @calcom/atoms
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @calcom/atoms
+    ```
+  </Tab>
+</Tabs>
+
+## 5.  Tailwind version compatibility
+
+If your project utilizes Tailwind CSS, please ensure you import the CSS bundle that corresponds to your specific version. Atoms provides two distinct bundles to maintain compatibility across versions:
+
+- Tailwind CSS v4:
+
+```js
+import "@calcom/atoms/globals.min.css";
+```
+
+- Tailwind CSS v3:
+
+```js
+import "@calcom/atoms/globals.tw3.min.css";
+```
+
+To prevent styling conflicts or unexpected behavior, please only include the import that matches your project's Tailwind version.
+
+## 6. Configure the OAuth provider
 
 <Note>
 For atoms to work, the root of your application **must** be wrapped with `CalOAuthProvider`. This provider handles authentication and token management for all atoms in your app.
@@ -139,7 +156,7 @@ export default MyApp;
 
 For all provider properties see [Cal OAuth Provider](/atoms/cal-oauth-provider) docs.
 
-## 6. Start using atoms
+## 7. Start using atoms
 
 Now you can use any atom in your components:
 
