@@ -29,8 +29,8 @@ const RedirectPage = async () => {
     where: { id: session.user.id },
     select: { metadata: true },
   });
-  const metadata = userMetadata.parse(user?.metadata);
-  const defaultView = metadata?.defaultHomeView || "event-types";
+  const parsed = userMetadata.safeParse(user?.metadata);
+  const defaultView = parsed.success ? (parsed.data?.defaultHomeView || "event-types") : "event-types";
   redirect(`/${defaultView}`);
 };
 
