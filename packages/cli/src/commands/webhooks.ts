@@ -6,9 +6,10 @@ import { handleOutput, outputError, outputSuccess, outputTable } from "../lib/ou
 interface Webhook {
   id: number;
   subscriberUrl: string;
-  eventTriggers: string[];
+  triggers?: string[];
+  eventTriggers?: string[];
   active: boolean;
-  payloadTemplate: string | null;
+  payloadTemplate?: string | null;
 }
 
 function formatActiveStatus(active: boolean): string {
@@ -16,6 +17,12 @@ function formatActiveStatus(active: boolean): string {
     return chalk.green("Yes");
   }
   return chalk.red("No");
+}
+
+function formatTriggers(triggers: string[]): string {
+  if (triggers.length === 0) return "";
+  if (triggers.length <= 2) return triggers.join(", ");
+  return `${triggers.slice(0, 2).join(", ")} +${triggers.length - 2} more`;
 }
 
 function registerWebhookQueryCommands(webhooks: Command): void {
@@ -35,8 +42,8 @@ function registerWebhookQueryCommands(webhooks: Command): void {
           ["ID", "URL", "Triggers", "Active"],
           data.map((w) => [
             String(w.id),
-            w.subscriberUrl,
-            w.eventTriggers.join(", "),
+            w.subscriberUrl || "",
+            formatTriggers(w.triggers || w.eventTriggers || []),
             formatActiveStatus(w.active),
           ])
         );
@@ -59,7 +66,7 @@ function registerWebhookQueryCommands(webhooks: Command): void {
         console.log(`  URL:      ${data.subscriberUrl}`);
         const activeLabel = formatActiveStatus(data.active);
         console.log(`  Active:   ${activeLabel}`);
-        console.log(`  Triggers: ${data.eventTriggers.join(", ")}`);
+        console.log(`  Triggers: ${(data.triggers || data.eventTriggers || []).join(", ")}`);
         console.log();
       });
     });
