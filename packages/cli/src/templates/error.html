@@ -6,7 +6,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      background: #0a0a0a;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -14,40 +14,69 @@
       color: #fff;
     }
     .card {
-      background: #292929;
-      border: 1px solid #3a3a3a;
-      border-radius: 16px;
+      background: #171717;
+      border: 1px solid #262626;
+      border-radius: 12px;
       padding: 48px;
       text-align: center;
       max-width: 420px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      width: 90%;
     }
-    .icon {
-      width: 64px;
-      height: 64px;
-      background: #ef4444;
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: #262626;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 24px;
     }
-    .icon svg { width: 32px; height: 32px; }
-    h1 { font-size: 24px; font-weight: 600; margin-bottom: 12px; }
-    p { color: #a1a1a1; font-size: 15px; line-height: 1.5; }
-    .error { color: #fca5a5; margin-top: 16px; font-size: 14px; }
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+      color: #ef4444;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    p {
+      color: #a1a1a1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .status {
+      margin-top: 24px;
+    }
+    .status p {
+      color: #a1a1a1;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="icon">
-      <svg fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-      </svg>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </div>
     </div>
     <h1>Authorization Failed</h1>
-    <p>Something went wrong during authorization.</p>
-    <p class="error">{{ERROR_MESSAGE}}</p>
+    <p>Something went wrong during authorization</p>
+    <div class="status">
+      <p>{{ERROR_MESSAGE}}</p>
+    </div>
   </div>
 </body>
 </html>
