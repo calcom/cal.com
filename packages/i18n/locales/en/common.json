@@ -2127,6 +2127,7 @@
   "triggers_when": "Triggers when",
   "test_webhook": "Please ping test before creating.",
   "enable_webhook": "Enable webhook",
+  "disable_webhook": "Disable webhook",
   "add_webhook": "Add webhook",
   "webhook_edited_successfully": "Webhook saved",
   "api_keys_description": "Generate API keys for accessing your own account",

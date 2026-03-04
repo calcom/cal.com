@@ -10,7 +10,8 @@
     "./icons": "./src/icons.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./shared/*": "./src/shared/*.tsx"
   },
   "typesVersions": {
     "*": {
@@ -25,6 +26,9 @@
       ],
       "hooks/*": [
         "./src/hooks/*.ts"
+      ],
+      "shared/*": [
+        "./src/shared/*.tsx"
       ]
     }
   },
