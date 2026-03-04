@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-
+import { DailyLocationType } from "@calcom/app-store/locations";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import prisma from "@calcom/prisma";
-import type { Credential, EventType, User } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { Credential, EventType, Team, User } from "@calcom/prisma/client";
+import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 describe("handleDeleteCredential Integration Tests - BookingReference Soft Delete", () => {
   let testUser: User;
@@ -523,5 +523,828 @@ describe("handleDeleteCredential Integration Tests - BookingReference Soft Delet
       expect(allRefs).toHaveLength(1);
       expect(allRefs[0].deleted).toBe(true);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Credential Not Found
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Credential Not Found", () => {
+  let user: User;
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-notfound-${Date.now()}@example.com`,
+        username: `hdc-notfound-${Date.now()}`,
+      },
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("throws when credentialId does not exist", async () => {
+    await expect(
+      handleDeleteCredential({
+        userId: user.id,
+        userMetadata: {},
+        credentialId: 999999,
+      })
+    ).rejects.toThrow("Credential not found");
+  });
+
+  it("throws when credential belongs to a different user", async () => {
+    const otherUser = await prisma.user.create({
+      data: {
+        email: `hdc-other-${Date.now()}@example.com`,
+        username: `hdc-other-${Date.now()}`,
+      },
+    });
+
+    const cred = await prisma.credential.create({
+      data: {
+        type: "stripe_payment",
+        key: {},
+        userId: otherUser.id,
+        appId: "stripe",
+      },
+    });
+
+    try {
+      await expect(
+        handleDeleteCredential({
+          userId: user.id,
+          userMetadata: {},
+          credentialId: cred.id,
+        })
+      ).rejects.toThrow("Credential not found");
+    } finally {
+      await prisma.credential.delete({ where: { id: cred.id } }).catch(() => {});
+      await prisma.user.delete({ where: { id: otherUser.id } }).catch(() => {});
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Video App Location Replacement
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Video App Location Replacement", () => {
+  let user: User;
+  const createdEventTypeIds: number[] = [];
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-video-${Date.now()}@example.com`,
+        username: `hdc-video-${Date.now()}`,
+      },
+    });
+
+    await prisma.app.upsert({
+      where: { slug: "zoom" },
+      create: {
+        slug: "zoom",
+        dirName: "zoom",
+        categories: [AppCategories.video],
+        enabled: true,
+      },
+      update: {},
+    });
+  });
+
+  afterEach(async () => {
+    for (const id of createdEventTypeIds) {
+      await prisma.eventType.delete({ where: { id } }).catch(() => {});
+    }
+    createdEventTypeIds.splice(0, createdEventTypeIds.length);
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("replaces video app location with DailyLocationType", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "zoom_video",
+        key: {},
+        userId: user.id,
+        appId: "zoom",
+      },
+    });
+
+    const eventType = await prisma.eventType.create({
+      data: {
+        title: "Video Test Event",
+        slug: `video-test-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        locations: [{ type: "integrations:zoom" }],
+      },
+    });
+    createdEventTypeIds.push(eventType.id);
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const updated = await prisma.eventType.findUnique({ where: { id: eventType.id } });
+    const locations = updated?.locations as { type: string }[];
+    expect(locations.some((l) => l.type === DailyLocationType)).toBe(true);
+    expect(locations.some((l) => l.type.includes("zoom"))).toBe(false);
+  });
+
+  it("does not add duplicate DailyLocationType if already present", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "zoom_video",
+        key: {},
+        userId: user.id,
+        appId: "zoom",
+      },
+    });
+
+    const eventType = await prisma.eventType.create({
+      data: {
+        title: "Video Dup Test",
+        slug: `video-dup-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        locations: [{ type: "integrations:zoom" }, { type: DailyLocationType }],
+      },
+    });
+    createdEventTypeIds.push(eventType.id);
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const updated = await prisma.eventType.findUnique({ where: { id: eventType.id } });
+    const locations = updated?.locations as { type: string }[];
+    const dailyCount = locations.filter((l) => l.type === DailyLocationType).length;
+    expect(dailyCount).toBe(1);
+  });
+
+  it("preserves non-video locations while replacing video ones", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "zoom_video",
+        key: {},
+        userId: user.id,
+        appId: "zoom",
+      },
+    });
+
+    const eventType = await prisma.eventType.create({
+      data: {
+        title: "Mixed Location Test",
+        slug: `mixed-loc-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        locations: [{ type: "integrations:zoom" }, { type: "inPerson" }, { type: "phone" }],
+      },
+    });
+    createdEventTypeIds.push(eventType.id);
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const updated = await prisma.eventType.findUnique({ where: { id: eventType.id } });
+    const locations = updated?.locations as { type: string }[];
+    expect(locations).toHaveLength(3);
+    expect(locations.some((l) => l.type === DailyLocationType)).toBe(true);
+    expect(locations.some((l) => l.type === "inPerson")).toBe(true);
+    expect(locations.some((l) => l.type === "phone")).toBe(true);
+    expect(locations.some((l) => l.type.includes("zoom"))).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: CRM App Credential Deletion
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - CRM App", () => {
+  let user: User;
+  const createdEventTypeIds: number[] = [];
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-crm-${Date.now()}@example.com`,
+        username: `hdc-crm-${Date.now()}`,
+      },
+    });
+
+    await prisma.app.upsert({
+      where: { slug: "salesforce" },
+      create: {
+        slug: "salesforce",
+        dirName: "salesforce",
+        categories: [AppCategories.crm],
+        enabled: true,
+      },
+      update: {},
+    });
+  });
+
+  afterEach(async () => {
+    for (const id of createdEventTypeIds) {
+      await prisma.eventType.delete({ where: { id } }).catch(() => {});
+    }
+    createdEventTypeIds.splice(0, createdEventTypeIds.length);
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("hides event type and removes CRM app from metadata", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "salesforce_crm",
+        key: {},
+        userId: user.id,
+        appId: "salesforce",
+      },
+    });
+
+    const eventType = await prisma.eventType.create({
+      data: {
+        title: "CRM Event",
+        slug: `crm-test-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        metadata: {
+          apps: {
+            salesforce: { enabled: true, credentialId: cred.id, appCategories: ["crm"] },
+            googlecalendar: { enabled: true, credentialId: 999, appCategories: ["calendar"] },
+          },
+        },
+      },
+    });
+    createdEventTypeIds.push(eventType.id);
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const updated = await prisma.eventType.findUnique({ where: { id: eventType.id } });
+    expect(updated?.hidden).toBe(true);
+
+    const metadata = updated?.metadata as Record<string, unknown> | null;
+    const apps = (metadata?.apps ?? {}) as Record<string, unknown>;
+    expect(apps["salesforce"]).toBeUndefined();
+    expect(apps["googlecalendar"]).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Zapier / Make Cleanup
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Zapier/Make Cleanup", () => {
+  let user: User;
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-zapier-${Date.now()}@example.com`,
+        username: `hdc-zapier-${Date.now()}`,
+      },
+    });
+
+    await prisma.app.upsert({
+      where: { slug: "zapier" },
+      create: {
+        slug: "zapier",
+        dirName: "zapier",
+        categories: [AppCategories.automation],
+        enabled: true,
+      },
+      update: {},
+    });
+
+    await prisma.app.upsert({
+      where: { slug: "make" },
+      create: {
+        slug: "make",
+        dirName: "make",
+        categories: [AppCategories.automation],
+        enabled: true,
+      },
+      update: {},
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("deletes API keys and webhooks when zapier credential is removed", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "zapier_automation",
+        key: {},
+        userId: user.id,
+        appId: "zapier",
+      },
+    });
+
+    const apiKey = await prisma.apiKey.create({
+      data: {
+        userId: user.id,
+        appId: "zapier",
+        hashedKey: `zapier-hashed-${Date.now()}`,
+      },
+    });
+
+    const webhook = await prisma.webhook.create({
+      data: {
+        id: `zapier-wh-${Date.now()}`,
+        userId: user.id,
+        appId: "zapier",
+        subscriberUrl: "https://hooks.zapier.com/test",
+        eventTriggers: [],
+      },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const remainingKeys = await prisma.apiKey.findMany({
+      where: { userId: user.id, appId: "zapier" },
+    });
+    expect(remainingKeys).toHaveLength(0);
+
+    const remainingWebhooks = await prisma.webhook.findMany({
+      where: { userId: user.id, appId: "zapier" },
+    });
+    expect(remainingWebhooks).toHaveLength(0);
+  });
+
+  it("deletes API keys and webhooks when make credential is removed", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "make_automation",
+        key: {},
+        userId: user.id,
+        appId: "make",
+      },
+    });
+
+    const apiKey = await prisma.apiKey.create({
+      data: {
+        userId: user.id,
+        appId: "make",
+        hashedKey: `make-hashed-${Date.now()}`,
+      },
+    });
+
+    const webhook = await prisma.webhook.create({
+      data: {
+        id: `make-wh-${Date.now()}`,
+        userId: user.id,
+        appId: "make",
+        subscriberUrl: "https://hooks.make.com/test",
+        eventTriggers: [],
+      },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const remainingKeys = await prisma.apiKey.findMany({
+      where: { userId: user.id, appId: "make" },
+    });
+    expect(remainingKeys).toHaveLength(0);
+
+    const remainingWebhooks = await prisma.webhook.findMany({
+      where: { userId: user.id, appId: "make" },
+    });
+    expect(remainingWebhooks).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Default Conferencing App
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Default Conferencing App", () => {
+  let user: User;
+
+  beforeAll(async () => {
+    await prisma.app.upsert({
+      where: { slug: "daily-video" },
+      create: {
+        slug: "daily-video",
+        dirName: "dailyvideo",
+        categories: [AppCategories.conferencing],
+        enabled: true,
+      },
+      update: {},
+    });
+  });
+
+  beforeEach(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-conf-${Date.now()}@example.com`,
+        username: `hdc-conf-${Date.now()}`,
+      },
+    });
+  });
+
+  afterEach(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("clears default conferencing app from user metadata when it matches", async () => {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        metadata: {
+          defaultConferencingApp: { appSlug: "daily-video", appLink: "https://cal.com" },
+        },
+      },
+    });
+
+    const cred = await prisma.credential.create({
+      data: {
+        type: "daily_video",
+        key: {},
+        userId: user.id,
+        appId: "daily-video",
+      },
+    });
+
+    const userBefore = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { metadata: true },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: userBefore?.metadata ?? {},
+      credentialId: cred.id,
+    });
+
+    const userAfter = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { metadata: true },
+    });
+
+    const meta = userAfter?.metadata as Record<string, unknown> | null;
+    expect(meta?.defaultConferencingApp).toBeUndefined();
+  });
+
+  it("does not modify user metadata when a different app is the default", async () => {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        metadata: {
+          defaultConferencingApp: { appSlug: "zoom", appLink: "https://zoom.us" },
+        },
+      },
+    });
+
+    const cred = await prisma.credential.create({
+      data: {
+        type: "daily_video",
+        key: {},
+        userId: user.id,
+        appId: "daily-video",
+      },
+    });
+
+    const userBefore = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { metadata: true },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: userBefore?.metadata ?? {},
+      credentialId: cred.id,
+    });
+
+    const userAfter = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { metadata: true },
+    });
+
+    const meta = userAfter?.metadata as Record<string, unknown> | null;
+    const confApp = meta?.defaultConferencingApp as Record<string, unknown> | undefined;
+    expect(confApp?.appSlug).toBe("zoom");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Calendar App - Destination Calendar
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Calendar Destination Calendar", () => {
+  let user: User;
+  const createdEventTypeIds: number[] = [];
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-cal-${Date.now()}@example.com`,
+        username: `hdc-cal-${Date.now()}`,
+      },
+    });
+
+    await prisma.app.upsert({
+      where: { slug: "google-calendar" },
+      create: {
+        slug: "google-calendar",
+        dirName: "googlecalendar",
+        categories: [AppCategories.calendar],
+        enabled: true,
+      },
+      update: {},
+    });
+  });
+
+  afterEach(async () => {
+    for (const id of createdEventTypeIds) {
+      // Clean up destination calendar first due to relation
+      await prisma.destinationCalendar.deleteMany({ where: { eventTypeId: id } }).catch(() => {});
+      await prisma.eventType.delete({ where: { id } }).catch(() => {});
+    }
+    createdEventTypeIds.splice(0, createdEventTypeIds.length);
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("deletes destination calendar when calendar credential is removed", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key: { access_token: "test", refresh_token: "test" },
+        userId: user.id,
+        appId: "google-calendar",
+      },
+    });
+
+    const eventType = await prisma.eventType.create({
+      data: {
+        title: "Calendar Test Event",
+        slug: `cal-test-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        destinationCalendar: {
+          create: {
+            integration: "google_calendar",
+            externalId: "test-external-id@group.calendar.google.com",
+            credentialId: cred.id,
+          },
+        },
+      },
+    });
+    createdEventTypeIds.push(eventType.id);
+
+    // Verify destination calendar exists
+    const destCalBefore = await prisma.destinationCalendar.findUnique({
+      where: { eventTypeId: eventType.id },
+    });
+    expect(destCalBefore).toBeDefined();
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    // Destination calendar should be deleted
+    const destCalAfter = await prisma.destinationCalendar.findUnique({
+      where: { eventTypeId: eventType.id },
+    });
+    expect(destCalAfter).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Simple Credential Deletion & Edge Cases
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Credential Deletion & Edge Cases", () => {
+  let user: User;
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-simple-${Date.now()}@example.com`,
+        username: `hdc-simple-${Date.now()}`,
+      },
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("deletes the credential record at the end", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "stripe_payment",
+        key: {},
+        userId: user.id,
+        appId: "stripe",
+      },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const deleted = await prisma.credential.findUnique({ where: { id: cred.id } });
+    expect(deleted).toBeNull();
+  });
+
+  it("handles user with no event types gracefully", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "stripe_payment",
+        key: {},
+        userId: user.id,
+        appId: "stripe",
+      },
+    });
+
+    // No event types created for this user
+    await expect(
+      handleDeleteCredential({
+        userId: user.id,
+        userMetadata: {},
+        credentialId: cred.id,
+      })
+    ).resolves.toBeUndefined();
+
+    const deleted = await prisma.credential.findUnique({ where: { id: cred.id } });
+    expect(deleted).toBeNull();
+  });
+
+  it("processes all event types belonging to the user", async () => {
+    await prisma.app.upsert({
+      where: { slug: "zoom" },
+      create: {
+        slug: "zoom",
+        dirName: "zoom",
+        categories: [AppCategories.video],
+        enabled: true,
+      },
+      update: {},
+    });
+
+    const cred = await prisma.credential.create({
+      data: {
+        type: "zoom_video",
+        key: {},
+        userId: user.id,
+        appId: "zoom",
+      },
+    });
+
+    const et1 = await prisma.eventType.create({
+      data: {
+        title: "Multi ET 1",
+        slug: `multi-et1-${Date.now()}`,
+        length: 30,
+        userId: user.id,
+        locations: [{ type: "integrations:zoom" }],
+      },
+    });
+
+    const et2 = await prisma.eventType.create({
+      data: {
+        title: "Multi ET 2",
+        slug: `multi-et2-${Date.now()}`,
+        length: 60,
+        userId: user.id,
+        locations: [{ type: "integrations:zoom" }, { type: "phone" }],
+      },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+    });
+
+    const updated1 = await prisma.eventType.findUnique({ where: { id: et1.id } });
+    const updated2 = await prisma.eventType.findUnique({ where: { id: et2.id } });
+
+    const locs1 = updated1?.locations as { type: string }[];
+    const locs2 = updated2?.locations as { type: string }[];
+
+    expect(locs1.some((l) => l.type === DailyLocationType)).toBe(true);
+    expect(locs1.some((l) => l.type.includes("zoom"))).toBe(false);
+
+    expect(locs2.some((l) => l.type === DailyLocationType)).toBe(true);
+    expect(locs2.some((l) => l.type === "phone")).toBe(true);
+    expect(locs2.some((l) => l.type.includes("zoom"))).toBe(false);
+
+    // Cleanup
+    await prisma.eventType.delete({ where: { id: et1.id } }).catch(() => {});
+    await prisma.eventType.delete({ where: { id: et2.id } }).catch(() => {});
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Group: Team Credential Handling
+// ---------------------------------------------------------------------------
+describe("handleDeleteCredential - Team Credential", () => {
+  let user: User;
+  let team: Team;
+
+  beforeAll(async () => {
+    user = await prisma.user.create({
+      data: {
+        email: `hdc-team-${Date.now()}@example.com`,
+        username: `hdc-team-${Date.now()}`,
+      },
+    });
+
+    team = await prisma.team.create({
+      data: {
+        name: `HDC Test Team ${Date.now()}`,
+        slug: `hdc-team-${Date.now()}`,
+      },
+    });
+  });
+
+  afterAll(async () => {
+    await prisma.team.delete({ where: { id: team.id } }).catch(() => {});
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+  });
+
+  it("deletes a team credential using teamId parameter", async () => {
+    const cred = await prisma.credential.create({
+      data: {
+        type: "stripe_payment",
+        key: {},
+        teamId: team.id,
+        appId: "stripe",
+      },
+    });
+
+    await handleDeleteCredential({
+      userId: user.id,
+      userMetadata: {},
+      credentialId: cred.id,
+      teamId: team.id,
+    });
+
+    const deleted = await prisma.credential.findUnique({ where: { id: cred.id } });
+    expect(deleted).toBeNull();
+  });
+
+  it("throws when teamId does not match the credential", async () => {
+    const otherTeam = await prisma.team.create({
+      data: {
+        name: `HDC Other Team ${Date.now()}`,
+        slug: `hdc-other-team-${Date.now()}`,
+      },
+    });
+
+    const cred = await prisma.credential.create({
+      data: {
+        type: "stripe_payment",
+        key: {},
+        teamId: team.id,
+        appId: "stripe",
+      },
+    });
+
+    try {
+      await expect(
+        handleDeleteCredential({
+          userId: user.id,
+          userMetadata: {},
+          credentialId: cred.id,
+          teamId: otherTeam.id,
+        })
+      ).rejects.toThrow("Credential not found");
+    } finally {
+      await prisma.credential.delete({ where: { id: cred.id } }).catch(() => {});
+      await prisma.team.delete({ where: { id: otherTeam.id } }).catch(() => {});
+    }
   });
 });
