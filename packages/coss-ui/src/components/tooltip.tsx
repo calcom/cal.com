@@ -65,4 +65,5 @@ export {
   TooltipTrigger,
   TooltipPopup,
   TooltipPopup as TooltipContent,
+  TooltipPrimitive,
 };

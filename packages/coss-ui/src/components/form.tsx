@@ -14,4 +14,4 @@ function Form({ className, ...props }: FormPrimitive.Props) {
   );
 }
 
-export { Form };
+export { Form, FormPrimitive };

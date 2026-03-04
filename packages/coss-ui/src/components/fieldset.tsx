@@ -26,4 +26,4 @@ function FieldsetLegend({
   );
 }
 
-export { Fieldset, FieldsetLegend };
+export { Fieldset, FieldsetLegend, FieldsetPrimitive };

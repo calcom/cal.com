@@ -116,4 +116,5 @@ export {
   PopoverTitle,
   PopoverDescription,
   PopoverClose,
+  PopoverPrimitive,
 };

@@ -13,4 +13,4 @@ function CheckboxGroup({ className, ...props }: CheckboxGroupPrimitive.Props) {
   );
 }
 
-export { CheckboxGroup };
+export { CheckboxGroup, CheckboxGroupPrimitive };

@@ -157,4 +157,5 @@ export {
   NumberFieldIncrement,
   NumberFieldGroup,
   NumberFieldInput,
+  NumberFieldPrimitive,
 };

@@ -42,4 +42,5 @@ export {
   CollapsibleTrigger,
   CollapsiblePanel,
   CollapsiblePanel as CollapsibleContent,
+  CollapsiblePrimitive,
 };

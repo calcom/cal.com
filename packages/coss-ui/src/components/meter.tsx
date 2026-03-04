@@ -64,4 +64,11 @@ function MeterValue({ className, ...props }: MeterPrimitive.Value.Props) {
   );
 }
 
-export { Meter, MeterLabel, MeterTrack, MeterIndicator, MeterValue };
+export {
+  Meter,
+  MeterLabel,
+  MeterTrack,
+  MeterIndicator,
+  MeterValue,
+  MeterPrimitive,
+};

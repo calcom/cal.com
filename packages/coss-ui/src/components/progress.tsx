@@ -78,4 +78,5 @@ export {
   ProgressTrack,
   ProgressIndicator,
   ProgressValue,
+  ProgressPrimitive,
 };

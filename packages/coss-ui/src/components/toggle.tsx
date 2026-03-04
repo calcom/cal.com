@@ -42,4 +42,4 @@ function Toggle({
   );
 }
 
-export { Toggle, toggleVariants };
+export { Toggle, toggleVariants, TogglePrimitive };

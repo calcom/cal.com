@@ -99,4 +99,10 @@ function ToggleGroupSeparator({
   );
 }
 
-export { ToggleGroup, Toggle, Toggle as ToggleGroupItem, ToggleGroupSeparator };
+export {
+  ToggleGroup,
+  Toggle,
+  Toggle as ToggleGroupItem,
+  ToggleGroupSeparator,
+  ToggleGroupPrimitive,
+};

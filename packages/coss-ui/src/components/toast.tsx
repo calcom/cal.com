@@ -266,4 +266,5 @@ export {
   toastManager,
   AnchoredToastProvider,
   anchoredToastManager,
+  Toast as ToastPrimitive,
 };

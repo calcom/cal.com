@@ -71,4 +71,4 @@ function SliderValue({ className, ...props }: SliderPrimitive.Value.Props) {
   );
 }
 
-export { Slider, SliderValue };
+export { Slider, SliderValue, SliderPrimitive };

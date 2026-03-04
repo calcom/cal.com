@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@coss/ui/components/dialog";
 import { Label } from "@coss/ui/components/label";
-import { useIsMobile } from "@coss/ui/hooks/use-mobile";
+import { useIsMobile } from "@coss/ui/hooks/use-media-query";
 import { useState } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 import type { FormValues } from "~/settings/my-account/general-view";

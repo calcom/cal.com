@@ -261,4 +261,5 @@ export {
   CommandPanel,
   CommandSeparator,
   CommandShortcut,
+  CommandDialogPrimitive,
 };

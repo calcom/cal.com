@@ -20,4 +20,4 @@ function Separator({
   );
 }
 
-export { Separator };
+export { Separator, SeparatorPrimitive };

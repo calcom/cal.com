@@ -321,4 +321,5 @@ export {
   AutocompleteRow,
   AutocompleteCollection,
   useAutocompleteFilter,
+  AutocompletePrimitive,
 };

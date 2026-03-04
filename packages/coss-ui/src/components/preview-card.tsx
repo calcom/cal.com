@@ -55,4 +55,5 @@ export {
   PreviewCardTrigger as HoverCardTrigger,
   PreviewCardPopup,
   PreviewCardPopup as HoverCardContent,
+  PreviewCardPrimitive,
 };

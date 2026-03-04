@@ -80,4 +80,5 @@ export {
   ToolbarButton,
   ToolbarLink,
   ToolbarInput,
+  ToolbarPrimitive,
 };

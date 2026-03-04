@@ -5,7 +5,7 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
-import { useIsMobile } from "@coss/ui/hooks/use-mobile";
+import { useMediaQuery } from "@coss/ui/hooks/use-media-query";
 import { cn } from "@coss/ui/lib/utils";
 import { Button } from "@coss/ui/components/button";
 import { Input } from "@coss/ui/components/input";
@@ -66,7 +66,7 @@ function SidebarProvider({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const isMobile = useIsMobile();
+  const isMobile = useMediaQuery("max-md");
   const [openMobile, setOpenMobile] = React.useState(false);
 
   // This is the internal state of the sidebar.

@@ -51,7 +51,10 @@ function CardFrameHeader({
   ...props
 }: useRender.ComponentProps<"div">) {
   const defaultProps = {
-    className: cn("relative flex flex-col px-6 py-4", className),
+    className: cn(
+      "relative flex flex-col px-6 py-4 grid auto-rows-min grid-rows-[auto_auto] items-start gap-x-4 has-data-[slot=card-frame-action]:grid-cols-[1fr_auto]",
+      className,
+    ),
     "data-slot": "card-frame-header",
   };
 
@@ -87,6 +90,26 @@ function CardFrameDescription({
   const defaultProps = {
     className: cn("text-muted-foreground text-sm", className),
     "data-slot": "card-frame-description",
+  };
+
+  return useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(defaultProps, props),
+    render,
+  });
+}
+
+function CardFrameAction({
+  className,
+  render,
+  ...props
+}: useRender.ComponentProps<"div">) {
+  const defaultProps = {
+    className: cn(
+      "col-start-2 row-span-2 row-start-1 self-center justify-self-end inline-flex",
+      className,
+    ),
+    "data-slot": "card-frame-action",
   };
 
   return useRender({
@@ -233,6 +256,7 @@ export {
   CardFrameHeader,
   CardFrameTitle,
   CardFrameDescription,
+  CardFrameAction,
   CardFrameFooter,
   CardAction,
   CardDescription,

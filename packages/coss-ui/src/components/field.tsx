@@ -71,4 +71,5 @@ export {
   FieldControl,
   FieldItem,
   FieldValidity,
+  FieldPrimitive,
 };

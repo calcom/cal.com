@@ -84,4 +84,5 @@ export {
   TabsTab as TabsTrigger,
   TabsPanel,
   TabsPanel as TabsContent,
+  TabsPrimitive,
 };
