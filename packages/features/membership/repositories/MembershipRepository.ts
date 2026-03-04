@@ -663,10 +663,10 @@ export class MembershipRepository {
       ];
     }
 
-    if (memberUserIds?.length && cursor) {
-      userFilter.id = { in: memberUserIds, gt: cursor };
-    } else if (memberUserIds?.length) {
-      userFilter.id = { in: memberUserIds };
+    if (memberUserIds !== undefined && memberUserIds !== null) {
+      userFilter.id = cursor
+        ? { in: memberUserIds, gt: cursor }
+        : { in: memberUserIds };
     } else if (cursor) {
       userFilter.id = { gt: cursor };
     }
