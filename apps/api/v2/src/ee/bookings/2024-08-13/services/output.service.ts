@@ -91,7 +91,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
-  constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
+  constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) { }
 
   private getDisplayEmail(email: string): string {
     return email.replace(/\+[a-zA-Z0-9]{25}/, "");
@@ -228,11 +228,13 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
-  async getOutputRecurringBookings(bookingsIds: number[]) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
-    
+  async getOutputRecurringBookings(bookingsIds: number[], useWriteDb = false) {
+    const databaseBookings = useWriteDb
+      ? await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEventFromWrite(bookingsIds)
+      : await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
+
     const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
+
     const transformed = bookingsIds.map(bookingId => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
@@ -373,46 +375,48 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = showAttendees
       ? databaseBooking.attendees.map((attendee) => {
-          const { responses } = safeParse(
-            seatedBookingDataSchema,
-            attendee.bookingSeat?.data,
-            defaultSeatedBookingData,
-            false
-          );
+        const { responses } = safeParse(
+          seatedBookingDataSchema,
+          attendee.bookingSeat?.data,
+          defaultSeatedBookingData,
+          false
+        );
 
-          const attendeeData = {
-            name: attendee.name,
-            email: attendee.email,
-            displayEmail: this.getDisplayEmail(attendee.email),
-            timeZone: attendee.timeZone,
-            language: attendee.locale,
-            absent: !!attendee.noShow,
-            seatUid: attendee.bookingSeat?.referenceUid,
-            bookingFieldsResponses: {},
-          };
-          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-          attendeeParsed.bookingFieldsResponses = responses || {};
-          attendeeParsed.metadata = safeParse(
-            seatedBookingMetadataSchema,
-            attendee.bookingSeat?.metadata,
-            defaultSeatedBookingMetadata,
-            false
-          );
-          // note(Lauris): as of now email is not returned for privacy
-          delete attendeeParsed.bookingFieldsResponses.email;
+        const attendeeData = {
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale,
+          absent: !!attendee.noShow,
+          seatUid: attendee.bookingSeat?.referenceUid,
+          bookingFieldsResponses: {},
+        };
+        const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+        attendeeParsed.bookingFieldsResponses = responses || {};
+        attendeeParsed.metadata = safeParse(
+          seatedBookingMetadataSchema,
+          attendee.bookingSeat?.metadata,
+          defaultSeatedBookingMetadata,
+          false
+        );
+        // note(Lauris): as of now email is not returned for privacy
+        delete attendeeParsed.bookingFieldsResponses.email;
 
-          return attendeeParsed;
-        })
+        return attendeeParsed;
+      })
       : [];
 
     return parsed;
   }
 
-  async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean) {
-    const databaseBookings = await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
-    
+  async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean, useWriteDb = false) {
+    const databaseBookings = useWriteDb
+      ? await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEventFromWrite(bookingsIds)
+      : await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
+
     const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
-    
+
     const transformed = bookingsIds.map(bookingId => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
@@ -426,13 +430,15 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputCreateRecurringSeatedBookings(
     bookings: { uid: string; seatUid: string }[],
-    userIsEventTypeAdminOrOwner: boolean
+    userIsEventTypeAdminOrOwner: boolean,
+    useWriteDb = false
   ) {
     const transformed = [];
 
     for (const booking of bookings) {
-      const databaseBooking =
-        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
+      const databaseBooking = useWriteDb
+        ? await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(booking.uid)
+        : await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
@@ -502,35 +508,35 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = showAttendees
       ? databaseBooking.attendees.map((attendee) => {
-          const { responses } = safeParse(
-            seatedBookingDataSchema,
-            attendee.bookingSeat?.data,
-            defaultSeatedBookingData,
-            false
-          );
+        const { responses } = safeParse(
+          seatedBookingDataSchema,
+          attendee.bookingSeat?.data,
+          defaultSeatedBookingData,
+          false
+        );
 
-          const attendeeData = {
-            name: attendee.name,
-            email: attendee.email,
-            displayEmail: this.getDisplayEmail(attendee.email),
-            timeZone: attendee.timeZone,
-            language: attendee.locale,
-            absent: !!attendee.noShow,
-            seatUid: attendee.bookingSeat?.referenceUid,
-            bookingFieldsResponses: {},
-          };
-          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-          attendeeParsed.bookingFieldsResponses = responses || {};
-          attendeeParsed.metadata = safeParse(
-            seatedBookingMetadataSchema,
-            attendee.bookingSeat?.metadata,
-            defaultSeatedBookingMetadata,
-            false
-          );
-          // note(Lauris): as of now email is not returned for privacy
-          delete attendeeParsed.bookingFieldsResponses.email;
-          return attendeeParsed;
-        })
+        const attendeeData = {
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale,
+          absent: !!attendee.noShow,
+          seatUid: attendee.bookingSeat?.referenceUid,
+          bookingFieldsResponses: {},
+        };
+        const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+        attendeeParsed.bookingFieldsResponses = responses || {};
+        attendeeParsed.metadata = safeParse(
+          seatedBookingMetadataSchema,
+          attendee.bookingSeat?.metadata,
+          defaultSeatedBookingMetadata,
+          false
+        );
+        // note(Lauris): as of now email is not returned for privacy
+        delete attendeeParsed.bookingFieldsResponses.email;
+        return attendeeParsed;
+      })
       : [];
 
     return parsed;

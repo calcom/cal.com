@@ -33,6 +33,9 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
       email: true,
       metadata: true,
       id: true,
+      username: true,
+      name: true,
+      createdDate: true,
     },
   });
   if (!user) {

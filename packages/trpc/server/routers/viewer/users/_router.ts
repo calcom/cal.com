@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { RedirectType, CreationSource } from "@calcom/prisma/enums";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
@@ -143,7 +144,7 @@ export const userAdminRouter = router({
     }),
   delete: authedAdminProcedureWithRequestedUser.input(userIdSchema).mutation(async ({ ctx }) => {
     const { prisma, requestedUser } = ctx;
-    await prisma.user.delete({ where: { id: requestedUser.id } });
+    await deleteUser(requestedUser);
     return { message: `User with id: ${requestedUser.id} deleted successfully` };
   }),
 });

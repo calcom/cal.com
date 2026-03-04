@@ -10,8 +10,8 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { Contact } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
-import { intercom } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
+import type { Contact } from "@calcom/lib/intercom/intercom";
+import { intercom } from "@calcom/lib/intercom/intercom";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

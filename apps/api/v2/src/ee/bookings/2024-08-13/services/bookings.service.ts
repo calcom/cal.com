@@ -115,7 +115,7 @@ export class BookingsService_2024_08_13 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) {}
+  ) { }
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
@@ -321,8 +321,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -336,8 +335,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -351,8 +349,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${
-                    eventTypeBookingField.name
+                  `One or more invalid options for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -367,8 +364,7 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${
-                    eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -435,7 +431,7 @@ export class BookingsService_2024_08_13 {
       bookingData: bookingRequest.body,
     });
 
-    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEvent(
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendeesAndUserAndEventFromWrite(
       booking.bookingId
     );
     if (!databaseBooking) {
@@ -472,7 +468,7 @@ export class BookingsService_2024_08_13 {
       creationSource: "API_V2",
     });
     const ids = bookings.map((booking) => booking.id || 0);
-    const outputBookings = await this.outputService.getOutputRecurringBookings(ids);
+    const outputBookings = await this.outputService.getOutputRecurringBookings(ids, true);
     const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
     return outputBookings.map((outputBooking) =>
       Object.assign(outputBooking, { isPlatformManagedUserBooking })
@@ -502,7 +498,8 @@ export class BookingsService_2024_08_13 {
     });
     const outputBookings = await this.outputService.getOutputCreateRecurringSeatedBookings(
       bookings.map((booking) => ({ uid: booking.uid || "", seatUid: booking.seatReferenceUid || "" })),
-      userIsEventTypeAdminOrOwner
+      userIsEventTypeAdminOrOwner,
+      true
     );
     const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
     return outputBookings.map((outputBooking) =>
@@ -534,7 +531,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Booking missing uid");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(booking.uid);
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEventFromWrite(booking.uid);
     if (!databaseBooking) {
       throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
@@ -544,8 +541,8 @@ export class BookingsService_2024_08_13 {
       outputBooking,
       booking.userId
         ? {
-            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-          }
+          isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+        }
         : {}
     );
   }
@@ -577,7 +574,7 @@ export class BookingsService_2024_08_13 {
       }
 
       const databaseBooking =
-        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(booking.uid);
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
@@ -591,8 +588,8 @@ export class BookingsService_2024_08_13 {
         outputBooking,
         booking.userId
           ? {
-              isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-            }
+            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+          }
           : {}
       );
     } catch (error) {
@@ -605,8 +602,10 @@ export class BookingsService_2024_08_13 {
     }
   }
 
-  async getBooking(uid: string, authUser: AuthOptionalUser) {
-    const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
+  async getBooking(uid: string, authUser: AuthOptionalUser, useWriteDb = false) {
+    const booking = useWriteDb
+      ? await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(uid)
+      : await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
     const userIsEventTypeAdminOrOwner =
       authUser && booking?.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
@@ -630,7 +629,9 @@ export class BookingsService_2024_08_13 {
       return this.outputService.getOutputBooking(booking);
     }
 
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
+    const recurringBooking = useWriteDb
+      ? await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEventFromWrite(uid)
+      : await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(uid);
     if (!recurringBooking.length) {
       throw new NotFoundException(`Booking with uid=${uid} was not found in the database`);
     }
@@ -657,9 +658,9 @@ export class BookingsService_2024_08_13 {
     const userIsEventTypeAdminOrOwner =
       authUser && booking.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-            authUser,
-            booking.eventType as EventType
-          )
+          authUser,
+          booking.eventType as EventType
+        )
         : false;
 
     const isRecurring = !!booking.recurringEventId;
@@ -986,7 +987,7 @@ export class BookingsService_2024_08_13 {
       return this.getAllRecurringBookingsByIndividualUid(bookingUid, authUser);
     }
 
-    return this.getBooking(bookingUid, authUser);
+    return this.getBooking(bookingUid, authUser, true);
   }
 
   private async getAllRecurringBookingsByIndividualUid(bookingUid: string, authUser: AuthOptionalUser) {
@@ -1038,7 +1039,7 @@ export class BookingsService_2024_08_13 {
       actionSource: "API_V2",
     });
 
-    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEventFromWrite(bookingUid);
 
     if (!booking) {
       throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
@@ -1142,7 +1143,7 @@ export class BookingsService_2024_08_13 {
       throw error;
     }
 
-    const reassigned = await this.bookingsRepository.getByUidWithUser(bookingUid);
+    const reassigned = await this.bookingsRepository.getByUidWithUserFromWrite(bookingUid);
     if (!reassigned) {
       throw new NotFoundException(`Reassigned booking with uid=${bookingUid} was not found in the database`);
     }
@@ -1245,7 +1246,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid, requestUser);
+    return this.getBooking(bookingUid, requestUser, true);
   }
 
   async declineBooking(bookingUid: string, requestUser: ApiAuthGuardUser, reason?: string) {
@@ -1280,7 +1281,7 @@ export class BookingsService_2024_08_13 {
       },
     });
 
-    return this.getBooking(bookingUid, requestUser);
+    return this.getBooking(bookingUid, requestUser, true);
   }
 
   async getCalendarLinks(bookingUid: string): Promise<CalendarLink[]> {
