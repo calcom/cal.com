@@ -314,6 +314,19 @@ const handleMarkNoShow = async ({
         /** We send webhook message pre-translated, on client we already handle this */
         bookingUid,
         bookingId,
+        title: booking.title,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        location: booking.location,
+        uid: booking.uid,
+        organizer: booking.user
+          ? {
+              name: booking.user.name || "",
+              email: booking.userPrimaryEmail || booking.user.email,
+              username: booking.user.username || undefined,
+              timeZone: booking.user.timeZone,
+            }
+          : undefined,
         ...(platformClientParams ? platformClientParams : {}),
       });
 

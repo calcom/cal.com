@@ -172,6 +172,16 @@ export interface BookingNoShowParams {
   bookingUid: string;
   bookingId?: number;
   attendees: { email: string; noShow: boolean }[];
+  title?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string | null;
+  organizer?: {
+    name: string;
+    email: string;
+    username?: string;
+    timeZone: string;
+  };
   userId?: number | null;
   eventTypeId?: number | null;
   teamId?: number | null;

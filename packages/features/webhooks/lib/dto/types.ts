@@ -140,6 +140,16 @@ export interface BookingNoShowDTO extends BaseEventDTO {
   bookingUid: string;
   bookingId?: number;
   attendees: { email: string; noShow: boolean }[];
+  title?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string | null;
+  organizer?: {
+    name: string;
+    email: string;
+    username?: string;
+    timeZone: string;
+  };
 }
 
 export interface OOOCreatedDTO extends BaseEventDTO {
@@ -510,6 +520,17 @@ export type BookingNoShowUpdatedPayload = {
   bookingUid: string;
   bookingId?: number;
   attendees: { email: string; noShow: boolean }[];
+  title?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string | null;
+  uid?: string;
+  organizer?: {
+    name: string;
+    email: string;
+    username?: string;
+    timeZone: string;
+  };
 };
 
 export type TranscriptionGeneratedPayload = {

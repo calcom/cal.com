@@ -208,6 +208,11 @@ export class BookingWebhookService implements IBookingWebhookService {
       message: params.message,
       bookingUid: params.bookingUid,
       attendees: params.attendees,
+      title: params.title,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      location: params.location,
+      organizer: params.organizer,
     };
 
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);

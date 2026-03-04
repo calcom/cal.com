@@ -253,6 +253,12 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         bookingId: dto.bookingId,
         attendees: dto.attendees,
         message: dto.message,
+        title: dto.title,
+        startTime: dto.startTime,
+        endTime: dto.endTime,
+        location: dto.location,
+        uid: dto.bookingUid,
+        organizer: dto.organizer,
       },
     };
   }
