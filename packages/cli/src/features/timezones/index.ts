@@ -1,0 +1,1 @@
+export { registerTimezonesCommand } from "./command";

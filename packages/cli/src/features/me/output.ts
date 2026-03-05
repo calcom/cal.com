@@ -1,9 +1,5 @@
-import { renderTable } from "../../shared/output";
+import { renderTable, type OutputOptions } from "../../shared/output";
 import type { Profile } from "./types";
-
-interface OutputOptions {
-  json?: boolean;
-}
 
 function formatDefaultSchedule(id: number | null | undefined): string {
   if (id) {

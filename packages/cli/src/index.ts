@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 import process from "node:process";
 import { Command } from "commander";
-import { registerAgendaCommand } from "./commands/agenda";
-import { registerApiKeysCommand } from "./commands/api-key";
-import { registerCalendarsCommand } from "./commands/calendars";
-import { registerConferencingCommand } from "./commands/conferencing";
-import { registerDestinationCalendarsCommand } from "./commands/destination-calendars";
-import { registerEventTypesCommand } from "./commands/event-types";
-import { registerLoginCommand, registerLogoutCommand } from "./commands/login";
-import { registerOooCommand } from "./commands/ooo";
+import { registerAgendaCommand } from "./features/agenda";
+import { registerApiKeysCommand } from "./features/api-keys";
 import { registerBookingsCommand } from "./features/bookings";
+import { registerCalendarsCommand } from "./features/calendars";
+import { registerConferencingCommand } from "./features/conferencing";
+import { registerDestinationCalendarsCommand } from "./features/destination-calendars";
+import { registerEventTypesCommand } from "./features/event-types";
+import { registerLoginCommand, registerLogoutCommand } from "./features/login";
 import { registerMeCommand } from "./features/me";
-import { registerPrivateLinksCommand } from "./commands/private-links";
-import { registerSchedulesCommand } from "./commands/schedules";
-import { registerSelectedCalendarsCommand } from "./commands/selected-calendars";
-import { registerSlotsCommand } from "./commands/slots";
-import { registerTimezonesCommand } from "./commands/timezones";
-import { registerWebhooksCommand } from "./commands/webhooks";
+import { registerOooCommand } from "./features/ooo";
+import { registerPrivateLinksCommand } from "./features/private-links";
+import { registerSchedulesCommand } from "./features/schedules";
+import { registerSelectedCalendarsCommand } from "./features/selected-calendars";
+import { registerSlotsCommand } from "./features/slots";
+import { registerTimezonesCommand } from "./features/timezones";
+import { registerWebhooksCommand } from "./features/webhooks";
 
 const program: Command = new Command();
 
@@ -25,17 +25,10 @@ program
   .description("Cal.com CLI - Manage your Cal.com account from the command line")
   .version("0.0.1");
 
-// Auth commands
 registerLoginCommand(program);
 registerLogoutCommand(program);
-
-// Profile
 registerMeCommand(program);
-
-// Agenda (shortcut for upcoming bookings)
 registerAgendaCommand(program);
-
-// Resource commands
 registerBookingsCommand(program);
 registerEventTypesCommand(program);
 registerSchedulesCommand(program);

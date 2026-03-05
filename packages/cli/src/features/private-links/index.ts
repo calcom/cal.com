@@ -1,0 +1,1 @@
+export { registerPrivateLinksCommand } from "./command";

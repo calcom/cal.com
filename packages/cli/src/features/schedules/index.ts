@@ -1,0 +1,1 @@
+export { registerSchedulesCommand } from "./command";

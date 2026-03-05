@@ -1,0 +1,1 @@
+export { registerSelectedCalendarsCommand } from "./command";

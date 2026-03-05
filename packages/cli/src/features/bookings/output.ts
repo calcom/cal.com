@@ -1,10 +1,12 @@
 import chalk from "chalk";
-import { renderSuccess, renderTable } from "../../shared/output";
+import {
+  formatDateShort,
+  formatTimeRange,
+  renderSuccess,
+  renderTable,
+  type OutputOptions,
+} from "../../shared/output";
 import type { Booking, BookingResponse, CreateBookingResponse, RescheduleBookingResponse } from "./types";
-
-interface OutputOptions {
-  json?: boolean;
-}
 
 function normalizeBooking(
   data: BookingResponse | CreateBookingResponse | RescheduleBookingResponse | undefined
@@ -57,21 +59,12 @@ export function renderBookingList(bookings: Booking[] | undefined, { json }: Out
   renderTable(
     ["UID", "Title", "Date", "Time", "Status", "Attendees"],
     bookings.map((booking) => {
-      const start = new Date(booking.start);
-      const end = new Date(booking.end);
-      const dateStr = start.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      });
-      const timeStr = `${start.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
       const attendees = booking.attendees?.map((a) => a.name || a.email).join(", ") || "";
-
       return [
         booking.uid.substring(0, 8),
         booking.title || "",
-        dateStr,
-        timeStr,
+        formatDateShort(booking.start),
+        formatTimeRange(booking.start, booking.end),
         booking.status || "",
         attendees,
       ];

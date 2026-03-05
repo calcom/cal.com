@@ -1,0 +1,1 @@
+export { registerApiKeysCommand } from "./command";

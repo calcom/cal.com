@@ -1,16 +1,18 @@
 import type { ApiVersion } from "./constants";
 
-interface VersionedHeaders {
+interface AuthHeaders {
   Authorization: string;
+}
+
+interface VersionedHeaders extends AuthHeaders {
   "cal-api-version": string;
 }
 
-/**
- * The Authorization header is set by the interceptor at runtime.
- */
+// Authorization header is populated by the client interceptor at runtime
+export function authHeader(): AuthHeaders {
+  return { Authorization: "" };
+}
+
 export function apiVersionHeader(version: ApiVersion): VersionedHeaders {
-  return {
-    Authorization: "",
-    "cal-api-version": version,
-  };
+  return { Authorization: "", "cal-api-version": version };
 }

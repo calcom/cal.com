@@ -1,0 +1,1 @@
+export { registerSlotsCommand } from "./command";

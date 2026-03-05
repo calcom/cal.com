@@ -1,0 +1,1 @@
+export { registerWebhooksCommand } from "./command";
