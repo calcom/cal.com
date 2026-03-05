@@ -106,6 +106,8 @@ export async function handleConfirmation(args: {
     evt.recurringEvent = bookingRecurringEvent;
   }
 
+  let scheduleResult: any;
+
   // Check for conflicts and update booking status atomically before any side effects
   await prisma.$transaction(async (tx) => {
     const conflictingBooking = await tx.booking.findFirst({
@@ -127,11 +129,16 @@ export async function handleConfirmation(args: {
       where: { id: bookingId },
       data: { status: BookingStatus.ACCEPTED },
     });
+
+    const eventManager = new EventManager(user, apps);
+    const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+    scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
   });
 
-  const eventManager = new EventManager(user, apps);
-  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  if (!scheduleResult) {
+    throw new Error("Booking coulldn't be scheduled");
+  }
+
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllCalIdWorkflowsFromEventType(eventType, booking.userId);
