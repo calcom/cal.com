@@ -61,7 +61,7 @@ jobs:
             -v "$PWD:/work" -w /work \
             tufin/oasdiff:latest \
             breaking \
-            https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json \
+            https://raw.githubusercontent.com/calcom/cal/refs/heads/main/docs/api-reference/v2/openapi.json \
             docs/api-reference/v2/openapi.json \
             --fail-on ERR \
             --err-ignore .github/oasdiff-err-ignore.txt
