@@ -24392,17 +24392,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "teamId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -24414,7 +24437,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "teamId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "teamId", "id", "subscriberUrl", "active"]
       },
       "TeamWebhooksOutputResponseDto": {
         "type": "object",
@@ -24448,7 +24471,7 @@
             "type": "string"
           },
           "triggers": {
-            "type": "string",
+            "type": "array",
             "example": [
               "BOOKING_CREATED",
               "BOOKING_RESCHEDULED",
@@ -24459,29 +24482,32 @@
               "BOOKING_NO_SHOW",
               "BOOKING_REOPENED"
             ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED",
-              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "ROUTING_FORM_FALLBACK_HIT",
-              "DELEGATION_CREDENTIAL_ERROR",
-              "WRONG_ASSIGNMENT_REPORT"
-            ]
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
           },
           "secret": {
             "type": "string"
@@ -24524,7 +24550,7 @@
             "type": "string"
           },
           "triggers": {
-            "type": "string",
+            "type": "array",
             "example": [
               "BOOKING_CREATED",
               "BOOKING_RESCHEDULED",
@@ -24535,29 +24561,32 @@
               "BOOKING_NO_SHOW",
               "BOOKING_REOPENED"
             ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED",
-              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "ROUTING_FORM_FALLBACK_HIT",
-              "DELEGATION_CREDENTIAL_ERROR",
-              "WRONG_ASSIGNMENT_REPORT"
-            ]
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
           },
           "secret": {
             "type": "string"
@@ -32361,17 +32390,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "userId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -32383,7 +32435,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "userId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "userId", "id", "subscriberUrl", "active"]
       },
       "UserWebhookOutputResponseDto": {
         "type": "object",
@@ -32424,17 +32476,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "eventTypeId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -32446,7 +32521,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "eventTypeId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "eventTypeId", "id", "subscriberUrl", "active"]
       },
       "EventTypeWebhookOutputResponseDto": {
         "type": "object",
@@ -32501,17 +32576,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "oAuthClientId": {
             "type": "string"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -32523,7 +32621,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "oAuthClientId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "oAuthClientId", "id", "subscriberUrl", "active"]
       },
       "OAuthClientWebhookOutputResponseDto": {
         "type": "object",
