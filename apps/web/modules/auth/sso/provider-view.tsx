@@ -32,6 +32,8 @@ export default function Provider(props: SSOProviderPageProps) {
       signIn("saml", {}, { tenant: props.tenant, product: props.product });
     } else if (props.provider === "google" && email) {
       signIn("google", {}, { login_hint: email });
+    } else if (props.provider === "microsoft") {
+      signIn("azure-ad");
     } else {
       signIn(props.provider);
     }
