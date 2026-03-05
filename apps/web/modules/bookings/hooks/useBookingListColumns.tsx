@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -134,7 +135,7 @@ export function useBookingListColumns({
               isToday={isToday}
               loggedInUser={{
                 userId: user?.id,
-                userTimeZone: user?.timeZone,
+                userTimeZone: user?.timeZone || dayjs.tz.guess(),
                 userTimeFormat: user?.timeFormat,
                 userEmail: user?.email,
               }}

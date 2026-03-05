@@ -91,6 +91,7 @@ function BookingListInner({
 }: BookingListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const userTimeZone = user?.timeZone || dayjs.tz.guess();
   const setSelectedBookingUid = useBookingDetailsSheetStore((state) => state.setSelectedBookingUid);
   const router = useRouter();
   const [showFilters, setShowFilters] = useState(true);
@@ -120,7 +121,7 @@ function BookingListInner({
   const finalData = useBookingListData({
     data,
     status,
-    userTimeZone: user?.timeZone,
+    userTimeZone,
   });
 
   const getFacetedUniqueValues = useFacetedUniqueValues({
@@ -220,7 +221,7 @@ function BookingListInner({
 
       {bookingsV3Enabled && (
         <BookingDetailsSheet
-          userTimeZone={user?.timeZone}
+          userTimeZone={userTimeZone}
           userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
           userId={user?.id}
           userEmail={user?.email}
