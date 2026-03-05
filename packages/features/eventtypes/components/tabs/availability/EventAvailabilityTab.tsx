@@ -1,20 +1,10 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseQueryResult } from "@tanstack/react-query";
-import { useState, memo, useEffect } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
-
-import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type {
   AvailabilityOption,
-  FormValues,
   EventTypeSetup,
+  FormValues,
   Host,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
@@ -23,18 +13,23 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
+// biome-ignore lint/style/noRestrictedImports: type-only import from trpc, no runtime dependency
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon";
-import { GlobeIcon, UserIcon } from "@coss/ui/icons";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Spinner } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { GlobeIcon, UserIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { memo, useEffect, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -84,20 +79,19 @@ type EventTypeScheduleDetailsProps = {
   customClassNames?: AvailabilityTableCustomClassNames;
 };
 
-type HostSchedulesQueryType =
-  | GetAllSchedulesByUserIdQueryType
-  | (({ userId }: { userId: number }) => UseQueryResult<
-      {
-        schedules: {
-          id: number;
-          name: string;
-          isDefault: boolean;
-          userId: number;
-          readOnly: boolean;
-        }[];
-      },
-      Error
-    >);
+export type HostSchedulesQueryType = (input: { userId: number }) => UseQueryResult<
+  | {
+      schedules: {
+        id: number;
+        name: string;
+        isDefault: boolean;
+        userId: number;
+        readOnly: boolean;
+      }[];
+    }
+  | undefined,
+  unknown
+>;
 
 type EventTypeTeamScheduleProps = {
   hostSchedulesQuery: HostSchedulesQueryType;
@@ -105,7 +99,11 @@ type EventTypeTeamScheduleProps = {
   customClassNames?: TeamAvailabilityCustomClassNames;
 };
 
-type TeamMember = Pick<TeamMembers[number], "avatar" | "name" | "id">;
+export type TeamMember = {
+  avatar: string;
+  name: string | null;
+  id: number;
+};
 
 type EventTypeScheduleProps = {
   schedulesQueryData?: Array<
@@ -131,11 +129,13 @@ export type EventAvailabilityTabBaserProps = {
 
 type UseTeamEventScheduleSettingsToggle = Omit<EventTypeScheduleProps, "customClassNames"> & {
   customClassNames?: EventAvailabilityTabCustomClassNames;
+  isPlatform?: boolean;
 };
 
 type EventAvailabilityTabProps = EventAvailabilityTabBaserProps &
   Omit<EventTypeScheduleProps, "customClassNames"> & {
     customClassNames?: EventAvailabilityTabCustomClassNames;
+    isPlatform?: boolean;
   };
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
@@ -638,15 +638,16 @@ const TeamMemberSchedule = ({
   teamMembers,
   hostScheduleQuery,
   customClassNames,
+  isPlatform = false,
 }: {
   host: Host;
   index: number;
   teamMembers: TeamMember[];
   hostScheduleQuery: HostSchedulesQueryType;
   customClassNames?: TeamMemmberScheduelCustomClassNames;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
 
   const formMethods = useFormContext<FormValues>();
   const { getValues } = formMethods;
@@ -720,9 +721,11 @@ const TeamAvailability = ({
   teamMembers,
   hostSchedulesQuery,
   customClassNames,
+  isPlatform = false,
 }: EventTypeTeamScheduleProps & {
   teamMembers: TeamMember[];
   customClassNames?: TeamAvailabilityCustomClassNames;
+  isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
   const { watch } = useFormContext<FormValues>();
@@ -770,6 +773,7 @@ const TeamAvailability = ({
                     teamMembers={teamMembers}
                     hostScheduleQuery={hostSchedulesQuery}
                     customClassNames={customClassNames?.teamMemberSchedule}
+                    isPlatform={isPlatform}
                   />
                 </li>
               ))}
@@ -827,10 +831,10 @@ const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
   isRestrictionScheduleEnabled,
+  isPlatform = false,
   ...rest
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
@@ -857,6 +861,7 @@ const UseTeamEventScheduleSettingsToggle = ({
               teamMembers={rest.teamMembers}
               hostSchedulesQuery={rest.hostSchedulesQuery}
               customClassNames={customClassNames?.teamAvailability}
+              isPlatform={isPlatform}
             />
           </div>
         )}
@@ -883,9 +888,14 @@ const UseTeamEventScheduleSettingsToggle = ({
   );
 };
 
-export const EventAvailabilityTab = ({ eventType, isTeamEvent, ...rest }: EventAvailabilityTabProps) => {
+export const EventAvailabilityTab = ({
+  eventType,
+  isTeamEvent,
+  isPlatform = false,
+  ...rest
+}: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseTeamEventScheduleSettingsToggle eventType={eventType} {...rest} />
+    <UseTeamEventScheduleSettingsToggle eventType={eventType} isPlatform={isPlatform} {...rest} />
   ) : (
     <EventTypeSchedule
       eventType={eventType}

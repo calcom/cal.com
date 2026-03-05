@@ -1,41 +1,38 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
-
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type {
+  EventTypePlatformWrapperRef,
   EventTypeSetupProps,
   FormValues,
-  EventTypePlatformWrapperRef,
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { EventType as EventTypeComponent } from "@calcom/web/modules/event-types/components/EventType";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventAdvancedTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/assignment/EventTeamAssignmentTab";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { EventAvailabilityTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventLimitsTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/recurring/RecurringEventController";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventSetupTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import { useAtomsEventTypeById, QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY } from "../hooks/useAtomEventTypeById";
+import { QUERY_KEY as ATOM_EVENT_TYPE_QUERY_KEY, useAtomsEventTypeById } from "../hooks/useAtomEventTypeById";
 import { useAtomUpdateEventType } from "../hooks/useAtomUpdateEventType";
 import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";

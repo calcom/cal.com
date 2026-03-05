@@ -1,13 +1,15 @@
-import { useFormContext } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import {
+  EventAvailabilityTab,
+  type HostSchedulesQueryType,
+  type TeamMember,
+} from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
+import { useFormContext } from "react-hook-form";
 import type { TeamMembers } from "../../EventType";
-import { EventAvailabilityTab } from "./EventAvailabilityTab";
 
 export type EventAvailabilityTabWebWrapperProps = {
   eventType: EventTypeSetup;
@@ -18,6 +20,13 @@ export type EventAvailabilityTabWebWrapperProps = {
 
 export type GetAllSchedulesByUserIdQueryType =
   typeof trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
+
+const mapTeamMembers = (members: TeamMembers): TeamMember[] =>
+  members.map((m) => ({
+    avatar: m.avatar,
+    name: m.name,
+    id: m.id,
+  }));
 
 const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperProps) => {
   const { t } = useLocale();
@@ -65,11 +74,13 @@ const EventAvailabilityTabWebWrapper = (props: EventAvailabilityTabWebWrapperPro
   const { data: schedulesQueryData, isPending: isSchedulesPending } =
     trpc.viewer.availability.list.useQuery(undefined);
 
-  const hostSchedulesQuery = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery;
+  const hostSchedulesQuery: HostSchedulesQueryType = (input) =>
+    trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery(input);
 
   return (
     <EventAvailabilityTab
       {...props}
+      teamMembers={mapTeamMembers(props.teamMembers)}
       schedulesQueryData={schedulesQueryData?.schedules}
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}

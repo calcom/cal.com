@@ -1,14 +1,11 @@
-import { useFormContext } from "react-hook-form";
-
+import {
+  EventAvailabilityTab,
+  type EventAvailabilityTabCustomClassNames,
+  type ScheduleQueryData,
+} from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { EventAvailabilityTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { EventAvailabilityTab } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { ScheduleQueryData } from "@calcom/web/modules/event-types/components/tabs/availability/EventAvailabilityTab";
-
+import { useFormContext } from "react-hook-form";
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
 import { useSchedules } from "../../hooks/schedules/useSchedules";
 import { useTeamMembers } from "../../hooks/teams/useTeamMembers";
@@ -44,6 +41,7 @@ const EventAvailabilityTabPlatformWrapper = ({
   return (
     <EventAvailabilityTab
       {...props}
+      isPlatform={true}
       user={user}
       teamMembers={
         teamMembers?.map((member) => ({
