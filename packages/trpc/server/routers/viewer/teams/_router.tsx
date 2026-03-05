@@ -31,6 +31,7 @@ import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedE
 import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
+import { ZResubscribeInputSchema } from "./resubscribe.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
@@ -238,6 +239,10 @@ export const viewerTeamsRouter = router({
   }),
   listInvoices: authedProcedure.input(ZListInvoicesInputSchema).query(async (opts) => {
     const { default: handler } = await import("./listInvoices.handler");
+    return handler(opts);
+  }),
+  resubscribe: authedProcedure.input(ZResubscribeInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./resubscribe.handler");
     return handler(opts);
   }),
   getActiveUserBreakdown: authedProcedure.input(ZGetActiveUserBreakdownInputSchema).query(async (opts) => {

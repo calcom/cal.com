@@ -6,6 +6,7 @@ import type { IBillingRepository } from "../repository/billing/IBillingRepositor
 import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { ISeatBillingStrategy } from "../service/seatBillingStrategy/ISeatBillingStrategy";
 import type { SeatBillingStrategyFactory } from "../service/seatBillingStrategy/SeatBillingStrategyFactory";
 import { TeamBillingPublishResponseStatus } from "../service/teams/ITeamBillingService";
@@ -48,6 +49,7 @@ describe("TeamBillingService", () => {
   let mockTeamBillingDataRepository: ITeamBillingDataRepository;
   let mockBillingRepository: IBillingRepository;
   let defaultResolver: SeatBillingStrategyFactory;
+  let mockMembershipRepository: MembershipRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -88,6 +90,7 @@ describe("TeamBillingService", () => {
     } as unknown as IBillingRepository;
 
     defaultResolver = createMockFactory(createMockStrategy());
+    mockMembershipRepository = { countByTeamId: vi.fn().mockResolvedValue(1) } as unknown as MembershipRepository;
 
     teamBillingService = new TeamBillingService({
       team: mockTeam,
@@ -95,6 +98,7 @@ describe("TeamBillingService", () => {
       teamBillingDataRepository: mockTeamBillingDataRepository,
       billingRepository: mockBillingRepository,
       seatBillingStrategyFactory: defaultResolver,
+      membershipRepository: mockMembershipRepository,
     });
   });
 
@@ -167,6 +171,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: resolver,
+        membershipRepository: mockMembershipRepository,
       });
       prismaMock.membership.count.mockResolvedValue(10);
       vi.spyOn(teamBillingServiceNotOrg, "checkIfTeamPaymentRequired").mockResolvedValue({
@@ -203,6 +208,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       const result = await teamBillingServiceNoPayment.checkIfTeamPaymentRequired();
@@ -218,6 +224,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       const result = await teamBillingServiceWithPayment.checkIfTeamPaymentRequired();
@@ -233,6 +240,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       const result = await teamBillingServicePaid.checkIfTeamPaymentRequired();

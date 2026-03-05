@@ -158,6 +158,8 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   userId: number;
   isOrg?: boolean;
   pricePerSeat: number | null;
+  /** When provided, takes priority over pricePerSeat and skips the dollars-to-cents conversion. */
+  pricePerSeatInCents?: number | null;
   billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
 }) => {
@@ -168,6 +170,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     userId,
     isOrg,
     pricePerSeat,
+    pricePerSeatInCents,
     billingPeriod = BillingPeriod.MONTHLY,
     tracking,
   } = input;
@@ -184,15 +187,18 @@ export const purchaseTeamOrOrgSubscription = async (input: {
 
   let priceId: string | undefined;
 
-  if (pricePerSeat) {
-    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) {
+  const hasCustomPrice = pricePerSeatInCents || pricePerSeat;
+  if (hasCustomPrice) {
+    const isSelfServePrice =
+      (pricePerSeat && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) ||
+      (pricePerSeatInCents && pricePerSeatInCents === ORGANIZATION_SELF_SERVE_PRICE * 100);
+    if (isOrg && isSelfServePrice) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
       priceId = await createPrice({
         isOrg: !!isOrg,
         teamId,
-        pricePerSeat,
         billingPeriod,
         product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
         currency: customPriceObj.currency,
@@ -245,23 +251,21 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   async function createPrice({
     isOrg,
     teamId,
-    pricePerSeat,
     billingPeriod,
     product,
     currency,
   }: {
     isOrg: boolean;
     teamId: number;
-    pricePerSeat: number;
     billingPeriod: BillingPeriod;
     product: Stripe.Product | string;
     currency: string;
   }) {
     try {
-      const pricePerSeatInCents = pricePerSeat * 100;
+      const resolvedCents = pricePerSeatInCents ?? (pricePerSeat ?? 0) * 100;
       // Price comes in monthly so we need to convert it to a monthly/yearly price
       const occurrence = billingPeriod === "MONTHLY" ? 1 : 12;
-      const yearlyPrice = pricePerSeatInCents * occurrence;
+      const yearlyPrice = resolvedCents * occurrence;
 
       const customPriceObj = await stripe.prices.create({
         nickname: `Custom price for ${isOrg ? "Organization" : "Team"} ID: ${teamId}`,

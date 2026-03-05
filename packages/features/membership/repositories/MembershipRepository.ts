@@ -93,6 +93,12 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
 export class MembershipRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
+  async countByTeamId({ teamId }: { teamId: number }): Promise<number> {
+    return this.prismaClient.membership.count({
+      where: { teamId },
+    });
+  }
+
   async hasMembership({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
     const membership = await this.prismaClient.membership.findFirst({
       where: {

@@ -23,6 +23,9 @@ export interface BillingRecord {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  billingPeriod?: "MONTHLY" | "ANNUALLY" | null;
+  pricePerSeat?: number | null;
+  paidSeats?: number | null;
 }
 
 export interface IBillingRepositoryUpdateArgs {
@@ -38,7 +41,9 @@ export interface IBillingRepositoryUpdateArgs {
 
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
+  deleteByTeamId(teamId: number): Promise<void>;
   findByTeamId(teamId: number): Promise<string | null>;
+  findFullByTeamId(teamId: number): Promise<BillingRecord | null>;
   findBySubscriptionId(subscriptionId: string): Promise<{ id: string; teamId: number } | null>;
   updateById(id: string, data: IBillingRepositoryUpdateArgs): Promise<void>;
 }

@@ -7,7 +7,10 @@ import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import {
+  BillingPeriod,
+  teamMetadataStrictSchema,
+} from "@calcom/prisma/zod-utils";
 import type { z } from "zod";
 import type {
   IBillingRepository,
@@ -15,6 +18,7 @@ import type {
 } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
 import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import {
@@ -35,6 +39,7 @@ export class TeamBillingService implements ITeamBillingService {
   private billingRepository: IBillingRepository;
   private teamBillingDataRepository: ITeamBillingDataRepository;
   private seatBillingStrategyFactory: SeatBillingStrategyFactory;
+  private membershipRepository: MembershipRepository;
 
   constructor({
     team,
@@ -42,18 +47,21 @@ export class TeamBillingService implements ITeamBillingService {
     teamBillingDataRepository,
     billingRepository,
     seatBillingStrategyFactory,
+    membershipRepository,
   }: {
     team: TeamBillingInput;
     billingProviderService: IBillingProviderService;
     teamBillingDataRepository: ITeamBillingDataRepository;
     billingRepository: IBillingRepository;
     seatBillingStrategyFactory: SeatBillingStrategyFactory;
+    membershipRepository: MembershipRepository;
   }) {
     this.team = team;
     this.billingProviderService = billingProviderService;
     this.teamBillingDataRepository = teamBillingDataRepository;
     this.billingRepository = billingRepository;
     this.seatBillingStrategyFactory = seatBillingStrategyFactory;
+    this.membershipRepository = membershipRepository;
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
@@ -64,7 +72,9 @@ export class TeamBillingService implements ITeamBillingService {
   }
   private async getOrgIfNeeded() {
     if (!this.team.parentId) return;
-    const parentTeam = await this.teamBillingDataRepository.find(this.team.parentId);
+    const parentTeam = await this.teamBillingDataRepository.find(
+      this.team.parentId
+    );
     this.team = parentTeam;
   }
   private logErrorFromUnknown(error: unknown) {
@@ -75,11 +85,17 @@ export class TeamBillingService implements ITeamBillingService {
   async cancel() {
     try {
       const { subscriptionId } = this.team.metadata;
-      log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`);
+      log.info(
+        `Cancelling subscription ${subscriptionId} for team ${this.team.id}`
+      );
       if (!subscriptionId) throw Error("missing subscriptionId");
-      await this.billingProviderService.handleSubscriptionCancel(subscriptionId);
+      await this.billingProviderService.handleSubscriptionCancel(
+        subscriptionId
+      );
       await this.downgrade();
-      log.info(`Cancelled subscription ${subscriptionId} for team ${this.team.id}`);
+      log.info(
+        `Cancelled subscription ${subscriptionId} for team ${this.team.id}`
+      );
     } catch (error) {
       this.logErrorFromUnknown(error);
     }
@@ -90,11 +106,16 @@ export class TeamBillingService implements ITeamBillingService {
     const teamId = this.team.id;
     if (url) {
       // TODO: We should probably hit the logic of this URL handled by the /upgrade API handler as it just generates the url to check the payment status and upgrade if needed
-      return { redirectUrl: url, status: TeamBillingPublishResponseStatus.REQUIRES_UPGRADE };
+      return {
+        redirectUrl: url,
+        status: TeamBillingPublishResponseStatus.REQUIRES_UPGRADE,
+      };
     }
     const requestedSlug = this.team.metadata?.requestedSlug || "";
     // if payment needed, respond with checkout url
-    const membershipCount = await prisma.membership.count({ where: { teamId } });
+    const membershipCount = await prisma.membership.count({
+      where: { teamId },
+    });
     const owner = await prisma.membership.findFirstOrThrow({
       where: { teamId, role: "OWNER" },
       select: {
@@ -118,13 +139,19 @@ export class TeamBillingService implements ITeamBillingService {
         };
       }
 
-      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
+      const { mergeMetadata } = getMetadataHelpers(
+        teamPaymentMetadataSchema,
+        this.team.metadata
+      );
       const data: Prisma.TeamUpdateInput = {
         metadata: mergeMetadata({ requestedSlug: undefined }),
       };
       if (requestedSlug) data.slug = requestedSlug;
       await prisma.team.update({ where: { id: teamId }, data });
-      return { status: TeamBillingPublishResponseStatus.SUCCESS, redirectUrl: null };
+      return {
+        status: TeamBillingPublishResponseStatus.SUCCESS,
+        redirectUrl: null,
+      };
     } catch (error) {
       if (error instanceof Redirect) throw error;
       const { message } = getRequestedSlugError(error, requestedSlug);
@@ -133,13 +160,19 @@ export class TeamBillingService implements ITeamBillingService {
   }
   async downgrade() {
     try {
-      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
+      const { mergeMetadata } = getMetadataHelpers(
+        teamPaymentMetadataSchema,
+        this.team.metadata
+      );
       const metadata = mergeMetadata({
         paymentId: undefined,
         subscriptionId: undefined,
         subscriptionItemId: undefined,
       });
-      await prisma.team.update({ where: { id: this.team.id }, data: { metadata } });
+      await prisma.team.update({
+        where: { id: this.team.id },
+        data: { metadata },
+      });
       log.info(`Downgraded team ${this.team.id}`);
     } catch (error) {
       this.logErrorFromUnknown(error);
@@ -165,11 +198,15 @@ export class TeamBillingService implements ITeamBillingService {
 
       // TODO: To be read from organizationOnboarding for Organizations later, but considering the fact that certain old organization won't have onboarding
       const { subscriptionId, subscriptionItemId } = metadata;
-      const membershipCount = await prisma.membership.count({ where: { teamId } });
+      const membershipCount = await prisma.membership.count({
+        where: { teamId },
+      });
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
 
-      const strategy = await this.seatBillingStrategyFactory.createByTeamId(teamId);
+      const strategy = await this.seatBillingStrategyFactory.createByTeamId(
+        teamId
+      );
       await strategy.onSeatChange({
         teamId,
         subscriptionId,
@@ -177,7 +214,9 @@ export class TeamBillingService implements ITeamBillingService {
         membershipCount,
         changeType,
       });
-      log.info(`Seat change processed for team ${teamId} (${membershipCount} seats).`);
+      log.info(
+        `Seat change processed for team ${teamId} (${membershipCount} seats).`
+      );
     } catch (error) {
       this.logErrorFromUnknown(error);
     }
@@ -186,10 +225,13 @@ export class TeamBillingService implements ITeamBillingService {
   async checkIfTeamPaymentRequired() {
     const { paymentId } = this.team.metadata || {};
     /** If there's no paymentId, we need to pay this team */
-    if (!paymentId) return { url: null, paymentId: null, paymentRequired: true };
+    if (!paymentId)
+      return { url: null, paymentId: null, paymentRequired: true };
     /** If there's a pending session but it isn't paid, we need to pay this team */
-    const checkoutSessionIsPaid = await this.billingProviderService.checkoutSessionIsPaid(paymentId);
-    if (!checkoutSessionIsPaid) return { url: null, paymentId, paymentRequired: true };
+    const checkoutSessionIsPaid =
+      await this.billingProviderService.checkoutSessionIsPaid(paymentId);
+    if (!checkoutSessionIsPaid)
+      return { url: null, paymentId, paymentRequired: true };
     /** If the session is already paid we return the upgrade URL so team is updated. */
     return {
       url: `${WEBAPP_URL}/api/teams/${this.team.id}/upgrade?session_id=${paymentId}`,
@@ -211,7 +253,9 @@ export class TeamBillingService implements ITeamBillingService {
   async endTrial() {
     try {
       const { subscriptionId } = this.team.metadata;
-      log.info(`Ending trial for subscription ${subscriptionId} of team ${this.team.id}`);
+      log.info(
+        `Ending trial for subscription ${subscriptionId} of team ${this.team.id}`
+      );
 
       if (!subscriptionId) {
         log.warn(`No subscription ID found for team ${this.team.id}`);
@@ -229,5 +273,37 @@ export class TeamBillingService implements ITeamBillingService {
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
     await this.billingRepository.create(args);
+  }
+
+  async resubscribe(userId: number): Promise<{ checkoutUrl: string }> {
+    const teamId = this.team.id;
+    const isOrganization = this.team.isOrganization;
+    log.info(`Resubscribe requested for team ${teamId}`);
+
+    const billingRecord = await this.billingRepository.findFullByTeamId(teamId);
+
+    const membershipCount = await this.membershipRepository.countByTeamId({ teamId });
+
+    const checkoutSession = await purchaseTeamOrOrgSubscription({
+      teamId,
+      seatsUsed: membershipCount,
+      userId,
+      isOrg: isOrganization,
+      pricePerSeat: null,
+      pricePerSeatInCents: billingRecord?.pricePerSeat ?? null,
+      billingPeriod:
+        billingRecord?.billingPeriod === "ANNUALLY"
+          ? BillingPeriod.ANNUALLY
+          : BillingPeriod.MONTHLY,
+    });
+
+    if (!checkoutSession.url) {
+      throw new Error(
+        `Failed to create resubscribe checkout session for team ${teamId}`
+      );
+    }
+
+    log.info(`Resubscribe checkout created for team ${teamId}`);
+    return { checkoutUrl: checkoutSession.url };
   }
 }

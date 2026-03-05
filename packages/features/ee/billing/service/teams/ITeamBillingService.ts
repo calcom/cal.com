@@ -1,5 +1,4 @@
 import type { Team } from "@calcom/prisma/client";
-
 import type {
   IBillingRepositoryCreateArgs,
   SubscriptionStatus,
@@ -26,4 +25,5 @@ export interface ITeamBillingService {
   getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
   endTrial(): Promise<boolean>;
   saveTeamBilling(args: IBillingRepositoryCreateArgs): Promise<void>;
+  resubscribe(userId: number): Promise<{ checkoutUrl: string }>;
 }

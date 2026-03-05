@@ -6,6 +6,7 @@ import type { IBillingRepository } from "../../repository/billing/IBillingReposi
 import { Plan, SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { ISeatBillingStrategy } from "../seatBillingStrategy/ISeatBillingStrategy";
 import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
@@ -67,6 +68,11 @@ const createMockTeamBillingDataRepository = (): ITeamBillingDataRepository => ({
 
 const createMockBillingRepository = (): IBillingRepository => ({
   create: vi.fn(),
+  findByTeamId: vi.fn(),
+  findBySubscriptionId: vi.fn(),
+  updateById: vi.fn(),
+  deleteByTeamId: vi.fn(),
+  findFullByTeamId: vi.fn(),
 });
 
 function createMockStrategy(): ISeatBillingStrategy {
@@ -82,6 +88,7 @@ describe("TeamBillingService", () => {
   let mockTeamBillingDataRepository: ITeamBillingDataRepository;
   let mockBillingRepository: IBillingRepository;
   let defaultResolver: SeatBillingStrategyFactory;
+  let mockMembershipRepository: MembershipRepository;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -89,6 +96,9 @@ describe("TeamBillingService", () => {
     mockTeamBillingDataRepository = createMockTeamBillingDataRepository();
     mockBillingRepository = createMockBillingRepository();
     defaultResolver = createMockFactory(createMockStrategy());
+    mockMembershipRepository = {
+      countByTeamId: vi.fn().mockResolvedValue(1),
+    } as unknown as MembershipRepository;
   });
 
   afterEach(() => {
@@ -103,6 +113,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       await teamBillingService.cancel();
@@ -125,6 +136,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(false);
@@ -153,6 +165,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       const mockUrl = `${WEBAPP_URL}/api/teams/${mockTeam.id}/upgrade?session_id=cs_789`;
@@ -184,6 +197,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: resolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       prismaMock.membership.count.mockResolvedValue(10);
@@ -215,6 +229,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: resolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       prismaMock.membership.count.mockResolvedValue(7);
@@ -247,6 +262,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       const result = await teamBillingService.checkIfTeamPaymentRequired();
@@ -261,6 +277,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(false);
@@ -277,6 +294,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(true);
@@ -323,6 +341,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -362,6 +381,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -401,6 +421,7 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       await teamBillingService.saveTeamBilling(mockBillingArgs);
@@ -443,11 +464,124 @@ describe("TeamBillingService", () => {
         teamBillingDataRepository: mockTeamBillingDataRepository,
         billingRepository: mockBillingRepository,
         seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
       });
 
       await expect(teamBillingService.saveTeamBilling(mockBillingArgs)).rejects.toThrow(
         "Database constraint violation"
       );
+    });
+  });
+
+  describe("resubscribe", () => {
+    it("should generate checkout URL with old billing record details", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingRepository.findFullByTeamId).mockResolvedValue({
+        id: "billing_123",
+        teamId: 1,
+        subscriptionId: "sub_old",
+        subscriptionItemId: "si_old",
+        customerId: "cus_123",
+        planName: Plan.ORGANIZATION,
+        status: SubscriptionStatus.CANCELLED,
+        billingPeriod: "MONTHLY",
+        pricePerSeat: 1200,
+        paidSeats: 5,
+      });
+
+      vi.mocked(mockMembershipRepository.countByTeamId).mockResolvedValue(5);
+      vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
+        url: "https://checkout.stripe.com/session123",
+      });
+
+      const result = await teamBillingService.resubscribe(42);
+
+      expect(result).toEqual({ checkoutUrl: "https://checkout.stripe.com/session123" });
+      expect(purchaseTeamOrOrgSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: 1,
+          seatsUsed: 5,
+          userId: 42,
+          isOrg: true,
+          pricePerSeat: null,
+          pricePerSeatInCents: 1200,
+          billingPeriod: "MONTHLY",
+        })
+      );
+    });
+
+    it("should use defaults when no billing record exists", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingRepository.findFullByTeamId).mockResolvedValue(null);
+      vi.mocked(mockMembershipRepository.countByTeamId).mockResolvedValue(3);
+      vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
+        url: "https://checkout.stripe.com/session456",
+      });
+
+      const result = await teamBillingService.resubscribe(42);
+
+      expect(result).toEqual({ checkoutUrl: "https://checkout.stripe.com/session456" });
+      expect(purchaseTeamOrOrgSubscription).toHaveBeenCalledWith(
+        expect.objectContaining({
+          pricePerSeat: null,
+        })
+      );
+    });
+
+    it("should throw when checkout session returns no URL", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingRepository.findFullByTeamId).mockResolvedValue(null);
+      vi.mocked(mockMembershipRepository.countByTeamId).mockResolvedValue(3);
+      vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({ url: null });
+
+      await expect(teamBillingService.resubscribe(42)).rejects.toThrow(
+        "Failed to create resubscribe checkout session for team 1"
+      );
+    });
+
+    it("should pass current membership count as seatsUsed", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingRepository.findFullByTeamId).mockResolvedValue(null);
+      vi.mocked(mockMembershipRepository.countByTeamId).mockResolvedValue(12);
+      vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
+        url: "https://checkout.stripe.com/session789",
+      });
+
+      await teamBillingService.resubscribe(42);
+
+      expect(purchaseTeamOrOrgSubscription).toHaveBeenCalledWith(expect.objectContaining({ seatsUsed: 12 }));
     });
   });
 });

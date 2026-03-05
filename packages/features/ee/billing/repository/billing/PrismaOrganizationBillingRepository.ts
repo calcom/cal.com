@@ -1,10 +1,9 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type {
+  BillingRecord,
   IBillingRepository,
   IBillingRepositoryCreateArgs,
   IBillingRepositoryUpdateArgs,
-  BillingRecord,
   Plan,
   SubscriptionStatus,
 } from "./IBillingRepository";
@@ -31,6 +30,36 @@ export class PrismaOrganizationBillingRepository implements IBillingRepository {
       ...billingRecord,
       planName: billingRecord.planName as Plan,
       status: billingRecord.status as SubscriptionStatus,
+    };
+  }
+
+  async deleteByTeamId(teamId: number): Promise<void> {
+    await this.prismaClient.organizationBilling.deleteMany({
+      where: { teamId },
+    });
+  }
+
+  async findFullByTeamId(teamId: number): Promise<BillingRecord | null> {
+    const record = await this.prismaClient.organizationBilling.findUnique({
+      where: { teamId },
+      select: {
+        id: true,
+        teamId: true,
+        subscriptionId: true,
+        subscriptionItemId: true,
+        customerId: true,
+        planName: true,
+        status: true,
+        billingPeriod: true,
+        pricePerSeat: true,
+        paidSeats: true,
+      },
+    });
+    if (!record) return null;
+    return {
+      ...record,
+      planName: record.planName as Plan,
+      status: record.status as SubscriptionStatus,
     };
   }
 

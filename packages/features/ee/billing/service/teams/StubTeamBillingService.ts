@@ -1,10 +1,10 @@
 import type { SeatChangeType } from "../seatBillingStrategy/ISeatBillingStrategy";
-import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
 import type {
   ITeamBillingService,
   TeamBillingInput,
   TeamBillingPublishResponse,
 } from "./ITeamBillingService";
+import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
 
 export class StubTeamBillingService implements ITeamBillingService {
   constructor(private team: TeamBillingInput) {}
@@ -37,4 +37,8 @@ export class StubTeamBillingService implements ITeamBillingService {
   }
 
   async saveTeamBilling() {}
+
+  async resubscribe(_userId: number): Promise<{ checkoutUrl: string }> {
+    return { checkoutUrl: "" };
+  }
 }

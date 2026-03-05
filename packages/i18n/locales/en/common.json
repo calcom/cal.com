@@ -4750,5 +4750,6 @@
   "dunning_hard_blocked_banner": "Your invoice for \"{{teamName}}\" is critically overdue. Bookings and API access are blocked. Pay now to restore service.",
   "dunning_cancelled_banner": "Your subscription for \"{{teamName}}\" has been cancelled due to non-payment. Please pay your outstanding invoice to restore service.",
   "dunning_enterprise_banner": "You have an unpaid invoice for \"{{teamName}}\". Please contact your account manager.",
+  "resubscribe": "Resubscribe",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

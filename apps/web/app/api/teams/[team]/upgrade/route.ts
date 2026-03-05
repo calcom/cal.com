@@ -11,6 +11,8 @@ import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Bill
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
+import { PrismaOrganizationBillingRepository } from "@calcom/features/ee/billing/repository/billing/PrismaOrganizationBillingRepository";
+import { PrismaTeamBillingRepository } from "@calcom/features/ee/billing/repository/billing/PrismaTeamBillingRepository";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -100,6 +102,16 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
 
       const teamBillingServiceFactory = getTeamBillingServiceFactory();
       const teamBillingService = teamBillingServiceFactory.init(team);
+      // Delete old billing record if it exists (resubscribe case).
+      // Cascade deletes the associated dunning record too.
+      if (team.isOrganization) {
+        const orgBillingRepo = new PrismaOrganizationBillingRepository(prisma);
+        await orgBillingRepo.deleteByTeamId(team.id);
+      } else {
+        const teamBillingRepo = new PrismaTeamBillingRepository(prisma);
+        await teamBillingRepo.deleteByTeamId(team.id);
+      }
+
       await teamBillingService.saveTeamBilling({
         teamId: team.id,
         subscriptionId: subscription.id,

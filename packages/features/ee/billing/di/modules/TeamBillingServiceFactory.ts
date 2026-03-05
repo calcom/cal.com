@@ -1,4 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { moduleLoader as membershipRepositoryModuleLoader } from "@calcom/features/users/di/MembershipRepository.module";
 import { TeamBillingServiceFactory } from "../../service/teams/TeamBillingServiceFactory";
 import { DI_TOKENS } from "../tokens";
 import { billingProviderServiceModuleLoader } from "./BillingProviderService";
@@ -21,6 +22,7 @@ const loadModule = bindModuleToClassOnToken({
     billingRepositoryFactory: billingRepositoryFactoryModuleLoader,
     isTeamBillingEnabled: isTeamBillingEnabledModuleLoader,
     seatBillingStrategyFactory: seatBillingStrategyFactoryModuleLoader,
+    membershipRepository: membershipRepositoryModuleLoader,
   },
 });
 

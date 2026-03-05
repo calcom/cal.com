@@ -3,7 +3,10 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DunningStatus } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/components/toast";
 import { TopBanner } from "@calcom/ui/components/top-banner";
+import { Spinner } from "@calcom/ui/components/icon";
 
 export type DueInvoiceBannerProps = {
   data: RouterOutputs["viewer"]["me"]["getUserTopBanners"]["dueInvoiceBanner"];
@@ -36,6 +39,29 @@ function getBannerConfig(record: BannerRecord) {
   }
 }
 
+function ResubscribeAction({ record }: { record: BannerRecord }) {
+  const { t } = useLocale();
+  const resubscribeMutation = trpc.viewer.teams.resubscribe.useMutation({
+    onSuccess: (data) => {
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  return (
+    <button
+      onClick={() => resubscribeMutation.mutate({ teamId: record.teamId })}
+      disabled={resubscribeMutation.isPending}
+      className="border-b border-b-black hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed">
+      {resubscribeMutation.isPending ? <Spinner className="inline h-4 w-4 animate-spin" /> : t("resubscribe")}
+    </button>
+  );
+}
+
 export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
   const { t } = useLocale();
 
@@ -45,6 +71,8 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
   const displayRecord = sorted[0];
 
   const { variant, messageKey } = getBannerConfig(displayRecord);
+  const needsResubscribe =
+    !displayRecord.invoiceUrl && displayRecord.status === "CANCELLED" && !displayRecord.isEnterprise;
   const billingFallback = displayRecord.isOrganization
     ? "/settings/organizations/billing"
     : `/settings/teams/${displayRecord.teamId}/billing`;
@@ -55,13 +83,17 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
       variant={variant}
       text={t(messageKey, { teamName: displayRecord.teamName })}
       actions={
-        <a
-          href={paymentUrl}
-          target={displayRecord.invoiceUrl ? "_blank" : undefined}
-          rel={displayRecord.invoiceUrl ? "noopener noreferrer" : undefined}
-          className="border-b border-b-black hover:opacity-80">
-          {t("pay_now")}
-        </a>
+        needsResubscribe ? (
+          <ResubscribeAction record={displayRecord} />
+        ) : (
+          <a
+            href={paymentUrl}
+            target={displayRecord.invoiceUrl ? "_blank" : undefined}
+            rel={displayRecord.invoiceUrl ? "noopener noreferrer" : undefined}
+            className="border-b border-b-black hover:opacity-80">
+            {t("pay_now")}
+          </a>
+        )
       }
     />
   );

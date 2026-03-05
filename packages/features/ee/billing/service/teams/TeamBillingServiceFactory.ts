@@ -1,3 +1,4 @@
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
@@ -13,6 +14,7 @@ export interface ITeamBillingServiceFactoryDeps {
   billingRepositoryFactory: (isOrganization: boolean) => IBillingRepository;
   isTeamBillingEnabled: boolean;
   seatBillingStrategyFactory: SeatBillingStrategyFactory;
+  membershipRepository: MembershipRepository;
 }
 
 export class TeamBillingServiceFactory {
@@ -34,6 +36,7 @@ export class TeamBillingServiceFactory {
       teamBillingDataRepository: this.deps.teamBillingDataRepository,
       billingRepository,
       seatBillingStrategyFactory: this.deps.seatBillingStrategyFactory,
+      membershipRepository: this.deps.membershipRepository,
     });
   }
 

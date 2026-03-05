@@ -23,6 +23,12 @@ export class StubBillingRepository implements IBillingRepository {
     return null;
   }
 
+  async deleteByTeamId(_teamId: number): Promise<void> {}
+
+  async findFullByTeamId(_teamId: number): Promise<BillingRecord | null> {
+    return null;
+  }
+
   async findBySubscriptionId(_subscriptionId: string): Promise<{ id: string; teamId: number } | null> {
     return null;
   }
