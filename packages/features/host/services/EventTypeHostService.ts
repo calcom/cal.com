@@ -300,7 +300,6 @@ export class EventTypeHostService {
       return { members };
     }
 
-    // Fetch all non-fixed hosts for this event type
     const hosts = await this.hostRepository.findAllRoundRobinHosts({ eventTypeId });
 
     let members: ExportedWeightMember[] = hosts.map((h) => ({
