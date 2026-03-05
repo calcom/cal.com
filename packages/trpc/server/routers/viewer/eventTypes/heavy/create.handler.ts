@@ -156,7 +156,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     console.warn(e);
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002" && Array.isArray(e.meta?.target) && e.meta?.target.includes("slug")) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
+        throw new TRPCError({ code: "CONFLICT", message: "duplicate_event_slug_conflict" });
       }
     }
     throw new TRPCError({ code: "BAD_REQUEST" });

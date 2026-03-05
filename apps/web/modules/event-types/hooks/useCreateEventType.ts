@@ -37,6 +37,10 @@ export const useCreateEventType = (
         error = `${err.statusCode}: ${err.message}`;
       }
 
+      if (err.data?.code === "CONFLICT") {
+        error = t("duplicate_event_slug_conflict");
+      }
+
       if (err.data?.code === "BAD_REQUEST") {
         error = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
       }
