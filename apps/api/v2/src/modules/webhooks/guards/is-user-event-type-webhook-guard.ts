@@ -1,6 +1,7 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import {
   BadRequestException,
   CanActivate,
@@ -17,8 +18,9 @@ import type { EventType, Webhook } from "@calcom/prisma/client";
 export class IsUserEventTypeWebhookGuard implements CanActivate {
   constructor(
     private readonly webhooksService: WebhooksService,
-    private readonly eventtypesRepository: EventTypesRepository_2024_06_14
-  ) {}
+    private readonly eventtypesRepository: EventTypesRepository_2024_06_14,
+    private readonly eventTypeAccessService: EventTypeAccessService
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context
@@ -37,12 +39,18 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
       if (!eventType) {
         throw new NotFoundException(`IsUserEventTypeWebhookGuard - Event type (${eventTypeId}) not found`);
       }
-      if (eventType.userId !== user.id) {
+
+      const hasAccess = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+        user,
+        eventType as unknown as EventType
+      );
+
+      if (!hasAccess) {
         throw new ForbiddenException(
-          `IsUserEventTypeWebhookGuard - User (${user.id}) is not the owner of event type (${eventTypeId})`
+          `IsUserEventTypeWebhookGuard - User (${user.id}) is not authorized for event type (${eventTypeId})`
         );
       }
-      request.eventType = eventType;
+      request.eventType = eventType as unknown as EventType;
     }
 
     if (webhookId) {
@@ -63,3 +71,4 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     return true;
   }
 }
+

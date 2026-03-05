@@ -74,6 +74,7 @@ const recurringBookingCreateBodyPartialSchema = z.object({
     )
     .optional(),
   currentRecurringIndex: z.number().optional(),
+  assignDifferentHostPerRecurringInstance: z.boolean().optional(),
 });
 
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(

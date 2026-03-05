@@ -112,7 +112,7 @@ export const handleNewRecurringBooking = async function (
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
       noEmail: input.noEmail !== undefined ? input.noEmail : key !== 0,
-      luckyUsers,
+      luckyUsers: firstBooking.assignDifferentHostPerRecurringInstance ? undefined : luckyUsers,
     };
 
     const promiseEachRecurringBooking = regularBookingService.createBooking({
@@ -164,7 +164,7 @@ export interface IRecurringBookingServiceDependencies {
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
   async fireBookingEvents({
     createdBookings,
@@ -219,10 +219,10 @@ export class RecurringBookingService implements IBookingService {
         bookerName,
         rescheduledBy: rescheduledBy
           ? {
-              attendeeId: rescheduledByAttendeeId ?? null,
-              userUuid: rescheduledByUserUuid ?? null,
-              email: rescheduledBy,
-            }
+            attendeeId: rescheduledByAttendeeId ?? null,
+            userUuid: rescheduledByUserUuid ?? null,
+            email: rescheduledBy,
+          }
           : null,
         logger: criticalLogger,
       });

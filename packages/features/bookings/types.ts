@@ -73,6 +73,7 @@ export type BookerEvent = Pick<
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
   enablePerHostLocations?: boolean;
+  assignDifferentHostPerRecurringInstance?: boolean;
 } & { profile: BookerEventProfile };
 
 export type EventPrice = { currency: string; price: number; displayAlternateSymbol?: boolean };
@@ -96,6 +97,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
   schedulingType?: SchedulingType;
+  assignDifferentHostPerRecurringInstance?: boolean;
 };
 
 // TODO: Instead of using the two different names, we want to use RegularBookingCreateResult name only but the name BookingResponse is used at ton of places and would be fixed in a separate followup PR.

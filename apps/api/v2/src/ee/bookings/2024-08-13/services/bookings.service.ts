@@ -71,6 +71,7 @@ export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to 
 
 type CreatedBooking = {
   hosts: { id: number }[];
+  userId?: number;
   uid: string;
   start: string;
   isPlatformManagedUserBooking?: boolean;
@@ -442,6 +443,7 @@ export class BookingsService_2024_08_13 {
     // Instant bookings don't have a host assigned yet (AWAITING_HOST status),
     // so we can't determine isPlatformManaged. Default to false to skip billing.
     return Object.assign(outputBooking, {
+      userId: databaseBooking.userId,
       isPlatformManagedUserBooking: false,
     });
   }
@@ -471,7 +473,10 @@ export class BookingsService_2024_08_13 {
     const outputBookings = await this.outputService.getOutputRecurringBookings(ids, true);
     const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
     return outputBookings.map((outputBooking) =>
-      Object.assign(outputBooking, { isPlatformManagedUserBooking })
+      Object.assign(outputBooking, {
+        userId: bookings[0]?.userId,
+        isPlatformManagedUserBooking,
+      })
     );
   }
 
@@ -503,7 +508,10 @@ export class BookingsService_2024_08_13 {
     );
     const isPlatformManagedUserBooking = !!(bookings[0]?.userId && bookings[0]?.user?.isPlatformManaged);
     return outputBookings.map((outputBooking) =>
-      Object.assign(outputBooking, { isPlatformManagedUserBooking })
+      Object.assign(outputBooking, {
+        userId: bookings[0]?.userId,
+        isPlatformManagedUserBooking,
+      })
     );
   }
 
@@ -541,6 +549,7 @@ export class BookingsService_2024_08_13 {
       outputBooking,
       booking.userId
         ? {
+          userId: booking.userId,
           isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
         }
         : {}
@@ -588,6 +597,7 @@ export class BookingsService_2024_08_13 {
         outputBooking,
         booking.userId
           ? {
+            userId: booking.userId,
             isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
           }
           : {}
@@ -1063,9 +1073,9 @@ export class BookingsService_2024_08_13 {
       return;
     }
 
-    const hostId = booking.hosts?.[0]?.id;
-    if (!hostId) {
-      this.logger.error(`Booking with uid=${booking.uid} has no host`);
+    const hostId = booking.userId || booking.hosts?.[0]?.id;
+    if (!hostId || isNaN(Number(hostId))) {
+      this.logger.error(`Booking with uid=${booking.uid} has no valid host ID (hostId=${hostId})`);
       return;
     }
 
@@ -1080,9 +1090,9 @@ export class BookingsService_2024_08_13 {
       return;
     }
 
-    const hostId = newBooking.hosts[0]?.id;
-    if (!hostId) {
-      this.logger.error(`Booking with uid=${newBooking.uid} has no host`);
+    const hostId = newBooking.userId || newBooking.hosts[0]?.id;
+    if (!hostId || isNaN(Number(hostId))) {
+      this.logger.error(`Booking with uid=${newBooking.uid} has no valid host ID (hostId=${hostId})`);
       return;
     }
 

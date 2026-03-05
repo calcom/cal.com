@@ -667,6 +667,7 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     rrHostSubsetIds,
+    assignDifferentHostPerRecurringInstance,
     _isDryRun: isDryRun = false,
     ...reqBody
   } = bookingData;
@@ -1059,7 +1060,11 @@ async function handler(
       }
     }
 
-    if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+    if (
+      !input.bookingData.allRecurringDates ||
+      input.bookingData.isFirstRecurringSlot ||
+      assignDifferentHostPerRecurringInstance
+    ) {
       try {
         if (!skipAvailabilityCheck) {
           availableUsers = await ensureAvailableUsers(
@@ -1270,7 +1275,8 @@ async function handler(
       };
     } else if (
       input.bookingData.allRecurringDates &&
-      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+      !assignDifferentHostPerRecurringInstance
     ) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
