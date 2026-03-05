@@ -138,6 +138,20 @@ export class CredentialsRepository {
     });
   }
 
+  /** Find a user's credential by id only (for connection-scoped API). */
+  async findCredentialByIdAndUserId(credentialId: number, userId: number) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { id: credentialId, userId },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        invalid: true,
+        user: { select: { email: true } },
+      },
+    });
+  }
+
   async deleteUserCredentialById(userId: number, credentialId: number) {
     return await this.dbWrite.prisma.credential.delete({
       where: { id: credentialId, userId },

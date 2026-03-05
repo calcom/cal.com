@@ -1,0 +1,55 @@
+{
+  "name": "@calcom/agent-cal",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Cal.com Unified Calendar API — list, create, update, delete events with API key or OAuth token",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "bin": "./dist/cli.js",
+  "scripts": {
+    "build": "tsup src/index.ts src/cli.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "workspace:*",
+    "tsup": "^8.3.5",
+    "typescript": "5.7.3",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "cal.com",
+    "calendar",
+    "sdk",
+    "api",
+    "agent",
+    "unified-calendar"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com",
+    "directory": "packages/agent-cal"
+  }
+}
