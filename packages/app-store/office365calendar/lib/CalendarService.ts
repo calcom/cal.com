@@ -27,6 +27,7 @@ import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import metadata from "../_metadata";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
+import { isTokenObjectUnusable } from "./isTokenObjectUnusable";
 
 interface IRequest {
   method: string;
@@ -101,11 +102,7 @@ class Office365CalendarService implements Calendar {
           body: new URLSearchParams(bodyParams),
         });
       },
-      isTokenObjectUnusable: async () => {
-        // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
-        // This is a placeholder for future implementation.
-        return null;
-      },
+      isTokenObjectUnusable,
       isAccessTokenUnusable: async () => {
         // TODO: Implement this
         return null;
@@ -223,9 +220,7 @@ class Office365CalendarService implements Calendar {
       const token = parsedLoginResponse?.access_token;
       const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
       const email = this.credential?.user?.email.replace(oauthClientIdAliasRegex, "");
-      const encodedFilter = encodeURIComponent(
-        `mail eq '${email}' or userPrincipalName eq '${email}'`
-      );
+      const encodedFilter = encodeURIComponent(`mail eq '${email}' or userPrincipalName eq '${email}'`);
       const queryParams = `$filter=${encodedFilter}`;
 
       const response = await fetch(`https://graph.microsoft.com/v1.0/users?${queryParams}`, {
