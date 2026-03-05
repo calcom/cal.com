@@ -23,6 +23,7 @@ export function useBookingListColumns({
   handleBookingClick: (bookingUid: string) => void;
 }) {
   const { t } = useLocale();
+  const userTimeZone = user?.timeZone || dayjs.tz.guess();
 
   return useMemo(() => {
     const columnHelper = createColumnHelper<RowData>();
@@ -135,7 +136,7 @@ export function useBookingListColumns({
               isToday={isToday}
               loggedInUser={{
                 userId: user?.id,
-                userTimeZone: user?.timeZone || dayjs.tz.guess(),
+                userTimeZone,
                 userTimeFormat: user?.timeFormat,
                 userEmail: user?.email,
               }}
@@ -148,5 +149,5 @@ export function useBookingListColumns({
         },
       }),
     ];
-  }, [user, status, t, bookingsV3Enabled, handleBookingClick]);
+  }, [user, status, t, bookingsV3Enabled, handleBookingClick, userTimeZone]);
 }
