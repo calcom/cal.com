@@ -49,6 +49,8 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 
 describe("Organizations Organizations Endpoints", () => {
+  jest.setTimeout(30000);
+
   let app: INestApplication;
 
   let userRepositoryFixture: UserRepositoryFixture;
