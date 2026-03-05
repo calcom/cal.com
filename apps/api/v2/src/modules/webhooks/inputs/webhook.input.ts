@@ -29,6 +29,8 @@ export class CreateWebhookInputDto {
 
   @IsArray()
   @ApiProperty({
+    isArray: true,
+    enum: WebhookTriggerEvents,
     example: [
       "BOOKING_CREATED",
       "BOOKING_RESCHEDULED",
@@ -39,7 +41,6 @@ export class CreateWebhookInputDto {
       "BOOKING_NO_SHOW",
       "BOOKING_REOPENED",
     ],
-    enum: WebhookTriggerEvents,
   })
   @IsEnum(WebhookTriggerEvents, { each: true })
   triggers!: WebhookTriggerEvents[];
