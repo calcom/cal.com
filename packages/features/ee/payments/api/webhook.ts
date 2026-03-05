@@ -45,6 +45,7 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
     select: {
       id: true,
       bookingId: true,
+      success: true,
     },
   });
 
@@ -52,7 +53,11 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
     log.error("Stripe: Payment Not Found", safeStringify(paymentIntent), safeStringify(payment));
     throw new HttpCode({ statusCode: 204, message: "Payment not found" });
   }
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+
+  if (payment.success) {
+    log.info(`Payment ${payment.id} already processed, skipping duplicate webhook`);
+    throw new HttpCode({ statusCode: 200, message: "Already processed" });
+  }
 
   await handlePaymentSuccess({
     paymentId: payment.id,
@@ -73,6 +78,11 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   if (!payment?.data || !payment?.id) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
 
   const { booking, user, evt, eventType } = await getBooking(payment.bookingId);
+
+  if (booking.paid) {
+    log.info(`Booking ${booking.id} already paid, skipping duplicate setup_intent webhook`);
+    throw new HttpCode({ statusCode: 200, message: "Already processed" });
+  }
 
   const updatedTraceContext = distributedTracing.updateTrace(traceContext, {
     bookingId: booking.id,

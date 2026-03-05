@@ -62,6 +62,12 @@ export async function handlePaymentSuccess(params: {
   });
   log.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
+
+  if (booking.paid) {
+    log.info(`Booking ${booking.id} already paid, skipping duplicate payment webhook`);
+    throw new HttpCode({ statusCode: 200, message: "Already processed" });
+  }
+
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const actor = getAppActor({ appSlug, bookingId, apps });
 
