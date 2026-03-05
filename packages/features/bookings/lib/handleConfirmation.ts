@@ -42,6 +42,7 @@ export async function handleConfirmation(args: {
   bookingId: number;
   booking: {
     startTime: Date;
+    endTime: Date;
     id: number;
     eventType: {
       currency: string;
@@ -104,6 +105,29 @@ export async function handleConfirmation(args: {
   if (hasRecurringPattern) {
     evt.recurringEvent = bookingRecurringEvent;
   }
+
+  // Check for conflicts and update booking status atomically before any side effects
+  await prisma.$transaction(async (tx) => {
+    const conflictingBooking = await tx.booking.findFirst({
+      where: {
+        userId: booking.userId,
+        status: BookingStatus.ACCEPTED,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        id: { not: bookingId },
+      },
+      select: { id: true },
+    });
+
+    if (conflictingBooking) {
+      throw new Error("This time slot is already occupied");
+    }
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.ACCEPTED },
+    });
+  });
 
   const eventManager = new EventManager(user, apps);
   const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
@@ -206,7 +230,6 @@ export async function handleConfirmation(args: {
       id: bookingId,
     },
     data: {
-      status: BookingStatus.ACCEPTED,
       references: {
         create: scheduleResult.referencesToCreate,
       },
