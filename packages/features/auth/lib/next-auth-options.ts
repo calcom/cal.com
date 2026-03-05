@@ -42,6 +42,7 @@ import slugify from "@calcom/lib/slugify";
 import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { CreationSource, IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -1372,12 +1373,28 @@ export const getOptions = ({
               creationSource: CreationSource.WEBAPP,
             },
           });
-          const linkAccountNewUserData = AdapterAccountPresenter.fromCalAccount(
-            account,
-            newUser.id,
-            user.email
-          );
-          await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          try {
+            const linkAccountNewUserData = AdapterAccountPresenter.fromCalAccount(
+              account,
+              newUser.id,
+              user.email
+            );
+            await calcomAdapter.linkAccount(linkAccountNewUserData);
+          } catch (linkErr) {
+            if (
+              linkErr instanceof Prisma.PrismaClientKnownRequestError &&
+              linkErr.code === "P2002"
+            ) {
+              // Account record already exists (race condition) — safe to proceed
+              log.warn("Account record already exists during new user creation, proceeding", {
+                userId: newUser.id,
+                provider: account.provider,
+              });
+            } else {
+              throw linkErr;
+            }
+          }
 
           // Update profile photo for new Microsoft/Azure AD users
           if (account.provider === "azure-ad" && account.access_token) {
@@ -1425,6 +1442,65 @@ export const getOptions = ({
             return true;
           }
         } catch (err) {
+          // If user creation failed due to unique constraint (email already exists),
+          // recover by finding the existing user and allowing sign-in instead of
+          // permanently locking them out. This handles race conditions where
+          // concurrent requests create the user between our check and insert.
+          if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            log.warn("User creation hit unique constraint, recovering existing user", {
+              email: user.email,
+              provider: account.provider,
+            });
+
+            const recoveredUser = await prisma.user.findFirst({
+              where: {
+                email: {
+                  equals: user.email,
+                  mode: "insensitive",
+                },
+              },
+            });
+
+            if (recoveredUser) {
+              // Update identity provider info to match the current sign-in method
+              await prisma.user.update({
+                where: { id: recoveredUser.id },
+                data: {
+                  identityProvider: idP,
+                  identityProviderId: account.providerAccountId,
+                },
+              });
+
+              // Ensure Account record exists (upsert to avoid another race condition)
+              const linkAccountData = AdapterAccountPresenter.fromCalAccount(
+                account,
+                recoveredUser.id,
+                user.email
+              );
+              try {
+                await calcomAdapter.linkAccount(linkAccountData);
+              } catch (linkErr) {
+                if (
+                  linkErr instanceof Prisma.PrismaClientKnownRequestError &&
+                  linkErr.code === "P2002"
+                ) {
+                  // Account already linked — safe to proceed
+                  log.info("Account already linked during recovery", {
+                    userId: recoveredUser.id,
+                    provider: account.provider,
+                  });
+                } else {
+                  log.error("Failed to link account during recovery", linkErr);
+                }
+              }
+
+              if (recoveredUser.twoFactorEnabled) {
+                return loginWithTotp(recoveredUser.email);
+              }
+              return true;
+            }
+          }
+
           log.error("Error creating a new user", err);
           return `/auth/error?error=user-creation-error`;
         }
