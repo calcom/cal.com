@@ -1,4 +1,7 @@
 {
+  
+  "enable_calendar_sync":"Calendar sync enabled. Initial sync started",
+  "disable_calendar_sync":"Calendar sync disabled. Cleanup started",
   "background_jobs":"Background Jobs",
   "background_jobs_description":"Dashboard for monitoring bullmq background jobs",
   "third_party_services": "Third Party Service Providers",

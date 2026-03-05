@@ -14,7 +14,8 @@
   "description": "",
   "dependencies": {
     "@calid/job-engine": "*",
-    "@calid/queue": "*"
+    "@calid/queue": "*",
+    "@calid/redis": "*"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
