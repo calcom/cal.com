@@ -50,8 +50,15 @@ describe("BookingPageTagManager", () => {
       />
     );
     const scripts = screen.getAllByTestId("cal-analytics-app-gtm");
-    const trackingScript = scripts[0];
-    const pushEventScript = scripts[1];
+    // scripts[0] = blocklist/allowlist restriction script
+    // scripts[1] = GTM tracking script
+    // scripts[2] = pushEvent script
+    const blocklistScript = scripts[0];
+    const trackingScript = scripts[1];
+    const pushEventScript = scripts[2];
+    expect(blocklistScript.innerHTML).toContain("gtm.blocklist");
+    expect(blocklistScript.innerHTML).toContain("gtm.allowlist");
+    expect(blocklistScript.innerHTML).toContain("customScripts");
     expect(trackingScript.innerHTML).toContain(GTM_CONFIG.trackingId);
     expect(pushEventScript.innerHTML).toContain("cal_analytics_app__gtm");
   });

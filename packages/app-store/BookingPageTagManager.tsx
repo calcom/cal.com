@@ -10,6 +10,34 @@ import type { appDataSchemas } from "./apps.schemas.generated";
 
 const PushEventPrefix = "cal_analytics_app_";
 
+/**
+ * GTM Hardened Container: Restriction IDs for blocking dangerous execution types
+ * and allowing only vetted, safe tracking templates.
+ *
+ * @see https://developers.google.com/tag-platform/tag-manager/restrict
+ */
+const GTM_RESTRICTIONS = {
+  blocklist: [
+    "customScripts", // Blocks Custom HTML and Custom JS variables
+    "nonGoogleScripts", // Blocks scripts not hosted by Google
+    "nonGoogleIframes", // Blocks injection of 3rd party iframes
+  ],
+  allowlist: [
+    "google", // Allows GA4, Google Ads, and Floodlight
+    "sandboxedScripts", // Allows vetted Community Templates (Meta, TikTok, LinkedIn, etc.)
+    "cl", // Click Listener (Trigger)
+    "evl", // Element Visibility (Trigger)
+    "v", // Data Layer Variable
+    "u", // URL Variable
+  ],
+};
+
+/**
+ * Generates the inline script content that initializes the dataLayer with
+ * GTM type restrictions. This MUST run before the GTM container script loads.
+ */
+const GTM_BLOCKLIST_SCRIPT_CONTENT = `window.dataLayer=window.dataLayer||[];window.dataLayer.push({"gtm.blocklist":${JSON.stringify(GTM_RESTRICTIONS.blocklist)},"gtm.allowlist":${JSON.stringify(GTM_RESTRICTIONS.allowlist)}});`;
+
 // AnalyticApp has appData.tag always set
 type AnalyticApp = Omit<AppMeta, "appData"> & {
   appData: Omit<NonNullable<AppMeta["appData"]>, "tag"> & {
@@ -121,7 +149,11 @@ export default function BookingPageTagManager({
         };
 
         const pushEventScript = getPushEventScript({ tag, appId });
-        return tag.scripts.concat(pushEventScript ? [pushEventScript] : []).map((script, index) => {
+        const isGtmApp = appId === "gtm";
+        return (isGtmApp ? [{ content: GTM_BLOCKLIST_SCRIPT_CONTENT }] : [])
+          .concat(tag.scripts)
+          .concat(pushEventScript ? [pushEventScript] : [])
+          .map((script, index) => {
           const parsedAttributes: NonNullable<(typeof tag.scripts)[number]["attrs"]> = {};
           const attrs = script.attrs || {};
           Object.entries(attrs).forEach(([name, value]) => {
