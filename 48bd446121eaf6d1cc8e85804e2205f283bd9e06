@@ -1,0 +1,31 @@
+packages/trpc/server/routers/viewer/eventTypes/searchTeamMembers.handler.ts
+  81ae1d60def56815 1-2,17
+packages/trpc/server/routers/viewer/eventTypes/getHostsForAvailability.handler.ts
+  81ae1d60def56815 1-2,17
+packages/trpc/server/routers/viewer/eventTypes/exportHostsForWeights.handler.ts
+  81ae1d60def56815 1-2,17
+packages/trpc/server/routers/viewer/eventTypes/getHostsForAssignment.handler.ts
+  81ae1d60def56815 1-2,17
+packages/trpc/server/routers/viewer/eventTypes/getChildrenForAssignment.handler.ts
+  81ae1d60def56815 1-2,17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "48bd446121eaf6d1cc8e85804e2205f283bd9e06",
+  "prompts": {
+    "81ae1d60def56815": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "799b7cca-33f1-4083-9b8b-16866dc75a91",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Joe Au-Yeung <j.auyeung419@gmail.com>",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 38,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}
