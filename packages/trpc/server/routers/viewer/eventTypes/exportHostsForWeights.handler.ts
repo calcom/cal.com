@@ -1,7 +1,5 @@
-import {
-  EventTypeHostService,
-  type ExportWeightsResponse,
-} from "@calcom/features/host/services/EventTypeHostService";
+import { EventTypeHostService } from "@calcom/features/host/services/EventTypeHostService";
+import type { ExportWeightsResponse } from "@calcom/features/host/services/IEventTypeHostService";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -16,7 +14,7 @@ type ExportHostsForWeightsInput = {
 };
 
 export type { ExportWeightsResponse as ExportHostsForWeightsResponse };
-export type { ExportedWeightMember } from "@calcom/features/host/services/EventTypeHostService";
+export type { ExportedWeightMember } from "@calcom/features/host/services/IEventTypeHostService";
 
 export const exportHostsForWeightsHandler = async ({
   ctx,

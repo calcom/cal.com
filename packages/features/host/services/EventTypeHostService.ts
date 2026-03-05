@@ -20,19 +20,6 @@ import type {
   TeamMemberSearchResult,
 } from "./IEventTypeHostService";
 
-export type {
-  AssignmentChild,
-  AssignmentHost,
-  AvailabilityHost,
-  ExportedWeightMember,
-  ExportWeightsResponse,
-  PaginatedAssignmentChildrenResponse,
-  PaginatedAssignmentHostsResponse,
-  PaginatedAvailabilityHostsResponse,
-  PaginatedTeamMembersResponse,
-  TeamMemberSearchResult,
-};
-
 export class EventTypeHostService implements IEventTypeHostService {
   private hostRepository: HostRepository;
   private membershipRepository: MembershipRepository;

@@ -1,7 +1,5 @@
-import {
-  EventTypeHostService,
-  type PaginatedAssignmentHostsResponse,
-} from "@calcom/features/host/services/EventTypeHostService";
+import { EventTypeHostService } from "@calcom/features/host/services/EventTypeHostService";
+import type { PaginatedAssignmentHostsResponse } from "@calcom/features/host/services/IEventTypeHostService";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -16,7 +14,7 @@ type GetHostsForAssignmentInput = {
 };
 
 export type { PaginatedAssignmentHostsResponse as GetHostsForAssignmentResponse };
-export type { AssignmentHost } from "@calcom/features/host/services/EventTypeHostService";
+export type { AssignmentHost } from "@calcom/features/host/services/IEventTypeHostService";
 
 export const getHostsForAssignmentHandler = async ({
   ctx,

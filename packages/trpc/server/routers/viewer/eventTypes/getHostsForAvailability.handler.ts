@@ -1,7 +1,5 @@
-import {
-  EventTypeHostService,
-  type PaginatedAvailabilityHostsResponse,
-} from "@calcom/features/host/services/EventTypeHostService";
+import { EventTypeHostService } from "@calcom/features/host/services/EventTypeHostService";
+import type { PaginatedAvailabilityHostsResponse } from "@calcom/features/host/services/IEventTypeHostService";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -16,7 +14,7 @@ type GetHostsForAvailabilityInput = {
 };
 
 export type { PaginatedAvailabilityHostsResponse as GetHostsForAvailabilityResponse };
-export type { AvailabilityHost } from "@calcom/features/host/services/EventTypeHostService";
+export type { AvailabilityHost } from "@calcom/features/host/services/IEventTypeHostService";
 
 export const getHostsForAvailabilityHandler = async ({
   ctx,
