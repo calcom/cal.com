@@ -63,6 +63,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
+  const [pendingToggles, setPendingToggles] = useState<Set<string>>(new Set());
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -88,6 +89,19 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       setIsUpdateBtnLoading(false);
     },
   });
+
+  const mutateToggle = (key: string, data: Parameters<typeof mutation.mutate>[0]) => {
+    setPendingToggles((prev) => new Set(prev).add(key));
+    mutation.mutate(data, {
+      onSettled: () => {
+        setPendingToggles((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      },
+    });
+  };
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -331,11 +345,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("dynamic_booking")}
           description={t("allow_dynamic_booking")}
-          disabled={mutation.isPending}
+          disabled={pendingToggles.has("allowDynamicBooking")}
           checked={isAllowDynamicBookingChecked}
           onCheckedChange={(checked) => {
             setIsAllowDynamicBookingChecked(checked);
-            mutation.mutate({ allowDynamicBooking: checked });
+            mutateToggle("allowDynamicBooking", { allowDynamicBooking: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -345,11 +359,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
-          disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
+          disabled={pendingToggles.has("allowSEOIndexing") || user.organizationSettings?.allowSEOIndexing === false}
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);
-            mutation.mutate({ allowSEOIndexing: checked });
+            mutateToggle("allowSEOIndexing", { allowSEOIndexing: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -358,11 +372,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("monthly_digest_email")}
           description={t("monthly_digest_email_for_teams")}
-          disabled={mutation.isPending}
+          disabled={pendingToggles.has("receiveMonthlyDigestEmail")}
           checked={isReceiveMonthlyDigestEmailChecked}
           onCheckedChange={(checked) => {
             setIsReceiveMonthlyDigestEmailChecked(checked);
-            mutation.mutate({ receiveMonthlyDigestEmail: checked });
+            mutateToggle("receiveMonthlyDigestEmail", { receiveMonthlyDigestEmail: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -371,11 +385,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("require_booker_email_verification")}
           description={t("require_booker_email_verification_description")}
-          disabled={mutation.isPending}
+          disabled={pendingToggles.has("requiresBookerEmailVerification")}
           checked={isRequireBookerEmailVerificationChecked}
           onCheckedChange={(checked) => {
             setIsRequireBookerEmailVerificationChecked(checked);
-            mutation.mutate({ requiresBookerEmailVerification: checked });
+            mutateToggle("requiresBookerEmailVerification", { requiresBookerEmailVerification: checked });
           }}
           switchContainerClassName="mt-6"
         />
