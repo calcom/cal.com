@@ -196,11 +196,61 @@ export type FormValues = {
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
 };
-
 export type HiddenSettings = {
   setup?: ("title" | "description" | "slug")[];
   duration?: ("duration" | "multiple-durations")[];
   location?: ("location")[];
+  advanced?: (
+    | "destinationCalendar"
+    | "bookingFields"
+    | "requiresCancellationReason"
+    | "requiresConfirmation"
+    | "disabledCancelling"
+    | "disableRescheduling"
+    | "canSendCalVideoTranscriptionEmails"
+    | "autoTranslateDescriptionEnabled"
+    | "interfaceLanguage"
+    | "requiresBookerEmailVerification"
+    | "hideCalendarNotes"
+    | "hideCalendarEventDetails"
+    | "successRedirectUrl"
+    | "redirectUrlOnNoRoutingFormResponse"
+    | "multiplePrivateLinks"
+    | "seatsPerTimeSlotEnabled"
+    | "hideOrganizerEmail"
+    | "lockTimeZoneToggleOnBookingPage"
+    | "allowReschedulingPastBookings"
+    | "allowReschedulingCancelledBookings"
+    | "customReplyToEmail"
+    | "eventTypeColor"
+    | "showOptimizedSlots"
+    | "rescheduleWithSameRoundRobinHost"
+    | "metadata.disableStandardEmails.confirmation.attendee"
+    | "metadata.disableStandardEmails.confirmation.host"
+    | "metadata.disableStandardEmails.all.attendee"
+    | "metadata.disableStandardEmails.all.host"
+  )[];
+  limits?: (
+    | "beforeEventBuffer"
+    | "afterEventBuffer"
+    | "minimumBookingNotice"
+    | "slotInterval"
+    | "bookingLimits"
+    | "onlyShowFirstAvailableSlot"
+    | "durationLimits"
+    | "maxActiveBookingsPerBooker"
+    | "periodType"
+  )[];
+  recurring?: ("recurringEvent")[];
+  team?: (
+    | "schedulingType"
+    | "maxLeadThreshold"
+    | "includeNoShowInRRCalculation"
+    | "isRRWeightsEnabled"
+    | "assignAllTeamMembers"
+    | "assignRRMembersUsingSegment"
+    | "children"
+  )[];
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

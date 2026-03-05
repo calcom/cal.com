@@ -5,6 +5,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   EventTypeSetup,
+  HiddenSettings,
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
@@ -23,6 +24,7 @@ export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
   customClassNames?: EventRecurringTabCustomClassNames;
+  hiddenSettings?: HiddenSettings;
 };
 
 export type EventRecurringTabCustomClassNames = {
@@ -44,6 +46,7 @@ export default function RecurringEventController({
   eventType,
   paymentEnabled,
   customClassNames,
+  hiddenSettings,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -80,138 +83,140 @@ export default function RecurringEventController({
               severity="warning"
               title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
             />
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.recurringToggle?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                recurringEventState !== null && "rounded-b-none",
-                customClassNames?.recurringToggle?.container
-              )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.recurringToggle?.children)}
-              descriptionClassName={customClassNames?.recurringToggle?.description}
-              title={t("recurring_event")}
-              {...recurringLocked}
-              description={
-                <LearnMoreLink
-                  t={t}
-                  i18nKey="recurring_event_description"
-                  href="https://cal.com/help/event-types/recurring-events"
-                />
-              }
-              checked={!!recurringEventState}
-              data-testid="recurring-event-check"
-              disabled={(!recurringEventState && isSeatsOffered) || hasBookingLimitPerBooker}
-              tooltip={
-                isSeatsOffered
-                  ? t("seats_doesnt_support_recurring")
-                  : hasBookingLimitPerBooker
-                    ? t("booking_limit_per_booker_doesnt_support_recurring")
-                    : undefined
-              }
-              onCheckedChange={(e) => {
-                if (!e) {
-                  formMethods.setValue("recurringEvent", null, { shouldDirty: true });
-                  setRecurringEventState(null);
-                } else {
-                  const newVal = eventType.recurringEvent || {
-                    interval: 1,
-                    count: 12,
-                    freq: Frequency.WEEKLY,
-                  };
-                  formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
-                  setRecurringEventState(newVal);
-                }
-              }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                {recurringEventState && (
-                  <div data-testid="recurring-event-collapsible" className="text-sm">
-                    <div className="flex items-center">
-                      <p
-                        className={classNames(
-                          "text-emphasis ltr:mr-2 rtl:ml-2",
-                          customClassNames?.frequencyInput?.label
-                        )}>
-                        {t("repeats_every")}
-                      </p>
-                      <TextField
-                        disabled={recurringLocked.disabled}
-                        type="number"
-                        min="1"
-                        max="20"
-                        className={classNames("mb-0", customClassNames?.frequencyInput?.input)}
-                        defaultValue={recurringEventState.interval}
-                        onChange={(event) => {
-                          const newVal = {
-                            ...recurringEventState,
-                            interval: parseInt(event?.target.value),
-                          };
-                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
-                          setRecurringEventState(newVal);
-                        }}
-                      />
-                      <Select
-                        options={recurringEventFreqOptions}
-                        value={recurringEventFreqOptions[recurringEventState.freq]}
-                        isSearchable={false}
-                        className={classNames(
-                          "w-18 ml-2 block min-w-0 rounded-md text-sm",
-                          customClassNames?.frequencyUnitSelect?.select
-                        )}
-                        innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
-                        isDisabled={recurringLocked.disabled}
-                        onChange={(event) => {
-                          const newVal = {
-                            ...recurringEventState,
-                            freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
-                          };
-                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
-                          setRecurringEventState(newVal);
-                        }}
-                      />
-                    </div>
-                    <div
-                      className={classNames(
-                        "mt-4 flex items-center",
-                        customClassNames?.maxEventsInput?.container
-                      )}>
-                      <p
-                        className={classNames(
-                          "text-emphasis ltr:mr-2 rtl:ml-2",
-                          customClassNames?.maxEventsInput?.labelText
-                        )}>
-                        {t("for_a_maximum_of")}
-                      </p>
-                      <TextField
-                        disabled={recurringLocked.disabled}
-                        type="number"
-                        min="1"
-                        max="24"
-                        defaultValue={recurringEventState.count}
-                        className={classNames("mb-0", customClassNames?.maxEventsInput?.countInput)}
-                        onChange={(event) => {
-                          const newVal = {
-                            ...recurringEventState,
-                            count: parseInt(event?.target.value),
-                          };
-                          formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
-                          setRecurringEventState(newVal);
-                        }}
-                      />
-                      <p
-                        className={classNames(
-                          "text-emphasis ltr:ml-2 rtl:mr-2",
-                          customClassNames?.maxEventsInput?.suffixText
-                        )}>
-                        {t("events", {
-                          count: recurringEventState.count,
-                        })}
-                      </p>
-                    </div>
-                  </div>
+            {!hiddenSettings?.recurring?.includes("recurringEvent") && (
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.recurringToggle?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  recurringEventState !== null && "rounded-b-none",
+                  customClassNames?.recurringToggle?.container
                 )}
-              </div>
-            </SettingsToggle>
+                childrenClassName={classNames("lg:ml-0", customClassNames?.recurringToggle?.children)}
+                descriptionClassName={customClassNames?.recurringToggle?.description}
+                title={t("recurring_event")}
+                {...recurringLocked}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="recurring_event_description"
+                    href="https://cal.com/help/event-types/recurring-events"
+                  />
+                }
+                checked={!!recurringEventState}
+                data-testid="recurring-event-check"
+                disabled={(!recurringEventState && isSeatsOffered) || hasBookingLimitPerBooker}
+                tooltip={
+                  isSeatsOffered
+                    ? t("seats_doesnt_support_recurring")
+                    : hasBookingLimitPerBooker
+                      ? t("booking_limit_per_booker_doesnt_support_recurring")
+                      : undefined
+                }
+                onCheckedChange={(e) => {
+                  if (!e) {
+                    formMethods.setValue("recurringEvent", null, { shouldDirty: true });
+                    setRecurringEventState(null);
+                  } else {
+                    const newVal = eventType.recurringEvent || {
+                      interval: 1,
+                      count: 12,
+                      freq: Frequency.WEEKLY,
+                    };
+                    formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
+                    setRecurringEventState(newVal);
+                  }
+                }}>
+                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                  {recurringEventState && (
+                    <div data-testid="recurring-event-collapsible" className="text-sm">
+                      <div className="flex items-center">
+                        <p
+                          className={classNames(
+                            "text-emphasis ltr:mr-2 rtl:ml-2",
+                            customClassNames?.frequencyInput?.label
+                          )}>
+                          {t("repeats_every")}
+                        </p>
+                        <TextField
+                          disabled={recurringLocked.disabled}
+                          type="number"
+                          min="1"
+                          max="20"
+                          className={classNames("mb-0", customClassNames?.frequencyInput?.input)}
+                          defaultValue={recurringEventState.interval}
+                          onChange={(event) => {
+                            const newVal = {
+                              ...recurringEventState,
+                              interval: parseInt(event?.target.value),
+                            };
+                            formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
+                            setRecurringEventState(newVal);
+                          }}
+                        />
+                        <Select
+                          options={recurringEventFreqOptions}
+                          value={recurringEventFreqOptions[recurringEventState.freq]}
+                          isSearchable={false}
+                          className={classNames(
+                            "w-18 ml-2 block min-w-0 rounded-md text-sm",
+                            customClassNames?.frequencyUnitSelect?.select
+                          )}
+                          innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
+                          isDisabled={recurringLocked.disabled}
+                          onChange={(event) => {
+                            const newVal = {
+                              ...recurringEventState,
+                              freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                            };
+                            formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
+                            setRecurringEventState(newVal);
+                          }}
+                        />
+                      </div>
+                      <div
+                        className={classNames(
+                          "mt-4 flex items-center",
+                          customClassNames?.maxEventsInput?.container
+                        )}>
+                        <p
+                          className={classNames(
+                            "text-emphasis ltr:mr-2 rtl:ml-2",
+                            customClassNames?.maxEventsInput?.labelText
+                          )}>
+                          {t("for_a_maximum_of")}
+                        </p>
+                        <TextField
+                          disabled={recurringLocked.disabled}
+                          type="number"
+                          min="1"
+                          max="24"
+                          defaultValue={recurringEventState.count}
+                          className={classNames("mb-0", customClassNames?.maxEventsInput?.countInput)}
+                          onChange={(event) => {
+                            const newVal = {
+                              ...recurringEventState,
+                              count: parseInt(event?.target.value),
+                            };
+                            formMethods.setValue("recurringEvent", newVal, { shouldDirty: true });
+                            setRecurringEventState(newVal);
+                          }}
+                        />
+                        <p
+                          className={classNames(
+                            "text-emphasis ltr:ml-2 rtl:mr-2",
+                            customClassNames?.maxEventsInput?.suffixText
+                          )}>
+                          {t("events", {
+                            count: recurringEventState.count,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </SettingsToggle>
+            )}
           </>
         )}
       </div>

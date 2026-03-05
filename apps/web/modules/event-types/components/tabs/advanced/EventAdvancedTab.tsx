@@ -19,6 +19,7 @@ import type {
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
+  HiddenSettings,
 } from "@calcom/features/eventtypes/lib/types";
 import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
@@ -124,6 +125,7 @@ export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "te
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
   orgId: number | null;
   customClassNames?: EventAdvancedTabCustomClassNames;
+  hiddenSettings?: HiddenSettings;
 };
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
@@ -380,26 +382,26 @@ const calendarComponents = {
         <div>
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
-                <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
-                        eventTypeId={eventType.id}
-                        disabledScope={SelectedCalendarSettingsScope.User}
-                        disableConnectionModification={true}
-                        scope={selectedCalendarSettingsScope}
-                        destinationCalendarId={destinationCalendar?.externalId}
-                        setScope={(scope) => {
-                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                            shouldDirty: true,
-                          });
-                        }}
-                      />
-                    )}
-                  </Suspense>
-                </div>
-              )
+              <div className="mt-4">
+                <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                  {!isPlatform && (
+                    <SelectedCalendarsSettingsWebWrapper
+                      eventTypeId={eventType.id}
+                      disabledScope={SelectedCalendarSettingsScope.User}
+                      disableConnectionModification={true}
+                      scope={selectedCalendarSettingsScope}
+                      destinationCalendarId={destinationCalendar?.externalId}
+                      setScope={(scope) => {
+                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  )}
+                </Suspense>
+              </div>
+            )
             : null}
         </div>
       </div>
@@ -419,6 +421,7 @@ export const EventAdvancedTab = ({
   verifiedEmails,
   orgId,
   localeOptions,
+  hiddenSettings,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -429,7 +432,7 @@ export const EventAdvancedTab = ({
   const [lightModeError, setLightModeError] = useState(false);
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
-      formMethods.getValues("multiplePrivateLinks")?.length !== 0
+    formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
@@ -612,19 +615,21 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="stack-y-4 flex flex-col">
-      <calendarComponents.CalendarSettings
-        verifiedSecondaryEmails={verifiedSecondaryEmails}
-        userEmail={userEmail}
-        calendarsQuery={calendarsQuery}
-        isTeamEventType={!!team}
-        isChildrenManagedEventType={isChildrenManagedEventType}
-        customClassNames={customClassNames}
-        eventNameLocked={eventNameLocked}
-        eventNamePlaceholder={eventNamePlaceholder}
-        setShowEventNameTip={setShowEventNameTip}
-        showToast={showToast}
-        eventType={eventType}
-      />
+      {!hiddenSettings?.advanced?.includes("destinationCalendar") && (
+        <calendarComponents.CalendarSettings
+          verifiedSecondaryEmails={verifiedSecondaryEmails}
+          userEmail={userEmail}
+          calendarsQuery={calendarsQuery}
+          isTeamEventType={!!team}
+          isChildrenManagedEventType={isChildrenManagedEventType}
+          customClassNames={customClassNames}
+          eventNameLocked={eventNameLocked}
+          eventNamePlaceholder={eventNamePlaceholder}
+          setShowEventNameTip={setShowEventNameTip}
+          showToast={showToast}
+          eventType={eventType}
+        />
+      )}
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
@@ -635,46 +640,48 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-cal-muted rounded-lg border p-1">
-        <div className="p-5">
-          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
-            {t("booking_questions_title")}
+      {!hiddenSettings?.advanced?.includes("bookingFields") && (
+        <div className="border-subtle bg-cal-muted rounded-lg border p-1">
+          <div className="p-5">
+            <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+              {t("booking_questions_title")}
+            </div>
+            <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
+              <LearnMoreLink
+                t={t}
+                i18nKey="booking_questions_description"
+                href="https://cal.com/help/event-types/booking-questions"
+              />
+            </p>
           </div>
-          <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
-            <LearnMoreLink
-              t={t}
-              i18nKey="booking_questions_description"
-              href="https://cal.com/help/event-types/booking-questions"
-            />
-          </p>
-        </div>
-        <div className="border-subtle bg-default rounded-lg border p-5">
-          <FormBuilder
-            showPhoneAndEmailToggle
-            title={t("confirmation")}
-            description={t("what_booker_should_provide")}
-            addFieldLabel={t("add_a_booking_question")}
-            formProp="bookingFields"
-            {...shouldLockDisableProps("bookingFields")}
-            dataStore={{
-              options: {
-                locations: {
-                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
-                  source: { label: "Location" },
-                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+          <div className="border-subtle bg-default rounded-lg border p-5">
+            <FormBuilder
+              showPhoneAndEmailToggle
+              title={t("confirmation")}
+              description={t("what_booker_should_provide")}
+              addFieldLabel={t("add_a_booking_question")}
+              formProp="bookingFields"
+              {...shouldLockDisableProps("bookingFields")}
+              dataStore={{
+                options: {
+                  locations: {
+                    // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                    source: { label: "Location" },
+                    value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+                  },
                 },
-              },
-            }}
-            shouldConsiderRequired={(field: BookingField) => {
-              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
-              return field.name === "location" ? true : field.required;
-            }}
-            showPriceField={isPaidEvent}
-            paymentCurrency={paymentAppData?.currency || "usd"}
-          />
+              }}
+              shouldConsiderRequired={(field: BookingField) => {
+                // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+                return field.name === "location" ? true : field.required;
+              }}
+              showPriceField={isPaidEvent}
+              paymentCurrency={paymentAppData?.currency || "usd"}
+            />
+          </div>
         </div>
-      </div>
-      {!isPlatform && (
+      )}
+      {!isPlatform && !hiddenSettings?.advanced?.includes("requiresCancellationReason") && (
         <Controller
           name="requiresCancellationReason"
           render={({ field: { value, onChange } }) => {
@@ -711,76 +718,84 @@ export const EventAdvancedTab = ({
           }}
         />
       )}
-      <RequiresConfirmationController
-        eventType={eventType}
-        seatsEnabled={seatsEnabled}
-        metadata={formMethods.getValues("metadata")}
-        requiresConfirmation={requiresConfirmation}
-        requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
-        onRequiresConfirmation={setRequiresConfirmation}
-        customClassNames={customClassNames?.requiresConfirmation}
-      />
+      {!hiddenSettings?.advanced?.includes("requiresConfirmation") && (
+        <RequiresConfirmationController
+          eventType={eventType}
+          seatsEnabled={seatsEnabled}
+          metadata={formMethods.getValues("metadata")}
+          requiresConfirmation={requiresConfirmation}
+          requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
+          onRequiresConfirmation={setRequiresConfirmation}
+          customClassNames={customClassNames?.requiresConfirmation}
+        />
+      )}
 
       {!isPlatform && (
         <>
-          <Controller
-            name="disabledCancelling"
-            render={({ field: { onChange, value } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_cancelling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
-                  />
-                }
-                checked={value}
-                onCheckedChange={(val) => {
-                  onChange(val);
-                }}
-              />
-            )}
-          />
+          {!hiddenSettings?.advanced?.includes("disabledCancelling") && (
+            <Controller
+              name="disabledCancelling"
+              render={({ field: { onChange, value } }) => (
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                  title={t("disable_cancelling")}
+                  data-testid="disable-cancelling-toggle"
+                  {...disableCancellingLocked}
+                  description={
+                    <LearnMoreLink
+                      t={t}
+                      i18nKey="description_disable_cancelling"
+                      href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
+                    />
+                  }
+                  checked={value}
+                  onCheckedChange={(val) => {
+                    onChange(val);
+                  }}
+                />
+              )}
+            />
+          )}
 
-          <DisableReschedulingController
-            eventType={eventType}
-            disableRescheduling={disableRescheduling}
-            onDisableRescheduling={setDisableRescheduling}
-            customClassNames={customClassNames?.disableRescheduling}
-          />
+          {!hiddenSettings?.advanced?.includes("disableRescheduling") && (
+            <DisableReschedulingController
+              eventType={eventType}
+              disableRescheduling={disableRescheduling}
+              onDisableRescheduling={setDisableRescheduling}
+              customClassNames={customClassNames?.disableRescheduling}
+            />
+          )}
         </>
       )}
 
-      <Controller
-        name="canSendCalVideoTranscriptionEmails"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames(
-              "text-sm",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.label
-            )}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.canSendCalVideoTranscriptionEmails?.container
-            )}
-            title={t("send_cal_video_transcription_emails")}
-            data-testid="send-cal-video-transcription-emails"
-            {...sendCalVideoTranscriptionEmailsProps}
-            description={t("description_send_cal_video_transcription_emails")}
-            descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-      {!isPlatform && (
+      {!hiddenSettings?.advanced?.includes("canSendCalVideoTranscriptionEmails") && (
+        <Controller
+          name="canSendCalVideoTranscriptionEmails"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames(
+                "text-sm",
+                customClassNames?.canSendCalVideoTranscriptionEmails?.label
+              )}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.canSendCalVideoTranscriptionEmails?.container
+              )}
+              title={t("send_cal_video_transcription_emails")}
+              data-testid="send-cal-video-transcription-emails"
+              {...sendCalVideoTranscriptionEmailsProps}
+              description={t("description_send_cal_video_transcription_emails")}
+              descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+      {!isPlatform && !hiddenSettings?.advanced?.includes("autoTranslateDescriptionEnabled") && (
         <Controller
           name="autoTranslateDescriptionEnabled"
           render={({ field: { value, onChange } }) => (
@@ -799,7 +814,7 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {!isPlatform && (
+      {!isPlatform && !hiddenSettings?.advanced?.includes("interfaceLanguage") && (
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
@@ -843,193 +858,203 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      <Controller
-        name="requiresBookerEmailVerification"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.bookerEmailVerification?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.bookerEmailVerification?.container
-            )}
-            title={t("requires_booker_email_verification")}
-            data-testid="requires-booker-email-verification"
-            {...requiresBookerEmailVerificationProps}
-            description={t("description_requires_booker_email_verification")}
-            descriptionClassName={customClassNames?.bookerEmailVerification?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-      <Controller
-        name="hideCalendarNotes"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.calendarNotes?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.calendarNotes?.container
-            )}
-            descriptionClassName={customClassNames?.calendarNotes?.description}
-            data-testid="disable-notes"
-            title={t("disable_notes")}
-            {...hideCalendarNotesLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="disable_notes_description"
-                href="https://cal.com/help/event-types/hide-notes"
-              />
-            }
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-      <Controller
-        name="hideCalendarEventDetails"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.eventDetailsVisibility?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.eventDetailsVisibility?.container
-            )}
-            descriptionClassName={customClassNames?.eventDetailsVisibility?.description}
-            title={t("hide_calendar_event_details")}
-            {...hideCalendarEventDetailsLocked}
-            description={t("description_hide_calendar_event_details")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-      <Controller
-        name="successRedirectUrl"
-        render={({ field: { value, onChange } }) => (
-          <>
+      {!hiddenSettings?.advanced?.includes("requiresBookerEmailVerification") && (
+        <Controller
+          name="requiresBookerEmailVerification"
+          render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+              labelClassName={classNames("text-sm", customClassNames?.bookerEmailVerification?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                redirectUrlVisible && "rounded-b-none",
-                customClassNames?.bookingRedirect?.container
+                customClassNames?.bookerEmailVerification?.container
               )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
-              descriptionClassName={customClassNames?.bookingRedirect?.description}
-              title={t("redirect_success_booking")}
-              data-testid="redirect-success-booking"
-              {...successRedirectUrlLocked}
-              description={t("redirect_url_description")}
-              checked={redirectUrlVisible}
-              onCheckedChange={(e) => {
-                setRedirectUrlVisible(e);
-                onChange(e ? value : "");
-              }}>
-              <div
-                className={classNames(
-                  "border-subtle rounded-b-lg border border-t-0 p-6",
-                  customClassNames?.bookingRedirect?.redirectUrlInput?.container
-                )}>
-                <TextField
-                  className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
-                  label={t("redirect_success_booking")}
-                  labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
-                  labelSrOnly
-                  disabled={successRedirectUrlLocked.disabled}
-                  placeholder={t("external_redirect_url")}
-                  data-testid="external-redirect-url"
-                  required={redirectUrlVisible}
-                  type="text"
-                  {...formMethods.register("successRedirectUrl")}
+              title={t("requires_booker_email_verification")}
+              data-testid="requires-booker-email-verification"
+              {...requiresBookerEmailVerificationProps}
+              description={t("description_requires_booker_email_verification")}
+              descriptionClassName={customClassNames?.bookerEmailVerification?.description}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("hideCalendarNotes") && (
+        <Controller
+          name="hideCalendarNotes"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.calendarNotes?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.calendarNotes?.container
+              )}
+              descriptionClassName={customClassNames?.calendarNotes?.description}
+              data-testid="disable-notes"
+              title={t("disable_notes")}
+              {...hideCalendarNotesLocked}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="disable_notes_description"
+                  href="https://cal.com/help/event-types/hide-notes"
                 />
-
+              }
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("hideCalendarEventDetails") && (
+        <Controller
+          name="hideCalendarEventDetails"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.eventDetailsVisibility?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.eventDetailsVisibility?.container
+              )}
+              descriptionClassName={customClassNames?.eventDetailsVisibility?.description}
+              title={t("hide_calendar_event_details")}
+              {...hideCalendarEventDetailsLocked}
+              description={t("description_hide_calendar_event_details")}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("successRedirectUrl") && (
+        <Controller
+          name="successRedirectUrl"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  redirectUrlVisible && "rounded-b-none",
+                  customClassNames?.bookingRedirect?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
+                descriptionClassName={customClassNames?.bookingRedirect?.description}
+                title={t("redirect_success_booking")}
+                data-testid="redirect-success-booking"
+                {...successRedirectUrlLocked}
+                description={t("redirect_url_description")}
+                checked={redirectUrlVisible}
+                onCheckedChange={(e) => {
+                  setRedirectUrlVisible(e);
+                  onChange(e ? value : "");
+                }}>
                 <div
                   className={classNames(
-                    "mt-4",
-                    customClassNames?.bookingRedirect?.forwardParamsCheckbox?.container
+                    "border-subtle rounded-b-lg border border-t-0 p-6",
+                    customClassNames?.bookingRedirect?.redirectUrlInput?.container
                   )}>
-                  <Controller
-                    name="forwardParamsSuccessRedirect"
-                    render={({ field: { value, onChange } }) => (
-                      <CheckboxField
-                        description={t("forward_params_redirect")}
-                        disabled={successRedirectUrlLocked.disabled}
-                        className={customClassNames?.bookingRedirect?.forwardParamsCheckbox?.checkbox}
-                        descriptionClassName={
-                          customClassNames?.bookingRedirect?.forwardParamsCheckbox?.description
-                        }
-                        onChange={(e) => onChange(e)}
-                        checked={value}
-                      />
+                  <TextField
+                    className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                    label={t("redirect_success_booking")}
+                    labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
+                    labelSrOnly
+                    disabled={successRedirectUrlLocked.disabled}
+                    placeholder={t("external_redirect_url")}
+                    data-testid="external-redirect-url"
+                    required={redirectUrlVisible}
+                    type="text"
+                    {...formMethods.register("successRedirectUrl")}
+                  />
+
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      customClassNames?.bookingRedirect?.forwardParamsCheckbox?.container
+                    )}>
+                    <Controller
+                      name="forwardParamsSuccessRedirect"
+                      render={({ field: { value, onChange } }) => (
+                        <CheckboxField
+                          description={t("forward_params_redirect")}
+                          disabled={successRedirectUrlLocked.disabled}
+                          className={customClassNames?.bookingRedirect?.forwardParamsCheckbox?.checkbox}
+                          descriptionClassName={
+                            customClassNames?.bookingRedirect?.forwardParamsCheckbox?.description
+                          }
+                          onChange={(e) => onChange(e)}
+                          checked={value}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={classNames(
+                      "p-1 text-sm text-orange-600",
+                      formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
+                      customClassNames?.bookingRedirect?.error
                     )}
+                    data-testid="redirect-url-warning">
+                    {t("redirect_url_warning")}
+                  </div>
+                </div>
+              </SettingsToggle>
+            </>
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("redirectUrlOnNoRoutingFormResponse") && (
+        <Controller
+          name="redirectUrlOnNoRoutingFormResponse"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  noRoutingFormRedirectUrlVisible && "rounded-b-none",
+                  customClassNames?.bookingRedirect?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
+                descriptionClassName={customClassNames?.bookingRedirect?.description}
+                title={t("redirect_on_no_routing_form")}
+                data-testid="redirect-on-no-routing-form"
+                {...successRedirectUrlLocked}
+                description={t("redirect_on_no_routing_form_description")}
+                checked={noRoutingFormRedirectUrlVisible}
+                onCheckedChange={(e) => {
+                  setNoRoutingFormRedirectUrlVisible(e);
+                  onChange(e ? value : "");
+                }}>
+                <div
+                  className={classNames(
+                    "border-subtle rounded-b-lg border border-t-0 p-6",
+                    customClassNames?.bookingRedirect?.redirectUrlInput?.container
+                  )}>
+                  <TextField
+                    className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                    label={t("redirect_on_no_routing_form")}
+                    labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
+                    labelSrOnly
+                    disabled={successRedirectUrlLocked.disabled}
+                    placeholder={t("external_redirect_url")}
+                    data-testid="no-routing-form-redirect-url"
+                    required={noRoutingFormRedirectUrlVisible}
+                    type="text"
+                    {...formMethods.register("redirectUrlOnNoRoutingFormResponse")}
                   />
                 </div>
-                <div
-                  className={classNames(
-                    "p-1 text-sm text-orange-600",
-                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
-                    customClassNames?.bookingRedirect?.error
-                  )}
-                  data-testid="redirect-url-warning">
-                  {t("redirect_url_warning")}
-                </div>
-              </div>
-            </SettingsToggle>
-          </>
-        )}
-      />
-      <Controller
-        name="redirectUrlOnNoRoutingFormResponse"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                noRoutingFormRedirectUrlVisible && "rounded-b-none",
-                customClassNames?.bookingRedirect?.container
-              )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
-              descriptionClassName={customClassNames?.bookingRedirect?.description}
-              title={t("redirect_on_no_routing_form")}
-              data-testid="redirect-on-no-routing-form"
-              {...successRedirectUrlLocked}
-              description={t("redirect_on_no_routing_form_description")}
-              checked={noRoutingFormRedirectUrlVisible}
-              onCheckedChange={(e) => {
-                setNoRoutingFormRedirectUrlVisible(e);
-                onChange(e ? value : "");
-              }}>
-              <div
-                className={classNames(
-                  "border-subtle rounded-b-lg border border-t-0 p-6",
-                  customClassNames?.bookingRedirect?.redirectUrlInput?.container
-                )}>
-                <TextField
-                  className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
-                  label={t("redirect_on_no_routing_form")}
-                  labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
-                  labelSrOnly
-                  disabled={successRedirectUrlLocked.disabled}
-                  placeholder={t("external_redirect_url")}
-                  data-testid="no-routing-form-redirect-url"
-                  required={noRoutingFormRedirectUrlVisible}
-                  type="text"
-                  {...formMethods.register("redirectUrlOnNoRoutingFormResponse")}
-                />
-              </div>
-            </SettingsToggle>
-          </>
-        )}
-      />
-      {!isPlatform && (
+              </SettingsToggle>
+            </>
+          )}
+        />
+      )}
+      {!isPlatform && !hiddenSettings?.advanced?.includes("multiplePrivateLinks") && (
         <Controller
           name="multiplePrivateLinks"
           render={() => {
@@ -1081,439 +1106,455 @@ export const EventAdvancedTab = ({
           }}
         />
       )}
-      <Controller
-        name="seatsPerTimeSlotEnabled"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.seatsOptions?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                value && "rounded-b-none",
-                customClassNames?.seatsOptions?.container
-              )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.seatsOptions?.children)}
-              descriptionClassName={customClassNames?.seatsOptions?.description}
-              data-testid="offer-seats-toggle"
-              title={t("offer_seats")}
-              {...seatsLocked}
-              description={
-                <LearnMoreLink
-                  t={t}
-                  i18nKey="offer_seats_description"
-                  href="https://cal.com/help/event-types/offer-seats"
-                />
-              }
-              checked={value}
-              disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
-              tooltip={
-                multiLocation
-                  ? t("multilocation_doesnt_support_seats")
-                  : noShowFeeEnabled
-                    ? t("no_show_fee_doesnt_support_seats")
-                    : isRecurringEvent
-                      ? t("recurring_event_doesnt_support_seats")
-                      : undefined
-              }
-              onCheckedChange={(e) => {
-                // Enabling seats will disable guests and requiring confirmation until fully supported
-                if (e) {
-                  toggleGuests(false);
-                  formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
-                  setRequiresConfirmation(false);
-                  formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
-                  formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
-                    shouldDirty: true,
-                  });
-                } else {
-                  formMethods.setValue("seatsPerTimeSlot", null);
-                  toggleGuests(true);
-                }
-                onChange(e);
-              }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <Controller
-                  name="seatsPerTimeSlot"
-                  render={({ field: { value, onChange } }) => (
-                    <div>
-                      <TextField
-                        required
-                        name="seatsPerTimeSlot"
-                        labelSrOnly
-                        label={t("number_of_seats")}
-                        type="number"
-                        disabled={seatsLocked.disabled}
-                        //For old events if value > MAX_SEATS_PER_TIME_SLOT
-                        value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : (value ?? 1)}
-                        step={1}
-                        placeholder="1"
-                        min={1}
-                        max={MAX_SEATS_PER_TIME_SLOT}
-                        containerClassName={classNames(
-                          "max-w-80",
-                          customClassNames?.seatsOptions?.seatsInput.container
-                        )}
-                        addOnClassname={customClassNames?.seatsOptions?.seatsInput.addOn}
-                        className={customClassNames?.seatsOptions?.seatsInput?.input}
-                        labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
-                        addOnSuffix={t("seats")}
-                        onChange={(e) => {
-                          const enteredValue = parseInt(e.target.value);
-                          onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
-                        }}
-                        data-testid="seats-per-time-slot"
-                      />
-                      <div
-                        className={classNames(
-                          "mt-4",
-                          customClassNames?.seatsOptions?.showAttendeesCheckbox?.container
-                        )}>
-                        <Controller
-                          name="seatsShowAttendees"
-                          render={({ field: { value, onChange } }) => (
-                            <CheckboxField
-                              data-testid="show-attendees"
-                              description={t("show_attendees")}
-                              className={customClassNames?.seatsOptions?.showAttendeesCheckbox?.checkbox}
-                              descriptionClassName={
-                                customClassNames?.seatsOptions?.showAttendeesCheckbox?.description
-                              }
-                              disabled={seatsLocked.disabled}
-                              onChange={(e) => onChange(e)}
-                              checked={value}
-                            />
-                          )}
-                        />
-                      </div>
-                      <div
-                        className={classNames(
-                          "mt-2",
-                          customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.container
-                        )}>
-                        <Controller
-                          name="seatsShowAvailabilityCount"
-                          render={({ field: { value, onChange } }) => (
-                            <CheckboxField
-                              description={t("show_available_seats_count")}
-                              disabled={seatsLocked.disabled}
-                              onChange={(e) => onChange(e)}
-                              checked={value}
-                              className={
-                                customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.checkbox
-                              }
-                              descriptionClassName={
-                                customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.description
-                              }
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                  )}
-                />
-              </div>
-            </SettingsToggle>
-            {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
-          </>
-        )}
-      />
-      <Controller
-        name="hideOrganizerEmail"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.hideOrganizerEmail?.container
-            )}
-            title={t("hide_organizer_email")}
-            {...hideOrganizerEmailLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="hide_organizer_email_description"
-                href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
-              />
-            }
-            descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="hide-organizer-email"
-          />
-        )}
-      />
-      <Controller
-        name="lockTimeZoneToggleOnBookingPage"
-        render={({ field: { value, onChange } }) => {
-          // Calculate if we should show the selector based on current form state & handle backward compatibility
-          const currentLockedTimeZone = formMethods.getValues("lockedTimeZone");
-          const showSelector =
-            value &&
-            (!(eventType.lockTimeZoneToggleOnBookingPage && !eventType.lockedTimeZone) ||
-              !!currentLockedTimeZone);
-
-          return (
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
-              descriptionClassName={customClassNames?.timezoneLock?.description}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                customClassNames?.timezoneLock?.container,
-                showSelector && "rounded-b-none"
-              )}
-              title={t("lock_timezone_toggle_on_booking_page")}
-              {...lockTimeZoneToggleOnBookingPageLocked}
-              description={
-                <LearnMoreLink
-                  t={t}
-                  i18nKey="description_lock_timezone_toggle_on_booking_page"
-                  href="https://cal.com/help/event-types/timezone-lock"
-                />
-              }
-              checked={value}
-              onCheckedChange={(e) => {
-                onChange(e);
-                const lockedTimeZone = e ? (eventType.lockedTimeZone ?? "Europe/London") : null;
-                formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
-              }}
-              data-testid="lock-timezone-toggle"
-              childrenClassName="lg:ml-0">
-              {showSelector && (
-                <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-                  <div>
-                    <Controller
-                      name="lockedTimeZone"
-                      control={formMethods.control}
-                      render={({ field: { value } }) => (
-                        <>
-                          <Label className="text-default mb-2 block text-sm font-medium">
-                            <>{t("timezone")}</>
-                          </Label>
-                          <TimezoneSelect
-                            id="lockedTimeZone"
-                            value={value ?? "Europe/London"}
-                            onChange={(event) => {
-                              if (event)
-                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                            }}
-                          />
-                        </>
-                      )}
-                    />
-                  </div>
-                </div>
-              )}
-            </SettingsToggle>
-          );
-        }}
-      />
-      <Controller
-        name="allowReschedulingPastBookings"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm")}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
-            title={t("allow_rescheduling_past_events")}
-            {...reschedulingPastBookingsLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="allow_rescheduling_past_events_description"
-                href="https://cal.com/help/event-types/allow-rescheduling"
-              />
-            }
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-          />
-        )}
-      />
-
-      <Controller
-        name="allowReschedulingCancelledBookings"
-        render={({ field: { onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-            title={t("allow_rescheduling_cancelled_bookings")}
-            data-testid="allow-rescheduling-cancelled-bookings-toggle"
-            {...allowReschedulingCancelledBookingsLocked}
-            description={t("description_allow_rescheduling_cancelled_bookings")}
-            checked={allowReschedulingCancelledBookings}
-            onCheckedChange={(val) => {
-              setallowReschedulingCancelledBookings(val);
-              onChange(val);
-            }}
-          />
-        )}
-      />
-      <>
+      {!hiddenSettings?.advanced?.includes("seatsPerTimeSlotEnabled") && (
         <Controller
-          name="customReplyToEmail"
+          name="seatsPerTimeSlotEnabled"
           render={({ field: { value, onChange } }) => (
             <>
               <SettingsToggle
-                labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                labelClassName={classNames("text-sm", customClassNames?.seatsOptions?.label)}
                 toggleSwitchAtTheEnd={true}
                 switchContainerClassName={classNames(
                   "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                  !!value && "rounded-b-none",
-                  customClassNames?.customReplyToEmail?.container
+                  value && "rounded-b-none",
+                  customClassNames?.seatsOptions?.container
                 )}
-                descriptionClassName={customClassNames?.customReplyToEmail?.description}
-                childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
-                title={t("custom_reply_to_email_title")}
-                {...customReplyToEmailLocked}
-                data-testid="custom-reply-to-email"
-                description={t("custom_reply_to_email_description")}
-                checked={!!customReplyToEmail}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.seatsOptions?.children)}
+                descriptionClassName={customClassNames?.seatsOptions?.description}
+                data-testid="offer-seats-toggle"
+                title={t("offer_seats")}
+                {...seatsLocked}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="offer_seats_description"
+                    href="https://cal.com/help/event-types/offer-seats"
+                  />
+                }
+                checked={value}
+                disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
+                tooltip={
+                  multiLocation
+                    ? t("multilocation_doesnt_support_seats")
+                    : noShowFeeEnabled
+                      ? t("no_show_fee_doesnt_support_seats")
+                      : isRecurringEvent
+                        ? t("recurring_event_doesnt_support_seats")
+                        : undefined
+                }
                 onCheckedChange={(e) => {
-                  onChange(
-                    e
-                      ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
-                      : null
-                  );
+                  // Enabling seats will disable guests and requiring confirmation until fully supported
+                  if (e) {
+                    toggleGuests(false);
+                    formMethods.setValue("requiresConfirmation", false, { shouldDirty: true });
+                    setRequiresConfirmation(false);
+                    formMethods.setValue("metadata.multipleDuration", undefined, { shouldDirty: true });
+                    formMethods.setValue("seatsPerTimeSlot", eventType.seatsPerTimeSlot ?? 2, {
+                      shouldDirty: true,
+                    });
+                  } else {
+                    formMethods.setValue("seatsPerTimeSlot", null);
+                    toggleGuests(true);
+                  }
+                  onChange(e);
                 }}>
-                {isPlatform && (
-                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
-                )}
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SelectField
-                    className="w-full"
-                    label={t("custom_reply_to_email_title")}
-                    required={!!customReplyToEmail}
-                    placeholder={t("select_verified_email")}
-                    data-testid="custom-reply-to-email-input"
-                    value={value ? { label: value, value } : undefined}
-                    onChange={(option) => onChange(option?.value || null)}
-                    options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                  <Controller
+                    name="seatsPerTimeSlot"
+                    render={({ field: { value, onChange } }) => (
+                      <div>
+                        <TextField
+                          required
+                          name="seatsPerTimeSlot"
+                          labelSrOnly
+                          label={t("number_of_seats")}
+                          type="number"
+                          disabled={seatsLocked.disabled}
+                          //For old events if value > MAX_SEATS_PER_TIME_SLOT
+                          value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : (value ?? 1)}
+                          step={1}
+                          placeholder="1"
+                          min={1}
+                          max={MAX_SEATS_PER_TIME_SLOT}
+                          containerClassName={classNames(
+                            "max-w-80",
+                            customClassNames?.seatsOptions?.seatsInput.container
+                          )}
+                          addOnClassname={customClassNames?.seatsOptions?.seatsInput.addOn}
+                          className={customClassNames?.seatsOptions?.seatsInput?.input}
+                          labelClassName={customClassNames?.seatsOptions?.seatsInput?.label}
+                          addOnSuffix={t("seats")}
+                          onChange={(e) => {
+                            const enteredValue = parseInt(e.target.value);
+                            onChange(Math.min(enteredValue, MAX_SEATS_PER_TIME_SLOT));
+                          }}
+                          data-testid="seats-per-time-slot"
+                        />
+                        <div
+                          className={classNames(
+                            "mt-4",
+                            customClassNames?.seatsOptions?.showAttendeesCheckbox?.container
+                          )}>
+                          <Controller
+                            name="seatsShowAttendees"
+                            render={({ field: { value, onChange } }) => (
+                              <CheckboxField
+                                data-testid="show-attendees"
+                                description={t("show_attendees")}
+                                className={customClassNames?.seatsOptions?.showAttendeesCheckbox?.checkbox}
+                                descriptionClassName={
+                                  customClassNames?.seatsOptions?.showAttendeesCheckbox?.description
+                                }
+                                disabled={seatsLocked.disabled}
+                                onChange={(e) => onChange(e)}
+                                checked={value}
+                              />
+                            )}
+                          />
+                        </div>
+                        <div
+                          className={classNames(
+                            "mt-2",
+                            customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.container
+                          )}>
+                          <Controller
+                            name="seatsShowAvailabilityCount"
+                            render={({ field: { value, onChange } }) => (
+                              <CheckboxField
+                                description={t("show_available_seats_count")}
+                                disabled={seatsLocked.disabled}
+                                onChange={(e) => onChange(e)}
+                                checked={value}
+                                className={
+                                  customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.checkbox
+                                }
+                                descriptionClassName={
+                                  customClassNames?.seatsOptions?.showAvalableSeatCountCheckbox?.description
+                                }
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
                   />
                 </div>
               </SettingsToggle>
+              {noShowFeeEnabled && <Alert severity="warning" title={t("seats_and_no_show_fee_error")} />}
             </>
           )}
         />
-      </>
-      <Controller
-        name="eventTypeColor"
-        render={() => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.eventTypeColors?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              isEventTypeColorChecked && "rounded-b-none",
-              customClassNames?.eventTypeColors?.container
-            )}
-            title={t("event_type_color")}
-            {...eventTypeColorLocked}
-            description={t("event_type_color_description")}
-            descriptionClassName={customClassNames?.eventTypeColors?.description}
-            checked={isEventTypeColorChecked}
-            onCheckedChange={(e) => {
-              const value = e ? eventTypeColorState : null;
-              formMethods.setValue("eventTypeColor", value, {
-                shouldDirty: true,
-              });
-              setIsEventTypeColorChecked(e);
-            }}
-            childrenClassName={classNames("lg:ml-0", customClassNames?.eventTypeColors?.children)}>
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <div>
-                <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
-                <ColorPicker
-                  defaultValue={eventTypeColorState.lightEventTypeColor}
-                  onChange={(value) => {
-                    const newVal = {
-                      ...eventTypeColorState,
-                      lightEventTypeColor: value,
-                    };
-                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                    setEventTypeColorState(newVal);
-                    if (checkWCAGContrastColor("#ffffff", value)) {
-                      setLightModeError(false);
-                    } else {
-                      setLightModeError(true);
-                    }
-                  }}
-                />
-                {lightModeError ? (
-                  <div className="mt-4">
-                    <Alert
-                      severity="warning"
-                      className={customClassNames?.eventTypeColors?.warningText}
-                      message={t("event_type_color_light_theme_contrast_error")}
-                    />
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="mt-6 sm:mt-0">
-                <p className="text-default mb-2 block text-sm font-medium">{t("dark_event_type_color")}</p>
-                <ColorPicker
-                  defaultValue={eventTypeColorState.darkEventTypeColor}
-                  onChange={(value) => {
-                    const newVal = {
-                      ...eventTypeColorState,
-                      darkEventTypeColor: value,
-                    };
-                    formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
-                    setEventTypeColorState(newVal);
-                    if (checkWCAGContrastColor("#101010", value)) {
-                      setDarkModeError(false);
-                    } else {
-                      setDarkModeError(true);
-                    }
-                  }}
-                />
-                {darkModeError ? (
-                  <div className="mt-4">
-                    <Alert
-                      severity="warning"
-                      className={customClassNames?.eventTypeColors?.warningText}
-                      message={t("event_type_color_dark_theme_contrast_error")}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </SettingsToggle>
-        )}
-      />
-      <Controller
-        name="showOptimizedSlots"
-        render={({ field: { onChange, value } }) => {
-          const isChecked = value;
-          return (
+      )}
+      {!hiddenSettings?.advanced?.includes("hideOrganizerEmail") && (
+        <Controller
+          name="hideOrganizerEmail"
+          render={({ field: { value, onChange } }) => (
             <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.hideOrganizerEmail?.label)}
               toggleSwitchAtTheEnd={true}
-              labelClassName="text-sm"
-              title={t("show_optimized_slots")}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.hideOrganizerEmail?.container
+              )}
+              title={t("hide_organizer_email")}
+              {...hideOrganizerEmailLocked}
               description={
                 <LearnMoreLink
                   t={t}
-                  i18nKey="show_optimized_slots_description"
-                  href="https://cal.com/help/event-types/optimized-slots#optimized-slots"
+                  i18nKey="hide_organizer_email_description"
+                  href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
                 />
               }
-              checked={isChecked}
-              {...showOptimizedSlotsLocked}
-              onCheckedChange={(active) => {
-                onChange(active ?? false);
+              descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              data-testid="hide-organizer-email"
+            />
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("lockTimeZoneToggleOnBookingPage") && (
+        <Controller
+          name="lockTimeZoneToggleOnBookingPage"
+          render={({ field: { value, onChange } }) => {
+            // Calculate if we should show the selector based on current form state & handle backward compatibility
+            const currentLockedTimeZone = formMethods.getValues("lockedTimeZone");
+            const showSelector =
+              value &&
+              (!(eventType.lockTimeZoneToggleOnBookingPage && !eventType.lockedTimeZone) ||
+                !!currentLockedTimeZone);
+
+            return (
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
+                descriptionClassName={customClassNames?.timezoneLock?.description}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  customClassNames?.timezoneLock?.container,
+                  showSelector && "rounded-b-none"
+                )}
+                title={t("lock_timezone_toggle_on_booking_page")}
+                {...lockTimeZoneToggleOnBookingPageLocked}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="description_lock_timezone_toggle_on_booking_page"
+                    href="https://cal.com/help/event-types/timezone-lock"
+                  />
+                }
+                checked={value}
+                onCheckedChange={(e) => {
+                  onChange(e);
+                  const lockedTimeZone = e ? (eventType.lockedTimeZone ?? "Europe/London") : null;
+                  formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
+                }}
+                data-testid="lock-timezone-toggle"
+                childrenClassName="lg:ml-0">
+                {showSelector && (
+                  <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                    <div>
+                      <Controller
+                        name="lockedTimeZone"
+                        control={formMethods.control}
+                        render={({ field: { value } }) => (
+                          <>
+                            <Label className="text-default mb-2 block text-sm font-medium">
+                              <>{t("timezone")}</>
+                            </Label>
+                            <TimezoneSelect
+                              id="lockedTimeZone"
+                              value={value ?? "Europe/London"}
+                              onChange={(event) => {
+                                if (event)
+                                  formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                              }}
+                            />
+                          </>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+              </SettingsToggle>
+            );
+          }}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("allowReschedulingPastBookings") && (
+        <Controller
+          name="allowReschedulingPastBookings"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm")}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+              title={t("allow_rescheduling_past_events")}
+              {...reschedulingPastBookingsLocked}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="allow_rescheduling_past_events_description"
+                  href="https://cal.com/help/event-types/allow-rescheduling"
+                />
+              }
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+
+      {!hiddenSettings?.advanced?.includes("allowReschedulingCancelledBookings") && (
+        <Controller
+          name="allowReschedulingCancelledBookings"
+          render={({ field: { onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+              title={t("allow_rescheduling_cancelled_bookings")}
+              data-testid="allow-rescheduling-cancelled-bookings-toggle"
+              {...allowReschedulingCancelledBookingsLocked}
+              description={t("description_allow_rescheduling_cancelled_bookings")}
+              checked={allowReschedulingCancelledBookings}
+              onCheckedChange={(val) => {
+                setallowReschedulingCancelledBookings(val);
+                onChange(val);
               }}
+            />
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("customReplyToEmail") && (
+        <>
+          <Controller
+            name="customReplyToEmail"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.customReplyToEmail?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    !!value && "rounded-b-none",
+                    customClassNames?.customReplyToEmail?.container
+                  )}
+                  descriptionClassName={customClassNames?.customReplyToEmail?.description}
+                  childrenClassName={classNames("lg:ml-0", customClassNames?.customReplyToEmail?.children)}
+                  title={t("custom_reply_to_email_title")}
+                  {...customReplyToEmailLocked}
+                  data-testid="custom-reply-to-email"
+                  description={t("custom_reply_to_email_description")}
+                  checked={!!customReplyToEmail}
+                  onCheckedChange={(e) => {
+                    onChange(
+                      e
+                        ? customReplyToEmail || eventType.customReplyToEmail || verifiedEmails?.[0] || null
+                        : null
+                    );
+                  }}>
+                  {isPlatform && (
+                    <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
+                  )}
+                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                    <SelectField
+                      className="w-full"
+                      label={t("custom_reply_to_email_title")}
+                      required={!!customReplyToEmail}
+                      placeholder={t("select_verified_email")}
+                      data-testid="custom-reply-to-email-input"
+                      value={value ? { label: value, value } : undefined}
+                      onChange={(option) => onChange(option?.value || null)}
+                      options={verifiedEmails?.map((email) => ({ label: email, value: email })) || []}
+                    />
+                  </div>
+                </SettingsToggle>
+              </>
+            )}
+          />
+        </>
+      )}
+      {!hiddenSettings?.advanced?.includes("eventTypeColor") && (
+        <Controller
+          name="eventTypeColor"
+          render={() => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.eventTypeColors?.label)}
+              toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                isChecked && "rounded-b-none"
+                isEventTypeColorChecked && "rounded-b-none",
+                customClassNames?.eventTypeColors?.container
               )}
-            />
-          );
-        }}
-      />
-      {isRoundRobinEventType && (
+              title={t("event_type_color")}
+              {...eventTypeColorLocked}
+              description={t("event_type_color_description")}
+              descriptionClassName={customClassNames?.eventTypeColors?.description}
+              checked={isEventTypeColorChecked}
+              onCheckedChange={(e) => {
+                const value = e ? eventTypeColorState : null;
+                formMethods.setValue("eventTypeColor", value, {
+                  shouldDirty: true,
+                });
+                setIsEventTypeColorChecked(e);
+              }}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.eventTypeColors?.children)}>
+              <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                <div>
+                  <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
+                  <ColorPicker
+                    defaultValue={eventTypeColorState.lightEventTypeColor}
+                    onChange={(value) => {
+                      const newVal = {
+                        ...eventTypeColorState,
+                        lightEventTypeColor: value,
+                      };
+                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                      setEventTypeColorState(newVal);
+                      if (checkWCAGContrastColor("#ffffff", value)) {
+                        setLightModeError(false);
+                      } else {
+                        setLightModeError(true);
+                      }
+                    }}
+                  />
+                  {lightModeError ? (
+                    <div className="mt-4">
+                      <Alert
+                        severity="warning"
+                        className={customClassNames?.eventTypeColors?.warningText}
+                        message={t("event_type_color_light_theme_contrast_error")}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-6 sm:mt-0">
+                  <p className="text-default mb-2 block text-sm font-medium">{t("dark_event_type_color")}</p>
+                  <ColorPicker
+                    defaultValue={eventTypeColorState.darkEventTypeColor}
+                    onChange={(value) => {
+                      const newVal = {
+                        ...eventTypeColorState,
+                        darkEventTypeColor: value,
+                      };
+                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                      setEventTypeColorState(newVal);
+                      if (checkWCAGContrastColor("#101010", value)) {
+                        setDarkModeError(false);
+                      } else {
+                        setDarkModeError(true);
+                      }
+                    }}
+                  />
+                  {darkModeError ? (
+                    <div className="mt-4">
+                      <Alert
+                        severity="warning"
+                        className={customClassNames?.eventTypeColors?.warningText}
+                        message={t("event_type_color_dark_theme_contrast_error")}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </SettingsToggle>
+          )}
+        />
+      )}
+      {!hiddenSettings?.advanced?.includes("showOptimizedSlots") && (
+        <Controller
+          name="showOptimizedSlots"
+          render={({ field: { onChange, value } }) => {
+            const isChecked = value;
+            return (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                labelClassName="text-sm"
+                title={t("show_optimized_slots")}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="show_optimized_slots_description"
+                    href="https://cal.com/help/event-types/optimized-slots#optimized-slots"
+                  />
+                }
+                checked={isChecked}
+                {...showOptimizedSlotsLocked}
+                onCheckedChange={(active) => {
+                  onChange(active ?? false);
+                }}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none"
+                )}
+              />
+            );
+          }}
+        />
+      )}
+      {isRoundRobinEventType && !hiddenSettings?.advanced?.includes("rescheduleWithSameRoundRobinHost") && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"
           render={({ field: { value, onChange } }) => (
@@ -1533,7 +1574,7 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {allowDisablingAttendeeConfirmationEmails(workflows) && (
+      {allowDisablingAttendeeConfirmationEmails(workflows) && !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.attendee") && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
@@ -1555,7 +1596,7 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {allowDisablingHostConfirmationEmails(workflows) && (
+      {allowDisablingHostConfirmationEmails(workflows) && !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.host") && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
@@ -1581,37 +1622,41 @@ export const EventAdvancedTab = ({
 
       {team?.parentId && (
         <>
-          <Controller
-            name="metadata.disableStandardEmails.all.attendee"
-            render={({ field: { value, onChange } }) => {
-              return (
+          {!hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.all.attendee") && (
+            <Controller
+              name="metadata.disableStandardEmails.all.attendee"
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <>
+                    <DisableAllEmailsSetting
+                      checked={value}
+                      onCheckedChange={onChange}
+                      recipient="attendees"
+                      customClassNames={customClassNames?.emailNotifications}
+                      t={t}
+                    />
+                  </>
+                );
+              }}
+            />
+          )}
+          {!hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.all.host") && (
+            <Controller
+              name="metadata.disableStandardEmails.all.host"
+              defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+              render={({ field: { value, onChange } }) => (
                 <>
                   <DisableAllEmailsSetting
                     checked={value}
                     onCheckedChange={onChange}
-                    recipient="attendees"
+                    recipient="hosts"
                     customClassNames={customClassNames?.emailNotifications}
                     t={t}
                   />
                 </>
-              );
-            }}
-          />
-          <Controller
-            name="metadata.disableStandardEmails.all.host"
-            defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
-            render={({ field: { value, onChange } }) => (
-              <>
-                <DisableAllEmailsSetting
-                  checked={value}
-                  onCheckedChange={onChange}
-                  recipient="hosts"
-                  customClassNames={customClassNames?.emailNotifications}
-                  t={t}
-                />
-              </>
-            )}
-          />
+              )}
+            />
+          )}
         </>
       )}
       {showEventNameTip && (

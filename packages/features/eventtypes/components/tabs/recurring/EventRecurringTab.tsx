@@ -6,7 +6,7 @@ import RecurringEventController from "./RecurringEventController";
 
 export type EventRecurringTabProps = Omit<RecurringEventControllerProps, "paymentEnabled">;
 
-export const EventRecurringTab = ({ eventType, customClassNames }: EventRecurringTabProps) => {
+export const EventRecurringTab = ({ eventType, customClassNames, hiddenSettings }: EventRecurringTabProps) => {
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -19,6 +19,7 @@ export const EventRecurringTab = ({ eventType, customClassNames }: EventRecurrin
       paymentEnabled={requirePayment}
       eventType={eventType}
       customClassNames={customClassNames}
+      hiddenSettings={hiddenSettings}
     />
   );
 };

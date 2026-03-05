@@ -252,6 +252,7 @@ const EventType = forwardRef<
         user={user?.data}
         teamId={team?.id}
         customClassNames={customClassNames?.eventAvailabilityTab}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>
@@ -263,6 +264,7 @@ const EventType = forwardRef<
         teamMembers={teamMembers}
         customClassNames={customClassNames?.eventAssignmentTab}
         orgId={organizationId}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>
@@ -275,6 +277,7 @@ const EventType = forwardRef<
         isUserLoading={isUserLoading}
         showToast={showToast}
         customClassNames={customClassNames?.eventAdvancedTab}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>
@@ -284,6 +287,7 @@ const EventType = forwardRef<
       <EventLimitsTabPlatformWrapper
         eventType={eventType}
         customClassNames={customClassNames?.eventLimitsTab}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>
@@ -293,6 +297,7 @@ const EventType = forwardRef<
       <EventRecurringTabPlatformWrapper
         eventType={eventType}
         customClassNames={customClassNames?.eventRecurringTab}
+        hiddenSettings={hiddenSettings}
       />
     ) : (
       <></>

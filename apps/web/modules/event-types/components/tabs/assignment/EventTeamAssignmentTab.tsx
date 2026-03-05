@@ -1,6 +1,7 @@
 import type {
   EventTypeSetupProps,
   FormValues,
+  HiddenSettings,
   Host,
   SelectClassNames,
   SettingsToggleClassNames,
@@ -53,6 +54,7 @@ export type EventTeamAssignmentTabBaseProps = Pick<
   orgId: number | null;
   isSegmentApplicable: boolean;
   hideFixedHostsForCollective?: boolean;
+  hiddenSettings?: HiddenSettings;
 };
 
 export const mapMemberToChildrenOption = (
@@ -665,10 +667,10 @@ const Hosts = ({
 
       return existingHost
         ? {
-            ...newValue,
-            scheduleId: existingHost.scheduleId,
-            groupId: existingHost.groupId,
-          }
+          ...newValue,
+          scheduleId: existingHost.scheduleId,
+          groupId: existingHost.groupId,
+        }
         : newValue;
     });
   };
@@ -739,6 +741,7 @@ export const EventTeamAssignmentTab = ({
   orgId,
   isSegmentApplicable,
   hideFixedHostsForCollective = false,
+  hiddenSettings,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
 
@@ -747,17 +750,17 @@ export const EventTeamAssignmentTab = ({
     label: string;
     // description: string;
   }[] = [
-    {
-      value: "COLLECTIVE",
-      label: t("collective"),
-      // description: t("collective_description"),
-    },
-    {
-      value: "ROUND_ROBIN",
-      label: t("round_robin"),
-      // description: t("round_robin_description"),
-    },
-  ];
+      {
+        value: "COLLECTIVE",
+        label: t("collective"),
+        // description: t("collective_description"),
+      },
+      {
+        value: "ROUND_ROBIN",
+        label: t("round_robin"),
+        // description: t("round_robin_description"),
+      },
+    ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
   const teamMembersOptions = teamMembers
@@ -819,49 +822,51 @@ export const EventTeamAssignmentTab = ({
     <div>
       {team && !isManagedEventType && (
         <>
-          <div
-            className={classNames(
-              "border-subtle flex flex-col rounded-md",
-              customClassNames?.assignmentType?.container
-            )}>
-            <div className="border-subtle rounded-t-md border p-6 pb-5">
-              <Label
-                className={classNames("mb-1 text-sm font-semibold", customClassNames?.assignmentType?.label)}>
-                {t("assignment")}
-              </Label>
-              <p
-                className={classNames(
-                  "text-subtle wrap-break-word max-w-full text-sm leading-tight",
-                  customClassNames?.assignmentType?.description
-                )}>
-                {t("assignment_description")}
-              </p>
-            </div>
+          {!hiddenSettings?.team?.includes("schedulingType") && (
             <div
               className={classNames(
-                "border-subtle rounded-b-md border border-t-0 p-6",
-                customClassNames?.assignmentType?.schedulingTypeSelect?.container
+                "border-subtle flex flex-col rounded-md",
+                customClassNames?.assignmentType?.container
               )}>
-              <Label className={customClassNames?.assignmentType?.schedulingTypeSelect?.label}>
-                {t("scheduling_type")}
-              </Label>
-              <Controller<FormValues>
-                name="schedulingType"
-                render={({ field: { value, onChange } }) => (
-                  <Select
-                    options={schedulingTypeOptions}
-                    value={schedulingTypeOptions.find((opt) => opt.value === value)}
-                    className={classNames(
-                      "w-full",
-                      customClassNames?.assignmentType?.schedulingTypeSelect?.select
-                    )}
-                    innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
-                    onChange={(val) => handleSchedulingTypeChange(val?.value, onChange)}
-                  />
-                )}
-              />
+              <div className="border-subtle rounded-t-md border p-6 pb-5">
+                <Label
+                  className={classNames("mb-1 text-sm font-semibold", customClassNames?.assignmentType?.label)}>
+                  {t("assignment")}
+                </Label>
+                <p
+                  className={classNames(
+                    "text-subtle wrap-break-word max-w-full text-sm leading-tight",
+                    customClassNames?.assignmentType?.description
+                  )}>
+                  {t("assignment_description")}
+                </p>
+              </div>
+              <div
+                className={classNames(
+                  "border-subtle rounded-b-md border border-t-0 p-6",
+                  customClassNames?.assignmentType?.schedulingTypeSelect?.container
+                )}>
+                <Label className={customClassNames?.assignmentType?.schedulingTypeSelect?.label}>
+                  {t("scheduling_type")}
+                </Label>
+                <Controller<FormValues>
+                  name="schedulingType"
+                  render={({ field: { value, onChange } }) => (
+                    <Select
+                      options={schedulingTypeOptions}
+                      value={schedulingTypeOptions.find((opt) => opt.value === value)}
+                      className={classNames(
+                        "w-full",
+                        customClassNames?.assignmentType?.schedulingTypeSelect?.select
+                      )}
+                      innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
+                      onChange={(val) => handleSchedulingTypeChange(val?.value, onChange)}
+                    />
+                  )}
+                />
+              </div>
             </div>
-          </div>
+          )}
           {schedulingType === "ROUND_ROBIN" && (
             <div className="border-subtle mt-4 flex flex-col rounded-md">
               <div className="border-subtle rounded-t-md border p-6 pb-5">
@@ -871,72 +876,76 @@ export const EventTeamAssignmentTab = ({
                 </p>
               </div>
               <div className="border-subtle rounded-b-md border border-t-0 p-6">
-                <Controller
-                  name="maxLeadThreshold"
-                  render={({ field: { value, onChange } }) => (
-                    <RadioArea.Group
-                      onValueChange={(val) => handleMaxLeadThresholdChange(val, onChange)}
-                      className="mt-1 flex flex-col gap-4">
-                      <RadioArea.Item
-                        value="maximizeAvailability"
-                        checked={value === null}
-                        className="w-full text-sm"
-                        classNames={{ container: "w-full" }}>
-                        <strong className="mb-1 block">
-                          {t("rr_distribution_method_availability_title")}
-                        </strong>
-                        <p>{t("rr_distribution_method_availability_description")}</p>
-                      </RadioArea.Item>
-                      {(eventType.team?.rrTimestampBasis &&
-                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
-                      hostGroups?.length > 1 ? (
-                        <Tooltip
-                          content={
-                            eventType.team?.rrTimestampBasis &&
-                            eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                              ? t("rr_load_balancing_disabled")
-                              : t("rr_load_balancing_disabled_with_groups")
-                          }>
+                {!hiddenSettings?.team?.includes("maxLeadThreshold") && (
+                  <Controller
+                    name="maxLeadThreshold"
+                    render={({ field: { value, onChange } }) => (
+                      <RadioArea.Group
+                        onValueChange={(val) => handleMaxLeadThresholdChange(val, onChange)}
+                        className="mt-1 flex flex-col gap-4">
+                        <RadioArea.Item
+                          value="maximizeAvailability"
+                          checked={value === null}
+                          className="w-full text-sm"
+                          classNames={{ container: "w-full" }}>
+                          <strong className="mb-1 block">
+                            {t("rr_distribution_method_availability_title")}
+                          </strong>
+                          <p>{t("rr_distribution_method_availability_description")}</p>
+                        </RadioArea.Item>
+                        {(eventType.team?.rrTimestampBasis &&
+                          eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
+                          hostGroups?.length > 1 ? (
+                          <Tooltip
+                            content={
+                              eventType.team?.rrTimestampBasis &&
+                                eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                                ? t("rr_load_balancing_disabled")
+                                : t("rr_load_balancing_disabled_with_groups")
+                            }>
+                            <div className="w-full">
+                              <RadioArea.Item
+                                value="loadBalancing"
+                                checked={value !== null}
+                                className="text-sm"
+                                disabled={true}
+                                classNames={{ container: "w-full" }}>
+                                <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
+                                <p>{t("rr_distribution_method_balanced_description")}</p>
+                              </RadioArea.Item>
+                            </div>
+                          </Tooltip>
+                        ) : (
                           <div className="w-full">
                             <RadioArea.Item
                               value="loadBalancing"
                               checked={value !== null}
                               className="text-sm"
-                              disabled={true}
                               classNames={{ container: "w-full" }}>
                               <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
                               <p>{t("rr_distribution_method_balanced_description")}</p>
                             </RadioArea.Item>
                           </div>
-                        </Tooltip>
-                      ) : (
-                        <div className="w-full">
-                          <RadioArea.Item
-                            value="loadBalancing"
-                            checked={value !== null}
-                            className="text-sm"
-                            classNames={{ container: "w-full" }}>
-                            <strong className="mb-1">{t("rr_distribution_method_balanced_title")}</strong>
-                            <p>{t("rr_distribution_method_balanced_description")}</p>
-                          </RadioArea.Item>
-                        </div>
-                      )}
-                    </RadioArea.Group>
-                  )}
-                />
-                <div className="mt-4">
-                  <Controller
-                    name="includeNoShowInRRCalculation"
-                    render={({ field: { value, onChange } }) => (
-                      <SettingsToggle
-                        title={t("include_no_show_in_rr_calculation")}
-                        labelClassName="mt-1.5"
-                        checked={value}
-                        onCheckedChange={(val) => onChange(val)}
-                      />
+                        )}
+                      </RadioArea.Group>
                     )}
                   />
-                </div>
+                )}
+                {!hiddenSettings?.team?.includes("includeNoShowInRRCalculation") && (
+                  <div className="mt-4">
+                    <Controller
+                      name="includeNoShowInRRCalculation"
+                      render={({ field: { value, onChange } }) => (
+                        <SettingsToggle
+                          title={t("include_no_show_in_rr_calculation")}
+                          labelClassName="mt-1.5"
+                          checked={value}
+                          onCheckedChange={(val) => onChange(val)}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
