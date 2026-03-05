@@ -1,4 +1,4 @@
-import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { I18nProvider } from "app/I18nProvider";
 import type { PageProps, Params } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { headers, cookies } from "next/headers";
@@ -209,9 +209,9 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
         {Booker}
-      </CustomI18nProvider>
+      </I18nProvider>
     );
   }
 

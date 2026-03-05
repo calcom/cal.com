@@ -10,7 +10,7 @@ import Script from "next/script";
 import type React from "react";
 
 import "../styles/globals.css";
-import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
+import { I18nProvider } from "./I18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 
@@ -164,9 +164,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
 
         <Providers isEmbed={isEmbed} nonce={nonce} country={country}>
-          <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
+          <I18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
-          </AppRouterI18nProvider>
+          </I18nProvider>
         </Providers>
       </body>
     </html>

@@ -5,7 +5,7 @@ import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { PageProps, Params, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
-import { CustomI18nProvider } from "app/CustomI18nProvider";
+import { I18nProvider } from "app/I18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import { cookies, headers } from "next/headers";
 import type { PageProps as LegacyPageProps } from "~/team/type-view";
@@ -90,9 +90,9 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <CustomI18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
         <LegacyPage {...props} />
-      </CustomI18nProvider>
+      </I18nProvider>
     );
   }
 
