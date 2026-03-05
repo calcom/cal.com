@@ -3,6 +3,7 @@ import {
   Appointment,
   Attendee,
   BasePropertySet,
+  BodyType,
   CalendarView,
   ConflictResolutionMode,
   DateTime,
@@ -60,7 +61,7 @@ class ExchangeCalendarService implements Calendar {
     appointment.Start = DateTime.Parse(event.startTime);
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
-    appointment.Body = new MessageBody(event.description || "");
+    appointment.Body = new MessageBody(BodyType.HTML, event.description || "");
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
@@ -96,7 +97,7 @@ class ExchangeCalendarService implements Calendar {
     appointment.Start = DateTime.Parse(event.startTime);
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
-    appointment.Body = new MessageBody(event.description || "");
+    appointment.Body = new MessageBody(BodyType.HTML, event.description || "");
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
