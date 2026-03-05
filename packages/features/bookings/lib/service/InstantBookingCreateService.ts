@@ -441,7 +441,7 @@ async function fireBookingEvents({
           startTime: booking.startTime,
           endTime: booking.endTime,
           status: booking.status,
-          userUuid,
+          userUuid: null,
         },
         attendeeSeatId: null,
       }),
