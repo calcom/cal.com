@@ -157,7 +157,7 @@ async function handler(req: NextRequest) {
             break;
           }
           case WorkflowActions.EMAIL_ATTENDEE:
-            sendTo = targetAttendee?.email;
+              sendTo = targetAttendee?.email;
             break;
           case WorkflowActions.EMAIL_ADDRESS:
             sendTo = reminder.workflowStep.sendTo;
@@ -336,6 +336,12 @@ async function handler(req: NextRequest) {
 
           const attendees = await Promise.all(attendeePromises);
 
+          const isSeatedAttendeeEmail =
+            reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE && reminder.seatReferenceId;
+          const icsAttendees = isSeatedAttendeeEmail
+            ? attendees.filter((a) => a.email === targetAttendee.email)
+            : attendees;
+
           const event = {
             ...booking,
             startTime: dayjs(booking.startTime).utc().format(),
@@ -347,7 +353,7 @@ async function handler(req: NextRequest) {
               timeZone: booking.user?.timeZone ?? "",
               language: { translate: t, locale: booking.user?.locale ?? "en" },
             },
-            attendees,
+            attendees: icsAttendees,
             location: bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl || booking.location,
             title: booking.title || booking.eventType?.title || "",
           };

@@ -576,6 +576,11 @@ export class EmailWorkflowService {
       })
     );
 
+    const isEmailAttendeeSeatedEvent = action === WorkflowActions.EMAIL_ATTENDEE && seatReferenceUid;
+    const icsAttendees = isEmailAttendeeSeatedEvent
+      ? processedAttendees.filter((a) => a.email === attendeeToBeUsedInMail.email)
+      : processedAttendees;
+
     const emailEvent = {
       ...evt,
       type: evt.eventType?.slug || "",
@@ -583,7 +588,7 @@ export class EmailWorkflowService {
         ...evt.organizer,
         language: { ...evt.organizer.language, translate: organizerT },
       },
-      attendees: processedAttendees,
+      attendees: icsAttendees,
       location: bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl || evt.location,
     };
 
