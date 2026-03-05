@@ -22,7 +22,11 @@ function prompt(question: string): Promise<string> {
 function openBrowser(url: string): void {
   const platform = process.platform;
   const cmd =
-    platform === "darwin" ? `open "${url}"` : platform === "win32" ? `start "" "${url}"` : `xdg-open "${url}"`;
+    platform === "darwin"
+      ? `open "${url}"`
+      : platform === "win32"
+        ? `start "" "${url}"`
+        : `xdg-open "${url}"`;
 
   exec(cmd, (err) => {
     if (err) {
@@ -257,7 +261,11 @@ export class OAuthAuth {
       throw new Error(`Token refresh failed: HTTP ${response.status}`);
     }
 
-    const tokens = (await response.json()) as { access_token: string; refresh_token: string; expires_in: number };
+    const tokens = (await response.json()) as {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+    };
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
     config.oauth = {
@@ -272,6 +280,8 @@ export class OAuthAuth {
 }
 
 export async function promptAuthMethod(): Promise<"api-key" | "oauth"> {
-  const choice = await prompt("Choose authentication method:\n  1) API Key\n  2) OAuth\nEnter choice (1 or 2): ");
+  const choice = await prompt(
+    "Choose authentication method:\n  1) API Key\n  2) OAuth\nEnter choice (1 or 2): "
+  );
   return choice === "2" ? "oauth" : "api-key";
 }

@@ -10,15 +10,18 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp -r src/templates dist/",
+    "generate": "openapi-ts",
+    "build": "yarn generate && tsc -p tsconfig.json && cp -r src/templates dist/",
     "dev": "ts-node --transpile-only src/index.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hey-api/client-fetch": "^0.6.0",
     "chalk": "4.1.2",
     "commander": "12.1.0"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.61.0",
     "@types/node": "^20.17.23",
     "typescript": "5.9.3"
   }

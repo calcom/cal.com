@@ -131,7 +131,7 @@ describe("commands", () => {
 
   describe("registerMeCommand", () => {
     it("registers me command with whoami alias", async () => {
-      const { registerMeCommand } = await import("./me");
+      const { registerMeCommand } = await import("../features/me");
       const program = new Command();
       program.exitOverride();
       registerMeCommand(program);
@@ -155,7 +155,7 @@ describe("commands", () => {
         },
       });
 
-      const { registerMeCommand } = await import("./me");
+      const { registerMeCommand } = await import("../features/me");
       const program = new Command();
       program.exitOverride();
       registerMeCommand(program);
@@ -168,7 +168,7 @@ describe("commands", () => {
     it("handles no profile data", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: undefined });
 
-      const { registerMeCommand } = await import("./me");
+      const { registerMeCommand } = await import("../features/me");
       const program = new Command();
       program.exitOverride();
       registerMeCommand(program);
@@ -191,7 +191,7 @@ describe("commands", () => {
       };
       mockApiRequest.mockResolvedValue({ status: "success", data: meData });
 
-      const { registerMeCommand } = await import("./me");
+      const { registerMeCommand } = await import("../features/me");
       const program = new Command();
       program.exitOverride();
       registerMeCommand(program);
@@ -257,7 +257,7 @@ describe("commands", () => {
 
   describe("registerBookingsCommand", () => {
     it("registers bookings command with subcommands", async () => {
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -278,7 +278,7 @@ describe("commands", () => {
     it("lists bookings with status filter", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: [] });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -305,7 +305,7 @@ describe("commands", () => {
         },
       });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -319,7 +319,7 @@ describe("commands", () => {
     it("cancels a booking", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: {} });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -337,7 +337,7 @@ describe("commands", () => {
     it("confirms a booking", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: {} });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -352,7 +352,7 @@ describe("commands", () => {
     it("declines a booking", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: {} });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
@@ -367,7 +367,7 @@ describe("commands", () => {
     it("reassigns a booking", async () => {
       mockApiRequest.mockResolvedValue({ status: "success", data: {} });
 
-      const { registerBookingsCommand } = await import("./bookings");
+      const { registerBookingsCommand } = await import("../features/bookings");
       const program = new Command();
       program.exitOverride();
       registerBookingsCommand(program);
