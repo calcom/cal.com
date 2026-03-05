@@ -1,16 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import { sendVerificationCodeHandler } from "./sendVerificationCode.handler";
 
+const mockCreditsRepository = {
+  findCreditBalance: vi.fn(),
+};
+
+vi.mock("@calcom/features/di/containers/CreditsRepository", () => ({
+  getCreditsRepository: () => mockCreditsRepository,
+}));
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
-vi.mock("@calcom/features/credits/repositories/CreditsRepository");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber");
 vi.mock("../teams/hasTeamPlan.handler");
 
@@ -38,7 +40,7 @@ describe("sendVerificationCodeHandler", () => {
       limit: 100,
       reset: Date.now() + 60 * 1000,
     });
-    vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+    mockCreditsRepository.findCreditBalance.mockResolvedValue({
       id: 1,
       additionalCredits: 100,
       balance: 100,
@@ -89,7 +91,7 @@ describe("sendVerificationCodeHandler", () => {
         callOrder.push("rateLimit");
         return { success: true, remaining: 99, limit: 100, reset: Date.now() + 60 * 1000 };
       });
-      vi.mocked(CreditsRepository.findCreditBalance).mockImplementation(async () => {
+      mockCreditsRepository.findCreditBalance.mockImplementation(async () => {
         callOrder.push("credits");
         return {
           id: 1,
@@ -117,7 +119,7 @@ describe("sendVerificationCodeHandler", () => {
         "Rate limit exceeded"
       );
 
-      expect(CreditsRepository.findCreditBalance).not.toHaveBeenCalled();
+      expect(mockCreditsRepository.findCreditBalance).not.toHaveBeenCalled();
       expect(hasTeamPlanHandler).not.toHaveBeenCalled();
       expect(sendVerificationCode).not.toHaveBeenCalled();
     });
@@ -131,7 +133,7 @@ describe("sendVerificationCodeHandler", () => {
         "Rate limit exceeded"
       );
 
-      expect(CreditsRepository.findCreditBalance).not.toHaveBeenCalled();
+      expect(mockCreditsRepository.findCreditBalance).not.toHaveBeenCalled();
       expect(hasTeamPlanHandler).not.toHaveBeenCalled();
       expect(sendVerificationCode).not.toHaveBeenCalled();
     });
@@ -156,7 +158,7 @@ describe("sendVerificationCodeHandler", () => {
         ...mockUser,
         metadata: { isPremium: true },
       };
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+      mockCreditsRepository.findCreditBalance.mockResolvedValue({
         id: 1,
         additionalCredits: 0,
         balance: 0,
@@ -176,7 +178,7 @@ describe("sendVerificationCodeHandler", () => {
   describe("Authorization - Team Plan Users", () => {
     it("should allow team plan users to send verification code", async () => {
       vi.mocked(hasTeamPlanHandler).mockResolvedValue({ hasTeamPlan: true });
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+      mockCreditsRepository.findCreditBalance.mockResolvedValue({
         id: 1,
         additionalCredits: 0,
         balance: 0,
@@ -201,7 +203,7 @@ describe("sendVerificationCodeHandler", () => {
 
   describe("Authorization - Users with Credits", () => {
     it("should allow users with additional credits to send verification code", async () => {
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+      mockCreditsRepository.findCreditBalance.mockResolvedValue({
         id: 1,
         additionalCredits: 50,
         balance: 50,
@@ -221,7 +223,7 @@ describe("sendVerificationCodeHandler", () => {
 
   describe("Authorization - Unauthorized Users", () => {
     it("should throw UNAUTHORIZED when user is not premium, has no team plan, and no credits", async () => {
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+      mockCreditsRepository.findCreditBalance.mockResolvedValue({
         id: 1,
         additionalCredits: 0,
         balance: 0,
@@ -241,7 +243,7 @@ describe("sendVerificationCodeHandler", () => {
     });
 
     it("should throw UNAUTHORIZED when creditBalance has negative additionalCredits", async () => {
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+      mockCreditsRepository.findCreditBalance.mockResolvedValue({
         id: 1,
         additionalCredits: -5,
         balance: 0,
@@ -278,7 +280,7 @@ describe("sendVerificationCodeHandler", () => {
 
   describe("Edge Cases", () => {
     it("should handle null credit balance gracefully", async () => {
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue(null);
+      mockCreditsRepository.findCreditBalance.mockResolvedValue(null);
       vi.mocked(hasTeamPlanHandler).mockResolvedValue({ hasTeamPlan: true });
 
       await sendVerificationCodeHandler({ ctx: mockCtx, input: mockInput });

@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
+import type { PrismaCreditsRepository } from "@calcom/features/credits/repositories/PrismaCreditsRepository";
+import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
@@ -49,6 +50,8 @@ type LowCreditBalanceResult = LowCreditBalanceLimitReachedResult | LowCreditBala
 export type CreditCheckFn = CreditService["hasAvailableCredits"];
 
 export class CreditService {
+  constructor(private readonly creditsRepository: PrismaCreditsRepository = getCreditsRepository()) {}
+
   async chargeCredits({
     userId,
     teamId,
@@ -75,7 +78,7 @@ export class CreditService {
     externalRef?: string;
   }) {
     if (externalRef) {
-      const existingLog = await CreditsRepository.findCreditExpenseLogByExternalRef(externalRef);
+      const existingLog = await this.creditsRepository.findCreditExpenseLogByExternalRef(externalRef);
       if (existingLog) {
         log.warn("Credit expense log already exists", { externalRef, existingLog });
         return {
@@ -175,7 +178,7 @@ export class CreditService {
         // Use organization credits if team belongs to org, otherwise use team's own credits
         const teamIdToCheck = orgId ?? teamId;
 
-        const creditBalance = await CreditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
+        const creditBalance = await this.creditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
 
         const limitReached =
           creditBalance?.limitReachedAt &&
@@ -188,7 +191,7 @@ export class CreditService {
         const availableCredits = teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits;
 
         if (availableCredits > 0) {
-          await CreditsRepository.updateCreditBalance(
+          await this.creditsRepository.updateCreditBalance(
             {
               teamId: teamIdToCheck,
               data: {
@@ -275,7 +278,7 @@ export class CreditService {
     const membershipsToCheck = CreditService.filterMembershipsForCreditCheck(memberships, teams);
 
     for (const membership of membershipsToCheck) {
-      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
+      const creditBalance = await this.creditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
       const allCredits = await this._getAllCreditsForTeam({ teamId: membership.teamId, tx });
 
       const limitReached =
@@ -286,7 +289,7 @@ export class CreditService {
 
       if (!limitReached || availableCredits > 0) {
         if (limitReached) {
-          await CreditsRepository.updateCreditBalance(
+          await this.creditsRepository.updateCreditBalance(
             {
               teamId: membership.teamId,
               data: {
@@ -416,10 +419,10 @@ export class CreditService {
       tx,
     } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
-      await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
+      await this.creditsRepository.findCreditBalance({ teamId, userId }, tx);
 
     if (!creditBalance) {
-      creditBalance = await CreditsRepository.createCreditBalance(
+      creditBalance = await this.creditsRepository.createCreditBalance(
         {
           teamId,
           userId,
@@ -431,7 +434,7 @@ export class CreditService {
     if (credits && creditType === CreditType.ADDITIONAL) {
       const decrementValue =
         credits <= creditBalance.additionalCredits ? credits : creditBalance.additionalCredits;
-      await CreditsRepository.updateCreditBalance(
+      await this.creditsRepository.updateCreditBalance(
         {
           id: creditBalance.id,
           data: {
@@ -446,7 +449,7 @@ export class CreditService {
 
     if (creditBalance) {
       // also track logs with undefined credits (will be set on the cron job)
-      await CreditsRepository.createCreditExpenseLog(
+      await this.creditsRepository.createCreditExpenseLog(
         {
           creditBalanceId: creditBalance.id,
           credits,
@@ -498,7 +501,10 @@ export class CreditService {
     }
 
     if (remainingCredits < warningLimit) {
-      const creditBalance = await CreditsRepository.findCreditBalanceWithTeamOrUser({ teamId, userId }, tx);
+      const creditBalance = await this.creditsRepository.findCreditBalanceWithTeamOrUser(
+        { teamId, userId },
+        tx
+      );
 
       if (
         creditBalance?.limitReachedAt &&
@@ -541,7 +547,7 @@ export class CreditService {
       }
 
       if (remainingCredits <= 0) {
-        await CreditsRepository.updateCreditBalance(
+        await this.creditsRepository.updateCreditBalance(
           {
             teamId,
             userId,
@@ -570,7 +576,7 @@ export class CreditService {
         return null; // user has already received a warning or team has already sent warning email this month
       }
 
-      await CreditsRepository.updateCreditBalance(
+      await this.creditsRepository.updateCreditBalance(
         {
           teamId,
           userId,
@@ -590,7 +596,7 @@ export class CreditService {
       };
     }
 
-    await CreditsRepository.updateCreditBalance(
+    await this.creditsRepository.updateCreditBalance(
       {
         teamId,
         userId,
@@ -747,7 +753,7 @@ export class CreditService {
     }
 
     if (userId) {
-      const creditBalance = await CreditsRepository.findCreditBalance({ userId }, tx);
+      const creditBalance = await this.creditsRepository.findCreditBalance({ userId }, tx);
 
       return {
         totalMonthlyCredits: 0,
@@ -772,7 +778,7 @@ export class CreditService {
   }
 
   protected async _getAllCreditsForTeam({ teamId, tx }: { teamId: number; tx: PrismaTransaction }) {
-    const creditBalance = await CreditsRepository.findCreditBalanceWithExpenseLogs(
+    const creditBalance = await this.creditsRepository.findCreditBalanceWithExpenseLogs(
       { teamId, creditType: CreditType.MONTHLY },
       tx
     );
@@ -795,7 +801,7 @@ export class CreditService {
   async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
     return await prisma.$transaction(async (tx) => {
       // Get team's credit balance
-      const teamCreditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+      const teamCreditBalance = await this.creditsRepository.findCreditBalance({ teamId }, tx);
 
       if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
         log.info("No credits to transfer from team to org", { teamId, orgId });
@@ -803,10 +809,10 @@ export class CreditService {
       }
 
       // Get or create org's credit balance
-      let orgCreditBalance = await CreditsRepository.findCreditBalance({ teamId: orgId }, tx);
+      let orgCreditBalance = await this.creditsRepository.findCreditBalance({ teamId: orgId }, tx);
 
       if (!orgCreditBalance) {
-        orgCreditBalance = await CreditsRepository.createCreditBalance(
+        orgCreditBalance = await this.creditsRepository.createCreditBalance(
           {
             teamId: orgId,
           },
@@ -817,7 +823,7 @@ export class CreditService {
       const creditsToTransfer = teamCreditBalance.additionalCredits;
 
       // Transfer credits from team to org
-      await CreditsRepository.updateCreditBalance(
+      await this.creditsRepository.updateCreditBalance(
         {
           teamId,
           data: {
@@ -827,7 +833,7 @@ export class CreditService {
         tx
       );
 
-      await CreditsRepository.updateCreditBalance(
+      await this.creditsRepository.updateCreditBalance(
         {
           teamId: orgId,
           data: {

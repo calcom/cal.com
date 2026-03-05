@@ -1,14 +1,14 @@
 import dayjs from "@calcom/dayjs";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
+import type { PrismaTransaction } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreditType } from "@calcom/prisma/enums";
 
-export class CreditsRepository {
-  static async findCreditBalance(
-    { teamId, userId }: { teamId?: number; userId?: number },
-    tx?: PrismaTransaction
-  ) {
-    const prismaClient = tx ?? prisma;
+export class PrismaCreditsRepository {
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  async findCreditBalance({ teamId, userId }: { teamId?: number; userId?: number }, tx?: PrismaTransaction) {
+    const client = tx ?? this.prismaClient;
 
     const select = {
       id: true,
@@ -18,7 +18,7 @@ export class CreditsRepository {
     };
 
     if (teamId) {
-      return await prismaClient.creditBalance.findUnique({
+      return await client.creditBalance.findUnique({
         where: {
           teamId,
         },
@@ -27,16 +27,16 @@ export class CreditsRepository {
     }
 
     if (userId) {
-      return await prismaClient.creditBalance.findUnique({
+      return await client.creditBalance.findUnique({
         where: { userId },
         select,
       });
     }
   }
 
-  static async findCreditExpenseLogByExternalRef(externalRef: string, tx?: PrismaTransaction) {
-    const prismaClient = tx ?? prisma;
-    return await prismaClient.creditExpenseLog.findUnique({
+  async findCreditExpenseLogByExternalRef(externalRef: string, tx?: PrismaTransaction) {
+    const client = tx ?? this.prismaClient;
+    return await client.creditExpenseLog.findUnique({
       where: { externalRef },
       select: {
         id: true,
@@ -48,7 +48,7 @@ export class CreditsRepository {
     });
   }
 
-  static async findCreditBalanceWithTeamOrUser(
+  async findCreditBalanceWithTeamOrUser(
     {
       teamId,
       userId,
@@ -58,7 +58,7 @@ export class CreditsRepository {
     },
     tx?: PrismaTransaction
   ) {
-    const prismaClient = tx ?? prisma;
+    const client = tx ?? this.prismaClient;
 
     const select = {
       id: true,
@@ -93,7 +93,7 @@ export class CreditsRepository {
       },
     };
     if (teamId) {
-      return await prismaClient.creditBalance.findUnique({
+      return await client.creditBalance.findUnique({
         where: {
           teamId,
         },
@@ -102,14 +102,14 @@ export class CreditsRepository {
     }
 
     if (userId) {
-      return await prismaClient.creditBalance.findUnique({
+      return await client.creditBalance.findUnique({
         where: { userId },
         select,
       });
     }
   }
 
-  static async findCreditBalanceWithExpenseLogs(
+  async findCreditBalanceWithExpenseLogs(
     {
       teamId,
       userId,
@@ -121,9 +121,9 @@ export class CreditsRepository {
   ) {
     if (!teamId && !userId) return null;
 
-    const prismaClient = tx ?? prisma;
+    const client = tx ?? this.prismaClient;
 
-    return await prismaClient.creditBalance.findUnique({
+    return await client.creditBalance.findUnique({
       where: {
         teamId,
         ...(!teamId ? { userId } : {}),
@@ -158,7 +158,7 @@ export class CreditsRepository {
     });
   }
 
-  static async updateCreditBalance(
+  async updateCreditBalance(
     {
       id,
       teamId,
@@ -172,23 +172,23 @@ export class CreditsRepository {
     },
     tx?: PrismaTransaction
   ) {
-    const prismaClient = tx ?? prisma;
+    const client = tx ?? this.prismaClient;
     if (id) {
-      return prismaClient.creditBalance.update({
+      return client.creditBalance.update({
         where: { id },
         data,
       });
     }
 
     if (teamId) {
-      return prismaClient.creditBalance.update({
+      return client.creditBalance.update({
         where: { teamId },
         data,
       });
     }
 
     if (userId) {
-      return prismaClient.creditBalance.update({
+      return client.creditBalance.update({
         where: { userId },
         data,
       });
@@ -197,11 +197,11 @@ export class CreditsRepository {
     return null;
   }
 
-  static async upsertTeamBalance(
+  async upsertTeamBalance(
     { teamId, additionalCredits }: { teamId: number; additionalCredits: number },
     tx?: PrismaTransaction
   ) {
-    return (tx ?? prisma).creditBalance.upsert({
+    return (tx ?? this.prismaClient).creditBalance.upsert({
       where: { teamId },
       create: { teamId, additionalCredits },
       update: {
@@ -212,11 +212,11 @@ export class CreditsRepository {
     });
   }
 
-  static async upsertUserBalance(
+  async upsertUserBalance(
     { userId, additionalCredits }: { userId: number; additionalCredits: number },
     tx?: PrismaTransaction
   ) {
-    return (tx ?? prisma).creditBalance.upsert({
+    return (tx ?? this.prismaClient).creditBalance.upsert({
       where: { userId },
       create: { userId, additionalCredits },
       update: {
@@ -227,14 +227,14 @@ export class CreditsRepository {
     });
   }
 
-  static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
+  async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
     const { teamId, userId } = data;
 
     if (!teamId && !userId) {
       throw new Error("Team or user ID is required");
     }
 
-    return (tx ?? prisma).creditBalance.create({
+    return (tx ?? this.prismaClient).creditBalance.create({
       data: {
         ...data,
         ...(!teamId ? { userId } : {}),
@@ -242,13 +242,10 @@ export class CreditsRepository {
     });
   }
 
-  static async createCreditExpenseLog(
-    data: Prisma.CreditExpenseLogUncheckedCreateInput,
-    tx?: PrismaTransaction
-  ) {
-    const prismaClient = tx ?? prisma;
+  async createCreditExpenseLog(data: Prisma.CreditExpenseLogUncheckedCreateInput, tx?: PrismaTransaction) {
+    const client = tx ?? this.prismaClient;
     try {
-      return await prismaClient.creditExpenseLog.create({
+      return await client.creditExpenseLog.create({
         data,
       });
     } catch (error) {
@@ -259,10 +256,10 @@ export class CreditsRepository {
     }
   }
 
-  static async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
+  async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
     const { credits, creditBalanceId } = data;
 
-    return prisma.creditPurchaseLog.create({
+    return this.prismaClient.creditPurchaseLog.create({
       data: {
         credits,
         creditBalanceId,

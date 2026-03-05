@@ -1,14 +1,14 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-
 import { CreditType } from "@calcom/prisma/enums";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PrismaCreditsRepository } from "./PrismaCreditsRepository";
 
-import { CreditsRepository } from "./CreditsRepository";
+describe("PrismaCreditsRepository", () => {
+  let creditsRepository: PrismaCreditsRepository;
 
-describe("CreditsRepository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    creditsRepository = new PrismaCreditsRepository(prismaMock);
   });
 
   afterEach(() => {
@@ -17,7 +17,7 @@ describe("CreditsRepository", () => {
 
   describe("findCreditBalance", () => {
     it("should use teamId if both userId and teamId are provided", async () => {
-      await CreditsRepository.findCreditBalance({ teamId: 1, userId: 5 });
+      await creditsRepository.findCreditBalance({ teamId: 1, userId: 5 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { teamId: 1 },
@@ -31,7 +31,7 @@ describe("CreditsRepository", () => {
     });
 
     it("should use userId if teamId is undefined", async () => {
-      await CreditsRepository.findCreditBalance({ userId: 1 });
+      await creditsRepository.findCreditBalance({ userId: 1 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { userId: 1 },
@@ -47,7 +47,7 @@ describe("CreditsRepository", () => {
 
   describe("findCreditBalanceWithTeamOrUser", () => {
     it("should use teamId if both userId and teamId are provided", async () => {
-      await CreditsRepository.findCreditBalanceWithTeamOrUser({ teamId: 1, userId: 5 });
+      await creditsRepository.findCreditBalanceWithTeamOrUser({ teamId: 1, userId: 5 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { teamId: 1 },
@@ -60,7 +60,7 @@ describe("CreditsRepository", () => {
     });
 
     it("should use userId if teamId is undefined", async () => {
-      await CreditsRepository.findCreditBalanceWithTeamOrUser({ userId: 1 });
+      await creditsRepository.findCreditBalanceWithTeamOrUser({ userId: 1 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { userId: 1 },
@@ -75,7 +75,7 @@ describe("CreditsRepository", () => {
 
   describe("findCreditBalanceWithExpenseLogs", () => {
     it("should use teamId if both userId and teamId are provided", async () => {
-      await CreditsRepository.findCreditBalanceWithExpenseLogs({ teamId: 1, userId: 5 });
+      await creditsRepository.findCreditBalanceWithExpenseLogs({ teamId: 1, userId: 5 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { teamId: 1 },
@@ -87,7 +87,7 @@ describe("CreditsRepository", () => {
     });
 
     it("should use userId if teamId is undefined", async () => {
-      await CreditsRepository.findCreditBalanceWithExpenseLogs({ userId: 1 });
+      await creditsRepository.findCreditBalanceWithExpenseLogs({ userId: 1 });
 
       expect(prismaMock.creditBalance.findUnique).toHaveBeenCalledWith({
         where: { teamId: undefined, userId: 1 },
@@ -103,7 +103,7 @@ describe("CreditsRepository", () => {
       const endDate = new Date("2025-05-31");
       const creditType = CreditType.MONTHLY;
 
-      await CreditsRepository.findCreditBalanceWithExpenseLogs({
+      await creditsRepository.findCreditBalanceWithExpenseLogs({
         userId: 1,
         startDate,
         endDate,
@@ -146,7 +146,7 @@ describe("CreditsRepository", () => {
       const systemTime = new Date("2025-04-20T10:00:00Z");
       vi.setSystemTime(systemTime);
 
-      await CreditsRepository.findCreditBalanceWithExpenseLogs({
+      await creditsRepository.findCreditBalanceWithExpenseLogs({
         teamId: 1,
       });
 

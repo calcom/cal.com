@@ -76,6 +76,8 @@ export const DI_TOKENS = {
   MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
   ASSIGNMENT_REASON_REPOSITORY: Symbol("AssignmentReasonRepository"),
   ASSIGNMENT_REASON_REPOSITORY_MODULE: Symbol("AssignmentReasonRepositoryModule"),
+  CREDITS_REPOSITORY: Symbol("PrismaCreditsRepository"),
+  CREDITS_REPOSITORY_MODULE: Symbol("PrismaCreditsRepositoryModule"),
   CREDENTIAL_REPOSITORY: Symbol("CredentialRepository"),
   CREDENTIAL_REPOSITORY_MODULE: Symbol("CredentialRepositoryModule"),
   DESTINATION_CALENDAR_REPOSITORY: Symbol("DestinationCalendarRepository"),

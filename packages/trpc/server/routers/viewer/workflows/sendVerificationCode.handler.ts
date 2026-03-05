@@ -1,11 +1,9 @@
-import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
+import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 
@@ -32,7 +30,8 @@ export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificati
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
-  const creditBalance = await CreditsRepository.findCreditBalance({ userId: user.id });
+  const creditsRepository = getCreditsRepository();
+  const creditBalance = await creditsRepository.findCreditBalance({ userId: user.id });
   const hasNoAdditionalCredits = !!creditBalance && creditBalance.additionalCredits <= 0;
 
   let isTeamsPlan = false;

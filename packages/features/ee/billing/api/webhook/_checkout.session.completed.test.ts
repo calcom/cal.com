@@ -20,12 +20,12 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   },
 }));
 
-vi.mock("@calcom/features/credits/repositories/CreditsRepository", () => ({
-  CreditsRepository: {
+vi.mock("@calcom/features/di/containers/CreditsRepository", () => ({
+  getCreditsRepository: () => ({
     upsertUserBalance,
     upsertTeamBalance,
     createCreditPurchaseLog,
-  },
+  }),
 }));
 
 vi.mock("@calcom/features/calAIPhone", () => ({

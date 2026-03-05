@@ -1,12 +1,11 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
-import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
+import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
 import { CHECKOUT_SESSION_TYPES } from "../../constants";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
@@ -98,11 +97,13 @@ async function saveToCreditBalance({
     throw new HttpCode(400, "Team id and user id are missing, but at least one is required");
   }
 
-  const creditBalance = teamId
-    ? await CreditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits })
-    : await CreditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits });
+  const creditsRepository = getCreditsRepository();
 
-  await CreditsRepository.createCreditPurchaseLog({
+  const creditBalance = teamId
+    ? await creditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits })
+    : await creditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits });
+
+  await creditsRepository.createCreditPurchaseLog({
     credits: nrOfCredits,
     creditBalanceId: creditBalance.id,
   });
