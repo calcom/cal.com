@@ -14,6 +14,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse) =>
         device_details: req.cookies.device_details,
         dub_id: req.cookies.dub_id || req.cookies.dclid,
         last_active_throttle: req.cookies.last_active_throttle,
+        pipedrive_oauth_code: req.cookies.pipedrive_oauth_code,
       },
       res,
       req,
