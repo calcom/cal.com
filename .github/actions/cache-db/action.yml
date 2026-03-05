@@ -27,10 +27,6 @@ runs:
       with:
         path: ${{ inputs.path }}
         key: ${{ steps.cache-key.outputs.key }}
-    - name: Apply migrations before seeding
-      if: steps.cache-db.outputs.cache-hit != 'true'
-      run: yarn prisma migrate deploy
-      shell: bash
     - run: yarn db-seed
       if: steps.cache-db.outputs.cache-hit != 'true'
       shell: bash
