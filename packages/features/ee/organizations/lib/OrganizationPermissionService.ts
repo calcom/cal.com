@@ -58,19 +58,13 @@ export class OrganizationPermissionService {
   }
 
   hasModifiedDefaultPayment(data: SeatsPrice & { billingPeriod?: string }): boolean {
-    const isBillingPeriodModified =
-      data.billingPeriod !== undefined && data.billingPeriod !== null && data.billingPeriod !== "MONTHLY";
-
     const isPricePerSeatModified =
       data.pricePerSeat !== undefined &&
       data.pricePerSeat !== null &&
       data.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE;
 
-    log.debug(
-      "hasModifiedDefaultPayment",
-      safeStringify({ isBillingPeriodModified, isPricePerSeatModified })
-    );
-    return isBillingPeriodModified || isPricePerSeatModified;
+    log.debug("hasModifiedDefaultPayment", safeStringify({ isPricePerSeatModified }));
+    return isPricePerSeatModified;
   }
 
   async hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean> {

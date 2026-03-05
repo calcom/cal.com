@@ -1516,7 +1516,11 @@ export class BookingRepository implements IBookingRepository {
     `;
     }
 
-    return totalBookingTime.totalMinutes ?? 0;
+    // PostgreSQL 16+ returns `numeric` type from EXTRACT(EPOCH FROM ...) instead of `double precision`.
+    // Prisma maps `numeric` to a JavaScript Decimal object, which causes string concatenation
+    // instead of numeric addition when used with the `+` operator (e.g., Decimal(30) + 30 = "3030").
+    // Explicitly convert to a plain number to ensure correct arithmetic in all callers.
+    return Number(totalBookingTime.totalMinutes ?? 0);
   }
 
   async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
