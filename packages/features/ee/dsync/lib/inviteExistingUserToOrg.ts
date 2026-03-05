@@ -13,7 +13,7 @@ const inviteExistingUserToOrg = async ({
   translation,
 }: {
   user: UserWithMembership;
-  org: { id: number; name: string; parent: { name: string } | null };
+  org: { id: number; name: string; slug: string | null; parent: { name: string } | null };
   translation: TFunction;
 }) => {
   await createAProfileForAnExistingUser({
@@ -47,6 +47,7 @@ const inviteExistingUserToOrg = async ({
     teamId: org.id,
     isAutoJoin: true,
     currentUserParentTeamName: org?.parent?.name,
+    orgSlug: org.slug,
   });
 };
 

@@ -304,6 +304,8 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
 
   if (isTeamAnOrg) {
     await throwIfInviterCantAddOwnerToOrg();
+    // When inviting to an org, prefer the org's own slug over the inviter's profile org slug
+    orgSlug = team.slug || requestedSlugForTeam || orgSlug;
   }
 
   if (isPlatform) {
