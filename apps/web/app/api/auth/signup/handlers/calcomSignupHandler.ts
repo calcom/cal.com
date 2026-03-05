@@ -11,9 +11,9 @@ import {
   throwIfTokenExpired,
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -24,8 +24,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
-import type { CustomNextApiHandler } from "@calcom/lib/server/username";
-import { usernameHandler } from "@calcom/lib/server/username";
+import slugify from "@calcom/lib/slugify";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import {
@@ -42,7 +41,10 @@ import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
-const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
+const handler = async (
+  body: Record<string, string>,
+  query?: Record<string, string>
+): Promise<NextResponse> => {
   const {
     email: _email,
     password,
@@ -55,6 +57,37 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     })
     .parse(body);
 
+  const email = _email.toLowerCase();
+
+  // Username validation (replaces usernameHandler wrapper)
+  let username: string | null = slugify(body.username);
+
+  const registeredUser = await prisma.user.findUnique({
+    where: { email },
+    select: { password: { select: { hash: true } } },
+  });
+  if (registeredUser?.password) {
+    return NextResponse.json({ message: "user_already_exists" }, { status: 409 });
+  }
+
+  const usernameCheck = await getUsernameValidationService().validateAvailability({
+    username,
+    organizationId: null,
+    currentUserEmail: email,
+  });
+
+  if (!usernameCheck.available) {
+    return NextResponse.json(
+      {
+        available: false,
+        premium: false,
+        message: "A user exists with that username or email",
+        suggestion: usernameCheck.suggestion,
+      },
+      { status: 418 }
+    );
+  }
+
   const billingService = getBillingProviderService();
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
@@ -65,23 +98,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
 
   log.debug("handler", { email: _email });
 
-  let username: string | null = usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 
-  // Check for premium username
-  if (usernameStatus.statusCode === 418) {
-    return NextResponse.json(usernameStatus.json, { status: 418 });
-  }
-
-  // Validate the user
   if (!username) {
     throw new HttpError({
       statusCode: 422,
       message: "Invalid username",
     });
   }
-
-  const email = _email.toLowerCase();
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   if (token) {
@@ -103,24 +127,6 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
         return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
       }
     }
-  } else {
-    const usernameAndEmailValidation = await validateAndGetCorrectedUsernameAndEmail({
-      username,
-      email,
-      isSignup: true,
-    });
-    if (!usernameAndEmailValidation.isValid) {
-      return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
-    }
-
-    if (!usernameAndEmailValidation.username) {
-      throw new HttpError({
-        statusCode: 422,
-        message: "Invalid username",
-      });
-    }
-
-    username = usernameAndEmailValidation.username;
   }
 
   // Create the customer in Stripe with ad tracking metadata
@@ -147,7 +153,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   const returnUrl = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=/auth/verify?sessionId={CHECKOUT_SESSION_ID}`;
 
   // Pro username, must be purchased
-  if (usernameStatus.statusCode === 402) {
+  if (usernameCheck.premium) {
     const checkoutSession = await billingService.createSubscriptionCheckout({
       mode: "subscription",
       customerId: customer.stripeCustomerId,
@@ -352,4 +358,4 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
   );
 };
 
-export default usernameHandler(handler);
+export default handler;

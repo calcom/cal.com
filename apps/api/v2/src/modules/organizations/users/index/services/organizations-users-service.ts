@@ -1,13 +1,16 @@
+import {
+  CreationSource,
+  createNewUsersConnectToOrgIfExists,
+  getUsernameValidationService,
+} from "@calcom/platform-libraries";
+import type { Team } from "@calcom/prisma/client";
+import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
 import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { Injectable, ConflictException, ForbiddenException } from "@nestjs/common";
-import { plainToInstance } from "class-transformer";
-
-import { createNewUsersConnectToOrgIfExists, CreationSource } from "@calcom/platform-libraries";
-import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
@@ -133,12 +136,18 @@ export class OrganizationsUsersService {
   }
 
   async checkForUsernameConflicts(orgId: number, username: string) {
-    const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
-      orgId,
-      username
-    );
+    const result = await getUsernameValidationService().validateAvailability({
+      username,
+      organizationId: orgId,
+    });
 
-    if (isUsernameTaken) throw new ConflictException("Username is already taken");
+    if (!result.available) {
+      throw new ConflictException(
+        result.suggestion
+          ? `Username is already taken. Suggestion: ${result.suggestion}`
+          : "Username is already taken"
+      );
+    }
   }
 
   async getUsersByIds(orgId: number, userIds: number[]) {

@@ -1,4 +1,3 @@
-import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
@@ -10,11 +9,10 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -96,7 +94,8 @@ export default async function handler(body: Record<string, string>) {
       const isCheckingUsernameInGlobalNamespace = !team.isOrganization && !isInviteForATeamInOrganization;
 
       if (isCheckingUsernameInGlobalNamespace) {
-        const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+        const isUsernameAvailable =
+          !(await getUsernameValidationService().isReservedDueToMigration(correctedUsername));
         if (!isUsernameAvailable) {
           return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
         }
@@ -173,18 +172,17 @@ export default async function handler(body: Record<string, string>) {
       },
     });
   } else {
-    const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+    const usernameValidationService = getUsernameValidationService();
+    const isUsernameAvailable =
+      !(await usernameValidationService.isReservedDueToMigration(correctedUsername));
     if (!isUsernameAvailable) {
       return NextResponse.json({ message: "A user exists with that username" }, { status: 409 });
     }
-    if (IS_PREMIUM_USERNAME_ENABLED) {
-      const checkUsername = await checkPremiumUsername(correctedUsername);
-      if (checkUsername.premium) {
-        return NextResponse.json(
-          { message: "Sign up from https://cal.com/signup to claim your premium username" },
-          { status: 422 }
-        );
-      }
+    if (await usernameValidationService.isPremium(correctedUsername)) {
+      return NextResponse.json(
+        { message: "Sign up from https://cal.com/signup to claim your premium username" },
+        { status: 422 }
+      );
     }
 
     try {

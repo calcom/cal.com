@@ -13,16 +13,7 @@ import { vi } from "vitest";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
-
-type UsernameStatus = {
-  statusCode: 200 | 402 | 418;
-  requestedUserName: string;
-  json: { available: boolean; premium: boolean };
-};
-
-type InnerHandler = (body: Record<string, string>, status: UsernameStatus) => Promise<MockResponse>;
-
-var mockCapturedHandler: InnerHandler | null;
+const mockValidateAvailability: Mock = vi.fn();
 
 vi.mock("next/server", async () => {
   const { createNextServerMock } = await import(
@@ -63,8 +54,10 @@ vi.mock("@calcom/features/auth/signup/utils/createOrUpdateMemberships", () => ({
   createOrUpdateMemberships: vi.fn(),
 }));
 vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
-vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
-  validateAndGetCorrectedUsernameAndEmail: vi.fn().mockResolvedValue({ isValid: true, username: "testuser" }),
+vi.mock("@calcom/features/users/di/UsernameValidationService.container", () => ({
+  getUsernameValidationService: vi.fn().mockReturnValue({
+    validateAvailability: (...args: unknown[]) => mockValidateAvailability(...args),
+  }),
 }));
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: vi.fn().mockReturnValue({
@@ -100,32 +93,19 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
     mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
-// Capture inner handler from usernameHandler wrapper
-vi.mock("@calcom/lib/server/username", () => ({
-  usernameHandler: (handler: InnerHandler) => {
-    mockCapturedHandler = handler;
-    return handler;
-  },
-}));
-
-// Import after mocks
-import "./calcomSignupHandler";
 import { runEmailAlreadyExistsTestSuite } from "@calcom/features/auth/signup/handlers/__tests__/email-already-exists.test-suite";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+// Import after mocks
+import calcomSignupHandler from "./calcomSignupHandler";
 
 function callHandler(body: SignupBody): Promise<MockResponse> {
-  if (!mockCapturedHandler) throw new Error("Handler not captured");
-  return mockCapturedHandler(body as unknown as Record<string, string>, {
-    statusCode: 200,
-    requestedUserName: body.username || "testuser",
-    json: { available: true, premium: false },
-  });
+  return calcomSignupHandler(body as unknown as Record<string, string>) as unknown as Promise<MockResponse>;
 }
 
 const setupMocks = () => {
   vi.clearAllMocks();
   resetPrismaMock();
+  mockValidateAvailability.mockResolvedValue({ available: true, premium: false });
   mockFindTokenByToken.mockResolvedValue(createMockFoundToken());
   mockValidateAndGetCorrectedUsernameForTeam.mockResolvedValue("testuser");
   prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
@@ -134,6 +114,7 @@ const setupMocks = () => {
 
 runP2002TestSuite("calcomHandler", callHandler, setupMocks);
 
-runEmailAlreadyExistsTestSuite("calcomHandler", callHandler, setupMocks, (result) => {
-  vi.mocked(validateAndGetCorrectedUsernameAndEmail).mockResolvedValue(result);
+runEmailAlreadyExistsTestSuite("calcomHandler", callHandler, setupMocks, () => {
+  // Mock a fully registered user (has password) to trigger emailRegistered check
+  prismaMock.user.findUnique.mockResolvedValue({ password: { hash: "hashed" } } as never);
 });

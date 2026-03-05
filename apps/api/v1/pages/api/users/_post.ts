@@ -1,10 +1,8 @@
-import type { NextApiRequest } from "next";
-
-import { UserCreationService } from "@calcom/features/users/services/userCreationService";
+import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 
 /**
@@ -93,7 +91,8 @@ async function postHandler(req: NextApiRequest) {
   // If user is not ADMIN, return unauthorized.
   if (!isSystemWideAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
-  const user = await UserCreationService.createUser({
+  const userCreationService = getUserCreationService();
+  const user = await userCreationService.createUser({
     data: { ...data, creationSource: CreationSource.API_V1 },
   });
   req.statusCode = 201;

@@ -2,6 +2,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 
+/** @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
   const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
   const username = slugify(_username);

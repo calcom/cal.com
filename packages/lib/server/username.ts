@@ -35,6 +35,7 @@ export type CustomNextApiHandler = (
   query?: Record<string, string>
 ) => Promise<NextResponse<any>>;
 
+/** @deprecated Use `UsernameValidationService.isPremium()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export async function isBlacklisted(username: string) {
   // NodeJS forEach is very, very fast (these days) so even though we only have to construct the Set
   // once every few iterations, it doesn't add much overhead.
@@ -46,6 +47,7 @@ export async function isBlacklisted(username: string) {
   return cachedData.has(username);
 }
 
+/** @deprecated Use `UsernameValidationService.isPremium()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export const isPremiumUserName = IS_PREMIUM_USERNAME_ENABLED
   ? async (username: string) => {
       return username.length <= 4 || isBlacklisted(username);
@@ -53,6 +55,7 @@ export const isPremiumUserName = IS_PREMIUM_USERNAME_ENABLED
   : // outside of cal.com the concept of premium username needs not exist.
     () => Promise.resolve(false);
 
+/** @deprecated Use `UsernameValidationService.generateSuggestion()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export const generateUsernameSuggestion = async (users: string[], username: string) => {
   const limit = username.length < 2 ? 9999 : 999;
   let rand = 1;
@@ -84,6 +87,7 @@ const processResult = (
   }
 };
 
+/** @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container` */
 const usernameHandler =
   (handler: CustomNextApiHandler) => async (body: Record<string, string>, query: Record<string, string>) => {
     const username = slugify(body.username);
@@ -113,6 +117,7 @@ const usernameHandler =
     return handler(body, usernameStatus, query);
   };
 
+/** @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container` */
 const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | null) => {
   log.debug("usernameCheck", { usernameRaw, currentOrgDomain });
   const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
@@ -196,6 +201,7 @@ const usernameCheck = async (usernameRaw: string, currentOrgDomain?: string | nu
 
 /**
  * Should be used when in global namespace(i.e. outside of an organization)
+ * @deprecated Use `UsernameValidationService.isReservedDueToMigration()` from `@calcom/features/users/di/UsernameValidationService.container`
  */
 export const isUsernameReservedDueToMigration = async (username: string) =>
   !!(await prisma.tempOrgRedirect.findUnique({
@@ -211,7 +217,7 @@ export const isUsernameReservedDueToMigration = async (username: string) =>
 /**
  * It is a bit different from usernameCheck because it also check if the user signing up is the same user that has a pending invitation to organization
  * So, it uses email to uniquely identify the user and then also checks if the username requested by that user is available for taking or not.
- * TODO: We should reuse `usernameCheck` and then do the additional thing in here.
+ * @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container`
  */
 const usernameCheckForSignup = async ({
   username: usernameRaw,

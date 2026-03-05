@@ -1,6 +1,7 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import prisma from "@calcom/prisma";
 
+/** @deprecated Use `UsernameValidationService.deriveFromEmail()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export const getUsernameForOrgMember = async ({
   email,
   orgAutoAcceptEmail,
@@ -23,6 +24,7 @@ export const getUsernameForOrgMember = async ({
   return username;
 };
 
+/** @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export const validateAndGetCorrectedUsernameAndEmail = async ({
   username,
   email,
@@ -78,6 +80,7 @@ export const validateAndGetCorrectedUsernameAndEmail = async ({
   return { isValid: !existingUser, username: validatedUsername, email: existingUser?.email };
 };
 
+/** @deprecated Use `UsernameValidationService.validateAvailability()` from `@calcom/features/users/di/UsernameValidationService.container` */
 export const validateAndGetCorrectedUsernameInTeam = async (
   username: string,
   email: string,

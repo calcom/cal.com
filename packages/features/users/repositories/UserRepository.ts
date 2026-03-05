@@ -12,7 +12,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -1481,5 +1481,45 @@ export class UserRepository {
     });
 
     return { email: user.email, username: user.username };
+  }
+
+  async findByUsernameAndOrg(
+    username: string,
+    organizationId: number | null,
+    excludeEmail?: string
+  ): Promise<{ id: number } | null> {
+    return this.prismaClient.user.findFirst({
+      where: {
+        username,
+        organizationId: organizationId ?? null,
+        ...(excludeEmail ? { NOT: { email: excludeEmail } } : {}),
+      },
+      select: { id: true },
+    });
+  }
+
+  async findSimilarUsernames(username: string, organizationId: number | null): Promise<string[]> {
+    const users = await this.prismaClient.user.findMany({
+      where: {
+        username: { contains: username },
+        organizationId: organizationId ?? null,
+      },
+      select: { username: true },
+    });
+
+    return users.map((u: { username: string | null }) => u.username).filter(Boolean) as string[];
+  }
+
+  async isMigrationRedirectReserved(username: string): Promise<boolean> {
+    const redirect = await this.prismaClient.tempOrgRedirect.findUnique({
+      where: {
+        from_type_fromOrgId: {
+          type: RedirectType.User,
+          from: username,
+          fromOrgId: 0,
+        },
+      },
+    });
+    return !!redirect;
   }
 }

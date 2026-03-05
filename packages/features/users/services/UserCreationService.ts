@@ -1,13 +1,12 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
-import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import type { CreationSource, IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 
-interface CreateUserInput {
+export interface CreateUserInput {
   email: string;
   username: string;
   name?: string | null;
@@ -28,10 +27,16 @@ interface CreateUserInput {
   identityProvider?: IdentityProvider;
 }
 
-const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
+export interface IUserCreationServiceDeps {
+  userRepository: UserRepository;
+}
+
+const log = logger.getSubLogger({ prefix: ["[UserCreationService]"] });
 
 export class UserCreationService {
-  static async createUser({ data }: { data: CreateUserInput }) {
+  constructor(private deps: IUserCreationServiceDeps) {}
+
+  async createUser({ data }: { data: CreateUserInput }) {
     const { email, password, username } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
@@ -42,8 +47,7 @@ export class UserCreationService {
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const userRepo = new UserRepository(prisma);
-    const user = await userRepo.create({
+    const user = await this.deps.userRepository.create({
       ...data,
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),

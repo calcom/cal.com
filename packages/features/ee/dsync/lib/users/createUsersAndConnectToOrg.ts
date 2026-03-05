@@ -1,14 +1,11 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
-
-import {
-  deriveNameFromOrgUsername,
-  getOrgUsernameFromEmail,
-} from "../../../../auth/signup/utils/getOrgUsernameFromEmail";
+import { deriveNameFromOrgUsername } from "../../../../auth/signup/utils/getOrgUsernameFromEmail";
+import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import dSyncUserSelect from "./dSyncUserSelect";
 
 type createUsersAndConnectToOrgPropsType = {
@@ -34,7 +31,10 @@ export const createUsersAndConnectToOrg = async ({
   // As of Mar 2024 Prisma createMany does not support nested creates and returning created records
   await prisma.user.createMany({
     data: emailsToCreate.map((email) => {
-      const username = getOrgUsernameFromEmail(email, org.organizationSettings?.orgAutoAcceptEmail ?? null);
+      const username = getUsernameValidationService().deriveFromEmail(
+        email,
+        org.organizationSettings?.orgAutoAcceptEmail ?? ""
+      );
       const name = deriveNameFromOrgUsername({ username });
       return {
         username,

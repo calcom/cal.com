@@ -1,4 +1,3 @@
-import { getTranslation } from "@calcom/i18n/server";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -13,6 +12,7 @@ import {
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
+import { getTranslation } from "@calcom/i18n/server";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -23,13 +23,13 @@ export { slugify } from "@calcom/lib/slugify";
 export { slugifyLenient } from "@calcom/lib/slugify-lenient";
 export { getBookingForReschedule };
 
+export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 export {
   DEFAULT_WEBHOOK_VERSION,
   WebhookVersion,
 } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
-export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export {
   AttributeType,
   CreationSource,
@@ -129,6 +129,7 @@ export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
+export { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 export { verifyCodeChallenge } from "@calcom/lib/pkce";
 export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";

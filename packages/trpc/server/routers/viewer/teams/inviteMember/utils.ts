@@ -12,12 +12,13 @@ import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -298,14 +299,12 @@ export async function createNewUsersConnectToOrgIfExists({
         const invitation = invitations[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
         const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
-        const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
-        const [domainName, TLD] = emailDomain.split(".");
-
         // An org member can't change username during signup, so we set the username
-        const orgMemberUsername =
-          emailDomain === autoAcceptEmailDomain
-            ? slugify(emailUser)
-            : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+        const orgMemberUsername = getUsernameValidationService().deriveFromEmail(
+          invitation.usernameOrEmail,
+          autoAcceptEmailDomain ?? "",
+          { isPlatformManaged }
+        );
 
         // As a regular team member is allowed to change username during signup, we don't set any username for him
         const regularTeamMemberUsername = null;

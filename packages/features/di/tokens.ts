@@ -101,4 +101,6 @@ export const DI_TOKENS = {
   ...ABUSE_SCORING_TASKER_DI_TOKENS,
   ...EVENT_TYPE_DI_TOKENS,
   ...CALENDAR_SUBSCRIPTION_DI_TOKENS,
+  USER_CREATION_SERVICE: Symbol("UserCreationService"),
+  USER_CREATION_SERVICE_MODULE: Symbol("UserCreationServiceModule"),
 };
