@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TRPCError } from "@trpc/server";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 // Mock the repositories and external dependencies
@@ -278,7 +278,7 @@ describe("EventTypeHostService", () => {
           userId: 99,
           limit: 10,
         })
-      ).rejects.toThrow(TRPCError);
+      ).rejects.toThrow(ErrorWithCode);
 
       await expect(
         service.searchTeamMembers({
@@ -286,7 +286,7 @@ describe("EventTypeHostService", () => {
           userId: 99,
           limit: 10,
         })
-      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+      ).rejects.toMatchObject({ code: "forbidden_error" });
     });
 
     it("should return mapped team members when user is authorized", async () => {

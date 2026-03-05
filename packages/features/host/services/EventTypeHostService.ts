@@ -5,7 +5,7 @@ import { HostRepository } from "@calcom/features/host/repositories/HostRepositor
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
-import { TRPCError } from "@trpc/server";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 // --- Response DTOs ---
 
@@ -230,7 +230,7 @@ export class EventTypeHostService {
   }): Promise<PaginatedTeamMembersResponse> {
     const isMember = await this.membershipRepository.hasMembership({ teamId, userId });
     if (!isMember) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+      throw ErrorWithCode.Factory.Forbidden("You are not a member of this team");
     }
 
     const { memberships, nextCursor, hasMore } = await this.membershipRepository.searchMembers({
