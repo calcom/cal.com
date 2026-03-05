@@ -22,6 +22,13 @@ import {
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
+  getAllDelegationCredentialsForUser,
+  getAllDelegationCredentialsForUserByAppType,
+  getAllDelegationCredentialsForUserByAppSlug,
+  enrichUserWithDelegationCredentials,
+  getFirstDelegationConferencingCredential,
+  getFirstDelegationConferencingCredentialAppLocation,
+  getAllDelegatedCalendarCredentialsForUser,
 } from "./delegationCredential";
 
 vi.mock("@calcom/prisma", () => ({
@@ -625,5 +632,245 @@ describe("enrichUserWithDelegationConferencingCredentialsWithoutOrgId", () => {
     });
 
     expect(result.credentials).toEqual([]);
+  });
+});
+
+describe("getAllDelegationCredentialsForUser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
+  });
+
+  it("should return credentials without delegatedTo (serviceAccountKey stripped)", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    expect(result).toHaveLength(2);
+    for (const cred of result) {
+      expect(cred).not.toHaveProperty("delegatedTo");
+    }
+  });
+
+  it("should return empty array when no delegation credential found", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(null);
+
+    const result = await getAllDelegationCredentialsForUser({ user: mockUser });
+    expect(result).toEqual([]);
+  });
+});
+
+describe("getAllDelegatedCalendarCredentialsForUser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
+  });
+
+  it("should return only calendar credentials", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegatedCalendarCredentialsForUser({ user: mockUser });
+    for (const cred of result) {
+      expect(cred.type).toMatch(/_calendar$/);
+    }
+  });
+
+  it("should return empty when no delegation credential", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(null);
+
+    const result = await getAllDelegatedCalendarCredentialsForUser({ user: mockUser });
+    expect(result).toEqual([]);
+  });
+});
+
+describe("getAllDelegationCredentialsForUserByAppType", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
+  });
+
+  it("should filter delegation credentials by app type", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegationCredentialsForUserByAppType({
+      user: mockUser,
+      appType: googleCalendarMetadata.type,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe(googleCalendarMetadata.type);
+  });
+
+  it("should return empty array for non-matching app type", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegationCredentialsForUserByAppType({
+      user: mockUser,
+      appType: "nonexistent_type",
+    });
+    expect(result).toEqual([]);
+  });
+});
+
+describe("getAllDelegationCredentialsForUserByAppSlug", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
+  });
+
+  it("should filter delegation credentials by app slug", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegationCredentialsForUserByAppSlug({
+      user: mockUser,
+      appSlug: googleCalendarMetadata.slug,
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].appId).toBe(googleCalendarMetadata.slug);
+  });
+
+  it("should return empty for non-matching slug", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await getAllDelegationCredentialsForUserByAppSlug({
+      user: mockUser,
+      appSlug: "nonexistent-slug",
+    });
+    expect(result).toEqual([]);
+  });
+});
+
+describe("enrichUserWithDelegationCredentials", () => {
+  const mockUserWithCredentials = {
+    ...mockUser,
+    credentials: [buildRegularGoogleCalendarCredential()],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
+  });
+
+  it("should return only conferencing credentials with delegatedTo stripped", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(buildMockDelegationCredential());
+
+    const result = await enrichUserWithDelegationCredentials({
+      user: mockUserWithCredentials,
+    });
+
+    // Only conferencing (Google Meet) should be returned, stripped of delegatedTo
+    for (const cred of result.credentials) {
+      expect(cred).not.toHaveProperty("delegatedTo");
+      expect(cred.type).toMatch(/(_video|_conferencing|_messaging)$/);
+    }
+  });
+
+  it("should return empty credentials when no delegation credential exists", async () => {
+    vi.mocked(
+      DelegationCredentialRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey
+    ).mockResolvedValue(null);
+
+    const result = await enrichUserWithDelegationCredentials({
+      user: mockUserWithCredentials,
+    });
+    expect(result.credentials).toEqual([]);
+  });
+});
+
+describe("getFirstDelegationConferencingCredential", () => {
+  it("should return first conferencing credential from list", () => {
+    const calCred = buildGoogleCalendarDelegationCredential() as CredentialForCalendarService;
+    const meetCred = buildDelegationCredentialGoogleMeetCredential() as CredentialForCalendarService;
+    const result = getFirstDelegationConferencingCredential({
+      credentials: [calCred, meetCred],
+    });
+    expect(result).toBeDefined();
+    expect(result!.type).toBe(googleMeetMetadata.type);
+  });
+
+  it("should return undefined when no conferencing credentials exist", () => {
+    const calCred = buildGoogleCalendarDelegationCredential() as CredentialForCalendarService;
+    const result = getFirstDelegationConferencingCredential({
+      credentials: [calCred],
+    });
+    expect(result).toBeUndefined();
+  });
+
+  it("should return undefined for empty array", () => {
+    const result = getFirstDelegationConferencingCredential({ credentials: [] });
+    expect(result).toBeUndefined();
+  });
+});
+
+describe("getFirstDelegationConferencingCredentialAppLocation", () => {
+  it("should return Google Meet location type for Google Meet credential", () => {
+    const meetCred = buildDelegationCredentialGoogleMeetCredential() as CredentialForCalendarService;
+    const result = getFirstDelegationConferencingCredentialAppLocation({
+      credentials: [meetCred],
+    });
+    expect(result).toBe(googleMeetMetadata.appData?.location?.type);
+  });
+
+  it("should return null when no conferencing credentials", () => {
+    const calCred = buildGoogleCalendarDelegationCredential() as CredentialForCalendarService;
+    const result = getFirstDelegationConferencingCredentialAppLocation({
+      credentials: [calCred],
+    });
+    expect(result).toBeNull();
+  });
+
+  it("should return null for empty credentials array", () => {
+    const result = getFirstDelegationConferencingCredentialAppLocation({ credentials: [] });
+    expect(result).toBeNull();
+  });
+});
+
+describe("buildAllCredentials - additional edge cases", () => {
+  it("should handle empty arrays for both inputs", () => {
+    const result = buildAllCredentials({
+      delegationCredentials: [],
+      existingCredentials: [],
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("should handle multiple regular credentials without deduplication", () => {
+    const cred1 = buildRegularGoogleCalendarCredential({ id: 1 });
+    const cred2 = buildRegularGoogleCalendarCredential({ id: 2 });
+    const result = buildAllCredentials({
+      delegationCredentials: [],
+      existingCredentials: [cred1, cred2],
+    });
+    expect(result).toHaveLength(2);
+  });
+
+  it("should not include delegation credentials from existingCredentials (negative id)", () => {
+    const delegationCred = buildGoogleCalendarDelegationCredential();
+    const regularCred = buildRegularGoogleCalendarCredential({ id: 5 });
+    const existingDelegationCred = buildRegularGoogleCalendarCredential({ id: -3 });
+    const result = buildAllCredentials({
+      delegationCredentials: [delegationCred],
+      existingCredentials: [regularCred, existingDelegationCred],
+    });
+    // Should have delegation + regular (existing delegation filtered out as it has negative id)
+    expect(result).toHaveLength(2);
+    expect(result).toContainEqual(delegationCred);
+    expect(result).toContainEqual(regularCred);
   });
 });

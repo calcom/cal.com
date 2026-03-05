@@ -15,6 +15,13 @@ vi.mock("@calcom/features/tasker");
 vi.mock("@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials", () => ({
   getAllCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
 }));
+vi.mock("@calcom/features/bookings/lib/EventManager", () => {
+  const mockCreate = vi.fn().mockResolvedValue({ referencesToCreate: [] });
+  return {
+    default: vi.fn().mockImplementation(() => ({ create: mockCreate })),
+    placeholderCreatedEvent: { referencesToCreate: [] },
+  };
+});
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: class {
     constructor() {}
@@ -53,6 +60,7 @@ vi.mock("@calcom/features/platform-oauth-client/platform-oauth-client.repository
 vi.mock("@calcom/features/platform-oauth-client/get-platform-params");
 vi.mock("@calcom/features/bookings/lib/handleConfirmation");
 vi.mock("@calcom/features/bookings/lib/handleBookingRequested");
+vi.mock("@calcom/features/bookings/lib/doesBookingRequireConfirmation");
 vi.mock("@calcom/emails/email-manager");
 vi.mock("@calcom/lib/tracing/factory");
 vi.mock("@calcom/lib/logger", () => ({
@@ -82,6 +90,13 @@ import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import prisma from "@calcom/prisma";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -372,6 +387,222 @@ describe("handlePaymentSuccess", () => {
           eventTitle: mockBooking.eventType.title,
           externalId: "ext-123",
         }),
+      })
+    );
+  });
+
+  it("should not call handleConfirmation or handleBookingRequested for already confirmed booking", async () => {
+    const confirmedBooking = {
+      ...mockBooking,
+      status: BookingStatus.ACCEPTED,
+    };
+
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: confirmedBooking,
+      user: mockUser,
+      evt: mockEvt,
+      eventType: mockEventType,
+    });
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    // For already confirmed bookings, neither handleConfirmation nor handleBookingRequested should be called
+    expect(handleConfirmation).not.toHaveBeenCalled();
+    expect(handleBookingRequested).not.toHaveBeenCalled();
+  });
+
+  it("should call handleConfirmation for unconfirmed booking that does not require confirmation", async () => {
+    // booking.status is PENDING (not ACCEPTED), so isConfirmed = false
+    // doesBookingRequireConfirmation returns false => handleConfirmation is called
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: mockBooking, // status: PENDING
+      user: mockUser,
+      evt: mockEvt,
+      eventType: mockEventType,
+    });
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    expect(handleConfirmation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evt: mockEvt,
+        bookingId: mockBooking.id,
+        booking: mockBooking,
+        paid: true,
+        actionSource: "WEBHOOK",
+      })
+    );
+  });
+
+  it("should call handleBookingRequested when unconfirmed booking requires confirmation", async () => {
+    const requiresConfirmBooking = {
+      ...mockBooking,
+      status: BookingStatus.PENDING,
+      eventType: {
+        ...mockBooking.eventType,
+        requiresConfirmation: true,
+      },
+    };
+
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: requiresConfirmBooking,
+      user: mockUser,
+      evt: mockEvt,
+      eventType: mockEventType,
+    });
+
+    vi.mocked(doesBookingRequireConfirmation).mockReturnValue(true);
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    expect(handleBookingRequested).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evt: mockEvt,
+        booking: requiresConfirmBooking,
+      })
+    );
+    expect(handleConfirmation).not.toHaveBeenCalled();
+  });
+
+  it("should handle multiple webhook subscribers", async () => {
+    const secondSubscriber = {
+      ...mockWebhookSubscriber,
+      id: "webhook-2",
+      subscriberUrl: "https://example.com/webhook2",
+      secret: "webhook-secret-2",
+    };
+    vi.mocked(getWebhooks).mockResolvedValue([mockWebhookSubscriber, secondSubscriber]);
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    // Both subscribers should receive the payload
+    expect(sendPayload).toHaveBeenCalledTimes(2);
+  });
+
+  it("should handle no webhook subscribers", async () => {
+    vi.mocked(getWebhooks).mockResolvedValue([]);
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    // No sendPayload calls when there are no subscribers
+    expect(sendPayload).not.toHaveBeenCalled();
+  });
+
+  it("should use booking location for event when available", async () => {
+    const bookingWithLocation = {
+      ...mockBooking,
+      location: "https://meet.google.com/abc-def-ghi",
+    };
+
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: bookingWithLocation,
+      user: mockUser,
+      evt: { ...mockEvt },
+      eventType: mockEventType,
+    });
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    // The function sets evt.location = booking.location
+    // Verify the workflow calendar event is created properly
+    expect(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).toHaveBeenCalled();
+  });
+
+  it("should include videoCallUrl in workflow metadata when available", async () => {
+    vi.mocked(getVideoCallUrlFromCalEvent).mockReturnValue("https://meet.google.com/test-url");
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    expect(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        calendarEvent: expect.objectContaining({
+          metadata: { videoCallUrl: "https://meet.google.com/test-url" },
+        }),
+      })
+    );
+  });
+
+  it("should set userId to null for team events without parentId", async () => {
+    const teamBooking = {
+      ...mockBooking,
+      eventType: {
+        ...mockBooking.eventType,
+        teamId: 5,
+        parentId: null,
+      },
+    };
+
+    vi.mocked(getBooking).mockResolvedValue({
+      booking: teamBooking,
+      user: mockUser,
+      evt: mockEvt,
+      eventType: mockEventType,
+    });
+    vi.mocked(getTeamIdFromEventType).mockResolvedValue(5);
+
+    await expect(
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
+    ).rejects.toThrow();
+
+    // For team events without parentId, userId should be null
+    expect(getWebhooks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: null,
+        teamId: 5,
       })
     );
   });
