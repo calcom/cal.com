@@ -69,13 +69,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
-              <Link
-                prefetch={false}
-                href={{
-                  pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                  query: queryParamsToForward,
-                }}
-                onClick={async () => {
+            <Link
+              prefetch={false}
+              href={{
+                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
+                query: queryParamsToForward,
+              }}
+              onClick={async () => {
                 sdkActionManager?.fire("eventTypeSelected", {
                   eventType: type,
                 });

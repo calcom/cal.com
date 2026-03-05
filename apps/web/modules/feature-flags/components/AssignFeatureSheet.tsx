@@ -173,11 +173,7 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
                         )}
                       </div>
                     </div>
-                    <Checkbox
-                      checked={team.hasFeature}
-                      disabled={isLoading}
-                      onCheckedChange={() => {}}
-                    />
+                    <Checkbox checked={team.hasFeature} disabled={isLoading} onCheckedChange={() => {}} />
                   </button>
                 ))}
               </div>

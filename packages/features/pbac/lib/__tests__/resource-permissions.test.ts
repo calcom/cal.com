@@ -42,9 +42,13 @@ describe("getResourcePermissions", () => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+    vi.mocked(FeaturesRepository).mockImplementation(function () {
+      return mockFeaturesRepository as any;
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as any;
+    });
   });
 
   describe("when PBAC is disabled", () => {

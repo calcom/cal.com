@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
@@ -11,12 +11,13 @@ import slugify from "@calcom/lib/slugify";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingTeamsBrowserView } from "../../components/onboarding-teams-browser-view";
 import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -29,8 +30,8 @@ type FormValues = {
 
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { getQueryString } = useOnboardingQueryParams();
   const { teams: storedTeams, setTeams, organizationBrand, organizationDetails } = useOnboardingStore();
   const { isMigrationFlow } = useMigrationFlow();
 
@@ -59,8 +60,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   const getNextStep = () => {
-    const migrateParam = searchParams?.get("migrate");
-    const queryString = migrateParam ? `?migrate=${migrateParam}` : "";
+    const queryString = getQueryString();
 
     // If migration flow and teams were migrated, go to migrate-members
     if (isMigrationFlow && migratedTeams.length > 0) {
@@ -200,7 +200,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                           });
                           remove(index);
                         }}>
-                        <Icon name="x" className="h-4 w-4" />
+                        <XIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}

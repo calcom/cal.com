@@ -149,6 +149,13 @@ Here is what you need to be able to run Cal.com.
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+     
+ > **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
+ >
+ > ```sh
+ > # Git Bash / WSL
+ > rm packages/prisma/.env && cp .env packages/prisma/.env
+ > ```
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -671,7 +678,7 @@ Certain versions may have trouble creating a user if the field `metadata` is emp
 
 ##### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
@@ -767,11 +774,14 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 
 <img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
 
-<!-- CONTRIBUTING -->
-
 ## Contributing
+We ❤️ contributions! Whether it’s fixing a typo, improving documentation, or building new features, your help makes Cal.com better.
 
-Please see our [contributing guide](/CONTRIBUTING.md).
+- Check out our [Contributing Guide](./CONTRIBUTING.md) for detailed steps.
+- Join the discussion on [GitHub Discussions](https://github.com/calcom/cal.com/discussions) or our community channels.
+- Please follow our coding standards and commit message conventions to keep the project consistent.
+
+Even small improvements matter — thank you for helping us grow!
 
 ### Good First Issues
 
@@ -983,12 +993,6 @@ An example of good readme is [atoms readme](https://github.com/calcom/cal.com/bl
 
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
-
-<!-- LICENSE -->
-
-## License
-
-Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/main/LICENSE). See `LICENSE` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 

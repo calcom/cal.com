@@ -13,7 +13,7 @@ import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
 /* eslint-enable */
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -79,8 +79,8 @@ async function getAttributeRoutingConfig(
   const routingFormResponseQuery = routingFormResponseId
     ? await routingFormResponseRepository.findFormResponseIncludeForm({ routingFormResponseId })
     : queuedFormResponseId
-    ? await routingFormResponseRepository.findQueuedFormResponseIncludeForm({ queuedFormResponseId })
-    : null;
+      ? await routingFormResponseRepository.findQueuedFormResponseIncludeForm({ queuedFormResponseId })
+      : null;
 
   if (!routingFormResponseQuery || !routingFormResponseQuery?.form.routes) return null;
   const parsedRoutes = routesSchema.safeParse(routingFormResponseQuery?.form.routes);
@@ -232,8 +232,8 @@ async function getTeamMemberEmailForResponseOrContact({
     routingFormResponseId || queuedFormResponseId
       ? { routingFormResponseId, queuedFormResponseId, eventTypeId }
       : chosenRoute
-      ? { route: chosenRoute }
-      : null;
+        ? { route: chosenRoute }
+        : null;
 
   // If we have found crmAppSlug, it means that the CRM App in the routing-form will handle the logic
   if (attributeRoutingConfigGetterData && crmAppSlug) {
