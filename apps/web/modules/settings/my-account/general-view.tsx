@@ -86,7 +86,6 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsGeneral();
       revalidateTravelSchedules();
-      setIsUpdateBtnLoading(false);
     },
   });
 
@@ -175,12 +174,15 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           form={formMethods}
           handleSubmit={async (values) => {
             setIsUpdateBtnLoading(true);
-            mutation.mutate({
-              ...values,
-              locale: values.locale.value,
-              timeFormat: values.timeFormat.value,
-              weekStart: values.weekStart.value,
-            });
+            mutation.mutate(
+              {
+                ...values,
+                locale: values.locale.value,
+                timeFormat: values.timeFormat.value,
+                weekStart: values.weekStart.value,
+              },
+              { onSettled: () => setIsUpdateBtnLoading(false) }
+            );
           }}>
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
             <Controller
@@ -359,7 +361,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
-          disabled={pendingToggles.has("allowSEOIndexing") || user.organizationSettings?.allowSEOIndexing === false}
+          disabled={
+            pendingToggles.has("allowSEOIndexing") || user.organizationSettings?.allowSEOIndexing === false
+          }
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);
