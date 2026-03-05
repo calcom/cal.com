@@ -510,6 +510,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
+    if (hosts.length === 0) {
+      data.enablePerHostLocations = false;
+    }
+
     data.hosts = {
       deleteMany: {
         OR: removedHosts.map((host) => ({

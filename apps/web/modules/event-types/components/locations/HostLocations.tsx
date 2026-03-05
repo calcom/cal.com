@@ -849,7 +849,9 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
     setIsMassApplyDialogOpen(false)
   );
 
-  if (hosts.length === 0) return null;
+  const savedHosts = formMethods.formState.defaultValues?.hosts;
+  const hasSavedHosts = !!savedHosts?.length;
+  const shouldDisableCustomHostLocationsToggle = !isOrg || !hasSavedHosts;
 
   return (
     <div className="border-subtle rounded-lg border p-6">
@@ -859,10 +861,17 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
           description={t("enable_custom_host_locations_description")}
           checked={enablePerHostLocations}
           onCheckedChange={handleToggle}
-          disabled={!isOrg}
+          disabled={shouldDisableCustomHostLocationsToggle}
           Badge={!isOrg ? <UpgradeBadge /> : undefined}
         />
-        {enablePerHostLocations && (
+        {!hasSavedHosts && (
+          <Alert
+            severity="info"
+            title={t("custom_host_locations_no_saved_hosts_title")}
+            message={t("custom_host_locations_no_saved_hosts_description")}
+          />
+        )}
+        {hasSavedHosts && enablePerHostLocations && (
           <HostList
             hosts={hosts}
             hostDataMap={hostDataMap}

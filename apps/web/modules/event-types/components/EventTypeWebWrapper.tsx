@@ -165,6 +165,10 @@ const EventTypeWeb = ({
       }));
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
+      if (currentValues.hosts?.length === 0) {
+        currentValues.enablePerHostLocations = false;
+      }
+
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
       revalidateEventTypeEditPage(eventType.id);

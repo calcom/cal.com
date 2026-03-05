@@ -1,5 +1,6 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -26,14 +27,12 @@ import {
 } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -85,6 +84,8 @@ export const EventSetupTab = (
 
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
+  const shouldDisableSharedLocations =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN && enablePerHostLocations;
 
   const multipleDurationOptions = [
     5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 75, 80, 90, 120, 150, 180, 240, 300, 360, 420, 480,
@@ -366,18 +367,12 @@ export const EventSetupTab = (
         <Tooltip
           content={t("locations_disabled_per_host_enabled")}
           side="top"
-          open={
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN && enablePerHostLocations
-              ? undefined
-              : false
-          }>
+          open={shouldDisableSharedLocations ? undefined : false}>
           <div
             className={classNames(
               "rounded-lg border border-subtle p-6",
               customClassNames?.locationSection?.container,
-              eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-                enablePerHostLocations &&
-                "cursor-not-allowed opacity-60"
+              shouldDisableSharedLocations && "cursor-not-allowed opacity-60"
             )}>
             <div>
               <Skeleton
@@ -400,8 +395,7 @@ export const EventSetupTab = (
                     isChildrenManagedEventType={isChildrenManagedEventType}
                     isManagedEventType={isManagedEventType}
                     disableLocationProp={
-                      shouldLockDisableProps("locations").disabled ||
-                      (eventType.schedulingType === SchedulingType.ROUND_ROBIN && enablePerHostLocations)
+                      shouldLockDisableProps("locations").disabled || shouldDisableSharedLocations
                     }
                     getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
                     setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
