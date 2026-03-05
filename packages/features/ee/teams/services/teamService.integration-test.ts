@@ -1048,18 +1048,18 @@ describe("TeamService.removeMembers Integration Tests", () => {
         })
       ).rejects.toThrow();
 
-      // Verify nothing was changed - all data should still exist due to transaction rollback
+      // With two transactions: Tx 1 (sub-team cleanup) commits before Tx 2 runs.
+      // Tx 2 runs Profile delete, Membership delete, then User update last.
+      // When User update fails (username conflict), Tx 2 rolls back entirely.
+      // Verify Tx 2 rollback: org membership, profile, and user unchanged
       const userAfterFailure = await prisma.user.findUnique({
         where: { id: rollbackTestUser.id },
       });
       expect(userAfterFailure?.username).toBe("rollback-test-user"); // Username unchanged
       expect(userAfterFailure?.organizationId).toBe(orgTestData.team.id); // Still in org
 
-      // Verify memberships still exist
       await expectMembershipExists(rollbackTestUser.id, orgTestData.team.id);
-      await expectMembershipExists(rollbackTestUser.id, subTeamForRollback.id);
 
-      // Verify profile still exists
       const profile = await prisma.profile.findUnique({
         where: {
           userId_organizationId: {
@@ -1070,11 +1070,12 @@ describe("TeamService.removeMembers Integration Tests", () => {
       });
       expect(profile).not.toBeNull();
 
-      // Verify host still exists
+      // Tx 1 committed before Tx 2 ran: sub-team Host and Membership are deleted
+      await expectMembershipNotExists(rollbackTestUser.id, subTeamForRollback.id);
       const hosts = await prisma.host.findMany({
         where: { userId: rollbackTestUser.id, eventTypeId: eventType.id },
       });
-      expect(hosts).toHaveLength(1);
+      expect(hosts).toHaveLength(0);
 
       // Clean up
       await prisma.eventType.delete({ where: { id: eventType.id } });

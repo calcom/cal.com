@@ -517,60 +517,52 @@ export class TeamService {
     });
     const subTeamIdArray = subTeamIds.map((t) => t.id);
 
+    // Transaction 1: Sub-team cleanup (Host, EventType, sub-team Membership)
     await prisma.$transaction(async (tx) => {
       if (subTeamIdArray.length > 0) {
-        // Remove user from all sub-teams event type hosts
         await tx.host.deleteMany({
           where: {
             userId: membership.userId,
             eventType: {
-              teamId: {
-                in: subTeamIdArray,
-              },
+              teamId: { in: subTeamIdArray },
             },
           },
         });
-        // Delete managed child events in sub-teams
         await tx.eventType.deleteMany({
           where: {
             userId: membership.userId,
             parent: {
-              teamId: {
-                in: subTeamIdArray,
-              },
+              teamId: { in: subTeamIdArray },
             },
           },
         });
-        // Delete all sub-team memberships where this team is the organization
         await tx.membership.deleteMany({
           where: {
-            teamId: {
-              in: subTeamIdArray,
-            },
+            teamId: { in: subTeamIdArray },
             userId: membership.userId,
           },
         });
       }
+    });
 
-      // Remove organizationId from the user
-      await tx.user.update({
-        where: { id: membership.userId },
-        data: {
-          organizationId: null,
-          username: newUsername,
-        },
-      });
-      // Delete the profile of the user from the organization
+    // Transaction 2: Org-level cleanup (Profile, org Membership, User update)
+    await prisma.$transaction(async (tx) => {
       await tx.profile.deleteMany({
         where: {
           userId: membership.userId,
           organizationId: team.id,
         },
       });
-      // Delete the membership of the user from the organization
       await tx.membership.delete({
         where: {
           userId_teamId: { userId: membership.userId, teamId: team.id },
+        },
+      });
+      await tx.user.update({
+        where: { id: membership.userId },
+        data: {
+          organizationId: null,
+          username: newUsername,
         },
       });
     });
