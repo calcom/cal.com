@@ -43,6 +43,11 @@ function log(msg: string): void {
   console.log(msg);
 }
 
+/** Escape HTML special characters to prevent XSS in rendered HTML responses. */
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function createState(): string {
   return randomBytes(16).toString("hex");
 }
@@ -74,7 +79,7 @@ async function cmdAuth(port: number, clientId: string): Promise<void> {
         if (error) {
           res.writeHead(200, { "Content-Type": "text/html" });
           res.end(
-            `<html><body><p>Authorization failed: ${error}</p><p>You can close this tab.</p></body></html>`
+            `<html><body><p>Authorization failed: ${escapeHtml(error)}</p><p>You can close this tab.</p></body></html>`
           );
           server.close();
           reject(new Error(`OAuth error: ${error}`));
@@ -114,7 +119,7 @@ async function cmdAuth(port: number, clientId: string): Promise<void> {
         } catch (err) {
           res.writeHead(200, { "Content-Type": "text/html" });
           res.end(
-            `<html><body><p>Token exchange failed: ${String(err)}</p><p>You can close this tab.</p></body></html>`
+            `<html><body><p>Token exchange failed: ${escapeHtml(String(err))}</p><p>You can close this tab.</p></body></html>`
           );
           server.close();
           reject(err);

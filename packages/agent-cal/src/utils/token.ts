@@ -59,5 +59,5 @@ export async function writeCredentials(creds: StoredCredentials): Promise<void> 
   await ensureCredentialsDir();
   const path = getCredentialsPath();
   const { writeFile } = await import("node:fs/promises");
-  await writeFile(path, JSON.stringify(creds, null, 2), "utf-8");
+  await writeFile(path, JSON.stringify(creds, null, 2), { encoding: "utf-8", mode: 0o600 });
 }
