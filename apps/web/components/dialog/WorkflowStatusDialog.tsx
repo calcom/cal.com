@@ -94,22 +94,24 @@ export const WorkflowStatusDialog = ({
   const renderWorkflowDetails = (workflows: any[], attendeeEmail?: string) => (
     <div className="space-y-3">
       {attendeeEmail && (
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex items-center justify-between">
           <Button
             color="minimal"
             StartIcon="arrow-left"
             onClick={() => setSelectedAttendee(null)}
             className="p-0">
-            Back
+            {t("back")}
           </Button>
-          <div className="flex items-center gap-2">
-            <div className="bg-default flex h-6 w-6 items-center justify-center rounded-full">
-              <span className="text-default text-xs font-medium">
-                {attendeeEmail.charAt(0).toUpperCase()}
-              </span>
+          <Badge className="rounded-lg" variant={"gray"} size="sm">
+            <div className="flex items-center gap-2">
+              <div className="bg-default flex h-5 w-5 items-center justify-center rounded-full">
+                <span className="text-default text-xs font-medium">
+                  {attendeeEmail.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-default text-sm font-medium">{attendeeEmail}</span>
             </div>
-            <span className="text-default text-sm font-medium">{attendeeEmail}</span>
-          </div>
+          </Badge>
         </div>
       )}
 
@@ -209,15 +211,17 @@ export const WorkflowStatusDialog = ({
     </div>
   );
 
+  console.log("Details: ", workflowInsights);
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleDialogChange}>
       <DialogContent enableOverflow showCloseButton={true}>
         <DialogHeader>
-          <DialogTitle>{t("workflow_reminders")}</DialogTitle>
+          <DialogTitle>{t("workflow_status")}</DialogTitle>
           <DialogDescription>
             {isMultiSeat && selectedAttendee === null
-              ? "Select an attendee to view their workflow status"
-              : "View workflow automation status"}
+              ? t("select_attendee_for_their_workflow_status")
+              : t("workflow_status_description")}
           </DialogDescription>
         </DialogHeader>
 
