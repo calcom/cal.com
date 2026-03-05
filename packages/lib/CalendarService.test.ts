@@ -1,5 +1,5 @@
 import { createEvent as createIcsEvent } from "ics";
-import { createCalendarObject, updateCalendarObject } from "tsdav";
+import { createCalendarObject, fetchCalendarObjects, updateCalendarObject } from "tsdav";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("ics", () => ({
@@ -745,6 +745,56 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
       const event = createMockEvent();
 
       await expect(service.createEvent(event, 1)).rejects.toThrow();
+    });
+  });
+});
+
+describe("CalendarService - Availability parsing resilience", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should skip malformed VEVENT entries instead of failing the whole availability fetch", async () => {
+    const service = new TestCalendarService();
+    const malformedAndValidIcs = `BEGIN:VCALENDAR\r
+VERSION:2.0\r
+BEGIN:VEVENT\r
+UID:bad-event\r
+DTEND:20260307T103000Z\r
+SUMMARY:Missing DTSTART\r
+END:VEVENT\r
+BEGIN:VEVENT\r
+UID:valid-event\r
+DTSTART:20260307T100000Z\r
+DTEND:20260307T103000Z\r
+SUMMARY:Valid event\r
+END:VEVENT\r
+END:VCALENDAR`;
+
+    vi.mocked(fetchCalendarObjects).mockResolvedValue([
+      {
+        url: "https://caldav.example.com/calendar/valid.ics",
+        etag: "abc",
+        data: malformedAndValidIcs,
+      } as never,
+    ]);
+
+    const result = await service.getAvailability({
+      dateFrom: "2026-03-07T09:00:00.000Z",
+      dateTo: "2026-03-07T12:00:00.000Z",
+      selectedCalendars: [
+        {
+          externalId: "https://caldav.example.com/calendar/",
+          name: "Test Calendar",
+          integration: "apple_calendar",
+        },
+      ],
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      start: "2026-03-07T10:00:00.000Z",
+      end: "2026-03-07T10:30:00.000Z",
     });
   });
 });
