@@ -166,6 +166,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     cancelSubsequentBookings,
     internalNote,
     skipCancellationReasonValidation = false,
+    skipCalendarSyncTaskCancellation = false,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -630,36 +631,46 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     allRemainingBookings
   );
 
-  try {
-    const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
-      bookingToDelete.eventType?.metadata || null
-    );
-
-    if (!bookingToDeleteEventTypeMetadataParsed.success) {
-      log.error(
-        `Error parsing metadata`,
-        safeStringify({ error: bookingToDeleteEventTypeMetadataParsed?.error })
+  // Skip calendar event deletion when cancellation comes from a calendar subscription webhook
+  // to avoid infinite loops (Google/Office365 → Cal.com → Google/Office365 → ...)
+  if (!skipCalendarSyncTaskCancellation) {
+    try {
+      const bookingToDeleteEventTypeMetadataParsed = eventTypeMetaDataSchemaWithTypedApps.safeParse(
+        bookingToDelete.eventType?.metadata || null
       );
-      throw new Error("Error parsing metadata");
+
+      if (!bookingToDeleteEventTypeMetadataParsed.success) {
+        log.error(
+          `Error parsing metadata`,
+          safeStringify({ error: bookingToDeleteEventTypeMetadataParsed?.error })
+        );
+        throw new Error("Error parsing metadata");
+      }
+
+      const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
+
+      const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
+        ...bookingToDelete.eventType,
+        metadata: bookingToDeleteEventTypeMetadata,
+      });
+
+      const eventManager = new EventManager(
+        { ...bookingToDelete.user, credentials },
+        bookingToDeleteEventTypeMetadata?.apps
+      );
+
+      await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+    } catch (error) {
+      log.error(`Error deleting integrations`, safeStringify({ error }));
     }
+  }
 
-    const bookingToDeleteEventTypeMetadata = bookingToDeleteEventTypeMetadataParsed.data;
-
-    const credentials = await getAllCredentialsIncludeServiceAccountKey(bookingToDelete.user, {
-      ...bookingToDelete.eventType,
-      metadata: bookingToDeleteEventTypeMetadata,
-    });
-
-    const eventManager = new EventManager(
-      { ...bookingToDelete.user, credentials },
-      bookingToDeleteEventTypeMetadata?.apps
-    );
-
-    await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
-
+  // Always mark booking references as deleted for data consistency
+  // (even when skipCalendarSyncTaskCancellation is true, since the external event is already deleted)
+  try {
     await bookingReferenceRepository.updateManyByBookingId(bookingToDelete.id, { deleted: true });
   } catch (error) {
-    log.error(`Error deleting integrations`, safeStringify({ error }));
+    log.error(`Error marking booking references as deleted`, safeStringify({ error }));
   }
 
   try {
