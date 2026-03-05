@@ -327,4 +327,82 @@ describe("CredentialAccessService", () => {
       })
     ).resolves.not.toThrow();
   });
+
+  test("scenario 18: throws 403 when credential has no teamId and user does not own it", async () => {
+    const credentialId = 1;
+    const loggedInUserId = 100;
+    const bookingOwnerId = 200;
+    const otherUserId = 300;
+
+    vi.mocked(CredentialRepository.findFirstByIdWithKeyAndUser).mockResolvedValue({
+      id: credentialId,
+      userId: otherUserId,
+      teamId: null,
+      type: "zoom_video",
+      appId: "zoom",
+      key: {},
+      invalid: false,
+      user: { email: "other@example.com" },
+      delegatedTo: null,
+      delegatedToId: null,
+      delegationCredentialId: null,
+    } as any);
+
+    const service = new CredentialAccessService();
+    const error = await service
+      .ensureAccessible({
+        credentialId,
+        loggedInUserId,
+        bookingOwnerId,
+      })
+      .catch((e) => e);
+
+    expect(error).toBeInstanceOf(HttpError);
+    expect(error.statusCode).toBe(403);
+  });
+
+  test("scenario 19: null bookingOwnerId with team credential only checks loggedInUser teams", async () => {
+    const credentialId = 1;
+    const loggedInUserId = 100;
+    const bookingOwnerId = null;
+    const teamId = 50;
+
+    vi.mocked(CredentialRepository.findFirstByIdWithKeyAndUser).mockResolvedValue({
+      id: credentialId,
+      userId: null,
+      teamId: teamId,
+      type: "zoom_video",
+      appId: "zoom",
+      key: {},
+      invalid: false,
+      user: null,
+      delegatedTo: null,
+      delegatedToId: null,
+      delegationCredentialId: null,
+    } as any);
+
+    const mockUserRepo = {
+      getUserOrganizationAndTeams: vi.fn().mockResolvedValue({
+        organizationId: null,
+        teams: [{ teamId: teamId }],
+      }),
+    };
+
+    vi.mocked(UserRepository).mockImplementation(function () {
+      return mockUserRepo as any;
+    });
+
+    const service = new CredentialAccessService();
+    await expect(
+      service.ensureAccessible({
+        credentialId,
+        loggedInUserId,
+        bookingOwnerId,
+      })
+    ).resolves.not.toThrow();
+
+    // getUserOrganizationAndTeams should only be called once (for loggedInUser, not bookingOwner)
+    expect(mockUserRepo.getUserOrganizationAndTeams).toHaveBeenCalledTimes(1);
+    expect(mockUserRepo.getUserOrganizationAndTeams).toHaveBeenCalledWith({ userId: loggedInUserId });
+  });
 });

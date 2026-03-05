@@ -1,40 +1,30 @@
-import z from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import {
-  type EventTypeAppMetadataSchema,
   eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/app-store/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { getTranslation } from "@calcom/i18n/server";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/i18n/server";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-
-type App = {
-  slug: string;
-  categories: AppCategories[];
-  dirName: string;
-} | null;
-
-const isVideoOrConferencingApp = (app: App) =>
-  app?.categories.includes(AppCategories.video) || app?.categories.includes(AppCategories.conferencing);
-
-const getRemovedIntegrationNameFromAppSlug = (slug: string) =>
-  slug === "msteams" ? "office365_video" : slug.split("-")[0];
+import { EventTypeMetaDataSchema, userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import z from "zod";
+import {
+  getRemovedIntegrationNameFromAppSlug,
+  isVideoOrConferencingApp,
+  removeAppFromEventTypeMetadata,
+} from "./credentialUtils";
 
 const locationsSchema = z.array(z.object({ type: z.string() }));
 type TlocationsSchema = z.infer<typeof locationsSchema>;
@@ -484,27 +474,6 @@ const handleDeleteCredential = async ({
       id: credentialId,
     },
   });
-};
-
-const removeAppFromEventTypeMetadata = (
-  appSlugToDelete: string,
-  eventTypeMetadata: {
-    apps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
-  }
-) => {
-  const appMetadata = eventTypeMetadata?.apps
-    ? Object.entries(eventTypeMetadata.apps).reduce(
-        (filteredApps, [appName, appData]) => {
-          if (appName !== appSlugToDelete) {
-            filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
-          }
-          return filteredApps;
-        },
-        {} as z.infer<typeof EventTypeAppMetadataSchema>
-      )
-    : {};
-
-  return appMetadata;
 };
 
 export default handleDeleteCredential;
