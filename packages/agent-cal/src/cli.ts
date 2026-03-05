@@ -57,7 +57,7 @@ async function cmdAuth(port: number, clientId: string): Promise<void> {
   authUrl.searchParams.set("client_id", clientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", "READ_PROFILE");
+  authUrl.searchParams.set("scope", "READ_PROFILE READ_CALENDARS WRITE_CALENDARS");
   authUrl.searchParams.set("state", state);
   authUrl.searchParams.set("code_challenge", codeChallenge);
   authUrl.searchParams.set("code_challenge_method", "S256");

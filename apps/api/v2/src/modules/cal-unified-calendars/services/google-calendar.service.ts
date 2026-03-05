@@ -209,93 +209,14 @@ export class GoogleCalendarService {
     return new calendar_v3.Calendar({ auth: oAuth2Client });
   }
 
-  /**
-   * Lists events in a date range for the user's Google Calendar.
-   * Only returns events with dateTime (skips all-day events for consistent response shape).
-   */
-  async listEventsForUser(
-    userId: number,
+  // ─── Shared private helpers (DRY calendar CRUD) ──────────────────────
+
+  private async listEventsWithClient(
+    calendar: calendar_v3.Calendar,
     calendarId: string,
     timeMin: string,
     timeMax: string
   ): Promise<GoogleCalendarEventResponse[]> {
-    const calendar = await this.getCalendarClientForUser(userId);
-    const effectiveCalendarId = calendarId || "primary";
-    const response = await calendar.events.list({
-      calendarId: effectiveCalendarId,
-      timeMin,
-      timeMax,
-      singleEvents: true,
-      orderBy: "startTime",
-    });
-    const items = (response.data.items || []) as GoogleCalendarEventResponse[];
-    return items.filter(
-      (e) => e.start?.dateTime != null
-    ) as GoogleCalendarEventResponse[];
-  }
-
-  /**
-   * Creates a new event on the user's Google Calendar.
-   */
-  async createEventForUser(
-    userId: number,
-    calendarId: string,
-    body: CreateUnifiedCalendarEventInput
-  ): Promise<GoogleCalendarEventResponse> {
-    const calendar = await this.getCalendarClientForUser(userId);
-    const effectiveCalendarId = calendarId || "primary";
-    const requestBody: calendar_v3.Schema$Event = {
-      summary: body.title,
-      description: body.description ?? undefined,
-      start: {
-        dateTime: body.start.time,
-        timeZone: body.start.timeZone,
-      },
-      end: {
-        dateTime: body.end.time,
-        timeZone: body.end.timeZone,
-      },
-      attendees: body.attendees?.map((a) => ({
-        email: a.email,
-        displayName: a.name,
-      })),
-    };
-    const response = await calendar.events.insert({
-      calendarId: effectiveCalendarId,
-      requestBody,
-      sendUpdates: "none",
-    });
-    if (!response.data) {
-      throw new BadRequestException("Failed to create calendar event");
-    }
-    return response.data as GoogleCalendarEventResponse;
-  }
-
-  /**
-   * Deletes/cancels an event on the user's Google Calendar by provider event ID.
-   */
-  async deleteEventForUser(
-    userId: number,
-    calendarId: string,
-    eventId: string
-  ): Promise<void> {
-    const calendar = await this.getCalendarClientForUser(userId);
-    const effectiveCalendarId = calendarId || "primary";
-    await calendar.events.delete({
-      calendarId: effectiveCalendarId,
-      eventId,
-      sendUpdates: "none",
-    });
-  }
-
-  async listEventsForUserByConnectionId(
-    userId: number,
-    credentialId: number,
-    calendarId: string,
-    timeMin: string,
-    timeMax: string
-  ): Promise<GoogleCalendarEventResponse[]> {
-    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
     const effectiveCalendarId = calendarId || "primary";
     const response = await calendar.events.list({
       calendarId: effectiveCalendarId,
@@ -308,13 +229,11 @@ export class GoogleCalendarService {
     return items.filter((e) => e.start?.dateTime != null) as GoogleCalendarEventResponse[];
   }
 
-  async createEventForUserByConnectionId(
-    userId: number,
-    credentialId: number,
+  private async createEventWithClient(
+    calendar: calendar_v3.Calendar,
     calendarId: string,
     body: CreateUnifiedCalendarEventInput
   ): Promise<GoogleCalendarEventResponse> {
-    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
     const effectiveCalendarId = calendarId || "primary";
     const requestBody: calendar_v3.Schema$Event = {
       summary: body.title,
@@ -343,13 +262,11 @@ export class GoogleCalendarService {
     return response.data as GoogleCalendarEventResponse;
   }
 
-  async getEventByConnectionId(
-    userId: number,
-    credentialId: number,
+  private async getEventWithClient(
+    calendar: calendar_v3.Calendar,
     calendarId: string,
     eventId: string
   ): Promise<GoogleCalendarEventResponse> {
-    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
     const effectiveCalendarId = calendarId || "primary";
     const event = await calendar.events.get({
       calendarId: effectiveCalendarId,
@@ -361,14 +278,12 @@ export class GoogleCalendarService {
     return event.data as GoogleCalendarEventResponse;
   }
 
-  async updateEventByConnectionId(
-    userId: number,
-    credentialId: number,
+  private async updateEventWithClient(
+    calendar: calendar_v3.Calendar,
     calendarId: string,
     eventId: string,
     updateData: UpdateUnifiedCalendarEventInput
   ): Promise<GoogleCalendarEventResponse> {
-    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
     const effectiveCalendarId = calendarId || "primary";
     const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
     const event = await calendar.events.patch({
@@ -382,6 +297,103 @@ export class GoogleCalendarService {
     return event.data as GoogleCalendarEventResponse;
   }
 
+  private async deleteEventWithClient(
+    calendar: calendar_v3.Calendar,
+    calendarId: string,
+    eventId: string
+  ): Promise<void> {
+    const effectiveCalendarId = calendarId || "primary";
+    await calendar.events.delete({
+      calendarId: effectiveCalendarId,
+      eventId,
+      sendUpdates: "none",
+    });
+  }
+
+  // ─── Public user-scoped methods ──────────────────────────────────────
+
+  /**
+   * Lists events in a date range for the user's Google Calendar.
+   * Only returns events with dateTime (skips all-day events for consistent response shape).
+   */
+  async listEventsForUser(
+    userId: number,
+    calendarId: string,
+    timeMin: string,
+    timeMax: string
+  ): Promise<GoogleCalendarEventResponse[]> {
+    const calendar = await this.getCalendarClientForUser(userId);
+    return this.listEventsWithClient(calendar, calendarId, timeMin, timeMax);
+  }
+
+  /**
+   * Creates a new event on the user's Google Calendar.
+   */
+  async createEventForUser(
+    userId: number,
+    calendarId: string,
+    body: CreateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const calendar = await this.getCalendarClientForUser(userId);
+    return this.createEventWithClient(calendar, calendarId, body);
+  }
+
+  /**
+   * Deletes/cancels an event on the user's Google Calendar by provider event ID.
+   */
+  async deleteEventForUser(
+    userId: number,
+    calendarId: string,
+    eventId: string
+  ): Promise<void> {
+    const calendar = await this.getCalendarClientForUser(userId);
+    return this.deleteEventWithClient(calendar, calendarId, eventId);
+  }
+
+  // ─── Public connection-scoped methods ─────────────────────────────────
+
+  async listEventsForUserByConnectionId(
+    userId: number,
+    credentialId: number,
+    calendarId: string,
+    timeMin: string,
+    timeMax: string
+  ): Promise<GoogleCalendarEventResponse[]> {
+    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
+    return this.listEventsWithClient(calendar, calendarId, timeMin, timeMax);
+  }
+
+  async createEventForUserByConnectionId(
+    userId: number,
+    credentialId: number,
+    calendarId: string,
+    body: CreateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
+    return this.createEventWithClient(calendar, calendarId, body);
+  }
+
+  async getEventByConnectionId(
+    userId: number,
+    credentialId: number,
+    calendarId: string,
+    eventId: string
+  ): Promise<GoogleCalendarEventResponse> {
+    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
+    return this.getEventWithClient(calendar, calendarId, eventId);
+  }
+
+  async updateEventByConnectionId(
+    userId: number,
+    credentialId: number,
+    calendarId: string,
+    eventId: string,
+    updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
+    return this.updateEventWithClient(calendar, calendarId, eventId, updateData);
+  }
+
   async deleteEventForUserByConnectionId(
     userId: number,
     credentialId: number,
@@ -389,11 +401,6 @@ export class GoogleCalendarService {
     eventId: string
   ): Promise<void> {
     const calendar = await this.getCalendarClientByCredentialId(userId, credentialId);
-    const effectiveCalendarId = calendarId || "primary";
-    await calendar.events.delete({
-      calendarId: effectiveCalendarId,
-      eventId,
-      sendUpdates: "none",
-    });
+    return this.deleteEventWithClient(calendar, calendarId, eventId);
   }
 }

@@ -230,6 +230,10 @@ export async function runMcpServer(): Promise<void> {
         send(id, result);
         return;
       }
+      // MCP notifications (e.g. notifications/initialized) don't require a response
+      if (req.method?.startsWith("notifications/")) {
+        return;
+      }
       if (req.method === "tools/call") {
         const params = (req.params as { name?: string; arguments?: Record<string, unknown> }) ?? {};
         const name = params.name;

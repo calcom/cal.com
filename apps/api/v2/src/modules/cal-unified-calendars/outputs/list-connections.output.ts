@@ -21,9 +21,8 @@ export class CalendarConnectionItem {
   type!: (typeof CALENDARS)[number];
 
   @IsString()
-  @IsEmail()
   @ApiProperty({
-    description: "Primary email for this connection",
+    description: "Primary email for this connection (may be 'unknown' if unavailable)",
     example: "user@gmail.com",
   })
   email!: string;

@@ -54,6 +54,14 @@ const INTEGRATION_TYPE_TO_API: Record<string, "google" | "office365" | "apple"> 
   [APPLE_CALENDAR_TYPE]: APPLE_CALENDAR,
 };
 
+/** Shape returned by CalendarsService.getCalendars().connectedCalendars */
+interface ConnectedCalendarEntry {
+  credentialId: number;
+  integration: { type: string };
+  primary?: { externalId?: string; email?: string };
+  calendars?: Array<{ credentialId: number; externalId: string; isSelected: boolean }>;
+}
+
 @Controller({
   path: "/v2/calendars",
   version: API_VERSIONS_VALUES,
@@ -76,28 +84,22 @@ export class CalUnifiedCalendarsController {
   })
   async listConnections(@GetUser("id") userId: number): Promise<ListConnectionsOutput> {
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const connections: CalendarConnectionItem[] = connectedCalendars
+    const connections: CalendarConnectionItem[] = (connectedCalendars as ConnectedCalendarEntry[])
       .filter(
-        (c: { integration: { type: string } }) =>
+        (c) =>
           c.integration.type === GOOGLE_CALENDAR_TYPE ||
           c.integration.type === OFFICE_365_CALENDAR_TYPE ||
           c.integration.type === APPLE_CALENDAR_TYPE
       )
-      .map(
-        (c: {
-          credentialId: number;
-          integration: { type: string };
-          primary?: { externalId?: string; email?: string };
-        }) => {
-          const apiType = INTEGRATION_TYPE_TO_API[c.integration.type];
-          const email = c.primary?.externalId ?? c.primary?.email ?? "";
-          return {
-            connectionId: String(c.credentialId),
-            type: apiType ?? GOOGLE_CALENDAR,
-            email: email || "unknown",
-          };
-        }
-      );
+      .map((c) => {
+        const apiType = INTEGRATION_TYPE_TO_API[c.integration.type];
+        const email = c.primary?.externalId ?? c.primary?.email ?? "";
+        return {
+          connectionId: String(c.credentialId),
+          type: apiType ?? GOOGLE_CALENDAR,
+          email: email || "unknown",
+        };
+      });
     return {
       status: SUCCESS_STATUS,
       data: { connections },
@@ -281,26 +283,20 @@ export class CalUnifiedCalendarsController {
     }
     const timezone = query.timeZone ?? "UTC";
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const conn = connectedCalendars.find(
-      (c: { credentialId: number }) => c.credentialId === credentialId
-    ) as
-      | {
-          credentialId: number;
-          calendars?: Array<{ credentialId: number; externalId: string; isSelected: boolean }>;
-          primary?: { externalId: string };
-        }
-      | undefined;
+    const conn = (connectedCalendars as ConnectedCalendarEntry[]).find(
+      (c) => c.credentialId === credentialId
+    );
     if (!conn) {
       throw new BadRequestException("Calendar connection not found");
     }
     let calendarsToLoad = (conn.calendars ?? [])
-      .filter((cal: { isSelected: boolean }) => cal.isSelected)
-      .map((cal: { credentialId: number; externalId: string }) => ({
+      .filter((cal) => cal.isSelected)
+      .map((cal) => ({
         credentialId: cal.credentialId,
         externalId: cal.externalId,
       }));
     if (calendarsToLoad.length === 0 && conn.primary?.externalId) {
-      calendarsToLoad = [{ credentialId: conn.credentialId, externalId: conn.primary.externalId }];
+      calendarsToLoad = [{ credentialId: conn.credentialId, externalId: conn.primary.externalId ?? "" }];
     }
     if (calendarsToLoad.length === 0) {
       return { status: SUCCESS_STATUS, data: [] };
@@ -365,13 +361,15 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
+  @Patch("/:calendar/event/:eventUid")
   @Patch("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update meeting details in calendar",
-    description: "Updates event information in the specified calendar provider",
+    description:
+      "Updates event information in the specified calendar provider. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
   })
   async updateCalendarEvent(
     @Param("calendar") calendar: string,
@@ -504,12 +502,11 @@ export class CalUnifiedCalendarsController {
     }
     const timezone = query.timeZone ?? "UTC";
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const googleCalendars = connectedCalendars.filter(
-      (c: { integration: { type: string } }) => c.integration.type === GOOGLE_CALENDAR_TYPE
+    const googleCalendars = (connectedCalendars as ConnectedCalendarEntry[]).filter(
+      (c) => c.integration.type === GOOGLE_CALENDAR_TYPE
     );
-    const calendarsToLoad = googleCalendars.flatMap(
-      (conn: { credentialId: number; calendars?: Array<{ credentialId: number; externalId: string; isSelected: boolean }> }) =>
-        (conn.calendars ?? []).filter((cal) => cal.isSelected).map((cal) => ({ credentialId: cal.credentialId, externalId: cal.externalId }))
+    const calendarsToLoad = googleCalendars.flatMap((conn) =>
+      (conn.calendars ?? []).filter((cal) => cal.isSelected).map((cal) => ({ credentialId: cal.credentialId, externalId: cal.externalId }))
     );
     if (calendarsToLoad.length === 0) {
       return { status: SUCCESS_STATUS, data: [] };
