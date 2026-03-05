@@ -4,99 +4,36 @@ import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/ev
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
-// --- Response DTOs ---
+import type {
+  AssignmentChild,
+  AssignmentHost,
+  AvailabilityHost,
+  ExportedWeightMember,
+  ExportWeightsResponse,
+  IEventTypeHostService,
+  PaginatedAssignmentChildrenResponse,
+  PaginatedAssignmentHostsResponse,
+  PaginatedAvailabilityHostsResponse,
+  PaginatedTeamMembersResponse,
+  TeamMemberSearchResult,
+} from "./IEventTypeHostService";
 
-export type AvailabilityHost = {
-  userId: number;
-  isFixed: boolean;
-  priority: number;
-  weight: number;
-  scheduleId: number | null;
-  groupId: string | null;
-  name: string | null;
-  avatarUrl: string | null;
+export type {
+  AssignmentChild,
+  AssignmentHost,
+  AvailabilityHost,
+  ExportedWeightMember,
+  ExportWeightsResponse,
+  PaginatedAssignmentChildrenResponse,
+  PaginatedAssignmentHostsResponse,
+  PaginatedAvailabilityHostsResponse,
+  PaginatedTeamMembersResponse,
+  TeamMemberSearchResult,
 };
 
-export type AssignmentHost = {
-  userId: number;
-  isFixed: boolean;
-  priority: number;
-  weight: number;
-  scheduleId: number | null;
-  groupId: string | null;
-  name: string | null;
-  email: string;
-  avatarUrl: string | null;
-};
-
-export type AssignmentChild = {
-  childEventTypeId: number;
-  slug: string;
-  hidden: boolean;
-  owner: {
-    id: number;
-    name: string | null;
-    email: string;
-    username: string | null;
-    avatarUrl: string | null;
-  };
-};
-
-export type TeamMemberSearchResult = {
-  userId: number;
-  name: string | null;
-  email: string;
-  avatarUrl: string | null;
-  username: string | null;
-  defaultScheduleId: number | null;
-  role: MembershipRole;
-};
-
-export type ExportedWeightMember = {
-  userId: number;
-  name: string | null;
-  email: string;
-  avatarUrl: string | null;
-  weight: number | null;
-};
-
-// --- Paginated response wrappers ---
-
-export type PaginatedAvailabilityHostsResponse = {
-  hosts: AvailabilityHost[];
-  nextCursor: number | undefined;
-  hasMore: boolean;
-};
-
-export type PaginatedAssignmentHostsResponse = {
-  hosts: AssignmentHost[];
-  nextCursor: number | undefined;
-  hasMore: boolean;
-  hasFixedHosts?: boolean;
-};
-
-export type PaginatedAssignmentChildrenResponse = {
-  children: AssignmentChild[];
-  nextCursor: number | undefined;
-  hasMore: boolean;
-};
-
-export type PaginatedTeamMembersResponse = {
-  members: TeamMemberSearchResult[];
-  nextCursor: number | undefined;
-  hasMore: boolean;
-};
-
-export type ExportWeightsResponse = {
-  members: ExportedWeightMember[];
-};
-
-// --- Service ---
-
-export class EventTypeHostService {
+export class EventTypeHostService implements IEventTypeHostService {
   private hostRepository: HostRepository;
   private membershipRepository: MembershipRepository;
   private eventTypeRepository: EventTypeRepository;
