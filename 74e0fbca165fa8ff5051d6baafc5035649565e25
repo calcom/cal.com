@@ -1,0 +1,25 @@
+packages/features/host/services/EventTypeHostService.ts
+  81ae1d60def56815 9-21,23-36
+packages/features/host/services/IEventTypeHostService.ts
+  81ae1d60def56815 1-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "74e0fbca165fa8ff5051d6baafc5035649565e25",
+  "prompts": {
+    "81ae1d60def56815": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "799b7cca-33f1-4083-9b8b-16866dc75a91",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Joe Au-Yeung <j.auyeung419@gmail.com>",
+      "messages": [],
+      "total_additions": 160,
+      "total_deletions": 91,
+      "accepted_lines": 159,
+      "overriden_lines": 0
+    }
+  }
+}
