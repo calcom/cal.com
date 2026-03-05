@@ -11,6 +11,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
+import { APP_NAME } from "@calcom/lib/constants";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -110,7 +111,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   ];
 
   const defaultHomeViewOptions = [
-    { value: "event-types", label: t("event_types") },
+    { value: "event-types", label: t("event_types_page_title") },
     { value: "bookings", label: t("bookings") },
   ];
 
@@ -341,7 +342,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   <Label className="text-emphasis mt-6">
                     <>{t("default_home_view")}</>
                   </Label>
-                  <p className="text-subtle mb-2 text-sm">{t("default_home_view_description")}</p>
+                  <p className="text-subtle mb-2 text-sm">{t("default_home_view_description", { appName: APP_NAME })}</p>
                   <Select
                     value={value}
                     options={defaultHomeViewOptions}
