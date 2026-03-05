@@ -1,11 +1,11 @@
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -468,7 +468,20 @@ export class UserRepository {
     const items = hasMore ? users.slice(0, limit) : users;
     const nextCursor = hasMore ? items[items.length - 1].id : undefined;
 
-    const total = await this.prismaClient.user.count({ where });
+    // Only count on the first page to avoid an extra query on every scroll
+    let total: number | undefined;
+    if (!cursor) {
+      const countWhere: Record<string, unknown> = {
+        id: { in: ids },
+      };
+      if (search) {
+        countWhere.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ];
+      }
+      total = await this.prismaClient.user.count({ where: countWhere });
+    }
 
     return { users: items, nextCursor, total };
   }

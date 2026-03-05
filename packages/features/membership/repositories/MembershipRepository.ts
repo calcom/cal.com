@@ -663,10 +663,10 @@ export class MembershipRepository {
       ];
     }
 
-    if (memberUserIds?.length && cursor) {
-      userFilter.id = { in: memberUserIds, gt: cursor };
-    } else if (memberUserIds?.length) {
-      userFilter.id = { in: memberUserIds };
+    if (memberUserIds !== undefined && memberUserIds !== null) {
+      userFilter.id = cursor
+        ? { in: memberUserIds, gt: cursor }
+        : { in: memberUserIds };
     } else if (cursor) {
       userFilter.id = { gt: cursor };
     }
@@ -696,9 +696,29 @@ export class MembershipRepository {
 
     const hasMore = memberships.length > limit;
     const items = hasMore ? memberships.slice(0, limit) : memberships;
-    const nextCursor = items.length > 0 ? items[items.length - 1].user.id : undefined;
+    const nextCursor = hasMore ? items[items.length - 1].user.id : undefined;
 
     return { memberships: items, nextCursor, hasMore };
+  }
+
+  async findAcceptedMembersWithUserProfile({ teamId }: { teamId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: {
+        teamId,
+        accepted: true,
+      },
+      orderBy: { user: { id: "asc" } },
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
   }
 
   /**

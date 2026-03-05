@@ -15,9 +15,9 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
 import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
+import { getTranslation } from "@calcom/i18n/server";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -479,6 +479,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (teamId && (pendingHostChanges || hosts)) {
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    const teamMemberIdSet = new Set(teamMemberIds);
 
     if (pendingHostChanges) {
       // New delta path: process changes directly
@@ -522,7 +523,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       const allUserIds = [...hostsToAdd.map((h) => h.userId), ...hostsToUpdate.map((h) => h.userId)];
       if (
         allUserIds.length > 0 &&
-        !allUserIds.every((uid) => teamMemberIds.includes(uid)) &&
+        !allUserIds.every((uid) => teamMemberIdSet.has(uid)) &&
         !eventType.team?.parentId
       ) {
         throw new TRPCError({ code: "FORBIDDEN" });
@@ -658,7 +659,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       };
     } else if (hosts) {
       // Legacy path: full hosts array (backward compatibility for Platform API)
-      if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+      if (!hosts.every((host) => teamMemberIdSet.has(host.userId)) && !eventType.team?.parentId) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
