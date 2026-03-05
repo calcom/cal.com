@@ -63,7 +63,7 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
   const organizerOrganizationId = booking.eventType.team?.parentId
     ? booking.eventType.team.parentId
     : await ProfileRepository.findFirstOrganizationIdForUser({
-        userId: booking.userId ?? booking.user.id,
+        userId: booking.user.id,
       });
   const bookerUrl = await getBookerBaseUrl(organizerOrganizationId ?? null);
   const organizerT = await getTranslation(booking.user?.locale ?? "en", "common");

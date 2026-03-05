@@ -6,7 +6,7 @@ import { computeTeamData } from "../../service/RegularBookingService";
 
 const mockTranslate = vi.fn((key: string) => key);
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue(mockTranslate),
 }));
 
