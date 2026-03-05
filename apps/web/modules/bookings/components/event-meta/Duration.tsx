@@ -112,7 +112,7 @@ export const EventDuration = ({
         </button>
       )}
       <ul
-        className="bg-default no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-1"
+        className="bg-default no-scrollbar flex max-w-full items-center gap-1 overflow-x-auto rounded-md p-1"
         onScroll={(e) => calculateScroll(e)}
         ref={ref}>
         {durations
@@ -125,8 +125,8 @@ export const EventDuration = ({
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
-                selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
-                "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
+                selectedDuration === duration ? "bg-brand-default text-brand" : "text-emphasis bg-emphasis hover:border-brand-default",
+                "cursor-pointer rounded-[4px] border-2 border-transparent px-3 py-1.5 text-sm leading-tight transition"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>
