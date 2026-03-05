@@ -25,6 +25,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   // TODO: We should do the run-time schema validation here and pass a typed bookingData instead and then run-time schema could be removed from createBooking. Then we can remove the any type from req.body.
   const booking = await instantBookingService.createBooking({
     bookingData: req.body,
+    userUuid: session?.user?.uuid,
   });
 
   return booking;
