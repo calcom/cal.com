@@ -41,6 +41,10 @@ export type FormValues = {
     value: string;
     label: string;
   };
+  defaultView: {
+    value: string;
+    label: string;
+  };
   travelSchedules: {
     id?: number;
     startDate: Date;
@@ -64,7 +68,6 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
-
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await utils.viewer.me.invalidate();
@@ -90,6 +93,39 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     },
   });
 
+  // Per-toggle mutations for independent loading state
+  const dynamicBookingMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: () => showToast(t("settings_updated_successfully"), "success"),
+    onError: () => showToast(t("error_updating_settings"), "error"),
+    onSettled: async () => {
+      await utils.viewer.me.invalidate();
+    },
+  });
+
+  const seoIndexingMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: () => showToast(t("settings_updated_successfully"), "success"),
+    onError: () => showToast(t("error_updating_settings"), "error"),
+    onSettled: async () => {
+      await utils.viewer.me.invalidate();
+    },
+  });
+
+  const monthlyDigestMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: () => showToast(t("settings_updated_successfully"), "success"),
+    onError: () => showToast(t("error_updating_settings"), "error"),
+    onSettled: async () => {
+      await utils.viewer.me.invalidate();
+    },
+  });
+
+  const bookerEmailVerificationMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: () => showToast(t("settings_updated_successfully"), "success"),
+    onError: () => showToast(t("error_updating_settings"), "error"),
+    onSettled: async () => {
+      await utils.viewer.me.invalidate();
+    },
+  });
+
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
     { value: 24, label: t("24_hour") },
@@ -103,6 +139,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     { value: "Thursday", label: nameOfDay(localeProp, 4) },
     { value: "Friday", label: nameOfDay(localeProp, 5) },
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
+  ];
+
+  const defaultViewOptions = [
+    { value: "event-types", label: t("event_types_page_title") },
+    { value: "bookings", label: t("bookings") },
   ];
 
   const formMethods = useForm<FormValues>({
@@ -119,6 +160,12 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       weekStart: {
         value: user.weekStart,
         label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
+      },
+      defaultView: {
+        value: user.defaultView || "event-types",
+        label:
+          defaultViewOptions.find((option) => option.value === (user.defaultView || "event-types"))?.label ||
+          "",
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -169,6 +216,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               locale: values.locale.value,
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
+              defaultView: values.defaultView.value as "event-types" | "bookings",
             });
           }}>
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
@@ -240,12 +288,12 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                             { day: "numeric", month: "long" },
                             language
                           )} ${schedule.endDate
-                              ? `- ${formatLocalizedDateTime(
-                                schedule.endDate,
-                                { day: "numeric", month: "long" },
-                                language
-                              )}`
-                              : ``
+                            ? `- ${formatLocalizedDateTime(
+                              schedule.endDate,
+                              { day: "numeric", month: "long" },
+                              language
+                            )}`
+                            : ``
                             }`}</div>
                           <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
@@ -315,6 +363,25 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                 </>
               )}
             />
+            <Controller
+              name="defaultView"
+              control={formMethods.control}
+              render={({ field: { value } }) => (
+                <>
+                  <Label className="text-emphasis mt-6">
+                    <>{t("default_view")}</>
+                  </Label>
+                  <Select
+                    value={value}
+                    options={defaultViewOptions}
+                    onChange={(event) => {
+                      if (event)
+                        formMethods.setValue("defaultView", { ...event }, { shouldDirty: true });
+                    }}
+                  />
+                </>
+              )}
+            />
           </div>
 
           <SectionBottomActions align="end">
@@ -333,11 +400,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("dynamic_booking")}
           description={t("allow_dynamic_booking")}
-          disabled={mutation.isPending}
+          disabled={dynamicBookingMutation.isPending}
           checked={isAllowDynamicBookingChecked}
           onCheckedChange={(checked) => {
             setIsAllowDynamicBookingChecked(checked);
-            mutation.mutate({ allowDynamicBooking: checked });
+            dynamicBookingMutation.mutate({ allowDynamicBooking: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -347,11 +414,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
-          disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
+          disabled={seoIndexingMutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);
-            mutation.mutate({ allowSEOIndexing: checked });
+            seoIndexingMutation.mutate({ allowSEOIndexing: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -360,11 +427,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("monthly_digest_email")}
           description={t("monthly_digest_email_for_teams")}
-          disabled={mutation.isPending}
+          disabled={monthlyDigestMutation.isPending}
           checked={isReceiveMonthlyDigestEmailChecked}
           onCheckedChange={(checked) => {
             setIsReceiveMonthlyDigestEmailChecked(checked);
-            mutation.mutate({ receiveMonthlyDigestEmail: checked });
+            monthlyDigestMutation.mutate({ receiveMonthlyDigestEmail: checked });
           }}
           switchContainerClassName="mt-6"
         />
@@ -373,11 +440,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("require_booker_email_verification")}
           description={t("require_booker_email_verification_description")}
-          disabled={mutation.isPending}
+          disabled={bookerEmailVerificationMutation.isPending}
           checked={isRequireBookerEmailVerificationChecked}
           onCheckedChange={(checked) => {
             setIsRequireBookerEmailVerificationChecked(checked);
-            mutation.mutate({ requiresBookerEmailVerification: checked });
+            bookerEmailVerificationMutation.mutate({ requiresBookerEmailVerification: checked });
           }}
           switchContainerClassName="mt-6"
         />

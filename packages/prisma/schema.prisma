@@ -461,6 +461,9 @@ model User {
   // require email verification when someone books using your email
   requiresBookerEmailVerification Boolean? @default(false)
 
+  // set the default home view for the user dashboard (/bookings or /event-types)
+  defaultView String? @default("event-types")
+
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)

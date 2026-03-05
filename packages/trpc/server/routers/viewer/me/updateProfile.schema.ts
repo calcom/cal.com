@@ -27,6 +27,7 @@ export type TUpdateProfileInputSchemaInput = {
   allowSEOIndexing?: boolean;
   receiveMonthlyDigestEmail?: boolean;
   requiresBookerEmailVerification?: boolean;
+  defaultView?: string;
   brandColor?: string;
   darkBrandColor?: string;
   theme?: string | null;
@@ -62,6 +63,7 @@ export type TUpdateProfileInputSchema = {
   allowSEOIndexing?: boolean;
   receiveMonthlyDigestEmail?: boolean;
   requiresBookerEmailVerification?: boolean;
+  defaultView?: string;
   brandColor?: string;
   darkBrandColor?: string;
   theme?: string | null;
@@ -101,6 +103,7 @@ export const ZUpdateProfileInputSchema: z.ZodType<
   allowSEOIndexing: z.boolean().optional(),
   receiveMonthlyDigestEmail: z.boolean().optional(),
   requiresBookerEmailVerification: z.boolean().optional(),
+  defaultView: z.enum(["event-types", "bookings"]).optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),

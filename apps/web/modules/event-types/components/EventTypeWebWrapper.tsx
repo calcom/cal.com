@@ -11,6 +11,7 @@ import { EventPermissionProvider } from "@calcom/features/pbac/client/context/Ev
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useBeforeUnload } from "@calcom/lib/hooks/useBeforeUnload";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -207,6 +208,9 @@ const EventTypeWeb = ({
   });
 
   const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+
+  // Warn user if they try to leave with unsaved changes (#10180)
+  useBeforeUnload(form.formState.isDirty);
   const slug = form.watch("slug") ?? eventType.slug;
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
@@ -222,9 +226,8 @@ const EventTypeWeb = ({
   const orgBranding = useOrgBranding();
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
-  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
-    eventType.slug
-  }`;
+  const permalink = `${bookerUrl}/${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug
+    }`;
 
   const tabMap = {
     setup: (
