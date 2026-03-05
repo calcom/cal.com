@@ -68,21 +68,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   delete responseBody.expires_in;
 
   // Remove any existing lyra_video credentials for this user to avoid duplicates
-  const existingCredentials = await prisma.credential.findMany({
-    select: {
-      id: true,
-    },
-    where: {
-      type: "lyra_video",
-      userId,
-      appId: "lyra",
-    },
+  await prisma.credential.deleteMany({
+    where: { type: "lyra_video", userId, appId: "lyra" },
   });
-
-  const credentialIdsToDelete = existingCredentials.map((item) => item.id);
-  if (credentialIdsToDelete.length > 0) {
-    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
-  }
 
   await createOAuthAppCredential({ appId: "lyra", type: "lyra_video" }, responseBody, req);
 

@@ -59,7 +59,20 @@ const LyraVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       },
       isTokenObjectUnusable: async (response) => {
         if (!response.ok) {
-          const responseBody = await response.json();
+          const responseToUseInCaseOfError = response.clone();
+          let responseBody: { error?: string };
+          try {
+            responseBody = await response.json();
+          } catch (_e) {
+            log.error(
+              "Lyra isTokenObjectUnusable: failed to parse response as JSON",
+              safeStringify({
+                status: response.status,
+                body: await responseToUseInCaseOfError.text().catch(() => "<unreadable>"),
+              })
+            );
+            return null;
+          }
           if (responseBody.error === "invalid_grant") {
             return { reason: responseBody.error };
           }
