@@ -13,7 +13,7 @@ type Options = {
 
 export const createHandler = async ({ ctx, input }: Options) => {
   const { organizationId } = await userCanCreateTeamGroupMapping(
-    ctx.user,
+    { id: ctx.user.id, email: ctx.user.email },
     ctx.user.organizationId,
     input.teamId
   );

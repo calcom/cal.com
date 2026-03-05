@@ -8,12 +8,16 @@ import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEma
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -23,10 +27,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
-export type TUser = Pick<
-  NonNullable<TrpcSessionUser>,
-  "id" | "email" | "organizationId" | "uuid"
-> &
+export type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId" | "uuid"> &
   Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
 
 type AddGuestsOptions = {
@@ -81,9 +82,7 @@ export const addGuestsHandler = async ({
   );
 
   // Capture new attendee emails after update for audit logging
-  const newAttendeeEmails = bookingAttendees.attendees.map(
-    (attendee) => attendee.email
-  );
+  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -100,10 +99,7 @@ export const addGuestsHandler = async ({
   const featuresRepository = getFeaturesRepository();
   const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(
-        organizationId,
-        "booking-audit"
-      )
+    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
 
   await bookingEventHandlerService.onAttendeeAdded({
@@ -123,9 +119,7 @@ export const addGuestsHandler = async ({
 
 export async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
-  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(
-    bookingId
-  );
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
@@ -134,14 +128,9 @@ export async function getBooking(bookingId: number) {
   return booking;
 }
 
-export async function validateUserPermissions(
-  booking: Booking,
-  user: TUser
-): Promise<void> {
+export async function validateUserPermissions(booking: Booking, user: TUser): Promise<void> {
   const isOrganizer = booking.userId === user.id;
-  const isAttendee = !!booking.attendees.find(
-    (attendee) => attendee.email === user.email
-  );
+  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
   let hasBookingUpdatePermission = false;
   if (booking.eventType?.teamId) {
@@ -167,9 +156,7 @@ export function validateGuestsFieldEnabled(booking: Booking): void {
     ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
     : [];
 
-  const guestsBookingField = parsedBookingFields.find(
-    (field) => field.name === "guests"
-  );
+  const guestsBookingField = parsedBookingFields.find((field) => field.name === "guests");
   if (guestsBookingField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -188,10 +175,17 @@ export async function getOrganizerData(userId: number | null) {
       id: userId,
     },
     select: {
+      id: true,
       name: true,
       email: true,
       timeZone: true,
       locale: true,
+      hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   });
 }
@@ -210,30 +204,20 @@ function deduplicateGuestEmails(guests: string[]): string[] {
 
 function getBlacklistedEmails(): string[] {
   return process.env.BLACKLISTED_GUEST_EMAILS
-    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) =>
-        email.toLowerCase()
-      )
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 }
 
-async function getEmailVerificationRequirements(
-  guestEmails: string[]
-): Promise<Map<string, boolean>> {
+async function getEmailVerificationRequirements(guestEmails: string[]): Promise<Map<string, boolean>> {
   const userRepo = new UserRepository(prisma);
-  const guestUsers =
-    await userRepo.findManyByEmailsWithEmailVerificationSettings({
-      emails: guestEmails,
-    });
+  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {
-    const matchedBase = extractBaseEmail(
-      user.matchedEmail ?? user.email
-    ).toLowerCase();
-    emailToRequiresVerification.set(
-      matchedBase,
-      user.requiresBookerEmailVerification === true
-    );
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
   return emailToRequiresVerification;
@@ -260,12 +244,8 @@ export async function sanitizeAndFilterGuests(
   const guestEmails = guests.map((guest) => guest.email);
   const deduplicatedGuests = deduplicateGuestEmails(guestEmails);
   const blacklistedGuestEmails = getBlacklistedEmails();
-  const guestEmailsLowerCase = deduplicatedGuests.map((email) =>
-    extractBaseEmail(email).toLowerCase()
-  );
-  const emailToRequiresVerification = await getEmailVerificationRequirements(
-    guestEmailsLowerCase
-  );
+  const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+  const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
 
   // Create a map of email to guest object for easy lookup
   const emailToGuestMap = new Map(
@@ -276,8 +256,7 @@ export async function sanitizeAndFilterGuests(
     const baseGuestEmail = extractBaseEmail(email).toLowerCase();
     return (
       !booking.attendees.some(
-        (attendee) =>
-          extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
+        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
       ) &&
       !blacklistedGuestEmails.includes(baseGuestEmail) &&
       !emailToRequiresVerification.get(baseGuestEmail)
@@ -343,9 +322,7 @@ export async function buildCalendarEvent(
   attendeesList: Awaited<ReturnType<typeof prepareAttendeesList>>
 ): Promise<CalendarEvent> {
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
-  const videoCallReference = booking.references.find((reference) =>
-    reference.type.includes("_video")
-  );
+  const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
   const evt: CalendarEvent = {
     title: booking.title || "",
@@ -368,12 +345,24 @@ export async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
+        ? [booking?.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: organizer.id,
+            hideBranding: organizer.hideBranding,
+            profiles: organizer.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   if (videoCallReference) {
@@ -388,10 +377,7 @@ export async function buildCalendarEvent(
   return evt;
 }
 
-export async function updateCalendarEvent(
-  booking: Booking,
-  evt: CalendarEvent
-): Promise<void> {
+export async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promise<void> {
   if (!booking.user) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -399,9 +385,7 @@ export async function updateCalendarEvent(
     });
   }
 
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(
-    booking.user
-  );
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
 
   const eventManager = new EventManager({
     ...booking.user,
@@ -423,9 +407,7 @@ export async function sendGuestNotifications(
   await emailsAndSmsHandler.handleAddGuests({
     evt,
     eventType: {
-      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(
-        booking?.eventType?.metadata
-      ),
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
       schedulingType: booking.eventType?.schedulingType || null,
     },
     newGuests: uniqueGuests,

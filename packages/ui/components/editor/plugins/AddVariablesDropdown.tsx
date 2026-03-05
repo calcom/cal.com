@@ -6,7 +6,7 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "../../../classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
 import { Input } from "../../form";
-import { ChevronDownIcon } from "@coss/ui/icons";
+import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string) => void;
@@ -124,7 +124,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           ) : (
             <div className="flex">
               {t("add_variable")}
-              <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
+              {
+                isOpen ? ( <ChevronUpIcon className="ml-1 mt-[2px] h-4 w-4" />) : (
+                  <ChevronDownIcon className="ml-1 mt-[2px] h-4 w-4" />
+                )
+              }
             </div>
           )}
         </div>

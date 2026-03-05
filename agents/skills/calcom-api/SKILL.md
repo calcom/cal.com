@@ -1,6 +1,19 @@
 ---
 name: calcom-api
 description: Interact with the Cal.com API v2 to manage scheduling, bookings, event types, availability, and calendars. Use this skill when building integrations that need to create or manage bookings, check availability, configure event types, or sync calendars with Cal.com's scheduling infrastructure.
+env:
+  CAL_API_KEY:
+    description: "Cal.com API key (prefixed with cal_live_ or cal_test_). Required for all API requests."
+    required: true
+  CAL_CLIENT_ID:
+    description: "OAuth client ID for platform integrations managing users on behalf of others. Sent as x-cal-client-id header."
+    required: false
+  CAL_SECRET_KEY:
+    description: "OAuth client secret for platform integrations. Sent as x-cal-secret-key header."
+    required: false
+  CAL_WEBHOOK_SECRET:
+    description: "Secret used to verify webhook payload signatures via X-Cal-Signature-256 header."
+    required: false
 ---
 
 # Cal.com API v2
@@ -13,6 +26,15 @@ All API requests should be made to:
 ```
 https://api.cal.com/v2
 ```
+
+## Required Credentials
+
+| Environment Variable | Required | Description |
+|---------------------|----------|-------------|
+| `CAL_API_KEY` | Yes | Cal.com API key (prefixed with `cal_live_` or `cal_test_`). Used as Bearer token for all API requests. Generate from Settings > Developer > API Keys. |
+| `CAL_CLIENT_ID` | No | OAuth client ID for platform integrations that manage users on behalf of others. Sent as `x-cal-client-id` header. |
+| `CAL_SECRET_KEY` | No | OAuth client secret for platform integrations. Sent as `x-cal-secret-key` header. |
+| `CAL_WEBHOOK_SECRET` | No | Secret for verifying webhook payload signatures via the `X-Cal-Signature-256` header. |
 
 ## Authentication
 
