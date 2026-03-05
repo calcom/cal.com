@@ -11,7 +11,7 @@ import {
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import posthog from "posthog-js";
 import { useMemo, useReducer, useRef, useState } from "react";
@@ -178,6 +178,7 @@ export default function MemberList(props: Props) {
 }
 
 function MemberListContent(props: Props) {
+  const router = useRouter();
   const { facetedTeamValues } = props;
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
@@ -258,23 +259,29 @@ function MemberListContent(props: Props) {
         teamId: teamIds[0],
         searchTerm,
       });
-
+      const deletedUserId = state.deleteMember.user?.id;
       if (previousValue) {
         removeMemberFromCache({
           utils,
-          memberId: state.deleteMember.user?.id as number,
+          memberId: deletedUserId as number,
           teamId: teamIds[0],
           searchTerm,
         });
       }
-      return { previousValue };
+      return { previousValue, deletedUserId };
     },
-    async onSuccess() {
+    async onSuccess(data, variables, context) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
+      const { previousValue: _previousValue, deletedUserId } = context;
+      const currentUserId = session?.user.id;
+      const isSelf = deletedUserId === currentUserId;
+      if (isSelf) {
+        router.push("/teams");
+      }
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -436,11 +443,11 @@ function MemberListContent(props: Props) {
           const canRemove = props.permissions?.canRemove ?? false;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
-          const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+          const editMode = [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean);
 
           const impersonationMode =
             canImpersonate &&
+            !isSelf &&
             !user.disableImpersonation &&
             user.accepted &&
             process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
@@ -538,7 +545,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {canResendInvitation && (
+                            {canResendInvitation && !isSelf && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -569,7 +576,7 @@ function MemberListContent(props: Props) {
                                   }
                                   color="destructive"
                                   StartIcon="user-x">
-                                  {t("remove")}
+                                  {isSelf ? t("leave") : t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
@@ -597,39 +604,43 @@ function MemberListContent(props: Props) {
                           </DropdownMenuItem>
                           {editMode && (
                             <>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "EDIT_USER_SHEET",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="pencil">
-                                  {t("edit")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  color="destructive"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_DELETE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="user-x">
-                                  {t("remove")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
+                              {canChangeRole ? (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "EDIT_USER_SHEET",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="pencil">
+                                    {t("edit")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              ) : null}
+                              {canRemove ? (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_DELETE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="user-x">
+                                    {isSelf ? t("leave") : t("remove")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              ) : null}
                             </>
                           )}
                         </DropdownMenuContent>
@@ -776,10 +787,16 @@ function MemberListContent(props: Props) {
           }>
           <ConfirmationDialogContent
             variety="danger"
-            title={t("remove_member")}
-            confirmBtnText={t("confirm_remove_member")}
+            title={state.deleteMember.user?.id === session?.user.id ? t("leave_team") : t("remove_member")}
+            confirmBtnText={
+              state.deleteMember.user?.id === session?.user.id
+                ? t("confirm_leave_team")
+                : t("confirm_remove_member")
+            }
             onConfirm={removeMember}>
-            {t("remove_member_confirmation_message")}
+            {state.deleteMember.user?.id === session?.user.id
+              ? t("leave_team_confirmation_message")
+              : t("remove_member_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
       )}
