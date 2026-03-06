@@ -25,6 +25,7 @@ vi.mock("next/server", () => ({
     url: string;
     method: string;
     nextUrl: { pathname: string; searchParams: URLSearchParams };
+    headers: Headers;
     private _body: string;
 
     constructor(
@@ -34,6 +35,7 @@ vi.mock("next/server", () => ({
       this.url = url;
       this.method = options.method || "POST";
       this._body = options.body || "";
+      this.headers = new Headers(options.headers || {});
       const urlObj = new URL(url);
       this.nextUrl = {
         pathname: urlObj.pathname,
@@ -96,13 +98,17 @@ vi.mock("app/api/defaultResponderForAppDir", async () => {
   };
 });
 
-vi.mock("app/api/parseRequestData", () => ({
-  parseRequestData: async (req: NextRequest): Promise<Record<string, string>> => {
+vi.mock("app/api/parseRequestData", () => {
+  const parseBody = async (req: NextRequest): Promise<Record<string, string>> => {
     const text = await req.text();
     const params = new URLSearchParams(text);
     return Object.fromEntries(params);
-  },
-}));
+  };
+  return {
+    parseRequestData: parseBody,
+    parseUrlFormData: parseBody,
+  };
+});
 
 const mockVerifyCodeChallenge = vi.mocked(verifyCodeChallenge);
 const mockGenerateSecret = vi.mocked(generateSecret);
