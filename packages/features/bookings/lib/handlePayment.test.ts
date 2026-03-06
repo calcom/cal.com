@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePayment } from "./handlePayment";
 
 vi.mock("@calcom/app-store/zod-utils", () => ({
@@ -51,6 +50,10 @@ describe("handlePayment", () => {
         stripe: {
           enabled: true,
           price: 1000,
+          pricePerDuration: {
+            "30": 1000,
+            "60": 2000,
+          },
           currency: "USD",
           paymentOption: "ON_BOOKING",
         },
@@ -288,5 +291,43 @@ describe("handlePayment", () => {
     });
 
     expect(result?.amount).toBe(3000); // Base 1000 cents + ($20 * 100 cents)
+  });
+
+  it("should calculate total amount based on duration when pricePerDuration is provided", async () => {
+    const mockEvent60Min = {
+      ...mockEvent,
+      length: 60,
+    };
+
+    const result = await handlePayment({
+      evt: mockEvent60Min,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+    });
+
+    expect(result?.amount).toBe(2000); // the price for 60 min
+  });
+
+  it("should calculate total amount based on base price when pricePerDuration doesn't have the specific duration", async () => {
+    const mockEvent45Min = {
+      ...mockEvent,
+      length: 45,
+    };
+
+    const result = await handlePayment({
+      evt: mockEvent45Min,
+      selectedEventType: mockEventType,
+      paymentAppCredentials: mockPaymentCredentials,
+      booking: mockBooking,
+      bookerName: "John Doe",
+      bookerEmail: "john@example.com",
+      bookingFields: [],
+    });
+
+    expect(result?.amount).toBe(1000); // fallbacks to base price
   });
 });

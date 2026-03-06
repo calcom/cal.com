@@ -1,20 +1,16 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import {
-  convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
+  convertToSmallestCurrencyUnit,
 } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RefundPolicy } from "@calcom/lib/payment/types";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Select, TextField } from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
-
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useEffect, useState } from "react";
 import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 import { autoChargeNoShowFeeTimeUnitEnum } from "../zod";
@@ -26,8 +22,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   setAppData,
   disabled,
   eventType,
+  eventTypeFormMetadata,
 }) => {
   const price = getAppData("price");
+  const pricePerDuration = getAppData("pricePerDuration") || {};
   const currency = getAppData("currency") || currencyOptions[0].value;
   const [selectedCurrency, setSelectedCurrency] = useState(
     currencyOptions.find((c) => c.value === currency) || {
@@ -82,6 +80,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     { value: autoChargeNoShowFeeTimeUnitEnum.enum.hours, label: t("hours") },
     { value: autoChargeNoShowFeeTimeUnitEnum.enum.days, label: t("days") },
   ];
+
+  const multipleDuration = eventTypeFormMetadata?.multipleDuration;
+  const hasMultipleDurations = Array.isArray(multipleDuration) && multipleDuration.length > 0;
+
   return (
     <>
       {recurringEventDefined && (
@@ -90,26 +92,66 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
       {!recurringEventDefined && requirePayment && (
         <>
           <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
-            <TextField
-              data-testid="stripe-price-input"
-              label={t("price")}
-              className="h-[38px]"
-              addOnLeading={
-                <>{selectedCurrency.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}</>
-              }
-              addOnSuffix={currency.toUpperCase()}
-              addOnClassname="h-[38px]"
-              step="0.01"
-              min="0.5"
-              type="number"
-              required
-              placeholder="Price"
-              disabled={disabled}
-              onChange={(e) => {
-                setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
-              }}
-              value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}
-            />
+            {hasMultipleDurations ? (
+              <div className="flex flex-col space-y-4">
+                {multipleDuration.map((duration) => (
+                  <TextField
+                    key={duration}
+                    name={`price-${duration}`}
+                    data-testid={`stripe-price-input-${duration}`}
+                    label={`${duration} ${t("minute_timeUnit")}`}
+                    className="h-[38px]"
+                    addOnLeading={
+                      <>{selectedCurrency.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}</>
+                    }
+                    addOnSuffix={currency.toUpperCase()}
+                    addOnClassname="h-[38px]"
+                    step="0.01"
+                    min="0.5"
+                    type="number"
+                    required
+                    placeholder="Price"
+                    disabled={disabled}
+                    onChange={(e) => {
+                      const newPrice = convertToSmallestCurrencyUnit(Number(e.target.value), currency);
+                      const newPricePerDuration = { ...pricePerDuration, [duration]: newPrice };
+                      setAppData("pricePerDuration", newPricePerDuration);
+
+                      // Keep base price synced with the first duration for backward compatibility
+                      if (duration === multipleDuration[0]) {
+                        setAppData("price", newPrice);
+                      }
+                    }}
+                    value={
+                      pricePerDuration[duration] > 0
+                        ? convertFromSmallestToPresentableCurrencyUnit(pricePerDuration[duration], currency)
+                        : undefined
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <TextField
+                data-testid="stripe-price-input"
+                label={t("price")}
+                className="h-[38px]"
+                addOnLeading={
+                  <>{selectedCurrency.value ? getCurrencySymbol("en", selectedCurrency.value) : ""}</>
+                }
+                addOnSuffix={currency.toUpperCase()}
+                addOnClassname="h-[38px]"
+                step="0.01"
+                min="0.5"
+                type="number"
+                required
+                placeholder="Price"
+                disabled={disabled}
+                onChange={(e) => {
+                  setAppData("price", convertToSmallestCurrencyUnit(Number(e.target.value), currency));
+                }}
+                value={price > 0 ? convertFromSmallestToPresentableCurrencyUnit(price, currency) : undefined}
+              />
+            )}
           </div>
           <div className="mt-5 w-60">
             <label className="text-default mb-1 block text-sm font-medium" htmlFor="currency">

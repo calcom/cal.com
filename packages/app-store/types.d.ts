@@ -85,6 +85,7 @@ export type EventTypeAppSettingsComponentProps = {
   setAppData: SetAppData;
   disabled?: boolean;
   slug: string;
+  eventTypeFormMetadata?: z.infer<typeof EventTypeFormMetadataSchema>;
 };
 
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;

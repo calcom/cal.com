@@ -4,7 +4,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import type { Fields } from "@calcom/features/bookings/lib/getBookingFields";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { convertToSmallestCurrencyUnit } from "@calcom/lib/currencyConversions";
-import type { AppCategories, Prisma, EventType } from "@calcom/prisma/client";
+import type { AppCategories, EventType, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -73,7 +73,9 @@ const handlePayment = async ({
   // Ensure we have a valid currency - fallback to USD if undefined
   const currency = paymentCurrency || "USD";
 
-  let totalAmount = apps?.[paymentAppCredentials.appId].price || 0;
+  const appData = apps?.[paymentAppCredentials.appId];
+  const pricePerDuration = evt.length != null ? appData?.pricePerDuration?.[evt.length] : undefined;
+  let totalAmount = pricePerDuration ?? appData?.price ?? 0;
 
   if ((bookingFields || [])?.length > 0) {
     let addonsPrice = 0;
