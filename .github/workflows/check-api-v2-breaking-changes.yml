@@ -29,6 +29,14 @@ jobs:
     timeout-minutes: 10
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'cal.com'
+
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -55,13 +63,21 @@ jobs:
           yarn prisma generate
           yarn generate-swagger
 
+      - name: Get base OpenAPI spec from main
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git fetch origin main --depth=1
+          git show origin/main:docs/api-reference/v2/openapi.json > /tmp/openapi-base.json
+
       - name: Check API v2 breaking changes
         run: |
           docker run --rm \
-            -v "$PWD:/work" -w /work \
+            -v "$PWD:/work" -v "/tmp/openapi-base.json:/work/openapi-base.json" -w /work \
             tufin/oasdiff:latest \
             breaking \
-            https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json \
+            openapi-base.json \
             docs/api-reference/v2/openapi.json \
             --fail-on ERR \
             --err-ignore .github/oasdiff-err-ignore.txt
