@@ -1535,6 +1535,7 @@ export class AvailableSlotsService {
             isOutOfBounds = isTimeOutOfBounds({
               time: slot.time,
               minimumBookingNotice: eventType.minimumBookingNotice,
+              eventUtcOffset,
             });
           } catch (error) {
             if (error instanceof BookingDateInPastError) {

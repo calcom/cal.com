@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
 import type { PrismaClient } from "@calcom/prisma";
@@ -33,11 +34,14 @@ export const isAvailableHandler = async ({
 
   // Get event type details for time bounds validation
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
-  const eventType = await eventTypeRepo.findByIdMinimal({ id: eventTypeId });
+  const eventType = await eventTypeRepo.findForSlots({ id: eventTypeId });
 
   if (!eventType) {
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
   }
+
+  const eventTimeZone = eventType.timeZone || eventType?.schedule?.timeZone;
+  const eventUtcOffset = eventTimeZone ? (getUTCOffsetByTimezone(eventTimeZone) ?? 0) : 0;
 
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
@@ -70,6 +74,7 @@ export const isAvailableHandler = async ({
     const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
       time: slot.utcStartIso,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      eventUtcOffset,
     });
 
     return {
