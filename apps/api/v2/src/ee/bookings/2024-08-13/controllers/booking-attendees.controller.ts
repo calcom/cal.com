@@ -1,8 +1,4 @@
-import {
-  BOOKING_WRITE,
-  BOOKING_READ,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
+import { BOOKING_READ, BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
 import {
   Body,
@@ -21,15 +17,12 @@ import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.g
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
 import {
-  GetBookingAttendeesOutput_2024_08_13,
   GetBookingAttendeeOutput_2024_08_13,
+  GetBookingAttendeesOutput_2024_08_13,
 } from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
 import { RemoveAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
-import {
-  VERSION_2024_08_13,
-  VERSION_2024_08_13_VALUE,
-} from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -51,9 +44,7 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
   required: true,
 })
 export class BookingAttendeesController_2024_08_13 {
-  constructor(
-    private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13
-  ) {}
+  constructor(private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13) {}
 
   @Get("/")
   @Permissions([BOOKING_READ])
@@ -70,9 +61,7 @@ export class BookingAttendeesController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @GetUser() user: ApiAuthGuardUser
   ): Promise<GetBookingAttendeesOutput_2024_08_13> {
-    const attendees = await this.bookingAttendeesService.getBookingAttendees(
-      bookingUid
-    );
+    const attendees = await this.bookingAttendeesService.getBookingAttendees(bookingUid);
 
     return {
       status: SUCCESS_STATUS,
@@ -95,10 +84,7 @@ export class BookingAttendeesController_2024_08_13 {
     @Param("bookingUid") bookingUid: string,
     @Param("attendeeId", ParseIntPipe) attendeeId: number
   ): Promise<GetBookingAttendeeOutput_2024_08_13> {
-    const attendee = await this.bookingAttendeesService.getBookingAttendee(
-      bookingUid,
-      attendeeId
-    );
+    const attendee = await this.bookingAttendeesService.getBookingAttendee(bookingUid, attendeeId);
 
     return {
       status: SUCCESS_STATUS,
@@ -137,11 +123,7 @@ export class BookingAttendeesController_2024_08_13 {
     @Body() body: AddAttendeeInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
   ): Promise<AddAttendeeOutput_2024_08_13> {
-    const attendee = await this.bookingAttendeesService.addAttendee(
-      bookingUid,
-      body,
-      user
-    );
+    const attendee = await this.bookingAttendeesService.addAttendee(bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,
