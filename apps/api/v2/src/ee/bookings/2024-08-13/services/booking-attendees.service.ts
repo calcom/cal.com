@@ -1,4 +1,4 @@
-import { BookingAttendeesService, removeAttendeeHandler } from "@calcom/platform-libraries/bookings";
+import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
 import { Injectable, NotFoundException } from "@nestjs/common";
@@ -139,28 +139,30 @@ export class BookingAttendeesService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const res = await removeAttendeeHandler({
-      ctx: { user },
-      input: { bookingId: booking.id, attendeeId },
+    const removedAttendee = await this.bookingAttendeesService.removeAttendee({
+      bookingId: booking.id,
+      attendeeId,
+      user: {
+        id: user.id,
+        email: user.email,
+        organizationId: user.organizationId,
+        uuid: user.uuid,
+      },
       emailsEnabled,
       actionSource: "API_V2",
     });
 
-    if (res.message === "Attendee removed") {
-      return plainToClass(
-        RemovedAttendeeOutput_2024_08_13,
-        {
-          id: res.attendee.id,
-          bookingId: res.attendee.bookingId,
-          name: res.attendee.name,
-          email: res.attendee.email,
-          timeZone: res.attendee.timeZone,
-        },
-        { excludeExtraneousValues: true }
-      );
-    } else {
-      throw new HttpException("Failed to remove attendee from the booking", 500);
-    }
+    return plainToClass(
+      RemovedAttendeeOutput_2024_08_13,
+      {
+        id: removedAttendee.id,
+        bookingId: removedAttendee.bookingId,
+        name: removedAttendee.name,
+        email: removedAttendee.email,
+        timeZone: removedAttendee.timeZone,
+      },
+      { excludeExtraneousValues: true }
+    );
   }
 
   private getDisplayEmail(email: string): string {
