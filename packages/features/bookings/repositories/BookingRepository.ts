@@ -496,11 +496,13 @@ export class BookingRepository implements IBookingRepository {
         },
         attendees: {
           select: {
+            id: true,
             email: true,
             name: true,
             timeZone: true,
             locale: true,
             phoneNumber: true,
+            noShow: true,
           },
         },
         user: {

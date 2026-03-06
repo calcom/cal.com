@@ -10275,6 +10275,52 @@
       }
     },
     "/v2/bookings/{bookingUid}/attendees": {
+      "get": {
+        "operationId": "BookingAttendeesController_2024_08_13_getBookingAttendees",
+        "summary": "Get all attendees for a booking",
+        "description": "Retrieve all attendees for a specific booking by its UID.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingAttendeesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      },
       "post": {
         "operationId": "BookingAttendeesController_2024_08_13_addAttendee",
         "summary": "Add an attendee to a booking",
@@ -10324,6 +10370,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AddAttendeeOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/attendees/{attendeeId}": {
+      "get": {
+        "operationId": "BookingAttendeesController_2024_08_13_getBookingAttendee",
+        "summary": "Get a specific attendee for a booking",
+        "description": "Retrieve a specific attendee by their ID for a booking identified by its UID.\n        \n      <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingAttendeeOutput_2024_08_13"
                 }
               }
             }
@@ -32475,6 +32577,121 @@
           },
           "data": {
             "$ref": "#/components/schemas/BookingAttendeeOutput_2024_08_13"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "BookingAttendeeWithId_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "id": {
+            "type": "number",
+            "example": 251
+          }
+        },
+        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id"]
+      },
+      "GetBookingAttendeesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetBookingAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
           }
         },
         "required": ["status", "data"]
