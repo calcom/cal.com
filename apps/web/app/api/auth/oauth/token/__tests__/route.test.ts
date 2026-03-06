@@ -97,7 +97,7 @@ vi.mock("app/api/defaultResponderForAppDir", async () => {
 });
 
 vi.mock("app/api/parseRequestData", () => ({
-  parseUrlFormData: async (req: NextRequest): Promise<Record<string, string>> => {
+  parseRequestData: async (req: NextRequest): Promise<Record<string, string>> => {
     const text = await req.text();
     const params = new URLSearchParams(text);
     return Object.fromEntries(params);
