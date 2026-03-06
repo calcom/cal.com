@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
@@ -12,6 +12,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
 import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
@@ -31,8 +32,8 @@ const slugify = (text: string): string => {
 
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { getQueryString } = useOnboardingQueryParams();
   const { organizationDetails, setOrganizationDetails, selectedPlan, setSelectedPlan } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
@@ -88,9 +89,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
       link: organizationLink,
       bio: organizationBio,
     });
-    const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/brand${migrateParam ? `?migrate=${migrateParam}` : ""}`;
-    router.push(nextUrl);
+    router.push(`/onboarding/organization/brand${getQueryString()}`);
   };
 
   const totalSteps = isMigrationFlow && hasTeams ? 6 : 4;
