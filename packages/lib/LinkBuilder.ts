@@ -145,9 +145,7 @@ export function buildStandardRescheduleLink({
   if (rescheduledBy) {
     url.searchParams.append("rescheduledBy", rescheduledBy);
   }
-  if (seatReferenceUid && rescheduledBy) {
-    url.searchParams.append("seatReferenceUid", seatReferenceUid);
-  } else if (seatReferenceUid && !rescheduledBy) {
+  if (seatReferenceUid) {
     url.searchParams.append("seatReferenceUid", seatReferenceUid);
   }
 
