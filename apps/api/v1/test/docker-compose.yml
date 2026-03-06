@@ -1,7 +1,7 @@
 # The containers that compose the project
 services:
   db:
-    image: postgres:13
+    image: postgres:18
     restart: always
     container_name: integration-tests-prisma
     ports:
