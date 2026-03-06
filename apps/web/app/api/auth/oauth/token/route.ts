@@ -1,5 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
+import { parseRequestData } from "app/api/parseRequestData";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -9,8 +9,22 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 async function handler(req: NextRequest) {
-  const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } =
-    await parseUrlFormData(req);
+  const body = await parseRequestData(req);
+  const {
+    code,
+    client_id,
+    client_secret,
+    grant_type,
+    redirect_uri,
+    code_verifier,
+  } = body as {
+    code?: string;
+    client_id?: string;
+    client_secret?: string;
+    grant_type?: string;
+    redirect_uri?: string;
+    code_verifier?: string;
+  };
 
   if (!process.env.CALENDSO_ENCRYPTION_KEY) {
     return NextResponse.json({ message: OAUTH_ERROR_REASONS["encryption_key_missing"] }, { status: 500 });
@@ -52,7 +66,12 @@ async function handler(req: NextRequest) {
     );
   } catch (err) {
     if (err instanceof ErrorWithCode) {
-      return NextResponse.json({ error: err.message }, { status: getHttpStatusCode(err) });
+      const status = getHttpStatusCode(err);
+      const reason = (err.data?.reason as string) ?? err.message;
+      return NextResponse.json(
+        { error: err.message, error_description: reason },
+        { status }
+      );
     }
   }
   return NextResponse.json({ error: "error_code_exchange" }, { status: 500 });

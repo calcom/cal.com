@@ -289,7 +289,7 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
     }
 
-    if (!this.validateClient(client, clientSecret)) {
+    if (!this.validateClient(client, clientSecret, { hasCodeVerifier: !!codeVerifier })) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
         reason: "invalid_client_credentials",
       });
@@ -364,13 +364,18 @@ export class OAuthService {
 
   private validateClient(
     client: { clientType: string; clientSecret?: string | null },
-    clientSecret?: string
+    clientSecret?: string,
+    options?: { hasCodeVerifier?: boolean }
   ): boolean {
     if (client.clientType === "CONFIDENTIAL") {
-      if (!clientSecret) return false;
-
-      const [hashedSecret] = generateSecret(clientSecret);
-      if (client.clientSecret !== hashedSecret) return false;
+      if (clientSecret) {
+        const [hashedSecret] = generateSecret(clientSecret);
+        if (client.clientSecret !== hashedSecret) return false;
+      } else if (options?.hasCodeVerifier) {
+        return true;
+      } else {
+        return false;
+      }
     }
     return true;
   }

@@ -23,7 +23,20 @@ const DEFAULT_PORT = 9876;
 // For local dev, set CAL_OAUTH_AUTHORIZE_URL (e.g. http://localhost:3000/auth/oauth2/authorize).
 const AUTHORIZE_URL =
   process.env.CAL_OAUTH_AUTHORIZE_URL ?? "https://app.cal.com/auth/oauth2/authorize";
-const TOKEN_URL = process.env.CAL_OAUTH_TOKEN_URL ?? "https://api.cal.com/v2/auth/oauth2/token";
+// When using a local authorize URL, use the same origin for token so the same DB is used.
+function getDefaultTokenUrl(): string {
+  const u = process.env.CAL_OAUTH_TOKEN_URL;
+  if (u) return u;
+  try {
+    const authUrl = process.env.CAL_OAUTH_AUTHORIZE_URL;
+    if (authUrl) {
+      const origin = new URL(authUrl).origin;
+      return `${origin}/api/auth/oauth/token`;
+    }
+  } catch (_) {}
+  return "https://api.cal.com/v2/auth/oauth2/token";
+}
+const TOKEN_URL = getDefaultTokenUrl();
 
 const AUTH_CLIENT_ID_HELP = `
   You need a Cal.com OAuth client with redirect URI: http://localhost:9876/callback
@@ -75,14 +88,16 @@ async function cmdAuth(port: number, clientId: string): Promise<void> {
         const code = q.get("code");
         const returnedState = q.get("state");
         const error = q.get("error");
+        const errorDescription = q.get("error_description");
 
         if (error) {
+          const detail = errorDescription ? `${error}: ${errorDescription}` : error;
           res.writeHead(200, { "Content-Type": "text/html" });
           res.end(
-            `<html><body><p>Authorization failed: ${escapeHtml(error)}</p><p>You can close this tab.</p></body></html>`
+            `<html><body><p>Authorization failed: ${escapeHtml(detail)}</p><p>You can close this tab.</p></body></html>`
           );
           server.close();
-          reject(new Error(`OAuth error: ${error}`));
+          reject(new Error(`OAuth error: ${detail}`));
           return;
         }
 
@@ -157,7 +172,11 @@ async function getClient(): Promise<AgentCal> {
       "Not authenticated. Run: npx @calcom/agent-cal auth\nCredentials path: " + getCredentialsPath()
     );
   }
-  return new AgentCal({ accessToken: creds.accessToken });
+  const baseUrl = process.env.CAL_API_BASE_URL;
+  return new AgentCal({
+    accessToken: creds.accessToken,
+    ...(baseUrl && { baseUrl }),
+  });
 }
 
 async function cmdStatus(): Promise<void> {
