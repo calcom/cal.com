@@ -140,7 +140,12 @@ const EventType = forwardRef<
         childrenToRemove: [],
         childrenToUpdate: [],
       };
-      currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
+      // Reset pending host changes after successful save
+      currentValues.pendingHostChanges = {
+        hostsToAdd: [],
+        hostsToUpdate: [],
+        hostsToRemove: [],
+      };
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
