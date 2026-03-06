@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ReassignmentAuditActionService } from "../ReassignmentAuditActionService";
-import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./contractVerification";
+import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./dataRequirementsContractVerification";
 
 describe("ReassignmentAuditActionService", () => {
   let service: ReassignmentAuditActionService;

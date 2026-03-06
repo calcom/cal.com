@@ -289,7 +289,7 @@ type ExpectedAuditData = {
   actor: { identifiedBy: string; userUuid?: string; email?: string; name?: null };
   organizationId: number | null;
   host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
-  attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }>;
+  attendeesNoShow?: Array<{ attendeeId: number; noShow: { old: boolean | null; new: boolean } }>;
 };
 
 const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
@@ -310,7 +310,7 @@ const expectNoShowBookingAudit = (expected: ExpectedAuditData) => {
 
     for (const expectedAttendee of expected.attendeesNoShow) {
       const actualAttendee = call.auditData.attendeesNoShow.find(
-        (a: { attendeeEmail: string }) => a.attendeeEmail === expectedAttendee.attendeeEmail
+        (a: { attendeeId: number }) => a.attendeeId === expectedAttendee.attendeeId
       );
       expect(actualAttendee).toBeDefined();
       expect(actualAttendee.noShow).toEqual(expectedAttendee.noShow);
@@ -624,7 +624,7 @@ describe("handleMarkNoShow", () => {
     it("should call BookingEventHandlerService.onNoShowUpdated with correct args", async () => {
       const bookingUid = "test-booking-audit";
       createMockBooking({ uid: bookingUid });
-      createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
+      const attendee = createMockAttendee({ bookingUid, email: "attendee@example.com", noShow: false });
 
       await handleMarkNoShow({
         bookingUid,
@@ -639,7 +639,7 @@ describe("handleMarkNoShow", () => {
         source: "WEBAPP",
         actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
         organizationId: null,
-        attendeesNoShow: [{ attendeeEmail: "attendee@example.com", noShow: { old: false, new: true } }],
+        attendeesNoShow: [{ attendeeId: attendee.id, noShow: { old: false, new: true } }],
       });
     });
 
@@ -786,16 +786,16 @@ describe("handleMarkNoShow", () => {
         actor: { identifiedBy: "user", userUuid: "user-uuid-123" },
         organizationId: null,
         attendeesNoShow: [
-          { attendeeEmail: "attendee1@example.com", noShow: { old: false, new: true } },
-          { attendeeEmail: "attendee3@example.com", noShow: { old: false, new: true } },
+          { attendeeId: attendee1.id, noShow: { old: false, new: true } },
+          { attendeeId: attendee3.id, noShow: { old: false, new: true } },
         ],
       });
 
       const call = mockOnNoShowUpdated.mock.calls[0][0];
       expect(call.auditData.attendeesNoShow).toHaveLength(2);
       expect(
-        call.auditData.attendeesNoShow.map((a: { attendeeEmail: string }) => a.attendeeEmail)
-      ).not.toContain("attendee2@example.com");
+        call.auditData.attendeesNoShow.map((a: { attendeeId: number }) => a.attendeeId)
+      ).not.toContain(attendee2.id);
     });
 
     it("should not fire audit event when nothing changed", async () => {

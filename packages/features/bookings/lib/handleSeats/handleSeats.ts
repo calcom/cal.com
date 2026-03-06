@@ -1,22 +1,22 @@
 import dayjs from "@calcom/dayjs";
+import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { safeStringify } from "@calcom/lib/safeStringify";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
+import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
-import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
-import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
-import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import type { HandleSeatsResultBooking, NewSeatedBookingObject, SeatedBooking } from "./types";
 
 const fireBookingEvents = async ({
   previousSeatedBooking,
@@ -86,44 +86,57 @@ const fireBookingEvents = async ({
           ? newBooking.endTime.getTime()
           : previousSeatedBooking.endTime.getTime();
 
-      await deps.bookingEventHandler.onSeatRescheduled({
-        bookingUid: previousSeatedBooking.uid,
-        actor: auditActor,
-        organizationId: organizationId ?? null,
-        auditData: {
-          seatReferenceUid,
-          attendeeEmail: bookerEmail,
-          startTime: {
-            old: originalRescheduledBooking.startTime.getTime(),
-            new: newBookingStartTimeMs,
+      if (bookerAttendeeId) {
+        await deps.bookingEventHandler.onSeatRescheduled({
+          bookingUid: previousSeatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
+            seatReferenceUid,
+            attendeeId: bookerAttendeeId,
+            startTime: {
+              old: originalRescheduledBooking.startTime.getTime(),
+              new: newBookingStartTimeMs,
+            },
+            endTime: {
+              old: originalRescheduledBooking.endTime.getTime(),
+              new: newBookingEndTimeMs,
+            },
+            rescheduledToBookingUid: {
+              old: null,
+              new: movedToDifferentBooking ? newBooking.uid || null : null,
+            },
           },
-          endTime: {
-            old: originalRescheduledBooking.endTime.getTime(),
-            new: newBookingEndTimeMs,
-          },
-          rescheduledToBookingUid: {
-            old: null,
-            new: movedToDifferentBooking ? newBooking.uid || null : null,
-          },
-        },
-        source: actionSource,
-        isBookingAuditEnabled,
-      });
+          source: actionSource,
+          isBookingAuditEnabled,
+        });
+      } else {
+        deps.logger.warn("Seat reschedule audit skipped: bookerAttendeeId not found", {
+          bookerEmail,
+          bookingUid: previousSeatedBooking.uid,
+        });
+      }
     } else {
-      await deps.bookingEventHandler.onSeatBooked({
-        bookingUid: previousSeatedBooking.uid,
-        actor: auditActor,
-        organizationId: organizationId ?? null,
-        auditData: {
-          seatReferenceUid,
-          attendeeEmail: bookerEmail,
-          attendeeName: bookerName,
-          startTime: previousSeatedBooking.startTime.getTime(),
-          endTime: previousSeatedBooking.endTime.getTime(),
-        },
-        source: actionSource,
-        isBookingAuditEnabled,
-      });
+      if (bookerAttendeeId) {
+        await deps.bookingEventHandler.onSeatBooked({
+          bookingUid: previousSeatedBooking.uid,
+          actor: auditActor,
+          organizationId: organizationId ?? null,
+          auditData: {
+            seatReferenceUid,
+            attendeeId: bookerAttendeeId,
+            startTime: previousSeatedBooking.startTime.getTime(),
+            endTime: previousSeatedBooking.endTime.getTime(),
+          },
+          source: actionSource,
+          isBookingAuditEnabled,
+        });
+      } else {
+        deps.logger.warn("Seat booked audit skipped: bookerAttendeeId not found", {
+          bookerEmail,
+          bookingUid: previousSeatedBooking.uid,
+        });
+      }
     }
   } catch (error) {
     deps.logger.error("Error while firing booking events", safeStringify(error));

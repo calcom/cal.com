@@ -73,7 +73,7 @@ The system tracks various booking actions including:
 - **REJECTED**: Booking request declined
 - **RESCHEDULE_REQUESTED**: Request to reschedule
 - **ATTENDEE_ADDED**: New attendee added
-- **ATTENDEE_REMOVED**: Attendee removed
+- **ATTENDEE_REMOVED**: Attendee removed (reserved in Prisma enum, no active service)
 - **REASSIGNMENT**: Booking reassigned to different host
 - **LOCATION_CHANGED**: Meeting location updated
 - **NO_SHOW_UPDATED**: Host or attendee no-show status changed
@@ -237,3 +237,7 @@ The Booking Audit System provides a robust, scalable architecture for tracking a
 - **Operation Correlation**: Links related audit logs across different audit types
 
 This architecture supports compliance requirements, debugging, analytics, and provides transparency for users and administrators.
+
+## TODO
+
+- [ ] storedDataSchema, a union of all version schemas could be removed. We identify the version directly from the unknown typed payload which is always supposed to have version in it and then we use the appropriate version's schema to parse the data.

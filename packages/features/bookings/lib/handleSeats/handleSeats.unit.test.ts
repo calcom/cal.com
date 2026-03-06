@@ -486,6 +486,134 @@ describe("handleSeats unit tests", () => {
     });
   });
 
+  describe("audit event guards when bookerAttendeeId is not found", () => {
+    it("logs warning and skips onSeatBooked when bookerAttendeeId is undefined (new seat)", async () => {
+      const { createLoggerWithEventDetails } = await import("../handleNewBooking/logger");
+      const mockLogger = vi.mocked(createLoggerWithEventDetails)();
+
+      const mockOnSeatBooked = vi.fn();
+      const bookingObject = createMinimalBookingObject({
+        organizationId: 1,
+        deps: {
+          bookingEventHandler: {
+            onSeatBooked: mockOnSeatBooked,
+            onSeatRescheduled: vi.fn(),
+          } as unknown as NewSeatedBookingObject["deps"]["bookingEventHandler"],
+        },
+      });
+      const featuresRepo = createMockFeaturesRepository();
+
+      const seatedBooking = createMockSeatedBooking();
+      mockPrisma.booking.findFirst.mockResolvedValue(seatedBooking);
+
+      // resultBooking has attendees that do NOT match bookerEmail, so bookerAttendeeId will be undefined
+      const resultBooking = {
+        uid: "result-uid",
+        seatReferenceUid: "seat-ref-uid",
+        attendees: [{ email: "someone-else@test.com", id: 99 }],
+        startTime: new Date("2024-01-15T10:00:00Z"),
+        endTime: new Date("2024-01-15T10:30:00Z"),
+      };
+      mockCreateNewSeat.mockResolvedValue(resultBooking);
+
+      await handleSeats(bookingObject, featuresRepo);
+
+      expect(mockOnSeatBooked).not.toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        "Seat booked audit skipped: bookerAttendeeId not found",
+        expect.objectContaining({
+          bookerEmail: "attendee@test.com",
+          bookingUid: seatedBooking.uid,
+        })
+      );
+    });
+
+    it("logs warning and skips onSeatRescheduled when bookerAttendeeId is undefined (reschedule)", async () => {
+      const { createLoggerWithEventDetails } = await import("../handleNewBooking/logger");
+      const mockLogger = vi.mocked(createLoggerWithEventDetails)();
+
+      const mockOnSeatRescheduled = vi.fn();
+      const bookingObject = createMinimalBookingObject({
+        rescheduleUid: "reschedule-uid",
+        organizationId: 1,
+        originalRescheduledBooking: {
+          startTime: new Date("2024-01-14T10:00:00Z"),
+          endTime: new Date("2024-01-14T10:30:00Z"),
+          attendees: [],
+          references: [],
+        } as unknown as NewSeatedBookingObject["originalRescheduledBooking"],
+        deps: {
+          bookingEventHandler: {
+            onSeatBooked: vi.fn(),
+            onSeatRescheduled: mockOnSeatRescheduled,
+          } as unknown as NewSeatedBookingObject["deps"]["bookingEventHandler"],
+        },
+      });
+      const featuresRepo = createMockFeaturesRepository();
+
+      const seatedBooking = createMockSeatedBooking();
+      mockPrisma.booking.findFirst.mockResolvedValue(seatedBooking);
+
+      // resultBooking has attendees that do NOT match bookerEmail
+      const resultBooking = {
+        uid: "result-uid",
+        seatReferenceUid: "seat-ref-uid",
+        attendees: [{ email: "someone-else@test.com", id: 99 }],
+      };
+      mockRescheduleSeatedBooking.mockResolvedValue(resultBooking);
+
+      await handleSeats(bookingObject, featuresRepo);
+
+      expect(mockOnSeatRescheduled).not.toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        "Seat reschedule audit skipped: bookerAttendeeId not found",
+        expect.objectContaining({
+          bookerEmail: "attendee@test.com",
+          bookingUid: seatedBooking.uid,
+        })
+      );
+    });
+
+    it("calls onSeatBooked when bookerAttendeeId is found (new seat)", async () => {
+      const mockOnSeatBooked = vi.fn();
+      const bookingObject = createMinimalBookingObject({
+        organizationId: 1,
+        deps: {
+          bookingEventHandler: {
+            onSeatBooked: mockOnSeatBooked,
+            onSeatRescheduled: vi.fn(),
+          } as unknown as NewSeatedBookingObject["deps"]["bookingEventHandler"],
+        },
+      });
+      const featuresRepo = createMockFeaturesRepository();
+
+      const seatedBooking = createMockSeatedBooking();
+      mockPrisma.booking.findFirst.mockResolvedValue(seatedBooking);
+
+      // resultBooking has attendee matching bookerEmail
+      const resultBooking = {
+        uid: "result-uid",
+        seatReferenceUid: "seat-ref-uid",
+        attendees: [{ email: "attendee@test.com", id: 42 }],
+        startTime: new Date("2024-01-15T10:00:00Z"),
+        endTime: new Date("2024-01-15T10:30:00Z"),
+      };
+      mockCreateNewSeat.mockResolvedValue(resultBooking);
+
+      await handleSeats(bookingObject, featuresRepo);
+
+      expect(mockOnSeatBooked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingUid: seatedBooking.uid,
+          auditData: expect.objectContaining({
+            attendeeId: 42,
+            seatReferenceUid: "seat-ref-uid",
+          }),
+        })
+      );
+    });
+  });
+
   describe("attendee phone number for workflows", () => {
     it("uses invitee phoneNumber for SMS reminders when available", async () => {
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");

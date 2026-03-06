@@ -1,7 +1,6 @@
 import type { z } from "zod";
 import type { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import type { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import type { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
 import type { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
 import type { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
 import type { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
@@ -126,17 +125,6 @@ export interface BookingAuditProducerService {
     source: ActionSource;
     operationId?: string | null;
     data: z.infer<typeof RejectedAuditActionService.latestFieldsSchema>;
-    context?: BookingAuditContext;
-    isBookingAuditEnabled: boolean;
-  }): Promise<void>;
-
-  queueAttendeeRemovedAudit(params: {
-    bookingUid: string;
-    actor: Actor;
-    organizationId: number | null;
-    source: ActionSource;
-    operationId?: string | null;
-    data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
     context?: BookingAuditContext;
     isBookingAuditEnabled: boolean;
   }): Promise<void>;

@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
-import type { DataRequirements } from "../service/EnrichmentDataStore";
+import type { DataRequirements, EnrichmentDataStore } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
   BaseStoredAuditData,
+  DisplayField,
+  GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
   IAuditActionService,
@@ -11,11 +13,10 @@ import type {
 } from "./IAuditActionService";
 
 /**
- * Seat Rescheduled Audit Action Service
- * Handles SEAT_RESCHEDULED action with per-action versioning
+ * V1: Stored attendeeEmail (PII in payload)
+ * V2: Stores attendeeId only (PII-free), enriched via EnrichmentDataStore at display time
  */
 
-// Module-level because it is passed to IAuditActionService type outside the class scope
 const fieldsSchemaV1 = z.object({
   seatReferenceUid: z.string(),
   attendeeEmail: z.string(),
@@ -24,28 +25,120 @@ const fieldsSchemaV1 = z.object({
   rescheduledToBookingUid: StringChangeSchema,
 });
 
-export class SeatRescheduledAuditActionService implements IAuditActionService {
-  static readonly VERSION = 1;
-  public static readonly TYPE = "SEAT_RESCHEDULED" as const;
-  private static dataSchemaV1 = z.object({
+const fieldsSchemaV2 = z.object({
+  seatReferenceUid: z.string(),
+  attendeeId: z.number(),
+  startTime: NumberChangeSchema,
+  endTime: NumberChangeSchema,
+  rescheduledToBookingUid: StringChangeSchema,
+});
+
+const latestFieldsSchema = fieldsSchemaV2;
+
+type FieldsSchemaV1 = z.infer<typeof fieldsSchemaV1>;
+type FieldsSchemaV2 = z.infer<typeof fieldsSchemaV2>;
+
+class SeatRescheduledV1 {
+  static readonly dataSchema = z.object({
     version: z.literal(1),
     fields: fieldsSchemaV1,
   });
-  private static fieldsSchemaV1 = fieldsSchemaV1;
-  public static readonly latestFieldsSchema = fieldsSchemaV1;
-  // Union of all versions
-  public static readonly storedDataSchema = SeatRescheduledAuditActionService.dataSchemaV1;
-  // Union of all versions
-  public static readonly storedFieldsSchema = SeatRescheduledAuditActionService.fieldsSchemaV1;
+
+  getDataRequirements(): DataRequirements {
+    return { userUuids: [] };
+  }
+
+  getDisplayJson(fields: FieldsSchemaV1, userTimeZone: string): SeatRescheduledAuditDisplayDataV1 {
+    return {
+      seatReferenceUid: fields.seatReferenceUid,
+      attendeeEmail: fields.attendeeEmail,
+      previousStartTime: fields.startTime.old
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, userTimeZone)
+        : null,
+      newStartTime: fields.startTime.new
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.new, userTimeZone)
+        : null,
+      previousEndTime: fields.endTime.old
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.old, userTimeZone)
+        : null,
+      newEndTime: fields.endTime.new
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, userTimeZone)
+        : null,
+      rescheduledToBookingUid: fields.rescheduledToBookingUid.new ?? null,
+    };
+  }
+
+  getDisplayFields(): Array<DisplayField> {
+    return [];
+  }
+}
+
+class SeatRescheduledV2 {
+  static readonly dataSchema = z.object({
+    version: z.literal(2),
+    fields: fieldsSchemaV2,
+  });
+
+  getDataRequirements(fields: FieldsSchemaV2): DataRequirements {
+    return { attendeeIds: [fields.attendeeId] };
+  }
+
+  getDisplayJson(fields: FieldsSchemaV2, userTimeZone: string): SeatRescheduledAuditDisplayDataV2 {
+    return {
+      seatReferenceUid: fields.seatReferenceUid,
+      attendeeId: fields.attendeeId,
+      previousStartTime: fields.startTime.old
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, userTimeZone)
+        : null,
+      newStartTime: fields.startTime.new
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.new, userTimeZone)
+        : null,
+      previousEndTime: fields.endTime.old
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.old, userTimeZone)
+        : null,
+      newEndTime: fields.endTime.new
+        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, userTimeZone)
+        : null,
+      rescheduledToBookingUid: fields.rescheduledToBookingUid.new ?? null,
+    };
+  }
+
+  getDisplayFields(
+    fields: FieldsSchemaV2,
+    dbStore: EnrichmentDataStore
+  ): Array<DisplayField> {
+    const attendee = dbStore.getAttendeeById(fields.attendeeId);
+    return [
+      {
+        labelKey: "booking_audit_action.attendee",
+        fieldValue: { type: "rawValue", value: attendee?.name ?? attendee?.email ?? "Unknown" },
+      },
+    ];
+  }
+}
+
+export class SeatRescheduledAuditActionService implements IAuditActionService {
+  static readonly VERSION = 2;
+  public static readonly TYPE = "SEAT_RESCHEDULED" as const;
+
+  public static readonly latestFieldsSchema = latestFieldsSchema;
+  public static readonly storedDataSchema = z.union([
+    SeatRescheduledV2.dataSchema,
+    SeatRescheduledV1.dataSchema,
+  ]);
+
   private helper: AuditActionServiceHelper<
-    typeof SeatRescheduledAuditActionService.latestFieldsSchema,
+    typeof latestFieldsSchema,
     typeof SeatRescheduledAuditActionService.storedDataSchema
   >;
+
+  private v1 = new SeatRescheduledV1();
+  private v2 = new SeatRescheduledV2();
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: SeatRescheduledAuditActionService.VERSION,
-      latestFieldsSchema: SeatRescheduledAuditActionService.latestFieldsSchema,
+      latestFieldsSchema,
       storedDataSchema: SeatRescheduledAuditActionService.storedDataSchema,
     });
   }
@@ -62,19 +155,15 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): BaseStoredAuditData {
+  parse(data: unknown) {
     return this.helper.parse(data);
   }
 
-  getDataRequirements(): DataRequirements {
-    return { userUuids: [] };
-  }
-
   async getDisplayTitle({ storedData, userTimeZone }: GetDisplayTitleParams): Promise<TranslationWithParams> {
-    const { fields } = this.parseStored(storedData);
+    const parsed = this.parseStored(storedData);
+    const fields = parsed.fields as Pick<FieldsSchemaV2, "startTime" | "rescheduledToBookingUid">;
     const rescheduledToBookingUid = fields.rescheduledToBookingUid.new;
 
-    // Format dates in user timezone
     const oldDate = fields.startTime.old
       ? AuditActionServiceHelper.formatDateInTimeZone(fields.startTime.old, userTimeZone)
       : "";
@@ -94,32 +183,34 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
     };
   }
 
-  getDisplayJson({ storedData, userTimeZone }: GetDisplayJsonParams): SeatRescheduledAuditDisplayData {
-    const { fields } = this.parseStored(storedData);
+  getDataRequirements(storedData: BaseStoredAuditData): DataRequirements {
+    const parsed = this.parseStored(storedData);
+    if (parsed.version === 1) {
+      return this.v1.getDataRequirements();
+    }
+    return this.v2.getDataRequirements(parsed.fields);
+  }
 
-    return {
-      seatReferenceUid: fields.seatReferenceUid,
-      attendeeEmail: fields.attendeeEmail,
-      previousStartTime: fields.startTime.old
-        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.old, userTimeZone)
-        : null,
-      newStartTime: fields.startTime.new
-        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.startTime.new, userTimeZone)
-        : null,
-      previousEndTime: fields.endTime.old
-        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.old, userTimeZone)
-        : null,
-      newEndTime: fields.endTime.new
-        ? AuditActionServiceHelper.formatDateTimeInTimeZone(fields.endTime.new, userTimeZone)
-        : null,
-      rescheduledToBookingUid: fields.rescheduledToBookingUid.new ?? null,
-    };
+  getDisplayJson({ storedData, userTimeZone }: GetDisplayJsonParams): SeatRescheduledAuditDisplayData {
+    const parsed = this.parseStored(storedData);
+    if (parsed.version === 1) {
+      return this.v1.getDisplayJson(parsed.fields, userTimeZone);
+    }
+    return this.v2.getDisplayJson(parsed.fields, userTimeZone);
+  }
+
+  async getDisplayFields({ storedData, dbStore }: GetDisplayFieldsParams): Promise<DisplayField[]> {
+    const parsed = this.parseStored(storedData);
+    if (parsed.version === 1) {
+      return this.v1.getDisplayFields();
+    }
+    return this.v2.getDisplayFields(parsed.fields, dbStore);
   }
 }
 
-export type SeatRescheduledAuditData = z.infer<typeof fieldsSchemaV1>;
+export type SeatRescheduledAuditData = z.infer<typeof fieldsSchemaV2>;
 
-export type SeatRescheduledAuditDisplayData = {
+export type SeatRescheduledAuditDisplayDataV1 = {
   seatReferenceUid: string;
   attendeeEmail: string;
   previousStartTime: string | null;
@@ -128,3 +219,17 @@ export type SeatRescheduledAuditDisplayData = {
   newEndTime: string | null;
   rescheduledToBookingUid: string | null;
 };
+
+export type SeatRescheduledAuditDisplayDataV2 = {
+  seatReferenceUid: string;
+  attendeeId: number;
+  previousStartTime: string | null;
+  newStartTime: string | null;
+  previousEndTime: string | null;
+  newEndTime: string | null;
+  rescheduledToBookingUid: string | null;
+};
+
+export type SeatRescheduledAuditDisplayData =
+  | SeatRescheduledAuditDisplayDataV1
+  | SeatRescheduledAuditDisplayDataV2;

@@ -88,6 +88,14 @@ export class BookingAttendeesService {
       await this.sendAttendeeNotification(evt, booking, attendeeEmail);
     }
 
+    const createdAttendee = updatedBooking.attendees.find(
+      (a) => a.email.toLowerCase() === attendeeEmail.toLowerCase()
+    );
+
+    if (!createdAttendee) {
+      throw new Error("Attendee was created but could not be found");
+    }
+
     const bookingEventHandlerService = getBookingEventHandlerService();
     const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
@@ -101,18 +109,10 @@ export class BookingAttendeesService {
       organizationId,
       source: actionSource,
       auditData: {
-        added: [attendeeEmail],
+        addedAttendeeIds: [createdAttendee.id],
       },
       isBookingAuditEnabled,
     });
-
-    const createdAttendee = updatedBooking.attendees.find(
-      (a) => a.email.toLowerCase() === attendeeEmail.toLowerCase()
-    );
-
-    if (!createdAttendee) {
-      throw new Error("Attendee was created but could not be found");
-    }
 
     return {
       id: createdAttendee.id,

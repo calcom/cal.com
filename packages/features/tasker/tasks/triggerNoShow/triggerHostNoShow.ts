@@ -30,7 +30,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
       new: null,
     };
     const attendeesNoShowAudit: Array<{
-      attendeeEmail: string;
+      attendeeId: number;
       noShow: { old: boolean | null; new: boolean };
     }> = [];
     await Promise.allSettled(
@@ -48,7 +48,7 @@ const markHostsAsNoShowInBooking = async (booking: Booking, hostsThatDidntJoinTh
             data: { noShow: true },
           });
           attendeesNoShowAudit.push({
-            attendeeEmail: host.email,
+            attendeeId: attendeeBefore.id,
             noShow: { old: attendeeBefore.noShow ?? null, new: true },
           });
         }

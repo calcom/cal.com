@@ -26,6 +26,8 @@ const fieldsSchemaV1 = z.object({
   seatReferenceUid: z.string().nullish(),
 });
 
+const latestFieldsSchema = fieldsSchemaV1;
+
 export class CreatedAuditActionService implements IAuditActionService {
   static readonly VERSION = 1;
   public static readonly TYPE = "CREATED" as const;
@@ -34,20 +36,20 @@ export class CreatedAuditActionService implements IAuditActionService {
     fields: fieldsSchemaV1,
   });
   private static fieldsSchemaV1 = fieldsSchemaV1;
-  public static readonly latestFieldsSchema = fieldsSchemaV1;
+  public static readonly latestFieldsSchema = latestFieldsSchema;
   // Union of all versions
   public static readonly storedDataSchema = CreatedAuditActionService.dataSchemaV1;
   // Union of all versions
   public static readonly storedFieldsSchema = CreatedAuditActionService.fieldsSchemaV1;
   private helper: AuditActionServiceHelper<
-    typeof CreatedAuditActionService.latestFieldsSchema,
+    typeof latestFieldsSchema,
     typeof CreatedAuditActionService.storedDataSchema
   >;
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: CreatedAuditActionService.VERSION,
-      latestFieldsSchema: CreatedAuditActionService.latestFieldsSchema,
+      latestFieldsSchema,
       storedDataSchema: CreatedAuditActionService.storedDataSchema,
     });
   }
@@ -64,7 +66,7 @@ export class CreatedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): BaseStoredAuditData {
+  parse(data: unknown) {
     return this.helper.parse(data);
   }
 

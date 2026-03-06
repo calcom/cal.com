@@ -80,8 +80,6 @@ export const addGuestsHandler = async ({
     booking
   );
 
-  // Capture new attendee emails after update for audit logging
-  const newAttendeeEmails = bookingAttendees.attendees.map((attendee) => attendee.email);
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -100,13 +98,17 @@ export const addGuestsHandler = async ({
     ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
 
+  const addedAttendeeIds = bookingAttendees.attendees
+    .filter((attendee) => uniqueGuestEmails.includes(attendee.email))
+    .map((attendee) => attendee.id);
+
   await bookingEventHandlerService.onAttendeeAdded({
     bookingUid: booking.uid,
     actor: makeUserActor(user.uuid),
     organizationId,
     source: actionSource,
     auditData: {
-      added: uniqueGuestEmails,
+      addedAttendeeIds,
     },
     isBookingAuditEnabled,
   });

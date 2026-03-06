@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 import { AcceptedAuditActionService } from "../actions/AcceptedAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
-import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
 import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
 import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
 import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
@@ -270,23 +269,6 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
       ...params,
       action: RejectedAuditActionService.TYPE,
       version: RejectedAuditActionService.VERSION,
-    });
-  }
-
-  async queueAttendeeRemovedAudit(params: {
-    bookingUid: string;
-    actor: Actor;
-    organizationId: number | null;
-    source: ActionSource;
-    operationId?: string | null;
-    data: z.infer<typeof AttendeeRemovedAuditActionService.latestFieldsSchema>;
-    context?: BookingAuditContext;
-    isBookingAuditEnabled: boolean;
-  }): Promise<void> {
-    await this.queueTask({
-      ...params,
-      action: AttendeeRemovedAuditActionService.TYPE,
-      version: AttendeeRemovedAuditActionService.VERSION,
     });
   }
 

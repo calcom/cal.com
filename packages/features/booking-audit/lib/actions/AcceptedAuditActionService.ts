@@ -21,6 +21,8 @@ const fieldsSchemaV1 = z.object({
   status: BookingStatusChangeSchema,
 });
 
+const latestFieldsSchema = fieldsSchemaV1;
+
 export class AcceptedAuditActionService implements IAuditActionService {
   static readonly VERSION = 1;
   public static readonly TYPE = "ACCEPTED" as const;
@@ -29,20 +31,20 @@ export class AcceptedAuditActionService implements IAuditActionService {
     fields: fieldsSchemaV1,
   });
   private static fieldsSchemaV1 = fieldsSchemaV1;
-  public static readonly latestFieldsSchema = fieldsSchemaV1;
+  public static readonly latestFieldsSchema = latestFieldsSchema;
   // Union of all versions
   public static readonly storedDataSchema = AcceptedAuditActionService.dataSchemaV1;
   // Union of all versions
   public static readonly storedFieldsSchema = AcceptedAuditActionService.fieldsSchemaV1;
   private helper: AuditActionServiceHelper<
-    typeof AcceptedAuditActionService.latestFieldsSchema,
+    typeof latestFieldsSchema,
     typeof AcceptedAuditActionService.storedDataSchema
   >;
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: AcceptedAuditActionService.VERSION,
-      latestFieldsSchema: AcceptedAuditActionService.latestFieldsSchema,
+      latestFieldsSchema,
       storedDataSchema: AcceptedAuditActionService.storedDataSchema,
     });
   }
@@ -59,7 +61,7 @@ export class AcceptedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): BaseStoredAuditData {
+  parse(data: unknown) {
     return this.helper.parse(data);
   }
 

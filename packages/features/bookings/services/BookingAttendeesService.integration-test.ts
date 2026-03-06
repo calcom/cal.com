@@ -233,7 +233,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
       expect(mockOnAttendeeAdded).toHaveBeenCalledWith(
         expect.objectContaining({
           bookingUid: "booking-uid-1",
-          auditData: { added: ["guest@test.com"] },
+          auditData: { addedAttendeeIds: [10] },
         })
       );
     });

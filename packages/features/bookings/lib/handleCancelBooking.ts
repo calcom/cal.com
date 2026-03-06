@@ -555,7 +555,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         bookingUid: updatedRecurringBooking.uid,
         auditData: {
           cancellationReason: cancellationReason ?? null,
-          cancelledBy: cancelledBy ?? null,
           status: {
             old: bookingToDelete.status,
             new: BookingStatus.CANCELLED,
@@ -595,7 +594,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       source: actionSource,
       auditData: {
         cancellationReason: cancellationReason ?? null,
-        cancelledBy: cancelledBy ?? null,
         status: {
           old: bookingToDelete.status,
           new: BookingStatus.CANCELLED,

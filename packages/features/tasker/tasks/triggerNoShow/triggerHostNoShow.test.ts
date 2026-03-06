@@ -63,7 +63,7 @@ type ExpectNoShowAuditParams = {
       };
     };
     attendeesNoShow?: Array<{
-      attendeeEmail: string;
+      attendeeId: number;
       noShow: {
         new: boolean;
         old: boolean | null;

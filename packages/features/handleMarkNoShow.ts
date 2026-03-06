@@ -216,7 +216,7 @@ async function fireNoShowUpdated({
 }): Promise<void> {
   const auditData: {
     host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
-    attendeesNoShow?: Array<{ attendeeEmail: string; noShow: { old: boolean | null; new: boolean } }>;
+    attendeesNoShow?: Array<{ attendeeId: number; noShow: { old: boolean | null; new: boolean } }>;
   } = {};
 
   if (updatedNoShowHost !== undefined && hostUserUuid) {
@@ -232,7 +232,7 @@ async function fireNoShowUpdated({
       const dbAttendee = emailToAttendeeMap[attendee.email];
       if (dbAttendee) {
         auditData.attendeesNoShow.push({
-          attendeeEmail: attendee.email,
+          attendeeId: dbAttendee.id,
           noShow: { old: dbAttendee.noShow ?? null, new: attendee.noShow },
         });
       }

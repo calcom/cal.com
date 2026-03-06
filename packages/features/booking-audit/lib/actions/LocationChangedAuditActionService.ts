@@ -21,6 +21,8 @@ const fieldsSchemaV1 = z.object({
   location: StringChangeSchema,
 });
 
+const latestFieldsSchema = fieldsSchemaV1;
+
 export class LocationChangedAuditActionService implements IAuditActionService {
   static readonly VERSION = 1;
   public static readonly TYPE = "LOCATION_CHANGED" as const;
@@ -29,20 +31,20 @@ export class LocationChangedAuditActionService implements IAuditActionService {
     fields: fieldsSchemaV1,
   });
   private static fieldsSchemaV1 = fieldsSchemaV1;
-  public static readonly latestFieldsSchema = fieldsSchemaV1;
+  public static readonly latestFieldsSchema = latestFieldsSchema;
   // Union of all versions
   public static readonly storedDataSchema = LocationChangedAuditActionService.dataSchemaV1;
   // Union of all versions
   public static readonly storedFieldsSchema = LocationChangedAuditActionService.fieldsSchemaV1;
   private helper: AuditActionServiceHelper<
-    typeof LocationChangedAuditActionService.latestFieldsSchema,
+    typeof latestFieldsSchema,
     typeof LocationChangedAuditActionService.storedDataSchema
   >;
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: LocationChangedAuditActionService.VERSION,
-      latestFieldsSchema: LocationChangedAuditActionService.latestFieldsSchema,
+      latestFieldsSchema,
       storedDataSchema: LocationChangedAuditActionService.storedDataSchema,
     });
   }
@@ -59,7 +61,7 @@ export class LocationChangedAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): BaseStoredAuditData {
+  parse(data: unknown) {
     return this.helper.parse(data);
   }
 

@@ -328,7 +328,6 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     source,
     auditData: {
       rescheduleReason: cancellationReason ?? null,
-      rescheduledRequestedBy: user.email,
     },
     isBookingAuditEnabled,
   });

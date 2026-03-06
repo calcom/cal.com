@@ -22,6 +22,8 @@ const fieldsSchemaV1 = z.object({
   rescheduledToUid: StringChangeSchema,
 });
 
+const latestFieldsSchema = fieldsSchemaV1;
+
 export class RescheduledAuditActionService implements IAuditActionService {
   static readonly VERSION = 1;
   public static readonly TYPE = "RESCHEDULED" as const;
@@ -30,20 +32,20 @@ export class RescheduledAuditActionService implements IAuditActionService {
     fields: fieldsSchemaV1,
   });
   private static fieldsSchemaV1 = fieldsSchemaV1;
-  public static readonly latestFieldsSchema = fieldsSchemaV1;
+  public static readonly latestFieldsSchema = latestFieldsSchema;
   // Union of all versions
   public static readonly storedDataSchema = RescheduledAuditActionService.dataSchemaV1;
   // Union of all versions
   public static readonly storedFieldsSchema = RescheduledAuditActionService.fieldsSchemaV1;
   private helper: AuditActionServiceHelper<
-    typeof RescheduledAuditActionService.latestFieldsSchema,
+    typeof latestFieldsSchema,
     typeof RescheduledAuditActionService.storedDataSchema
   >;
 
   constructor() {
     this.helper = new AuditActionServiceHelper({
       latestVersion: RescheduledAuditActionService.VERSION,
-      latestFieldsSchema: RescheduledAuditActionService.latestFieldsSchema,
+      latestFieldsSchema,
       storedDataSchema: RescheduledAuditActionService.storedDataSchema,
     });
   }
@@ -60,7 +62,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
     return this.helper.getVersion(data);
   }
 
-  parse(data: unknown): BaseStoredAuditData {
+  parse(data: unknown) {
     return this.helper.parse(data);
   }
 

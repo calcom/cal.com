@@ -31,7 +31,7 @@ const markGuestAsNoshowInBooking = async ({
   guestsThatDidntJoinTheCall?: { email: string; name: string }[];
 }): Promise<{
   updatedAttendees: UpdatedAttendee[] | null;
-  attendeesMarkedNoShow: { email: string; noShow: boolean; previousNoShow: boolean | null }[];
+  attendeesMarkedNoShow: { id: number; noShow: boolean; previousNoShow: boolean | null }[];
 }> => {
   const attendeeRepository = new AttendeeRepository(prisma);
 
@@ -62,15 +62,15 @@ const markGuestAsNoshowInBooking = async ({
 
     const updatedAttendees = await attendeeRepository.findByBookingId(bookingId);
 
-    const attendeesMarkedNoShow = updatedAttendeeEmails
-      .map((email) => {
-        const before = attendeesBeforeMap.get(email);
-        if (!before) {
-          return null;
-        }
-        return { email, noShow: true, previousNoShow: before.noShow };
-      })
-      .filter((a): a is { email: string; noShow: boolean; previousNoShow: boolean | null } => a !== null);
+      const attendeesMarkedNoShow = updatedAttendeeEmails
+        .map((email) => {
+          const before = attendeesBeforeMap.get(email);
+          if (!before) {
+            return null;
+          }
+          return { id: before.id, noShow: true, previousNoShow: before.noShow };
+        })
+        .filter((a): a is { id: number; noShow: boolean; previousNoShow: boolean | null } => a !== null);
 
     return { updatedAttendees, attendeesMarkedNoShow };
   } catch (err) {
@@ -108,7 +108,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       });
 
       const attendeesNoShowAudit = attendeesMarkedNoShow.map((a) => ({
-        attendeeEmail: a.email,
+        attendeeId: a.id,
         noShow: { old: a.previousNoShow, new: a.noShow },
       }));
       await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });
@@ -135,7 +135,7 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
       });
 
       const attendeesNoShowAudit = attendeesMarkedNoShow.map((a) => ({
-        attendeeEmail: a.email,
+        attendeeId: a.id,
         noShow: { old: a.previousNoShow, new: a.noShow },
       }));
       await fireNoShowUpdatedEvent({ booking, attendeesNoShowAudit });

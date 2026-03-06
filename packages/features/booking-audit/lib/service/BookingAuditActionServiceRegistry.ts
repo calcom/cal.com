@@ -22,10 +22,6 @@ import {
 } from "../actions/NoShowUpdatedAuditActionService";
 import { RejectedAuditActionService, type RejectedAuditData } from "../actions/RejectedAuditActionService";
 import {
-  AttendeeRemovedAuditActionService,
-  type AttendeeRemovedAuditData,
-} from "../actions/AttendeeRemovedAuditActionService";
-import {
   ReassignmentAuditActionService,
   type ReassignmentAuditData,
 } from "../actions/ReassignmentAuditActionService";
@@ -55,7 +51,6 @@ export type AuditActionData =
   | AttendeeAddedAuditData
   | NoShowUpdatedAuditData
   | RejectedAuditData
-  | AttendeeRemovedAuditData
   | ReassignmentAuditData
   | LocationChangedAuditData
   | SeatBookedAuditData
@@ -85,7 +80,6 @@ export class BookingAuditActionServiceRegistry implements IBookingAuditActionSer
       ["ATTENDEE_ADDED", new AttendeeAddedAuditActionService()],
       ["NO_SHOW_UPDATED", new NoShowUpdatedAuditActionService()],
       ["REJECTED", new RejectedAuditActionService()],
-      ["ATTENDEE_REMOVED", new AttendeeRemovedAuditActionService()],
       ["REASSIGNMENT", new ReassignmentAuditActionService()],
       ["LOCATION_CHANGED", new LocationChangedAuditActionService()],
       ["SEAT_BOOKED", new SeatBookedAuditActionService()],

@@ -4,7 +4,6 @@ import type { CancelledAuditData } from "@calcom/features/booking-audit/lib/acti
 import type { RejectedAuditData } from "@calcom/features/booking-audit/lib/actions/RejectedAuditActionService";
 import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
 import type { AttendeeAddedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionService";
-import type { AttendeeRemovedAuditData } from "@calcom/features/booking-audit/lib/actions/AttendeeRemovedAuditActionService";
 import type { ReassignmentAuditData } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
 import type { LocationChangedAuditData } from "@calcom/features/booking-audit/lib/actions/LocationChangedAuditActionService";
 import type { NoShowUpdatedAuditData } from "@calcom/features/booking-audit/lib/actions/NoShowUpdatedAuditActionService";
@@ -62,7 +61,6 @@ type OnRescheduleRequestedParams = BaseBookingEventParams<RescheduleRequestedAud
 type OnAttendeeAddedParams = BaseBookingEventParams<AttendeeAddedAuditData>;
 type OnNoShowUpdatedParams = BaseBookingEventParams<NoShowUpdatedAuditData>;
 type OnBookingRejectedParams = BaseBookingEventParams<RejectedAuditData>;
-type OnAttendeeRemovedParams = BaseBookingEventParams<AttendeeRemovedAuditData>;
 type OnReassignmentParams = BaseBookingEventParams<ReassignmentAuditData>;
 type OnLocationChangedParams = BaseBookingEventParams<LocationChangedAuditData>;
 type OnSeatBookedParams = BaseBookingEventParams<SeatBookedAuditData>;
@@ -273,29 +271,6 @@ export class BookingEventHandlerService {
       isBookingAuditEnabled,
     } = params;
     await this.bookingAuditProducerService.queueRejectedAudit({
-      bookingUid,
-      actor,
-      organizationId,
-      source,
-      operationId,
-      data: auditData,
-      context,
-      isBookingAuditEnabled,
-    });
-  }
-
-  async onAttendeeRemoved(params: OnAttendeeRemovedParams) {
-    const {
-      bookingUid,
-      actor,
-      organizationId,
-      auditData,
-      source,
-      operationId,
-      context,
-      isBookingAuditEnabled,
-    } = params;
-    await this.bookingAuditProducerService.queueAttendeeRemovedAudit({
       bookingUid,
       actor,
       organizationId,

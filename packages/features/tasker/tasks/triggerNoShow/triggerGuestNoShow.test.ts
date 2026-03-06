@@ -56,7 +56,7 @@ type ExpectNoShowAuditParams = {
   organizationId: number | null;
   auditData: {
     attendeesNoShow: Array<{
-      attendeeEmail: string;
+      attendeeId: number;
       noShow: {
         new: boolean;
         old: boolean | null;
@@ -243,7 +243,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
+          attendeesNoShow: [{ attendeeId: 101, noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });
@@ -444,7 +444,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
+          attendeesNoShow: [{ attendeeId: 102, noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });
@@ -684,7 +684,7 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
+          attendeesNoShow: [{ attendeeId: 103, noShow: { new: true, old: false } }],
         },
         isBookingAuditEnabled: false,
       });

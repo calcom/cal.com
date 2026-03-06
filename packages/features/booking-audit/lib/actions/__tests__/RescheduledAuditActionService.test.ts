@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { verifyDataRequirementsContract, createTrackingDbStore, createEmptyAccessedData } from "./contractVerification";
+import { verifyDataRequirementsContract, createTrackingDbStore, createEmptyAccessedData } from "./dataRequirementsContractVerification";
 import { RescheduledAuditActionService } from "../RescheduledAuditActionService";
 
 describe("RescheduledAuditActionService - getDataRequirements contract", () => {
