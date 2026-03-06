@@ -1,4 +1,4 @@
-import { renderTable, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderTable } from "../../shared/output";
 import type { TimezonesData } from "./types";
 
 export function renderTimezones(data: TimezonesData | undefined, { json }: OutputOptions = {}): void {

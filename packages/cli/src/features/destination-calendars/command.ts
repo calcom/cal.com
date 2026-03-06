@@ -5,6 +5,7 @@ import {
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
+import { authHeader } from "../../shared/headers";
 import { renderDestinationCalendar, renderDestinationCalendarUpdated } from "./output";
 
 function registerDestinationCalendarQueryCommands(destCalCmd: Command): void {
@@ -15,7 +16,7 @@ function registerDestinationCalendarQueryCommands(destCalCmd: Command): void {
     .action(async (options: { json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const { data: response } = await getCalendars({ headers: { Authorization: "" } });
+        const { data: response } = await getCalendars({ headers: authHeader() });
         renderDestinationCalendar(response?.data?.destinationCalendar, options);
       });
     });
@@ -35,7 +36,7 @@ function registerDestinationCalendarMutationCommands(destCalCmd: Command): void 
       await withErrorHandling(async () => {
         await initializeClient();
         const { data: response } = await updateDestinationCalendar({
-          headers: { Authorization: "" },
+          headers: authHeader(),
           body: {
             integration: options.integration as "apple_calendar" | "google_calendar" | "office365_calendar",
             externalId: options.externalId,

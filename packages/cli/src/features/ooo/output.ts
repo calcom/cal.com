@@ -1,5 +1,11 @@
-import chalk from "chalk";
-import { formatDate, renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import {
+  formatDate,
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderTable,
+} from "../../shared/output";
 import type { OooEntry } from "./types";
 
 function formatOooRow(entry: OooEntry): string[] {
@@ -13,18 +19,15 @@ function formatOooRow(entry: OooEntry): string[] {
 }
 
 function renderOooDetail(entry: OooEntry): void {
-  console.log(chalk.bold("\nOut-of-Office Entry"));
-  console.log(`  ID:       ${entry.id}`);
-  console.log(`  Start:    ${formatDate(entry.start)}`);
-  console.log(`  End:      ${formatDate(entry.end)}`);
-  console.log(`  Reason:   ${entry.reason || "unspecified"}`);
-  if (entry.notes) {
-    console.log(`  Notes:    ${entry.notes}`);
-  }
-  if (entry.toUserId) {
-    console.log(`  Cover:    User #${entry.toUserId}`);
-  }
-  console.log();
+  renderHeader("Out-of-Office Entry");
+  renderDetail([
+    ["ID:", entry.id],
+    ["Start:", formatDate(entry.start)],
+    ["End:", formatDate(entry.end)],
+    ["Reason:", entry.reason || "unspecified"],
+    ["Notes:", entry.notes],
+    ["Cover:", entry.toUserId ? `User #${entry.toUserId}` : undefined],
+  ]);
 }
 
 export function renderOooList(entries: OooEntry[] | undefined, { json }: OutputOptions = {}): void {

@@ -6,6 +6,7 @@ import {
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
+import { authHeader } from "../../shared/headers";
 import {
   renderConferencingAppDisconnected,
   renderConferencingAppList,
@@ -25,7 +26,7 @@ export function registerConferencingCommand(program: Command): void {
         await initializeClient();
 
         const { data: response } = await listConferencingApps({
-          headers: { Authorization: "" },
+          headers: authHeader(),
         });
 
         renderConferencingAppList(response?.data, options);
@@ -41,7 +42,7 @@ export function registerConferencingCommand(program: Command): void {
         await initializeClient();
 
         const { data: response } = await getDefaultConferencingApp({
-          headers: { Authorization: "" },
+          headers: authHeader(),
         });
 
         renderDefaultConferencingApp(response?.data, options);
@@ -57,7 +58,7 @@ export function registerConferencingCommand(program: Command): void {
         await initializeClient();
 
         const { data: response } = await disconnectConferencingApp({
-          headers: { Authorization: "" },
+          headers: authHeader(),
           path: { app: app as ConferencingAppType },
         });
 

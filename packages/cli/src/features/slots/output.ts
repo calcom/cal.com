@@ -1,10 +1,7 @@
-import { formatTime, renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
-import type { ReservedSlot, SlotsData } from "./types";
+import { formatTime, type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
+import type { GetReservedSlotResponse, ReservedSlot, SlotsData } from "./types";
 
-export function renderAvailableSlots(
-  data: SlotsData | undefined,
-  { json }: OutputOptions = {}
-): void {
+export function renderAvailableSlots(data: SlotsData | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;
@@ -55,4 +52,36 @@ export function renderSlotDeleted(uid: string, { json }: OutputOptions = {}): vo
   }
 
   renderSuccess(`Reserved slot ${uid} deleted.`);
+}
+
+export function renderGetReservedSlot(
+  data: GetReservedSlotResponse | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data) {
+    console.log("Reserved slot not found.");
+    return;
+  }
+
+  console.log("\nReserved Slot Details:");
+  console.log(JSON.stringify(data, null, 2));
+}
+
+export function renderSlotUpdated(data: ReservedSlot | undefined, { json }: OutputOptions = {}): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data) {
+    console.log("Failed to update slot.");
+    return;
+  }
+
+  renderSuccess(`Slot updated: ${data.reservationUid}`);
 }

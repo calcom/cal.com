@@ -81,13 +81,14 @@ function registerWebhookMutationCommands(webhooksCmd: Command): void {
         await withErrorHandling(async () => {
           await initializeClient();
 
-          const triggers = options.triggers.split(",").map((t) => t.trim());
+          const triggers = options.triggers
+            .split(",")
+            .map((t) => t.trim()) as CreateWebhookInputDto["triggers"];
 
           const { data: response } = await createWebhook({
             body: {
               subscriberUrl: options.subscriberUrl,
-              // API expects array but SDK types say single string - cast to any
-              triggers: triggers as unknown as CreateWebhookInputDto["triggers"],
+              triggers,
               active: options.active === "true",
               secret: options.secret,
               payloadTemplate: options.payloadTemplate,
@@ -127,9 +128,9 @@ function registerWebhookMutationCommands(webhooksCmd: Command): void {
           const body: UpdateWebhookInputDto = {};
           if (options.subscriberUrl) body.subscriberUrl = options.subscriberUrl;
           if (options.triggers) {
-            const triggers = options.triggers.split(",").map((t) => t.trim());
-            // API expects array but SDK types say single string - cast to any
-            body.triggers = triggers as unknown as UpdateWebhookInputDto["triggers"];
+            body.triggers = options.triggers
+              .split(",")
+              .map((t) => t.trim()) as UpdateWebhookInputDto["triggers"];
           }
           if (options.active !== undefined) body.active = options.active === "true";
           if (options.secret) body.secret = options.secret;

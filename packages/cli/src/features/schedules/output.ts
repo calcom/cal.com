@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
 import type { Schedule, ScheduleDetail } from "./types";
 
 function formatDefaultLabel(isDefault: boolean): string {
@@ -15,8 +15,7 @@ function renderScheduleDetail(schedule: Schedule | ScheduleDetail | null): void 
   if (schedule.availability?.length) {
     console.log("  Availability:");
     for (const a of schedule.availability) {
-      const days = Array.isArray(a.days) ? a.days.join(", ") : a.days;
-      console.log(`    ${days}: ${a.startTime} - ${a.endTime}`);
+      console.log(`    ${a.days}: ${a.startTime} - ${a.endTime}`);
     }
   }
   console.log();
@@ -53,7 +52,10 @@ export function renderScheduleList(schedules: Schedule[] | undefined, { json }: 
   );
 }
 
-export function renderScheduleCreated(schedule: ScheduleDetail | undefined, { json }: OutputOptions = {}): void {
+export function renderScheduleCreated(
+  schedule: ScheduleDetail | undefined,
+  { json }: OutputOptions = {}
+): void {
   if (json) {
     console.log(JSON.stringify(schedule, null, 2));
     return;
@@ -67,7 +69,10 @@ export function renderScheduleCreated(schedule: ScheduleDetail | undefined, { js
   renderSuccess(`Schedule created: ${schedule.name} (ID: ${schedule.id})`);
 }
 
-export function renderScheduleUpdated(schedule: ScheduleDetail | undefined, { json }: OutputOptions = {}): void {
+export function renderScheduleUpdated(
+  schedule: ScheduleDetail | undefined,
+  { json }: OutputOptions = {}
+): void {
   if (json) {
     console.log(JSON.stringify(schedule, null, 2));
     return;

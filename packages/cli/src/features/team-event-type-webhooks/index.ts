@@ -1,0 +1,1 @@
+export { registerTeamEventTypeWebhooksCommand } from "./command";

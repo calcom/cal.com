@@ -12,7 +12,6 @@ import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
 import { renderError } from "../../shared/output";
 import { renderOooCreated, renderOooDeleted, renderOooList, renderOooUpdated } from "./output";
-import type { OooEntry } from "./types";
 import { VALID_REASONS } from "./types";
 
 interface OrgAndUser {
@@ -83,8 +82,7 @@ function registerOooListCommand(oooCmd: Command): void {
             headers: authHeader(),
           });
 
-          const entries = (response as { data?: OooEntry[] })?.data;
-          renderOooList(entries, options);
+          renderOooList(response?.data, options);
         });
       }
     );
@@ -147,8 +145,7 @@ function registerOooCreateCommand(oooCmd: Command): void {
             headers: authHeader(),
           });
 
-          const entry = (response as { data?: OooEntry })?.data;
-          renderOooCreated(entry, options);
+          renderOooCreated(response?.data, options);
         });
       }
     );
@@ -215,8 +212,7 @@ function registerOooUpdateCommand(oooCmd: Command): void {
             headers: authHeader(),
           });
 
-          const entry = (response as { data?: OooEntry })?.data;
-          renderOooUpdated(entry, options);
+          renderOooUpdated(response?.data, options);
         });
       }
     );

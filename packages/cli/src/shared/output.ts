@@ -76,3 +76,29 @@ export function renderTable(headers: string[], rows: string[][]): void {
     console.log(line);
   }
 }
+
+/**
+ * Renders a section header with the title in bold
+ */
+export function renderHeader(title: string): void {
+  console.log(chalk.bold(`\n${title}`));
+}
+
+export type DetailField = [label: string, value: string | number | boolean | null | undefined];
+
+/**
+ * Renders a list of key-value pairs in aligned columns
+ * @param fields Array of [label, value] tuples
+ * @param indent Number of spaces to indent (default: 2)
+ */
+export function renderDetail(fields: DetailField[], indent = 2): void {
+  const maxLabelWidth = Math.max(...fields.map(([label]) => label.length));
+  const padding = " ".repeat(indent);
+
+  for (const [label, value] of fields) {
+    if (value === undefined || value === null) continue;
+    const displayValue = typeof value === "boolean" ? (value ? "Yes" : "No") : String(value);
+    console.log(`${padding}${label.padEnd(maxLabelWidth)}  ${displayValue}`);
+  }
+  console.log();
+}

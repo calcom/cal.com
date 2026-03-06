@@ -1,3 +1,4 @@
+import process from "node:process";
 import { renderError } from "./output";
 
 interface ValidationConstraints {
@@ -100,9 +101,7 @@ export function handleSdkError(error: unknown): void {
       const parsed = JSON.parse(message) as ApiErrorBody;
       renderError(formatApiErrorBody(parsed));
       return;
-    } catch {
-      // Not JSON, continue to other error formats
-    }
+    } catch {}
 
     const sdkError = error as { body?: unknown; status?: number };
     if (sdkError.body && typeof sdkError.body === "object") {

@@ -1,4 +1,4 @@
-import { renderSuccess, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess } from "../../shared/output";
 import type { ApiKey } from "./types";
 
 function maskApiKey(apiKey: string): string {

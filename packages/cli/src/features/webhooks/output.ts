@@ -1,24 +1,15 @@
 import chalk from "chalk";
-import { renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
 import type { Webhook, WebhookResponse, WebhooksResponse } from "./types";
 
 function formatActiveStatus(active: boolean): string {
   return active ? chalk.green("Yes") : chalk.red("No");
 }
 
-function triggerToString(trigger: unknown): string {
-  if (typeof trigger === "string") return trigger;
-  if (typeof trigger === "object" && trigger !== null) {
-    return Object.values(trigger).join("");
-  }
-  return String(trigger);
-}
-
-function formatTriggers(triggers: Array<{ [key: string]: unknown }>, truncate = true): string {
+function formatTriggers(triggers: string[], truncate = true): string {
   if (!triggers || triggers.length === 0) return "";
-  const triggerStrings = triggers.map(triggerToString);
-  if (!truncate || triggerStrings.length <= 2) return triggerStrings.join(", ");
-  return `${triggerStrings.slice(0, 2).join(", ")} +${triggerStrings.length - 2} more`;
+  if (!truncate || triggers.length <= 2) return triggers.join(", ");
+  return `${triggers.slice(0, 2).join(", ")} +${triggers.length - 2} more`;
 }
 
 function renderWebhookDetail(webhook: Webhook): void {

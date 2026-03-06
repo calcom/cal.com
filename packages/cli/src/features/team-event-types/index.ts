@@ -1,0 +1,1 @@
+export { registerTeamEventTypesCommand } from "./command";

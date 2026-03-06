@@ -1,18 +1,22 @@
-import chalk from "chalk";
-import { renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderTable,
+} from "../../shared/output";
 import type {
   CreateEventTypeResponse,
   DeleteEventTypeResponse,
-  EventType,
+  EventTypeList,
   EventTypeResponse,
   UpdateEventTypeResponse,
 } from "./types";
 
-function formatHidden(hidden: boolean): string {
-  return hidden ? "Yes" : "No";
-}
-
-export function renderEventTypeList(eventTypes: EventType[] | undefined, { json }: OutputOptions = {}): void {
+export function renderEventTypeList(
+  eventTypes: EventTypeList | undefined,
+  { json }: OutputOptions = {}
+): void {
   if (json) {
     console.log(JSON.stringify(eventTypes, null, 2));
     return;
@@ -30,7 +34,7 @@ export function renderEventTypeList(eventTypes: EventType[] | undefined, { json 
       et.title,
       et.slug,
       `${et.lengthInMinutes} min`,
-      formatHidden(et.hidden),
+      et.hidden ? "Yes" : "No",
     ])
   );
 }
@@ -46,18 +50,15 @@ export function renderEventType(data: EventTypeResponse | undefined, { json }: O
     return;
   }
 
-  const eventType = data as EventType;
-
-  console.log(chalk.bold(`\nEvent Type: ${eventType.title}`));
-  console.log(`  ID:          ${eventType.id}`);
-  console.log(`  Slug:        ${eventType.slug}`);
-  console.log(`  Duration:    ${eventType.lengthInMinutes} min`);
-  console.log(`  Description: ${eventType.description || "None"}`);
-  console.log(`  Hidden:      ${formatHidden(eventType.hidden)}`);
-  if (eventType.scheduleId) {
-    console.log(`  Schedule ID: ${eventType.scheduleId}`);
-  }
-  console.log();
+  renderHeader(`Event Type: ${data.title}`);
+  renderDetail([
+    ["ID:", data.id],
+    ["Slug:", data.slug],
+    ["Duration:", `${data.lengthInMinutes} min`],
+    ["Description:", data.description || "None"],
+    ["Hidden:", data.hidden],
+    ["Schedule ID:", data.scheduleId],
+  ]);
 }
 
 export function renderEventTypeCreated(

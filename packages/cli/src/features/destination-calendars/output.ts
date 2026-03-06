@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { renderSuccess, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess } from "../../shared/output";
 import type { DestinationCalendar, DestinationCalendarsOutputDto } from "./types";
 
 export function renderDestinationCalendar(

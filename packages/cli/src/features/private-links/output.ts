@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
 import type { PrivateLink, PrivateLinkCreated, PrivateLinkList, PrivateLinkUpdated } from "./types";
 
 function isTimeBased(link: PrivateLink): link is PrivateLink & { expiresAt: string } {

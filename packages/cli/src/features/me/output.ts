@@ -1,5 +1,5 @@
-import { renderTable, type OutputOptions } from "../../shared/output";
-import type { Profile } from "./types";
+import { type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
+import type { Profile, ProfileUpdateResponse } from "./types";
 
 function formatDefaultSchedule(id: number | null | undefined): string {
   if (id) {
@@ -31,4 +31,21 @@ export function renderProfile(profile: Profile | undefined, { json }: OutputOpti
       ["Default Schedule", formatDefaultSchedule(profile.defaultScheduleId)],
     ]
   );
+}
+
+export function renderProfileUpdated(
+  data: ProfileUpdateResponse | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data) {
+    console.log("Failed to update profile.");
+    return;
+  }
+
+  renderSuccess(`Profile updated: ${data.name || data.username || data.email}`);
 }

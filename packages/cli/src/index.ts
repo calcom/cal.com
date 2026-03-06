@@ -7,6 +7,7 @@ import { registerBookingsCommand } from "./features/bookings";
 import { registerCalendarsCommand } from "./features/calendars";
 import { registerConferencingCommand } from "./features/conferencing";
 import { registerDestinationCalendarsCommand } from "./features/destination-calendars";
+import { registerEventTypeWebhooksCommand } from "./features/event-type-webhooks";
 import { registerEventTypesCommand } from "./features/event-types";
 import { registerLoginCommand, registerLogoutCommand } from "./features/login";
 import { registerMeCommand } from "./features/me";
@@ -15,6 +16,9 @@ import { registerPrivateLinksCommand } from "./features/private-links";
 import { registerSchedulesCommand } from "./features/schedules";
 import { registerSelectedCalendarsCommand } from "./features/selected-calendars";
 import { registerSlotsCommand } from "./features/slots";
+import { registerTeamEventTypeWebhooksCommand } from "./features/team-event-type-webhooks";
+import { registerTeamEventTypesCommand } from "./features/team-event-types";
+import { registerTeamsCommand } from "./features/teams";
 import { registerTimezonesCommand } from "./features/timezones";
 import { registerWebhooksCommand } from "./features/webhooks";
 
@@ -40,6 +44,10 @@ registerDestinationCalendarsCommand(program);
 registerSelectedCalendarsCommand(program);
 registerApiKeysCommand(program);
 registerTimezonesCommand(program);
+registerTeamsCommand(program);
+registerTeamEventTypesCommand(program);
+registerEventTypeWebhooksCommand(program);
+registerTeamEventTypeWebhooksCommand(program);
 registerOooCommand(program);
 registerPrivateLinksCommand(program);
 

@@ -2,14 +2,21 @@ import type { Command } from "commander";
 import {
   slotsController20240904DeleteReservedSlot as deleteReservedSlot,
   slotsController20240904GetAvailableSlots as getAvailableSlots,
+  slotsController20240904GetReservedSlot as getReservedSlot,
   slotsController20240904ReserveSlot as reserveSlot,
+  slotsController20240904UpdateReservedSlot as updateReservedSlot,
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { ApiVersion } from "../../shared/constants";
 import { withErrorHandling } from "../../shared/errors";
 import { apiVersionHeader } from "../../shared/headers";
-import { renderAvailableSlots, renderReservedSlot, renderSlotDeleted } from "./output";
-import type { SlotsData } from "./types";
+import {
+  renderAvailableSlots,
+  renderGetReservedSlot,
+  renderReservedSlot,
+  renderSlotDeleted,
+  renderSlotUpdated,
+} from "./output";
 
 export function registerSlotsCommand(program: Command): void {
   const slotsCmd = program.command("slots").description("Manage available slots");
@@ -39,7 +46,7 @@ export function registerSlotsCommand(program: Command): void {
         await withErrorHandling(async () => {
           await initializeClient();
 
-          const { data: response } = await getAvailableSlots({
+          const { data: slotsData } = await getAvailableSlots({
             query: {
               start: options.start,
               end: options.end,
@@ -52,7 +59,6 @@ export function registerSlotsCommand(program: Command): void {
             headers: apiVersionHeader(ApiVersion.V2024_09_04),
           });
 
-          const slotsData = (response as { data?: SlotsData; status?: string })?.data;
           renderAvailableSlots(slotsData, options);
         });
       }
@@ -90,6 +96,63 @@ export function registerSlotsCommand(program: Command): void {
           });
 
           renderReservedSlot(response?.data, options);
+        });
+      }
+    );
+
+  slotsCmd
+    .command("get <uid>")
+    .description("Get a reserved slot by UID")
+    .option("--json", "Output as JSON")
+    .action(async (uid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getReservedSlot({
+          path: { uid },
+          headers: apiVersionHeader(ApiVersion.V2024_09_04),
+        });
+
+        renderGetReservedSlot(response?.data, options);
+      });
+    });
+
+  slotsCmd
+    .command("update <uid>")
+    .description("Update a reserved slot")
+    .requiredOption("--event-type-id <id>", "Event type ID")
+    .requiredOption("--slot-start <datetime>", "Slot start (ISO 8601 UTC)")
+    .option("--slot-duration <minutes>", "Slot duration in minutes")
+    .option("--reservation-duration <minutes>", "Reservation duration in minutes")
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        uid: string,
+        options: {
+          eventTypeId: string;
+          slotStart: string;
+          slotDuration?: string;
+          reservationDuration?: string;
+          json?: boolean;
+        }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+
+          const { data: response } = await updateReservedSlot({
+            path: { uid },
+            body: {
+              eventTypeId: Number(options.eventTypeId),
+              slotStart: options.slotStart,
+              slotDuration: options.slotDuration ? Number(options.slotDuration) : undefined,
+              reservationDuration: options.reservationDuration
+                ? Number(options.reservationDuration)
+                : undefined,
+            },
+            headers: apiVersionHeader(ApiVersion.V2024_09_04),
+          });
+
+          renderSlotUpdated(response?.data, options);
         });
       }
     );

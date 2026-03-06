@@ -1,4 +1,4 @@
-import { renderSuccess, renderTable, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess, renderTable } from "../../shared/output";
 import type { SelectedCalendar } from "./types";
 
 export function renderSelectedCalendarList(

@@ -1,7 +1,9 @@
+import process from "node:process";
 import type { Command } from "commander";
 import { apiKeysControllerRefresh as refreshApiKey } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
+import { authHeader } from "../../shared/headers";
 import { renderError } from "../../shared/output";
 import { renderApiKeyRefreshed } from "./output";
 
@@ -29,7 +31,7 @@ export function registerApiKeysCommand(program: Command): void {
             apiKeyDaysValid: options.daysValid ? Number(options.daysValid) : undefined,
             apiKeyNeverExpires: options.neverExpires,
           },
-          headers: { Authorization: "" },
+          headers: authHeader(),
         });
 
         renderApiKeyRefreshed(response?.data, options);

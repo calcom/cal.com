@@ -2,11 +2,25 @@ import chalk from "chalk";
 import {
   formatDateShort,
   formatTimeRange,
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
   renderSuccess,
   renderTable,
-  type OutputOptions,
 } from "../../shared/output";
-import type { Booking, BookingResponse, CreateBookingResponse, RescheduleBookingResponse } from "./types";
+import type {
+  Booking,
+  BookingActionResponse,
+  BookingList,
+  BookingRecordings,
+  BookingReferences,
+  BookingResponse,
+  BookingTranscripts,
+  CalendarLinks,
+  CreateBookingResponse,
+  RescheduleBookingResponse,
+  VideoSessions,
+} from "./types";
 
 function normalizeBooking(
   data: BookingResponse | CreateBookingResponse | RescheduleBookingResponse | undefined
@@ -17,16 +31,17 @@ function normalizeBooking(
 }
 
 function renderBookingDetail(booking: Booking): void {
-  console.log(chalk.bold(`\nBooking: ${booking.title}`));
-  console.log(`  UID:        ${booking.uid}`);
-  console.log(`  Status:     ${booking.status}`);
-  console.log(`  Start:      ${new Date(booking.start).toLocaleString()}`);
-  console.log(`  End:        ${new Date(booking.end).toLocaleString()}`);
-  console.log(`  Duration:   ${booking.duration} min`);
-  if (booking.location) console.log(`  Location:   ${booking.location}`);
-  if (booking.meetingUrl) console.log(`  Meeting:    ${booking.meetingUrl}`);
-  if (booking.attendees?.length) console.log(`  Attendees:  ${booking.attendees.length} attendee(s)`);
-  console.log();
+  renderHeader(`Booking: ${booking.title}`);
+  renderDetail([
+    ["UID:", booking.uid],
+    ["Status:", booking.status],
+    ["Start:", new Date(booking.start).toLocaleString()],
+    ["End:", new Date(booking.end).toLocaleString()],
+    ["Duration:", `${booking.duration} min`],
+    ["Location:", booking.location],
+    ["Meeting:", booking.meetingUrl],
+    ["Attendees:", booking.attendees?.length ? `${booking.attendees.length} attendee(s)` : undefined],
+  ]);
 }
 
 export function renderBooking(data: BookingResponse | undefined, { json }: OutputOptions = {}): void {
@@ -45,7 +60,7 @@ export function renderBooking(data: BookingResponse | undefined, { json }: Outpu
   renderBookingDetail(booking);
 }
 
-export function renderBookingList(bookings: Booking[] | undefined, { json }: OutputOptions = {}): void {
+export function renderBookingList(bookings: BookingList | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(bookings, null, 2));
     return;
@@ -72,7 +87,10 @@ export function renderBookingList(bookings: Booking[] | undefined, { json }: Out
   );
 }
 
-export function renderBookingCreated(data: CreateBookingResponse | undefined, { json }: OutputOptions = {}): void {
+export function renderBookingCreated(
+  data: CreateBookingResponse | undefined,
+  { json }: OutputOptions = {}
+): void {
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;
@@ -112,7 +130,7 @@ export function renderBookingRescheduled(
 export function renderBookingAction(
   action: string,
   bookingUid: string,
-  response: unknown,
+  response: BookingActionResponse | undefined,
   { json }: OutputOptions = {}
 ): void {
   if (json) {
@@ -121,4 +139,114 @@ export function renderBookingAction(
   }
 
   renderSuccess(`Booking ${bookingUid} ${action}.`);
+}
+
+export function renderBookingRecordings(
+  data: BookingRecordings | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data?.length) {
+    console.log("No recordings found for this booking.");
+    return;
+  }
+
+  console.log(chalk.bold(`\nRecordings (${data.length}):`));
+  renderTable(
+    ["ID", "Room", "Duration", "Download Link"],
+    data.map((recording) => [
+      recording.id || "",
+      recording.roomName || "",
+      recording.duration ? `${Math.round(recording.duration / 60)}m` : "",
+      recording.downloadLink || "",
+    ])
+  );
+}
+
+export function renderBookingTranscripts(
+  data: BookingTranscripts | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data?.length) {
+    console.log("No transcripts found for this booking.");
+    return;
+  }
+
+  console.log(chalk.bold(`\nTranscripts (${data.length}):`));
+  data.forEach((transcript, index) => {
+    console.log(`  ${index + 1}. ${transcript}`);
+  });
+  console.log();
+}
+
+export function renderBookingReferences(
+  data: BookingReferences | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data?.length) {
+    console.log("No references found for this booking.");
+    return;
+  }
+
+  console.log(chalk.bold(`\nBooking References (${data.length}):`));
+  renderTable(
+    ["ID", "Type", "Event UID", "Calendar ID"],
+    data.map((ref) => [String(ref.id), ref.type || "", ref.eventUid || "", ref.destinationCalendarId || "-"])
+  );
+}
+
+export function renderCalendarLinks(data: CalendarLinks | undefined, { json }: OutputOptions = {}): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data?.length) {
+    console.log("No calendar links found for this booking.");
+    return;
+  }
+
+  console.log(chalk.bold(`\nCalendar Links (${data.length}):`));
+  data.forEach((link) => {
+    console.log(`  ${link.label}: ${link.link}`);
+  });
+  console.log();
+}
+
+export function renderVideoSessions(data: VideoSessions | undefined, { json }: OutputOptions = {}): void {
+  if (json) {
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (!data?.length) {
+    console.log("No video sessions found for this booking.");
+    return;
+  }
+
+  console.log(chalk.bold(`\nVideo Sessions (${data.length}):`));
+  renderTable(
+    ["ID", "Room", "Duration", "Participants", "Ongoing"],
+    data.map((session) => [
+      session.id || "",
+      session.room || "",
+      session.duration ? `${Math.round(session.duration / 60)}m` : "",
+      String(session.maxParticipants || 0),
+      session.ongoing ? "Yes" : "No",
+    ])
+  );
 }

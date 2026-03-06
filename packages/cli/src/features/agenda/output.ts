@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import { formatDateShort, formatTimeRange, renderTable, type OutputOptions } from "../../shared/output";
-import type { Booking } from "../bookings/types";
+import { formatDateShort, formatTimeRange, type OutputOptions, renderTable } from "../../shared/output";
+import type { Booking, BookingList } from "../bookings/types";
 
 function formatRelativeDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -28,7 +28,7 @@ function formatAgendaRow(booking: Booking): string[] {
   ];
 }
 
-export function renderAgenda(bookings: Booking[] | undefined, { json }: OutputOptions = {}): void {
+export function renderAgenda(bookings: BookingList | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(bookings, null, 2));
     return;

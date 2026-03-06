@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { formatDateTime, renderTable, type OutputOptions } from "../../shared/output";
+import { formatDateTime, type OutputOptions, renderTable } from "../../shared/output";
 import type { BusyTimesList, ConnectedCalendarsData } from "./types";
 
 function formatSelectedLabel(isSelected: boolean): string {

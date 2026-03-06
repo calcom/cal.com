@@ -70,16 +70,16 @@ function registerScheduleMutationCommands(schedulesCmd: Command): void {
     .description("Create a schedule")
     .requiredOption("--name <name>", "Schedule name")
     .requiredOption("--timezone <tz>", "Timezone (e.g. America/New_York)")
-    .option("--is-default", "Set as default schedule")
+    .requiredOption("--is-default <value>", "Set as default schedule (true/false)")
     .option("--json", "Output as JSON")
-    .action(async (options: { name: string; timezone: string; isDefault?: boolean; json?: boolean }) => {
+    .action(async (options: { name: string; timezone: string; isDefault: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
         const { data: response } = await createSchedule({
           body: {
             name: options.name,
             timeZone: options.timezone,
-            isDefault: options.isDefault || false,
+            isDefault: options.isDefault === "true",
           },
           headers: apiVersionHeader(ApiVersion.V2024_06_11),
         });

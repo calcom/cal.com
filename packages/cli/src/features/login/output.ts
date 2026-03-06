@@ -1,4 +1,4 @@
-import { renderSuccess, type OutputOptions } from "../../shared/output";
+import { type OutputOptions, renderSuccess } from "../../shared/output";
 
 export function renderLogoutSuccess({ json }: OutputOptions = {}): void {
   if (json) {

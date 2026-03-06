@@ -1,13 +1,24 @@
 import type { Command } from "commander";
 import {
+  bookingAttendeesController20240813AddAttendee as addAttendee,
+  bookingGuestsController20240813AddGuests as addGuests,
   bookingsController20240813CancelBooking as cancelBooking,
   bookingsController20240813ConfirmBooking as confirmBooking,
   bookingsController20240813CreateBooking as createBooking,
   bookingsController20240813DeclineBooking as declineBooking,
   bookingsController20240813GetBooking as getBooking,
+  bookingsController20240813GetBookingBySeatUid as getBookingBySeatUid,
+  bookingsController20240813GetBookingRecordings as getBookingRecordings,
+  bookingsController20240813GetBookingReferences as getBookingReferences,
   bookingsController20240813GetBookings as getBookings,
+  bookingsController20240813GetBookingTranscripts as getBookingTranscripts,
+  bookingsController20240813GetCalendarLinks as getCalendarLinks,
+  bookingsController20240813GetVideoSessions as getVideoSessions,
+  bookingsController20240813MarkNoShow as markNoShow,
   bookingsController20240813ReassignBooking as reassignBooking,
+  bookingsController20240813ReassignBookingToUser as reassignBookingToUser,
   bookingsController20240813RescheduleBooking as rescheduleBooking,
+  bookingLocationController20240813UpdateBookingLocation as updateBookingLocation,
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { ApiVersion } from "../../shared/constants";
@@ -18,7 +29,12 @@ import {
   renderBookingAction,
   renderBookingCreated,
   renderBookingList,
+  renderBookingRecordings,
+  renderBookingReferences,
   renderBookingRescheduled,
+  renderBookingTranscripts,
+  renderCalendarLinks,
+  renderVideoSessions,
 } from "./output";
 import type { BookingStatus } from "./types";
 
@@ -99,6 +115,108 @@ function registerBookingQueryCommands(bookingsCmd: Command): void {
         renderBooking(response?.data, options);
       });
     });
+
+  bookingsCmd
+    .command("recordings <bookingUid>")
+    .description("Get recordings for a booking")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getBookingRecordings({
+          path: { bookingUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingRecordings(response?.data, options);
+      });
+    });
+
+  bookingsCmd
+    .command("transcripts <bookingUid>")
+    .description("Get transcripts for a booking")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getBookingTranscripts({
+          path: { bookingUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingTranscripts(response?.data, options);
+      });
+    });
+
+  bookingsCmd
+    .command("by-seat <seatUid>")
+    .description("Get a booking by seat UID")
+    .option("--json", "Output as JSON")
+    .action(async (seatUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getBookingBySeatUid({
+          path: { seatUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBooking(response?.data, options);
+      });
+    });
+
+  bookingsCmd
+    .command("references <bookingUid>")
+    .description("Get references for a booking")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getBookingReferences({
+          path: { bookingUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingReferences(response?.data, options);
+      });
+    });
+
+  bookingsCmd
+    .command("calendar-links <bookingUid>")
+    .description("Get calendar links for a booking")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getCalendarLinks({
+          path: { bookingUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderCalendarLinks(response?.data, options);
+      });
+    });
+
+  bookingsCmd
+    .command("video-sessions <bookingUid>")
+    .description("Get video sessions for a booking (Cal Video only)")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await getVideoSessions({
+          path: { bookingUid },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderVideoSessions(response?.data, options);
+      });
+    });
 }
 
 function registerBookingCreateCommand(bookingsCmd: Command): void {
@@ -108,18 +226,20 @@ function registerBookingCreateCommand(bookingsCmd: Command): void {
     .requiredOption("--start <datetime>", "Start time (ISO 8601 UTC)")
     .requiredOption("--event-type-id <id>", "Event type ID")
     .requiredOption("--attendee-name <name>", "Attendee name")
-    .requiredOption("--attendee-email <email>", "Attendee email")
     .requiredOption("--attendee-timezone <tz>", "Attendee timezone")
+    .option("--attendee-email <email>", "Attendee email")
+    .option("--attendee-phone <phone>", "Attendee phone number (international format)")
     .option("--attendee-language <lang>", "Attendee language (default: en)", "en")
-    .option("--meeting-url <url>", "Meeting URL")
+    .option("--meeting-url <url>", "Meeting URL (deprecated, use --location)")
     .option("--json", "Output as JSON")
     .action(
       async (options: {
         start: string;
         eventTypeId: string;
         attendeeName: string;
-        attendeeEmail: string;
         attendeeTimezone: string;
+        attendeeEmail?: string;
+        attendeePhone?: string;
         attendeeLanguage: string;
         meetingUrl?: string;
         json?: boolean;
@@ -133,8 +253,9 @@ function registerBookingCreateCommand(bookingsCmd: Command): void {
               eventTypeId: Number(options.eventTypeId),
               attendee: {
                 name: options.attendeeName,
-                email: options.attendeeEmail,
                 timeZone: options.attendeeTimezone,
+                email: options.attendeeEmail,
+                phoneNumber: options.attendeePhone,
                 language: options.attendeeLanguage as "en",
               },
               meetingUrl: options.meetingUrl,
@@ -241,6 +362,122 @@ function registerBookingActionCommands(bookingsCmd: Command): void {
         });
 
         renderBookingAction("reassigned", bookingUid, response, options);
+      });
+    });
+
+  bookingsCmd
+    .command("reassign-to-user <bookingUid>")
+    .description("Reassign a booking to a specific user")
+    .requiredOption("--user-id <userId>", "User ID to reassign to")
+    .option("--reason <reason>", "Reassignment reason")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { userId: string; reason?: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await reassignBookingToUser({
+          path: { bookingUid, userId: Number(options.userId) },
+          body: { reason: options.reason },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingAction("reassigned", bookingUid, response, options);
+      });
+    });
+
+  bookingsCmd
+    .command("mark-no-show <bookingUid>")
+    .description("Mark an attendee as no-show")
+    .requiredOption("--attendee <email>", "Attendee email to mark as no-show")
+    .option("--no-show <value>", "No-show status (true/false)", "true")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { attendee: string; noShow: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await markNoShow({
+          path: { bookingUid },
+          body: {
+            attendees: [{ email: options.attendee, absent: options.noShow === "true" }],
+          },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingAction("marked as no-show", bookingUid, response, options);
+      });
+    });
+
+  bookingsCmd
+    .command("add-attendee <bookingUid>")
+    .description("Add an attendee to a booking")
+    .requiredOption("--name <name>", "Attendee name")
+    .requiredOption("--email <email>", "Attendee email")
+    .requiredOption("--timezone <tz>", "Attendee timezone")
+    .option("--language <lang>", "Attendee language", "en")
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        bookingUid: string,
+        options: { name: string; email: string; timezone: string; language: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+
+          const { data: response } = await addAttendee({
+            path: { bookingUid },
+            body: {
+              name: options.name,
+              email: options.email,
+              timeZone: options.timezone,
+              language: options.language as "en",
+            },
+            headers: apiVersionHeader(ApiVersion.V2024_08_13),
+          });
+
+          renderBookingAction("attendee added", bookingUid, response, options);
+        });
+      }
+    );
+
+  bookingsCmd
+    .command("add-guests <bookingUid>")
+    .description("Add guests to a booking")
+    .requiredOption("--guests <emails>", "Guest emails (comma-separated)")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { guests: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const guests = options.guests.split(",").map((email) => ({ email: email.trim() }));
+
+        const { data: response } = await addGuests({
+          path: { bookingUid },
+          body: { guests },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingAction("guests added", bookingUid, response, options);
+      });
+    });
+
+  bookingsCmd
+    .command("update-location <bookingUid>")
+    .description("Update booking location")
+    .requiredOption("--location <location>", "New location (link URL)")
+    .option("--json", "Output as JSON")
+    .action(async (bookingUid: string, options: { location: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await updateBookingLocation({
+          path: { bookingUid },
+          body: {
+            location: { type: "link", link: options.location },
+          },
+          headers: apiVersionHeader(ApiVersion.V2024_08_13),
+        });
+
+        renderBookingAction("location updated", bookingUid, response, options);
       });
     });
 }
