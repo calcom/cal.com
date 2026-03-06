@@ -456,6 +456,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     schema: {
       description: 'Reschedule booking by id',
       tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       params: zodToJsonSchema(rescheduleBookingParamsSchema),
       body: zodToJsonSchema(rescheduleBookingBodySchema),
       response: {
