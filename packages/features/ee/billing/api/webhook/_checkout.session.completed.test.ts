@@ -51,7 +51,7 @@ function buildSession(
       amount_total: 5000,
       customer: "cus_123",
       subscription: null,
-      metadata: { userId: "1" },
+      metadata: { type: "credit_purchase", userId: "1" },
       ...overrides,
     },
   } as unknown as SWHMap["checkout.session.completed"]["data"];
@@ -117,7 +117,7 @@ describe("checkout.session.completed webhook", () => {
       const data = buildSession({
         mode: "payment",
         amount_total: 5000,
-        metadata: { userId: "1" },
+        metadata: { type: "credit_purchase", userId: "1" },
       });
 
       const result = await handler(data);
@@ -138,10 +138,61 @@ describe("checkout.session.completed webhook", () => {
       const data = buildSession({
         mode: "payment",
         amount_total: 0,
-        metadata: { userId: "1" },
+        metadata: { type: "credit_purchase", userId: "1" },
       });
 
       await expect(handler(data)).rejects.toThrow("Missing required payment details");
+    });
+  });
+
+  describe("unrecognized metadata type", () => {
+    it("returns failure for unknown metadata type", async () => {
+      const data = buildSession({
+        mode: "payment",
+        metadata: { type: "unknown_type", userId: "1" },
+      });
+
+      const result = await handler(data);
+
+      expect(result).toEqual({
+        success: false,
+        message: "Unhandled metadata type: unknown_type",
+      });
+      expect(listLineItems).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("legacy credit purchase fallback (no metadata type)", () => {
+    it("falls back to credits handler for payment-mode sessions without metadata type", async () => {
+      const data = buildSession({
+        mode: "payment",
+        amount_total: 5000,
+        metadata: { userId: "1" },
+      });
+
+      const result = await handler(data);
+
+      expect(listLineItems).toHaveBeenCalledWith("cs_123");
+      expect(upsertUserBalance).toHaveBeenCalledWith({
+        userId: 1,
+        additionalCredits: 10,
+      });
+      expect(result).toEqual({ success: true });
+    });
+
+    it("does not fall back for subscription-mode sessions without metadata type", async () => {
+      const data = buildSession({
+        mode: "subscription",
+        metadata: {},
+      });
+
+      const result = await handler(data);
+
+      expect(result).toEqual({
+        success: true,
+        message: "Subscription checkout handled via invoice.paid",
+      });
+      expect(listLineItems).not.toHaveBeenCalled();
     });
   });
 
@@ -151,7 +202,7 @@ describe("checkout.session.completed webhook", () => {
         mode: "payment",
         amount_total: 5000,
         customer: "cus_track",
-        metadata: { userId: "1", gclid: "gclid_123", campaignId: "camp_123" },
+        metadata: { type: "credit_purchase", userId: "1", gclid: "gclid_123", campaignId: "camp_123" },
       });
 
       await handler(data);

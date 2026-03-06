@@ -1,66 +1,36 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaPhoneNumberRepository } from "@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
 import type { LazyModule, SWHMap } from "./__handler";
-import { HttpCode } from "./__handler";
+import { HttpCode, productRouter } from "./__handler";
+
+const log = logger.getSubLogger({ prefix: ["customer.subscription.deleted"] });
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
 
-type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
-
 const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
-const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
+function extractProductId(data: Data): string | null {
   const subscription = data.object;
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-
-  const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
-    stripeSubscriptionId: subscription.id,
-  });
-
-  if (phoneNumber) {
-    return await handleCalAIPhoneNumberSubscriptionDeleted(subscription, phoneNumber);
-  }
-
-  // Fall back to product-based handling for other subscriptions
-  let productId: string | null = null;
   // @ts-expect-error - support legacy just in case.
   if (subscription.plan) {
     // @ts-expect-error - we know subscription.plan.product is defined when unsubscribing
-    productId = subscription.plan.product; // prod_xxxxx
-  } else {
-    const subscriptionItem = subscription.items?.data?.[0];
-    if (!subscriptionItem) {
-      throw new Error("Subscription item and plan missing");
-    }
-    const product = subscription.items.data[0]?.plan.product;
-    if (product) {
-      productId = typeof product === "string" ? product : product.id;
-    }
+    return subscription.plan.product as string;
   }
-  if (typeof productId !== "string") {
-    throw new Error(`Unable to determine Product ID from subscription: ${subscription.id}`);
-  }
-  const handlerGetter = handlers[productId as any];
-  if (!handlerGetter) {
-    console.log("No product handler found for product", productId);
-    return {
-      success: false,
-      message: `No product handler found for product: ${productId}`,
-    };
-  }
-  const handler = (await handlerGetter())?.default;
-  // auto catch unsupported Stripe products.
-  if (!handler) {
-    console.log("No product handler found for product", productId);
-    return {
-      success: false,
-      message: `No product handler found for product: ${productId}`,
-    };
-  }
-  return await handler(data);
-};
+  const subscriptionItem = subscription.items?.data?.[0];
+  if (!subscriptionItem) return null;
+  const product = subscription.items.data[0]?.plan.product;
+  if (!product) return null;
+  return typeof product === "string" ? product : product.id;
+}
+
+const routeByProduct = productRouter<Data>(
+  {
+    [STRIPE_TEAM_PRODUCT_ID]: () => import("./_customer.subscription.deleted.team-plan"),
+  },
+  extractProductId
+);
 
 async function handleCalAIPhoneNumberSubscriptionDeleted(
   subscription: Data["object"],
@@ -88,11 +58,25 @@ async function handleCalAIPhoneNumberSubscriptionDeleted(
 
     return { success: true, subscriptionId: subscription.id };
   } catch (error) {
-    console.error("Failed to update phone number subscription:", error);
+    log.error("Failed to update phone number subscription", { error, subscriptionId: subscription.id });
     throw new HttpCode(500, "Failed to update phone number subscription");
   }
 }
 
-export default stripeWebhookProductHandler({
-  [STRIPE_TEAM_PRODUCT_ID]: () => import("./_customer.subscription.deleted.team-plan"),
-});
+const handler = async (data: Data) => {
+  const subscription = data.object;
+  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+
+  // Phone number subscriptions don't have a product ID, so we check by subscription ID first
+  const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
+    stripeSubscriptionId: subscription.id,
+  });
+
+  if (phoneNumber) {
+    return await handleCalAIPhoneNumberSubscriptionDeleted(subscription, phoneNumber);
+  }
+
+  return routeByProduct(data);
+};
+
+export default handler;
