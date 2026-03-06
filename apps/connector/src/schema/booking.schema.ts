@@ -235,6 +235,19 @@ export const cancelBookingBodySchema = z
   })
   .strict();
 
+export const rescheduleBookingParamsSchema = z.object({
+  id: z.number().int().positive(),
+});
+
+export const rescheduleBookingBodySchema = z.object({
+  start: z.string().min(1),
+  reschedulingReason: z.string().optional(),
+  rescheduledBy: z.string().email().optional(),
+  seatUid: z.string().optional(),
+});
+
+export type RescheduleBookingBody = z.infer<typeof rescheduleBookingBodySchema>;
+
 export type CancelBookingBody = z.infer<typeof cancelBookingBodySchema>;
 
 export const cancelBookingResponseSchema = z.object({

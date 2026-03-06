@@ -4,7 +4,7 @@ import { confirmHandler } from '@calcom/trpc/server/routers/viewer/bookings/conf
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import { GetUserAvailabilityResult } from '@calcom/lib/getUserAvailability';
-import { bookingsQueryRequestSchema, bookingsQueryResponseSchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, cancelBookingParamsSchema, CancelBookingBody, singleBookingQueryResponseSchema } from '@/schema/booking.schema';
+import { bookingsQueryRequestSchema, bookingsQueryResponseSchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, cancelBookingParamsSchema,rescheduleBookingBodySchema, rescheduleBookingParamsSchema,  CancelBookingBody, singleBookingQueryResponseSchema } from '@/schema/booking.schema';
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { responseSchemas } from "@/schema/response";
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
@@ -204,7 +204,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     const headers = request.headers as Record<string, string | undefined>;
     const platformClientId = headers['x-cal-client-id'] || undefined;
     const platformEmbed = headers['x-cal-platform-embed'] || undefined;
-    const arePlatformEmailsEnabled = platformEmbed === '1' ? false : true;
+    const arePlatformEmailsEnabled = headers['x-cal-disable-emails'] !== '1' || true;
 
     try {
       const result = await handleCancelBooking({
@@ -456,13 +456,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     schema: {
       description: 'Reschedule booking by id',
       tags: ['Booking'],
-      // params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
-      body: zodToJsonSchema(z.object({
-        start: z.string().min(1),
-        reschedulingReason: z.string().optional(),
-        rescheduledBy: z.string().email().optional(),
-        seatUid: z.string().optional(),
-      })),
+      params: zodToJsonSchema(rescheduleBookingParamsSchema),
+      body: zodToJsonSchema(rescheduleBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({
           newUserId: z.number(),
