@@ -19,6 +19,8 @@ export interface BookingReportDetailsModalProps<T extends GroupedBookingReport> 
   entry: T | null;
   isOpen: boolean;
   onClose: () => void;
+  canAddToBlocklist?: boolean;
+  canDismiss?: boolean;
   onAddToBlocklist: (email: string, type: WatchlistType) => void;
   onDismiss: (email: string) => void;
   isAddingToBlocklist?: boolean;
@@ -30,6 +32,8 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
   entry,
   isOpen,
   onClose,
+  canAddToBlocklist = true,
+  canDismiss = true,
   onAddToBlocklist,
   onDismiss,
   isAddingToBlocklist = false,
@@ -190,13 +194,13 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
                   color="secondary"
                   onClick={handleDismiss}
                   loading={isDismissing}
-                  disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
+                  disabled={!canDismiss || isSubmitting || isAddingToBlocklist || isDismissing}>
                   {t("dont_block")}
                 </Button>
                 <Button
                   type="submit"
                   loading={isSubmitting || isAddingToBlocklist}
-                  disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
+                  disabled={!canAddToBlocklist || isSubmitting || isAddingToBlocklist || isDismissing}>
                   {t(isSystem ? "add_to_system_blocklist" : "add_to_blocklist")}
                 </Button>
               </div>

@@ -24,6 +24,7 @@ export interface BlocklistEntryDetailsSheetProps<T extends BlocklistEntry> {
   entry: T | null;
   isOpen: boolean;
   onClose: () => void;
+  canDelete?: boolean;
   handleDeleteBlocklistEntry: (entry: T) => void;
   detailsData?: BlocklistEntryDetails;
   isLoading: boolean;
@@ -34,6 +35,7 @@ export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
   entry,
   isOpen,
   onClose,
+  canDelete = true,
   handleDeleteBlocklistEntry,
   detailsData,
   isLoading,
@@ -172,15 +174,17 @@ export function BlocklistEntryDetailsSheet<T extends BlocklistEntry>({
             <div className="text-muted mt-8 text-center">{t("blocklist_entry_not_found")}</div>
           )}
         </SheetBody>
-        <SheetFooter className="bg-muted px-6 py-5">
-          <Button
-            type="button"
-            color="secondary"
-            onClick={() => entry && handleDeleteBlocklistEntry(entry)}
-            disabled={!entry}>
-            {t(isSystem ? "remove_from_system_blocklist" : "remove_from_blocklist")}
-          </Button>
-        </SheetFooter>
+        {canDelete && (
+          <SheetFooter className="bg-muted px-6 py-5">
+            <Button
+              type="button"
+              color="secondary"
+              onClick={() => entry && handleDeleteBlocklistEntry(entry)}
+              disabled={!entry}>
+              {t(isSystem ? "remove_from_system_blocklist" : "remove_from_blocklist")}
+            </Button>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

@@ -16,12 +16,18 @@ import { usePendingReportsColumns } from "./PendingReportsColumns";
 
 export type SortByOption = "createdAt" | "reportCount";
 
+export interface PendingReportsTablePermissions {
+  canCreate?: boolean;
+  canUpdate?: boolean;
+}
+
 export interface PendingReportsTableProps<T extends GroupedBookingReport> {
   scope: BlocklistScope;
   data: T[];
   totalRowCount: number;
   isPending: boolean;
   limit: number;
+  permissions?: PendingReportsTablePermissions;
   onAddToBlocklist: (email: string, type: WatchlistType, onSuccess: () => void) => void;
   onDismiss: (email: string, onSuccess: () => void) => void;
   isAddingToBlocklist?: boolean;
@@ -36,6 +42,7 @@ export function PendingReportsTable<T extends GroupedBookingReport>({
   totalRowCount,
   isPending,
   limit,
+  permissions,
   onAddToBlocklist,
   onDismiss,
   isAddingToBlocklist = false,
@@ -119,6 +126,8 @@ export function PendingReportsTable<T extends GroupedBookingReport>({
         entry={selectedReport}
         isOpen={showReviewDialog}
         onClose={handleCloseModal}
+        canAddToBlocklist={permissions?.canCreate ?? true}
+        canDismiss={permissions?.canUpdate ?? true}
         onAddToBlocklist={(email, type) => onAddToBlocklist(email, type, handleCloseModal)}
         onDismiss={(email) => onDismiss(email, handleCloseModal)}
         isAddingToBlocklist={isAddingToBlocklist}

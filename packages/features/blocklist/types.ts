@@ -8,6 +8,8 @@ export interface BlocklistPermissions {
   canRead: boolean;
   canCreate: boolean;
   canDelete: boolean;
+  /** When true, user can dismiss/update reports (e.g. system blocklist). */
+  canUpdate?: boolean;
 }
 
 export interface BlocklistEntry {

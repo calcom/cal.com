@@ -1,22 +1,9 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-import {
-  BlockedEntriesTable,
-  CreateBlocklistEntryModal,
-  PendingReportsBadge,
-  PendingReportsTable,
-  type SortByOption,
-} from "@calcom/web/modules/blocklist";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import {
   Dropdown,
   DropdownItem,
@@ -26,7 +13,19 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
+import {
+  BlockedEntriesTable,
+  CreateBlocklistEntryModal,
+  PendingReportsBadge,
+  PendingReportsTable,
+  type SortByOption,
+} from "@calcom/web/modules/blocklist";
+import { keepPreviousData } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { DataTableToolbar } from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { BulkDeleteBlocklistEntries } from "../components/BulkDeleteBlocklistEntries";
 import { BulkDismissReports } from "../components/BulkDismissReports";
 
@@ -42,9 +41,17 @@ function SystemBlocklistContent() {
 
   const utils = trpc.useUtils();
 
+  const { data: blocklistPermissions, isSuccess: permissionsLoaded } =
+    trpc.viewer.admin.watchlist.getSystemWatchlistPermissions.useQuery();
+  const canRead = blocklistPermissions?.canRead === true;
+  const permissionDenied = permissionsLoaded && !canRead;
+
+  const noPermissions = { canRead: false, canCreate: false, canDelete: false, canUpdate: false } as const;
+  const resolvedPermissions = blocklistPermissions ?? noPermissions;
+
   const { data: blockedData, isPending: isBlockedPending } = trpc.viewer.admin.watchlist.list.useQuery(
     { limit, offset, searchTerm },
-    { placeholderData: keepPreviousData, enabled: activeView === "blocked" }
+    { placeholderData: keepPreviousData, enabled: canRead && activeView === "blocked" }
   );
 
   const { data: reportsData, isPending: isReportsPending } = trpc.viewer.admin.watchlist.listReports.useQuery(
@@ -55,14 +62,16 @@ function SystemBlocklistContent() {
       sortBy,
       systemFilters: { systemStatus: ["PENDING"] },
     },
-    { placeholderData: keepPreviousData, enabled: activeView === "pending" }
+    { placeholderData: keepPreviousData, enabled: canRead && activeView === "pending" }
   );
 
-  const { data: pendingReportsCount } = trpc.viewer.admin.watchlist.pendingReportsCount.useQuery();
+  const { data: pendingReportsCount } = trpc.viewer.admin.watchlist.pendingReportsCount.useQuery(undefined, {
+    enabled: canRead,
+  });
 
   const { data: entryDetails, isLoading: isDetailsLoading } = trpc.viewer.admin.watchlist.getDetails.useQuery(
     { id: selectedEntryId ?? "" },
-    { enabled: !!selectedEntryId }
+    { enabled: canRead && !!selectedEntryId }
   );
 
   const createEntry = trpc.viewer.admin.watchlist.create.useMutation({
@@ -109,6 +118,16 @@ function SystemBlocklistContent() {
       showToast(error.message, "error");
     },
   });
+
+  if (permissionDenied) {
+    return (
+      <EmptyScreen
+        Icon="lock"
+        headline={t("access_denied")}
+        description={t("system_blocklist_no_read_permission")}
+      />
+    );
+  }
 
   return (
     <>
@@ -162,7 +181,7 @@ function SystemBlocklistContent() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          {activeView === "blocked" && (
+          {activeView === "blocked" && resolvedPermissions.canCreate === true && (
             <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
@@ -178,16 +197,25 @@ function SystemBlocklistContent() {
           isPending={isBlockedPending}
           limit={limit}
           searchTerm={searchTerm}
+          permissions={{
+            canRead: resolvedPermissions.canRead,
+            canCreate: resolvedPermissions.canCreate,
+            canDelete: resolvedPermissions.canDelete,
+          }}
           onAddClick={() => setShowCreateModal(true)}
           onDelete={(entry) => deleteEntry.mutate({ id: entry.id })}
           isDeleting={deleteEntry.isPending}
           detailsQuery={{ data: entryDetails, isLoading: isDetailsLoading }}
           selectedEntryId={selectedEntryId ?? undefined}
           onSelectEntry={setSelectedEntryId}
-          enableRowSelection
-          renderBulkActions={(selectedEntries, clearSelection) => (
-            <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
-          )}
+          enableRowSelection={resolvedPermissions.canDelete === true}
+          renderBulkActions={
+            resolvedPermissions.canDelete === true
+              ? (selectedEntries, clearSelection) => (
+                  <BulkDeleteBlocklistEntries entries={selectedEntries} onRemove={clearSelection} />
+                )
+              : undefined
+          }
         />
       ) : (
         <PendingReportsTable
@@ -196,14 +224,22 @@ function SystemBlocklistContent() {
           totalRowCount={reportsData?.meta?.totalRowCount ?? 0}
           isPending={isReportsPending}
           limit={limit}
+          permissions={{
+            canCreate: resolvedPermissions.canCreate,
+            canUpdate: resolvedPermissions.canUpdate,
+          }}
           onAddToBlocklist={(email, type, onSuccess) => addToWatchlist.mutate({ email, type }, { onSuccess })}
           onDismiss={(email, onSuccess) => dismissReport.mutate({ email }, { onSuccess })}
           isAddingToBlocklist={addToWatchlist.isPending}
           isDismissing={dismissReport.isPending}
-          enableRowSelection
-          renderBulkActions={(selectedReports, clearSelection) => (
-            <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
-          )}
+          enableRowSelection={resolvedPermissions.canUpdate === true}
+          renderBulkActions={
+            resolvedPermissions.canUpdate === true
+              ? (selectedReports, clearSelection) => (
+                  <BulkDismissReports reports={selectedReports} onRemove={clearSelection} />
+                )
+              : undefined
+          }
         />
       )}
 

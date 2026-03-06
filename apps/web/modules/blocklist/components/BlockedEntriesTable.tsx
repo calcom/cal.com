@@ -103,7 +103,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
     onSelectEntry?.(null);
   };
 
-  const canDelete = isSystem || permissions?.canDelete;
+  const canDelete = permissions?.canDelete ?? false;
 
   const columns = useBlockedEntriesColumns<T>({
     t,
@@ -160,7 +160,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
                   StartIcon="plus"
                   onClick={onAddClick}
                   color="primary"
-                  disabled={!isSystem && !permissions?.canCreate}>
+                  disabled={permissions ? !permissions.canCreate : true}>
                   {t("add")}
                 </Button>
                 {IS_CALCOM && (
@@ -193,6 +193,7 @@ export function BlockedEntriesTable<T extends BlocklistEntry>({
         entry={selectedEntry}
         isOpen={showDetailsSheet}
         onClose={handleCloseDetailsSheet}
+        canDelete={canDelete}
         handleDeleteBlocklistEntry={handleDelete}
         detailsData={detailsQuery?.data}
         isLoading={detailsQuery?.isLoading ?? false}
