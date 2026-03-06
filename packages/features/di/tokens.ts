@@ -7,6 +7,7 @@ import { CALENDAR_SUBSCRIPTION_DI_TOKENS } from "@calcom/features/calendar-subsc
 import { ACTIVE_USER_BILLING_DI_TOKENS } from "@calcom/features/ee/billing/active-user/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { EVENT_TYPE_DI_TOKENS } from "@calcom/features/eventtypes/di/tokens";
+import { EXPERIMENTS_DI_TOKENS } from "@calcom/features/experiments/di/tokens";
 import { FEATURE_OPT_IN_DI_TOKENS } from "@calcom/features/feature-opt-in/di/tokens";
 import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
@@ -101,6 +102,7 @@ export const DI_TOKENS = {
   ...ABUSE_SCORING_TASKER_DI_TOKENS,
   ...EVENT_TYPE_DI_TOKENS,
   ...CALENDAR_SUBSCRIPTION_DI_TOKENS,
+  ...EXPERIMENTS_DI_TOKENS,
   USER_CREATION_SERVICE: Symbol("UserCreationService"),
   USER_CREATION_SERVICE_MODULE: Symbol("UserCreationServiceModule"),
 };

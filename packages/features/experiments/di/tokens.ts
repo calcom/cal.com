@@ -1,0 +1,15 @@
+export const EXPERIMENTS_DI_TOKENS: {
+  PRISMA_EXPERIMENT_REPOSITORY: symbol;
+  PRISMA_EXPERIMENT_REPOSITORY_MODULE: symbol;
+  CACHED_EXPERIMENT_REPOSITORY: symbol;
+  CACHED_EXPERIMENT_REPOSITORY_MODULE: symbol;
+  EXPERIMENT_SERVICE: symbol;
+  EXPERIMENT_SERVICE_MODULE: symbol;
+} = {
+  PRISMA_EXPERIMENT_REPOSITORY: Symbol("PrismaExperimentRepository"),
+  PRISMA_EXPERIMENT_REPOSITORY_MODULE: Symbol("PrismaExperimentRepositoryModule"),
+  CACHED_EXPERIMENT_REPOSITORY: Symbol("CachedExperimentRepository"),
+  CACHED_EXPERIMENT_REPOSITORY_MODULE: Symbol("CachedExperimentRepositoryModule"),
+  EXPERIMENT_SERVICE: Symbol("ExperimentService"),
+  EXPERIMENT_SERVICE_MODULE: Symbol("ExperimentServiceModule"),
+};
