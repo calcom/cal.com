@@ -284,27 +284,7 @@ type RowToRender<TData> = {
   virtualItem?: VirtualItem;
 };
 
-function SeparatorRowRenderer({
-  separator,
-  className,
-  colSpan,
-}: {
-  separator: SeparatorRow;
-  className?: string;
-  colSpan: number;
-}) {
-  return (
-    <TableCell
-      colSpan={colSpan}
-      className={classNames(
-        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
-        separator.className,
-        className
-      )}>
-      {separator.label}
-    </TableCell>
-  );
-}
+
 
 function DataTableBody<TData>({
   table,
@@ -393,11 +373,15 @@ function DataTableBody<TData>({
                 }),
               }}
               className="hover:bg-subtle border-muted flex w-full border-b">
-              <SeparatorRowRenderer
-                separator={row.original as SeparatorRow}
-                className={separatorClassName}
+              <TableCell
                 colSpan={table.getAllColumns().length}
-              />
+                className={classNames(
+                  "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
+                  (row.original as SeparatorRow).className,
+                  separatorClassName
+                )}>
+                {(row.original as SeparatorRow).label}
+              </TableCell>
             </TableRow>
           );
         }
