@@ -16,19 +16,6 @@ import type { getScheduleSchema } from "@calcom/trpc/server/routers/viewer/slots
 import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
-// Mock the FeaturesRepository to enable restriction-schedule feature
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function () {
-    return {
-      checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-      getAllFeatures: vi.fn().mockResolvedValue([]),
-      getFeatureFlagMap: vi.fn().mockResolvedValue({}),
-      checkIfUserHasFeature: vi.fn().mockResolvedValue(true),
-    };
-  }),
-}));
-
 type ScheduleScenario = {
   eventTypes: ScenarioData["eventTypes"];
   users: ScenarioData["users"];
@@ -52,13 +39,16 @@ const getTestScheduleInput = ({
   orgSlug: null,
 });
 
+const ORG_ID = 100;
+const TEAM_ID = 1;
+
 const getBaseScenarioData = (): ScheduleScenario => ({
   eventTypes: [
     {
       id: 1,
       slotInterval: 60,
       length: 60,
-      teamId: 1,
+      teamId: TEAM_ID,
       hosts: [{ userId: 101 }],
     },
   ],
@@ -70,7 +60,7 @@ const getBaseScenarioData = (): ScheduleScenario => ({
       teams: [
         {
           membership: { role: "ADMIN", accepted: true },
-          team: { id: 1, name: "Test Team", slug: "test-team" },
+          team: { id: TEAM_ID, name: "Test Team", slug: "test-team", parentId: ORG_ID },
         },
       ],
     },
@@ -78,14 +68,21 @@ const getBaseScenarioData = (): ScheduleScenario => ({
   apps: [],
 });
 
-// Helper function to set up team for the tests
-async function setupTeamAndFeatures() {
-  // Create the team (needed for event type configuration)
+async function setupOrgAndTeam() {
   await prismock.team.create({
     data: {
-      id: 1,
+      id: ORG_ID,
+      name: "Test Org",
+      slug: "test-org",
+      isOrganization: true,
+    },
+  });
+  await prismock.team.create({
+    data: {
+      id: TEAM_ID,
       name: "Test Team",
       slug: "test-team",
+      parentId: ORG_ID,
     },
   });
 }
@@ -96,7 +93,7 @@ describe("getSchedule", () => {
 
   describe("Restriction Schedule", () => {
     test("should respect date override rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
-      await setupTeamAndFeatures();
+      await setupOrgAndTeam();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Date with override
@@ -136,7 +133,7 @@ describe("getSchedule", () => {
             teams: [
               {
                 membership: { role: "ADMIN", accepted: true },
-                team: { id: 1, name: "Test Team", slug: "test-team" },
+                team: { id: TEAM_ID, name: "Test Team", slug: "test-team", parentId: ORG_ID },
               },
             ],
           },
@@ -190,7 +187,7 @@ describe("getSchedule", () => {
     });
 
     test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=false)", async () => {
-      await setupTeamAndFeatures();
+      await setupOrgAndTeam();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -230,7 +227,7 @@ describe("getSchedule", () => {
             teams: [
               {
                 membership: { role: "ADMIN", accepted: true },
-                team: { id: 1, name: "Test Team", slug: "test-team" },
+                team: { id: TEAM_ID, name: "Test Team", slug: "test-team", parentId: ORG_ID },
               },
             ],
           },
@@ -290,7 +287,7 @@ describe("getSchedule", () => {
     });
 
     test("should respect recurring rule in restrictionSchedule (Europe/London, useBookerTimezone=true)", async () => {
-      await setupTeamAndFeatures();
+      await setupOrgAndTeam();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -330,7 +327,7 @@ describe("getSchedule", () => {
             teams: [
               {
                 membership: { role: "ADMIN", accepted: true },
-                team: { id: 1, name: "Test Team", slug: "test-team" },
+                team: { id: TEAM_ID, name: "Test Team", slug: "test-team", parentId: ORG_ID },
               },
             ],
           },
@@ -389,7 +386,7 @@ describe("getSchedule", () => {
     });
 
     test("should return all slots when no restriction schedule is applied", async () => {
-      await setupTeamAndFeatures();
+      await setupOrgAndTeam();
       vi.setSystemTime("2025-06-01T23:30:00Z");
 
       const plus2DateString = "2025-06-02"; // Monday
@@ -428,7 +425,7 @@ describe("getSchedule", () => {
             teams: [
               {
                 membership: { role: "ADMIN", accepted: true },
-                team: { id: 1, name: "Test Team", slug: "test-team" },
+                team: { id: TEAM_ID, name: "Test Team", slug: "test-team", parentId: ORG_ID },
               },
             ],
           },
