@@ -28,7 +28,8 @@ export function getDefaultGoogleCalendarId(response: GetCalendarsResponse): stri
       const primary = conn.primary;
       if (primary?.externalId) return primary.externalId;
       const first = conn.calendars?.[0];
-      return first?.externalId ?? null;
+      if (first?.externalId) return first.externalId;
+      // This connection has no usable calendar — continue checking other connections
     }
   }
   return null;

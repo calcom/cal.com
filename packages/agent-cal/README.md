@@ -135,7 +135,7 @@ Failed requests throw `AgentCalHttpError` with `status` and optional `body`:
 import { AgentCal, AgentCalHttpError } from "@calcom/agent-cal";
 
 try {
-  await cal.listEvents("google", { from: "2026-03-01", to: "2026-03-31" });
+  await cal.listEvents(connId, { from: "2026-03-01", to: "2026-03-31" });
 } catch (e) {
   if (e instanceof AgentCalHttpError) {
     console.error(e.status, e.body);

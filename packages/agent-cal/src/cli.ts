@@ -219,7 +219,8 @@ async function cmdToken(): Promise<void> {
   if (!creds?.accessToken) {
     throw new Error("Not authenticated. Run: npx @calcom/agent-cal auth");
   }
-  log(creds.accessToken);
+  // Write directly to stdout so it can be piped, but nothing else is logged.
+  process.stdout.write(creds.accessToken + "\n");
 }
 
 async function cmdDisconnect(): Promise<void> {

@@ -1,5 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseRequestData } from "app/api/parseRequestData";
+import { parseRequestData, parseUrlFormData } from "app/api/parseRequestData";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -9,7 +9,10 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 
 async function handler(req: NextRequest) {
-  const body = await parseRequestData(req);
+  // RFC 6749 §4.1.3 requires application/x-www-form-urlencoded; fall back to it when
+  // no Content-Type header is provided so strict OAuth clients still work.
+  const ct = req.headers.get("content-type");
+  const body = ct ? await parseRequestData(req) : await parseUrlFormData(req);
   const {
     code,
     client_id,

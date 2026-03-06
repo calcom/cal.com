@@ -1,5 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsISO8601, IsOptional, IsString } from "class-validator";
+import { IsISO8601, IsOptional, IsString, IsTimeZone, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
+
+@ValidatorConstraint({ name: "isAfterFrom", async: false })
+class IsAfterFrom implements ValidatorConstraintInterface {
+  validate(to: string, args: ValidationArguments) {
+    const obj = args.object as { from?: string };
+    if (!obj.from || !to) return true;
+    return new Date(to).getTime() >= new Date(obj.from).getTime();
+  }
+  defaultMessage() {
+    return "'to' must not be before 'from'";
+  }
+}
 
 export class FreebusyUnifiedInput {
   @IsISO8601()
@@ -11,6 +23,7 @@ export class FreebusyUnifiedInput {
   from!: string;
 
   @IsISO8601()
+  @Validate(IsAfterFrom)
   @ApiProperty({
     type: String,
     description: "End of the date range (ISO 8601 date or date-time)",
@@ -18,7 +31,7 @@ export class FreebusyUnifiedInput {
   })
   to!: string;
 
-  @IsString()
+  @IsTimeZone()
   @IsOptional()
   @ApiPropertyOptional({
     type: String,

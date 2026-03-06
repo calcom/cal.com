@@ -212,7 +212,7 @@ export async function runMcpServer(): Promise<void> {
     try {
       req = JSON.parse(line) as { id?: string | number; method?: string; params?: unknown };
     } catch {
-      send(undefined as unknown as string, undefined, { code: -32700, message: "Parse error" });
+      send(null, undefined, { code: -32700, message: "Parse error" });
       return;
     }
     const id = req.id ?? null;

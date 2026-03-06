@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEmail, IsEnum, IsString, ValidateNested } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsArray, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 
 import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -21,11 +21,13 @@ export class CalendarConnectionItem {
   type!: (typeof CALENDARS)[number];
 
   @IsString()
-  @ApiProperty({
-    description: "Primary email for this connection (may be 'unknown' if unavailable)",
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Primary email for this connection (null if unavailable)",
     example: "user@gmail.com",
+    nullable: true,
   })
-  email!: string;
+  email?: string | null;
 }
 
 export class ListConnectionsData {

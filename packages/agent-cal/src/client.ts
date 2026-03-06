@@ -158,10 +158,13 @@ export class AgentCal {
    * Delete/cancel an event by provider event ID for a specific connection.
    */
   async deleteEvent(connectionId: string, eventId: string): Promise<void> {
-    await this.api<unknown>({
+    const res = await this.api<{ status?: string }>({
       method: "DELETE",
       path: `/v2/calendars/connections/${encodeURIComponent(connectionId)}/events/${encodeURIComponent(eventId)}`,
     });
+    if (res && typeof res === "object" && "status" in res && res.status === "error") {
+      throw new Error("Failed to delete event");
+    }
   }
 
   /**

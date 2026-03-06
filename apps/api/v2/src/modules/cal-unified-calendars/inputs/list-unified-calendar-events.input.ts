@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsISO8601, IsOptional, IsString } from "class-validator";
+import { IsISO8601, IsOptional, IsString, IsTimeZone } from "class-validator";
 
 export class ListUnifiedCalendarEventsInput {
   @IsISO8601()
@@ -18,7 +18,7 @@ export class ListUnifiedCalendarEventsInput {
   })
   to!: string;
 
-  @IsString()
+  @IsTimeZone()
   @IsOptional()
   @ApiPropertyOptional({
     type: String,

@@ -14,8 +14,13 @@ export default async function AgentOAuthPage({
   const params = await searchParams;
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      query.set(key, Array.isArray(value) ? value[0] : value);
+    if (value === undefined || value === "") continue;
+    if (Array.isArray(value)) {
+      for (const v of value) {
+        query.append(key, v);
+      }
+    } else {
+      query.set(key, value);
     }
   }
   const queryString = query.toString();

@@ -44,8 +44,8 @@ export async function loadStoredCredentials(): Promise<StoredCredentials | undef
 }
 
 /**
- * Returns options using stored credentials if no apiKey/accessToken provided.
- * When using stored credentials, caller is responsible for refresh (Phase 2).
+ * Returns true when the stored access token is expired (or near-expiry) AND a
+ * refresh token is available, indicating the caller should perform a token refresh.
  */
 export function needsRefresh(creds: StoredCredentials): boolean {
   return isTokenExpired(creds.expiresAt) && !!creds.refreshToken;
@@ -79,7 +79,8 @@ function base64UrlEncode(bytes: Uint8Array): string {
           for (let i = 0; i < bytes.length; i++) {
             binary += String.fromCharCode(bytes[i]);
           }
-          return typeof btoa !== "undefined" ? btoa(binary) : "";
+          if (typeof btoa === "undefined") throw new Error("No base64 encoder available (Buffer or btoa)");
+          return btoa(binary);
         })();
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }

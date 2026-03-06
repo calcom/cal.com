@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsArray,
+  IsDefined,
   IsEmail,
   IsISO8601,
   IsOptional,
@@ -51,6 +52,7 @@ export class CreateUnifiedCalendarEventInput {
   })
   title!: string;
 
+  @IsDefined()
   @ValidateNested()
   @Type(() => CreateEventDateTimeWithZone)
   @ApiProperty({
@@ -59,6 +61,7 @@ export class CreateUnifiedCalendarEventInput {
   })
   start!: CreateEventDateTimeWithZone;
 
+  @IsDefined()
   @ValidateNested()
   @Type(() => CreateEventDateTimeWithZone)
   @ApiProperty({

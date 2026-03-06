@@ -93,11 +93,11 @@ export class CalUnifiedCalendarsController {
       )
       .map((c) => {
         const apiType = INTEGRATION_TYPE_TO_API[c.integration.type];
-        const email = c.primary?.externalId ?? c.primary?.email ?? "";
+        const email = c.primary?.externalId ?? c.primary?.email ?? null;
         return {
           connectionId: String(c.credentialId),
           type: apiType ?? GOOGLE_CALENDAR,
-          email: email || "unknown",
+          email: email || null,
         };
       });
     return {
