@@ -280,14 +280,6 @@ const nextConfig = (phase: string): NextConfig => {
           destination: "/apps/routing-forms/routing-link/:formQuery*",
         },
         {
-          source: "/routing",
-          destination: "/routing/forms",
-        },
-        {
-          source: "/routing/:path*",
-          destination: "/apps/routing-forms/:path*",
-        },
-        {
           source: "/routing-forms",
           destination: "/apps/routing-forms/forms",
         },
@@ -345,6 +337,10 @@ const nextConfig = (phase: string): NextConfig => {
       ].filter(isNotNull);
 
       const afterFiles = [
+        {
+          source: "/routing/:path*",
+          destination: "/apps/routing-forms/:path*",
+        },
         {
           source: "/org/:slug",
           destination: "/team/:slug",
