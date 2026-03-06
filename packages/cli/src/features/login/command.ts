@@ -11,6 +11,7 @@ interface LoginOptions {
   clientSecret?: string;
   port?: number;
   apiUrl?: string;
+  appUrl?: string;
 }
 
 export function registerLoginCommand(program: Command): void {
@@ -23,6 +24,7 @@ export function registerLoginCommand(program: Command): void {
     .option("--client-secret <secret>", "OAuth Client Secret")
     .option("--port <port>", "Local port for OAuth callback (default: 8019)", Number.parseInt)
     .option("--api-url <url>", "API base URL (default: https://api.cal.com)")
+    .option("--app-url <url>", "App URL for OAuth authorization (default: https://app.cal.com)")
     .action(async (options: LoginOptions) => {
       await withErrorHandling(async () => {
         const isOAuth = options.oauth || options.clientId || options.clientSecret;
@@ -33,6 +35,7 @@ export function registerLoginCommand(program: Command): void {
             clientSecret: options.clientSecret,
             port: options.port,
             apiUrl: options.apiUrl,
+            appUrl: options.appUrl,
           });
           await auth.login();
           return;
@@ -47,7 +50,7 @@ export function registerLoginCommand(program: Command): void {
         const method = await promptAuthMethod();
 
         if (method === "oauth") {
-          const auth = new OAuthAuth({ apiUrl: options.apiUrl });
+          const auth = new OAuthAuth({ apiUrl: options.apiUrl, appUrl: options.appUrl });
           await auth.login();
         } else {
           const auth = new ApiKeyAuth({ apiUrl: options.apiUrl });

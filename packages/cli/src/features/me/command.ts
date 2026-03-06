@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import { meControllerGetMe as getMe, meControllerUpdateMe as updateMe } from "../../generated/sdk.gen";
 import type { UpdateManagedUserInput } from "../../generated/types.gen";
 import { initializeClient } from "../../shared/client";
-import { withErrorHandling } from "../../shared/errors";
+import { handleSdkError, withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
 import { renderProfile, renderProfileUpdated } from "./output";
 
@@ -16,7 +16,11 @@ export function registerMeCommand(program: Command): void {
     .action(async (options: { json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const { data: response } = await getMe({ headers: authHeader() });
+        const { data: response, error } = await getMe({ headers: authHeader() });
+        if (error) {
+          handleSdkError(new Error(JSON.stringify(error)));
+          return;
+        }
         renderProfile(response?.data, options);
       });
     });
@@ -62,11 +66,15 @@ export function registerMeCommand(program: Command): void {
           if (options.avatarUrl) body.avatarUrl = options.avatarUrl;
           if (options.defaultScheduleId) body.defaultScheduleId = Number(options.defaultScheduleId);
 
-          const { data: response } = await updateMe({
+          const { data: response, error } = await updateMe({
             body,
             headers: authHeader(),
           });
 
+          if (error) {
+            handleSdkError(new Error(JSON.stringify(error)));
+            return;
+          }
           renderProfileUpdated(response?.data, options);
         });
       }

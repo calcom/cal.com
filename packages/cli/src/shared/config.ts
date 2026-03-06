@@ -9,6 +9,7 @@ const CONFIG_FILE: string = path.join(CONFIG_DIR, "config.json");
 interface CalConfig {
   apiKey?: string;
   apiUrl?: string;
+  appUrl?: string;
   oauth?: {
     clientId: string;
     clientSecret: string;
@@ -144,4 +145,9 @@ export async function getApiKey(): Promise<string> {
 export function getApiUrl(): string {
   const config = readConfig();
   return process.env.CAL_API_URL || config.apiUrl || "https://api.cal.com";
+}
+
+export function getAppUrl(): string {
+  const config = readConfig();
+  return process.env.CAL_APP_URL || config.appUrl || "https://app.cal.com";
 }

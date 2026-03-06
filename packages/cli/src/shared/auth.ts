@@ -2,7 +2,7 @@ import { exec } from "node:child_process";
 import * as http from "node:http";
 import process from "node:process";
 import * as readline from "node:readline";
-import { getApiUrl, readConfig, writeConfig } from "./config";
+import { getApiUrl, getAppUrl, readConfig, writeConfig } from "./config";
 import { renderError, renderSuccess } from "./output";
 import { errorPage, successPage } from "./templates";
 
@@ -70,12 +70,16 @@ export class OAuthAuth {
   private clientSecret?: string;
   private port: number;
   private apiUrl?: string;
+  private appUrl?: string;
 
-  constructor(options: { clientId?: string; clientSecret?: string; port?: number; apiUrl?: string } = {}) {
+  constructor(
+    options: { clientId?: string; clientSecret?: string; port?: number; apiUrl?: string; appUrl?: string } = {}
+  ) {
     this.clientId = options.clientId;
     this.clientSecret = options.clientSecret;
     this.port = options.port || OAuthAuth.DEFAULT_PORT;
     this.apiUrl = options.apiUrl;
+    this.appUrl = options.appUrl;
   }
 
   async login(): Promise<void> {
@@ -89,9 +93,14 @@ export class OAuthAuth {
       throw new Error("OAuth Client Secret is required.");
     }
 
-    if (this.apiUrl) {
+    if (this.apiUrl || this.appUrl) {
       const config = readConfig();
-      config.apiUrl = this.apiUrl;
+      if (this.apiUrl) {
+        config.apiUrl = this.apiUrl;
+      }
+      if (this.appUrl) {
+        config.appUrl = this.appUrl;
+      }
       writeConfig(config);
     }
 
@@ -108,8 +117,7 @@ export class OAuthAuth {
   }
 
   private buildAuthorizeUrl(clientId: string, redirectUri: string): string {
-    const config = readConfig();
-    const baseUrl = config.apiUrl || "https://app.cal.com";
+    const baseUrl = getAppUrl();
     const state = Math.random().toString(36).substring(2, 15);
 
     const params = new URLSearchParams({
