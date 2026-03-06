@@ -1,4 +1,3 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { ISeatBillingStrategy } from "../seatBillingStrategy/ISeatBillingStrategy";
@@ -11,7 +10,6 @@ const log = logger.getSubLogger({ prefix: ["DunningStrategyFactory"] });
 export interface IDunningStrategyFactoryDeps {
   inner: SeatBillingStrategyFactory;
   dunningServiceFactory: DunningServiceFactory;
-  featuresRepository: IFeaturesRepository;
   teamBillingDataRepository: ITeamBillingDataRepository;
 }
 
@@ -37,10 +35,6 @@ export class DunningStrategyFactory {
     teamId: number,
     subscriptionId?: string
   ): Promise<ISeatBillingStrategy> {
-    const dunningEnabled =
-      await this.deps.featuresRepository.checkIfFeatureIsEnabledGlobally("dunning-enforcement");
-    if (!dunningEnabled) return inner;
-
     const resolved = await this.deps.dunningServiceFactory.forTeam(teamId);
     if (!resolved) return inner;
 
