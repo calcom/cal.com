@@ -32,8 +32,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
@@ -50,7 +52,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
   path: "/v2/organizations/:orgId/teams",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -59,9 +61,10 @@ export class OrganizationsTeamsController {
   constructor(
     private organizationsTeamsService: OrganizationsTeamsService,
     private organizationsMembershipService: OrganizationsMembershipService
-  ) {}
+  ) { }
 
   @Get()
+  @Pbac(["team.read"])
   @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -78,6 +81,7 @@ export class OrganizationsTeamsController {
   }
 
   @Get("/me")
+  @Pbac(["team.read"])
   @ApiOperation({ summary: "Get teams membership for user" })
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
@@ -109,6 +113,7 @@ export class OrganizationsTeamsController {
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/:teamId")
+  @Pbac(["team.read"])
   @ApiOperation({ summary: "Get a team" })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
     return {
@@ -121,6 +126,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/:teamId")
+  @Pbac(["team.delete"])
   @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "org_teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
   async deleteTeam(
@@ -138,6 +144,7 @@ export class OrganizationsTeamsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/:teamId")
+  @Pbac(["team.update"])
   @ApiOperation({ summary: "Update a team" })
   async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -154,6 +161,7 @@ export class OrganizationsTeamsController {
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.create"])
   @ApiOperation({ summary: "Create a team" })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,

@@ -18,8 +18,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
@@ -32,7 +34,7 @@ import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/teams/:teamId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -41,9 +43,10 @@ export class OrganizationsTeamsBookingsController {
   constructor(
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly bookingReferencesService: BookingReferencesService_2024_08_13
-  ) {}
+  ) { }
 
   @Get("/")
+  @Pbac(["booking.readTeamBookings"])
   @ApiOperation({ summary: "Get organization team bookings" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -72,6 +75,7 @@ export class OrganizationsTeamsBookingsController {
   @Permissions([BOOKING_READ])
   @UseGuards(
     ApiAuthGuard,
+    PbacGuard,
     BookingUidGuard,
     IsOrgGuard,
     RolesGuard,
@@ -79,6 +83,7 @@ export class OrganizationsTeamsBookingsController {
     PlatformPlanGuard,
     IsAdminAPIEnabledGuard
   )
+  @Pbac(["booking.readTeamBookings"])
   @ApiOperation({
     summary: "Get booking references",
   })

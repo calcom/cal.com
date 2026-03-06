@@ -6,9 +6,11 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { CreateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/create-routing-form-response.input";
 import { GetRoutingFormResponsesParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import { UpdateRoutingFormResponseInput } from "@/modules/organizations/routing-forms/inputs/update-routing-form-response.input";
@@ -41,6 +43,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 @UseGuards(
   ApiAuthGuard,
   IsOrgGuard,
+  PbacGuard,
   IsTeamInOrg,
   IsRoutingFormInTeam,
   PlatformPlanGuard,
@@ -51,9 +54,10 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 export class OrganizationsTeamsRoutingFormsResponsesController {
   constructor(
     private readonly organizationsTeamsRoutingFormsResponsesService: OrganizationsTeamsRoutingFormsResponsesService
-  ) {}
+  ) { }
 
   @Get("/")
+  @Pbac(["routingForm.read"])
   @ApiOperation({ summary: "Get organization team routing form responses" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
@@ -81,6 +85,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   }
 
   @Post("/")
+  @Pbac(["routingForm.create"])
   @ApiOperation({ summary: "Create routing form response and get available slots" })
   @Roles("TEAM_MEMBER")
   @PlatformPlan("ESSENTIALS")
@@ -105,6 +110,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   }
 
   @Patch("/:responseId")
+  @Pbac(["routingForm.update"])
   @ApiOperation({ summary: "Update routing form response" })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")

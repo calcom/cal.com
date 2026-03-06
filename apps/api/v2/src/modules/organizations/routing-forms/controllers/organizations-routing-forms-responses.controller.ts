@@ -8,7 +8,9 @@ import { Or } from "@/modules/auth/guards/or-guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
 import {
@@ -39,15 +41,16 @@ import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Orgs / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsRoutingFormsResponsesController {
   constructor(
     private readonly organizationsRoutingFormsResponsesService: OrganizationsRoutingFormsResponsesService
-  ) {}
+  ) { }
 
   @Get("/")
+  @Pbac(["routingForm.read"])
   @ApiOperation({ summary: "Get routing form responses" })
   @Roles("ORG_ADMIN")
   @UseGuards(RolesGuard)
@@ -75,6 +78,7 @@ export class OrganizationsRoutingFormsResponsesController {
   }
 
   @Post("/")
+  @Pbac(["routingForm.create"])
   @ApiOperation({ summary: "Create routing form response and get available slots" })
   @Roles("ORG_ADMIN")
   @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
@@ -98,6 +102,7 @@ export class OrganizationsRoutingFormsResponsesController {
   }
 
   @Patch("/:responseId")
+  @Pbac(["routingForm.update"])
   @ApiOperation({ summary: "Update routing form response" })
   @Roles("ORG_ADMIN")
   @UseGuards(RolesGuard)

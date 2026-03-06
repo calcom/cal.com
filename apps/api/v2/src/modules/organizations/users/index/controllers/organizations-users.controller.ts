@@ -12,8 +12,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
@@ -49,16 +51,16 @@ import type { Team } from "@calcom/prisma/client";
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@UseGuards(IsOrgGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Users")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsUsersController {
-  constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
+  constructor(private readonly organizationsUsersService: OrganizationsUsersService) { }
 
   @Get()
+  @Pbac(["organization.listMembers"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all users" })
@@ -88,6 +90,7 @@ export class OrganizationsUsersController {
   }
 
   @Post()
+  @Pbac(["organization.invite"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
@@ -112,6 +115,7 @@ export class OrganizationsUsersController {
   }
 
   @Patch("/:userId")
+  @Pbac(["organization.editUsers"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
@@ -133,6 +137,7 @@ export class OrganizationsUsersController {
   }
 
   @Delete("/:userId")
+  @Pbac(["organization.remove"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)

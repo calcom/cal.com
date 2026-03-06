@@ -7,8 +7,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
 import { RequestPhoneVerificationInput } from "@/modules/verified-resources/inputs/request-phone-verification.input";
 import { VerifyEmailInput } from "@/modules/verified-resources/inputs/verify-email.input";
@@ -47,10 +49,10 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/verified-resources",
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Organization Team Verified Resources")
 export class OrgTeamsVerifiedResourcesController {
-  constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
+  constructor(private readonly verifiedResourcesService: VerifiedResourcesService) { }
   @ApiOperation({
     summary: "Request email verification code",
     description: `Sends a verification code to the email`,
@@ -66,6 +68,7 @@ export class OrgTeamsVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/verification-code/request")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.update"])
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -95,6 +98,7 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @Post("/phones/verification-code/request")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.update"])
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {
@@ -116,6 +120,7 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.update"])
   async verifyEmail(
     @Body() body: VerifyEmailInput,
     @GetUser("id") userId: number,
@@ -148,6 +153,7 @@ export class OrgTeamsVerifiedResourcesController {
     name: "org_teams_verified_resources_phones_verify",
   })
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.update"])
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
     @GetUser("id") userId: number,
@@ -173,6 +179,7 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.read"])
   async getVerifiedEmails(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
@@ -196,6 +203,7 @@ export class OrgTeamsVerifiedResourcesController {
   @Get("/phones")
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.read"])
   async getVerifiedPhoneNumbers(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
@@ -221,6 +229,7 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/emails/:id")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.read"])
   async getVerifiedEmailById(
     @Param("id") id: number,
     @Param("teamId", ParseIntPipe) teamId: number
@@ -240,6 +249,7 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["team.read"])
   async getVerifiedPhoneById(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("id") id: number

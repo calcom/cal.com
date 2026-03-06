@@ -11,7 +11,9 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
 import { CreateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/create-delegation-credential.output";
 import { DelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/delegation-credential.output";
@@ -40,18 +42,19 @@ import { CreateDelegationCredentialInput } from "./inputs/create-delegation-cred
   path: "/v2/organizations/:orgId/delegation-credentials",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Delegation Credentials")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsDelegationCredentialController {
-  constructor(private readonly delegationCredentialService: OrganizationsDelegationCredentialService) {}
+  constructor(private readonly delegationCredentialService: OrganizationsDelegationCredentialService) { }
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
+  @Pbac(["organization.update"])
   @ApiOperation({ summary: "Save delegation credentials for your organization" })
   async createDelegationCredential(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -72,6 +75,7 @@ export class OrganizationsDelegationCredentialController {
   @Patch("/:credentialId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
+  @Pbac(["organization.update"])
   @ApiOperation({ summary: "Update delegation credentials of your organization" })
   async updateDelegationCredential(
     @Param("orgId", ParseIntPipe) orgId: number,

@@ -26,8 +26,10 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsManagedOrgInManagerOrg } from "@/modules/auth/guards/organizations/is-managed-org-in-manager-org.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations/organizations/inputs/get-managed-organizations.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
@@ -42,14 +44,15 @@ const SCALE = "SCALE";
   path: "/v2/organizations/:orgId/organizations",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Managed Orgs")
 @ApiHeader(X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(X_CAL_SECRET_KEY_HEADER)
 export class OrganizationsOrganizationsController {
-  constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) {}
+  constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) { }
 
   @Post()
+  @Pbac(["organization.create"])
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @ApiOperation({
@@ -77,6 +80,7 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/:managedOrganizationId")
+  @Pbac(["organization.read"])
   @ApiOperation({
     summary: "Get an organization within an organization",
     description:
@@ -96,6 +100,7 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Get("/")
+  @Pbac(["organization.read"])
   @ApiOperation({
     summary: "Get all organizations within an organization",
     description:
@@ -117,6 +122,7 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Patch("/:managedOrganizationId")
+  @Pbac(["organization.update"])
   @ApiOperation({
     summary: "Update an organization within an organization",
     description:
@@ -142,6 +148,7 @@ export class OrganizationsOrganizationsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan(SCALE)
   @Delete("/:managedOrganizationId")
+  @Pbac(["organization.delete"])
   @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "organizations_delete" })
   @ApiOperation({
     summary: "Delete an organization within an organization",

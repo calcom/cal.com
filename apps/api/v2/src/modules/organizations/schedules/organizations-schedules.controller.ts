@@ -11,8 +11,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
 import {
   Controller,
@@ -46,7 +48,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
@@ -54,11 +56,12 @@ export class OrganizationsSchedulesController {
   constructor(
     private schedulesService: SchedulesService_2024_06_11,
     private organizationScheduleService: OrganizationsSchedulesService
-  ) {}
+  ) { }
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
+  @Pbac(["availability.read"])
   @DocsTags("Orgs / Schedules")
   @ApiOperation({ summary: "Get all schedules" })
   async getOrganizationSchedules(
@@ -79,6 +82,7 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
+  @Pbac(["availability.create"])
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Create a schedule" })
   async createUserSchedule(
@@ -97,6 +101,7 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
+  @Pbac(["availability.read"])
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Get a schedule" })
   async getUserSchedule(
@@ -115,6 +120,7 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
+  @Pbac(["availability.read"])
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Get all schedules" })
   async getUserSchedules(
@@ -132,6 +138,7 @@ export class OrganizationsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
+  @Pbac(["availability.update"])
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Update a schedule" })
   async updateUserSchedule(
@@ -152,6 +159,7 @@ export class OrganizationsSchedulesController {
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["availability.delete"])
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Delete a schedule" })
   async deleteUserSchedule(

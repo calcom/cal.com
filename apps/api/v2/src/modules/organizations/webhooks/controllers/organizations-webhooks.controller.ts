@@ -10,8 +10,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
@@ -47,7 +49,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Webhooks")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -56,12 +58,13 @@ export class OrganizationsWebhooksController {
   constructor(
     private organizationsWebhooksService: OrganizationsWebhooksService,
     private webhooksService: WebhooksService
-  ) {}
+  ) { }
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["webhook.read"])
   @ApiOperation({ summary: "Get all webhooks" })
   async getAllOrganizationWebhooks(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -87,6 +90,7 @@ export class OrganizationsWebhooksController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @Pbac(["webhook.create"])
   @ApiOperation({ summary: "Create a webhook" })
   async createOrganizationWebhook(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -109,6 +113,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["webhook.read"])
   @ApiOperation({ summary: "Get a webhook" })
   async getOrganizationWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.organizationsWebhooksService.getWebhook(webhookId);
@@ -125,6 +130,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["webhook.delete"])
   @ApiOperation({ summary: "Delete a webhook" })
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
@@ -141,6 +147,7 @@ export class OrganizationsWebhooksController {
   @UseGuards(IsWebhookInOrg)
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["webhook.update"])
   @ApiOperation({ summary: "Update a webhook" })
   async updateOrgWebhook(
     @Param("webhookId") webhookId: string,

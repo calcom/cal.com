@@ -13,8 +13,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/event-types/services/organizations-event-types.service";
@@ -73,12 +75,13 @@ export class OrganizationsEventTypesController {
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
     private readonly outputTeamEventTypesResponsePipe: OutputTeamEventTypesResponsePipe
-  ) {}
+  ) { }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/event-types")
+  @Pbac(["eventType.create"])
   @ApiOperation({ summary: "Create an event type" })
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
@@ -111,8 +114,9 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
+  @Pbac(["eventType.read"])
   @ApiOperation({ summary: "Get an event type" })
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -134,7 +138,8 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, IsTeamInOrg, RolesGuard)
+  @Pbac(["eventType.update"])
   @ApiOperation({ summary: "Create a phone call" })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
@@ -157,8 +162,9 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
+  @Pbac(["eventType.read"])
   @ApiOperation({
     summary: "Get team event types",
     description:
@@ -193,8 +199,9 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/event-types")
+  @Pbac(["eventType.read"])
   @ApiOperation({
     summary: "Get all team event types",
     description:
@@ -220,8 +227,9 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
+  @Pbac(["eventType.update"])
   @ApiOperation({ summary: "Update a team event type" })
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -251,9 +259,10 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["eventType.delete"])
   @ApiOperation({ summary: "Delete a team event type" })
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,

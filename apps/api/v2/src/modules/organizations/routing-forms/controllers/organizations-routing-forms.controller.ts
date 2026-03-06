@@ -6,7 +6,9 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { GetRoutingFormsParams } from "@/modules/organizations/routing-forms/inputs/get-routing-form-responses-params.input";
 import {
   GetRoutingFormsOutput,
@@ -23,13 +25,14 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   path: "/v2/organizations/:orgId/routing-forms",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Orgs / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsRoutingFormsController {
-  constructor(private readonly organizationsRoutingFormsService: OrganizationsRoutingFormsService) {}
+  constructor(private readonly organizationsRoutingFormsService: OrganizationsRoutingFormsService) { }
 
   @Get()
+  @Pbac(["routingForm.read"])
   @ApiOperation({ summary: "Get organization routing forms" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")

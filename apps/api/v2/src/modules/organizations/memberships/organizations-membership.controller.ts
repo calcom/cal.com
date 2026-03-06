@@ -11,7 +11,9 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
 import { CreateOrgMembershipOutput } from "@/modules/organizations/memberships/outputs/create-membership.output";
@@ -43,18 +45,19 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Memberships")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsMembershipsController {
-  constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
+  constructor(private organizationsMembershipService: OrganizationsMembershipService) { }
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.listMembers"])
   @ApiOperation({ summary: "Get all memberships" })
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -76,6 +79,7 @@ export class OrganizationsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @Pbac(["organization.invite"])
   @ApiOperation({ summary: "Create a membership" })
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -93,6 +97,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.listMembers"])
   @ApiOperation({ summary: "Get a membership" })
   async getOrgMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -110,6 +115,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.remove"])
   @ApiOperation({ summary: "Delete a membership" })
   async deleteMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -127,6 +133,7 @@ export class OrganizationsMembershipsController {
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.changeMemberRole"])
   @ApiOperation({ summary: "Update a membership" })
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,

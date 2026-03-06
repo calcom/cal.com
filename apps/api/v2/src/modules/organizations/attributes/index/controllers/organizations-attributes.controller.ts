@@ -6,7 +6,9 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
 import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
 import { CreateOrganizationAttributesOutput } from "@/modules/organizations/attributes/index/outputs/create-organization-attributes.output";
@@ -38,15 +40,16 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Attributes")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsAttributesController {
-  constructor(private readonly organizationsAttributesService: OrganizationAttributesService) {}
+  constructor(private readonly organizationsAttributesService: OrganizationAttributesService) { }
   // Gets all attributes for an organization
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes")
+  @Pbac(["organization.attributes.read"])
   @ApiOperation({ summary: "Get all attributes" })
   async getOrganizationAttributes(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -65,6 +68,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId")
+  @Pbac(["organization.attributes.read"])
   @ApiOperation({ summary: "Get an attribute" })
   async getOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -81,6 +85,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes")
+  @Pbac(["organization.attributes.create"])
   @ApiOperation({ summary: "Create an attribute" })
   async createOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -100,6 +105,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/attributes/:attributeId")
+  @Pbac(["organization.attributes.update"])
   @ApiOperation({ summary: "Update an attribute" })
   async updateOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -121,6 +127,7 @@ export class OrganizationsAttributesController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/:attributeId")
+  @Pbac(["organization.attributes.delete"])
   @ApiOperation({ summary: "Delete an attribute" })
   async deleteOrganizationAttribute(
     @Param("orgId", ParseIntPipe) orgId: number,

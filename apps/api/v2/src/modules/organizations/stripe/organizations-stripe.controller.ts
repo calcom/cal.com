@@ -6,8 +6,10 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
 import {
   StripConnectOutputDto,
@@ -58,13 +60,14 @@ export class OrganizationsStripeController {
   constructor(
     private readonly organizationsStripeService: OrganizationsStripeService,
     private readonly tokensRepository: TokensRepository
-  ) {}
+  ) { }
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/connect")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.manageBilling"])
   @ApiOperation({ summary: "Get Stripe connect URL for a team" })
   async getTeamStripeConnectUrl(
     @Req() req: Request,
@@ -101,9 +104,10 @@ export class OrganizationsStripeController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/check")
   @HttpCode(HttpStatus.OK)
+  @Pbac(["organization.manageBilling"])
   @ApiOperation({ summary: "Check team Stripe connection" })
   async checkTeamStripeConnection(
     @Param("teamId", ParseIntPipe) teamId: number
@@ -113,9 +117,10 @@ export class OrganizationsStripeController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/save")
   @Redirect(undefined, 301)
+  @Pbac(["organization.manageBilling"])
   @ApiOperation({ summary: "Save Stripe credentials" })
   async save(
     @Query("state") state: string,
