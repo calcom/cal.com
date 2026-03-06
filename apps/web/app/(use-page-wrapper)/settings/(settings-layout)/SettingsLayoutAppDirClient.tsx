@@ -34,7 +34,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ComponentProps } from "react";
 import React, { useEffect, useMemo, useState } from "react";
-
 import Shell from "~/shell/Shell";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
@@ -513,18 +512,34 @@ const TeamRolesNavItem = ({
     feature: "pbac",
   });
 
-  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
-  if (!team.parentId || !isPbacEnabled) return null;
+  // For sub-teams with PBAC-enabled parent org: show functional roles page
+  if (team.parentId && isPbacEnabled) {
+    return (
+      <VerticalTabItem
+        name={t("roles_and_permissions")}
+        href={`/settings/teams/${team.id}/roles`}
+        trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
+        textClassNames="px-3 text-emphasis font-medium text-sm"
+        disableChevron
+      />
+    );
+  }
 
-  return (
-    <VerticalTabItem
-      name={t("roles_and_permissions")}
-      href={`/settings/teams/${team.id}/roles`}
-      trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
-      textClassNames="px-3 text-emphasis font-medium text-sm"
-      disableChevron
-    />
-  );
+  // For standalone teams (not in an org): show upgrade banner page
+  if (!team.parentId) {
+    return (
+      <VerticalTabItem
+        name={t("roles_and_permissions")}
+        href={`/settings/teams/${team.id}/roles`}
+        trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
+        textClassNames="px-3 text-emphasis font-medium text-sm"
+        className="px-2! me-5 h-7 w-auto"
+        disableChevron
+      />
+    );
+  }
+
+  return null;
 };
 
 const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
@@ -1057,6 +1072,9 @@ type SettingsLayoutProps = {
 
 function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
+  const isFullWidthPage =
+    pathname?.includes("/settings/teams/") &&
+    (pathname?.includes("/attributes") || pathname?.includes("/roles"));
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
 
@@ -1096,7 +1114,11 @@ function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...re
       }>
       <div className="*:flex-1 flex flex-1">
         <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+          className={classNames(
+            "mx-auto justify-center",
+            !isFullWidthPage && "max-w-full lg:max-w-3xl",
+            rest.containerClassName
+          )}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>
