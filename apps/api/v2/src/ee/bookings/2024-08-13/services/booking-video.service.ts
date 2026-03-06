@@ -90,7 +90,7 @@ export class BookingVideoService_2024_08_13 {
       return { ...FAKE_DAILY_CREDENTIAL };
     }
 
-    const integrationToCredentialTypeMap: Record<string, string> = {
+    const integrationToCredentialTypeMap = {
       zoom: "zoom_video",
       "whereby-video": "whereby_video",
       "webex-video": "webex_video",
@@ -98,9 +98,12 @@ export class BookingVideoService_2024_08_13 {
       jitsi: "jitsi_video",
       huddle: "huddle01_video",
       "office365-video": "office365_video",
-    };
+    } as const;
 
-    const credentialType = integrationToCredentialTypeMap[integrationSlug];
+    const credentialType =
+      integrationSlug in integrationToCredentialTypeMap
+        ? integrationToCredentialTypeMap[integrationSlug as keyof typeof integrationToCredentialTypeMap]
+        : undefined;
 
     const matchingCred = userCredentials.find((cred) => {
       if (credentialType) {
