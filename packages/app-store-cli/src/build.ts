@@ -491,7 +491,7 @@ function generateFiles() {
   const redirectAppSlugs: string[] = [];
   forEachAppDir((app) => {
     // Exclude templates - they are not actual apps
-    if (app.externalLink && !app.path.startsWith("templates/")) {
+    if (app.externalLink && !app.path.replace(/\\/g, "/").startsWith("templates/")) {
       redirectAppSlugs.push(app.name);
     }
   });
