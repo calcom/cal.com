@@ -461,7 +461,6 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       body: zodToJsonSchema(rescheduleBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({
-          newUserId: z.number(),
           bookingId: z.number(),
         }), 'Booking reassigned')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
