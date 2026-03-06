@@ -55,13 +55,19 @@ jobs:
           yarn prisma generate
           yarn generate-swagger
 
+      - name: Get base OpenAPI spec from main
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:docs/api-reference/v2/openapi.json > /tmp/openapi-base.json
+
       - name: Check API v2 breaking changes
         run: |
           docker run --rm \
             -v "$PWD:/work" -w /work \
+            -v "/tmp/openapi-base.json:/base/openapi.json:ro" \
             tufin/oasdiff:latest \
             breaking \
-            https://raw.githubusercontent.com/calcom/cal/refs/heads/main/docs/api-reference/v2/openapi.json \
+            /base/openapi.json \
             docs/api-reference/v2/openapi.json \
             --fail-on ERR \
             --err-ignore .github/oasdiff-err-ignore.txt
