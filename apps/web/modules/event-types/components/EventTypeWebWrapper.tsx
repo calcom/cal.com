@@ -165,6 +165,12 @@ const EventTypeWeb = ({
         childrenToRemove: [],
         childrenToUpdate: [],
       };
+      // Reset pending host changes after successful save
+      currentValues.pendingHostChanges = {
+        hostsToAdd: [],
+        hostsToUpdate: [],
+        hostsToRemove: [],
+      };
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
