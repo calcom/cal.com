@@ -283,6 +283,56 @@ describe("Tests the slot logic", () => {
     expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
   });
 
+  it("generates slots when viewer is in a different timezone from half-hour offset host", async () => {
+    // Host in Asia/Kolkata (UTC+5:30) with 9:00-10:00 IST availability (03:30-04:30 UTC)
+    // Viewer in Europe/London — rounding should not eliminate the only available slot
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Europe/London"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges: [
+        {
+          start: dayjs.tz("2023-07-13T09:00:00.000", "Asia/Kolkata"),
+          end: dayjs.tz("2023-07-13T10:00:00.000", "Asia/Kolkata"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(1);
+    expect(slots[0]?.time.utc().format()).toBe("2023-07-13T03:30:00Z");
+  });
+
+  it("produces slots for cross-timezone viewers with wider availability window", async () => {
+    // Host in Asia/Kolkata 9:00-17:00 IST, viewer in Europe/London
+    const dateRanges: DateRange[] = [
+      {
+        start: dayjs.tz("2023-07-13T09:00:00.000", "Asia/Kolkata"),
+        end: dayjs.tz("2023-07-13T17:00:00.000", "Asia/Kolkata"),
+      },
+    ];
+
+    const slotsKolkata = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Asia/Kolkata"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges,
+    });
+
+    const slotsLondon = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Europe/London"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges,
+    });
+
+    expect(slotsKolkata.length).toBeGreaterThan(0);
+    expect(slotsLondon.length).toBeGreaterThan(0);
+    expect(Math.abs(slotsKolkata.length - slotsLondon.length)).toBeLessThanOrEqual(1);
+  });
+
   it("tests slots for 5 minute events", async () => {
     const slots = getSlots({
       inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),

@@ -138,12 +138,18 @@ function buildSlotsWithDateRanges({
     slotStartTime = slotStartTime.tz(timeZone);
 
     if (slotStartTime.minute() % interval !== 0) {
-      slotStartTime = getCorrectedSlotStartTime({
+      const corrected = getCorrectedSlotStartTime({
         showOptimizedSlots,
         interval,
         slotStartTime,
         range,
       });
+      const correctedEnd = corrected.add(eventLength, "minutes").subtract(1, "second").utc();
+      const rangeEnd = range.end.utc();
+      const fitsWithinRange = !correctedEnd.isAfter(rangeEnd);
+      if (fitsWithinRange) {
+        slotStartTime = corrected;
+      }
     }
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
