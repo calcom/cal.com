@@ -1,13 +1,5 @@
-import { useMemo, useState, Suspense } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import {
-  EventTypeEmbedButton,
-  EventTypeEmbedDialog,
-} from "@calcom/web/modules/embed/components/EventTypeEmbed";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -16,23 +8,27 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import {
-  DropdownMenuSeparator,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { LoaderIcon } from "@coss/ui/icons";
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
+import { Label, Switch } from "@calcom/ui/components/form";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
 import WebShell from "@calcom/web/modules/shell/Shell";
-
+import { LoaderIcon } from "@coss/ui/icons";
+import { Suspense, useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { Shell as PlatformShell } from "../../../../../packages/platform/atoms/src/components/ui/shell";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
@@ -104,7 +100,30 @@ function EventTypeSingleLayout({
 
   return (
     <Shell
-      backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
+      backPath={false}
+      HeadingLeftIcon={
+        <Button
+          variant="icon"
+          size="sm"
+          color="minimal"
+          StartIcon="arrow-left"
+          aria-label="Go Back"
+          className="rounded-md ltr:mr-2 rtl:ml-2"
+          onClick={() => {
+            const backUrl = teamId ? `/event-types?teamId=${teamId}` : "/event-types";
+            if (formMethods.formState.isDirty) {
+              const confirmLeave = window.confirm(
+                "You have unsaved changes. Are you sure you want to leave?"
+              );
+              if (confirmLeave) {
+                window.location.href = backUrl;
+              }
+            } else {
+              window.location.href = backUrl;
+            }
+          }}
+        />
+      }
       title={`${eventType.title} | ${t("event_type")}`}
       heading={
         <div className="flex min-w-0 items-center">

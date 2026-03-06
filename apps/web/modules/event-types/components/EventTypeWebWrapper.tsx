@@ -1,11 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { z } from "zod";
-
+import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
@@ -14,21 +13,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { TRPCClientError } from "@trpc/react-query";
-
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { TRPCClientError } from "@trpc/react-query";
+import dynamic from "next/dynamic";
+import { useRouter as useAppRouter, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 import { EventType as EventTypeComponent } from "./EventType";
-import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
-import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 
 type EventPermissions = {
   eventTypes: {
@@ -300,6 +296,36 @@ const EventTypeWeb = ({
       handleRouteChange(pathname || "");
     },
   });
+
+  // Handles refresh & tab close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (form.formState.isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [form.formState.isDirty]);
+
+  // Handles browser back button
+  useEffect(() => {
+    if (!form.formState.isDirty) return;
+    const handlePopState = () => {
+      const confirmLeave = window.confirm("You have unsaved changes. Are you sure you want to leave?");
+      if (!confirmLeave) {
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [form.formState.isDirty]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
