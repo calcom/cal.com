@@ -2,7 +2,6 @@ import { JwtService } from "@/modules/jwt/jwt.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Logger } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,8 +9,6 @@ import type { PlatformAuthorizationToken } from "@calcom/prisma/client";
 
 @Injectable()
 export class TokensRepository {
-  private readonly logger = new Logger("TokensRepository");
-
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
@@ -143,31 +140,6 @@ export class TokensRepository {
     };
   }
 
-  /** Decode and verify JWT signed with CALENDSO_ENCRYPTION_KEY (web app OAuth tokens). Returns payload or null. */
-  private decodeWebOAuthToken(secret: string): { userId: number; clientId: string; exp: number } | null {
-    const key = process.env.CALENDSO_ENCRYPTION_KEY;
-    if (!key) {
-      this.logger.warn(
-        "TokensRepository#decodeWebOAuthToken: CALENDSO_ENCRYPTION_KEY not set, cannot validate web-issued JWTs"
-      );
-      return null;
-    }
-    try {
-      const jwt = require("jsonwebtoken") as typeof import("jsonwebtoken");
-      const decoded = jwt.verify(secret, key) as { userId?: number; clientId?: string; exp?: number };
-      if (decoded?.userId != null && decoded?.clientId != null && decoded?.exp != null) {
-        return {
-          userId: Number(decoded.userId),
-          clientId: String(decoded.clientId),
-          exp: Number(decoded.exp),
-        };
-      }
-    } catch {
-      // not a valid web JWT, wrong key, or expired
-    }
-    return null;
-  }
-
   async getAccessTokenExpiryDate(accessTokenSecret: string) {
     const accessToken = await this.dbRead.prisma.accessToken.findFirst({
       where: {
@@ -177,10 +149,7 @@ export class TokensRepository {
         expiresAt: true,
       },
     });
-    if (accessToken?.expiresAt) return accessToken.expiresAt;
-    const webPayload = this.decodeWebOAuthToken(accessTokenSecret);
-    if (webPayload) return new Date(webPayload.exp * 1000);
-    return undefined;
+    return accessToken?.expiresAt;
   }
 
   async getAccessTokenOwnerId(accessTokenSecret: string) {
@@ -193,10 +162,7 @@ export class TokensRepository {
       },
     });
 
-    if (accessToken?.userId != null) return accessToken.userId;
-    const webPayload = this.decodeWebOAuthToken(accessTokenSecret);
-    if (webPayload) return webPayload.userId;
-    return undefined;
+    return accessToken?.userId;
   }
 
   async refreshOAuthTokens(clientId: string, refreshTokenSecret: string, tokenUserId: number) {
@@ -253,18 +219,6 @@ export class TokensRepository {
       },
     });
 
-    if (token?.client) return token.client;
-    const webPayload = this.decodeWebOAuthToken(accessToken);
-    if (!webPayload) return undefined;
-    const oauthClient = await this.dbRead.prisma.oAuthClient.findFirst({
-      where: { clientId: webPayload.clientId },
-      select: { clientId: true, redirectUri: true },
-    });
-    if (!oauthClient) return undefined;
-    return {
-      id: oauthClient.clientId,
-      redirectUris: [oauthClient.redirectUri],
-      permissions: 0,
-    } as import("@calcom/prisma/client").PlatformOAuthClient;
+    return token?.client;
   }
 }
