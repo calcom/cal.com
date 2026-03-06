@@ -24,6 +24,7 @@ export class CalendarSubscriptionService {
   static CALENDAR_SUBSCRIPTION_CACHE_FEATURE = "calendar-subscription-cache" as const;
   static CALENDAR_SUBSCRIPTION_SYNC_FEATURE = "calendar-subscription-sync" as const;
   static MAX_SUBSCRIBE_ERRORS = 3;
+  static MAX_SYNC_ERRORS = 3;
 
   constructor(
     private deps: {
@@ -282,9 +283,24 @@ export class CalendarSubscriptionService {
       metrics.count("calendar.subscription.events.fetch.error", 1, {
         attributes: { provider: selectedCalendar.integration },
       });
+
+      const nextErrorCount = (selectedCalendar.syncErrorCount ?? 0) + 1;
+      const shouldResetSyncToken = nextErrorCount >= CalendarSubscriptionService.MAX_SYNC_ERRORS;
+
+      if (shouldResetSyncToken) {
+        log.warn("Resetting syncToken after repeated failures", {
+          selectedCalendarId: selectedCalendar.id,
+          syncErrorCount: nextErrorCount,
+        });
+        metrics.count("calendar.subscription.sync_token_reset", 1, {
+          attributes: { provider: selectedCalendar.integration },
+        });
+      }
+
       await this.deps.selectedCalendarRepository.updateSyncStatus(selectedCalendar.id, {
         syncErrorAt: new Date(),
         syncErrorCount: { increment: 1 },
+        ...(shouldResetSyncToken ? { syncToken: null, syncErrorCount: 0 } : {}),
       });
       throw err;
     }

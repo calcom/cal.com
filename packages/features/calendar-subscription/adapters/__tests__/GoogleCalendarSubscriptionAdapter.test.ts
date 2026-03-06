@@ -323,6 +323,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
+        maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,
         syncToken: "test-sync-token",
@@ -377,6 +378,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
+        maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,
         timeMin: expectedTimeMin,
@@ -515,6 +517,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       // First call used the stale syncToken
       expect(mockClient.events.list).toHaveBeenNthCalledWith(1, {
         calendarId: "test@example.com",
+        maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,
         syncToken: "test-sync-token",

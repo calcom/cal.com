@@ -6,9 +6,9 @@ import type { CalendarCacheEvent } from "@calcom/prisma/client";
 import { CalendarCacheEventRepository } from "../CalendarCacheEventRepository";
 
 const mockPrismaClient = {
+  $executeRaw: vi.fn(),
   calendarCacheEvent: {
     findMany: vi.fn(),
-    upsert: vi.fn(),
     deleteMany: vi.fn(),
   },
 } as unknown as PrismaClient;
@@ -84,40 +84,23 @@ describe("CalendarCacheEventRepository", () => {
   });
 
   describe("upsertMany", () => {
-    test("should upsert multiple events", async () => {
+    test("should execute bulk upsert via raw SQL", async () => {
       const events = [mockCalendarCacheEvent];
-      vi.mocked(mockPrismaClient.calendarCacheEvent.upsert).mockResolvedValue(mockCalendarCacheEvent);
+      vi.mocked(mockPrismaClient.$executeRaw).mockResolvedValue(1);
 
       await repository.upsertMany(events);
 
-      expect(mockPrismaClient.calendarCacheEvent.upsert).toHaveBeenCalledWith({
-        where: {
-          selectedCalendarId_externalId: {
-            externalId: "external-event-id",
-            selectedCalendarId: "test-calendar-id",
-          },
-        },
-        update: {
-          start: mockCalendarCacheEvent.start,
-          end: mockCalendarCacheEvent.end,
-          summary: mockCalendarCacheEvent.summary,
-          description: mockCalendarCacheEvent.description,
-          location: mockCalendarCacheEvent.location,
-          isAllDay: mockCalendarCacheEvent.isAllDay,
-          timeZone: mockCalendarCacheEvent.timeZone,
-        },
-        create: mockCalendarCacheEvent,
-      });
+      expect(mockPrismaClient.$executeRaw).toHaveBeenCalledTimes(1);
     });
 
     test("should return early when events array is empty", async () => {
       const result = await repository.upsertMany([]);
 
-      expect(mockPrismaClient.calendarCacheEvent.upsert).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$executeRaw).not.toHaveBeenCalled();
       expect(result).toBeUndefined();
     });
 
-    test("should handle multiple events", async () => {
+    test("should handle multiple events in a single query", async () => {
       const events = [
         mockCalendarCacheEvent,
         {
@@ -127,11 +110,26 @@ describe("CalendarCacheEventRepository", () => {
         },
       ];
 
-      vi.mocked(mockPrismaClient.calendarCacheEvent.upsert).mockResolvedValue(mockCalendarCacheEvent);
+      vi.mocked(mockPrismaClient.$executeRaw).mockResolvedValue(2);
 
       await repository.upsertMany(events);
 
-      expect(mockPrismaClient.calendarCacheEvent.upsert).toHaveBeenCalledTimes(2);
+      expect(mockPrismaClient.$executeRaw).toHaveBeenCalledTimes(1);
+    });
+
+    test("should batch events when exceeding UPSERT_BATCH_SIZE", async () => {
+      const batchSize = CalendarCacheEventRepository.UPSERT_BATCH_SIZE;
+      const events = Array.from({ length: batchSize + 50 }, (_, i) => ({
+        ...mockCalendarCacheEvent,
+        id: `test-id-${i}`,
+        externalId: `external-event-id-${i}`,
+      }));
+
+      vi.mocked(mockPrismaClient.$executeRaw).mockResolvedValue(1);
+
+      await repository.upsertMany(events);
+
+      expect(mockPrismaClient.$executeRaw).toHaveBeenCalledTimes(2);
     });
   });
 

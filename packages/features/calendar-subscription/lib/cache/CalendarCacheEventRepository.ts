@@ -1,8 +1,12 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
+import { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarCacheEvent } from "@calcom/prisma/client";
 
 export class CalendarCacheEventRepository implements ICalendarCacheEventRepository {
+  // PostgreSQL wire protocol allows max ~65,535 params; with 20 cols per row, ~3,276 rows max.
+  static UPSERT_BATCH_SIZE = 1000;
+
   constructor(private prismaClient: PrismaClient) {}
 
   async findAllBySelectedCalendarIdsBetween(
@@ -29,29 +33,44 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     if (events.length === 0) {
       return;
     }
-    // lack of upsertMany in prisma
-    return Promise.allSettled(
-      events.map((event) => {
-        return this.prismaClient.calendarCacheEvent.upsert({
-          where: {
-            selectedCalendarId_externalId: {
-              externalId: event.externalId,
-              selectedCalendarId: event.selectedCalendarId,
-            },
-          },
-          update: {
-            start: event.start,
-            end: event.end,
-            summary: event.summary,
-            description: event.description,
-            location: event.location,
-            isAllDay: event.isAllDay,
-            timeZone: event.timeZone,
-          },
-          create: event,
-        });
-      })
+
+    for (let i = 0; i < events.length; i += CalendarCacheEventRepository.UPSERT_BATCH_SIZE) {
+      const batch = events.slice(i, i + CalendarCacheEventRepository.UPSERT_BATCH_SIZE);
+      await this.upsertBatch(batch);
+    }
+  }
+
+  private async upsertBatch(events: CalendarCacheEvent[]) {
+    const values = events.map(
+      (e) => Prisma.sql`(
+        ${e.id}, ${e.selectedCalendarId}, ${e.externalId}, ${e.externalEtag},
+        ${e.iCalUID}, ${e.iCalSequence}, ${e.summary}, ${e.description},
+        ${e.location}, ${e.start}, ${e.end}, ${e.isAllDay}, ${e.timeZone},
+        ${e.status}::"CalendarCacheEventStatus", ${e.recurringEventId},
+        ${e.originalStartTime}, ${e.externalCreatedAt}, ${e.externalUpdatedAt},
+        NOW(), NOW()
+      )`
     );
+
+    return this.prismaClient.$executeRaw`
+      INSERT INTO "CalendarCacheEvent" (
+        "id", "selectedCalendarId", "externalId", "externalEtag",
+        "iCalUID", "iCalSequence", "summary", "description",
+        "location", "start", "end", "isAllDay", "timeZone",
+        "status", "recurringEventId", "originalStartTime",
+        "externalCreatedAt", "externalUpdatedAt", "createdAt", "updatedAt"
+      ) VALUES ${Prisma.join(values)}
+      ON CONFLICT ("selectedCalendarId", "externalId")
+      DO UPDATE SET
+        "start" = EXCLUDED."start",
+        "end" = EXCLUDED."end",
+        "summary" = EXCLUDED."summary",
+        "description" = EXCLUDED."description",
+        "location" = EXCLUDED."location",
+        "isAllDay" = EXCLUDED."isAllDay",
+        "timeZone" = EXCLUDED."timeZone",
+        "updatedAt" = NOW()
+    `;
   }
 
   async deleteMany(events: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[]) {

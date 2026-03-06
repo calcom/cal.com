@@ -24,6 +24,8 @@ const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] 
  * @see https://developers.google.com/google-apps/calendar/quickstart/nodejs
  */
 export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
+  static MAX_EVENTS = 25000;
+
   private GOOGLE_WEBHOOK_TOKEN = process.env.GOOGLE_WEBHOOK_TOKEN;
   private GOOGLE_WEBHOOK_URL = `${
     process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
@@ -116,6 +118,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       calendarId: selectedCalendar.externalId,
       pageToken,
       singleEvents: true,
+      maxResults: 2500,
     };
 
     if (!syncToken) {
@@ -144,6 +147,15 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
         }
 
         events.push(...(data.items || []));
+
+        if (events.length >= GoogleCalendarSubscriptionAdapter.MAX_EVENTS) {
+          log.warn("Event limit reached, stopping pagination", {
+            externalId: selectedCalendar.externalId,
+            eventCount: events.length,
+            maxEvents: GoogleCalendarSubscriptionAdapter.MAX_EVENTS,
+          });
+          break;
+        }
       } while (pageToken);
     } catch (error) {
       const err = error as { code?: number };
