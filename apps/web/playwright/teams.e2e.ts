@@ -18,7 +18,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Teams tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
-    const user = await users.create();
+    const user = await users.create(undefined, { hasTeam: true });
 
     await user.apiLogin();
 
