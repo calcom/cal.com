@@ -38,11 +38,7 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": [
-              "atoms/introduction",
-              "atoms/setup",
-              "atoms/cal-oauth-provider"
-            ]
+            "pages": ["atoms/introduction", "atoms/setup", "atoms/cal-oauth-provider"]
           },
           {
             "group": "Booking",
@@ -54,11 +50,7 @@
           },
           {
             "group": "Availability",
-            "pages": [
-              "atoms/availability-settings",
-              "atoms/create-schedule",
-              "atoms/list-schedules"
-            ]
+            "pages": ["atoms/availability-settings", "atoms/create-schedule", "atoms/list-schedules"]
           },
           {
             "group": "Calendars",
@@ -72,11 +64,7 @@
           },
           {
             "group": "Integrations",
-            "pages": [
-              "atoms/conferencing-apps",
-              "atoms/stripe-connect",
-              "atoms/payment-form"
-            ]
+            "pages": ["atoms/conferencing-apps", "atoms/stripe-connect", "atoms/payment-form"]
           },
           {
             "group": "Utility",
@@ -125,9 +113,7 @@
               {
                 "group": "API Development",
                 "icon": "brackets-curly",
-                "pages": [
-                  "developing/guides/api/how-to-setup-api-in-a-local-instance"
-                ]
+                "pages": ["developing/guides/api/how-to-setup-api-in-a-local-instance"]
               },
               {
                 "group": "App Store and Integration",
@@ -160,9 +146,7 @@
               {
                 "group": "Email",
                 "icon": "inbox",
-                "pages": [
-                  "developing/guides/email/setup-mailtrap-for-email-testing"
-                ]
+                "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
               },
               {
                 "group": "Embeds",
@@ -232,9 +216,7 @@
               {
                 "group": "App Store and Integration",
                 "icon": "grid",
-                "pages": [
-                  "self-hosting/guides/appstore-and-integration/syncing-third-party-apps"
-                ]
+                "pages": ["self-hosting/guides/appstore-and-integration/syncing-third-party-apps"]
               },
               {
                 "group": "White Labeling",
@@ -248,9 +230,7 @@
               {
                 "group": "Sponsorship",
                 "icon": "money-check-dollar",
-                "pages": [
-                  "self-hosting/guides/sponsorship/can-calcom-sponsor-my-open-source-project"
-                ]
+                "pages": ["self-hosting/guides/sponsorship/can-calcom-sponsor-my-open-source-project"]
               },
               {
                 "group": "Organizations",
@@ -318,6 +298,6 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "grok"]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   }
 }
