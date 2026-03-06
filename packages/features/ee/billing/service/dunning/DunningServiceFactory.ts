@@ -7,6 +7,11 @@ export interface ResolvedDunning {
   entityType: "team" | "organization";
 }
 
+export interface AdvancementCandidate {
+  billingId: string;
+  entityType: "team" | "organization";
+}
+
 export interface IDunningServiceFactoryDeps {
   teamDunningService: IDunningService;
   orgDunningService: IDunningService;
@@ -38,4 +43,34 @@ export class DunningServiceFactory {
 
     return null;
   }
+
+  async getAdvancementCandidates(): Promise<AdvancementCandidate[]> {
+    const [teamIds, orgIds] = await Promise.all([
+      this.deps.teamDunningService.getBillingIdsToAdvance(),
+      this.deps.orgDunningService.getBillingIdsToAdvance(),
+    ]);
+    return [
+      ...teamIds.map((billingId) => ({ billingId, entityType: "team" as const })),
+      ...orgIds.map((billingId) => ({ billingId, entityType: "organization" as const })),
+    ];
+  }
+
+  async advanceByBillingId(
+    billingId: string,
+    entityType: "team" | "organization"
+  ): Promise<{ advanced: boolean; from?: string; to?: string }> {
+    const service =
+      entityType === "organization" ? this.deps.orgDunningService : this.deps.teamDunningService;
+    return service.advanceDunning(billingId);
+  }
+
+  async findTeamIdByBillingId(
+    billingId: string,
+    entityType: "team" | "organization"
+  ): Promise<number | null> {
+    const repo =
+      entityType === "organization" ? this.deps.orgBillingRepository : this.deps.teamBillingRepository;
+    return repo.findTeamIdByBillingId(billingId);
+  }
+
 }

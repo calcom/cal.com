@@ -67,7 +67,10 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
 
   if (!data || data.length === 0) return null;
 
-  const sorted = [...data].sort((a, b) => (SEVERITY_ORDER[b.status] ?? 0) - (SEVERITY_ORDER[a.status] ?? 0));
+  const sorted = [...data].sort(
+    (a, b) =>
+      (SEVERITY_ORDER[b.status as DunningStatus] ?? 0) - (SEVERITY_ORDER[a.status as DunningStatus] ?? 0)
+  );
   const displayRecord = sorted[0];
 
   const { variant, messageKey } = getBannerConfig(displayRecord);

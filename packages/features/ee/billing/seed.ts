@@ -9,6 +9,7 @@
  *   npx tsx packages/features/ee/billing/seed.ts --hwm
  *   npx tsx packages/features/ee/billing/seed.ts --proration
  *   npx tsx packages/features/ee/billing/seed.ts --active-user
+ *   npx tsx packages/features/ee/billing/seed.ts --dunning
  *   npx tsx packages/features/ee/billing/seed.ts --resubscribe
  *   npx tsx packages/features/ee/billing/seed.ts --all
  *   npx tsx packages/features/ee/billing/seed.ts --cleanup
@@ -20,16 +21,14 @@
  */
 
 import { spawn } from "node:child_process";
+import process from "node:process";
 import * as readline from "node:readline";
 
-const HWM_SCRIPT =
-  "packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts";
-const PRORATION_SCRIPT =
-  "packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts";
-const ACTIVE_USER_SCRIPT =
-  "packages/features/ee/billing/active-user/seed-active-user-test.ts";
-const RESUBSCRIBE_SCRIPT =
-  "packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts";
+const HWM_SCRIPT = "packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts";
+const PRORATION_SCRIPT = "packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts";
+const ACTIVE_USER_SCRIPT = "packages/features/ee/billing/active-user/seed-active-user-test.ts";
+const DUNNING_SCRIPT = "packages/features/ee/billing/service/dunning/seed-dunning-test.ts";
+const RESUBSCRIBE_SCRIPT = "packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
 
@@ -68,6 +67,12 @@ async function seedActiveUser(cleanup: boolean, minSeats?: number | null) {
   return run(ACTIVE_USER_SCRIPT, extra);
 }
 
+async function seedDunning(cleanup: boolean) {
+  console.log("\n--- Seeding Dunning Enforcement test data ---\n");
+  const extra = cleanup ? ["--cleanup"] : [];
+  return run(DUNNING_SCRIPT, extra);
+}
+
 async function seedResubscribe(cleanup: boolean) {
   console.log("\n--- Seeding Resubscribe test data ---\n");
   const extra = cleanup ? ["--cleanup"] : [];
@@ -81,6 +86,8 @@ async function seedAll(cleanup: boolean) {
   if (code !== 0) return code;
   code = await seedActiveUser(cleanup);
   if (code !== 0) return code;
+  code = await seedDunning(cleanup);
+  if (code !== 0) return code;
   code = await seedResubscribe(cleanup);
   return code;
 }
@@ -92,6 +99,8 @@ async function cleanupAll() {
   code = await run(PRORATION_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(ACTIVE_USER_SCRIPT, ["--cleanup", "--skip-stripe"]);
+  if (code !== 0) return code;
+  code = await run(DUNNING_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(RESUBSCRIBE_SCRIPT, ["--cleanup", "--skip-stripe"]);
   return code;
@@ -115,12 +124,13 @@ async function interactive() {
   console.log("  1) Seed HWM (High Water Mark) test data");
   console.log("  2) Seed Proration test data");
   console.log("  3) Seed Active User Billing test data");
-  console.log("  4) Seed Resubscribe test data");
-  console.log("  5) Seed all");
-  console.log("  6) Cleanup all test data");
+  console.log("  4) Seed Dunning Enforcement test data");
+  console.log("  5) Seed Resubscribe test data");
+  console.log("  6) Seed all");
+  console.log("  7) Cleanup all test data");
   console.log("  q) Quit\n");
 
-  const choice = await prompt("Choose [1-6, q]: ");
+  const choice = await prompt("Choose [1-7, q]: ");
 
   if (choice === "q" || choice === "") {
     console.log("Bye.");
@@ -128,7 +138,7 @@ async function interactive() {
   }
 
   let cleanup = false;
-  if (["1", "2", "3", "4", "5"].includes(choice)) {
+  if (["1", "2", "3", "4", "5", "6"].includes(choice)) {
     const ans = await prompt("Run cleanup before seeding? [y/N]: ");
     cleanup = ans.toLowerCase() === "y";
   }
@@ -158,12 +168,15 @@ async function interactive() {
       code = await seedActiveUser(cleanup, minSeats);
       break;
     case "4":
-      code = await seedResubscribe(cleanup);
+      code = await seedDunning(cleanup);
       break;
     case "5":
-      code = await seedAll(cleanup);
+      code = await seedResubscribe(cleanup);
       break;
     case "6":
+      code = await seedAll(cleanup);
+      break;
+    case "7":
       code = await cleanupAll();
       break;
     default:
@@ -175,9 +188,7 @@ async function interactive() {
 }
 
 async function main() {
-  const args = process.argv
-    .slice(2)
-    .filter((a) => !a.startsWith("--skip-stripe"));
+  const args = process.argv.slice(2).filter((a) => !a.startsWith("--skip-stripe"));
 
   if (args.includes("--hwm")) {
     process.exit(await seedHwm(args.includes("--cleanup")));
@@ -187,6 +198,9 @@ async function main() {
   }
   if (args.includes("--active-user")) {
     process.exit(await seedActiveUser(args.includes("--cleanup"), parseMinSeatsFromArgs()));
+  }
+  if (args.includes("--dunning")) {
+    process.exit(await seedDunning(args.includes("--cleanup")));
   }
   if (args.includes("--resubscribe")) {
     process.exit(await seedResubscribe(args.includes("--cleanup")));
@@ -199,6 +213,7 @@ async function main() {
     !args.includes("--hwm") &&
     !args.includes("--proration") &&
     !args.includes("--active-user") &&
+    !args.includes("--dunning") &&
     !args.includes("--resubscribe") &&
     !args.includes("--all")
   ) {

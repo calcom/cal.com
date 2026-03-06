@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { IDunningRepository } from "../../../repository/dunning/IDunningRepository";
-import { BaseDunningService, CANCEL_DAYS, HARD_BLOCK_DAYS, SOFT_BLOCK_DAYS } from "../BaseDunningService";
+import type {
+  IDunningRepository,
+  RawDunningRecordForBilling,
+} from "../../../repository/dunning/IDunningRepository";
+import {
+  BaseDunningService,
+  CANCEL_DAYS,
+  HARD_BLOCK_DAYS,
+  SOFT_BLOCK_DAYS,
+} from "../BaseDunningService";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -14,7 +22,13 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-function createMockRepository(): { [K in keyof IDunningRepository]: ReturnType<typeof vi.fn> } {
+vi.mock("../../../constants", () => ({
+  ENTERPRISE_SLUGS: ["enterprise-acme"],
+}));
+
+function createMockRepository(): {
+  [K in keyof IDunningRepository]: ReturnType<typeof vi.fn>;
+} {
   return {
     findByBillingId: vi.fn(),
     upsert: vi.fn(),
@@ -56,6 +70,23 @@ function makeRawRecord(
     notificationsSent: 0,
     createdAt: now,
     updatedAt: now,
+    ...overrides,
+  };
+}
+
+function makeRawRecordForBilling(
+  overrides: Partial<RawDunningRecordForBilling> = {}
+): RawDunningRecordForBilling {
+  return {
+    billingFk: "billing_1",
+    teamId: 100,
+    status: "WARNING",
+    firstFailedAt: new Date(),
+    invoiceUrl: null,
+    failureReason: null,
+    entityName: "Team Alpha",
+    entitySlug: "team-alpha",
+    isOrganization: false,
     ...overrides,
   };
 }
@@ -147,7 +178,10 @@ describe("BaseDunningService", () => {
 
     it("treats CURRENT status as new dunning record", async () => {
       mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "CURRENT", resolvedAt: new Date("2026-01-02T00:00:00Z") })
+        makeRawRecord({
+          status: "CURRENT",
+          resolvedAt: new Date("2026-01-02T00:00:00Z"),
+        })
       );
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
@@ -186,7 +220,9 @@ describe("BaseDunningService", () => {
     });
 
     it("does nothing when already CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CURRENT" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "CURRENT" })
+      );
 
       await service.onPaymentSucceeded("billing_1");
 
@@ -194,7 +230,9 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from WARNING to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "WARNING" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "WARNING" })
+      );
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -208,7 +246,9 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from SOFT_BLOCKED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "SOFT_BLOCKED" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "SOFT_BLOCKED" })
+      );
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -222,7 +262,9 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from HARD_BLOCKED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "HARD_BLOCKED" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "HARD_BLOCKED" })
+      );
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -234,7 +276,9 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from CANCELLED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CANCELLED" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "CANCELLED" })
+      );
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -278,7 +322,9 @@ describe("BaseDunningService", () => {
     });
 
     it("returns not advanced when status is CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CURRENT" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "CURRENT" })
+      );
 
       const result = await service.advanceDunning("billing_1");
 
@@ -307,8 +353,15 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_1");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_1", "SOFT_BLOCKED");
-      expect(result).toEqual({ advanced: true, from: "WARNING", to: "SOFT_BLOCKED" });
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
+        "billing_1",
+        "SOFT_BLOCKED"
+      );
+      expect(result).toEqual({
+        advanced: true,
+        from: "WARNING",
+        to: "SOFT_BLOCKED",
+      });
     });
 
     it("does not advance WARNING before 7 days", async () => {
@@ -336,8 +389,15 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_2");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_2", "HARD_BLOCKED");
-      expect(result).toEqual({ advanced: true, from: "SOFT_BLOCKED", to: "HARD_BLOCKED" });
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
+        "billing_2",
+        "HARD_BLOCKED"
+      );
+      expect(result).toEqual({
+        advanced: true,
+        from: "SOFT_BLOCKED",
+        to: "HARD_BLOCKED",
+      });
     });
 
     it("does not advance SOFT_BLOCKED before 14 days", async () => {
@@ -365,8 +425,15 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_5");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_5", "HARD_BLOCKED");
-      expect(result).toEqual({ advanced: true, from: "WARNING", to: "HARD_BLOCKED" });
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
+        "billing_5",
+        "HARD_BLOCKED"
+      );
+      expect(result).toEqual({
+        advanced: true,
+        from: "WARNING",
+        to: "HARD_BLOCKED",
+      });
     });
 
     it("advances HARD_BLOCKED to CANCELLED after 90 days", async () => {
@@ -374,21 +441,28 @@ describe("BaseDunningService", () => {
         makeRawRecord({
           billingFk: "billing_6",
           status: "HARD_BLOCKED",
-          firstFailedAt: new Date("2025-11-20T11:00:00Z"),
+          firstFailedAt: new Date("2025-11-19T11:00:00Z"),
         })
       );
 
       const result = await service.advanceDunning("billing_6");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_6", "CANCELLED");
-      expect(result).toEqual({ advanced: true, from: "HARD_BLOCKED", to: "CANCELLED" });
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
+        "billing_6",
+        "CANCELLED"
+      );
+      expect(result).toEqual({
+        advanced: true,
+        from: "HARD_BLOCKED",
+        to: "CANCELLED",
+      });
     });
 
     it("does not advance HARD_BLOCKED before 90 days", async () => {
       mockRepo.findByBillingId.mockResolvedValue(
         makeRawRecord({
           status: "HARD_BLOCKED",
-          firstFailedAt: new Date("2025-11-21T13:00:00Z"),
+          firstFailedAt: new Date("2025-11-22T13:00:00Z"),
         })
       );
 
@@ -423,7 +497,9 @@ describe("BaseDunningService", () => {
     });
 
     it("returns the status from existing dunning record", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "SOFT_BLOCKED" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "SOFT_BLOCKED" })
+      );
 
       const status = await service.getStatus("billing_1");
 
@@ -431,11 +507,164 @@ describe("BaseDunningService", () => {
     });
 
     it("returns HARD_BLOCKED status correctly", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "HARD_BLOCKED" }));
+      mockRepo.findByBillingId.mockResolvedValue(
+        makeRawRecord({ status: "HARD_BLOCKED" })
+      );
 
       const status = await service.getStatus("billing_1");
 
       expect(status).toBe("HARD_BLOCKED");
+    });
+  });
+
+  describe("findByBillingIds", () => {
+    it("returns empty array for empty input", async () => {
+      const result = await service.findByBillingIds([]);
+
+      expect(result).toEqual([]);
+      expect(mockRepo.findByBillingIds).not.toHaveBeenCalled();
+    });
+
+    it("maps raw records to DunningRecordForBilling with correct entityType", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_10",
+          teamId: 200,
+          entityName: "Team Beta",
+        }),
+      ]);
+
+      const result = await service.findByBillingIds(["billing_10"]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          billingId: "billing_10",
+          teamId: 200,
+          entityType: "team",
+          entityName: "Team Beta",
+        })
+      );
+    });
+  });
+
+  describe("getBannerData", () => {
+    it("returns empty array when no billing ids provided", async () => {
+      const result = await service.getBannerData([]);
+
+      expect(result).toEqual([]);
+    });
+
+    it("returns banner records for multiple teams with different statuses", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_10",
+          teamId: 200,
+          status: "WARNING",
+          entityName: "Team Alpha",
+          entitySlug: "team-alpha",
+          isOrganization: false,
+          invoiceUrl: "https://stripe.com/invoice/inv_1",
+        }),
+        makeRawRecordForBilling({
+          billingFk: "billing_20",
+          teamId: 300,
+          status: "SOFT_BLOCKED",
+          entityName: "Team Beta",
+          entitySlug: "team-beta",
+          isOrganization: false,
+          invoiceUrl: "https://stripe.com/invoice/inv_2",
+        }),
+        makeRawRecordForBilling({
+          billingFk: "billing_30",
+          teamId: 400,
+          status: "HARD_BLOCKED",
+          entityName: "Team Gamma",
+          entitySlug: "team-gamma",
+          isOrganization: false,
+          invoiceUrl: null,
+        }),
+      ]);
+
+      const result = await service.getBannerData([
+        "billing_10",
+        "billing_20",
+        "billing_30",
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result).toEqual([
+        {
+          teamId: 200,
+          teamName: "Team Alpha",
+          isOrganization: false,
+          status: "WARNING",
+          isEnterprise: false,
+          invoiceUrl: "https://stripe.com/invoice/inv_1",
+        },
+        {
+          teamId: 300,
+          teamName: "Team Beta",
+          isOrganization: false,
+          status: "SOFT_BLOCKED",
+          isEnterprise: false,
+          invoiceUrl: "https://stripe.com/invoice/inv_2",
+        },
+        {
+          teamId: 400,
+          teamName: "Team Gamma",
+          isOrganization: false,
+          status: "HARD_BLOCKED",
+          isEnterprise: false,
+          invoiceUrl: null,
+        },
+      ]);
+    });
+
+    it("sets isEnterprise true when entitySlug matches ENTERPRISE_SLUGS", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_ent",
+          teamId: 500,
+          status: "WARNING",
+          entityName: "Enterprise Acme",
+          entitySlug: "enterprise-acme",
+          isOrganization: false,
+        }),
+      ]);
+
+      const result = await service.getBannerData(["billing_ent"]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].isEnterprise).toBe(true);
+    });
+
+    it("sets isEnterprise false when entitySlug is null", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_no_slug",
+          teamId: 600,
+          entitySlug: null,
+        }),
+      ]);
+
+      const result = await service.getBannerData(["billing_no_slug"]);
+
+      expect(result[0].isEnterprise).toBe(false);
+    });
+
+    it("defaults teamName to empty string when entityName is null", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_no_name",
+          teamId: 700,
+          entityName: null,
+        }),
+      ]);
+
+      const result = await service.getBannerData(["billing_no_name"]);
+
+      expect(result[0].teamName).toBe("");
     });
   });
 });

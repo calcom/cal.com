@@ -20,6 +20,7 @@ export default defineConfig({
     "./abuse-scoring/lib/tasker/trigger",
     "./bookings/lib/tasker/trigger/notifications",
     "./calendars/lib/tasker/trigger",
+    "./ee/billing/service/dunning/trigger",
     "./ee/billing/service/proration/tasker/trigger",
     "./ee/organizations/lib/billing/tasker/trigger",
     "./webhooks/lib/tasker/trigger",

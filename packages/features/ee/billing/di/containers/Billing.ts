@@ -3,6 +3,7 @@ import type { OrgDunningRepository } from "../../repository/dunning/OrgDunningRe
 import type { TeamDunningRepository } from "../../repository/dunning/TeamDunningRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { StripeBillingService } from "../../service/billingProvider/StripeBillingService";
+import type { DunningEmailService } from "../../service/dunning/DunningEmailService";
 import type { DunningGuard } from "../../service/dunning/DunningGuard";
 import type { DunningServiceFactory } from "../../service/dunning/DunningServiceFactory";
 import type { DunningStatusResolver } from "../../service/dunning/DunningStatusResolver";
@@ -10,6 +11,7 @@ import type { DunningStrategyFactory } from "../../service/dunning/DunningStrate
 import type { SeatBillingStrategyFactory } from "../../service/seatBillingStrategy/SeatBillingStrategyFactory";
 import type { TeamBillingServiceFactory } from "../../service/teams/TeamBillingServiceFactory";
 import { billingProviderServiceModuleLoader } from "../modules/BillingProviderService";
+import { dunningEmailServiceModuleLoader } from "../modules/DunningEmailService.module";
 import { dunningGuardModuleLoader } from "../modules/DunningGuard.module";
 import { orgDunningRepositoryModuleLoader } from "../modules/OrgDunningRepository.module";
 import { dunningServiceFactoryModuleLoader } from "../modules/DunningServiceFactory.module";
@@ -29,6 +31,7 @@ dunningServiceFactoryModuleLoader.loadModule(billingContainer);
 dunningStatusResolverModuleLoader.loadModule(billingContainer);
 dunningStrategyFactoryModuleLoader.loadModule(billingContainer);
 dunningGuardModuleLoader.loadModule(billingContainer);
+dunningEmailServiceModuleLoader.loadModule(billingContainer);
 teamDunningRepositoryModuleLoader.loadModule(billingContainer);
 orgDunningRepositoryModuleLoader.loadModule(billingContainer);
 
@@ -70,4 +73,8 @@ export function getTeamDunningRepository(): TeamDunningRepository {
 
 export function getOrgDunningRepository(): OrgDunningRepository {
   return billingContainer.get<OrgDunningRepository>(DI_TOKENS.ORG_DUNNING_REPOSITORY);
+}
+
+export function getDunningEmailService(): DunningEmailService {
+  return billingContainer.get<DunningEmailService>(DI_TOKENS.DUNNING_EMAIL_SERVICE);
 }

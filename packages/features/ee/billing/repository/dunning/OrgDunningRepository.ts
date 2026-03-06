@@ -65,7 +65,7 @@ export class OrgDunningRepository implements IDunningRepository {
         invoiceUrl: true,
         failureReason: true,
         organizationBilling: {
-          select: { teamId: true, team: { select: { name: true, isOrganization: true } } },
+          select: { teamId: true, team: { select: { name: true, slug: true, isOrganization: true } } },
         },
       },
     });
@@ -77,6 +77,7 @@ export class OrgDunningRepository implements IDunningRepository {
       invoiceUrl: r.invoiceUrl,
       failureReason: r.failureReason,
       entityName: r.organizationBilling.team?.name ?? null,
+      entitySlug: r.organizationBilling.team?.slug ?? null,
       isOrganization: r.organizationBilling.team?.isOrganization ?? false,
     }));
   }

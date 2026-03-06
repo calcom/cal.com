@@ -13,3 +13,5 @@ export { WhenInfo } from "./WhenInfo";
 export { WhoInfo } from "./WhoInfo";
 export { AppsStatus } from "./AppsStatus";
 export { Separator } from "./Separator";
+export { CossBaseEmailHtml } from "./CossBaseEmailHtml";
+export { CossCallToAction } from "./CossCallToAction";

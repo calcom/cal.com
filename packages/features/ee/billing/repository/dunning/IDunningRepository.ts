@@ -35,6 +35,7 @@ export interface RawDunningRecordForBilling {
   invoiceUrl: string | null;
   failureReason: string | null;
   entityName: string | null;
+  entitySlug: string | null;
   isOrganization: boolean;
 }
 

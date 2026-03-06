@@ -1,14 +1,21 @@
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import logger from "@calcom/lib/logger";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import CreditBalanceLimitReachedEmail from "./templates/credit-balance-limit-reached-email";
 import CreditBalanceLowWarningEmail from "./templates/credit-balance-low-warning-email";
+import DunningCancellationEmail from "./templates/dunning-cancellation-email";
+import DunningPauseEmail from "./templates/dunning-pause-email";
+import DunningSoftBlockEmail from "./templates/dunning-soft-block-email";
+import DunningWarningEmail from "./templates/dunning-warning-email";
 import NoShowFeeChargedEmail from "./templates/no-show-fee-charged-email";
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import ProrationInvoiceEmail from "./templates/proration-invoice-email";
 import ProrationReminderEmail from "./templates/proration-reminder-email";
+
+const log = logger.getSubLogger({ prefix: ["BillingEmailService"] });
 
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
@@ -16,7 +23,7 @@ const sendEmail = (prepare: () => BaseEmail) => {
       const email = prepare();
       resolve(email.sendEmail());
     } catch (e) {
-      reject(console.error(`${prepare.constructor.name}.sendEmail failed`, e));
+      reject(log.error(`${prepare.constructor.name}.sendEmail failed`, { error: e }));
     }
   });
 };
@@ -183,7 +190,7 @@ export const sendProrationInvoiceEmails = async ({
   const results = await Promise.allSettled(emailsToSend);
   const failures = results.filter((r) => r.status === "rejected");
   if (failures.length > 0) {
-    console.error(`${failures.length} email(s) failed to send`, failures);
+    log.error(`${failures.length} email(s) failed to send`, { failures });
   }
 };
 
@@ -231,6 +238,170 @@ export const sendProrationReminderEmails = async ({
   const results = await Promise.allSettled(emailsToSend);
   const failures = results.filter((r) => r.status === "rejected");
   if (failures.length > 0) {
-    console.error(`${failures.length} email(s) failed to send`, failures);
+    log.error(`${failures.length} email(s) failed to send`, { failures });
+  }
+};
+
+export const sendDunningWarningEmails = async ({
+  team,
+  invoiceUrl,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  invoiceUrl?: string | null;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new DunningWarningEmail({
+            user: admin,
+            team,
+            invoiceUrl,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    log.error(`${failures.length} dunning warning email(s) failed to send`, { failures });
+  }
+};
+
+export const sendDunningSoftBlockEmails = async ({
+  team,
+  invoiceUrl,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  invoiceUrl?: string | null;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new DunningSoftBlockEmail({
+            user: admin,
+            team,
+            invoiceUrl,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    log.error(`${failures.length} dunning soft block email(s) failed to send`, { failures });
+  }
+};
+
+export const sendDunningPauseEmails = async ({
+  team,
+  invoiceUrl,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  invoiceUrl?: string | null;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new DunningPauseEmail({
+            user: admin,
+            team,
+            invoiceUrl,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    log.error(`${failures.length} dunning pause email(s) failed to send`, { failures });
+  }
+};
+
+export const sendDunningCancellationEmails = async ({
+  team,
+  invoiceUrl,
+  adminAndOwners,
+}: {
+  team: {
+    id: number;
+    name: string | null;
+  };
+  invoiceUrl?: string | null;
+  adminAndOwners: {
+    id: number;
+    name: string | null;
+    email: string;
+    t: TFunction;
+  }[];
+}) => {
+  if (!adminAndOwners.length) return;
+
+  const emailsToSend: Promise<unknown>[] = [];
+
+  for (const admin of adminAndOwners) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new DunningCancellationEmail({
+            user: admin,
+            team,
+            invoiceUrl,
+          })
+      )
+    );
+  }
+
+  const results = await Promise.allSettled(emailsToSend);
+  const failures = results.filter((r) => r.status === "rejected");
+  if (failures.length > 0) {
+    log.error(`${failures.length} dunning cancellation email(s) failed to send`, { failures });
   }
 };

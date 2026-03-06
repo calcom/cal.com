@@ -19,6 +19,10 @@ export class StubBillingRepository implements IBillingRepository {
     };
   }
 
+  async findTeamIdByBillingId(_billingId: string): Promise<number | null> {
+    return null;
+  }
+
   async findByTeamId(_teamId: number): Promise<string | null> {
     return null;
   }

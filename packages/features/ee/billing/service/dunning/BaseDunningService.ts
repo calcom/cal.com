@@ -1,9 +1,12 @@
 import logger from "@calcom/lib/logger";
 
 import type { IDunningRepository } from "../../repository/dunning/IDunningRepository";
+import { ENTERPRISE_SLUGS } from "../../constants";
+import type { DunningRecordForBilling } from "./DunningMapper";
+import { toDunningRecordForBilling } from "./DunningMapper";
 import type { DunningEntityType, DunningStatus } from "./DunningState";
 import { DunningState } from "./DunningState";
-import type { IDunningService, PaymentFailedParams } from "./IDunningService";
+import type { DunningBannerRecord, IDunningService, PaymentFailedParams } from "./IDunningService";
 
 export { SOFT_BLOCK_DAYS, HARD_BLOCK_DAYS, CANCEL_DAYS } from "./DunningState";
 
@@ -108,5 +111,23 @@ export class BaseDunningService implements IDunningService {
   async findRecord(billingId: string): Promise<DunningState | null> {
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
     return raw ? DunningState.fromRecord(raw, this.entityType) : null;
+  }
+
+  async findByBillingIds(billingIds: string[]): Promise<DunningRecordForBilling[]> {
+    if (billingIds.length === 0) return [];
+    const raws = await this.deps.dunningRepository.findByBillingIds(billingIds);
+    return raws.map((r) => toDunningRecordForBilling(r, this.entityType));
+  }
+
+  async getBannerData(billingIds: string[]): Promise<DunningBannerRecord[]> {
+    const records = await this.findByBillingIds(billingIds);
+    return records.map((r) => ({
+      teamId: r.teamId,
+      teamName: r.entityName ?? "",
+      isOrganization: r.isOrganization,
+      status: r.status,
+      isEnterprise: r.entitySlug ? ENTERPRISE_SLUGS.includes(r.entitySlug) : false,
+      invoiceUrl: r.invoiceUrl,
+    }));
   }
 }

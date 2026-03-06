@@ -19,6 +19,14 @@ export class PrismaTeamBillingRepository implements IBillingRepository {
     return record?.id ?? null;
   }
 
+  async findTeamIdByBillingId(billingId: string): Promise<number | null> {
+    const record = await this.prismaClient.teamBilling.findUnique({
+      where: { id: billingId },
+      select: { teamId: true },
+    });
+    return record?.teamId ?? null;
+  }
+
   async create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord> {
     const billingRecord = await this.prismaClient.teamBilling.create({
       data: {

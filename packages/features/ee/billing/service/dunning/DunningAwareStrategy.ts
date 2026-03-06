@@ -39,13 +39,18 @@ export class DunningAwareStrategy extends BaseSeatBillingStrategy {
 
   async onPaymentFailed(invoice: StripeInvoiceData, reason: string): Promise<{ handled: boolean }> {
     try {
-      await this.deps.dunningService.onPaymentFailed({
+      const { isNewDunningRecord } = await this.deps.dunningService.onPaymentFailed({
         billingId: this.deps.billingId,
         subscriptionId: this.deps.subscriptionId,
         failedInvoiceId: invoice.id ?? "",
         invoiceUrl: invoice.hosted_invoice_url ?? null,
         failureReason: reason,
       });
+
+      if (isNewDunningRecord) {
+        const { sendDunningWarningEmail } = await import("./trigger/send-dunning-warning-email");
+        await sendDunningWarningEmail.trigger({ teamId: this.deps.teamId });
+      }
     } catch (error) {
       log.error("Failed to update dunning state on payment failure", { teamId: this.deps.teamId, error });
     }

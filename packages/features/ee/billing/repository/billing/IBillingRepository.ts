@@ -43,6 +43,7 @@ export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
   deleteByTeamId(teamId: number): Promise<void>;
   findByTeamId(teamId: number): Promise<string | null>;
+  findTeamIdByBillingId(billingId: string): Promise<number | null>;
   findFullByTeamId(teamId: number): Promise<BillingRecord | null>;
   findBySubscriptionId(subscriptionId: string): Promise<{ id: string; teamId: number } | null>;
   updateById(id: string, data: IBillingRepositoryUpdateArgs): Promise<void>;
