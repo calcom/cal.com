@@ -61,6 +61,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { BuilderProps, Config, ImmutableTree, JsonTree } from "react-awesome-query-builder";
 import { Builder, Utils as QbUtils, Query } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
 import { Toaster } from "sonner";
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
@@ -80,7 +82,12 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   setRoute,
 }: {
   route: EditFormRoute;
-  eventOptions: { label: string; value: string; eventTypeId: number }[];
+  eventOptions: {
+    label: string;
+    value: string;
+    eventTypeId: number;
+    title?: string;
+  }[];
   setRoute: SetRoute;
 }) {
   const routeActionValue = isRouter(route) ? undefined : route.action.value;
@@ -151,6 +158,8 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
+    title: string;
+    slug: string;
     eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
@@ -197,6 +206,8 @@ const buildEventsData = ({
         label: uniqueSlug,
         value: uniqueSlug,
         eventTypeId: eventType.id,
+        title: eventType.title,
+        slug: eventType.slug,
         eventTypeAppMetadata,
         isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       });
@@ -204,6 +215,54 @@ const buildEventsData = ({
   });
 
   return { eventOptions, eventTypesMap };
+};
+
+interface EventTypeOption {
+  label: string;
+  value: string;
+  eventTypeId: number;
+  title?: string;
+  slug?: string;
+  eventTypeAppMetadata?: Record<string, unknown>;
+  isRRWeightsEnabled?: boolean;
+}
+
+const EventTypeOptionComponent = ({ ...props }: OptionProps<EventTypeOption>) => {
+  const { label, value, title, slug } = props.data;
+  // "Custom" option doesn't have title/slug, show label instead
+  if (value === "custom") {
+    return (
+      <components.Option {...props}>
+        <span>{label}</span>
+      </components.Option>
+    );
+  }
+  return (
+    <components.Option {...props}>
+      <span>
+        {title} <span className="text-muted">/{slug}</span>
+      </span>
+    </components.Option>
+  );
+};
+
+const EventTypeSingleValueComponent = ({ ...props }: SingleValueProps<EventTypeOption>) => {
+  const { label, value, title, slug } = props.data;
+  // "Custom" option doesn't have title/slug, show label instead
+  if (value === "custom") {
+    return (
+      <components.SingleValue {...props}>
+        <span>{label}</span>
+      </components.SingleValue>
+    );
+  }
+  return (
+    <components.SingleValue {...props}>
+      <span>
+        {title} <span className="text-muted">/{slug}</span>
+      </span>
+    </components.SingleValue>
+  );
 };
 
 const isValidAttributeIdForWeights = ({
@@ -235,7 +294,7 @@ const WeightedAttributesSelector = ({
 }: {
   attributes?: Attribute[];
   route: EditFormRoute;
-  eventTypeRedirectUrlSelectedOption: { isRRWeightsEnabled: boolean } | undefined;
+  eventTypeRedirectUrlSelectedOption: EventTypeOption | undefined;
   setRoute: SetRoute;
 }) => {
   const [attributeIdForWeights, setAttributeIdForWeights] = useState(
@@ -289,16 +348,16 @@ const WeightedAttributesSelector = ({
   };
 
   return attributesWithWeightsEnabled.length > 0 ? (
-    <div className="bg-default border-subtle mt-4 rounded-2xl border px-4 py-2">
+    <div className="px-4 py-2 mt-4 rounded-2xl border bg-default border-subtle">
       <>
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-0.5">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="globe" className="text-subtle h-4 w-4" />
+            <div className="p-1 rounded-lg border border-subtle">
+              <Icon name="globe" className="w-4 h-4 text-subtle" />
             </div>
             <div className="flex flex-col">
-              <span className="text-emphasis ml-2 text-sm font-medium">{t("use_attribute_weights")}</span>
-              <span className="text-subtle ml-2 text-sm">{t("if_enabled_ignore_event_type_weights")}</span>
+              <span className="ml-2 text-sm font-medium text-emphasis">{t("use_attribute_weights")}</span>
+              <span className="ml-2 text-sm text-subtle">{t("if_enabled_ignore_event_type_weights")}</span>
             </div>
           </div>
           <Switch
@@ -311,7 +370,7 @@ const WeightedAttributesSelector = ({
             }}
           />
         </div>
-        <div className="bg-cal-muted mt-1 rounded-xl p-2">
+        <div className="p-2 mt-1 rounded-xl bg-cal-muted">
           {attributeIdForWeights ? (
             <SelectField
               size="sm"
@@ -347,11 +406,8 @@ type RouteActionSelectorProps = {
   action: LocalRoute["action"] | undefined;
   onActionChange: (action: LocalRoute["action"]) => void;
   onEventTypeChange?: (action: LocalRoute["action"]) => void;
-  eventTypeOptions: { label: string; value: string; eventTypeId: number }[];
-  selectedEventTypeOption:
-    | { label: string; value: string; eventTypeId: number }
-    | { label: string; value: "custom"; eventTypeId: 0 }
-    | undefined;
+  eventTypeOptions: EventTypeOption[];
+  selectedEventTypeOption: EventTypeOption | undefined;
   disabled?: boolean;
   className?: string;
   showCustomEventTypeInput?: boolean;
@@ -377,12 +433,12 @@ const RouteActionSelector = ({
 }: RouteActionSelectorProps) => {
   const { t } = useLocale();
   return (
-    <div className={classNames("flex w-full flex-col gap-2 text-sm lg:flex-row", className)}>
-      <div className="flex grow items-center gap-2">
+    <div className={classNames("flex flex-col gap-2 w-full text-sm lg:flex-row", className)}>
+      <div className="flex gap-2 items-center shrink-0">
         <Select
           size="sm"
           isDisabled={disabled}
-          className="data-testid-select-routing-action block w-full grow"
+          className="data-testid-select-routing-action block min-w-[200px]"
           required
           value={RoutingPages.find((page) => page.value === action?.type)}
           onChange={(item) => {
@@ -411,7 +467,7 @@ const RouteActionSelector = ({
             required
             disabled={disabled}
             name="customPageMessage"
-            className="border-default flex grow lg:w-fit"
+            className="flex border-default grow lg:w-fit"
             style={{
               minHeight: "38px",
             }}
@@ -425,7 +481,7 @@ const RouteActionSelector = ({
             size="sm"
             disabled={disabled}
             name="externalRedirectUrl"
-            className="border-default flex grow text-sm"
+            className="flex text-sm border-default grow"
             containerClassName="grow"
             type="url"
             required
@@ -437,15 +493,19 @@ const RouteActionSelector = ({
             placeholder="https://example.com"
           />
         ) : (
-          <div className="grow">
-            <Select
+          <div className="flex flex-col flex-1">
+            <Select<EventTypeOption>
               size="sm"
               required
-              className="data-testid-eventTypeRedirectUrl-select"
+              className="w-full data-testid-eventTypeRedirectUrl-select"
               isDisabled={disabled}
               options={eventTypeOptions}
+              components={{
+                Option: EventTypeOptionComponent,
+                SingleValue: EventTypeSingleValueComponent,
+              }}
               onChange={(option) => {
-                if (!option) {
+                if (!option || Array.isArray(option)) {
                   return;
                 }
                 const newAction = {
@@ -470,7 +530,7 @@ const RouteActionSelector = ({
               <>
                 <TextField
                   disabled={disabled}
-                  className="border-default flex w-full grow text-sm"
+                  className="flex w-full text-sm border-default grow"
                   containerClassName="grow mt-2"
                   addOnLeading={eventTypePrefix}
                   required
@@ -484,8 +544,8 @@ const RouteActionSelector = ({
                   }}
                   placeholder="event-url"
                 />
-                <div className="mt-2 ">
-                  <p className="text-subtle text-xs">
+                <div className="mt-2">
+                  <p className="text-xs text-subtle">
                     {fieldIdentifiers.length
                       ? t("field_identifiers_as_variables_with_example", {
                           variable: `{${fieldIdentifiers[0]}}`,
@@ -623,7 +683,10 @@ const Route = ({
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
-      fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
+      fallbackAttributesQueryBuilderState: {
+        tree: immutableTree,
+        config: config,
+      },
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
     });
   };
@@ -663,7 +726,7 @@ const Route = ({
                 <span className="font-semibold">{route.name}</span>
               </Badge>
             </Link>
-            <p className="text-subtle mt-2 text-sm">
+            <p className="mt-2 text-sm text-subtle">
               Fields available in <span className="font-bold">{route.name}</span> will be added to this form.
             </p>
           </div>
@@ -675,12 +738,22 @@ const Route = ({
   const shouldShowFormFieldsQueryBuilder = (route.isFallback && hasRules(route)) || !route.isFallback;
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
-      ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
-          eventOptions
-        )
+      ? (
+          [
+            {
+              label: t("custom"),
+              value: "custom",
+              eventTypeId: 0,
+              isRRWeightsEnabled: false,
+              title: undefined,
+              slug: undefined,
+              eventTypeAppMetadata: undefined,
+            },
+          ] as EventTypeOption[]
+        ).concat(eventOptions)
       : [];
 
-  const eventTypeRedirectUrlSelectedOption =
+  const eventTypeRedirectUrlSelectedOption: EventTypeOption | undefined =
     eventOptions.length !== 0 && route.action.value !== ""
       ? eventOptions.find(
           (eventOption) => eventOption.value === route.action.value && !customEventTypeSlug.length
@@ -689,16 +762,19 @@ const Route = ({
           value: "custom",
           eventTypeId: 0,
           isRRWeightsEnabled: false,
+          title: undefined,
+          slug: undefined,
+          eventTypeAppMetadata: undefined,
         }
       : undefined;
 
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
-    <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+    <div className="p-2 mt-2 rounded-2xl border bg-default border-subtle cal-query-builder-container">
       <div className="ml-2 flex items-center gap-0.5">
-        <div className="border-subtle rounded-lg border p-1">
-          <Icon name="zap" className="text-subtle h-4 w-4" />
+        <div className="p-1 rounded-lg border border-subtle">
+          <Icon name="zap" className="w-4 h-4 text-subtle" />
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
+        <span className="ml-2 text-sm font-medium text-emphasis">Conditions</span>
       </div>
       <Query
         {...withRaqbSettingsAndWidgets({
@@ -743,12 +819,12 @@ const Route = ({
           </div>
         ) : null}
 
-        <div className="cal-query-builder-container mt-4" data-testid="attributes-query-builder">
+        <div className="mt-4 cal-query-builder-container" data-testid="attributes-query-builder">
           <div className="ml-2 flex items-center gap-0.5">
-            <div className="border-subtle rounded-lg border p-1">
-              <Icon name="user-check" className="text-subtle h-4 w-4" />
+            <div className="p-1 rounded-lg border border-subtle">
+              <Icon name="user-check" className="w-4 h-4 text-subtle" />
             </div>
-            <span className="text-emphasis ml-2 text-sm font-medium">
+            <span className="ml-2 text-sm font-medium text-emphasis">
               {t("connect_with_specific_team_members")}
             </span>
           </div>
@@ -783,14 +859,14 @@ const Route = ({
 
   const matchingMembersFallbackRoute =
     hasValidEventTypeSelected && isTeamForm ? (
-      <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+      <div className="p-2 mt-2 rounded-2xl border bg-default border-subtle cal-query-builder-container">
         <div className="ml-2 flex items-center gap-0.5">
-          <div className="border-subtle rounded-lg border p-1">
-            <Icon name="blocks" className="text-subtle h-4 w-4" />
+          <div className="p-1 rounded-lg border border-subtle">
+            <Icon name="blocks" className="w-4 h-4 text-subtle" />
           </div>
-          <span className="text-emphasis ml-2 text-sm font-medium">{t("fallback_action")}</span>
+          <span className="ml-2 text-sm font-medium text-emphasis">{t("fallback_action")}</span>
         </div>
-        <div className="bg-cal-muted mt-2 rounded-xl p-2">
+        <div className="p-2 mt-2 rounded-xl bg-cal-muted">
           <RouteActionSelector
             action={route.fallbackAction}
             onActionChange={(newAction) => setRoute(route.id, { fallbackAction: newAction })}
@@ -811,10 +887,10 @@ const Route = ({
               attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
                 <div>
                   <div className="ml-2 flex items-center gap-0.5">
-                    <div className="border-subtle rounded-lg border p-1">
-                      <Icon name="user-check" className="text-subtle h-4 w-4" />
+                    <div className="p-1 rounded-lg border border-subtle">
+                      <Icon name="user-check" className="w-4 h-4 text-subtle" />
                     </div>
-                    <span className="text-emphasis ml-2 text-sm font-medium">
+                    <span className="ml-2 text-sm font-medium text-emphasis">
                       {t("connect_with_specific_team_members")}
                     </span>
                   </div>
@@ -865,7 +941,7 @@ const Route = ({
           "cal-query-builder-card w-full gap-2 p-2",
           route.isFallback && "bg-cal-muted border-subtle rounded-xl  border"
         )}>
-        <div className="cal-query-builder w-full ">
+        <div className="w-full cal-query-builder">
           {formFieldsQueryBuilder}
           <div>
             {route.isFallback ? (
@@ -886,7 +962,11 @@ const Route = ({
                           eventTypeId: newAction.eventTypeId,
                         }
                       : undefined;
-                  setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
+                  setRoute(route.id, {
+                    action: newAction,
+                    attributeRoutingConfig: {},
+                    fallbackAction,
+                  });
                   setCustomEventTypeSlug("");
                 }}
                 eventTypeOptions={eventTypeRedirectUrlOptions}
@@ -899,14 +979,14 @@ const Route = ({
                 fieldIdentifiers={fieldIdentifiers}
               />
             ) : (
-              <div className="bg-default border-subtle my-3 rounded-xl border p-2">
+              <div className="p-2 my-3 rounded-xl border bg-default border-subtle">
                 <div className="mb-2 ml-2 flex items-center gap-0.5">
-                  <div className="border-subtle rounded-lg border p-1">
-                    <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                  <div className="p-1 rounded-lg border border-subtle">
+                    <Icon name="arrow-right" className="w-4 h-4 text-subtle" />
                   </div>
-                  <span className="text-emphasis ml-2 text-sm font-medium">{t("send_booker_to")}</span>
+                  <span className="ml-2 text-sm font-medium text-emphasis">{t("send_booker_to")}</span>
                 </div>
-                <div className="bg-cal-muted rounded-xl p-2">
+                <div className="p-2 rounded-xl bg-cal-muted">
                   <RouteActionSelector
                     action={route.action}
                     onActionChange={(newAction) => setRoute(route.id, { action: newAction })}
@@ -924,7 +1004,11 @@ const Route = ({
                               eventTypeId: newAction.eventTypeId,
                             }
                           : undefined;
-                      setRoute(route.id, { action: newAction, attributeRoutingConfig: {}, fallbackAction });
+                      setRoute(route.id, {
+                        action: newAction,
+                        attributeRoutingConfig: {},
+                        fallbackAction,
+                      });
                       setCustomEventTypeSlug("");
                     }}
                     eventTypeOptions={eventTypeRedirectUrlOptions}
@@ -1251,7 +1335,10 @@ const Routes = ({
       "attributeRoutingConfig" in existingRoute ? existingRoute.attributeRoutingConfig : {};
 
     setRoute(id, {
-      attributeRoutingConfig: { ...existingAttributeRoutingConfig, ...attributeRoutingConfig },
+      attributeRoutingConfig: {
+        ...existingAttributeRoutingConfig,
+        ...attributeRoutingConfig,
+      },
     });
   };
 
@@ -1270,7 +1357,7 @@ const Routes = ({
   const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
 
   return (
-    <div className="w-full py-4 lg:py-8">
+    <div className="py-4 w-full lg:py-8">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
