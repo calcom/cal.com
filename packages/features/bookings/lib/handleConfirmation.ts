@@ -106,8 +106,6 @@ export async function handleConfirmation(args: {
     evt.recurringEvent = bookingRecurringEvent;
   }
 
-  let scheduleResult: any;
-
   // Check for conflicts and update booking status atomically before any side effects
   await prisma.$transaction(async (tx) => {
     // Lock the USER row - always exists, serializes ALL confirmations for this user
@@ -137,19 +135,25 @@ export async function handleConfirmation(args: {
     });
   });
 
-  // External API calls happen after lock is released
-  const eventManager = new EventManager(user, apps);
-  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  let scheduleResult: any;
 
-  if (!scheduleResult) {
+  try {
+    // External API calls happen after lock is released
+    const eventManager = new EventManager(user, apps);
+    const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+    scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+
+    if (!scheduleResult) {
+      throw new Error("Booking couldn't be scheduled");
+    }
+  } catch (e) {
     // If event manager couldnt create event (e.g. due to calendar API failure), revert booking status to PENDING so it can be retried later
     await prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.PENDING },
     });
 
-    throw new Error("Booking couldn't be scheduled");
+    throw e;
   }
 
   const results = scheduleResult.results;
