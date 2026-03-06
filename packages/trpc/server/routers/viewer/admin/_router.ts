@@ -8,6 +8,8 @@ import { ZGetDeploymentInfoSchema } from "./getDeploymentInfo.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
+import { ZLookupBillingCustomerSchema } from "./lookupBillingCustomer.schema";
+import { ZRefreshDunningSchema } from "./refreshDunning.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmail.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -130,6 +132,14 @@ export const adminRouter = router({
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
+  }),
+  lookupBillingCustomer: authedAdminProcedure.input(ZLookupBillingCustomerSchema).query(async (opts) => {
+    const { default: handler } = await import("./lookupBillingCustomer.handler");
+    return handler(opts);
+  }),
+  refreshDunning: authedAdminProcedure.input(ZRefreshDunningSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./refreshDunning.handler");
+    return handler(opts);
   }),
   watchlist: watchlistRouter,
 });

@@ -5,6 +5,10 @@ vi.mock("./license-view", () => ({
   default: () => <div data-testid="license-view" />,
 }));
 
+vi.mock("./components/CustomerLookup", () => ({
+  CustomerLookupSection: () => <div data-testid="customer-lookup" />,
+}));
+
 describe("AdminBillingView", async () => {
   const AdminBillingView = (await import("./billing-view")).default;
   it("should render LicenseView component", () => {
