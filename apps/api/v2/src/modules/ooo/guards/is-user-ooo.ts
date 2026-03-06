@@ -1,15 +1,25 @@
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from "@nestjs/common";
 import { Request } from "express";
+import type { UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class IsUserOOO implements CanActivate {
   constructor(private oooRepo: UserOOORepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user: UserWithProfile }>();
     const oooId: string = request.params.oooId;
-    const userId: string = request.params.userId;
+    const userId: number | undefined = request.params.userId
+      ? Number(request.params.userId)
+      : request.user?.id;
 
     if (!userId) {
       throw new ForbiddenException("No user id found in request params.");
@@ -19,12 +29,17 @@ export class IsUserOOO implements CanActivate {
       throw new ForbiddenException("No ooo entry id found in request params.");
     }
 
-    const ooo = await this.oooRepo.getUserOOOByIdAndUserId(Number(oooId), Number(userId));
+    const ooo = await this.oooRepo.getUserOOOByIdAndUserId(
+      Number(oooId),
+      Number(userId)
+    );
 
     if (ooo) {
       return true;
     }
 
-    throw new ForbiddenException("This OOO entry does not belong to this user.");
+    throw new ForbiddenException(
+      "This OOO entry does not belong to this user."
+    );
   }
 }
