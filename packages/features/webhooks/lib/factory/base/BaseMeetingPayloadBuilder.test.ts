@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { MeetingStartedDTO, MeetingEndedDTO } from "../../dto/types";
+import { describe, expect, it } from "vitest";
+import type { MeetingEndedDTO, MeetingStartedDTO } from "../../dto/types";
 import { MeetingPayloadBuilder } from "../versioned/v2021-10-20/MeetingPayloadBuilder";
 
 describe("MeetingPayloadBuilder (v2021-10-20)", () => {
@@ -46,6 +45,58 @@ describe("MeetingPayloadBuilder (v2021-10-20)", () => {
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.MEETING_ENDED);
       expect(payload.createdAt).toBe("2024-01-15T10:30:00Z");
       expect(payload.payload).toEqual(mockBookingData);
+    });
+  });
+
+  describe("AFTER_HOSTS_CAL_VIDEO_NO_SHOW", () => {
+    it("should build no-show payload with bookingId and webhook info", () => {
+      const dto = {
+        triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        createdAt: "2024-01-15T10:15:00Z",
+        bookingId: 42,
+        webhook: {
+          id: "wh-1",
+          subscriberUrl: "https://example.com/hook",
+          time: 5,
+          timeUnit: "MINUTE",
+        },
+      };
+
+      const payload = builder.build(dto as never);
+
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW);
+      expect(payload.payload).toEqual(
+        expect.objectContaining({
+          bookingId: 42,
+          webhook: expect.objectContaining({ id: "wh-1" }),
+        })
+      );
+    });
+  });
+
+  describe("AFTER_GUESTS_CAL_VIDEO_NO_SHOW", () => {
+    it("should build no-show payload with bookingId and webhook info", () => {
+      const dto = {
+        triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        createdAt: "2024-01-15T10:15:00Z",
+        bookingId: 99,
+        webhook: {
+          id: "wh-2",
+          subscriberUrl: "https://example.com/hook2",
+          time: 10,
+          timeUnit: "MINUTE",
+        },
+      };
+
+      const payload = builder.build(dto as never);
+
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW);
+      expect(payload.payload).toEqual(
+        expect.objectContaining({
+          bookingId: 99,
+          webhook: expect.objectContaining({ id: "wh-2" }),
+        })
+      );
     });
   });
 });

@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import type { RecordingReadyDTO, TranscriptionGeneratedDTO } from "../../dto/types";
 import { RecordingPayloadBuilder } from "../versioned/v2021-10-20/RecordingPayloadBuilder";
 
@@ -42,5 +41,38 @@ describe("RecordingPayloadBuilder (v2021-10-20)", () => {
         srt: "https://storage.example.com/transcript-123.srt",
       });
     });
+
+    it("should handle undefined downloadLinks", () => {
+      const dto: TranscriptionGeneratedDTO = {
+        triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+        createdAt: "2024-01-15T11:00:00Z",
+      };
+
+      const payload = builder.build(dto);
+
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED);
+      expect(payload.payload.downloadLinks).toBeUndefined();
+    });
+  });
+
+  it("should route to correct builder method based on trigger", () => {
+    const recordingDto: RecordingReadyDTO = {
+      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+      createdAt: "2024-01-15T10:00:00Z",
+      downloadLink: "https://storage.example.com/recording.mp4",
+    };
+    const transcriptionDto: TranscriptionGeneratedDTO = {
+      triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      createdAt: "2024-01-15T11:00:00Z",
+      downloadLinks: { transcript: "https://storage.example.com/transcript.txt" },
+    };
+
+    const recPayload = builder.build(recordingDto);
+    const transPayload = builder.build(transcriptionDto);
+
+    expect(recPayload.triggerEvent).toBe(WebhookTriggerEvents.RECORDING_READY);
+    expect(transPayload.triggerEvent).toBe(WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED);
+    expect(recPayload.payload).toHaveProperty("downloadLink");
+    expect(transPayload.payload).toHaveProperty("downloadLinks");
   });
 });
