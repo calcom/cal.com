@@ -1,13 +1,35 @@
-import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  BOOKING_WRITE,
+  BOOKING_READ,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
 import { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { Body, Controller, Delete, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
+import {
+  GetBookingAttendeesOutput_2024_08_13,
+  GetBookingAttendeeOutput_2024_08_13,
+} from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
 import { RemoveAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
-import { VERSION_2024_08_13, VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
+import {
+  VERSION_2024_08_13,
+  VERSION_2024_08_13_VALUE,
+} from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -29,7 +51,60 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
   required: true,
 })
 export class BookingAttendeesController_2024_08_13 {
-  constructor(private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13) {}
+  constructor(
+    private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13
+  ) {}
+
+  @Get("/")
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get all attendees for a booking",
+    description: `Retrieve all attendees for a specific booking by its UID.
+    
+    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
+    `,
+  })
+  async getBookingAttendees(
+    @Param("bookingUid") bookingUid: string,
+    @GetUser() user: ApiAuthGuardUser
+  ): Promise<GetBookingAttendeesOutput_2024_08_13> {
+    const attendees = await this.bookingAttendeesService.getBookingAttendees(
+      bookingUid
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: attendees,
+    };
+  }
+
+  @Get("/:attendeeId")
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get a specific attendee for a booking",
+    description: `Retrieve a specific attendee by their ID for a booking identified by its UID.
+        
+      <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
+      `,
+  })
+  async getBookingAttendee(
+    @Param("bookingUid") bookingUid: string,
+    @Param("attendeeId", ParseIntPipe) attendeeId: number
+  ): Promise<GetBookingAttendeeOutput_2024_08_13> {
+    const attendee = await this.bookingAttendeesService.getBookingAttendee(
+      bookingUid,
+      attendeeId
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: attendee,
+    };
+  }
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
@@ -62,7 +137,11 @@ export class BookingAttendeesController_2024_08_13 {
     @Body() body: AddAttendeeInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
   ): Promise<AddAttendeeOutput_2024_08_13> {
-    const attendee = await this.bookingAttendeesService.addAttendee(bookingUid, body, user);
+    const attendee = await this.bookingAttendeesService.addAttendee(
+      bookingUid,
+      body,
+      user
+    );
 
     return {
       status: SUCCESS_STATUS,
