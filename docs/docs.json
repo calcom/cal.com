@@ -316,5 +316,8 @@
       "github": "https://github.com/calcom",
       "linkedin": "https://www.linkedin.com/company/cal-com"
     }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "grok"]
   }
 }
