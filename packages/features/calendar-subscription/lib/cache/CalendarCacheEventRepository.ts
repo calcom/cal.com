@@ -42,14 +42,14 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
   }
 
   private async upsertBatch(events: CalendarCacheEvent[]) {
+    // $executeRaw bypasses Prisma defaults, so we apply them explicitly here
+    // to prevent NOT NULL violations on columns with Prisma-level defaults.
     const values = events.map(
-      // $executeRaw bypasses Prisma defaults, so we generate the UUID here
-      // to prevent a NOT NULL violation on the "id" column when e.id is absent.
       (e) => Prisma.sql`(
         ${e.id ?? randomUUID()}, ${e.selectedCalendarId}, ${e.externalId}, ${e.externalEtag},
-        ${e.iCalUID}, ${e.iCalSequence}, ${e.summary}, ${e.description},
-        ${e.location}, ${e.start}, ${e.end}, ${e.isAllDay}, ${e.timeZone},
-        ${e.status}::"CalendarCacheEventStatus", ${e.recurringEventId},
+        ${e.iCalUID}, ${e.iCalSequence ?? 0}, ${e.summary}, ${e.description},
+        ${e.location}, ${e.start}, ${e.end}, ${e.isAllDay ?? false}, ${e.timeZone},
+        ${e.status ?? "confirmed"}::"CalendarCacheEventStatus", ${e.recurringEventId},
         ${e.originalStartTime}, ${e.externalCreatedAt}, ${e.externalUpdatedAt},
         NOW(), NOW()
       )`
