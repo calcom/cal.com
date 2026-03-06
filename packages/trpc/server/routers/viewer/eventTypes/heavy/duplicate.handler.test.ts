@@ -1,10 +1,7 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { duplicateHandler } from "./duplicate.handler";
 
 const mockCheckSuccessRedirectUrlAllowed = vi.fn();
@@ -16,6 +13,13 @@ vi.mock("@calcom/prisma", () => ({
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 vi.mock("@calcom/features/eventtypes/lib/successRedirectUrlAllowed", () => ({
   checkSuccessRedirectUrlAllowed: (...args: unknown[]) => mockCheckSuccessRedirectUrlAllowed(...args),
+}));
+// Mock setDestinationCalendarHandler to prevent loading the heavy calendar import chain
+// (CalendarManager → Office365CalendarService → ...) which causes flaky
+// "Closing rpc while fetch was pending" errors when the vitest worker shuts down
+// before all transitive modules finish resolving.
+vi.mock("../../../viewer/calendars/setDestinationCalendar.handler", () => ({
+  setDestinationCalendarHandler: vi.fn(),
 }));
 
 describe("duplicateHandler", () => {
