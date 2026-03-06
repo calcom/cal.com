@@ -1,15 +1,28 @@
-import type { NextApiRequest } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getInstantBookingCreateService } from "@calcom/features/bookings/di/InstantBookingCreateService.container";
+import { BotDetectionService } from "@calcom/features/bot-detection";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
+import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
+import type { NextApiRequest } from "next";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
+
+  // Check for bot detection using feature flag
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const botDetectionService = new BotDetectionService(teamFeatureRepository, eventTypeRepository);
+
+  await botDetectionService.checkBotDetection({
+    eventTypeId: req.body?.eventTypeId,
+    headers: req.headers,
+  });
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "instantMeeting",
