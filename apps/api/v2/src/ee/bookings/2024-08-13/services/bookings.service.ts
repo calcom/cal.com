@@ -10,6 +10,9 @@ import {
 } from "@calcom/platform-libraries";
 import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
+// biome-ignore lint/style/noRestrictedImports: Needed for webhook deliveries
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
   BookingOutput_2024_08_13,
   CancelBookingInput,
@@ -1074,7 +1077,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const hostId = booking.userId || booking.hosts?.[0]?.id;
-    if (!hostId || isNaN(Number(hostId))) {
+    if (!hostId || Number.isNaN(Number(hostId))) {
       this.logger.error(`Booking with uid=${booking.uid} has no valid host ID (hostId=${hostId})`);
       return;
     }
@@ -1091,7 +1094,7 @@ export class BookingsService_2024_08_13 {
     }
 
     const hostId = newBooking.userId || newBooking.hosts[0]?.id;
-    if (!hostId || isNaN(Number(hostId))) {
+    if (!hostId || Number.isNaN(Number(hostId))) {
       this.logger.error(`Booking with uid=${newBooking.uid} has no valid host ID (hostId=${hostId})`);
       return;
     }
@@ -1158,6 +1161,30 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Reassigned booking with uid=${bookingUid} was not found in the database`);
     }
 
+    // Trigger BOOKING_REASSIGNED webhook
+    try {
+      const webhooks = await WebhookService.init({
+        triggerEvent: WebhookTriggerEvents.BOOKING_REASSIGNED,
+        userId: reassigned.userId ?? undefined,
+        eventTypeId: reassigned.eventTypeId ?? undefined,
+        teamId: null,
+        orgId: booking.eventType.teamId ?? undefined,
+      });
+      await webhooks.sendPayload({
+        type: booking.eventType?.title ?? "",
+        title: booking.title,
+        description: "",
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        uid: booking.uid,
+        bookingId: booking.id,
+        status: booking.status,
+        reassignedByUserId: reassignedByUser.id,
+      });
+    } catch (e) {
+      this.logger.error(`BOOKING_REASSIGNED webhook failed for ${bookingUid}`, e);
+    }
+
     return this.outputService.getOutputReassignedBooking(reassigned);
   }
 
@@ -1211,6 +1238,32 @@ export class BookingsService_2024_08_13 {
         actionSource: "API_V2",
         reassignedByUuid: reassignedByUser.uuid,
       });
+
+      // Trigger BOOKING_REASSIGNED webhook
+      try {
+        const webhooks = await WebhookService.init({
+          triggerEvent: WebhookTriggerEvents.BOOKING_REASSIGNED,
+          userId: reassigned.userId ?? undefined,
+          eventTypeId: booking.eventTypeId ?? undefined,
+          teamId: null,
+          orgId: booking.eventType.teamId ?? undefined,
+        });
+        await webhooks.sendPayload({
+          type: booking.eventType?.title ?? "",
+          title: booking.title,
+          description: "",
+          startTime: booking.startTime.toISOString(),
+          endTime: booking.endTime.toISOString(),
+          uid: booking.uid,
+          bookingId: booking.id,
+          status: booking.status,
+          reassignedByUserId: reassignedByUser.id,
+          newHostId: newUserId,
+          reassignReason: body.reason,
+        });
+      } catch (e) {
+        this.logger.error(`BOOKING_REASSIGNED webhook failed for ${bookingUid}`, e);
+      }
 
       return this.outputService.getOutputReassignedBooking(reassigned);
     } catch (error) {
