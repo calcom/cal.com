@@ -40,4 +40,16 @@ export class BookingsRepositoryFixture {
   async deleteAllBookings(userId: User["id"], userEmail: User["email"]) {
     return this.prismaWriteClient.booking.deleteMany({ where: { userId, userPrimaryEmail: userEmail } });
   }
+
+  async deleteByEventTypeIdAndDateRange(eventTypeId: number, dateFrom: string, dateTo: string) {
+    return this.prismaWriteClient.booking.deleteMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: new Date(dateFrom),
+          lte: new Date(dateTo),
+        },
+      },
+    });
+  }
 }
