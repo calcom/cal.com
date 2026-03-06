@@ -104,7 +104,7 @@ export const EventDuration = ({
   return selectedDuration ? (
     <div className="border-default relative mr-5 flex flex-row items-center justify-between rounded-md border">
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 left-0 flex">
+        <button onClick={handleLeft} title="Scroll left" aria-label="Scroll left" className="absolute bottom-0 left-0 flex">
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
             <ChevronLeftIcon className="text-subtle h-4 w-4" />
           </div>
@@ -125,15 +125,17 @@ export const EventDuration = ({
               onClick={() => setSelectedDuration(duration)}
               ref={(el) => (itemRefs.current[duration] = el)}
               className={classNames(
-                selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
-                "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
+                selectedDuration === duration
+                  ? "border-brand-default bg-brand-default text-brand ring-brand-default ring-2 ring-offset-1"
+                  : "border-default text-default hover:border-emphasis hover:text-emphasis bg-default",
+                "cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium leading-tight transition-all"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>
           ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute bottom-0 right-0 flex">
+        <button onClick={handleRight} title="Scroll right" aria-label="Scroll right" className="absolute bottom-0 right-0 flex">
           <div className="to-default flex h-9 w-5 bg-linear-to-r from-transparent" />
           <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
             <ChevronRightIcon className="text-subtle h-4 w-4" />

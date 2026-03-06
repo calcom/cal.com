@@ -184,6 +184,13 @@ const SlotItem = ({
               />
             )}
             {computedDateWithUsersTimezone.format(timeFormat)}
+            {/* AM/PM visual indicator: sun for morning (AM), moon for evening (PM) */}
+            <span
+              aria-label={computedDateWithUsersTimezone.hour() < 12 ? "AM" : "PM"}
+              title={computedDateWithUsersTimezone.hour() < 12 ? "AM" : "PM"}
+              className="text-subtle text-xs select-none">
+              {computedDateWithUsersTimezone.hour() < 12 ? "☀" : "🌙"}
+            </span>
           </div>
           {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
           {hasTimeSlots && !bookingFull && (
