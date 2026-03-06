@@ -1,14 +1,13 @@
+import { SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
-
 import { checkUserHasActivePaidTeamPlan } from "./checkUserHasActivePaidTeamPlan";
 
 const mockFindAllAcceptedTeamMemberships: Mock = vi.fn();
 const mockGetSubscriptionStatus: Mock = vi.fn();
 const mockInit: Mock = vi.fn();
 const mockPlatformBillingFindUnique: Mock = vi.fn();
+const mockFindBillingPeriodByTeamId: Mock = vi.fn();
 
 vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
@@ -19,6 +18,12 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => (
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
   getTeamBillingServiceFactory: () => ({
     init: (...args: unknown[]) => mockInit(...args),
+  }),
+}));
+
+vi.mock("@calcom/features/ee/billing/di/containers/BillingPeriodRepository", () => ({
+  getBillingPeriodRepository: () => ({
+    findBillingPeriodByTeamId: (...args: unknown[]) => mockFindBillingPeriodByTeamId(...args),
   }),
 }));
 
@@ -40,6 +45,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
     mockInit.mockReturnValue({
       getSubscriptionStatus: mockGetSubscriptionStatus,
     });
+    mockFindBillingPeriodByTeamId.mockResolvedValue(null);
   });
 
   describe("when user has an active paid team plan", () => {
@@ -53,7 +59,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
     it("should return isActive: true", async () => {
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: true, isTrial: false });
+      expect(result).toEqual({ isActive: true, isTrial: false, billingPeriod: null });
     });
   });
 
@@ -66,7 +72,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
 
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: true, isTrial: false });
+      expect(result).toEqual({ isActive: true, isTrial: false, billingPeriod: null });
     });
   });
 
@@ -81,7 +87,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
     it("should return isActive: false and isTrial: true", async () => {
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: false, isTrial: true });
+      expect(result).toEqual({ isActive: false, isTrial: true, billingPeriod: null });
     });
   });
 
@@ -93,7 +99,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
     it("should return isActive: false and isTrial: false", async () => {
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: false, isTrial: false });
+      expect(result).toEqual({ isActive: false, isTrial: false, billingPeriod: null });
     });
   });
 
@@ -108,7 +114,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
 
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: true, isTrial: false });
+      expect(result).toEqual({ isActive: true, isTrial: false, billingPeriod: null });
     });
 
     it("should return isTrial: true if all teams are on trial", async () => {
@@ -120,7 +126,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
 
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: false, isTrial: true });
+      expect(result).toEqual({ isActive: false, isTrial: true, billingPeriod: null });
     });
   });
 
@@ -133,7 +139,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
 
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: true, isTrial: false });
+      expect(result).toEqual({ isActive: true, isTrial: false, billingPeriod: null });
       expect(mockPlatformBillingFindUnique).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
@@ -146,7 +152,7 @@ describe("checkUserHasActivePaidTeamPlan", () => {
 
       const result = await checkUserHasActivePaidTeamPlan(1);
 
-      expect(result).toEqual({ isActive: false, isTrial: true });
+      expect(result).toEqual({ isActive: false, isTrial: true, billingPeriod: null });
     });
   });
 

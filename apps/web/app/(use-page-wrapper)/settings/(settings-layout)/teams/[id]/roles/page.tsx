@@ -12,6 +12,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
+import { FullscreenUpgradeBannerForRolesAndPermissions } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForRolesAndPermissions";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
@@ -119,8 +120,9 @@ const Page = async ({
 
   const parent = await getCachedTeamParent(teamIdNum)();
 
+  // Standalone teams (not in an org): show upgrade banner
   if (!parent?.id) {
-    return notFound();
+    return <FullscreenUpgradeBannerForRolesAndPermissions />;
   }
 
   // Check if parent team has PBAC feature enabled

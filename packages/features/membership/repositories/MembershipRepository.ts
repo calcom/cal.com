@@ -150,8 +150,8 @@ export class MembershipRepository {
     });
   }
 
-  static async findFirstAcceptedMembershipByUserId(userId: number) {
-    return await prisma.membership.findFirst({
+  static async hasAnyAcceptedMembershipByUserId(userId: number) {
+    const membership = await prisma.membership.findFirst({
       where: {
         accepted: true,
         userId,
@@ -161,7 +161,9 @@ export class MembershipRepository {
           },
         },
       },
+      select: { id: true },
     });
+    return Boolean(membership);
   }
 
   static async findAcceptedMembershipsByUserIdsInTeam({

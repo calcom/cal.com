@@ -25,6 +25,7 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  extraParams?: Record<string, string>;
   hideBranding?: boolean;
 }
 
@@ -34,6 +35,7 @@ export const sendEmailVerification = async ({
   username,
   secondaryEmailId,
   isPlatform = false,
+  extraParams,
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
@@ -71,6 +73,7 @@ export const sendEmailVerification = async ({
 
   const params = new URLSearchParams({
     token,
+    ...extraParams,
   });
 
   await sendEmailVerificationLink({

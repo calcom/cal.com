@@ -1,17 +1,18 @@
+import process from "node:process";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
+import { getOrgPriceId } from "@calcom/features/ee/teams/lib/payments";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { ORGANIZATION_SELF_SERVE_PRICE, WEBAPP_URL, ORG_TRIAL_DAYS } from "@calcom/lib/constants";
+import { ORG_TRIAL_DAYS, ORGANIZATION_SELF_SERVE_PRICE, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import { UserPermissionRole, type BillingMode, type BillingPeriod } from "@calcom/prisma/enums";
+import { type BillingMode, type BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
 
@@ -228,16 +229,7 @@ export class OrganizationPaymentService {
       throw new Error("STRIPE_ORG_PRODUCT_ID is not set");
     }
 
-    const fixedPriceId =
-      config.billingPeriod === "ANNUALLY"
-        ? process.env.STRIPE_ORG_ANNUAL_PRICE_ID
-        : process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
-
-    if (!fixedPriceId) {
-      const envVar =
-        config.billingPeriod === "ANNUALLY" ? "STRIPE_ORG_ANNUAL_PRICE_ID" : "STRIPE_ORG_MONTHLY_PRICE_ID";
-      throw new Error(`${envVar} is not set`);
-    }
+    const fixedPriceId = getOrgPriceId(config.billingPeriod);
 
     if (!shouldCreateCustomPrice) {
       return {
