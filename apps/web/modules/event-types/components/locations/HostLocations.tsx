@@ -732,13 +732,16 @@ const useHostLocationHandlers = (
   hosts: Host[],
   serverHosts: Host[],
   setHosts: (serverHosts: Host[], newHosts: Host[]) => void,
+  clearAllHostLocations: () => void,
   eventTypeId: number
 ) => {
   const handleToggle = (checked: boolean) => {
     formMethods.setValue("enablePerHostLocations", checked, { shouldDirty: true });
     if (!checked) {
-      // Use setHosts from context instead of form setValue for performance
-      setHosts(serverHosts, hosts.map((host) => ({ ...host, location: null })));
+      // Set the clearAllHostLocations flag so the backend bulk-deletes all
+      // HostLocation rows on save. This handles all hosts, not just the
+      // currently loaded page from pagination.
+      clearAllHostLocations();
     }
   };
 
@@ -819,7 +822,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
   const isOrg = !!session.data?.user?.org?.id;
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
   // Use hosts from context for mutations, paginated query for data
-  const { setHosts, pendingChanges } = useHosts();
+  const { setHosts, clearAllHostLocations, pendingChanges } = useHosts();
 
   const { hosts, serverHosts } = usePaginatedAssignmentHosts({
     eventTypeId,
@@ -829,7 +832,7 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
 
   const { hostDataMap, fullLocationOptions, containerRef, isLoading, isFetchingNextPage } =
     useHostLocationsData(eventTypeId, enablePerHostLocations, locationOptions);
-  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, serverHosts, setHosts, eventTypeId);
+  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, serverHosts, setHosts, clearAllHostLocations, eventTypeId);
   const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, hosts, serverHosts, setHosts, () =>
     setIsMassApplyDialogOpen(false)
   );

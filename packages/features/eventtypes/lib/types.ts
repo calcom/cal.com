@@ -70,6 +70,7 @@ export type PendingHostChanges = {
   hostsToUpdate: HostUpdate[];
   hostsToRemove: number[]; // userIds
   clearAllHosts?: boolean; // When true, backend computes delta: keeps hosts in hostsToAdd, removes all others
+  clearAllHostLocations?: boolean; // When true, backend deletes all HostLocation rows for this event type
 };
 
 // Delta-based children tracking for managed event types
@@ -293,8 +294,8 @@ export type HostInput = {
 export type HostUpdateInput = {
   userId: number;
   isFixed?: boolean;
-  priority?: number | null;
-  weight?: number | null;
+  priority?: number;
+  weight?: number;
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;
@@ -305,10 +306,11 @@ export type PendingHostChangesInput = {
   hostsToUpdate: HostUpdateInput[];
   hostsToRemove: number[];
   clearAllHosts?: boolean;
+  clearAllHostLocations?: boolean;
 };
 
 export type PendingChildrenChangesInput = {
-  childrenToAdd: { owner: { id: number; name: string; email: string }; hidden: boolean }[];
+  childrenToAdd: { owner: { id: number; name: string; email: string; eventTypeSlugs: string[] }; hidden: boolean }[];
   childrenToRemove: number[];
   childrenToUpdate: { userId: number; hidden?: boolean }[];
   clearAllChildren?: boolean;

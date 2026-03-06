@@ -10,6 +10,7 @@ type HostsContextValue = {
   updateHost: (userId: number, changes: Partial<Omit<Host, "userId">>) => void;
   removeHost: (userId: number) => void;
   clearAllHosts: (newHosts?: Host[]) => void;
+  clearAllHostLocations: () => void;
   setHosts: (serverHosts: Host[], newHosts: Host[]) => void;
   pendingChanges: PendingHostChanges;
 };

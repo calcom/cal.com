@@ -237,6 +237,8 @@ export const EditWeightsForAllTeamMembers = ({
         })),
         "team-members-weights.csv"
       );
+    } catch {
+      showToast(t("error_downloading_csv"), "error");
     } finally {
       setIsDownloading(false);
     }

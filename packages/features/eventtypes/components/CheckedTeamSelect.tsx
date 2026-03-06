@@ -1,11 +1,11 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useFetchMoreOnScroll } from "@calcom/features/eventtypes/lib/useFetchMoreOnScroll";
+
 import type { Host, SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -89,16 +89,35 @@ export const CheckedTeamSelect = ({
 
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
+  // Use a callback ref so that when the scroll container mounts/unmounts
+  // (due to conditional rendering when valueFromGroup is empty), we trigger
+  // a re-render that lets useFetchMoreOnScroll attach its scroll listener.
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollContainerNode, setScrollContainerNode] = useState<HTMLDivElement | null>(null);
+  const scrollContainerCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    scrollContainerRef.current = node;
+    setScrollContainerNode(node);
+  }, []);
+
   const stableFetchNextPage = useCallback(() => {
     fetchNextPageSelected?.();
   }, [fetchNextPageSelected]);
-  useFetchMoreOnScroll(
-    scrollContainerRef,
-    hasNextPageSelected ?? false,
-    isFetchingNextPageSelected ?? false,
-    stableFetchNextPage
-  );
+
+  // Attach scroll listener to fetch more when scrolling near the bottom
+  const hasNextPage = hasNextPageSelected ?? false;
+  const isFetchingNext = isFetchingNextPageSelected ?? false;
+  useEffect(() => {
+    if (!scrollContainerNode || !hasNextPage || isFetchingNext) return;
+    const handleScroll = () => {
+      const { scrollHeight, scrollTop, clientHeight } = scrollContainerNode;
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        stableFetchNextPage();
+      }
+    };
+    scrollContainerNode.addEventListener("scroll", handleScroll);
+    return () => scrollContainerNode.removeEventListener("scroll", handleScroll);
+  }, [scrollContainerNode, hasNextPage, isFetchingNext, stableFetchNextPage]);
+
   const rowVirtualizer = useVirtualizer({
     count: valueFromGroup.length,
     estimateSize: () => 44,
@@ -142,7 +161,7 @@ export const CheckedTeamSelect = ({
       />
       {valueFromGroup.length >= 1 && (
         <div
-          ref={scrollContainerRef}
+          ref={scrollContainerCallbackRef}
           className={classNames(
             "mb-4 mt-3 overflow-y-auto rounded-md",
             "border-subtle border",

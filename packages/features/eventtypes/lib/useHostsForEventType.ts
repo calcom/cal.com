@@ -162,6 +162,11 @@ export function useHostsForEventType() {
         return;
       }
 
+      // Guard against duplicate removals (e.g. double-click)
+      if (current.hostsToRemove.includes(userId)) {
+        return;
+      }
+
       // Otherwise add to hostsToRemove and clean up hostsToUpdate
       setPendingChanges(
         {
@@ -191,6 +196,18 @@ export function useHostsForEventType() {
     },
     [setPendingChanges]
   );
+
+  // Set the clearAllHostLocations flag so the backend bulk-deletes all HostLocation rows on save
+  const clearAllHostLocations = useCallback(() => {
+    const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
+    setPendingChanges(
+      {
+        ...current,
+        clearAllHostLocations: true,
+      },
+      { shouldDirty: true }
+    );
+  }, [getValues, setPendingChanges]);
 
   // Set all hosts (replaces current state) - used for bulk operations
   // Compares newHosts against serverHosts (from paginated query) instead of initialHosts
@@ -250,9 +267,10 @@ export function useHostsForEventType() {
       updateHost,
       removeHost,
       clearAllHosts,
+      clearAllHostLocations,
       setHosts,
       pendingChanges,
     }),
-    [addHost, updateHost, removeHost, clearAllHosts, setHosts, pendingChanges]
+    [addHost, updateHost, removeHost, clearAllHosts, clearAllHostLocations, setHosts, pendingChanges]
   );
 }
