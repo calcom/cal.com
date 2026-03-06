@@ -179,13 +179,17 @@ async function createAttributesScenario(params: {
 
   const users = await prisma.user.findMany({
     where: { email: { in: userDataList.map((u) => u.email) } },
-    select: { id: true },
+    select: { id: true, email: true },
   });
 
-  createdResources.users.push(...users.map((u) => u.id));
+  // findMany doesn't guarantee order, so re-sort to match userDataList index
+  const emailToUser = new Map(users.map((u) => [u.email, u]));
+  const orderedUsers = userDataList.map((ud) => emailToUser.get(ud.email)!);
+
+  createdResources.users.push(...orderedUsers.map((u) => u.id));
 
   await prisma.membership.createMany({
-    data: users.map((user) => ({
+    data: orderedUsers.map((user) => ({
       userId: user.id,
       teamId: testFixtures.org.id,
       role: "MEMBER" as const,
@@ -195,7 +199,7 @@ async function createAttributesScenario(params: {
 
   const orgMemberships = await prisma.membership.findMany({
     where: {
-      userId: { in: users.map((u) => u.id) },
+      userId: { in: orderedUsers.map((u) => u.id) },
       teamId: testFixtures.org.id,
     },
     select: { id: true, userId: true },
@@ -204,7 +208,7 @@ async function createAttributesScenario(params: {
   createdResources.memberships.push(...orgMemberships.map((m) => m.id));
 
   await prisma.membership.createMany({
-    data: users.map((user) => ({
+    data: orderedUsers.map((user) => ({
       userId: user.id,
       teamId: testFixtures.team.id,
       role: "MEMBER" as const,
@@ -214,7 +218,7 @@ async function createAttributesScenario(params: {
 
   const teamMemberships = await prisma.membership.findMany({
     where: {
-      userId: { in: users.map((u) => u.id) },
+      userId: { in: orderedUsers.map((u) => u.id) },
       teamId: testFixtures.team.id,
     },
     select: { id: true },
@@ -225,8 +229,8 @@ async function createAttributesScenario(params: {
   const userIdToOrgMembershipId = new Map(orgMemberships.map((m) => [m.userId, m.id]));
 
   const attributeAssignments: { memberId: number; attributeOptionId: string }[] = [];
-  for (let i = 0; i < users.length; i++) {
-    const orgMembershipId = userIdToOrgMembershipId.get(users[i].id);
+  for (let i = 0; i < orderedUsers.length; i++) {
+    const orgMembershipId = userIdToOrgMembershipId.get(orderedUsers[i].id);
     if (!orgMembershipId) continue;
     const member = teamMembersWithAttributeOptionValuePerAttribute[i];
     for (const [attrId, value] of Object.entries(member.attributes)) {
@@ -256,7 +260,7 @@ async function createAttributesScenario(params: {
     createdResources.attributeToUsers.push(...createdAssignments.map((a) => a.id));
   }
 
-  const createdUsers = users.map((user) => ({
+  const createdUsers = orderedUsers.map((user) => ({
     userId: user.id,
     orgMembershipId: userIdToOrgMembershipId.get(user.id)!,
   }));
