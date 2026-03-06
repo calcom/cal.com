@@ -13,21 +13,19 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
-import {
-  sanitizeAndFilterGuests,
-  updateBookingAttendees,
-  validateGuestsFieldEnabled,
-} from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
-import type { TAddGuestsInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.schema";
-import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/bookingAttendees.utils";
+import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
   buildCalendarEvent,
   getBooking,
   getOrganizerData,
   prepareAttendeesList,
+  sanitizeAndFilterGuests,
+  updateBookingAttendees,
   updateCalendarEvent,
+  validateGuestsFieldEnabled,
   validateUserPermissions,
-} from "@calcom/trpc/server/routers/viewer/bookings/bookingAttendees.utils";
+} from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+import type { TAddGuestsInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.schema";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type Attendee = TAddGuestsInputSchema["guests"][number];
