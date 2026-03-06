@@ -94,8 +94,8 @@ const hostSchema: z.ZodType<HostInput> = z.object({
 const hostUpdateSchema: z.ZodType<HostUpdateInput> = z.object({
   userId: z.number(),
   isFixed: z.boolean().optional(),
-  priority: z.number().min(0).max(4).optional().nullable(),
-  weight: z.number().min(0).optional().nullable(),
+  priority: z.number().min(0).max(4).optional(),
+  weight: z.number().min(0).optional(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
   location: hostLocationSchema.optional().nullable(),
@@ -106,6 +106,7 @@ const pendingHostChangesSchema: z.ZodType<PendingHostChangesInput> = z.object({
   hostsToUpdate: z.array(hostUpdateSchema),
   hostsToRemove: z.array(z.number()),
   clearAllHosts: z.boolean().optional(),
+  clearAllHostLocations: z.boolean().optional(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
@@ -130,6 +131,7 @@ const pendingChildrenChangesSchema: z.ZodType<PendingChildrenChangesInput> = z.o
         id: z.number(),
         name: z.string(),
         email: z.string(),
+        eventTypeSlugs: z.array(z.string()),
       }),
       hidden: z.boolean(),
     })

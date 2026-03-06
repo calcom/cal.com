@@ -305,6 +305,16 @@ export function AddMembersWithSwitch({
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
 
+  const {
+    assignRRMembersUsingSegment,
+    setAssignRRMembersUsingSegment,
+    rrSegmentQueryValue,
+    setRrSegmentQueryValue,
+  } = useSegmentState();
+
+  // Only fetch search results when the member selector is actually rendered
+  const shouldShowMemberSelector = !assignAllTeamMembers && !assignRRMembersUsingSegment;
+
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
 
@@ -316,14 +326,8 @@ export function AddMembersWithSwitch({
   } = useSearchTeamMembers({
     teamId,
     search: debouncedSearch,
-    enabled: true,
+    enabled: shouldShowMemberSelector,
   });
-  const {
-    assignRRMembersUsingSegment,
-    setAssignRRMembersUsingSegment,
-    rrSegmentQueryValue,
-    setRrSegmentQueryValue,
-  } = useSegmentState();
 
   const assignmentState = getAssignmentState({
     assignAllTeamMembers,

@@ -484,7 +484,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (pendingHostChanges) {
       // New delta path: process changes directly
       let { hostsToAdd, hostsToUpdate, hostsToRemove } = pendingHostChanges;
-      const { clearAllHosts } = pendingHostChanges;
+      const { clearAllHosts, clearAllHostLocations } = pendingHostChanges;
+
+      // When clearAllHostLocations is true, bulk-delete all host locations for this event type
+      if (clearAllHostLocations) {
+        await ctx.prisma.hostLocation.deleteMany({
+          where: { eventTypeId: id },
+        });
+      }
 
       // When clearAllHosts is true, compute delta: keep hosts in hostsToAdd, remove all others
       if (clearAllHosts) {
