@@ -51,6 +51,9 @@ vi.mock("@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabled
   },
 }));
 
+const onPaymentSucceeded = vi.fn().mockResolvedValue({ handled: true });
+const dunningCreateBySubscriptionId = vi.fn().mockResolvedValue({ onPaymentSucceeded });
+
 vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: () => ({
     extractSubscriptionDates: () => ({
@@ -58,6 +61,9 @@ vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
       subscriptionEnd: null,
       subscriptionTrialEnd: new Date("2025-01-15"),
     }),
+  }),
+  getDunningStrategyFactory: () => ({
+    createBySubscriptionId: dunningCreateBySubscriptionId,
   }),
 }));
 
@@ -71,6 +77,9 @@ vi.mock("../../di/containers/Billing", () => ({
       subscriptionEnd: null,
       subscriptionTrialEnd: new Date("2025-01-15"),
     }),
+  }),
+  getDunningStrategyFactory: () => ({
+    createBySubscriptionId: dunningCreateBySubscriptionId,
   }),
 }));
 

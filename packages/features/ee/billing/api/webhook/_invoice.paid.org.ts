@@ -1,4 +1,4 @@
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import { getBillingProviderService, getDunningStrategyFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
@@ -22,6 +22,7 @@ const invoicePaidSchema = z.object({
       data: z.array(
         z.object({
           subscription_item: z.string().nullable(),
+          metadata: z.record(z.string().nullable().optional()).nullable().optional(),
           period: z
             .object({
               start: z.number(),
@@ -66,6 +67,10 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   logger.debug(
     `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
   );
+
+  const dunningFactory = getDunningStrategyFactory();
+  const dunningStrategy = await dunningFactory.createBySubscriptionId(subscriptionId);
+  await dunningStrategy.onPaymentSucceeded({ lines: invoice.lines });
 
   const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
     invoice.customer

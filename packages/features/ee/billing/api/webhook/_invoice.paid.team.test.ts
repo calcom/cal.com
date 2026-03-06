@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SWHMap } from "./__handler";
 
 const onRenewalPaid = vi.fn().mockResolvedValue({});
-const createBySubscriptionId = vi.fn().mockResolvedValue({ onRenewalPaid });
+const onPaymentSucceeded = vi.fn().mockResolvedValue({ handled: true });
+const createBySubscriptionId = vi.fn().mockResolvedValue({ onRenewalPaid, onPaymentSucceeded });
 
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
   getSeatBillingStrategyFactory: () => ({ createBySubscriptionId }),
@@ -94,20 +95,24 @@ describe("invoice.paid.team webhook", () => {
 
       const result = await handler(data);
 
-      expect(createBySubscriptionId).not.toHaveBeenCalled();
+      expect(createBySubscriptionId).toHaveBeenCalledWith("sub_123");
+      expect(onPaymentSucceeded).toHaveBeenCalled();
+      expect(onRenewalPaid).not.toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
   });
 
   describe("non-renewal invoices", () => {
-    it("skips processing for subscription_create billing reason", async () => {
+    it("clears dunning but skips renewal for subscription_create billing reason", async () => {
       const data = buildInvoiceData({
         billing_reason: "subscription_create",
       });
 
       const result = await handler(data);
 
-      expect(createBySubscriptionId).not.toHaveBeenCalled();
+      expect(createBySubscriptionId).toHaveBeenCalledWith("sub_123");
+      expect(onPaymentSucceeded).toHaveBeenCalled();
+      expect(onRenewalPaid).not.toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
   });
