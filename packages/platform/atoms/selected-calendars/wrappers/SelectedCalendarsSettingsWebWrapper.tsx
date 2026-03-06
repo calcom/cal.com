@@ -146,18 +146,12 @@ const ConnectedCalendarList = ({
                           integrationType: connectedCalendar.integration.type,
                           syncProvider: "syncProvider" in cal ? cal.syncProvider : null,
                         });
-                        const syncProviderAccountId =
-                          "syncProviderAccountId" in cal &&
-                          typeof cal.syncProviderAccountId === "string" &&
-                          cal.syncProviderAccountId.length > 0
-                            ? cal.syncProviderAccountId
-                            : null;
                         const syncToggleDisabled =
                           isDisabled ||
                           Boolean(pendingSyncKeys[syncKey]) ||
                           !syncProvider ||
-                          !syncProviderAccountId;
-
+                          typeof cal.credentialId !== "number" ||
+                          cal.credentialId <= 0;
                         return (
                           <div key={cal.externalId} className="flex items-center justify-between gap-4">
                             <CalendarSwitch
@@ -178,7 +172,7 @@ const ConnectedCalendarList = ({
                                 checked={syncEnabled}
                                 disabled={syncToggleDisabled}
                                 onCheckedChange={async (checked) => {
-                                  if (!syncProvider || !syncProviderAccountId) {
+                                  if (!syncProvider || typeof cal.credentialId !== "number") {
                                     showToast("Failed to update calendar sync. Please try again.", "error");
                                     return;
                                   }
@@ -193,8 +187,8 @@ const ConnectedCalendarList = ({
                                   try {
                                     await toggleCalendarSync.mutateAsync({
                                       provider: syncProvider,
-                                      providerAccountId: syncProviderAccountId,
-                                      calendarId: cal.externalId,
+                                      credentialId: cal.credentialId,
+                                      providerCalendarId: cal.externalId,
                                       enabled: checked,
                                     });
 

@@ -9,6 +9,8 @@ import type { CalendarSyncJobData } from "@calid/job-engine";
 import type { Job } from "bullmq";
 import { QueueName } from "packages/queue/src";
 
+const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
+
 export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
   const { calendarId, reason, action, disableReason, syncDisabledReason } = job.data;
 
@@ -18,13 +20,14 @@ export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
     if (renewalStats.autoDisableTargets.length > 0) {
       for (const target of renewalStats.autoDisableTargets) {
         const provider = target.provider.toLowerCase() as "google" | "outlook";
-        const providerAccountId = target.providerAccountId.replace(/[^a-zA-Z0-9_-]/g, "_");
+        const providerCalendarId = sanitizeKeyPart(target.providerCalendarId);
         const payload: CalendarSyncJobData = {
           name: JobName.CALENDAR_SYNC,
           action: "disableCalendarSync",
           calendarId: target.calendarId,
           provider,
-          providerAccountId,
+          credentialId: target.credentialId,
+          providerCalendarId: target.providerCalendarId,
           reason: "manual",
           disableReason: "system",
           syncDisabledReason: "SUBSCRIPTION_RENEWAL_FAILED",
@@ -35,7 +38,7 @@ export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
           name: JobName.CALENDAR_SYNC,
           data: payload,
           bullmqOptions: {
-            jobId: `disable:${provider}:${providerAccountId}:${target.calendarId}`,
+            jobId: `disable:${provider}:${target.credentialId}:${providerCalendarId}:${target.calendarId}`,
             attempts: 3,
             backoff: {
               type: "exponential",

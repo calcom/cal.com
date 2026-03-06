@@ -8,11 +8,11 @@ import type { PrismaClient } from "@calcom/prisma/client";
 interface SyncedCalendarRow {
   externalCalendarId: number;
   provider: string;
-  providerAccountId: string | null;
+  credentialId: number;
+  providerCalendarId: string;
 }
 
-const sanitizeProviderAccountId = (providerAccountId: string): string =>
-  providerAccountId.replace(/[^a-zA-Z0-9_-]/g, "_");
+const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
 
 const toProviderSlug = (provider: "GOOGLE" | "OUTLOOK"): "google" | "outlook" =>
   provider === "GOOGLE" ? "google" : "outlook";
@@ -43,17 +43,8 @@ export const disableSyncedCalendarsOnDisconnect = async (params: {
       SELECT
         ec."id" AS "externalCalendarId",
         ec."provider"::text AS "provider",
-        COALESCE(
-          c."key"->>'providerAccountId',
-          c."key"->>'provider_account_id',
-          c."key"->>'accountId',
-          c."key"->>'account_id',
-          c."key"->>'tenantId',
-          c."key"->>'tenant_id',
-          c."key"->>'sub',
-          c."key"->>'oid',
-          c."key"->>'email'
-        ) AS "providerAccountId"
+        ec."credentialId",
+        ec."providerCalendarId"
       FROM "ExternalCalendar" ec
       INNER JOIN "Credential" c ON c."id" = ec."credentialId"
       WHERE ec."credentialId" = ${params.credentialId}
@@ -89,13 +80,14 @@ export const disableSyncedCalendarsOnDisconnect = async (params: {
         return;
       }
       const provider = toProviderSlug(row.provider);
-      const providerAccountId = sanitizeProviderAccountId(row.providerAccountId ?? "unknown");
+      const providerCalendarId = sanitizeKeyPart(row.providerCalendarId);
       const payload: CalendarSyncJobData = {
         name: JobName.CALENDAR_SYNC,
         action: "disableCalendarSync",
         calendarId: row.externalCalendarId,
         provider,
-        providerAccountId,
+        credentialId: row.credentialId,
+        providerCalendarId: row.providerCalendarId,
         reason: "manual",
         disableReason: "user",
         syncDisabledReason: "USER_DISCONNECTED",
@@ -107,7 +99,7 @@ export const disableSyncedCalendarsOnDisconnect = async (params: {
           name: JobName.CALENDAR_SYNC,
           data: payload,
           bullmqOptions: {
-            jobId: `disable:${provider}:${providerAccountId}:${row.externalCalendarId}`,
+            jobId: `disable:${provider}:${row.credentialId}:${providerCalendarId}:${row.externalCalendarId}`,
             attempts: 3,
             backoff: {
               type: "exponential",

@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const ZToggleCalendarSyncInputSchema = z.object({
   provider: z.enum(["GOOGLE", "OUTLOOK"]),
-  providerAccountId: z.string().min(1),
-  calendarId: z.string().min(1),
+  credentialId: z.number().int().positive(),
+  providerCalendarId: z.string().min(1),
   enabled: z.boolean(),
 });
 

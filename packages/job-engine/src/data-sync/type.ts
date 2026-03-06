@@ -38,11 +38,12 @@ export interface CalendlyImportJobData extends BaseJob {
 export interface CalendarSyncJobData extends BaseJob {
   action?: "deltaSync" | "initialSync" | "renewSubscription" | "disableCalendarSync";
   calendarId?: number;
-  providerAccountId?: string;
   reason?: "webhook" | "scheduled" | "manual";
   disableReason?: "user" | "admin" | "system";
   syncDisabledReason?: "USER_DISCONNECTED" | "USER_TOGGLED_OFF" | "SUBSCRIPTION_RENEWAL_FAILED";
   provider?: "google" | "outlook";
+  credentialId?: number;
+  providerCalendarId?: string;
   receivedAt?: string;
   subscriptionId?: string | null;
   resourceId?: string | null;
@@ -58,6 +59,8 @@ export interface DeltaSyncWebhookJobData extends BaseJob {
   calendarId: number;
   reason: "webhook";
   provider: "google" | "outlook";
+  credentialId: number;
+  providerCalendarId: string;
   receivedAt: string;
   subscriptionId?: string | null;
   resourceId?: string | null;
