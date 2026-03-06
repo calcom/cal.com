@@ -1,7 +1,8 @@
+import { randomUUID } from "node:crypto";
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
-import { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarCacheEvent } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 
 export class CalendarCacheEventRepository implements ICalendarCacheEventRepository {
   // PostgreSQL wire protocol allows max ~65,535 params; with 20 cols per row, ~3,276 rows max.
@@ -42,8 +43,10 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
 
   private async upsertBatch(events: CalendarCacheEvent[]) {
     const values = events.map(
+      // $executeRaw bypasses Prisma defaults, so we generate the UUID here
+      // to prevent a NOT NULL violation on the "id" column when e.id is absent.
       (e) => Prisma.sql`(
-        ${e.id}, ${e.selectedCalendarId}, ${e.externalId}, ${e.externalEtag},
+        ${e.id ?? randomUUID()}, ${e.selectedCalendarId}, ${e.externalId}, ${e.externalEtag},
         ${e.iCalUID}, ${e.iCalSequence}, ${e.summary}, ${e.description},
         ${e.location}, ${e.start}, ${e.end}, ${e.isAllDay}, ${e.timeZone},
         ${e.status}::"CalendarCacheEventStatus", ${e.recurringEventId},
