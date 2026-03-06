@@ -13,13 +13,13 @@ import {
 } from "@calcom/features/auth/signup/utils/token";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
 import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
-import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -59,7 +59,6 @@ const handler = async (
 
   const email = _email.toLowerCase();
 
-  // Username validation (replaces usernameHandler wrapper)
   let username: string | null = slugify(body.username);
 
   const registeredUser = await prisma.user.findUnique({
@@ -169,12 +168,11 @@ const handler = async (
     username = null;
   }
 
-  // Hash the password
-  const hashedPassword = await hashPassword(password);
-
   // Gate 1: abuse scoring — synchronous pattern matching at signup (fail-open)
   const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
   const signupCheck = await onSignup(email, username ?? undefined);
+
+  const userCreationService = getUserCreationService();
 
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
@@ -211,29 +209,24 @@ const handler = async (
 
       let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email },
-          update: {
-            username,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
-              },
-            },
-            organizationId,
-          },
-          create: {
-            username,
+        user = await userCreationService.upsertUser({
+          email,
+          createData: {
+            username: username ?? "",
             email,
+            password,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
+            organizationId,
+            creationSource: CreationSource.WEBAPP,
+            locked: false,
+          },
+          updateData: {
+            username: username ?? undefined,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
             organizationId,
           },
-          select: { id: true },
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
@@ -268,23 +261,21 @@ const handler = async (
   } else {
     // Create the user
     try {
-      await prisma.user.create({
+      await userCreationService.createUser({
         data: {
-          username,
+          username: username ?? "",
           email,
+          password,
           locked: shouldLockByDefault,
-          password: { create: { hash: hashedPassword } },
           metadata: {
             stripeCustomerId: customer.stripeCustomerId,
             checkoutSessionId,
           },
           creationSource: CreationSource.WEBAPP,
           ...(signupCheck.flagged && {
-            userAbuseScore: {
-              create: {
-                score: signupCheck.initialScore,
-                abuseData: { flags: signupCheck.flags, signals: [] },
-              },
+            abuseScore: {
+              score: signupCheck.initialScore,
+              abuseData: { flags: signupCheck.flags, signals: [] },
             },
           }),
         },

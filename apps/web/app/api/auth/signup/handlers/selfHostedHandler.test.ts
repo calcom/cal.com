@@ -55,6 +55,10 @@ vi.mock("@calcom/features/auth/signup/utils/validateUsername", () => ({
 }));
 vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));
 vi.mock("@calcom/features/auth/signup/utils/prefillAvatar", () => ({ prefillAvatar: vi.fn() }));
+vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({ sentrySpan: {} }));
+vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
+  checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
+}));
 vi.mock("@calcom/features/auth/signup/utils/token", () => ({
   findTokenByToken: (...args: unknown[]) => mockFindTokenByToken(...args),
   throwIfTokenExpired: vi.fn(),

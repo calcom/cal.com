@@ -9,13 +9,13 @@ import {
   validateAndGetCorrectedUsernameForTeam,
 } from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
 import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
-import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
 import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { NextResponse } from "next/server";
 
@@ -66,11 +66,11 @@ export default async function handler(body: Record<string, string>) {
     correctedUsername = userValidation.username;
   }
 
-  const hashedPassword = await hashPassword(password);
-
   // Gate 1: abuse scoring — synchronous pattern matching at signup (fail-open)
   const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
   const signupCheck = await onSignup(userEmail, correctedUsername);
+
+  const userCreationService = getUserCreationService();
 
   if (foundToken && foundToken?.teamId) {
     const team = await prisma.team.findUnique({
@@ -117,29 +117,24 @@ export default async function handler(body: Record<string, string>) {
 
       let user: { id: number };
       try {
-        user = await prisma.user.upsert({
-          where: { email: userEmail },
-          update: {
-            username: correctedUsername,
-            emailVerified: new Date(Date.now()),
-            identityProvider: IdentityProvider.CAL,
-            password: {
-              upsert: {
-                create: { hash: hashedPassword },
-                update: { hash: hashedPassword },
-              },
-            },
-            organizationId,
-          },
-          create: {
+        user = await userCreationService.upsertUser({
+          email: userEmail,
+          createData: {
             username: correctedUsername,
             email: userEmail,
+            password,
             emailVerified: new Date(Date.now()),
             identityProvider: IdentityProvider.CAL,
-            password: { create: { hash: hashedPassword } },
+            organizationId,
+            creationSource: CreationSource.WEBAPP,
+            locked: false,
+          },
+          updateData: {
+            username: correctedUsername,
+            emailVerified: new Date(Date.now()),
+            identityProvider: IdentityProvider.CAL,
             organizationId,
           },
-          select: { id: true },
         });
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
@@ -186,22 +181,20 @@ export default async function handler(body: Record<string, string>) {
     }
 
     try {
-      await prisma.user.create({
+      await userCreationService.createUser({
         data: {
           username: correctedUsername,
           email: userEmail,
-          password: { create: { hash: hashedPassword } },
+          password,
           identityProvider: IdentityProvider.CAL,
+          creationSource: CreationSource.WEBAPP,
           ...(signupCheck.flagged && {
-            userAbuseScore: {
-              create: {
-                score: signupCheck.initialScore,
-                abuseData: { flags: signupCheck.flags, signals: [] },
-              },
+            abuseScore: {
+              score: signupCheck.initialScore,
+              abuseData: { flags: signupCheck.flags, signals: [] },
             },
           }),
         },
-        select: { id: true },
       });
     } catch (error) {
       // Fallback for race conditions where user was created between our check and create

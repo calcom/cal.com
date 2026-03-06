@@ -1,17 +1,14 @@
+import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
+import { emailRegex } from "@calcom/lib/emailSchema";
+import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
+import { CreationSource, IdentityProvider } from "@calcom/prisma/enums";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import z from "zod";
-
-import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
-import { emailRegex } from "@calcom/lib/emailSchema";
-import { HttpError } from "@calcom/lib/http-error";
-import slugify from "@calcom/lib/slugify";
-import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   username: z
@@ -37,22 +34,21 @@ async function handler(req: NextRequest) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
 
-  const username = slugify(parsedQuery.data.username.trim());
+  const username = parsedQuery.data.username.trim();
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
-  const hashedPassword = await hashPassword(parsedQuery.data.password);
-
-  await prisma.user.create({
+  await getUserCreationService().createUser({
     data: {
       username,
       email: userEmail,
-      password: { create: { hash: hashedPassword } },
+      password: parsedQuery.data.password,
       role: "ADMIN",
       name: parsedQuery.data.full_name,
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       identityProvider: IdentityProvider.CAL,
       creationSource: CreationSource.WEBAPP,
+      locked: false,
     },
   });
 

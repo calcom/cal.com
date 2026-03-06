@@ -12,7 +12,7 @@ import { availabilityUserSelect } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
-import { BookingStatus, MembershipRole, RedirectType } from "@calcom/prisma/enums";
+import { BookingStatus, type IdentityProvider, MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect as prismaUserSelect } from "@calcom/prisma/selects/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -869,10 +869,11 @@ export class UserRepository {
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
+      abuseScore?: { score: number; abuseData: Prisma.InputJsonValue };
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, abuseScore, ...rest } = data;
 
     logger.info("create user", {
       email,
@@ -919,11 +920,203 @@ export class UserRepository {
               },
             }
           : {}),
+        ...(abuseScore && {
+          userAbuseScore: {
+            create: {
+              score: abuseScore.score,
+              abuseData: abuseScore.abuseData,
+            },
+          },
+        }),
         ...rest,
       },
     });
 
     return user;
+  }
+
+  async upsert(
+    where: { email: string },
+    createData: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword?: string;
+      organizationId: number | null;
+      locked: boolean;
+      defaultSchedule: { name: string; availability: { days: number[]; startTime: Date; endTime: Date }[] };
+      profile?: { username: string; organizationId: number; uid: string };
+    },
+    updateData: {
+      username?: string;
+      hashedPassword?: string;
+      emailVerified?: Date;
+      identityProvider?: IdentityProvider;
+      organizationId?: number | null;
+    }
+  ) {
+    const {
+      hashedPassword: createHashedPassword,
+      organizationId,
+      defaultSchedule,
+      profile,
+      ...createRest
+    } = createData;
+    const { hashedPassword: updateHashedPassword, organizationId: updateOrgId, ...updateRest } = updateData;
+
+    return this.prismaClient.user.upsert({
+      where,
+      create: {
+        ...createRest,
+        ...(createHashedPassword && {
+          password: { create: { hash: createHashedPassword } },
+        }),
+        schedules: {
+          create: {
+            name: defaultSchedule.name,
+            availability: {
+              createMany: {
+                data: defaultSchedule.availability.map((schedule) => ({
+                  days: schedule.days,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime,
+                })),
+              },
+            },
+          },
+        },
+        ...(profile
+          ? {
+              organizationId,
+              profiles: {
+                create: {
+                  username: profile.username,
+                  organizationId: profile.organizationId,
+                  uid: profile.uid,
+                },
+              },
+            }
+          : {}),
+      },
+      update: {
+        ...updateRest,
+        ...(updateHashedPassword && {
+          password: {
+            upsert: {
+              create: { hash: updateHashedPassword },
+              update: { hash: updateHashedPassword },
+            },
+          },
+        }),
+        ...(updateOrgId !== undefined && {
+          organizationId: updateOrgId,
+        }),
+      },
+      select: { id: true },
+    });
+  }
+
+  async createInTransaction(
+    txClient: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">,
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword?: string;
+      organizationId: number | null;
+      locked: boolean;
+      defaultSchedule?: { name: string; availability: { days: number[]; startTime: Date; endTime: Date }[] };
+      profile?: { username: string; organizationId: number; uid: string };
+    }
+  ) {
+    const { email, username, hashedPassword, isPlatformManaged, defaultSchedule, profile, ...rest } = data;
+
+    return txClient.user.create({
+      data: {
+        username,
+        email,
+        ...(isPlatformManaged !== undefined && { isPlatformManaged }),
+        ...(hashedPassword && {
+          password: { create: { hash: hashedPassword } },
+        }),
+        ...(defaultSchedule && {
+          schedules: {
+            create: {
+              name: defaultSchedule.name,
+              availability: {
+                createMany: {
+                  data: defaultSchedule.availability.map((schedule) => ({
+                    days: schedule.days,
+                    startTime: schedule.startTime,
+                    endTime: schedule.endTime,
+                  })),
+                },
+              },
+            },
+          },
+        }),
+        ...(profile
+          ? {
+              organizationId: profile.organizationId,
+              profiles: {
+                create: {
+                  username: profile.username,
+                  organizationId: profile.organizationId,
+                  uid: profile.uid,
+                },
+              },
+            }
+          : {}),
+        ...rest,
+      },
+    });
+  }
+
+  async createMany(
+    data: Array<{
+      username: string;
+      email: string;
+      name?: string | null;
+      organizationId?: number | null;
+      creationSource: CreationSource;
+      locked?: boolean;
+      verified?: boolean;
+      emailVerified?: Date;
+      invitedTo?: number;
+      identityProvider?: IdentityProvider;
+      identityProviderId?: string | null;
+      isPlatformManaged?: boolean;
+    }>,
+    options?: { skipDuplicates?: boolean }
+  ) {
+    return this.prismaClient.user.createMany({
+      data: data.map(
+        ({
+          username,
+          email,
+          name,
+          organizationId,
+          creationSource,
+          locked,
+          verified,
+          emailVerified,
+          invitedTo,
+          identityProvider,
+          identityProviderId,
+          isPlatformManaged,
+        }) => ({
+          username,
+          email,
+          ...(name !== undefined && { name }),
+          ...(organizationId !== undefined && { organizationId }),
+          creationSource,
+          ...(locked !== undefined && { locked }),
+          ...(verified !== undefined && { verified }),
+          ...(emailVerified !== undefined && { emailVerified }),
+          ...(invitedTo !== undefined && { invitedTo }),
+          ...(identityProvider !== undefined && { identityProvider }),
+          ...(identityProviderId !== undefined && { identityProviderId }),
+          ...(isPlatformManaged !== undefined && { isPlatformManaged }),
+        })
+      ),
+      skipDuplicates: options?.skipDuplicates,
+    });
   }
   async getUserAdminTeams({ userId }: { userId: number }) {
     return await this.prismaClient.user.findUnique({

@@ -40,7 +40,13 @@ vi.mock("@calcom/prisma/client", async () => {
   return createPrismaMock();
 });
 vi.mock("@calcom/lib/logger", () => ({
-  default: { getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }) },
+  default: {
+    getSubLogger: () => ({ warn: vi.fn(), error: vi.fn(), debug: vi.fn(), info: vi.fn() }),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+  },
 }));
 vi.mock("@calcom/lib/auth/hashPassword", () => ({ hashPassword: vi.fn().mockResolvedValue("hashed") }));
 vi.mock("@calcom/lib/constants", () => ({ WEBAPP_URL: "http://localhost:3000" }));

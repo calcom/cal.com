@@ -1,11 +1,12 @@
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
+import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { deriveNameFromOrgUsername } from "../../../../auth/signup/utils/getOrgUsernameFromEmail";
-import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 import dSyncUserSelect from "./dSyncUserSelect";
 
 type createUsersAndConnectToOrgPropsType = {
@@ -29,7 +30,7 @@ export const createUsersAndConnectToOrg = async ({
   const { emailsToCreate, identityProvider, identityProviderId } = createUsersAndConnectToOrgProps;
 
   // As of Mar 2024 Prisma createMany does not support nested creates and returning created records
-  await prisma.user.createMany({
+  await getUserCreationService().createManyUsers({
     data: emailsToCreate.map((email) => {
       const username = getUsernameValidationService().deriveFromEmail(
         email,
@@ -40,7 +41,6 @@ export const createUsersAndConnectToOrg = async ({
         username,
         email,
         name,
-        // Assume verified since coming from directory
         verified: true,
         emailVerified: new Date(),
         invitedTo: org.id,
@@ -48,6 +48,7 @@ export const createUsersAndConnectToOrg = async ({
         identityProvider,
         identityProviderId,
         creationSource: CreationSource.WEBAPP,
+        locked: false,
       };
     }),
     skipDuplicates: true,
