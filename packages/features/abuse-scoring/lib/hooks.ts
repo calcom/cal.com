@@ -56,7 +56,7 @@ export async function onEventTypeChange(userId: number): Promise<void> {
   }
 }
 
-/** Gate 3 — Called when a booking is created. */
+/** Gate 3 — Called when a booking is created. Analyzes all new accounts (< 7 days). */
 export async function onBookingCreated(userId: number): Promise<void> {
   try {
     const { getAbuseScoringService } = await import(
@@ -64,28 +64,15 @@ export async function onBookingCreated(userId: number): Promise<void> {
     );
     const service = getAbuseScoringService();
 
-    // Path 1: already flagged user — enqueue analysis
-    if (await service.shouldMonitor(userId)) {
-      const { getAbuseScoringTasker } = await import(
-        "../di/tasker/AbuseScoringTasker.container"
-      );
-      const tasker = getAbuseScoringTasker();
-      await tasker.analyzeUser({
-        payload: { userId, reason: "booking_flagged" },
-      });
-      return;
-    }
+    if (!(await service.shouldAnalyzeOnBooking(userId))) return;
 
-    // Path 2: unflagged user — check velocity threshold
-    if (await service.checkBookingVelocity(userId)) {
-      const { getAbuseScoringTasker } = await import(
-        "../di/tasker/AbuseScoringTasker.container"
-      );
-      const tasker = getAbuseScoringTasker();
-      await tasker.analyzeUser({
-        payload: { userId, reason: "booking_velocity" },
-      });
-    }
+    const { getAbuseScoringTasker } = await import(
+      "../di/tasker/AbuseScoringTasker.container"
+    );
+    const tasker = getAbuseScoringTasker();
+    await tasker.analyzeUser({
+      payload: { userId, reason: "booking_created" },
+    });
   } catch (err) {
     log.error("onBookingCreated failed", {
       userId,

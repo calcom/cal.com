@@ -215,6 +215,51 @@ describe("AbuseScoringService", () => {
     });
   });
 
+  // ── shouldAnalyzeOnBooking ──
+
+  describe("shouldAnalyzeOnBooking", () => {
+    it("returns false when feature flag is OFF", async () => {
+      featuresRepository = buildMockFeaturesRepository(false);
+      service = new AbuseScoringService({ repository, featuresRepository, alerter });
+
+      expect(await service.shouldAnalyzeOnBooking(1)).toBe(false);
+    });
+
+    it("returns true for any user within 7-day window (no flag required)", async () => {
+      vi.mocked(repository.findForMonitoring).mockResolvedValue({
+        abuseData: null,
+        createdDate: recentDate(3),
+        locked: false,
+      });
+
+      expect(await service.shouldAnalyzeOnBooking(1)).toBe(true);
+    });
+
+    it("returns false for account older than 7 days", async () => {
+      vi.mocked(repository.findForMonitoring).mockResolvedValue({
+        abuseData: null,
+        createdDate: recentDate(10),
+        locked: false,
+      });
+
+      expect(await service.shouldAnalyzeOnBooking(1)).toBe(false);
+    });
+
+    it("returns false when user is locked", async () => {
+      vi.mocked(repository.findForMonitoring).mockResolvedValue({
+        abuseData: null,
+        createdDate: recentDate(1),
+        locked: true,
+      });
+
+      expect(await service.shouldAnalyzeOnBooking(1)).toBe(false);
+    });
+
+    it("returns false when user not found", async () => {
+      expect(await service.shouldAnalyzeOnBooking(999)).toBe(false);
+    });
+  });
+
   // ── checkBookingVelocity ──
 
   describe("checkBookingVelocity", () => {
@@ -278,12 +323,20 @@ describe("AbuseScoringService", () => {
       expect(repository.updateAbuseData).not.toHaveBeenCalled();
     });
 
-    it("skips user with no flags", async () => {
+    it("scores user with no flags (unflagged new accounts are analyzed)", async () => {
       vi.mocked(repository.findForScoring).mockResolvedValue(
         buildScoringUser({ abuseData: { flags: [], signals: [] } })
       );
       await service.analyzeUser(1, "test");
-      expect(repository.updateAbuseData).not.toHaveBeenCalled();
+      expect(repository.updateAbuseData).toHaveBeenCalled();
+    });
+
+    it("scores user with null abuseData (unflagged new accounts are analyzed)", async () => {
+      vi.mocked(repository.findForScoring).mockResolvedValue(
+        buildScoringUser({ abuseData: null })
+      );
+      await service.analyzeUser(1, "test");
+      expect(repository.updateAbuseData).toHaveBeenCalled();
     });
 
     it("skips already locked user", async () => {

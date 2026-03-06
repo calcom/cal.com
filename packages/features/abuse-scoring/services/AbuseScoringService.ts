@@ -123,16 +123,6 @@ export class AbuseScoringService {
       const user = await this.repository.findForScoring(userId, cutoff);
       if (!user) return;
 
-      if (!user.abuseData?.flags?.length) {
-        // Only log when abuseData exists but flags are missing — null abuseData is expected for unflagged users
-        if (user.abuseData != null) {
-          log.warn("analyzeUser skipped: abuseData present but no flags", {
-            userId,
-            reason,
-          });
-        }
-        return;
-      }
       if (user.locked) return;
 
       const patterns = await this.repository.findWatchlistPatterns([
@@ -221,7 +211,22 @@ export class AbuseScoringService {
     return true;
   }
 
-  /** Gate 3: velocity check for unflagged accounts < 7 days. */
+  /** Gate 3: check if a booking should trigger analysis. No flags required. */
+  async shouldAnalyzeOnBooking(userId: number): Promise<boolean> {
+    const enabled =
+      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
+        "abuse-scoring"
+      );
+    if (!enabled) return false;
+
+    const user = await this.repository.findForMonitoring(userId);
+    if (!user || user.locked) return false;
+
+    const ageMs = Date.now() - user.createdDate.getTime();
+    return ageMs <= ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY;
+  }
+
+  /** Gate 3 (legacy): velocity check for unflagged accounts < 7 days. */
   async checkBookingVelocity(userId: number): Promise<boolean> {
     const enabled =
       await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
