@@ -1,12 +1,16 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsISO8601, IsOptional, IsString, IsTimeZone, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
+import { IsISO8601, IsOptional, IsTimeZone, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
 
 @ValidatorConstraint({ name: "isAfterFrom", async: false })
 class IsAfterFrom implements ValidatorConstraintInterface {
   validate(to: string, args: ValidationArguments) {
     const obj = args.object as { from?: string };
     if (!obj.from || !to) return true;
-    return new Date(to).getTime() >= new Date(obj.from).getTime();
+    if (new Date(to).getTime() < new Date(obj.from).getTime()) {
+      throw new BadRequestException("'to' must not be before 'from'");
+    }
+    return true;
   }
   defaultMessage() {
     return "'to' must not be before 'from'";

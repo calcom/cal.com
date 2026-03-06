@@ -214,13 +214,22 @@ async function cmdEventsList(connectionId: string | null, from: string, to: stri
   }
 }
 
-async function cmdToken(): Promise<void> {
+async function cmdTokenInfo(): Promise<void> {
   const creds = await loadStoredCredentials();
   if (!creds?.accessToken) {
     throw new Error("Not authenticated. Run: npx @calcom/agent-cal auth");
   }
-  // Write directly to stdout so it can be piped, but nothing else is logged.
-  process.stdout.write(creds.accessToken + "\n");
+  const masked = creds.accessToken.slice(0, 6) + "..." + creds.accessToken.slice(-4);
+  log(`Token:    ${masked}`);
+  log(`Refresh:  ${creds.refreshToken ? "present" : "none"}`);
+  if (creds.expiresAt) {
+    const expiresDate = new Date(creds.expiresAt).toISOString();
+    const isExpired = Date.now() >= creds.expiresAt;
+    log(`Expires:  ${expiresDate}${isExpired ? " (EXPIRED)" : ""}`);
+  } else {
+    log("Expires:  unknown");
+  }
+  log(`File:     ${getCredentialsPath()}`);
 }
 
 async function cmdDisconnect(): Promise<void> {
@@ -307,11 +316,11 @@ async function main(): Promise<void> {
     });
 
   program
-    .command("token")
-    .description("Print current access token (for debugging)")
+    .command("token-info")
+    .description("Show token status (masked) and expiry")
     .action(async () => {
       try {
-        await cmdToken();
+        await cmdTokenInfo();
       } catch (err) {
         console.error(err);
         process.exit(1);
