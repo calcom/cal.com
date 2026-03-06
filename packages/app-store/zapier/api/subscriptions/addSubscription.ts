@@ -7,7 +7,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { subscriberUrl, triggerEvent } = req.body;
+  const { subscriberUrl, triggerEvent, time, timeUnit } = req.body;
   const { account, appApiKey } = await validateAccountOrApiKey(req, ["READ_BOOKING", "READ_PROFILE"]);
   const createAppSubscription = await addSubscription({
     appApiKey,
@@ -15,6 +15,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     triggerEvent: triggerEvent,
     subscriberUrl: subscriberUrl,
     appId: "zapier",
+    time,
+    timeUnit,
   });
 
   if (!createAppSubscription) {

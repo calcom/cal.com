@@ -10,7 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
+import type { Prisma, Webhook, Booking, ApiKey, TimeUnit } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { DEFAULT_WEBHOOK_VERSION, type WebhookVersion } from "./interface/IWebhookRepository";
@@ -33,6 +33,8 @@ export async function addSubscription({
   subscriberUrl,
   appId,
   account,
+  time,
+  timeUnit,
 }: {
   appApiKey?: ApiKey;
   triggerEvent: WebhookTriggerEvents;
@@ -43,6 +45,8 @@ export async function addSubscription({
     name: string | null;
     isTeam: boolean;
   } | null;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 }) {
   try {
     const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
@@ -57,6 +61,8 @@ export async function addSubscription({
         subscriberUrl,
         active: true,
         appId: appId,
+        ...(time != null ? { time } : {}),
+        ...(timeUnit != null ? { timeUnit } : {}),
       },
     });
 
@@ -114,6 +120,35 @@ export async function addSubscription({
           },
           triggerEvent,
         });
+      }
+    }
+
+    if (NO_SHOW_TRIGGERS.includes(triggerEvent)) {
+      //schedule no-show tasks for already existing future bookings
+      const where: Prisma.BookingWhereInput = {};
+      if (teamId) {
+        where.eventType = { teamId };
+      } else {
+        where.eventType = { userId };
+      }
+      const bookings = await prisma.booking.findMany({
+        where: {
+          ...where,
+          startTime: {
+            gte: new Date(),
+          },
+          status: BookingStatus.ACCEPTED,
+        },
+        select: {
+          id: true,
+          uid: true,
+          startTime: true,
+          location: true,
+        },
+      });
+
+      for (const booking of bookings) {
+        await scheduleNoShowTaskForBooking(booking, createSubscription, triggerEvent);
       }
     }
 
