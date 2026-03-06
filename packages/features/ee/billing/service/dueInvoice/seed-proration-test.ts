@@ -183,7 +183,10 @@ async function cleanupStripeResources(stripe: Stripe) {
   });
 
   for (const product of products.data) {
-    if ((product.name.startsWith("Proration Test") || product.name.startsWith("Trigger Test")) && product.active) {
+    if (
+      (product.name.startsWith("Proration Test") || product.name.startsWith("Trigger Test")) &&
+      product.active
+    ) {
       await stripe.products.update(product.id, { active: false });
       console.log(`  Archived product: ${product.id}`);
     }

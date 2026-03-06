@@ -5,26 +5,33 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { BookingAuditAccessService, BookingAuditErrorCode, BookingAuditPermissionError } from "../BookingAuditAccessService";
+import {
+  BookingAuditAccessService,
+  BookingAuditErrorCode,
+  BookingAuditPermissionError,
+} from "../BookingAuditAccessService";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 const DB = {
-  bookings: {} as Record<string, {
-    uid: string;
-    userId: number | null;
-    eventType: {
-      teamId: number | null;
-      parent: { teamId: number } | null;
-      hosts: never[];
-      users: never[];
-    };
-    user: { id: number; email: string };
-    attendees: never[];
-  }>,
+  bookings: {} as Record<
+    string,
+    {
+      uid: string;
+      userId: number | null;
+      eventType: {
+        teamId: number | null;
+        parent: { teamId: number } | null;
+        hosts: never[];
+        users: never[];
+      };
+      user: { id: number; email: string };
+      attendees: never[];
+    }
+  >,
   memberships: {} as Record<string, boolean>,
-}
+};
 
 const createMockTeamBooking = (overrides: {
   bookingUid: string;
@@ -36,20 +43,20 @@ const createMockTeamBooking = (overrides: {
     uid: overrides.bookingUid,
     userId: overrides?.userId ?? 456,
     eventType: {
-      teamId: (overrides && "teamId" in overrides ? overrides.teamId : overrides?.teamId ?? 100) ?? null,
+      teamId: (overrides && "teamId" in overrides ? overrides.teamId : (overrides?.teamId ?? 100)) ?? null,
       parent: (overrides?.parentTeamId ? { teamId: overrides.parentTeamId } : undefined) ?? null,
       hosts: [],
-      users: []
+      users: [],
     },
     user: {
       id: overrides?.userId ?? 456,
       email: "test@example.com",
     },
     attendees: [],
-  }
+  };
   DB.bookings[booking.uid] = booking;
   return booking;
-}
+};
 
 const createMockPersonalBooking = (overrides: { userId?: number; bookingUid: string }) => {
   const booking = {
@@ -69,7 +76,7 @@ const createMockPersonalBooking = (overrides: { userId?: number; bookingUid: str
   };
   DB.bookings[booking.uid] = booking;
   return booking;
-}
+};
 
 const createMockMembership = ({ userId, teamId }: { userId: number; teamId: number }) => {
   const key = `${userId}-${teamId}`;
@@ -78,25 +85,49 @@ const createMockMembership = ({ userId, teamId }: { userId: number; teamId: numb
 
 type MockPermissionCheckService = {
   checkPermission: Mock<PermissionCheckService["checkPermission"]>;
-}
+};
 
-const provideReadTeamAuditLogsPermission = ({ mockPermissionCheckService, value, targetUserId, targetTeamId }: { mockPermissionCheckService: MockPermissionCheckService, value: boolean, targetUserId: number, targetTeamId: number }) => {
-  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, _fallbackRoles }) => {
-    if (permission === "booking.readTeamAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
-      return Promise.resolve(value);
+const provideReadTeamAuditLogsPermission = ({
+  mockPermissionCheckService,
+  value,
+  targetUserId,
+  targetTeamId,
+}: {
+  mockPermissionCheckService: MockPermissionCheckService;
+  value: boolean;
+  targetUserId: number;
+  targetTeamId: number;
+}) => {
+  mockPermissionCheckService.checkPermission.mockImplementation(
+    ({ userId, teamId, permission, _fallbackRoles }) => {
+      if (permission === "booking.readTeamAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
+        return Promise.resolve(value);
+      }
+      return Promise.resolve(false);
     }
-    return Promise.resolve(false);
-  });
-}
+  );
+};
 
-const provideReadOrgAuditLogsPermission = ({ mockPermissionCheckService, value, targetUserId, targetTeamId }: { mockPermissionCheckService: MockPermissionCheckService, value: boolean, targetUserId: number, targetTeamId: number }) => {
-  mockPermissionCheckService.checkPermission.mockImplementation(({ userId, teamId, permission, _fallbackRoles }) => {
-    if (permission === "booking.readOrgAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
-      return Promise.resolve(value);
+const provideReadOrgAuditLogsPermission = ({
+  mockPermissionCheckService,
+  value,
+  targetUserId,
+  targetTeamId,
+}: {
+  mockPermissionCheckService: MockPermissionCheckService;
+  value: boolean;
+  targetUserId: number;
+  targetTeamId: number;
+}) => {
+  mockPermissionCheckService.checkPermission.mockImplementation(
+    ({ userId, teamId, permission, _fallbackRoles }) => {
+      if (permission === "booking.readOrgAuditLogs" && userId === targetUserId && teamId === targetTeamId) {
+        return Promise.resolve(value);
+      }
+      return Promise.resolve(false);
     }
-    return Promise.resolve(false);
-  });
-}
+  );
+};
 
 const mockBookingRepository: {
   findByUidIncludeEventType: Mock<BookingRepository["findByUidIncludeEventType"]>;
@@ -130,9 +161,15 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepository as unknown as BookingRepository; });
-    vi.mocked(MembershipRepository).mockImplementation(function() { return mockMembershipRepository as unknown as MembershipRepository; });
-    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as unknown as PermissionCheckService; });
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepository as unknown as BookingRepository;
+    });
+    vi.mocked(MembershipRepository).mockImplementation(function () {
+      return mockMembershipRepository as unknown as MembershipRepository;
+    });
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as unknown as PermissionCheckService;
+    });
 
     service = new BookingAuditAccessService({
       bookingRepository: mockBookingRepository as unknown as BookingRepository,
@@ -146,9 +183,16 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       const userId = 123;
       const teamId = 100;
       createMockTeamBooking({ teamId, bookingUid });
-      provideReadTeamAuditLogsPermission({ mockPermissionCheckService, value: true, targetUserId: userId, targetTeamId: teamId });
+      provideReadTeamAuditLogsPermission({
+        mockPermissionCheckService,
+        value: true,
+        targetUserId: userId,
+        targetTeamId: teamId,
+      });
 
-      await expect(service.assertPermissions({ bookingUid, userId, organizationId: 200 })).resolves.not.toThrow();
+      await expect(
+        service.assertPermissions({ bookingUid, userId, organizationId: 200 })
+      ).resolves.not.toThrow();
     });
 
     it("should throw PERMISSION_DENIED error when user lacks booking.readTeamAuditLogs permission and also doesn't even have a membership in the organization for the booking's team", async () => {
@@ -158,8 +202,18 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       const organizationId = 200;
       createMockTeamBooking({ teamId, bookingUid, userId: 456 });
       createMockMembership({ userId: 456, teamId: organizationId });
-      provideReadTeamAuditLogsPermission({ mockPermissionCheckService, value: false, targetUserId: userId, targetTeamId: teamId });
-      provideReadOrgAuditLogsPermission({ mockPermissionCheckService, value: false, targetUserId: userId, targetTeamId: organizationId });
+      provideReadTeamAuditLogsPermission({
+        mockPermissionCheckService,
+        value: false,
+        targetUserId: userId,
+        targetTeamId: teamId,
+      });
+      provideReadOrgAuditLogsPermission({
+        mockPermissionCheckService,
+        value: false,
+        targetUserId: userId,
+        targetTeamId: organizationId,
+      });
       const promise = service.assertPermissions({ bookingUid, userId, organizationId });
       await expect(promise).rejects.toThrow(BookingAuditPermissionError);
       await expect(promise).rejects.toThrow(BookingAuditErrorCode.PERMISSION_DENIED);
@@ -173,7 +227,12 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       const organizationId = 200;
       createMockPersonalBooking({ userId: 456, bookingUid });
       createMockMembership({ userId: 456, teamId: organizationId });
-      provideReadOrgAuditLogsPermission({ mockPermissionCheckService, value: true, targetUserId: userId, targetTeamId: organizationId });
+      provideReadOrgAuditLogsPermission({
+        mockPermissionCheckService,
+        value: true,
+        targetUserId: userId,
+        targetTeamId: organizationId,
+      });
 
       await service.assertPermissions({ bookingUid, userId, organizationId });
 
@@ -192,7 +251,12 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       const userId = 123;
       const parentTeamId = 500;
       createMockTeamBooking({ teamId: null, parentTeamId, bookingUid });
-      provideReadTeamAuditLogsPermission({ mockPermissionCheckService, value: true, targetUserId: userId, targetTeamId: parentTeamId });
+      provideReadTeamAuditLogsPermission({
+        mockPermissionCheckService,
+        value: true,
+        targetUserId: userId,
+        targetTeamId: parentTeamId,
+      });
 
       await service.assertPermissions({ bookingUid, userId, organizationId: 200 });
 
@@ -211,25 +275,45 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       const organizationId = 200;
       createMockTeamBooking({ teamId: null, parentTeamId, bookingUid, userId: 456 });
       createMockMembership({ userId: 456, teamId: organizationId });
-      provideReadTeamAuditLogsPermission({ mockPermissionCheckService, value: false, targetUserId: userId, targetTeamId: parentTeamId });
-      provideReadOrgAuditLogsPermission({ mockPermissionCheckService, value: false, targetUserId: userId, targetTeamId: organizationId });
+      provideReadTeamAuditLogsPermission({
+        mockPermissionCheckService,
+        value: false,
+        targetUserId: userId,
+        targetTeamId: parentTeamId,
+      });
+      provideReadOrgAuditLogsPermission({
+        mockPermissionCheckService,
+        value: false,
+        targetUserId: userId,
+        targetTeamId: organizationId,
+      });
 
-      await expect(service.assertPermissions({ bookingUid, userId, organizationId })).rejects.toThrow(BookingAuditPermissionError);
+      await expect(service.assertPermissions({ bookingUid, userId, organizationId })).rejects.toThrow(
+        BookingAuditPermissionError
+      );
     });
   });
 
   describe("assertPermissions - Edge Cases", () => {
     it("should throw error when organizationId is null", async () => {
-      await expect(service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })).rejects.toThrow(BookingAuditPermissionError);
-      await expect(service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })).rejects.toThrow(BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
+      await expect(
+        service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })
+      ).rejects.toThrow(BookingAuditPermissionError);
+      await expect(
+        service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })
+      ).rejects.toThrow(BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
     });
 
     it("should throw error when booking not found", async () => {
       const bookingUid = "non-existent-booking-uid";
       // Don't create any booking in DB
 
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditPermissionError);
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditPermissionError);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
     });
 
     it("should throw error when booking has no userId", async () => {
@@ -251,8 +335,12 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       };
       DB.bookings[bookingUid] = booking;
 
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditPermissionError);
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditPermissionError);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
     });
 
     it("should throw error when booking owner is not member of organization", async () => {
@@ -260,8 +348,12 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       createMockPersonalBooking({ userId: 456, bookingUid });
       // Don't create membership for userId 456 in organization 200
 
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditPermissionError);
-      await expect(service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })).rejects.toThrow(BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditPermissionError);
+      await expect(
+        service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
+      ).rejects.toThrow(BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);
     });
   });
 });

@@ -45,10 +45,10 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
       <p style="color: #494949;">${this.t("when")}</p>
       <p style="color: #494949; font-weight: 400; line-height: 24px;text-decoration: line-through;">
       ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(
-      this.getOrganizerStart("MMMM").toLowerCase()
-    )} ${this.getOrganizerStart("D")}, ${this.getOrganizerStart("YYYY")} | ${this.getOrganizerStart(
-      "h:mma"
-    )} - ${this.getOrganizerEnd("h:mma")} <span style="color: #888888">(${this.getTimezone()})</span>
+        this.getOrganizerStart("MMMM").toLowerCase()
+      )} ${this.getOrganizerStart("D")}, ${this.getOrganizerStart("YYYY")} | ${this.getOrganizerStart(
+        "h:mma"
+      )} - ${this.getOrganizerEnd("h:mma")} <span style="color: #888888">(${this.getTimezone()})</span>
       </p>
     </div>`;
   }

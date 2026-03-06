@@ -12,11 +12,12 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Create PRs in draft mode by default
 - Run `yarn type-check:ci --force` before concluding CI failures are unrelated to your changes
 - Import directly from source files, not barrel files (e.g., `@calcom/ui/components/button` not `@calcom/ui`)
-- Add translations to `apps/web/public/static/locales/en/common.json` for all UI strings
+- Add translations to `packages/i18n/locales/en/common.json` for all UI strings
 - Use `date-fns` or native `Date` instead of Day.js when timezone awareness isn't needed
 - Put permission checks in `page.tsx`, never in `layout.tsx`
 - Use `ast-grep` for searching if available; otherwise use `rg` (ripgrep), then fall back to `grep`
 - Use Biome for formatting and linting
+- Only add code comments that explain **why**, not **what** — see [code comment guidelines](agents/rules/quality-code-comments.md)
 
 
 ## Don't
@@ -29,6 +30,7 @@ You are a senior Cal.com engineer working in a Yarn/Turbo monorepo. You prioriti
 - Never use barrel imports from index.ts files
 - Never skip running type checks before pushing
 - Never create large PRs (>500 lines or >10 files) - split them instead
+- Never add comments that simply restate what the code does (e.g., `// Get the user` above a `getUser()` call)
 
 ## PR Size Guidelines
 
@@ -124,7 +126,7 @@ packages/lib/                # Shared utilities
 - Routes: `apps/web/app/` (App Router)
 - Database schema: `packages/prisma/schema.prisma`
 - tRPC routers: `packages/trpc/server/routers/`
-- Translations: `apps/web/public/static/locales/en/common.json`
+- Translations: `packages/i18n/locales/en/common.json`
 - Workflow constants: `packages/features/ee/workflows/lib/constants.ts`
 
 ## Tech Stack
@@ -223,6 +225,14 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - Open a draft PR with notes if unsure about approach
 - Fix type errors before test failures - they're often the root cause
 - Run `yarn prisma generate` if you see missing enum/type errors
+
+## Spec-Driven Development (Opt-In)
+
+For complex features, you can use spec-driven development when explicitly requested.
+
+**To enable:** Tell the AI "use spec-driven development" or "follow the spec workflow"
+
+See [SPEC-WORKFLOW.md](SPEC-WORKFLOW.md) for the full workflow documentation.
 
 ## Extended Documentation
 

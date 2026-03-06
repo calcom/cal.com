@@ -1,24 +1,16 @@
-import { calendar_v3 } from "@googleapis/calendar";
-import { waitUntil } from "@vercel/functions";
-import { OAuth2Client } from "googleapis-common";
-import type { AuthOptions, Account, Session, User } from "next-auth";
-import type { JWT } from "next-auth/jwt";
-import { encode } from "next-auth/jwt";
-import type { Provider } from "next-auth/providers";
-import CredentialsProvider from "next-auth/providers/credentials";
-import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
-
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
-import {
-  createGoogleCalendarServiceWithGoogleType,
-  type GoogleCalendar,
-} from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { updateProfilePhotoMicrosoft } from "@calcom/app-store/_utils/oauth/updateProfilePhotoMicrosoft";
+import { createGoogleCalendarServiceWithGoogleType } from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getIdentityProvider } from "@calcom/features/auth/lib/identityProviders";
+import {
+  OUTLOOK_CLIENT_ID,
+  OUTLOOK_CLIENT_SECRET,
+  OUTLOOK_LOGIN_ENABLED,
+} from "@calcom/features/auth/lib/outlook";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { buildCredentialCreateData } from "@calcom/features/credentials/services/CredentialDataService";
-import type { TrackingData } from "@calcom/lib/tracking";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -30,12 +22,15 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
+  ENABLE_PROFILE_SWITCHER,
   GOOGLE_CALENDAR_SCOPES,
   GOOGLE_OAUTH_SCOPES,
   HOSTED_CAL_FEATURES,
   IS_CALCOM,
+  IS_TEAM_BILLING_ENABLED,
+  MICROSOFT_CALENDAR_SCOPES,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
-import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
@@ -44,23 +39,39 @@ import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
+import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { CreationSource, IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-
+import type { UserProfile } from "@calcom/types/UserProfile";
+import { calendar_v3 } from "@googleapis/calendar";
+import { waitUntil } from "@vercel/functions";
+import { OAuth2Client } from "googleapis-common";
+import type { Account, AuthOptions, Profile, Session, User } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
+import type { JWT } from "next-auth/jwt";
+import { encode } from "next-auth/jwt";
+import AzureADProvider from "next-auth/providers/azure-ad";
+import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
+import type { Provider } from "next-auth/providers/index";
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
-import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
-import { validateSamlAccountConversion } from "./samlAccountLinking";
+import { ErrorCode } from "./ErrorCode";
 import CalComAdapter from "./next-auth-custom-adapter";
+import { validateSamlAccountConversion } from "./samlAccountLinking";
 import { verifyPassword } from "./verifyPassword";
-import { UserProfile } from "@calcom/types/UserProfile";
 
 type UserWithProfiles = NonNullable<
   Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
 >;
+
+interface ExtendedOAuthProfile extends Profile {
+  email_verified?: boolean; // Google/OIDC standard
+  xms_edov?: boolean | string | number; // Azure AD specific
+}
 
 // This adapts our internal user model to what NextAuth expects
 // NextAuth core requires id to be a string, so we handle that here
@@ -126,7 +137,8 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
 const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
   const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
+  if (!ORGANIZATIONS_AUTOLINK || (idP !== "GOOGLE" && idP !== "AZUREAD"))
+    return { orgUsername, orgId: undefined };
   const existingOrg = await prisma.team.findFirst({
     where: {
       organizationSettings: {
@@ -270,10 +282,26 @@ export const CalComCredentialsProvider = CredentialsProvider({
   name: "Cal.com",
   type: "credentials",
   credentials: {
-    email: { label: "Email Address", type: "email", placeholder: "john.doe@example.com" },
-    password: { label: "Password", type: "password", placeholder: "Your super secure password" },
-    totpCode: { label: "Two-factor Code", type: "input", placeholder: "Code from authenticator app" },
-    backupCode: { label: "Backup Code", type: "input", placeholder: "Two-factor backup code" },
+    email: {
+      label: "Email Address",
+      type: "email",
+      placeholder: "john.doe@example.com",
+    },
+    password: {
+      label: "Password",
+      type: "password",
+      placeholder: "Your super secure password",
+    },
+    totpCode: {
+      label: "Two-factor Code",
+      type: "input",
+      placeholder: "Code from authenticator app",
+    },
+    backupCode: {
+      label: "Backup Code",
+      type: "input",
+      placeholder: "Two-factor backup code",
+    },
   },
   authorize: authorizeCredentials,
 });
@@ -470,6 +498,32 @@ if (isSAMLLoginEnabled) {
   );
 }
 
+if (OUTLOOK_LOGIN_ENABLED && OUTLOOK_CLIENT_ID && OUTLOOK_CLIENT_SECRET) {
+  providers.push(
+    AzureADProvider({
+      clientId: OUTLOOK_CLIENT_ID,
+      clientSecret: OUTLOOK_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: ["openid", "profile", "email", ...MICROSOFT_CALENDAR_SCOPES].join(" "),
+          prompt: "consent",
+        },
+      },
+      // Azure AD returns base64-encoded picture data (~9KB) that bloats the JWT cookie.
+      // we exclude it here and fetch the profile photo separately via Microsoft Graph API.
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: null,
+        };
+      },
+    })
+  );
+}
+
 providers.push(
   EmailProvider({
     type: "email",
@@ -485,16 +539,6 @@ function isNumber(n: string) {
 
 const calcomAdapter = CalComAdapter(prisma);
 
-const mapIdentityProvider = (providerName: string) => {
-  switch (providerName) {
-    case "saml-idp":
-    case "saml":
-      return IdentityProvider.SAML;
-    default:
-      return IdentityProvider.GOOGLE;
-  }
-};
-
 export const getOptions = ({
   getDubId,
   getTrackingData,
@@ -505,7 +549,6 @@ export const getOptions = ({
   getTrackingData: () => TrackingData;
 }): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
@@ -627,7 +670,7 @@ export const getOptions = ({
           orgRole = membership?.role;
         }
 
-        return {
+        const autoMergeJwt = {
           ...existingUserWithoutTeamsField,
           ...token,
           profileId: profile.id,
@@ -640,16 +683,17 @@ export const getOptions = ({
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
-                id: profileOrg.id,
-                name: profileOrg.name,
-                slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                logoUrl: profileOrg.logoUrl,
-                fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                domainSuffix: subdomainSuffix(),
-                role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-              }
+                  id: profileOrg.id,
+                  name: profileOrg.name,
+                  slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
+                  logoUrl: profileOrg.logoUrl,
+                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
+                  domainSuffix: subdomainSuffix(),
+                  role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
+                }
               : null,
         } as JWT;
+        return autoMergeJwt;
       };
       if (!user) {
         return await autoMergeIdentities();
@@ -693,9 +737,19 @@ export const getOptions = ({
       if (account.type === "oauth") {
         log.debug("callbacks:jwt:accountType:oauth", safeStringify({ account }));
         if (!account.provider || !account.providerAccountId) {
-          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
+          return {
+            ...token,
+            upId: user.profile?.upId ?? token.upId ?? null,
+          } as JWT;
         }
-        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
+        const idP = getIdentityProvider(account.provider);
+
+        if (!idP) {
+          log.warn("callbacks:jwt:accountType:oauth - unknown provider, falling back to auto-merge", {
+            provider: account.provider,
+          });
+          return await autoMergeIdentities();
+        }
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -773,9 +827,81 @@ export const getOptions = ({
           }
           await updateProfilePhotoGoogle(oAuth2Client, Number(user.id));
         }
+
+        // Installing Outlook Calendar by default for Microsoft/Azure AD sign-in
+        // Note: offline_access is requested but not returned in scope list by Microsoft
+        const microsoftCalendarScopesToCheck = MICROSOFT_CALENDAR_SCOPES.filter(
+          (scope) => scope !== "offline_access"
+        );
+        if (
+          account.provider === "azure-ad" &&
+          !(await CredentialRepository.findFirstByAppIdAndUserId({
+            userId: Number(user.id),
+            appId: "office365-calendar",
+          })) &&
+          microsoftCalendarScopesToCheck.every((scope) => grantedScopes.includes(scope))
+        ) {
+          const credentialKey = {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            email: user.email,
+            // convert seconds to milliseconds — OAuthManager compares expiry_date against Date.now()
+            expiry_date: account.expires_at ? account.expires_at * 1000 : undefined,
+          };
+
+          const outlookCredentialData = buildCredentialCreateData({
+            userId: Number(user.id),
+            key: credentialKey,
+            appId: "office365-calendar",
+            type: "office365_calendar",
+          });
+          const outlookCredential = await CredentialRepository.create(outlookCredentialData);
+
+          // Fetch default calendar from Microsoft Graph API
+          try {
+            const calendarResponse = await fetch(
+              "https://graph.microsoft.com/v1.0/me/calendars?$select=id,isDefaultCalendar",
+              {
+                headers: {
+                  Authorization: `Bearer ${account.access_token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (calendarResponse.ok) {
+              const calendarData = await calendarResponse.json();
+              const defaultCalendar = calendarData.value?.find(
+                (cal: { isDefaultCalendar?: boolean }) => cal.isDefaultCalendar
+              );
+
+              if (defaultCalendar?.id) {
+                await prisma.selectedCalendar.create({
+                  data: {
+                    userId: Number(user.id),
+                    integration: "office365_calendar",
+                    externalId: defaultCalendar.id,
+                    credentialId: outlookCredential.id,
+                  },
+                });
+              }
+            }
+          } catch (error) {
+            log.error("Failed to fetch default calendar for Microsoft sign-in", error);
+          }
+
+          // Update profile photo for Microsoft/Azure AD sign-in
+          if (account.access_token) {
+            await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
+          }
+        } else if (account.provider === "azure-ad" && account.access_token) {
+          // Update profile photo even if calendar wasn't installed
+          await updateProfilePhotoMicrosoft(account.access_token, Number(user.id));
+        }
+
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });
-        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ existingUser, upId }));
+        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ userId: existingUser.id, upId }));
         return {
           ...token,
           upId,
@@ -783,9 +909,10 @@ export const getOptions = ({
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
+          avatarUrl: existingUser.avatarUrl,
           role: existingUser.role,
-          impersonatedBy: token.impersonatedBy,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
+          impersonatedBy: token.impersonatedBy,
           org: token?.org,
           orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
@@ -798,7 +925,10 @@ export const getOptions = ({
 
       log.warn(
         "callbacks:jwt - unknown account type",
-        safeStringify({ accountType: account.type, accountProvider: account.provider })
+        safeStringify({
+          accountType: account.type,
+          accountProvider: account.provider,
+        })
       );
       return token;
     },
@@ -828,18 +958,14 @@ export const getOptions = ({
       };
       return calendsoSession;
     },
-    async signIn(params): Promise<boolean | string> {
-      const {
-        /**
-         * Available when Credentials provider is used - Has the value returned by authorize callback
-         */
-        user,
-        /**
-         * Available when Credentials provider is used - Has the value submitted as the body of the HTTP POST submission
-         */
-        profile,
-        account,
-      } = params;
+    async signIn(params: {
+      user: User | AdapterUser;
+      account: Account | null;
+      profile?: Profile;
+      email?: { verificationRequest?: boolean };
+      credentials?: Record<string, unknown>;
+    }): Promise<boolean | string> {
+      const { user, account, profile } = params;
 
       log.debug("callbacks:signin", safeStringify(params));
 
@@ -876,21 +1002,52 @@ export const getOptions = ({
         }
       }
       if (!user.email) {
-        log.warn("callbacks:signIn - user email is missing", { provider: account?.provider });
+        log.warn("callbacks:signIn - user email is missing", {
+          provider: account?.provider,
+        });
         return false;
       }
 
       if (!user.name) {
-        log.warn("callbacks:signIn - user name is missing", { emailDomain: user.email.split("@")[1], provider: account?.provider });
+        log.warn("callbacks:signIn - user name is missing", {
+          emailDomain: user.email.split("@")[1],
+          provider: account?.provider,
+        });
         return false;
       }
       if (account?.provider) {
-        const idP: IdentityProvider = mapIdentityProvider(account.provider);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore-error TODO validate email_verified key on profile
-        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
+        const idP = getIdentityProvider(account.provider);
 
-        if (!user.email_verified) {
+        if (!idP) {
+          log.warn("callbacks:signIn - unknown provider, rejecting login", {
+            provider: account.provider,
+          });
+          return "/auth/error?error=unknown-provider";
+        }
+        // Use optional chaining for safety, especially with AdapterUser potentially having different structure initially.
+        const isEmailVerified = user.emailVerified || (profile as ExtendedOAuthProfile)?.email_verified;
+
+        // For Azure AD, check xms_edov (Email Domain Owner Verified) claim
+        // xms_edov returns inconsistent types: boolean for work/school, string "1" for personal accounts
+        const xmsEdov = (profile as ExtendedOAuthProfile)?.xms_edov;
+        const isAzureEmailDomainVerified =
+          xmsEdov === true || xmsEdov === "true" || xmsEdov === "1" || xmsEdov === 1;
+
+        // Azure AD never sets email_verified in the token profile, so isEmailVerified is always
+        // falsy for AZUREAD logins. Use isAzureEmailDomainVerified (xms_edov) as the equivalent
+        // proof of ownership so the auto-merge path treats Azure AD the same as other verified IdPs.
+        const isVerified =
+          isEmailVerified || (idP === IdentityProvider.AZUREAD && isAzureEmailDomainVerified);
+
+        if (idP === IdentityProvider.AZUREAD && !isAzureEmailDomainVerified) {
+          log.error(
+            "Azure AD email domain not verified (xms_edov claim)",
+            safeStringify({ emailDomain: user.email?.split("@")[1], xmsEdov })
+          );
+          return "/auth/error?error=unverified-email";
+        }
+
+        if (!isEmailVerified && idP !== IdentityProvider.AZUREAD) {
           log.error("Attention: SAML/Google User email is not verified in the IdP", safeStringify({ user }));
           return "/auth/error?error=unverified-email";
         }
@@ -983,7 +1140,10 @@ export const getOptions = ({
           });
 
           if (!userWithNewEmail) {
-            await prisma.user.update({ where: { id: existingUser.id }, data: { email: user.email } });
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { email: user.email },
+            });
             if (existingUser.twoFactorEnabled) {
               return loginWithTotp(existingUser.email);
             } else {
@@ -1016,15 +1176,15 @@ export const getOptions = ({
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (
-            !hostedCal &&
-            existingUserWithEmail.emailVerified &&
-            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
-          ) {
+          if (!hostedCal && isVerified && existingUserWithEmail.identityProvider !== IdentityProvider.CAL) {
             // Verify SAML IdP is authoritative before auto-merge
             if (idP === IdentityProvider.SAML) {
               const samlTenant = getSamlTenant();
-              const validation = await validateSamlAccountConversion(samlTenant, user.email, "SelfHosted→SAML");
+              const validation = await validateSamlAccountConversion(
+                samlTenant,
+                user.email,
+                "SelfHosted→SAML"
+              );
               if (!validation.allowed) {
                 return validation.errorUrl;
               }
@@ -1076,10 +1236,12 @@ export const getOptions = ({
             }
           }
 
-          // User signs up with email/password and then tries to login with Google/SAML using the same email
+          // User signs up with email/password and then tries to login with Google/SAML/AzureAD using the same email
           if (
             existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
-            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
+            (idP === IdentityProvider.GOOGLE ||
+              idP === IdentityProvider.SAML ||
+              idP === IdentityProvider.AZUREAD)
           ) {
             // Prevent account pre-hijacking: block OAuth linking for unverified accounts
             if (!existingUserWithEmail.emailVerified) {
@@ -1109,22 +1271,48 @@ export const getOptions = ({
             } else {
               return true;
             }
-          } else if (
-            existingUserWithEmail.identityProvider === IdentityProvider.CAL
-          ) {
-            log.error(
-              `Userid ${user.id} already exists with CAL identity provider`
-            );
+          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
+            log.error(`Userid ${user.id} already exists with CAL identity provider`);
             return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
           } else if (
             existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
-            idP === IdentityProvider.SAML
+            (idP === IdentityProvider.SAML || idP === IdentityProvider.AZUREAD)
           ) {
             // Verify SAML IdP is authoritative before converting account
-            const samlTenant = getSamlTenant();
-            const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
-            if (!validation.allowed) {
-              return validation.errorUrl;
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = getSamlTenant();
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "Google→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
+            }
+
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              // also update email to the IdP email
+              data: {
+                email: user.email.toLowerCase(),
+                identityProvider: idP,
+                identityProviderId: account.providerAccountId,
+              },
+            });
+
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail.email);
+            } else {
+              return true;
+            }
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.AZUREAD &&
+            (idP === IdentityProvider.SAML || idP === IdentityProvider.GOOGLE)
+          ) {
+            // Verify SAML IdP is authoritative before converting account
+            if (idP === IdentityProvider.SAML) {
+              const samlTenant = getSamlTenant();
+              const validation = await validateSamlAccountConversion(samlTenant, user.email, "AzureAD→SAML");
+              if (!validation.allowed) {
+                return validation.errorUrl;
+              }
             }
 
             await prisma.user.update({
@@ -1143,21 +1331,18 @@ export const getOptions = ({
               return true;
             }
           }
-          log.error(
-            `Userid ${user.id} trying to login with the wrong provider`,
-            {
-              userId: user.id,
-              account: {
-                providerAccountId: account?.providerAccountId,
-                type: account?.type,
-                provider: account?.provider,
-              },
-            }
-          );
+          log.error(`Userid ${user.id} trying to login with the wrong provider`, {
+            userId: user.id,
+            account: {
+              providerAccountId: account?.providerAccountId,
+              type: account?.type,
+              provider: account?.provider,
+            },
+          });
           return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
-        // Associate with organization if enabled by flag and idP is Google (for now)
+        // Associate with organization if enabled by flag and idP is Google or Azure AD
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         try {
@@ -1170,14 +1355,18 @@ export const getOptions = ({
               emailVerified: new Date(Date.now()),
               name: user.name,
               ...(user.image && { avatarUrl: user.image }),
-              email: user.email,
+              email: user.email!,
               identityProvider: idP,
               identityProviderId: account.providerAccountId,
               ...(orgId && {
                 verified: true,
                 organization: { connect: { id: orgId } },
                 teams: {
-                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+                  create: {
+                    role: MembershipRole.MEMBER,
+                    accepted: true,
+                    team: { connect: { id: orgId } },
+                  },
                 },
               }),
               creationSource: CreationSource.WEBAPP,
@@ -1189,6 +1378,11 @@ export const getOptions = ({
             user.email
           );
           await calcomAdapter.linkAccount(linkAccountNewUserData);
+
+          // Update profile photo for new Microsoft/Azure AD users
+          if (account.provider === "azure-ad" && account.access_token) {
+            await updateProfilePhotoMicrosoft(account.access_token, newUser.id);
+          }
 
           waitUntil(
             (async () => {
@@ -1225,7 +1419,7 @@ export const getOptions = ({
             })()
           );
 
-          if (account.twoFactorEnabled) {
+          if (newUser.twoFactorEnabled) {
             return loginWithTotp(newUser.email);
           } else {
             return true;
@@ -1310,7 +1504,7 @@ const determineProfile = ({
 
   if (token.upId) {
     // Otherwise use what's in the token
-    return { profileId: token.profileId, upId: token.upId as string };
+    return { id: token.profileId ?? null, upId: token.upId as string };
   }
 
   // If there is just one profile it has to be the one we want to log into.

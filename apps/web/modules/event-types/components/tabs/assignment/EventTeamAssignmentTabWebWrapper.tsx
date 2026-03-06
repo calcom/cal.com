@@ -1,7 +1,4 @@
-import {
-  EventTeamAssignmentTab,
-  type EventTeamAssignmentTabBaseProps,
-} from "./EventTeamAssignmentTab";
+import { EventTeamAssignmentTab, type EventTeamAssignmentTabBaseProps } from "./EventTeamAssignmentTab";
 
 const EventTeamAssignmentTabWebWrapper = (
   props: Omit<EventTeamAssignmentTabBaseProps, "isSegmentApplicable">

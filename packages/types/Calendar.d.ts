@@ -207,7 +207,6 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
-  hideBranding?: boolean;
   disableCancelling?: boolean;
   disableRescheduling?: boolean;
 
@@ -220,6 +219,7 @@ export interface CalendarEvent {
   platformRescheduleUrl?: string | null;
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
+  hideBranding?: boolean;
   oneTimePassword?: string | null;
   delegationCredentialId?: string | null;
   domainWideDelegationCredentialId?: string | null;
@@ -317,7 +317,7 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  testDelegationCredentialSetup?(): Promise<boolean>;
+  testDelegationCredentialSetup?(): Promise<void>;
 }
 
 /**

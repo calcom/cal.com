@@ -9,7 +9,7 @@ import type { TimezoneSelectComponentProps } from "@calcom/features/timezone/com
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
+import { GlobeIcon } from "@coss/ui/icons";
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 import { useMemo } from "react";
@@ -29,10 +29,7 @@ type TimezoneSelectProps = Omit<
 };
 
 const WebTimezoneSelect: ComponentType<TimezoneSelectProps> = dynamic(
-  () =>
-    import("@calcom/web/modules/timezone/components/TimezoneSelect").then(
-      (mod) => mod.TimezoneSelect
-    ),
+  () => import("@calcom/web/modules/timezone/components/TimezoneSelect").then((mod) => mod.TimezoneSelect),
   {
     ssr: false,
     loading: () => <LoadingState />,
@@ -104,12 +101,10 @@ export const SlotSelectionModalHeader = ({
           <span className="text-default text-sm">{formattedDate.fullDate}</span>
         </div>
 
-        {event && (
-          <EventDetails event={event} blocks={[EventDetailBlocks.DURATION]} />
-        )}
+        {event && <EventDetails event={event} blocks={[EventDetailBlocks.DURATION]} />}
 
         <div className="mb-0 flex items-center gap-2 text-default text-sm">
-          <Icon name="globe" className="h-4 w-4 shrink-0 text-subtle" />
+          <GlobeIcon className="h-4 w-4 shrink-0 text-subtle" />
           {TimezoneSelect && (
             <span className="-mt-[2px] flex h-6 min-w-32 max-w-full items-center justify-start">
               <TimezoneSelect

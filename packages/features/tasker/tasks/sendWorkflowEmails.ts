@@ -52,9 +52,11 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
       throw new Error("Booking not found");
     }
 
+    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
+
     const calendarEvent = (
       await CalendarEventBuilder.fromBooking(booking, {
-        platformClientId: mailData.platformClientId,
+        platformClientId: mailData.platformClientId ?? bookingMetadata?.platformClientId,
         platformRescheduleUrl: mailData.platformRescheduleUrl,
         platformCancelUrl: mailData.platformCancelUrl,
         platformBookingUrl: mailData.platformBookingUrl,
@@ -66,7 +68,6 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
     }
 
     // Check if videoCallUrl exists in booking metadata and add it to evt.metadata
-    const bookingMetadata = bookingMetadataSchema.parse(booking.metadata || {});
     const metadata = bookingMetadata?.videoCallUrl
       ? {
           videoCallUrl: bookingMetadata.videoCallUrl,
