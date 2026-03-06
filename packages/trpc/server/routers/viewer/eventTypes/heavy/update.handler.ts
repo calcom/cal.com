@@ -486,13 +486,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let { hostsToAdd, hostsToUpdate, hostsToRemove } = pendingHostChanges;
       const { clearAllHosts, clearAllHostLocations } = pendingHostChanges;
 
-      // When clearAllHostLocations is true, bulk-delete all host locations for this event type
-      if (clearAllHostLocations) {
-        await ctx.prisma.hostLocation.deleteMany({
-          where: { eventTypeId: id },
-        });
-      }
-
       // When clearAllHosts is true, compute delta: keep hosts in hostsToAdd, remove all others
       if (clearAllHosts) {
         const existingHostUserIds = eventType.hosts.map((h) => ({ userId: h.userId }));
@@ -976,7 +969,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     throw e;
   }
 
-  if (hostLocationDeletions.length > 0) {
+  // Bulk-delete all host locations when the clearAllHostLocations flag is set.
+  // This runs after the main eventType.update so that validation failures
+  // don't leave host locations irreversibly deleted.
+  if (pendingHostChanges?.clearAllHostLocations) {
+    await ctx.prisma.hostLocation.deleteMany({
+      where: { eventTypeId: id },
+    });
+  } else if (hostLocationDeletions.length > 0) {
     await ctx.prisma.hostLocation.deleteMany({
       where: {
         OR: hostLocationDeletions,

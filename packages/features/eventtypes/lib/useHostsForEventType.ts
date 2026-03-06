@@ -184,17 +184,19 @@ export function useHostsForEventType() {
   // When called, sets clearAllHosts flag so backend computes delta
   const clearAllHosts = useCallback(
     (newHosts: Host[] = []) => {
+      const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
       setPendingChanges(
         {
           hostsToAdd: newHosts,
           hostsToUpdate: [],
           hostsToRemove: [],
           clearAllHosts: true,
+          clearAllHostLocations: current.clearAllHostLocations,
         },
         { shouldDirty: true }
       );
     },
-    [setPendingChanges]
+    [getValues, setPendingChanges]
   );
 
   // Set the clearAllHostLocations flag so the backend bulk-deletes all HostLocation rows on save
@@ -248,16 +250,18 @@ export function useHostsForEventType() {
         }
       }
 
+      const current: PendingHostChanges = getValues("pendingHostChanges") ?? DEFAULT_PENDING_CHANGES;
       setPendingChanges(
         {
           hostsToAdd,
           hostsToUpdate,
           hostsToRemove,
+          clearAllHostLocations: current.clearAllHostLocations,
         },
         { shouldDirty: hostsToAdd.length > 0 || hostsToUpdate.length > 0 || hostsToRemove.length > 0 }
       );
     },
-    [setPendingChanges]
+    [getValues, setPendingChanges]
   );
 
   // Memoize the return value to prevent unnecessary re-renders
