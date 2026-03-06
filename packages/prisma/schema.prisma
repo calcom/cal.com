@@ -350,6 +350,7 @@ enum IdentityProvider {
   CAL
   GOOGLE
   SAML
+  AZUREAD
 }
 
 model DestinationCalendar {
