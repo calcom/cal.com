@@ -1,12 +1,16 @@
-import type { NextApiRequest } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { BotDetectionService } from "@calcom/features/bot-detection";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
+import { prisma } from "@calcom/prisma";
+import type { NextApiRequest } from "next";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
@@ -34,6 +38,16 @@ async function handler(req: NextApiRequest & RequestMeta) {
       remoteIp: userIp,
     });
   }
+
+  // Check for bot detection using feature flag
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const botDetectionService = new BotDetectionService(teamFeatureRepository, eventTypeRepository);
+
+  await botDetectionService.checkBotDetection({
+    eventTypeId: req.body?.[0]?.eventTypeId,
+    headers: req.headers,
+  });
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",

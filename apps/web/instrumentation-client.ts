@@ -62,6 +62,10 @@ if (
         path: "*/api/book/event",
         method: "POST",
       },
+      {
+        path: "*/api/book/recurring-event",
+        method: "POST",
+      },
     ],
   });
 }
