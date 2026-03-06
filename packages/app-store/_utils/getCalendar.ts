@@ -1,6 +1,8 @@
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getCalendarCacheEventRepository } from "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { getCalendarSubscriptionService } from "@calcom/features/calendar-subscription/di/CalendarSubscriptionService.container";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
@@ -101,6 +103,10 @@ export const getCalendar = async (
     calendar = new CalendarCacheWrapper({
       originalCalendar: calendar,
       calendarCacheEventRepository: getCalendarCacheEventRepository(),
+      onDemandSync: async (calendarId: string) => {
+        const service = getCalendarSubscriptionService();
+        await service.syncById(calendarId);
+      },
     });
   }
 

@@ -1,5 +1,3 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import type {
   Calendar,
@@ -9,7 +7,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CalendarCacheWrapper } from "../CalendarCacheWrapper";
 
 describe("CalendarCacheWrapper", () => {
@@ -441,6 +439,184 @@ describe("CalendarCacheWrapper", () => {
       });
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("stale sync detection", () => {
+    const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+
+    it("should fallback to original calendar for stale calendars and trigger background sync", async () => {
+      const mockOnDemandSync = vi.fn().mockResolvedValue(undefined);
+      const wrapperWithSync = new CalendarCacheWrapper({
+        originalCalendar: mockOriginalCalendar,
+        calendarCacheEventRepository: mockRepository,
+        onDemandSync: mockOnDemandSync,
+      });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "stale-cal",
+          externalId: "ext-stale",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: eightDaysAgo,
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-01-01T10:00:00Z"), end: new Date("2025-01-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
+
+      const result = await wrapperWithSync.getAvailability({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalled();
+      expect(mockOnDemandSync).toHaveBeenCalledWith("stale-cal");
+    });
+
+    it("should serve from cache for fresh calendars without triggering sync", async () => {
+      const mockOnDemandSync = vi.fn().mockResolvedValue(undefined);
+      const wrapperWithSync = new CalendarCacheWrapper({
+        originalCalendar: mockOriginalCalendar,
+        calendarCacheEventRepository: mockRepository,
+        onDemandSync: mockOnDemandSync,
+      });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "fresh-cal",
+          externalId: "ext-fresh",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: oneDayAgo,
+        },
+      ];
+
+      const cachedEvents: EventBusyDate[] = [
+        { start: new Date("2025-01-01T10:00:00Z"), end: new Date("2025-01-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
+
+      const result = await wrapperWithSync.getAvailability({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(cachedEvents);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalled();
+      expect(mockOnDemandSync).not.toHaveBeenCalled();
+    });
+
+    it("should not error when onDemandSync is not provided", async () => {
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "stale-cal",
+          externalId: "ext-stale",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: eightDaysAgo,
+        },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue([]);
+
+      const result = await wrapper.getAvailability({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual([]);
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalled();
+    });
+
+    it("should still serve from original when background sync fails", async () => {
+      const mockOnDemandSync = vi.fn().mockRejectedValue(new Error("Sync failed"));
+      const wrapperWithSync = new CalendarCacheWrapper({
+        originalCalendar: mockOriginalCalendar,
+        calendarCacheEventRepository: mockRepository,
+        onDemandSync: mockOnDemandSync,
+      });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "stale-cal",
+          externalId: "ext-stale",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: eightDaysAgo,
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-01-01T10:00:00Z"), end: new Date("2025-01-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
+
+      const result = await wrapperWithSync.getAvailability({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockOnDemandSync).toHaveBeenCalledWith("stale-cal");
+    });
+
+    it("should handle stale detection in getAvailabilityWithTimeZones", async () => {
+      const mockOnDemandSync = vi.fn().mockResolvedValue(undefined);
+      const wrapperWithSync = new CalendarCacheWrapper({
+        originalCalendar: mockOriginalCalendar,
+        calendarCacheEventRepository: mockRepository,
+        onDemandSync: mockOnDemandSync,
+      });
+
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "stale-cal",
+          externalId: "ext-stale",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: eightDaysAgo,
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-01-01T10:00:00Z"), end: new Date("2025-01-01T11:00:00Z"), timeZone: "UTC" },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailabilityWithTimeZones).mockResolvedValue(originalEvents);
+
+      const result = await wrapperWithSync.getAvailabilityWithTimeZones({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+      expect(mockOnDemandSync).toHaveBeenCalledWith("stale-cal");
     });
   });
 

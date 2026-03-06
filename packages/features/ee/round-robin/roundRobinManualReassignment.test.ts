@@ -24,9 +24,13 @@ import { beforeEach, describe, expect, vi } from "vitest";
 import type { BookingEventHandlerService } from "../../bookings/lib/onBookingEvents/BookingEventHandlerService";
 
 vi.mock("@calcom/features/bookings/lib/EventManager");
-vi.mock("@calcom/app-store/utils", () => ({
-  getAppFromSlug: vi.fn(),
-}));
+vi.mock("@calcom/app-store/utils", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    getAppFromSlug: vi.fn(),
+  };
+});
 vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
   getBookingEventHandlerService: vi.fn(),
 }));

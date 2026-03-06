@@ -139,6 +139,19 @@ export class CalendarSubscriptionService {
   }
 
   /**
+   * Sync a single calendar by ID (on-demand).
+   * Used to refresh stale caches when a watch channel stops delivering webhooks.
+   */
+  async syncById(selectedCalendarId: string): Promise<void> {
+    const selectedCalendar = await this.deps.selectedCalendarRepository.findById(selectedCalendarId);
+    if (!selectedCalendar) {
+      log.debug("syncById: calendar not found", { selectedCalendarId });
+      return;
+    }
+    await this.processEvents(selectedCalendar);
+  }
+
+  /**
    * Process webhook
    */
   // biome-ignore lint/complexity/noExcessiveLinesPerFunction: webhook processing requires multiple steps

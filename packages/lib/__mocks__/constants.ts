@@ -1,6 +1,5 @@
-import { vi, beforeEach } from "vitest";
-
 import type * as constants from "@calcom/lib/constants";
+import { beforeEach, vi } from "vitest";
 
 const initialConstants = {
   IS_PRODUCTION: false,
@@ -21,6 +20,11 @@ const initialConstants = {
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
   SINGLE_ORG_SLUG: "",
   DEFAULT_GROUP_ID: "default_group_id",
+  ENABLE_ASYNC_TASKER: false,
+  APP_CREDENTIAL_SHARING_ENABLED: false,
+  CREDENTIAL_SYNC_ENDPOINT: undefined,
+  CREDENTIAL_SYNC_SECRET: undefined,
+  CREDENTIAL_SYNC_SECRET_HEADER_NAME: "calcom-credential-sync-secret",
 } as Partial<typeof constants>;
 
 export const mockedConstants = { ...initialConstants };

@@ -1,6 +1,5 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import logger from "@calcom/lib/logger";
-import { metrics } from "@sentry/nextjs";
 import type {
   Calendar,
   CalendarEvent,
@@ -10,14 +9,18 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { metrics } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
 export class CalendarCacheWrapper implements Calendar {
+  static STALE_SYNC_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
+
   constructor(
     private deps: {
       originalCalendar: Calendar;
       calendarCacheEventRepository: ICalendarCacheEventRepository;
+      onDemandSync?: (calendarId: string) => Promise<void>;
     }
   ) {}
 
@@ -45,11 +48,68 @@ export class CalendarCacheWrapper implements Calendar {
     return this.deps.originalCalendar.deleteEvent(uid, event, externalCalendarId);
   }
 
+  private isStale(calendar: IntegrationCalendar): boolean {
+    if (!calendar.syncedAt) return false;
+    const syncAge = Date.now() - new Date(calendar.syncedAt).getTime();
+    return syncAge > CalendarCacheWrapper.STALE_SYNC_THRESHOLD_MS;
+  }
+
+  /**
+   * Fire-and-forget background sync for stale calendars.
+   * Does not block the availability response.
+   */
+  private triggerBackgroundSync(staleCalendars: IntegrationCalendar[]): void {
+    if (!this.deps.onDemandSync) return;
+
+    const ids = staleCalendars.map((c) => c.id).filter((id): id is string => Boolean(id));
+    if (!ids.length) return;
+
+    log.info("Triggering background sync for stale calendars", { calendarIds: ids });
+    metrics.count("calendar.cache.stale_sync.triggered", ids.length);
+
+    for (const id of ids) {
+      this.deps.onDemandSync(id).catch((err) => {
+        log.warn("Background stale sync failed", {
+          calendarId: id,
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
+        metrics.count("calendar.cache.stale_sync.error", 1);
+      });
+    }
+  }
+
+  /**
+   * Splits synced calendars into fresh (serve from cache) and stale (fallback to original).
+   * Stale calendars trigger a background sync to fix the cache for the next request.
+   */
+  private splitByFreshness(calendars: IntegrationCalendar[]): {
+    fresh: IntegrationCalendar[];
+    stale: IntegrationCalendar[];
+  } {
+    const fresh: IntegrationCalendar[] = [];
+    const stale: IntegrationCalendar[] = [];
+
+    for (const c of calendars) {
+      if (this.isStale(c)) {
+        stale.push(c);
+      } else {
+        fresh.push(c);
+      }
+    }
+
+    if (stale.length) {
+      this.triggerBackgroundSync(stale);
+    }
+
+    return { fresh, stale };
+  }
+
   /**
    * Retrieves availability combining cache and live sources.
    *
-   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
-   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` and fresh `syncedAt` → fetched from cache.
+   * - Calendars **without** sync data or with stale `syncedAt` → fetched directly from the original calendar.
+   * - Stale calendars trigger a background sync to fix the cache for subsequent requests.
    * - Results are merged into a single array.
    */
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
@@ -64,8 +124,11 @@ export class CalendarCacheWrapper implements Calendar {
 
     if (!selectedCalendars?.length) return [];
 
-    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+
+    const { fresh: withSync, stale } = this.splitByFreshness(synced);
+    const withoutSync = [...unsynced, ...stale];
 
     const results: EventBusyDate[] = [];
 
@@ -135,8 +198,9 @@ export class CalendarCacheWrapper implements Calendar {
   /**
    * Retrieves availability with time zones, combining cache and live data.
    *
-   * - Calendars **with** both `syncToken` and `syncSubscribedAt` → fetched from cache.
-   * - Calendars **without** one of them → fetched directly from the original calendar.
+   * - Calendars **with** both `syncToken` and `syncSubscribedAt` and fresh `syncedAt` → fetched from cache.
+   * - Calendars **without** sync data or with stale `syncedAt` → fetched directly from the original calendar.
+   * - Stale calendars trigger a background sync to fix the cache for subsequent requests.
    * - Results are merged into a single array with `{ start, end, timeZone }` format.
    */
   async getAvailabilityWithTimeZones(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
@@ -151,8 +215,11 @@ export class CalendarCacheWrapper implements Calendar {
 
     if (!selectedCalendars?.length) return [];
 
-    const withSync = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const withoutSync = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
+    const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+
+    const { fresh: withSync, stale } = this.splitByFreshness(synced);
+    const withoutSync = [...unsynced, ...stale];
 
     const results: EventBusyDate[] = [];
 
