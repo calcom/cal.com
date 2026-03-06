@@ -114,7 +114,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
-      version: webhook.version,
+      version: parseWebhookVersion(webhook.version),
     }));
   }
 
