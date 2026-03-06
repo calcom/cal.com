@@ -13,11 +13,12 @@ import {
   type CredentialLike,
   type ProviderSubscriptionDTO,
 } from "../providers/types";
-import { getProviderAccountIdForLock, withCalendarSyncLock } from "./utils/calendarSyncLock";
+import { withCalendarSyncLock } from "./utils/calendarSyncLock";
 
 interface CalendarDisableRow {
   id: number;
   provider: string;
+  providerCalendarId: string;
   syncEnabled: boolean;
   credentialId: number;
   credentialType: string;
@@ -74,6 +75,7 @@ const getCalendarForDisable = async (calendarId: number): Promise<CalendarDisabl
       SELECT
         ec."id",
         ec."provider",
+        ec."providerCalendarId",
         ec."syncEnabled",
         ec."credentialId",
         c."type" AS "credentialType",
@@ -303,11 +305,8 @@ export const disableCalendarSync = async (
   return await withCalendarSyncLock(
     {
       provider: existing.provider,
-      providerAccountId: getProviderAccountIdForLock({
-        credentialKey: existing.credentialKey,
-        credentialId: existing.credentialId,
-      }),
-      calendarId,
+      credentialId: existing.credentialId,
+      providerCalendarId: existing.providerCalendarId,
     },
     async () => {
       const calendar = await getCalendarForDisable(calendarId);

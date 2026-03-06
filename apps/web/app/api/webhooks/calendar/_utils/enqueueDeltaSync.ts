@@ -11,6 +11,8 @@ const toProviderSlug = (provider: CalendarProvider): "google" | "outlook" => {
 export const enqueueDeltaSyncFromWebhook = async (input: {
   calendarId: number;
   provider: CalendarProvider;
+  credentialId: number;
+  providerCalendarId: string;
   receivedAt: string;
   subscriptionId?: string | null;
   resourceId?: string | null;
@@ -21,6 +23,8 @@ export const enqueueDeltaSyncFromWebhook = async (input: {
     calendarId: input.calendarId,
     reason: "webhook",
     provider: toProviderSlug(input.provider),
+    credentialId: input.credentialId,
+    providerCalendarId: input.providerCalendarId,
     receivedAt: input.receivedAt,
     subscriptionId: input.subscriptionId ?? null,
     resourceId: input.resourceId ?? null,

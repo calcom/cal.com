@@ -372,16 +372,13 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     rawBody: string;
   }): Promise<{
     providerCalendarId?: string | null;
-    providerAccountId?: string | null;
     subscriptionId?: string | null;
     resourceId?: string | null;
   }> {
-    void params.headers;
     const payload = this.parseOutlookWebhookPayload(params.rawBody);
     if (!payload) {
       return {
         providerCalendarId: null,
-        providerAccountId: null,
         subscriptionId: null,
         resourceId: null,
       };
@@ -389,7 +386,6 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
 
     return {
       providerCalendarId: payload.providerCalendarId,
-      providerAccountId: payload.providerAccountId,
       subscriptionId: payload.subscriptionId,
       resourceId: payload.resourceId,
     };
@@ -397,7 +393,6 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
 
   private parseOutlookWebhookPayload(rawBody: string): {
     providerCalendarId: string | null;
-    providerAccountId: string | null;
     subscriptionId: string | null;
     resourceId: string | null;
   } | null {
@@ -416,7 +411,6 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
 
       return {
         providerCalendarId,
-        providerAccountId: null,
         subscriptionId,
         resourceId,
       };

@@ -56,7 +56,6 @@ export interface CalendarProviderAdapter {
     rawBody: string;
   }): Promise<{
     providerCalendarId?: string | null;
-    providerAccountId?: string | null;
     subscriptionId?: string | null;
     resourceId?: string | null;
   }>;

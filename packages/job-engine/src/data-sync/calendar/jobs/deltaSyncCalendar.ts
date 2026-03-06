@@ -17,7 +17,7 @@ import {
 } from "../providers/types";
 import { runInitialCalendarSync } from "./initialSyncCalendar";
 import { batchUpsertExternalCalendarEvents } from "./utils/batchUpsertExternalCalendarEvents";
-import { getProviderAccountIdForLock, withCalendarSyncLock } from "./utils/calendarSyncLock";
+import { withCalendarSyncLock } from "./utils/calendarSyncLock";
 import { MAX_OCCURRENCES_CAP, getRollingWindow } from "./utils/rollingWindow";
 import {
   TOMBSTONE_RETENTION_DAYS,
@@ -26,7 +26,6 @@ import {
 } from "./utils/tombstoneRepository";
 
 type CalendarSyncStatus = "IDLE" | "SYNCING" | "ERROR";
-type DeltaSyncReason = "webhook" | "scheduled" | "manual";
 
 interface ExternalCalendarWithCredentialRow {
   id: number;
@@ -318,11 +317,8 @@ export const runDeltaCalendarSync = async (calendarId: number): Promise<void> =>
     await withCalendarSyncLock(
       {
         provider,
-        providerAccountId: getProviderAccountIdForLock({
-          credentialKey: calendarRow.credentialKey,
-          credentialId: calendarRow.credentialId,
-        }),
-        calendarId,
+        credentialId: calendarRow.credentialId,
+        providerCalendarId: calendarRow.providerCalendarId,
       },
       async () => {
         const lockedCalendar = await getCalendarWithCredential(calendarId);

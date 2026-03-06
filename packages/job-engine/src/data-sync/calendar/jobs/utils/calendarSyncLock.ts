@@ -27,54 +27,21 @@ const sleep = async (ms: number): Promise<void> => {
 
 const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
 
-const asObject = (value: unknown): Record<string, unknown> | null => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-  return value as Record<string, unknown>;
-};
-
-export const getProviderAccountIdForLock = (params: {
-  credentialKey: unknown;
-  credentialId: number;
-}): string => {
-  const key = asObject(params.credentialKey);
-  const candidates = [
-    key?.providerAccountId,
-    key?.provider_account_id,
-    key?.accountId,
-    key?.account_id,
-    key?.tenantId,
-    key?.tenant_id,
-    key?.sub,
-    key?.oid,
-    key?.email,
-  ];
-
-  for (const value of candidates) {
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-  }
-
-  return `credential_${params.credentialId}`;
-};
-
 export const buildCalendarSyncLockKey = (params: {
   provider: string;
-  providerAccountId: string;
-  calendarId: number;
+  credentialId: number;
+  providerCalendarId: string;
 }): string => {
-  return `lock:calendar_sync:${sanitizeKeyPart(params.provider.toLowerCase())}:${sanitizeKeyPart(
-    params.providerAccountId
-  )}:${params.calendarId}`;
+  return `lock:calendar_sync:${sanitizeKeyPart(params.provider.toLowerCase())}:${
+    params.credentialId
+  }:${sanitizeKeyPart(params.providerCalendarId)}`;
 };
 
 export const withCalendarSyncLock = async <T>(
   params: {
     provider: string;
-    providerAccountId: string;
-    calendarId: number;
+    credentialId: number;
+    providerCalendarId: string;
   },
   callback: () => Promise<T>,
   options: CalendarSyncLockOptions = {}

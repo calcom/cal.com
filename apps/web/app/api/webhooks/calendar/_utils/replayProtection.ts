@@ -15,14 +15,14 @@ export const registerWebhookReplay = async (
 
 export const registerWebhookDebounce = async (params: {
   provider: CalendarProvider;
-  providerAccountId: string | null | undefined;
-  calendarId: number;
+  credentialId: number;
+  providerCalendarId: string;
   ttlMs?: number;
 }): Promise<"accepted" | "deduped"> => {
-  const providerAccountId = (params.providerAccountId ?? "unknown").replace(/[^a-zA-Z0-9_-]/g, "_");
-  const key = `lock:calendar_sync_debounce:${params.provider.toLowerCase()}:${providerAccountId}:${
-    params.calendarId
-  }`;
+  const providerCalendarId = params.providerCalendarId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const key = `lock:calendar_sync_debounce:${params.provider.toLowerCase()}:${
+    params.credentialId
+  }:${providerCalendarId}`;
   const acquired = await acquireDebounceLock(key, params.ttlMs ?? WEBHOOK_DEBOUNCE_TTL_MS);
   return acquired ? "accepted" : "deduped";
 };

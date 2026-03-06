@@ -15,7 +15,7 @@ import {
   type ProviderSubscriptionDTO,
 } from "../providers/types";
 import { batchUpsertExternalCalendarEvents } from "./utils/batchUpsertExternalCalendarEvents";
-import { getProviderAccountIdForLock, withCalendarSyncLock } from "./utils/calendarSyncLock";
+import { withCalendarSyncLock } from "./utils/calendarSyncLock";
 import { MAX_OCCURRENCES_CAP, getRollingWindow } from "./utils/rollingWindow";
 import { buildProviderWebhookUrl } from "./utils/webhookUrl";
 
@@ -243,11 +243,8 @@ export const runInitialCalendarSync = async (calendarId: number): Promise<void> 
   await withCalendarSyncLock(
     {
       provider,
-      providerAccountId: getProviderAccountIdForLock({
-        credentialKey: calendarRow.credentialKey,
-        credentialId: calendarRow.credentialId,
-      }),
-      calendarId,
+      credentialId: calendarRow.credentialId,
+      providerCalendarId: calendarRow.providerCalendarId,
     },
     async () => {
       const lockedCalendarRow = await getCalendarWithCredential(calendarId);

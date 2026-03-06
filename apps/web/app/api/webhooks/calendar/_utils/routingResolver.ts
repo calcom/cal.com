@@ -3,93 +3,86 @@ import { Prisma } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
-interface CalendarIdRow {
+export interface ResolvedWebhookCalendarTarget {
   calendarId: number;
+  credentialId: number;
+  providerCalendarId: string;
 }
 
-const uniqueCalendarIds = (rows: CalendarIdRow[]): number[] => {
-  return [...new Set(rows.map((row) => row.calendarId))];
+const uniqueTargets = (rows: ResolvedWebhookCalendarTarget[]): ResolvedWebhookCalendarTarget[] => {
+  const deduped = new Map<number, ResolvedWebhookCalendarTarget>();
+  for (const row of rows) {
+    deduped.set(row.calendarId, row);
+  }
+  return [...deduped.values()];
 };
 
-export const resolveCalendarIdsForWebhook = async (params: {
+export const resolveCalendarTargetsForWebhook = async (params: {
   provider: CalendarProvider;
   subscriptionId?: string | null;
   resourceId?: string | null;
   providerCalendarId?: string | null;
-  providerAccountId?: string | null;
-}): Promise<number[]> => {
+}): Promise<ResolvedWebhookCalendarTarget[]> => {
   if (params.subscriptionId) {
-    const rows = await prisma.$queryRaw<CalendarIdRow[]>(
+    const rows = await prisma.$queryRaw<ResolvedWebhookCalendarTarget[]>(
       Prisma.sql`
-        SELECT ecs."calendarId"
+        SELECT
+          ec."id" AS "calendarId",
+          ec."credentialId",
+          ec."providerCalendarId"
         FROM "ExternalCalendarSubscription" ecs
+        INNER JOIN "ExternalCalendar" ec ON ec."id" = ecs."calendarId"
         WHERE ecs."provider" = CAST(${params.provider} AS "CalendarProvider")
           AND ecs."subscriptionId" = ${params.subscriptionId}
           AND ecs."isActive" = true
-      `
-    );
-
-    const ids = uniqueCalendarIds(rows);
-    if (ids.length > 0) {
-      return ids;
-    }
-  }
-
-  if (params.resourceId) {
-    const rows = await prisma.$queryRaw<CalendarIdRow[]>(
-      Prisma.sql`
-        SELECT ecs."calendarId"
-        FROM "ExternalCalendarSubscription" ecs
-        WHERE ecs."provider" = CAST(${params.provider} AS "CalendarProvider")
-          AND ecs."resourceId" = ${params.resourceId}
-          AND ecs."isActive" = true
-      `
-    );
-
-    const ids = uniqueCalendarIds(rows);
-    if (ids.length > 0) {
-      return ids;
-    }
-  }
-
-  if (params.providerCalendarId) {
-    if (params.providerAccountId) {
-      const rows = await prisma.$queryRaw<CalendarIdRow[]>(
-        Prisma.sql`
-          SELECT ec."id" AS "calendarId"
-          FROM "ExternalCalendar" ec
-          INNER JOIN "Credential" c ON c."id" = ec."credentialId"
-          WHERE ec."provider" = CAST(${params.provider} AS "CalendarProvider")
-            AND ec."providerCalendarId" = ${params.providerCalendarId}
-            AND ec."syncEnabled" = true
-            AND (
-              c."key"->>'providerAccountId' = ${params.providerAccountId}
-              OR c."key"->>'account_id' = ${params.providerAccountId}
-              OR c."key"->>'tenantId' = ${params.providerAccountId}
-              OR c."key"->>'tenant_id' = ${params.providerAccountId}
-            )
-        `
-      );
-
-      const ids = uniqueCalendarIds(rows);
-      if (ids.length > 0) {
-        return ids;
-      }
-    }
-
-    const rows = await prisma.$queryRaw<CalendarIdRow[]>(
-      Prisma.sql`
-        SELECT ec."id" AS "calendarId"
-        FROM "ExternalCalendar" ec
-        WHERE ec."provider" = CAST(${params.provider} AS "CalendarProvider")
-          AND ec."providerCalendarId" = ${params.providerCalendarId}
           AND ec."syncEnabled" = true
       `
     );
 
-    return uniqueCalendarIds(rows);
+    const targets = uniqueTargets(rows);
+    if (targets.length > 0) {
+      return targets;
+    }
   }
 
-  void params.providerAccountId;
-  return [];
+  if (params.resourceId) {
+    const rows = await prisma.$queryRaw<ResolvedWebhookCalendarTarget[]>(
+      Prisma.sql`
+        SELECT
+          ec."id" AS "calendarId",
+          ec."credentialId",
+          ec."providerCalendarId"
+        FROM "ExternalCalendarSubscription" ecs
+        INNER JOIN "ExternalCalendar" ec ON ec."id" = ecs."calendarId"
+        WHERE ecs."provider" = CAST(${params.provider} AS "CalendarProvider")
+          AND ecs."resourceId" = ${params.resourceId}
+          AND ecs."isActive" = true
+          AND ec."syncEnabled" = true
+      `
+    );
+
+    const targets = uniqueTargets(rows);
+    if (targets.length > 0) {
+      return targets;
+    }
+  }
+
+  if (!params.providerCalendarId) {
+    return [];
+  }
+
+  const rows = await prisma.$queryRaw<ResolvedWebhookCalendarTarget[]>(
+    Prisma.sql`
+      SELECT
+        ec."id" AS "calendarId",
+        ec."credentialId",
+        ec."providerCalendarId"
+      FROM "ExternalCalendar" ec
+      WHERE ec."provider" = CAST(${params.provider} AS "CalendarProvider")
+        AND ec."providerCalendarId" = ${params.providerCalendarId}
+        AND ec."syncEnabled" = true
+    `
+  );
+
+  return uniqueTargets(rows);
 };

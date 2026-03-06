@@ -15,7 +15,6 @@ import {
   type CredentialLike,
   type ProviderSubscriptionDTO,
 } from "../providers/types";
-import { getProviderAccountIdForLock } from "./utils/calendarSyncLock";
 import { buildProviderWebhookUrl } from "./utils/webhookUrl";
 
 interface RenewalCandidateRow {
@@ -53,7 +52,8 @@ export interface SubscriptionRenewalStats {
   autoDisableTargets: {
     calendarId: number;
     provider: CalendarProvider;
-    providerAccountId: string;
+    credentialId: number;
+    providerCalendarId: string;
   }[];
 }
 
@@ -233,7 +233,8 @@ const processCandidate = async (params: {
   autoDisableTargets: {
     calendarId: number;
     provider: CalendarProvider;
-    providerAccountId: string;
+    credentialId: number;
+    providerCalendarId: string;
   }[];
 }> => {
   const candidate = params.candidate;
@@ -252,7 +253,9 @@ const processCandidate = async (params: {
     };
   }
 
-  const lockKey = `subscription_renew:${candidate.calendarId}`;
+  const lockKey = `lock:calendar_subscription_renew:${provider.toLowerCase()}:${
+    candidate.credentialId
+  }:${candidate.providerCalendarId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 
   const maxRetries = Math.max(0, Math.floor(DEFAULT_LOCK_MAX_WAIT_MS / 75));
 
@@ -407,10 +410,8 @@ const processCandidate = async (params: {
                   {
                     calendarId: candidate.calendarId,
                     provider,
-                    providerAccountId: getProviderAccountIdForLock({
-                      credentialKey: candidate.credentialKey,
-                      credentialId: candidate.credentialId,
-                    }),
+                    credentialId: candidate.credentialId,
+                    providerCalendarId: candidate.providerCalendarId,
                   },
                 ]
               : [];
@@ -439,10 +440,8 @@ const processCandidate = async (params: {
                 {
                   calendarId: candidate.calendarId,
                   provider,
-                  providerAccountId: getProviderAccountIdForLock({
-                    credentialKey: candidate.credentialKey,
-                    credentialId: candidate.credentialId,
-                  }),
+                  credentialId: candidate.credentialId,
+                  providerCalendarId: candidate.providerCalendarId,
                 },
               ]
             : [];
@@ -557,7 +556,10 @@ export const runSubscriptionRenewalCron = async (
   if (stats.autoDisableTargets.length > 1) {
     const deduped = new Map<string, (typeof stats.autoDisableTargets)[number]>();
     for (const target of stats.autoDisableTargets) {
-      deduped.set(`${target.provider}:${target.providerAccountId}:${target.calendarId}`, target);
+      deduped.set(
+        `${target.provider}:${target.credentialId}:${target.providerCalendarId}:${target.calendarId}`,
+        target
+      );
     }
     stats.autoDisableTargets = [...deduped.values()];
   }

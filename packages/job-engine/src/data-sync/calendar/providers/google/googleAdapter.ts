@@ -359,7 +359,6 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
     rawBody: string;
   }): Promise<{
     providerCalendarId?: string | null;
-    providerAccountId?: string | null;
     subscriptionId?: string | null;
     resourceId?: string | null;
   }> {
@@ -373,7 +372,6 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
       providerCalendarId,
       subscriptionId,
       resourceId,
-      providerAccountId: null,
     };
   }
 

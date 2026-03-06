@@ -5,19 +5,13 @@ import { NextResponse } from "next/server";
 import logger from "@calcom/lib/logger";
 
 import { enqueueDeltaSyncFromWebhook } from "../_utils/enqueueDeltaSync";
-import { getHeaderValue, toHeaderRecord } from "../_utils/headerUtils";
+import { toHeaderRecord } from "../_utils/headerUtils";
 import { readRawBody } from "../_utils/readRawBody";
 import { registerWebhookDebounce, registerWebhookReplay } from "../_utils/replayProtection";
-import {
-  deriveUniqueWebhookRequestId,
-  extractProviderTimestampMs,
-  isTimestampWithinTolerance,
-} from "../_utils/requestIdentity";
-import { resolveCalendarIdsForWebhook } from "../_utils/routingResolver";
+import { deriveUniqueWebhookRequestId } from "../_utils/requestIdentity";
+import { resolveCalendarTargetsForWebhook } from "../_utils/routingResolver";
 
 const log = logger.getSubLogger({ prefix: ["[api]", "[webhooks]", "[calendar-sync]"] });
-
-const TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000;
 
 const resolveProvider = (providerParam: string): CalendarProvider | null => {
   const normalized = providerParam.trim().toLowerCase();
@@ -28,18 +22,6 @@ const resolveProvider = (providerParam: string): CalendarProvider | null => {
     return CalendarProvider.OUTLOOK;
   }
   return null;
-};
-
-const hasSignatureLikeHeader = (
-  provider: CalendarProvider,
-  headers: Record<string, string | string[] | undefined>
-) => {
-  if (provider === CalendarProvider.GOOGLE) {
-    return Boolean(
-      getHeaderValue(headers, "x-goog-channel-id") && getHeaderValue(headers, "x-goog-resource-id")
-    );
-  }
-  return Boolean(getHeaderValue(headers, "client-state") || getHeaderValue(headers, "x-ms-signature"));
 };
 
 const providerName = (provider: CalendarProvider): string => provider.toLowerCase();
@@ -55,23 +37,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const headers = toHeaderRecord(request);
     const rawBody = await readRawBody(request);
     const validationToken = request.nextUrl.searchParams.get("validationToken");
-
-    const timestampMs = extractProviderTimestampMs(provider, headers);
-    log.info("webhook_received", {
-      event: "webhook_received",
-      provider: providerName(provider),
-      hasSignature: hasSignatureLikeHeader(provider, headers),
-      hasTimestamp: timestampMs !== null,
-    });
-
-    if (!isTimestampWithinTolerance(provider, headers, TIMESTAMP_TOLERANCE_MS)) {
-      log.warn("webhook_invalid_timestamp", {
-        event: "webhook_invalid_timestamp",
-        provider: providerName(provider),
-        toleranceMs: TIMESTAMP_TOLERANCE_MS,
-      });
-      return NextResponse.json({ message: "Timestamp outside tolerance window" }, { status: 401 });
-    }
 
     const adapter = getAdapter(provider);
     const verification = await adapter.verifyWebhook({
@@ -93,6 +58,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       provider: providerName(provider),
     });
 
+    //requried for outlook notificationUrl register validation as per docs [https://learn.microsoft.com/en-us/graph/change-notifications-delivery-webhooks?tabs=http#notificationurl-validation]
     if (provider === CalendarProvider.OUTLOOK && validationToken) {
       return new NextResponse(validationToken, {
         status: 200,
@@ -126,15 +92,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ received: true, replay: true }, { status: 200 });
     }
 
-    const calendarIds = await resolveCalendarIdsForWebhook({
+    const calendarTargets = await resolveCalendarTargetsForWebhook({
       provider,
       subscriptionId: routing.subscriptionId,
       resourceId: routing.resourceId,
       providerCalendarId: routing.providerCalendarId,
-      providerAccountId: routing.providerAccountId,
     });
 
-    if (calendarIds.length === 0) {
+    if (calendarTargets.length === 0) {
       log.info("webhook_unrouteable", {
         event: "webhook_unrouteable",
         provider: providerName(provider),
@@ -147,11 +112,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const receivedAt = new Date().toISOString();
 
-    for (const calendarId of calendarIds) {
+    for (const calendarTarget of calendarTargets) {
+      const calendarId = calendarTarget.calendarId;
       const enqueueState = await registerWebhookDebounce({
         provider,
-        providerAccountId: routing.providerAccountId,
-        calendarId,
+        credentialId: calendarTarget.credentialId,
+        providerCalendarId: calendarTarget.providerCalendarId,
       });
       if (enqueueState === "deduped") {
         log.info("webhook_enqueue_skipped_dedupe", {
@@ -166,6 +132,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         await enqueueDeltaSyncFromWebhook({
           calendarId,
           provider,
+          credentialId: calendarTarget.credentialId,
+          providerCalendarId: calendarTarget.providerCalendarId,
           receivedAt,
           subscriptionId: routing.subscriptionId ?? null,
           resourceId: routing.resourceId ?? null,
