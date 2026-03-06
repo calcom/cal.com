@@ -30,6 +30,7 @@ jobs:
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       has-agents-changes: ${{ steps.filter-inclusions.outputs.has-agents-changes }}
+      has-docs-changes: ${{ steps.filter-inclusions.outputs.has-docs-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -69,6 +70,8 @@ jobs:
         id: filter-inclusions
         with:
           filters: |
+            has-docs-changes:
+              - "docs/**"
             has-agents-changes:
               - "agents/**"
             has-api-v2-changes:
@@ -239,7 +242,7 @@ jobs:
   build-docs:
     name: Production builds
     needs: [prepare]
-    if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.prepare.outputs.has-docs-changes == 'true' || (needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true') }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
@@ -368,4 +371,8 @@ jobs:
           (
             needs.prepare.outputs.has-agents-changes == 'true' &&
             needs.validate-agents-format.result != 'success'
+          ) ||
+          (
+            needs.prepare.outputs.has-docs-changes == 'true' &&
+            needs.build-docs.result != 'success'
           )
