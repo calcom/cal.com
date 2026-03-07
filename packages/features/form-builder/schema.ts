@@ -307,8 +307,13 @@ export const fieldTypesSchemaMap = {
         });
         return;
       }
-      const parsed = new Date(value);
-      if (isNaN(parsed.getTime())) {
+      const [yearStr, monthStr, dayStr] = value.split("-");
+      const year = Number(yearStr);
+      const month = Number(monthStr);
+      const day = Number(dayStr);
+      const parsed = new Date(Date.UTC(year, month - 1, day));
+      parsed.setUTCFullYear(year);
+      if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("invalid_date_format"),
