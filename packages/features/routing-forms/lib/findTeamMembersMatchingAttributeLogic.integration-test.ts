@@ -170,7 +170,7 @@ const createTestAttributeAssignments = async (params: {
   if (assignments.length > 0) {
     await prisma.attributeToUser.createMany({ data: assignments });
 
-    const orgMembershipIds = [...new Set(assignments.map((a) => a.memberId))];
+    const orgMembershipIds = Array.from(new Set(assignments.map((a) => a.memberId)));
     const created = await prisma.attributeToUser.findMany({
       where: { memberId: { in: orgMembershipIds } },
       select: { id: true },
