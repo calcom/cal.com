@@ -173,10 +173,7 @@ test.describe("Teams - NonOrg", () => {
     await page.goto("/teams");
 
     await test.step("Can create team with same name", async () => {
-      // Click the new team button
-      const newTeamButton = page.locator("[data-testid=new-team-btn]");
-      await expect(newTeamButton).toHaveCount(1);
-      await newTeamButton.click();
+      await page.locator("[data-testid=new-team-btn]").click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
