@@ -23,6 +23,7 @@ export const apiHandlers = {
   dialpad: import("./dialpad/api"),
   discord: import("./discord/api"),
   dub: import("./dub/api"),
+  dzylo: import("./dzylo/api"),
   eightxeight: import("./eightxeight/api"),
   "element-call": import("./element-call/api"),
   elevenlabs: import("./elevenlabs/api"),
