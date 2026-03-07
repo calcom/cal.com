@@ -1348,7 +1348,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
           timeTaken,
         });
         expect(totalTimeTaken).toBeLessThan(5000);
-      }, 120000);
+      }, 60000);
     });
   });
 
