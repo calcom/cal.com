@@ -1,9 +1,7 @@
-import { expect } from "@playwright/test";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test, todo } from "./lib/fixtures";
 import {
   bookTimeSlot,
@@ -175,8 +173,9 @@ test.describe("Teams - NonOrg", () => {
     await page.goto("/teams");
 
     await test.step("Can create team with same name", async () => {
-      // Click the new team button
-      await page.locator("[data-testid=new-team-btn]").click();
+      // Click the new team button (use .first() to avoid strict mode violation
+      // if the streaming SSR skeleton CTA briefly coexists with the page CTA)
+      await page.locator("[data-testid=new-team-btn]").first().click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
