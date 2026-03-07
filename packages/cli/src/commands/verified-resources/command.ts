@@ -74,7 +74,7 @@ export function registerVerifiedResourcesCommand(program: Command): void {
 
   emailsCmd
     .command("verify")
-    .description("Verify an email with the verification code")
+    .description("Verify an email with a verification code")
     .requiredOption("--email <email>", "Email address to verify")
     .requiredOption("--code <code>", "Verification code")
     .option("--json", "Output as JSON")
@@ -139,7 +139,7 @@ export function registerVerifiedResourcesCommand(program: Command): void {
 
   phonesCmd
     .command("verify")
-    .description("Verify a phone with the verification code")
+    .description("Verify a phone number with a verification code")
     .requiredOption("--phone <phone>", "Phone number to verify")
     .requiredOption("--code <code>", "Verification code")
     .option("--json", "Output as JSON")
