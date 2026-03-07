@@ -18,9 +18,9 @@ dayjs.extend(isBetween);
 dayjs.extend(isToday);
 dayjs.extend(localizedFormat);
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
 dayjs.extend(timeZone);
 dayjs.extend(toArray);
-dayjs.extend(utc);
 dayjs.extend(minmax);
 dayjs.extend(duration);
 
