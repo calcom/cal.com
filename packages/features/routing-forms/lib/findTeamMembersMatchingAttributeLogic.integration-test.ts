@@ -53,42 +53,6 @@ const createTestTeam = async (overrides: { parentId: number }) => {
   return team;
 };
 
-const createTestUser = async (overrides?: { email?: string; username?: string }) => {
-  const timestamp = Date.now() + Math.random();
-  const user = await prisma.user.create({
-    data: {
-      email: overrides?.email ?? `test-user-${timestamp}@example.com`,
-      username: overrides?.username ?? `test-user-${timestamp}`,
-    },
-  });
-  createdResources.users.push(user.id);
-  return user;
-};
-
-const createTestMemberships = async (params: { userId: number; orgId: number; teamId: number }) => {
-  const orgMembership = await prisma.membership.create({
-    data: {
-      userId: params.userId,
-      teamId: params.orgId,
-      role: "MEMBER",
-      accepted: true,
-    },
-  });
-  createdResources.memberships.push(orgMembership.id);
-
-  const teamMembership = await prisma.membership.create({
-    data: {
-      userId: params.userId,
-      teamId: params.teamId,
-      role: "MEMBER",
-      accepted: true,
-    },
-  });
-  createdResources.memberships.push(teamMembership.id);
-
-  return { orgMembership, teamMembership };
-};
-
 const createTestAttribute = async (params: {
   orgId: number;
   id: string;
@@ -122,23 +86,6 @@ const createTestAttribute = async (params: {
   return attribute;
 };
 
-const createTestAttributeAssignment = async (params: {
-  orgMembershipId: number;
-  attributeOptionId: string;
-}) => {
-  const assignment = await prisma.attributeToUser.create({
-    data: {
-      memberId: params.orgMembershipId,
-      attributeOptionId: params.attributeOptionId,
-    },
-  });
-  createdResources.attributeToUsers.push(assignment.id);
-  return assignment;
-};
-
-/**
- * Batch-create users and return them in the same order as the input list.
- */
 const createTestUsers = async (userDataList: { email: string; username: string }[]) => {
   await prisma.user.createMany({ data: userDataList });
 
@@ -147,7 +94,6 @@ const createTestUsers = async (userDataList: { email: string; username: string }
     select: { id: true, email: true },
   });
 
-  // findMany doesn't guarantee order, so re-sort to match input order
   const emailToUser = new Map(users.map((u) => [u.email, u]));
   const orderedUsers = userDataList.map((ud) => emailToUser.get(ud.email)!);
 
@@ -155,10 +101,6 @@ const createTestUsers = async (userDataList: { email: string; username: string }
   return orderedUsers;
 };
 
-/**
- * Batch-create org and team memberships for all users.
- * Returns a map of userId → orgMembershipId.
- */
 const createTestMembershipsForUsers = async (params: {
   userIds: number[];
   orgId: number;
@@ -202,9 +144,6 @@ const createTestMembershipsForUsers = async (params: {
   return { userIdToOrgMembershipId };
 };
 
-/**
- * Batch-create attribute assignments for users based on a per-member attribute map.
- */
 const createTestAttributeAssignments = async (params: {
   orderedUserIds: number[];
   userIdToOrgMembershipId: Map<number, number>;
