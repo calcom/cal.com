@@ -136,6 +136,111 @@ const createTestAttributeAssignment = async (params: {
   return assignment;
 };
 
+/**
+ * Batch-create users and return them in the same order as the input list.
+ */
+const createTestUsers = async (userDataList: { email: string; username: string }[]) => {
+  await prisma.user.createMany({ data: userDataList });
+
+  const users = await prisma.user.findMany({
+    where: { email: { in: userDataList.map((u) => u.email) } },
+    select: { id: true, email: true },
+  });
+
+  // findMany doesn't guarantee order, so re-sort to match input order
+  const emailToUser = new Map(users.map((u) => [u.email, u]));
+  const orderedUsers = userDataList.map((ud) => emailToUser.get(ud.email)!);
+
+  createdResources.users.push(...orderedUsers.map((u) => u.id));
+  return orderedUsers;
+};
+
+/**
+ * Batch-create org and team memberships for all users.
+ * Returns a map of userId → orgMembershipId.
+ */
+const createTestMembershipsForUsers = async (params: {
+  userIds: number[];
+  orgId: number;
+  teamId: number;
+}) => {
+  const { userIds, orgId, teamId } = params;
+
+  await prisma.membership.createMany({
+    data: userIds.map((userId) => ({
+      userId,
+      teamId: orgId,
+      role: "MEMBER" as const,
+      accepted: true,
+    })),
+  });
+
+  const orgMemberships = await prisma.membership.findMany({
+    where: { userId: { in: userIds }, teamId: orgId },
+    select: { id: true, userId: true },
+  });
+
+  createdResources.memberships.push(...orgMemberships.map((m) => m.id));
+
+  await prisma.membership.createMany({
+    data: userIds.map((userId) => ({
+      userId,
+      teamId,
+      role: "MEMBER" as const,
+      accepted: true,
+    })),
+  });
+
+  const teamMemberships = await prisma.membership.findMany({
+    where: { userId: { in: userIds }, teamId },
+    select: { id: true },
+  });
+
+  createdResources.memberships.push(...teamMemberships.map((m) => m.id));
+
+  const userIdToOrgMembershipId = new Map(orgMemberships.map((m) => [m.userId, m.id]));
+  return { userIdToOrgMembershipId };
+};
+
+/**
+ * Batch-create attribute assignments for users based on a per-member attribute map.
+ */
+const createTestAttributeAssignments = async (params: {
+  orderedUserIds: number[];
+  userIdToOrgMembershipId: Map<number, number>;
+  membersAttributes: Record<string, string | string[]>[];
+  optionValueToId: Map<string, string>;
+}) => {
+  const { orderedUserIds, userIdToOrgMembershipId, membersAttributes, optionValueToId } = params;
+
+  const assignments: { memberId: number; attributeOptionId: string }[] = [];
+  for (let i = 0; i < orderedUserIds.length; i++) {
+    const orgMembershipId = userIdToOrgMembershipId.get(orderedUserIds[i]);
+    if (!orgMembershipId) continue;
+    for (const [attrId, value] of Object.entries(membersAttributes[i])) {
+      const values = Array.isArray(value) ? value : [value];
+      for (const v of values) {
+        const optionId = optionValueToId.get(`${attrId}:${v}`);
+        if (optionId) {
+          assignments.push({ memberId: orgMembershipId, attributeOptionId: optionId });
+        }
+      }
+    }
+  }
+
+  if (assignments.length > 0) {
+    await prisma.attributeToUser.createMany({ data: assignments });
+
+    const orgMembershipIds = [...new Set(assignments.map((a) => a.memberId))];
+    const created = await prisma.attributeToUser.findMany({
+      where: { memberId: { in: orgMembershipIds } },
+      select: { id: true },
+    });
+
+    createdResources.attributeToUsers.push(...created.map((a) => a.id));
+  }
+};
+
 async function createAttributesScenario(params: {
   attributes: {
     id: string;
@@ -175,90 +280,20 @@ async function createAttributesScenario(params: {
     username: `test-user-${timestamp}-${i}`,
   }));
 
-  await prisma.user.createMany({ data: userDataList });
+  const orderedUsers = await createTestUsers(userDataList);
 
-  const users = await prisma.user.findMany({
-    where: { email: { in: userDataList.map((u) => u.email) } },
-    select: { id: true, email: true },
+  const { userIdToOrgMembershipId } = await createTestMembershipsForUsers({
+    userIds: orderedUsers.map((u) => u.id),
+    orgId: testFixtures.org.id,
+    teamId: testFixtures.team.id,
   });
 
-  // findMany doesn't guarantee order, so re-sort to match userDataList index
-  const emailToUser = new Map(users.map((u) => [u.email, u]));
-  const orderedUsers = userDataList.map((ud) => emailToUser.get(ud.email)!);
-
-  createdResources.users.push(...orderedUsers.map((u) => u.id));
-
-  await prisma.membership.createMany({
-    data: orderedUsers.map((user) => ({
-      userId: user.id,
-      teamId: testFixtures.org.id,
-      role: "MEMBER" as const,
-      accepted: true,
-    })),
+  await createTestAttributeAssignments({
+    orderedUserIds: orderedUsers.map((u) => u.id),
+    userIdToOrgMembershipId,
+    membersAttributes: teamMembersWithAttributeOptionValuePerAttribute.map((m) => m.attributes),
+    optionValueToId,
   });
-
-  const orgMemberships = await prisma.membership.findMany({
-    where: {
-      userId: { in: orderedUsers.map((u) => u.id) },
-      teamId: testFixtures.org.id,
-    },
-    select: { id: true, userId: true },
-  });
-
-  createdResources.memberships.push(...orgMemberships.map((m) => m.id));
-
-  await prisma.membership.createMany({
-    data: orderedUsers.map((user) => ({
-      userId: user.id,
-      teamId: testFixtures.team.id,
-      role: "MEMBER" as const,
-      accepted: true,
-    })),
-  });
-
-  const teamMemberships = await prisma.membership.findMany({
-    where: {
-      userId: { in: orderedUsers.map((u) => u.id) },
-      teamId: testFixtures.team.id,
-    },
-    select: { id: true },
-  });
-
-  createdResources.memberships.push(...teamMemberships.map((m) => m.id));
-
-  const userIdToOrgMembershipId = new Map(orgMemberships.map((m) => [m.userId, m.id]));
-
-  const attributeAssignments: { memberId: number; attributeOptionId: string }[] = [];
-  for (let i = 0; i < orderedUsers.length; i++) {
-    const orgMembershipId = userIdToOrgMembershipId.get(orderedUsers[i].id);
-    if (!orgMembershipId) continue;
-    const member = teamMembersWithAttributeOptionValuePerAttribute[i];
-    for (const [attrId, value] of Object.entries(member.attributes)) {
-      const values = Array.isArray(value) ? value : [value];
-      for (const v of values) {
-        const optionId = optionValueToId.get(`${attrId}:${v}`);
-        if (optionId) {
-          attributeAssignments.push({
-            memberId: orgMembershipId,
-            attributeOptionId: optionId,
-          });
-        }
-      }
-    }
-  }
-
-  if (attributeAssignments.length > 0) {
-    await prisma.attributeToUser.createMany({ data: attributeAssignments });
-
-    const createdAssignments = await prisma.attributeToUser.findMany({
-      where: {
-        memberId: { in: orgMemberships.map((m) => m.id) },
-      },
-      select: { id: true },
-    });
-
-    createdResources.attributeToUsers.push(...createdAssignments.map((a) => a.id));
-  }
 
   const createdUsers = orderedUsers.map((user) => ({
     userId: user.id,
