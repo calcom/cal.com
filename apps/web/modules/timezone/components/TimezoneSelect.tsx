@@ -1,8 +1,8 @@
 "use client";
 
-import type { Timezones } from "@calcom/lib/timezone";
 import { TimezoneSelectComponent } from "@calcom/features/timezone/components/TimezoneSelectComponent";
-import { CALCOM_VERSION } from "@calcom/lib/constants";
+import { CITY_TIMEZONE_HASH } from "@calcom/lib/constants";
+import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 import { useMemo } from "react";
 import type { Props as SelectProps } from "react-timezone-select";
@@ -39,10 +39,11 @@ export type TimezoneSelectProps = SelectProps & {
 export function TimezoneSelect(props: TimezoneSelectProps) {
   const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
     {
-      CalComVersion: CALCOM_VERSION,
+      hash: CITY_TIMEZONE_HASH,
     },
     {
       trpc: { context: { skipBatch: true } },
+      staleTime: Infinity, // Data is keyed by content hash; never stale until hash changes on redeploy
     }
   );
 

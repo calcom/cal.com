@@ -1,6 +1,5 @@
 import type { AnyRouter } from "@trpc/server";
 import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
-
 import { createContext as createTrpcContext } from "./createContext";
 import { onErrorHandler } from "./onErrorHandler";
 
@@ -53,13 +52,19 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const SETTING_FOR_CACHED_BY_VERSION =
           process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`;
 
+        const IMMUTABLE_CACHE =
+          process.env.NODE_ENV === "development"
+            ? "no-cache"
+            : `public, max-age=${ONE_YEAR_IN_SECONDS}, immutable`;
+
         const cacheRules = {
           session: "no-cache",
 
-          // i18n and cityTimezones are now being accessed using the CalComVersion, which updates on every release,
-          // letting the clients get the new versions when the version number changes.
+          // i18n is accessed using CalComVersion, which updates on every release.
           "i18n.get": SETTING_FOR_CACHED_BY_VERSION,
-          cityTimezones: SETTING_FOR_CACHED_BY_VERSION,
+          // cityTimezones is accessed using a content hash that only changes when timezone data changes,
+          // so we can safely mark it as immutable — the URL itself changes when the data changes.
+          cityTimezones: IMMUTABLE_CACHE,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`, // INFO: This needs the slots prefix because it lives us the public router

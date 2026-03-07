@@ -1,9 +1,9 @@
+import i18nConfig from "@calcom/i18n/next-i18next.config";
 import { withBotId } from "botid/next/config";
 import { config as dotenvConfig } from "dotenv";
 import type { NextConfig } from "next";
 import type { RouteHas } from "next/dist/lib/load-custom-routes";
 import { withAxiom } from "next-axiom";
-import i18nConfig from "@calcom/i18n/next-i18next.config";
 import packageJson from "./package.json";
 import {
   nextJsOrgRewriteConfig,
@@ -57,6 +57,12 @@ const isOrganizationsEnabled =
 const env = process.env as Record<string, string | undefined>;
 
 env.NEXT_PUBLIC_CALCOM_VERSION = version;
+
+// Compute content hash of city timezone data at build time.
+// This hash only changes when the city-timezones package or filtering logic changes,
+// so clients keep using their cached response across deploys unless the data actually changes.
+const { computeCityTimezonesHash } = require("@calcom/features/cityTimezones/computeCityTimezones");
+env.NEXT_PUBLIC_CITY_TIMEZONE_HASH = computeCityTimezonesHash();
 
 if (process.env.NODE_ENV === "production" || process.env.CALCOM_ENV === "production") {
   env.TRIGGER_VERSION = TRIGGER_VERSION;
