@@ -1,9 +1,17 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty, ApiPropertyOptional as DocsPropertyOptional } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 const inputBookingFieldTypes = [
   "name",
@@ -21,6 +29,7 @@ const inputBookingFieldTypes = [
   "radio",
   "boolean",
   "url",
+  "date",
 ] as const;
 
 const inputBookingFieldSlugs = ["title", "location", "notes", "guests", "rescheduleReason"] as const;
@@ -842,6 +851,53 @@ export class RadioGroupFieldInput_2024_06_14 {
   hidden?: boolean;
 }
 
+export class DateFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "date", description: "only allowed value for type is `date`" })
+  type!: "date";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "some-slug",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please select a date" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "e.g., YYYY-MM-DD" })
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `dob` and the URL contains query parameter `&dob=2024-01-15`,\
+      the date field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{dob: '2024-01-15'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+}
+
 export class BooleanFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "boolean", description: "only allowed value for type is `boolean`" })
@@ -906,7 +962,8 @@ export type InputBookingField_2024_06_14 =
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14
-  | UrlFieldInput_2024_06_14;
+  | UrlFieldInput_2024_06_14
+  | DateFieldInput_2024_06_14;
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
@@ -931,6 +988,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     radio: RadioGroupFieldInput_2024_06_14,
     boolean: BooleanFieldInput_2024_06_14,
     url: UrlFieldInput_2024_06_14,
+    date: DateFieldInput_2024_06_14,
   };
 
   async validate(bookingFields: { type: string; slug: string }[]) {
@@ -1001,7 +1059,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
 
 export function ValidateInputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateInputBookingFields",
       target: object.constructor,

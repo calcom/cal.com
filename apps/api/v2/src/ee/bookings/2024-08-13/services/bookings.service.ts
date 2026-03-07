@@ -378,6 +378,10 @@ export class BookingsService_2024_08_13 {
             expectedBookingFieldResponseValueType = "string";
             isValidType = bookingFieldResponseValueType === "string";
             break;
+          case "date":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+            break;
           default:
             // note(Lauris): by default pass the field if we have a missing "case" in the switch
             isValidType = true;

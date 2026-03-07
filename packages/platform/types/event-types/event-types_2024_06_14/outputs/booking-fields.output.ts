@@ -1,29 +1,35 @@
 import { Logger } from "@nestjs/common";
 import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
-
 import {
-  PhoneFieldInput_2024_06_14,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
+import {
   AddressFieldInput_2024_06_14,
-  TextFieldInput_2024_06_14,
-  NumberFieldInput_2024_06_14,
-  TextAreaFieldInput_2024_06_14,
-  SelectFieldInput_2024_06_14,
-  MultiSelectFieldInput_2024_06_14,
-  MultiEmailFieldInput_2024_06_14,
-  CheckboxGroupFieldInput_2024_06_14,
-  RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
-  NameDefaultFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  DateFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
+  MultiEmailFieldInput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
+  NumberFieldInput_2024_06_14,
+  PhoneFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
-  TitleDefaultFieldInput_2024_06_14,
+  SelectFieldInput_2024_06_14,
   SplitNameDefaultFieldInput_2024_06_14,
+  TextAreaFieldInput_2024_06_14,
+  TextFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
 } from "../inputs";
 
@@ -617,6 +623,23 @@ export class BooleanFieldOutput_2024_06_14 extends BooleanFieldInput_2024_06_14 
   hidden!: boolean;
 }
 
+export class DateFieldOutput_2024_06_14 extends DateFieldInput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always false because it's not default field but custom field",
+    example: false,
+    default: false,
+  })
+  isDefault = false;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+}
+
 export class OutputUnknownBookingField_2024_06_14 {
   @DocsProperty({ example: "unknown", description: "only allowed value for type is `unknown`" })
   type!: "unknown";
@@ -651,7 +674,8 @@ export type CustomFieldOutput_2024_06_14 =
   | CheckboxGroupFieldOutput_2024_06_14
   | RadioGroupFieldOutput_2024_06_14
   | BooleanFieldOutput_2024_06_14
-  | UrlFieldOutput_2024_06_14;
+  | UrlFieldOutput_2024_06_14
+  | DateFieldOutput_2024_06_14;
 
 export type KnownBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
 
@@ -689,6 +713,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     radio: RadioGroupFieldOutput_2024_06_14,
     boolean: BooleanFieldOutput_2024_06_14,
     url: UrlFieldOutput_2024_06_14,
+    date: DateFieldOutput_2024_06_14,
   };
 
   async validate(bookingFields: OutputBookingField_2024_06_14[]) {
@@ -767,7 +792,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
 
 export function ValidateOutputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateOutputBookingFields",
       target: object.constructor,
