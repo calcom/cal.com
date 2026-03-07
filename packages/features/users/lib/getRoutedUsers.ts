@@ -1,5 +1,4 @@
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
@@ -51,6 +50,11 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
   if (!eventType.team || !eventType.team.parentId) {
     return null;
   }
+
+  // Dynamic import to avoid loading react-awesome-query-builder at module evaluation time
+  const { findTeamMembersMatchingAttributeLogic } = await import(
+    "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic"
+  );
 
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
     attributesQueryValue: eventType.rrSegmentQueryValue ?? null,

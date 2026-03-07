@@ -17,6 +17,7 @@ export interface StripeInvoiceData {
 }
 
 export interface ISeatBillingStrategy {
+  readonly strategyName: string;
   onSeatChange(context: SeatChangeContext): Promise<void>;
   onInvoiceUpcoming(subscriptionId: string): Promise<{ applied: boolean }>;
   onRenewalPaid(subscriptionId: string, periodStart: Date): Promise<{ reset: boolean }>;
@@ -25,6 +26,7 @@ export interface ISeatBillingStrategy {
 }
 
 export abstract class BaseSeatBillingStrategy implements ISeatBillingStrategy {
+  abstract readonly strategyName: string;
   abstract onSeatChange(context: SeatChangeContext): Promise<void>;
 
   async onInvoiceUpcoming(_subscriptionId: string): Promise<{ applied: boolean }> {
