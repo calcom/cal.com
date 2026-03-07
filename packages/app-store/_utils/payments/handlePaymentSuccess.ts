@@ -228,7 +228,7 @@ export async function handlePaymentSuccess(params: {
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
         calendarEvent: calendarEventForWorkflow,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding ?? false,
         triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

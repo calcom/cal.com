@@ -36,7 +36,7 @@ vi.mock("@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate", () =>
 }));
 
 // Mock the i18n
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
