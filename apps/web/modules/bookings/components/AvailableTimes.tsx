@@ -1,28 +1,27 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
-import * as HoverCard from "@radix-ui/react-hover-card";
-import { AnimatePresence, m } from "framer-motion";
-import { useMemo } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
-import type { IUseBookingLoadingStates } from "../hooks/useBookings";
-import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "~/schedules/lib/types";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
+import type { BookerEvent, Slots } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { CalendarX2Icon } from "@coss/ui/icons";
-
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
-import type { Slots } from "@calcom/features/bookings/types";
+import * as HoverCard from "@radix-ui/react-hover-card";
+import { AnimatePresence, m } from "framer-motion";
+import { useMemo } from "react";
+import type { Slot } from "~/schedules/lib/types";
+import type { IUseBookingLoadingStates } from "../hooks/useBookings";
+import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
 type TOnTimeSelect = (
@@ -122,6 +121,9 @@ const SlotItem = ({
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
 
+  const slotHour = computedDateWithUsersTimezone.hour();
+  const isDaytime = slotHour >= 6 && slotHour < 18;
+
   const nowDate = dayjs();
   const usersTimezoneDate = nowDate.tz(timezone);
 
@@ -183,6 +185,10 @@ const SlotItem = ({
                 )}
               />
             )}
+            <Icon
+              name={isDaytime ? "sun" : "moon"}
+              className={classNames("h-4 w-4 shrink-0", isDaytime ? "text-yellow-500" : "text-blue-400")}
+            />
             {computedDateWithUsersTimezone.format(timeFormat)}
           </div>
           {bookingFull && <p className="text-sm">{t("booking_full")}</p>}
