@@ -20,14 +20,43 @@ export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg }: GeneralVi
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
+    onMutate: async ({ disablePhoneOnlySMSNotifications }) => {
+      await utils.viewer.organizations.listCurrent.cancel();
+      const previousValue =
+        !!utils.viewer.organizations.listCurrent.getData()?.organizationSettings.disablePhoneOnlySMSNotifications;
+
+      setDisablePhoneOnlySMSNotificationsActive(disablePhoneOnlySMSNotifications);
+      utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+        if (!previousOrg) return previousOrg;
+        return {
+          ...previousOrg,
+          organizationSettings: {
+            ...previousOrg.organizationSettings,
+            disablePhoneOnlySMSNotifications,
+          },
+        };
+      });
+
+      return { previousValue };
+    },
     onSuccess: async () => {
       showToast(t("settings_updated_successfully"), "success");
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      if (context) {
+        utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+          if (!previousOrg) return previousOrg;
+          return {
+            ...previousOrg,
+            organizationSettings: {
+              ...previousOrg.organizationSettings,
+              disablePhoneOnlySMSNotifications: context.previousValue,
+            },
+          };
+        });
+        setDisablePhoneOnlySMSNotificationsActive(context.previousValue);
+      }
       showToast(t("error_updating_settings"), "error");
-    },
-    onSettled: () => {
-      utils.viewer.organizations.listCurrent.invalidate();
     },
   });
 
@@ -36,14 +65,12 @@ export const DisablePhoneOnlySMSNotificationsSwitch = ({ currentOrg }: GeneralVi
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("organization_disable_phone_only_sms_notifications_switch_title")}
-        disabled={mutation?.isPending}
         description={t("organization_disable_phone_only_sms_notifications_switch_description")}
         checked={disablePhoneOnlySMSNotificationsActive}
         onCheckedChange={(checked) => {
           mutation.mutate({
             disablePhoneOnlySMSNotifications: checked,
           });
-          setDisablePhoneOnlySMSNotificationsActive(checked);
         }}
         switchContainerClassName="mt-6"
       />

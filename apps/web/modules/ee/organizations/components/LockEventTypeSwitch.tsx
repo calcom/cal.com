@@ -32,13 +32,40 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
   );
   const [showModal, setShowModal] = useState(false);
   const { t } = useLocale();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.organizations.update.useMutation({
+    onMutate: async ({ lockEventTypeCreation }) => {
+      if (typeof lockEventTypeCreation === "undefined") return;
+
+      await utils.viewer.organizations.listCurrent.cancel();
+      const previousValue = utils.viewer.organizations.listCurrent.getData();
+
+      setLockEventTypeCreationForUsers(lockEventTypeCreation);
+      utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+        if (!previousOrg) return previousOrg;
+        return {
+          ...previousOrg,
+          organizationSettings: {
+            ...previousOrg.organizationSettings,
+            lockEventTypeCreationForUsers: lockEventTypeCreation,
+          },
+        };
+      });
+
+      return { previousValue };
+    },
     onSuccess: async () => {
       reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      if (context?.previousValue) {
+        utils.viewer.organizations.listCurrent.setData(undefined, context.previousValue);
+        setLockEventTypeCreationForUsers(
+          !!context.previousValue.organizationSettings.lockEventTypeCreationForUsers
+        );
+      }
       showToast(t("error_updating_settings"), "error");
     },
   });
@@ -75,9 +102,9 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
               lockEventTypeCreation: checked,
             });
           } else {
+            setLockEventTypeCreationForUsers(true);
             setShowModal(true);
           }
-          setLockEventTypeCreationForUsers(checked);
         }}
         switchContainerClassName="mt-6"
       />
@@ -86,8 +113,10 @@ export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
           open={showModal}
           onOpenChange={(e) => {
             if (!e) {
+              const latestOrg = utils.viewer.organizations.listCurrent.getData();
               setLockEventTypeCreationForUsers(
-                !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
+                latestOrg?.organizationSettings.lockEventTypeCreationForUsers ??
+                  !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
               );
               setShowModal(false);
             }

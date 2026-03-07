@@ -20,15 +20,43 @@ export const DisableAutofillOnBookingPageSwitch = ({ currentOrg }: GeneralViewPr
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: async (_data, variables) => {
-      setDisableAutofillOnBookingPageActive(!!variables.disableAutofillOnBookingPage);
+    onMutate: async ({ disableAutofillOnBookingPage }) => {
+      await utils.viewer.organizations.listCurrent.cancel();
+      const previousValue =
+        !!utils.viewer.organizations.listCurrent.getData()?.organizationSettings.disableAutofillOnBookingPage;
+
+      setDisableAutofillOnBookingPageActive(!!disableAutofillOnBookingPage);
+      utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+        if (!previousOrg) return previousOrg;
+        return {
+          ...previousOrg,
+          organizationSettings: {
+            ...previousOrg.organizationSettings,
+            disableAutofillOnBookingPage: !!disableAutofillOnBookingPage,
+          },
+        };
+      });
+
+      return { previousValue };
+    },
+    onSuccess: async () => {
       showToast(t("settings_updated_successfully"), "success");
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      if (context) {
+        utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+          if (!previousOrg) return previousOrg;
+          return {
+            ...previousOrg,
+            organizationSettings: {
+              ...previousOrg.organizationSettings,
+              disableAutofillOnBookingPage: context.previousValue,
+            },
+          };
+        });
+        setDisableAutofillOnBookingPageActive(context.previousValue);
+      }
       showToast(t("error_updating_settings"), "error");
-    },
-    onSettled: () => {
-      utils.viewer.organizations.listCurrent.invalidate();
     },
   });
 
@@ -37,7 +65,6 @@ export const DisableAutofillOnBookingPageSwitch = ({ currentOrg }: GeneralViewPr
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("disable_autofill_on_booking_page")}
-        disabled={mutation?.isPending}
         description={t("disable_autofill_on_booking_page_description")}
         checked={disableAutofillOnBookingPageActive}
         onCheckedChange={(checked) => {

@@ -18,14 +18,43 @@ export const NoSlotsNotificationSwitch = ({ currentOrg }: GeneralViewProps) => {
   );
 
   const mutation = trpc.viewer.organizations.update.useMutation({
+    onMutate: async ({ adminGetsNoSlotsNotification }) => {
+      await utils.viewer.organizations.listCurrent.cancel();
+      const previousValue =
+        !!utils.viewer.organizations.listCurrent.getData()?.organizationSettings.adminGetsNoSlotsNotification;
+
+      setNotificationActive(adminGetsNoSlotsNotification);
+      utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+        if (!previousOrg) return previousOrg;
+        return {
+          ...previousOrg,
+          organizationSettings: {
+            ...previousOrg.organizationSettings,
+            adminGetsNoSlotsNotification,
+          },
+        };
+      });
+
+      return { previousValue };
+    },
     onSuccess: async () => {
       showToast(t("settings_updated_successfully"), "success");
     },
-    onError: () => {
+    onError: (_error, _variables, context) => {
+      if (context) {
+        utils.viewer.organizations.listCurrent.setData(undefined, (previousOrg) => {
+          if (!previousOrg) return previousOrg;
+          return {
+            ...previousOrg,
+            organizationSettings: {
+              ...previousOrg.organizationSettings,
+              adminGetsNoSlotsNotification: context.previousValue,
+            },
+          };
+        });
+        setNotificationActive(context.previousValue);
+      }
       showToast(t("error_updating_settings"), "error");
-    },
-    onSettled: () => {
-      utils.viewer.organizations.listCurrent.invalidate();
     },
   });
 
@@ -34,14 +63,12 @@ export const NoSlotsNotificationSwitch = ({ currentOrg }: GeneralViewProps) => {
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("organization_no_slots_notification_switch_title")}
-        disabled={mutation?.isPending}
         description={t("organization_no_slots_notification_switch_description")}
         checked={notificationActive}
         onCheckedChange={(checked) => {
           mutation.mutate({
             adminGetsNoSlotsNotification: checked,
           });
-          setNotificationActive(checked);
         }}
         switchContainerClassName="mt-6"
       />
