@@ -8,20 +8,24 @@ import {
 } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -110,7 +114,7 @@ const buildResultPayload = async ({
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
   t: TFunction;
   emailToAttendeeMap: EmailToAttendeeMap;
-}): Promise<{message: string; attendees: NoShowAttendees}> => {
+}): Promise<{ message: string; attendees: NoShowAttendees }> => {
   const updatedAttendees = await updateAttendees({ attendees, emailToAttendeeMap });
 
   if (updatedAttendees.length === 1) {
@@ -241,7 +245,8 @@ async function fireNoShowUpdated({
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
-  const isSomethingChanged = auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
+  const isSomethingChanged =
+    auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
   if (isSomethingChanged) {
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
@@ -359,6 +364,25 @@ const handleMarkNoShow = async ({
                 }
               : undefined;
 
+            const hideBranding = await getEventTypeService().shouldHideBrandingForEventType(
+              booking.eventType.id,
+              {
+                team: booking.eventType.team
+                  ? {
+                      hideBranding: booking.eventType.team.hideBranding,
+                      parent: booking.eventType.team.parent,
+                    }
+                  : null,
+                owner: booking.eventType.owner
+                  ? {
+                      id: booking.eventType.owner.id,
+                      hideBranding: booking.eventType.owner.hideBranding,
+                      profiles: booking.eventType.owner.profiles ?? [],
+                    }
+                  : null,
+              } satisfies EventTypeBrandingData
+            );
+
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,
               title: booking.title,
@@ -393,6 +417,7 @@ const handleMarkNoShow = async ({
               eventTypeId: booking.eventType?.id,
               customReplyToEmail: booking.eventType?.customReplyToEmail,
               team,
+              hideBranding,
             };
 
             const creditService = new CreditService();
@@ -400,7 +425,7 @@ const handleMarkNoShow = async ({
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
-              hideBranding: booking.eventType.owner?.hideBranding,
+              hideBranding: calendarEvent.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
               creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
@@ -448,7 +473,7 @@ const updateAttendees = async ({
   emailToAttendeeMap,
 }: {
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
-  emailToAttendeeMap: EmailToAttendeeMap; 
+  emailToAttendeeMap: EmailToAttendeeMap;
 }): Promise<NoShowAttendees> => {
   const attendeeRepository = new AttendeeRepository(prisma);
   const updatePromises = attendees.map((attendee) => {

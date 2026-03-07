@@ -48,7 +48,8 @@ export function useVoicePreview() {
     setCurrentAudio(audio);
     audioRef.current = audio;
 
-    audio.play()
+    audio
+      .play()
       .then(() => {
         setPlayingVoiceId(voiceId || null);
       })

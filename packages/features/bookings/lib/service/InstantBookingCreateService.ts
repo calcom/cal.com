@@ -21,7 +21,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -225,16 +225,19 @@ export async function handler(
     },
   ];
 
-  const guests = (reqBody.guests || []).reduce((guestArray, guest) => {
-    guestArray.push({
-      email: guest,
-      name: "",
-      timeZone: attendeeTimezone,
-      locale: "en",
-      phoneNumber: null,
-    });
-    return guestArray;
-  }, [] as typeof invitee);
+  const guests = (reqBody.guests || []).reduce(
+    (guestArray, guest) => {
+      guestArray.push({
+        email: guest,
+        name: "",
+        timeZone: attendeeTimezone,
+        locale: "en",
+        phoneNumber: null,
+      });
+      return guestArray;
+    },
+    [] as typeof invitee
+  );
 
   const attendeesList = [...invitee, ...guests];
   const calVideoMeeting = await createInstantMeetingWithCalVideo(dayjs.utc(reqBody.end).toISOString());

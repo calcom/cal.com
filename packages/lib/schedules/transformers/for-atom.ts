@@ -30,37 +30,40 @@ export function transformDateOverridesForAtom(
   schedule: { availability: ScheduleOverride },
   timeZone: string
 ) {
-  const acc = schedule.availability.reduce((acc, override) => {
-    // only if future date override
-    const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
-    const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
+  const acc = schedule.availability.reduce(
+    (acc, override) => {
+      // only if future date override
+      const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
+      const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
 
-    if (!override.date || dayjs(override.date).isBefore(currentTimeInTz, "day")) {
+      if (!override.date || dayjs(override.date).isBefore(currentTimeInTz, "day")) {
+        return acc;
+      }
+      const newValue = {
+        start: dayjs
+          .utc(override.date)
+          .hour(override.startTime.getUTCHours())
+          .minute(override.startTime.getUTCMinutes())
+          .toDate(),
+        end: dayjs
+          .utc(override.date)
+          .hour(override.endTime.getUTCHours())
+          .minute(override.endTime.getUTCMinutes())
+          .toDate(),
+      };
+      const dayRangeIndex = acc.findIndex(
+        // early return prevents override.date from ever being empty.
+        (item) => override.date && yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date)
+      );
+      if (dayRangeIndex === -1) {
+        acc.push({ ranges: [newValue] });
+        return acc;
+      }
+      acc[dayRangeIndex].ranges.push(newValue);
       return acc;
-    }
-    const newValue = {
-      start: dayjs
-        .utc(override.date)
-        .hour(override.startTime.getUTCHours())
-        .minute(override.startTime.getUTCMinutes())
-        .toDate(),
-      end: dayjs
-        .utc(override.date)
-        .hour(override.endTime.getUTCHours())
-        .minute(override.endTime.getUTCMinutes())
-        .toDate(),
-    };
-    const dayRangeIndex = acc.findIndex(
-      // early return prevents override.date from ever being empty.
-      (item) => override.date && yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date)
-    );
-    if (dayRangeIndex === -1) {
-      acc.push({ ranges: [newValue] });
-      return acc;
-    }
-    acc[dayRangeIndex].ranges.push(newValue);
-    return acc;
-  }, [] as { ranges: TimeRange[] }[]);
+    },
+    [] as { ranges: TimeRange[] }[]
+  );
 
   acc.sort((a, b) => {
     const aTime = a.ranges?.[0]?.start?.getTime?.() ?? 0;

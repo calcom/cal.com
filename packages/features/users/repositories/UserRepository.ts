@@ -5,7 +5,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
@@ -1428,5 +1428,32 @@ export class UserRepository {
         destinationCalendar: true,
       },
     });
+  }
+
+  async lockByEmail({ email }: { email: string }) {
+    await this.prismaClient.user.updateMany({
+      where: { email },
+      data: { locked: true },
+    });
+  }
+
+  async unlockByEmail({
+    email,
+  }: {
+    email: string;
+  }): Promise<{ email: string; username: string | null } | null> {
+    const user = await this.prismaClient.user.findFirst({
+      where: { email, locked: true },
+      select: { id: true, email: true, username: true },
+    });
+
+    if (!user) return null;
+
+    await this.prismaClient.user.update({
+      where: { id: user.id },
+      data: { locked: false },
+    });
+
+    return { email: user.email, username: user.username };
   }
 }

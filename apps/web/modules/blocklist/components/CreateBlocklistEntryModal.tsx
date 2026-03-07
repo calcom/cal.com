@@ -10,7 +10,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { GlobeIcon, MailIcon } from "@coss/ui/icons";
 
 import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
 
@@ -82,8 +82,8 @@ export function CreateBlocklistEntryModal({
   };
 
   const typeOptions = [
-    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <Icon name="mail" className="h-4 w-4" /> },
-    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <Icon name="globe" className="h-4 w-4" /> },
+    { label: t("email"), value: WatchlistType.EMAIL, iconLeft: <MailIcon className="h-4 w-4" /> },
+    { label: t("domain"), value: WatchlistType.DOMAIN, iconLeft: <GlobeIcon className="h-4 w-4" /> },
   ];
 
   return (

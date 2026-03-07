@@ -357,9 +357,14 @@ export const stringOrNumber = z.union([
 
 export const requiredCustomInputSchema = z.union([
   // string must be given & nonempty
-  z.string().trim().min(1),
+  z
+    .string()
+    .trim()
+    .min(1),
   // boolean must be true if set.
-  z.boolean().refine((v) => v === true),
+  z
+    .boolean()
+    .refine((v) => v === true),
 ]);
 
 const PlatformClientParamsSchema = z.object({
@@ -391,6 +396,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   skipCancellationReasonValidation: z.boolean().optional(),
+  skipCalendarSyncTaskCancellation: z.boolean().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
@@ -643,7 +649,7 @@ export function denullishShape<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall>,
-  Input = objectInputType<T, Catchall>
+  Input = objectInputType<T, Catchall>,
 >(
   obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
 ): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
@@ -675,13 +681,14 @@ export const entries = <O extends Record<string, unknown>>(
 /**
  * Returns a type with all readonly notations removed (traverses recursively on an object)
  */
-type DeepWriteable<T> = T extends Readonly<{
-  -readonly [K in keyof T]: T[K];
-}>
-  ? {
-      -readonly [K in keyof T]: DeepWriteable<T[K]>;
-    }
-  : T; /* Make it work with readonly types (this is not strictly necessary) */
+type DeepWriteable<T> =
+  T extends Readonly<{
+    -readonly [K in keyof T]: T[K];
+  }>
+    ? {
+        -readonly [K in keyof T]: DeepWriteable<T[K]>;
+      }
+    : T; /* Make it work with readonly types (this is not strictly necessary) */
 
 type FromEntries<T> = T extends [infer Keys, unknown][]
   ? { [K in Keys & PropertyKey]: Extract<T[number], [K, unknown]>[1] }
@@ -694,7 +701,7 @@ type FromEntries<T> = T extends [infer Keys, unknown][]
  * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/fromEntries.ts
  */
 export const fromEntries = <
-  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>
+  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>,
 >(
   entries: E
 ): FromEntries<DeepWriteable<E>> => {
@@ -765,6 +772,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  requiresCancellationReason: true,
   allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
@@ -847,6 +855,7 @@ export const allManagedEventTypePropsForZod = {
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  requiresCancellationReason: true,
   allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
