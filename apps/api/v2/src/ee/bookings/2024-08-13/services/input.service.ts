@@ -696,9 +696,7 @@ export class InputBookingsService_2024_08_13 {
       booking.endTime
     );
 
-    const startTime = DateTime.fromISO(inputBooking.start, {
-      zone: "utc",
-    }).setZone(attendee.timeZone);
+    const startTime = DateTime.fromISO(inputBooking.start).setZone(attendee.timeZone);
     const endTime = startTime.plus({ minutes: originalDurationInMinutes });
 
     return {
@@ -783,9 +781,7 @@ export class InputBookingsService_2024_08_13 {
       booking.endTime
     );
 
-    const startTime = DateTime.fromISO(inputBooking.start, {
-      zone: "utc",
-    }).setZone(attendee.timeZone);
+    const startTime = DateTime.fromISO(inputBooking.start).setZone(attendee.timeZone);
     const endTime = startTime.plus({ minutes: originalDurationInMinutes });
     return {
       start: startTime.toISO(),
