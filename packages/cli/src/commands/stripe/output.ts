@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { type OutputOptions, renderHeader, renderSuccess } from "../../shared/output";
+import { type OutputOptions, renderDetail, renderHeader, renderSuccess, renderWarning } from "../../shared/output";
 import type { StripeCheckResponse, StripeRedirectResponse, StripeSaveResponse } from "./types";
 
 export function renderStripeRedirect(
@@ -44,17 +44,18 @@ export function renderStripeCheck(
   }
   renderHeader("Stripe Integration Status");
   if (!data?.status) {
-    console.log(chalk.yellow("No status information available."));
+    renderWarning("No status information available.");
     return;
   }
   const statusEntries = Object.entries(data.status);
   if (statusEntries.length === 0) {
-    console.log(chalk.yellow("No connection details available."));
+    renderWarning("No connection details available.");
     return;
   }
-  for (const [key, value] of statusEntries) {
-    const displayValue =
-      typeof value === "boolean" ? (value ? chalk.green("Yes") : chalk.red("No")) : String(value);
-    console.log(`  ${chalk.bold(key)}: ${displayValue}`);
-  }
+  renderDetail(
+    statusEntries.map(([key, value]) => [
+      `${key}:`,
+      typeof value === "boolean" ? (value ? "Yes" : "No") : String(value),
+    ])
+  );
 }

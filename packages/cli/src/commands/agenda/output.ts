@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { formatDateShort, formatTimeRange, type OutputOptions, renderHeader, renderTable } from "../../shared/output";
+import { formatDateShort, formatTimeRange, type OutputOptions, renderHeader, renderTable, renderWarning } from "../../shared/output";
 import type { Booking, BookingList } from "../bookings/types";
 
 function formatRelativeDate(dateStr: string): string {
@@ -35,7 +35,7 @@ export function renderAgenda(bookings: BookingList | undefined, { json }: Output
   }
 
   if (!bookings || bookings.length === 0) {
-    console.log(chalk.dim("No upcoming bookings."));
+    renderWarning("No upcoming bookings.");
     return;
   }
 

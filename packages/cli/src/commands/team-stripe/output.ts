@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { type OutputOptions, renderHeader, renderSuccess } from "../../shared/output";
+import { type OutputOptions, renderDetail, renderError, renderHeader, renderSuccess, renderWarning } from "../../shared/output";
 import type { TeamStripeCheckResponse, TeamStripeConnectUrlResponse, TeamStripeSaveResponse } from "./types";
 
 export function renderTeamStripeConnectionStatus(
@@ -15,7 +15,7 @@ export function renderTeamStripeConnectionStatus(
   renderHeader(`Stripe Connection Status for Team ${teamId}`);
 
   if (!response || !response.status) {
-    console.log(chalk.yellow("No Stripe connection status available."));
+    renderWarning("No Stripe connection status available.");
     return;
   }
 
@@ -23,15 +23,16 @@ export function renderTeamStripeConnectionStatus(
   const statusEntries = Object.entries(status);
 
   if (statusEntries.length === 0) {
-    console.log(chalk.yellow("No connection details available."));
+    renderWarning("No connection details available.");
     return;
   }
 
-  for (const [key, value] of statusEntries) {
-    const displayValue =
-      typeof value === "boolean" ? (value ? chalk.green("Yes") : chalk.red("No")) : String(value);
-    console.log(`  ${chalk.bold(key)}: ${displayValue}`);
-  }
+  renderDetail(
+    statusEntries.map(([key, value]) => [
+      `${key}:`,
+      typeof value === "boolean" ? (value ? "Yes" : "No") : String(value),
+    ])
+  );
 }
 
 export function renderTeamStripeConnectUrl(
@@ -47,7 +48,7 @@ export function renderTeamStripeConnectUrl(
   renderHeader(`Stripe Connect URL for Team ${teamId}`);
 
   if (!response || response.status !== "success" || !response.data) {
-    console.log(chalk.red("Failed to get Stripe connect URL."));
+    renderError("Failed to get Stripe connect URL.");
     return;
   }
 
@@ -69,7 +70,7 @@ export function renderTeamStripeSaved(
   renderHeader(`Stripe Credentials Saved for Team ${teamId}`);
 
   if (!response) {
-    console.log(chalk.red("Failed to save Stripe credentials."));
+    renderError("Failed to save Stripe credentials.");
     return;
   }
 

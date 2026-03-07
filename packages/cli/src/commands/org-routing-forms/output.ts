@@ -149,20 +149,12 @@ export function renderCreateResponseResult(
   }
 
   renderSuccess("Routing form response created successfully.");
-
-  if (data.eventTypeId) {
-    console.log(`  Event Type ID: ${data.eventTypeId}`);
-  }
-  if (data.routingCustomMessage) {
-    console.log(`  Custom Message: ${data.routingCustomMessage}`);
-  }
-  if (data.routingExternalRedirectUrl) {
-    console.log(`  Redirect URL: ${data.routingExternalRedirectUrl}`);
-  }
-  if (data.routing) {
-    console.log(`  Routing Info: ${JSON.stringify(data.routing)}`);
-  }
-  console.log();
+  renderDetail([
+    ["Event Type ID:", data.eventTypeId],
+    ["Custom Message:", data.routingCustomMessage],
+    ["Redirect URL:", data.routingExternalRedirectUrl],
+    ["Routing Info:", data.routing ? JSON.stringify(data.routing) : undefined],
+  ]);
 }
 
 export function renderUpdateResponseResult(
