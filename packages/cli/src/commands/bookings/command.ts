@@ -50,7 +50,7 @@ function registerBookingQueryCommands(bookingsCmd: Command): void {
     .option("--attendee-email <email>", "Filter by attendee email")
     .option("--event-type-id <id>", "Filter by event type ID")
     .option("--event-type-ids <ids>", "Filter by event type IDs (comma-separated)")
-    .option("--teams-ids <ids>", "Filter by team IDs (comma-separated)")
+    .option("--team-ids <ids>", "Filter by team IDs (comma-separated)")
     .option("--after-start <date>", "Filter bookings starting after this date (ISO 8601)")
     .option("--before-end <date>", "Filter bookings ending before this date (ISO 8601)")
     .option("--sort-start <order>", "Sort by start time (asc or desc)")
@@ -65,7 +65,7 @@ function registerBookingQueryCommands(bookingsCmd: Command): void {
         attendeeEmail?: string;
         eventTypeId?: string;
         eventTypeIds?: string;
-        teamsIds?: string;
+        teamIds?: string;
         afterStart?: string;
         beforeEnd?: string;
         sortStart?: string;
@@ -86,7 +86,7 @@ function registerBookingQueryCommands(bookingsCmd: Command): void {
               attendeeEmail: options.attendeeEmail,
               eventTypeId: options.eventTypeId,
               eventTypeIds: options.eventTypeIds,
-              teamsIds: options.teamsIds,
+              teamsIds: options.teamIds,
               afterStart: options.afterStart,
               beforeEnd: options.beforeEnd,
               sortStart: options.sortStart as "asc" | "desc" | undefined,

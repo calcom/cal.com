@@ -532,7 +532,7 @@ function registerOrgScopedTeamCommands(teamsCmd: Command): void {
     });
 
   teamsCmd
-    .command("booking-references <teamId> <bookingUid>")
+    .command("references <teamId> <bookingUid>")
     .description("Get booking references for a team booking (requires organization)")
     .option(
       "--type <type>",

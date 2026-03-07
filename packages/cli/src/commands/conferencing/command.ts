@@ -34,7 +34,7 @@ export function registerConferencingCommand(program: Command): void {
     });
 
   conferencing
-    .command("default")
+    .command("get-default")
     .description("Get the default conferencing app")
     .option("--json", "Output as JSON")
     .action(async (options: { json?: boolean }) => {

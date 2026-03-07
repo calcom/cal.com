@@ -124,7 +124,7 @@ export function registerTeamConferencingCommand(program: Command): void {
     });
 
   teamConferencing
-    .command("oauth-url <teamId> <app>")
+    .command("connect-url <teamId> <app>")
     .description("Get OAuth URL for a conferencing app (zoom, msteams)")
     .requiredOption("--return-to <url>", "URL to return to after OAuth")
     .requiredOption("--on-error-return-to <url>", "URL to return to on OAuth error")
