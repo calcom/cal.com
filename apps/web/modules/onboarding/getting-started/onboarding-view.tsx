@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
 
-import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -121,13 +120,9 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     },
   ];
 
-  // Only show organization plan for company emails
-  const plans = allPlans.filter((plan) => {
-    if (plan.id === "organization") {
-      return isCompanyEmail(userEmail);
-    }
-    return true;
-  });
+  // We now show the organization plan for all users. If they don't have a company email, 
+  // they will be prompted to change it when continuing.
+  const plans = allPlans;
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
 
