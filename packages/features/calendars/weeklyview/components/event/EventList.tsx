@@ -107,6 +107,7 @@ export function EventList({ day }: Props) {
             )}
             data-testid={event.options?.["data-test-id"]}
             data-calendar-event-id={event.id}
+            data-calendar-event-source={event.source}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
             style={{
