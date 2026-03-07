@@ -173,9 +173,10 @@ test.describe("Teams - NonOrg", () => {
     await page.goto("/teams");
 
     await test.step("Can create team with same name", async () => {
-      // Click the new team button (use .first() to avoid strict mode violation
-      // if the streaming SSR skeleton CTA briefly coexists with the page CTA)
-      await page.locator("[data-testid=new-team-btn]").first().click();
+      // Click the new team button
+      const newTeamButton = page.locator("[data-testid=new-team-btn]");
+      await expect(newTeamButton).toHaveCount(1);
+      await newTeamButton.click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
