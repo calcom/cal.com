@@ -1,0 +1,1 @@
+export { registerOrgMembershipsCommand } from "./command";

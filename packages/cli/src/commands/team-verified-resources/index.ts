@@ -1,0 +1,1 @@
+export { registerTeamVerifiedResourcesCommand } from "./command";

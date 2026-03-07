@@ -1,0 +1,1 @@
+export { registerManagedOrgsCommand } from "./command";

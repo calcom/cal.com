@@ -1,0 +1,1 @@
+export { registerTeamRolesCommand } from "./command";

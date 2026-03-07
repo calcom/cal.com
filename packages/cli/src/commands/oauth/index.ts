@@ -1,0 +1,1 @@
+export { registerOAuthCommand } from "./command";

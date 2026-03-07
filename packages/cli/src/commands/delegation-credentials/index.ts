@@ -1,0 +1,1 @@
+export { registerDelegationCredentialsCommand } from "./command";

@@ -1,0 +1,1 @@
+export { registerOrgUserOooCommand } from "./command";

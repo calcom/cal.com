@@ -1,0 +1,1 @@
+export { registerStripeCommand } from "./command";

@@ -1,0 +1,1 @@
+export { registerTeamEventTypePrivateLinksCommand } from "./command";

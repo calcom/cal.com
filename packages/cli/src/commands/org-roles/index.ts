@@ -1,0 +1,1 @@
+export { registerOrgRolesCommand } from "./command";

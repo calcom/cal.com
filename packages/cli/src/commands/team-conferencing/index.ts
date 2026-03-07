@@ -1,0 +1,1 @@
+export { registerTeamConferencingCommand } from "./command";

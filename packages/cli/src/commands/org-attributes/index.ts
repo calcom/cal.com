@@ -1,0 +1,1 @@
+export { registerOrgAttributesCommand } from "./command";

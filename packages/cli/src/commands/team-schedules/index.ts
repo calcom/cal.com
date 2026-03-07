@@ -1,0 +1,1 @@
+export { registerTeamSchedulesCommand } from "./command";
