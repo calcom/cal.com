@@ -4,7 +4,7 @@ import {
   renderHeader,
   renderSuccess,
 } from "../../shared/output";
-import type { OAuth2Client, OAuth2ClientResponse, OAuth2Tokens } from "./types";
+import type { OAuth2ClientResponse, OAuth2Tokens } from "./types";
 
 export function renderOAuth2Client(
   data: OAuth2ClientResponse | undefined,

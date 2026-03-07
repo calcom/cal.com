@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { type OutputOptions, renderDetail, renderHeader, renderTable } from "../../shared/output";
 import type { TeamSchedule } from "./types";
 
