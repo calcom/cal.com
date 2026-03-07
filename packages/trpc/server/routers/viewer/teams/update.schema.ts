@@ -4,6 +4,7 @@ import { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSche
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
+import { CancellationReasonRequirement } from "@calcom/prisma/enums";
 
 export type TUpdateInputSchema = {
   id: number;
@@ -22,6 +23,7 @@ export type TUpdateInputSchema = {
   includeManagedEventsInLimits?: boolean;
   rrResetInterval?: "DAY" | "MONTH";
   rrTimestampBasis?: "CREATED_AT" | "START_TIME";
+  requiresCancellationReason?: CancellationReasonRequirement;
 };
 
 export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
@@ -48,4 +50,5 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   includeManagedEventsInLimits: z.boolean().optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
   rrTimestampBasis: z.enum(["CREATED_AT", "START_TIME"]).optional(),
+  requiresCancellationReason: z.enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"]) .optional(),
 });

@@ -156,6 +156,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           field.type === "boolean" ? markdownToSafeHTML(field.defaultLabel || "") : field.defaultLabel || "",
       };
     }),
+    requiresCancellationReason:
+      eventTypeRaw.requiresCancellationReason ?? eventTypeRaw.team?.requiresCancellationReason ?? null,
   };
 
   const profile = {

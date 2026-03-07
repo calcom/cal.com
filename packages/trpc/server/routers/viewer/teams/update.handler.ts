@@ -7,7 +7,12 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, RedirectType, RRTimestampBasis } from "@calcom/prisma/enums";
+import {
+  CancellationReasonRequirement,
+  MembershipRole,
+  RedirectType,
+  RRTimestampBasis,
+} from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -87,6 +92,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
+    requiresCancellationReason: input.requiresCancellationReason,
   };
 
   if (
@@ -190,6 +196,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
+    requiresCancellationReason: updatedTeam.requiresCancellationReason,
   };
 };
 

@@ -106,6 +106,7 @@ const mockOrganization = {
   hideTeamProfileLink: false,
   rrResetInterval: null,
   rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+  requiresCancellationReason: null,
   autoOptInFeatures: false,
 };
 

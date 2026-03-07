@@ -338,6 +338,7 @@ export async function getTeamWithoutMembers(args: {
       bookingLimits: true,
       rrResetInterval: true,
       rrTimestampBasis: true,
+      requiresCancellationReason: true,
       includeManagedEventsInLimits: true,
       parent: {
         select: {
@@ -537,14 +538,14 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       .createMany({
         data: managedEventTypes
           .map((eventType) =>
-            userIds.map((userId) =>
-              generateNewChildEventTypeDataForDB({
-                eventType,
-                userId,
-                includeWorkflow: false,
-                includeUserConnect: false,
-              })
-            )
+          userIds.map((userId) =>
+            generateNewChildEventTypeDataForDB({
+              eventType,
+              userId,
+              includeWorkflow: false,
+              includeUserConnect: false,
+            })
+          )
           )
           .flat(),
         skipDuplicates: true,
@@ -562,13 +563,13 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       .createMany({
         data: teamEventTypes
           .map((eventType) => {
-            return userIds.map((userId) => {
-              return {
-                userId,
-                eventTypeId: eventType.id,
-                isFixed: eventType.schedulingType === "COLLECTIVE",
-              };
-            });
+          return userIds.map((userId) => {
+            return {
+              userId,
+              eventTypeId: eventType.id,
+              isFixed: eventType.schedulingType === "COLLECTIVE",
+            };
+          });
           })
           .flat(),
         skipDuplicates: true,
@@ -613,10 +614,10 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
         .createMany({
           data: createdChildrenEventTypes
             .map((eventType) =>
-              eventType.workflows.map((workflow) => ({
-                eventTypeId: eventType.id,
-                workflowId: workflow.id,
-              }))
+            eventType.workflows.map((workflow) => ({
+              eventTypeId: eventType.id,
+              workflowId: workflow.id,
+            }))
             )
             .flat(),
           skipDuplicates: true,

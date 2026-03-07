@@ -212,13 +212,20 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     });
   }
 
-  const isCancellationUserHost =
-    bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
+  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
-  const isReasonRequired = isCancellationReasonRequired(
-    bookingToDelete.eventType?.requiresCancellationReason,
-    isCancellationUserHost
-  );
+  const isCancellationUserHost =
+    bookingToDelete.userId === userId ||
+    bookingToDelete.user.email === cancelledBy ||
+    hostEmails.has(cancelledBy!);
+
+  const eventTypeRequiresReason = bookingToDelete.eventType?.requiresCancellationReason;
+
+  const teamRequiresReason = bookingToDelete.eventType?.team?.requiresCancellationReason;
+
+  const effectiveRequiresReason = eventTypeRequiresReason ?? teamRequiresReason;
+
+  const isReasonRequired = isCancellationReasonRequired(effectiveRequiresReason, isCancellationUserHost);
 
   if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
     throw new HttpError({
@@ -302,7 +309,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const teamMembersPromises = [];
   const attendeesListPromises = [];
-  const hostEmails = new Set(bookingToDelete.eventType?.hosts?.map((host) => host.user.email) ?? []);
 
   for (let index = 0; index < bookingToDelete.attendees.length; index++) {
     const attendee = bookingToDelete.attendees[index];

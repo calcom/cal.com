@@ -66,6 +66,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               name: true,
               parentId: true,
               hideBranding: true,
+              requiresCancellationReason: true,
               parent: { select: { hideBranding: true } },
             },
           },

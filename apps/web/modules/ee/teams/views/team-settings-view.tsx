@@ -27,6 +27,7 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
 import RoundRobinSettings from "../components/RoundRobinSettings";
+import CancellationReasonRequirementSetting from "~/ee/teams/components/CancellationReasonRequirementSetting";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -218,6 +219,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <PrivacySettingsView team={team} />
+      <CancellationReasonRequirementSetting team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinSettings team={team} />
     </>
