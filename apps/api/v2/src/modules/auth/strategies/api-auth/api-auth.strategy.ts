@@ -242,7 +242,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
       throw new UnauthorizedException(
-        `ApiAuthStrategy - api key - not found. hash=${apiKeyHash}, stripped=${strippedApiKey.substring(0, 8)}...`
+        "ApiAuthStrategy - api key - Your api key is not valid"
       );
     }
 
