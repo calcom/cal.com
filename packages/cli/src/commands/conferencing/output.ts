@@ -66,3 +66,16 @@ export function renderConferencingAppDisconnected(
 
   renderSuccess(`Conferencing app "${app}" disconnected.`);
 }
+
+export function renderDefaultConferencingAppSet(
+  app: string,
+  response: { status: string } | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(response ?? { status: "success" }, null, 2));
+    return;
+  }
+
+  renderSuccess(`Default conferencing app set to "${app}".`);
+}

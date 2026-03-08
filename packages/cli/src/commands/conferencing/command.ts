@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import {
+  conferencingControllerDefault as setDefaultConferencingApp,
   conferencingControllerDisconnect as disconnectConferencingApp,
   conferencingControllerGetDefault as getDefaultConferencingApp,
   conferencingControllerListInstalledConferencingApps as listConferencingApps,
@@ -11,6 +12,7 @@ import {
   renderConferencingAppDisconnected,
   renderConferencingAppList,
   renderDefaultConferencingApp,
+  renderDefaultConferencingAppSet,
 } from "./output";
 import type { ConferencingAppType } from "./types";
 
@@ -46,6 +48,23 @@ export function registerConferencingCommand(program: Command): void {
         });
 
         renderDefaultConferencingApp(response?.data, options);
+      });
+    });
+
+  conferencing
+    .command("set-default <app>")
+    .description("Set the default conferencing app (google-meet, zoom, msteams, daily-video)")
+    .option("--json", "Output as JSON")
+    .action(async (app: string, options: { json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+
+        const { data: response } = await setDefaultConferencingApp({
+          headers: authHeader(),
+          path: { app: app as ConferencingAppType },
+        });
+
+        renderDefaultConferencingAppSet(app, response, options);
       });
     });
 
