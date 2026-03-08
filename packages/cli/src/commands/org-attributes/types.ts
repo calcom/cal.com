@@ -5,6 +5,7 @@ import type {
   CreateOrganizationAttributesOutput,
   DeleteAttributeOptionOutput,
   DeleteOrganizationAttributesOutput,
+  GetAllAttributeAssignedOptionOutput,
   GetAllAttributeOptionOutput,
   GetOptionUserOutput,
   GetOrganizationAttributesOutput,
@@ -32,3 +33,5 @@ export type OrgAttributeOptionDeleteResponse = DeleteAttributeOptionOutput["data
 export type OrgUserAttributeOptions = GetOptionUserOutput["data"];
 export type OrgAssignOptionResponse = AssignOptionUserOutput["data"];
 export type OrgUnassignOptionResponse = UnassignOptionUserOutput["data"];
+
+export type OrgAssignedOptionList = GetAllAttributeAssignedOptionOutput["data"];

@@ -5,6 +5,8 @@ import {
   organizationsAttributesOptionsControllerCreateOrganizationAttributeOption as createOption,
   organizationsAttributesControllerDeleteOrganizationAttribute as deleteAttribute,
   organizationsAttributesOptionsControllerDeleteOrganizationAttributeOption as deleteOption,
+  organizationsAttributesOptionsControllerGetOrganizationAttributeAssignedOptions as getAssignedOptions,
+  organizationsAttributesOptionsControllerGetOrganizationAttributeAssignedOptionsBySlug as getAssignedOptionsBySlug,
   organizationsAttributesControllerGetOrganizationAttribute as getAttribute,
   organizationsAttributesControllerGetOrganizationAttributes as getAttributes,
   organizationsAttributesOptionsControllerGetOrganizationAttributeOptions as getOptions,
@@ -25,6 +27,7 @@ import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
 
 import {
+  renderAssignedOptions,
   renderAttribute,
   renderAttributeCreated,
   renderAttributeDeleted,
@@ -338,6 +341,66 @@ function registerOptionsCommands(attributesCmd: Command): void {
         renderOptionDeleted(response?.data, optionId, options);
       });
     });
+
+  optionsCmd
+    .command("assigned <attributeId>")
+    .description("Get all assigned options for an attribute by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
+    .option("--take <n>", "Number of results to return")
+    .option("--skip <n>", "Number of results to skip")
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        attributeId: string,
+        options: { orgId: string; take?: string; skip?: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const orgId = Number(options.orgId);
+
+          const { data: response } = await getAssignedOptions({
+            path: { orgId, attributeId },
+            query: {
+              take: options.take ? Number(options.take) : undefined,
+              skip: options.skip ? Number(options.skip) : undefined,
+            },
+            headers: authHeader(),
+          });
+
+          renderAssignedOptions(response?.data, attributeId, options);
+        });
+      }
+    );
+
+  optionsCmd
+    .command("assigned-by-slug <attributeSlug>")
+    .description("Get all assigned options for an attribute by slug")
+    .requiredOption("--org-id <orgId>", "Organization ID")
+    .option("--take <n>", "Number of results to return")
+    .option("--skip <n>", "Number of results to skip")
+    .option("--json", "Output as JSON")
+    .action(
+      async (
+        attributeSlug: string,
+        options: { orgId: string; take?: string; skip?: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const orgId = Number(options.orgId);
+
+          const { data: response } = await getAssignedOptionsBySlug({
+            path: { orgId, attributeSlug },
+            query: {
+              take: options.take ? Number(options.take) : undefined,
+              skip: options.skip ? Number(options.skip) : undefined,
+            },
+            headers: authHeader(),
+          });
+
+          renderAssignedOptions(response?.data, attributeSlug, options);
+        });
+      }
+    );
 }
 
 function registerUserOptionsCommands(attributesCmd: Command): void {

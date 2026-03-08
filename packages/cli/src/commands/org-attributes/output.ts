@@ -7,6 +7,7 @@ import {
   renderTable,
 } from "../../shared/output";
 import type {
+  OrgAssignedOptionList,
   OrgAssignOptionResponse,
   OrgAttribute,
   OrgAttributeCreateResponse,
@@ -267,4 +268,26 @@ export function renderOptionUnassigned(
   }
 
   renderSuccess(`Option ${optionId} unassigned from user ${userId}.`);
+}
+
+export function renderAssignedOptions(
+  options: OrgAssignedOptionList | undefined,
+  identifier: string,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(options, null, 2));
+    return;
+  }
+
+  if (!options?.length) {
+    console.log(`No assigned options found for attribute ${identifier}.`);
+    return;
+  }
+
+  renderHeader(`Assigned options for attribute: ${identifier}`);
+  renderTable(
+    ["ID", "Value", "Slug", "Attribute ID"],
+    options.map((o) => [o.id, o.value, o.slug, o.attributeId])
+  );
 }
