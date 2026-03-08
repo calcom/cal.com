@@ -5,7 +5,7 @@ import {
   organizationsRoutingFormsResponsesControllerGetRoutingFormResponses as getRoutingFormResponses,
   organizationsRoutingFormsResponsesControllerUpdateRoutingFormResponse as updateRoutingFormResponse,
 } from "../../generated/sdk.gen";
-import type { UpdateRoutingFormResponseInput } from "../../generated/types.gen";
+import type { RoutingFormResponseOutput, UpdateRoutingFormResponseInput } from "../../generated/types.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
@@ -110,7 +110,8 @@ function registerResponsesListCommand(responsesCmd: Command): void {
             headers: authHeader(),
           });
 
-          renderRoutingFormResponseList(response?.data, options);
+          // API returns an array but the generated types incorrectly show a single object
+          renderRoutingFormResponseList(response?.data as unknown as RoutingFormResponseOutput[], options);
         });
       }
     );
