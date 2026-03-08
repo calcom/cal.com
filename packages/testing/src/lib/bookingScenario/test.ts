@@ -1,8 +1,7 @@
 import { createOrganization } from "./bookingScenario";
-
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import { test } from "../fixtures/fixtures";
 import type { Fixtures } from "../fixtures/fixtures";
+import { test } from "../fixtures/fixtures";
 
 type OrgContext = {
   org: {

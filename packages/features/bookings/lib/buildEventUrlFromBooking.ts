@@ -24,7 +24,7 @@ export function getOrganizationIdOfBooking(booking: {
   const { eventType, profileEnrichedBookingUser } = booking;
   return eventType.team
     ? eventType.team.parentId
-    : profileEnrichedBookingUser?.profile.organizationId ?? null;
+    : (profileEnrichedBookingUser?.profile.organizationId ?? null);
 }
 
 export async function buildEventUrlFromBooking(booking: {

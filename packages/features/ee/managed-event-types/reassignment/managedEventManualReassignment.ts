@@ -5,7 +5,7 @@ import { createManagedEventManualReassignmentService } from "./services/containe
 
 /**
  * Entry point for manual managed event reassignment
- * 
+ *
  * This delegates to the service layer without direct repository knowledge.
  * The container handles all dependency injection.
  */

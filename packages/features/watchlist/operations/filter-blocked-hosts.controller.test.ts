@@ -2,7 +2,6 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { filterBlockedHosts, type HostWithEmail } from "./filter-blocked-hosts.controller";
 
-
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
@@ -52,10 +51,7 @@ describe("filterBlockedHosts", () => {
 
   describe("Locked host filtering", () => {
     test("should filter out locked hosts", async () => {
-      const hosts = [
-        createHost(1, "locked@example.com", true),
-        createHost(2, "unlocked@example.com", false),
-      ];
+      const hosts = [createHost(1, "locked@example.com", true), createHost(2, "unlocked@example.com", false)];
 
       mockGlobalBlocking.areBlocked.mockResolvedValue(
         new Map([["unlocked@example.com", { isBlocked: false }]])
@@ -69,10 +65,7 @@ describe("filterBlockedHosts", () => {
     });
 
     test("should filter out all locked hosts", async () => {
-      const hosts = [
-        createHost(1, "locked1@example.com", true),
-        createHost(2, "locked2@example.com", true),
-      ];
+      const hosts = [createHost(1, "locked1@example.com", true), createHost(2, "locked2@example.com", true)];
 
       const result = await filterBlockedHosts(hosts);
 
@@ -84,10 +77,7 @@ describe("filterBlockedHosts", () => {
 
   describe("Watchlist blocking", () => {
     test("should filter out watchlist-blocked hosts", async () => {
-      const hosts = [
-        createHost(1, "blocked@spam.com", false),
-        createHost(2, "clean@example.com", false),
-      ];
+      const hosts = [createHost(1, "blocked@spam.com", false), createHost(2, "clean@example.com", false)];
 
       mockGlobalBlocking.areBlocked.mockResolvedValue(
         new Map([
@@ -106,9 +96,7 @@ describe("filterBlockedHosts", () => {
     test("should check org-level blocking when organizationId provided", async () => {
       const hosts = [createHost(1, "user@example.com", false)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: false }]]));
       mockOrgBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await filterBlockedHosts(hosts, 123);
@@ -157,9 +145,7 @@ describe("filterBlockedHosts", () => {
         },
       ];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["host@example.com", { isBlocked: false }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["host@example.com", { isBlocked: false }]]));
 
       const result = await filterBlockedHosts(hosts);
 
@@ -176,9 +162,7 @@ describe("filterBlockedHosts", () => {
     test("should handle emails with different cases", async () => {
       const hosts = [createHost(1, "USER@EXAMPLE.COM", false)];
 
-      mockGlobalBlocking.areBlocked.mockResolvedValue(
-        new Map([["user@example.com", { isBlocked: true }]])
-      );
+      mockGlobalBlocking.areBlocked.mockResolvedValue(new Map([["user@example.com", { isBlocked: true }]]));
 
       const result = await filterBlockedHosts(hosts);
 
@@ -215,10 +199,7 @@ describe("filterBlockedHosts", () => {
     });
 
     test("should not call watchlist for locked-only hosts", async () => {
-      const hosts = [
-        createHost(1, "locked1@example.com", true),
-        createHost(2, "locked2@example.com", true),
-      ];
+      const hosts = [createHost(1, "locked1@example.com", true), createHost(2, "locked2@example.com", true)];
 
       await filterBlockedHosts(hosts);
 
@@ -226,4 +207,3 @@ describe("filterBlockedHosts", () => {
     });
   });
 });
-

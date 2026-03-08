@@ -1,9 +1,8 @@
+import type * as i18n from "@calcom/i18n/server";
 import { beforeEach, vi } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
-import type * as i18n from "@calcom/lib/server/i18n";
-
-vi.mock("@calcom/lib/server/i18n", () => i18nMock);
+vi.mock("@calcom/i18n/server", () => i18nMock);
 
 beforeEach(() => {
   mockReset(i18nMock);

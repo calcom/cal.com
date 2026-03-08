@@ -5,6 +5,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails/email-manager";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
@@ -14,7 +15,7 @@ import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
@@ -136,7 +137,9 @@ async function getAllCredentialsIncludeServiceAccountKey({
 }) {
   const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
-  let conferenceCredential: Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>> | undefined;
+  let conferenceCredential:
+    | Awaited<ReturnType<typeof CredentialRepository.findFirstByIdWithKeyAndUser>>
+    | undefined;
 
   if (conferenceCredentialId) {
     // Validate that the credential is accessible before fetching it
@@ -315,6 +318,11 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = organizationId
+    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    : false;
+
   await bookingEventHandlerService.onLocationChanged({
     bookingUid: booking.uid,
     actor: makeUserActor(loggedInUser.uuid),
@@ -326,6 +334,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
         new: updatedLocation,
       },
     },
+    isBookingAuditEnabled,
   });
 
   return { message: "Location updated" };

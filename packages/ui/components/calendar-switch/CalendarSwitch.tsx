@@ -1,11 +1,22 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
+import { ArrowLeftIcon, RotateCwIcon } from "@coss/ui/icons";
 import type { ReactNode } from "react";
 
-import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
-import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../icon";
+export type ICalendarSwitchProps = {
+  title: string;
+  externalId: string;
+  type: string;
+  isChecked: boolean;
+  name: string;
+  isLastItemInList?: boolean;
+  destination?: boolean;
+  credentialId: number;
+  delegationCredentialId: string | null;
+  eventTypeId: number | null;
+  disabled?: boolean;
+};
 
 export function CalendarSwitchComponent(
   props: ICalendarSwitchProps & {
@@ -34,11 +45,11 @@ export function CalendarSwitchComponent(
       </label>
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <Icon name="arrow-left" className="h-4 w-4" />
+          <ArrowLeftIcon className="h-4 w-4" />
           {translations.spanText}
         </span>
       )}
-      {isLoading && <Icon name="rotate-cw" className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
+      {isLoading && <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 }

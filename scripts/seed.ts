@@ -17,7 +17,7 @@ import type z from "zod";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
+import { createOAuthClientForUser, createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
   email: string;
@@ -693,6 +693,109 @@ async function ensureAcmeOwnerHasApiKeySeeded() {
   }
 }
 
+async function seedPerHostLocationsInAcmeOrg() {
+  const acmeOrg = await prisma.team.findFirst({
+    where: { slug: "acme", parentId: null },
+    select: { id: true },
+  });
+  if (!acmeOrg) {
+    console.log("Acme org not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const acmeTeam = await prisma.team.findFirst({
+    where: { slug: "team1", parentId: acmeOrg.id },
+    select: { id: true },
+  });
+  if (!acmeTeam) {
+    console.log("Acme Team 1 not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const existingEvent = await prisma.eventType.findFirst({
+    where: { slug: "per-host-location-event", teamId: acmeTeam.id },
+  });
+  if (existingEvent) {
+    console.log("Per-host location event already seeded in Acme, skipping.");
+    return;
+  }
+
+  const owner = await prisma.user.findFirst({
+    where: { email: "owner1-acme@example.com" },
+    select: { id: true },
+  });
+  const member0 = await prisma.user.findFirst({
+    where: { email: "member0-acme@example.com" },
+    select: { id: true },
+  });
+  const member2 = await prisma.user.findFirst({
+    where: { email: "member2-acme@example.com" },
+    select: { id: true },
+  });
+  if (!owner || !member0 || !member2) {
+    console.log("Required Acme members not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const hosts = [owner, member0, member2];
+
+  const ownerProfile = await prisma.profile.findFirst({
+    where: { userId: owner.id, organizationId: acmeOrg.id },
+    select: { id: true },
+  });
+
+  const eventType = await prisma.eventType.create({
+    data: {
+      title: "Per Host Location Event",
+      slug: "per-host-location-event",
+      length: 30,
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      enablePerHostLocations: true,
+      team: { connect: { id: acmeTeam.id } },
+      owner: { connect: { id: owner.id } },
+      ...(ownerProfile ? { profile: { connect: { id: ownerProfile.id } } } : {}),
+      users: { connect: hosts.map((h) => ({ id: h.id })) },
+      hosts: {
+        create: hosts.map((h) => ({
+          userId: h.id,
+          isFixed: false,
+        })),
+      },
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: owner.id,
+      eventTypeId: eventType.id,
+      type: "integrations:daily",
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: member0.id,
+      eventTypeId: eventType.id,
+      type: "link",
+      link: "https://example.com/meet",
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: member2.id,
+      eventTypeId: eventType.id,
+      type: "userPhone",
+      phoneNumber: "+1234567890",
+    },
+  });
+
+  console.log(
+    `Seeded per-host locations in Acme Org for event "${eventType.slug}" (id=${eventType.id}): ` +
+      `owner1->Cal Video, member0->Link, member2->Phone`
+  );
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -1036,7 +1139,7 @@ async function main() {
     },
   });
 
-  await createUserAndEventType({
+  const admin = await createUserAndEventType({
     user: {
       email: "admin@example.com",
       /** To comply with admin password requirements  */
@@ -1046,6 +1149,21 @@ async function main() {
       role: "ADMIN",
     },
   });
+
+  const clientId = process.env.SEED_OAUTH2_CLIENT_ID;
+  const clientSecret = process.env.SEED_OAUTH2_CLIENT_SECRET_HASHED;
+
+  if (clientId && clientSecret) {
+    await createOAuthClientForUser(admin.id, {
+      clientId,
+      clientSecret,
+      name: "atoms examples app oauth 2 client",
+      purpose: "test atoms examples app with oauth 2",
+      redirectUri: "http://localhost:4321",
+      websiteUrl: "http://localhost:4321",
+      enablePkce: false,
+    });
+  }
 
   await createPlatformAndSetupUser({
     teamInput: {
@@ -1622,6 +1740,7 @@ async function main() {
   }
 
   await ensureAcmeOwnerHasApiKeySeeded();
+  await seedPerHostLocationsInAcmeOrg();
 }
 
 async function runSeed() {
