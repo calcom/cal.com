@@ -87,6 +87,8 @@
   "no_options_available": "No options available",
   "cancellation_reason": "Reason for cancellation",
   "cancellation_reason_optional_label": "Reason for cancellation (optional)",
+  "cancellation_reason_requirements": "Cancellation reason requirements",
+  "cancellation_reason_requirements_description": "Configure when attendees and hosts are required to provide a reason for cancellation.",
   "cancelled_by": "Cancelled By",
   "cancellation_reason_placeholder": "Why are you cancelling?",
   "notify_attendee_cancellation_reason_warning": "Cancellation reason will be shared with guests",

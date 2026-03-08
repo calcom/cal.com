@@ -50,7 +50,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, CancellationReasonRequired } from "@calcom/prisma/enums";
 
 import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -220,11 +220,32 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     isCancellationUserHost
   );
 
-  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Cancellation reason is required",
-    });
+  if (!platformClientId && !cancellationReason?.trim() && !skipCancellationReasonValidation) {
+    if (isReasonRequired) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Cancellation reason is required",
+      });
+    }
+
+    const teamCancellationSetting =
+      bookingToDelete.eventType?.team?.cancellationReasonRequired ??
+      CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY;
+
+    const teamRequiresReason =
+      teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_BOTH ||
+      (teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_HOST_ONLY &&
+        isCancellationUserHost) ||
+      (teamCancellationSetting === CancellationReasonRequired.MANDATORY_FOR_ATTENDEE_ONLY &&
+        !isCancellationUserHost);
+
+    if (teamRequiresReason) {
+      const messageKey = isCancellationUserHost ? "host" : "attendee";
+      throw new HttpError({
+        statusCode: 400,
+        message: `Cancellation reason is required when you are the ${messageKey}`,
+      });
+    }
   }
 
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {

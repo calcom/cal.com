@@ -16,8 +16,7 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
-  allManagedEventTypePropsForZod,
-  unlockedManagedEventTypePropsForZod,
+  unlockedManagedEventTypeProps,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
@@ -40,17 +39,6 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-
-  // Minimal user select for event type hosts in team view - only fields needed for avatar display
-  // This significantly reduces data transfer for teams with many event types/hosts
-  const minimalUserSelectForHosts = {
-    username: true,
-    name: true,
-    avatarUrl: true,
-    id: true,
-  } satisfies Prisma.UserSelect;
-
-  // Full user select for members (includes credentials for connectedApps when !isTeamView)
   const userSelect = {
     username: true,
     email: true,
@@ -123,7 +111,6 @@ export async function getTeamWithMembers(args: {
               allowSEOIndexing: true,
               orgProfileRedirectsToVerifiedDomain: true,
               orgAutoAcceptEmail: true,
-              disableAutofillOnBookingPage: true,
             },
           },
         },
@@ -167,9 +154,7 @@ export async function getTeamWithMembers(args: {
           hosts: {
             select: {
               user: {
-                // For team view, we only need minimal user info for avatar display
-                // This significantly reduces data transfer for teams with many event types/hosts
-                select: isTeamView ? minimalUserSelectForHosts : userSelect,
+                select: userSelect,
               },
             },
           },
@@ -190,7 +175,6 @@ export async function getTeamWithMembers(args: {
           allowSEOIndexing: true,
           orgProfileRedirectsToVerifiedDomain: true,
           orgAutoAcceptEmail: true,
-          disableAutofillOnBookingPage: true,
         },
       },
     },
@@ -339,6 +323,7 @@ export async function getTeamWithoutMembers(args: {
       rrResetInterval: true,
       rrTimestampBasis: true,
       includeManagedEventsInLimits: true,
+      cancellationReasonRequired: true,
       parent: {
         select: {
           id: true,
@@ -422,21 +407,21 @@ export async function isTeamMember(userId: number, teamId: number) {
   }));
 }
 
-// Type derived from the actual query result to ensure type safety at call sites
-type EventTypeForChildCreation = Awaited<ReturnType<typeof getEventTypesToAddNewMembers>>[number];
-
 export function generateNewChildEventTypeDataForDB({
   eventType,
   userId,
   includeWorkflow = true,
   includeUserConnect = true,
 }: {
-  eventType: EventTypeForChildCreation;
+  eventType: Omit<
+    Prisma.EventTypeGetPayload<{ select: typeof allManagedEventTypeProps & { id: true } }>,
+    "locations"
+  > & { locations: Prisma.JsonValue | null };
   userId: number;
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypePropsForZod).extend({
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
     locations: z
       .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
@@ -444,12 +429,12 @@ export function generateNewChildEventTypeDataForDB({
   });
 
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypePropsForZod)
+    .omit(unlockedManagedEventTypeProps)
     .parse(eventType);
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypePropsForZod)
+    .pick(unlockedManagedEventTypeProps)
     .parse(eventType);
 
   // Calculate if there are new workflows for which assigned members will get too
@@ -466,7 +451,7 @@ export function generateNewChildEventTypeDataForDB({
     bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
     durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
     eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-    rrSegmentQueryValue: undefined,
+    rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
     onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
     userId,
     ...(includeUserConnect && {
@@ -501,8 +486,8 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
-  if (eventTypesToAdd.length > 0) {
-    await prisma.$transaction(
+  eventTypesToAdd.length > 0 &&
+    (await prisma.$transaction(
       eventTypesToAdd.map((eventType) => {
         if (eventType.schedulingType === "MANAGED") {
           return prisma.eventType.create({
@@ -518,8 +503,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
           });
         }
       })
-    );
-  }
+    ));
 }
 
 export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: number[]; teamId: number }) {
