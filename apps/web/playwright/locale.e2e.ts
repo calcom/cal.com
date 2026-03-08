@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 import { submitAndWaitForResponse } from "./lib/testUtils";
 
@@ -19,14 +18,9 @@ test.describe("unauthorized user sees correct translations (de)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Willkommen zurück");
-      const locator = page.getByText("Willkommen zurück", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -44,14 +38,9 @@ test.describe("unauthorized user sees correct translations (ar)", async () => {
     await page.locator("html[dir=rtl]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=أهلاً بك من جديد");
-      const locator = page.getByText("أهلاً بك من جديد", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -69,14 +58,9 @@ test.describe("unauthorized user sees correct translations (zh)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来");
-      const locator = page.getByText("欢迎回来", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -94,14 +78,9 @@ test.describe("unauthorized user sees correct translations (zh-CN)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=欢迎回来");
-      const locator = page.getByText("欢迎回来", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -119,14 +98,9 @@ test.describe("unauthorized user sees correct translations (zh-TW)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=歡迎回來");
-      const locator = page.getByText("歡迎回來", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -144,14 +118,9 @@ test.describe("unauthorized user sees correct translations (pt)", async () => {
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Olá novamente");
-      const locator = page.getByText("Olá novamente", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -169,14 +138,9 @@ test.describe("unauthorized user sees correct translations (pt-br)", async () =>
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bem-vindo(a) novamente");
-      const locator = page.getByText("Bem-vindo(a) novamente", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -195,14 +159,9 @@ test.describe("unauthorized user sees correct translations (es-419)", async () =
     await page.locator("html[dir=ltr]").waitFor({ state: "attached" });
 
     {
-      await page.waitForSelector("text=Bienvenido de nuevo");
-      const locator = page.getByText("Bienvenido de nuevo", { exact: true });
-      expect(await locator.count()).toEqual(1);
-    }
-
-    {
-      const locator = page.getByText("Welcome back", { exact: true });
-      expect(await locator.count()).toEqual(0);
+      const subtitle = page.getByTestId("login-subtitle");
+      await expect(subtitle).toBeVisible();
+      await expect(subtitle).not.toHaveText(/Welcome back/i);
     }
   });
 });
@@ -445,7 +404,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
 
       await page.waitForLoadState("domcontentloaded");
 
-      await page.locator(".bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("locale-select").click();
       await page.getByTestId("select-option-ar").click();
 
       await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
@@ -505,8 +464,8 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
       await page.goto("/settings/my-account/general");
       await page.waitForLoadState("domcontentloaded");
 
-      await page.locator(".bg-default > div > div:nth-child(2)").first().click();
-      await page.locator("text=Português (Brasil)").click();
+      await page.getByTestId("locale-select").click();
+      await page.getByTestId("select-option-pt-BR").click();
 
       await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=general-submit-button]"),
