@@ -6,7 +6,24 @@ import "nextra-theme-docs/style.css";
 const navbar: React.ReactElement = (
   <Navbar
     logo={
-      <span style={{ fontWeight: 800, fontSize: "1.2em" }}>Cal.com Docs</span>
+      <>
+        {/* Light mode logo */}
+        <img
+          src="/cal-docs-logo.svg"
+          alt="Cal.diy Docs"
+          height={26}
+          className="dark:hidden"
+          style={{ height: 26 }}
+        />
+        {/* Dark mode logo */}
+        <img
+          src="/cal-docs-logo-white.svg"
+          alt="Cal.diy Docs"
+          height={26}
+          className="hidden dark:block"
+          style={{ height: 26 }}
+        />
+      </>
     }
   />
 );
