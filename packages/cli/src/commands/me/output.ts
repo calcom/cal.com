@@ -29,6 +29,7 @@ export function renderProfile(profile: Profile | undefined, { json }: OutputOpti
       ["Timezone", profile.timeZone || ""],
       ["Week Start", profile.weekStart || ""],
       ["Default Schedule", formatDefaultSchedule(profile.defaultScheduleId)],
+      ["Organization ID", profile.organizationId ? String(profile.organizationId) : "None"],
     ]
   );
 }
