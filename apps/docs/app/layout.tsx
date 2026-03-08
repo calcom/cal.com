@@ -2,25 +2,24 @@ import { Footer, Layout, Navbar } from "nextra-theme-docs";
 import { Head } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
 import "nextra-theme-docs/style.css";
+import "./logo.css";
 
 const navbar: React.ReactElement = (
   <Navbar
     logo={
       <>
-        {/* Light mode logo */}
         <img
           src="/cal-docs-logo.svg"
           alt="Cal.diy Docs"
           height={26}
-          className="dark:hidden"
+          className="logo-light"
           style={{ height: 26 }}
         />
-        {/* Dark mode logo */}
         <img
           src="/cal-docs-logo-white.svg"
           alt="Cal.diy Docs"
           height={26}
-          className="hidden dark:block"
+          className="logo-dark"
           style={{ height: 26 }}
         />
       </>
