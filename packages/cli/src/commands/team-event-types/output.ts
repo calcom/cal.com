@@ -14,10 +14,18 @@ function formatSchedulingType(type: string | undefined): string {
 
 function formatHosts(hosts: TeamEventType["hosts"] | undefined): string {
   if (!hosts || hosts.length === 0) return "None";
-  if (hosts.length <= 2) {
-    return hosts.join(", ");
+  // API returns hosts as objects with name property, not strings
+  const hostNames = hosts.map((host) => {
+    if (typeof host === "string") return host;
+    if (typeof host === "object" && host !== null && "name" in host) {
+      return (host as { name?: string }).name || "Unknown";
+    }
+    return "Unknown";
+  });
+  if (hostNames.length <= 2) {
+    return hostNames.join(", ");
   }
-  return `${hosts.slice(0, 2).join(", ")} +${hosts.length - 2} more`;
+  return `${hostNames.slice(0, 2).join(", ")} +${hostNames.length - 2} more`;
 }
 
 export function renderTeamEventType(
