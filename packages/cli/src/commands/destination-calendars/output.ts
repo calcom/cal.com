@@ -10,7 +10,7 @@ export function renderDestinationCalendar(
     return;
   }
 
-  if (!calendar) {
+  if (!calendar || !calendar.integration) {
     console.log("No destination calendar configured.");
     return;
   }

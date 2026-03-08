@@ -120,6 +120,28 @@ export function handleSdkError(error: unknown): void {
     return;
   }
 
+  // Handle SDK error objects (thrown when throwOnError: true)
+  if (error && typeof error === "object") {
+    const sdkErr = error as {
+      status?: string;
+      error?: { code?: string; message?: string; details?: { message?: string } };
+      message?: string;
+    };
+
+    if (sdkErr.error?.message) {
+      renderError(sdkErr.error.message);
+      return;
+    }
+    if (sdkErr.error?.details?.message) {
+      renderError(sdkErr.error.details.message);
+      return;
+    }
+    if (sdkErr.message) {
+      renderError(sdkErr.message);
+      return;
+    }
+  }
+
   renderError(String(error));
 }
 
@@ -131,3 +153,4 @@ export async function withErrorHandling<T>(fn: () => Promise<T>): Promise<T | un
     process.exit(1);
   }
 }
+

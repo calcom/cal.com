@@ -83,6 +83,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
             body,
             headers: authHeader(),
           });
+
           renderPrivateLinkCreated(response?.data, options);
         });
       }

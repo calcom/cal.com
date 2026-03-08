@@ -10,6 +10,7 @@ export async function initializeClient(): Promise<void> {
 
   client.setConfig({
     baseUrl: apiUrl,
+    throwOnError: true,
   });
 
   client.interceptors.request.use(async (request) => {
