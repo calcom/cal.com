@@ -7,10 +7,10 @@ import "./logo.css";
 import "./fonts.css";
 
 const calSans = localFont({
-  src: "../fonts/CalSans-SemiBold.woff2",
+  src: "../fonts/CalSans-Regular.woff2",
   variable: "--font-cal",
   display: "swap",
-  weight: "600",
+  weight: "400",
 });
 
 const calSansUI = localFont({
