@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Equals, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Equals, IsOptional, IsString } from "class-validator";
 
 export class OAuth2RefreshConfidentialInput {
   @ApiProperty({
@@ -25,11 +25,13 @@ export class OAuth2RefreshConfidentialInput {
   @IsString()
   refresh_token!: string;
 
-  @ApiProperty({
-    description: "The client secret for confidential clients",
+  @ApiPropertyOptional({
+    description: "The client secret for confidential clients (deprecated)",
+    deprecated: true,
   })
   @IsString()
-  client_secret!: string;
+  @IsOptional()
+  client_secret?: string;
 }
 
 export class OAuth2RefreshPublicInput {

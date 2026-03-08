@@ -6,7 +6,6 @@ export type TCreateClientInputSchemaInput = {
   redirectUri: string;
   logo?: string;
   websiteUrl?: string;
-  enablePkce?: boolean;
 };
 
 export type TCreateClientInputSchema = {
@@ -15,7 +14,6 @@ export type TCreateClientInputSchema = {
   redirectUri: string;
   logo?: string;
   websiteUrl?: string;
-  enablePkce: boolean;
 };
 
 export const ZCreateClientInputSchema: z.ZodType<
@@ -34,5 +32,4 @@ export const ZCreateClientInputSchema: z.ZodType<
     .union([z.literal(""), z.string().url("Must be a valid URL")])
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
-  enablePkce: z.boolean().optional().default(false),
 });

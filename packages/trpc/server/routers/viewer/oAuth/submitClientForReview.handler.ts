@@ -1,7 +1,6 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/i18n/server";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TSubmitClientInputSchema } from "./submitClientForReview.schema";
@@ -24,22 +23,13 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
-  let plainSecret: string | undefined;
-  let hashedSecret: string | undefined;
-  if (!enablePkce) {
-    const [hashed, plain] = generateSecret();
-    hashedSecret = hashed;
-    plainSecret = plain;
-  }
-
   const client = await oAuthClientRepository.create({
     name,
     purpose,
     redirectUri,
-    clientSecret: hashedSecret,
     logo,
     websiteUrl,
-    enablePkce,
+    enablePkce: true, // Force PKCE for all new clients
     userId,
     status: "PENDING",
   });
@@ -59,11 +49,10 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     clientId: client.clientId,
     name: client.name,
     purpose: client.purpose,
-    clientSecret: plainSecret,
     redirectUri: client.redirectUri,
     logo: client.logo,
     clientType: client.clientType,
     status: client.status,
-    isPkceEnabled: enablePkce,
+    isPkceEnabled: true, // we force enablePkce to true on creation
   };
 };

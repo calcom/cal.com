@@ -31,7 +31,6 @@ const OAuthClientsView = () => {
         clientId: data.clientId,
         name: data.name,
         purpose: data.purpose ?? "",
-        clientSecret: data.clientSecret,
         status: data.status,
         isPkceEnabled: data.isPkceEnabled,
       });

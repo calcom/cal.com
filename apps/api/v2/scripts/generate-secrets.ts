@@ -1,9 +1,9 @@
+import { createHash, randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import { generateSecret } from "@calcom/platform-libraries";
-
-const [hashed, plain] = generateSecret();
+const plain = randomBytes(32).toString("hex");
+const hashed = createHash("sha256").update(plain).digest("hex");
 
 const outputPath = path.join(__dirname, "..", ".generated-secrets");
 const content = `plain - ${plain}\nhashed - ${hashed}\n`;

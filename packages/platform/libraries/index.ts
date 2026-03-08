@@ -125,7 +125,6 @@ export { StripeBillingService } from "@calcom/features/ee/billing/service/billin
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export type { OAuth2Tokens } from "@calcom/features/oauth/services/OAuthService";
 export { OAuthService } from "@calcom/features/oauth/services/OAuthService";
-export { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";

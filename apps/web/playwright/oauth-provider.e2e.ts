@@ -2,7 +2,6 @@ import { expect } from "@playwright/test";
 import { createHash, randomBytes } from "node:crypto";
 
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 
@@ -15,9 +14,7 @@ test.afterEach(async ({ users }) => {
 let client: {
   clientId: string;
   redirectUri: string;
-  orginalSecret: string;
   name: string;
-  clientSecret: string | null;
   logo: string | null;
 };
 
@@ -25,7 +22,6 @@ let publicClient: {
   clientId: string;
   redirectUri: string;
   name: string;
-  clientSecret: string | null;
   logo: string | null;
 };
 
@@ -48,8 +44,11 @@ test.describe("OAuth Provider", () => {
     const user = await users.create({ username: "test user", name: "test user" });
     await user.apiLogin();
 
+    // CONFIDENTIAL clients now require PKCE (clientSecret was dropped)
+    const pkce = generatePKCE();
+
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&code_challenge=${pkce.codeChallenge}&code_challenge_method=${pkce.codeChallengeMethod}`
     );
     await page.getByTestId("allow-button").click();
 
@@ -66,9 +65,9 @@ test.describe("OAuth Provider", () => {
     const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
-    tokenForm.append("client_secret", client.orginalSecret);
     tokenForm.append("grant_type", "authorization_code");
     tokenForm.append("redirect_uri", client.redirectUri);
+    tokenForm.append("code_verifier", pkce.codeVerifier);
     const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
       body: tokenForm.toString(),
       method: "POST",
@@ -97,7 +96,6 @@ test.describe("OAuth Provider", () => {
     const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
     refreshTokenForm.append("client_id", client.clientId);
-    refreshTokenForm.append("client_secret", client.orginalSecret);
     refreshTokenForm.append("grant_type", "refresh_token");
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
       body: refreshTokenForm.toString(),
@@ -148,8 +146,11 @@ test.describe("OAuth Provider", () => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
+    // CONFIDENTIAL clients now require PKCE (clientSecret was dropped)
+    const pkce = generatePKCE();
+
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&show_account_selector=true`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234&show_account_selector=true&code_challenge=${pkce.codeChallenge}&code_challenge_method=${pkce.codeChallengeMethod}`
     );
 
     await page.locator("#account-select").click();
@@ -175,9 +176,9 @@ test.describe("OAuth Provider", () => {
     const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
-    tokenForm.append("client_secret", client.orginalSecret);
     tokenForm.append("grant_type", "authorization_code");
     tokenForm.append("redirect_uri", client.redirectUri);
+    tokenForm.append("code_verifier", pkce.codeVerifier);
     const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
       body: tokenForm.toString(),
       method: "POST",
@@ -206,7 +207,6 @@ test.describe("OAuth Provider", () => {
     const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
     refreshTokenForm.append("client_id", client.clientId);
-    refreshTokenForm.append("client_secret", client.orginalSecret);
     refreshTokenForm.append("grant_type", "refresh_token");
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
       body: refreshTokenForm.toString(),
@@ -560,11 +560,10 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
-    // Token exchange with both client_secret AND code_verifier (dual authentication)
+    // Token exchange with client_id AND code_verifier (authentication)
     const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
-    tokenForm.append("client_secret", client.orginalSecret);
     tokenForm.append("grant_type", "authorization_code");
     tokenForm.append("redirect_uri", client.redirectUri);
     tokenForm.append("code_verifier", pkce.codeVerifier);
@@ -600,7 +599,6 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     const refreshTokenForm = new URLSearchParams();
     refreshTokenForm.append("refresh_token", tokenData.refresh_token);
     refreshTokenForm.append("client_id", client.clientId);
-    refreshTokenForm.append("client_secret", client.orginalSecret);
     refreshTokenForm.append("grant_type", "refresh_token");
 
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
@@ -618,14 +616,15 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     expect(refreshTokenData.refresh_token).toBeDefined();
   });
 
-  test("should allow CONFIDENTIAL client refresh with only client_secret when PKCE was NOT used", async ({
+  test("should reject CONFIDENTIAL client token exchange when PKCE was NOT used during authorize", async ({
     page,
     users,
   }) => {
     const user = await users.create({ username: "test user conf no pkce", name: "test user conf no pkce" });
     await user.apiLogin();
 
-    // Authorization WITHOUT PKCE challenge (traditional CONFIDENTIAL client flow)
+    // Authorization WITHOUT PKCE challenge — clientSecret no longer exists,
+    // so a CONFIDENTIAL client that skips PKCE has no authentication mechanism at all.
     await page.goto(
       `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&response_type=code&scope=READ_PROFILE&state=1234`
     );
@@ -635,21 +634,19 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
       return window.location.href.startsWith("https://example.com");
     });
 
-    // Assert URL to catch unexpected redirects
     await expect(page).toHaveURL(/^https:\/\/example\.com/);
     expect(page.url()).toContain("code=");
-    expect(page.url()).toContain("state=1234");
 
     const url = new URL(page.url());
     const code = url.searchParams.get("code");
 
-    // Token exchange with ONLY client_secret (no PKCE)
+    // Token exchange without PKCE -> must be rejected (no auth mechanism)
     const tokenForm = new URLSearchParams();
     tokenForm.append("code", code ?? "");
     tokenForm.append("client_id", client.clientId);
-    tokenForm.append("client_secret", client.orginalSecret);
     tokenForm.append("grant_type", "authorization_code");
     tokenForm.append("redirect_uri", client.redirectUri);
+    // Intentionally no code_verifier
 
     const tokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/token`, {
       body: tokenForm.toString(),
@@ -660,46 +657,24 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
     });
 
     const tokenData = await tokenResponse.json();
-    expect(tokenResponse.status).toBe(200);
-
-    // Refresh with client_secret
-    const refreshTokenForm = new URLSearchParams();
-    refreshTokenForm.append("refresh_token", tokenData.refresh_token);
-    refreshTokenForm.append("client_id", client.clientId);
-    refreshTokenForm.append("client_secret", client.orginalSecret);
-    refreshTokenForm.append("grant_type", "refresh_token");
-
-    const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
-      body: refreshTokenForm.toString(),
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    const refreshTokenData = await refreshTokenResponse.json();
-
-    expect(refreshTokenResponse.status).toBe(200);
-    expect(refreshTokenData.access_token).toBeDefined();
-    expect(refreshTokenData.token_type).toBe("bearer");
+    expect(tokenResponse.status).toBe(400);
+    expect(tokenData.error).toBe("invalid_request");
   });
 });
 
 const createTestCLient = async () => {
-  const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
 
   const client = await prisma.oAuthClient.create({
     data: {
       name: "Test Client",
       clientId,
-      clientSecret: hashedSecret,
       redirectUri: "https://example.com",
       clientType: "CONFIDENTIAL",
     },
   });
 
-  return { ...client, orginalSecret: secret };
+  return client;
 };
 
 const createTestPublicClient = async () => {
@@ -709,7 +684,6 @@ const createTestPublicClient = async () => {
     data: {
       name: "Test Public Client",
       clientId,
-      clientSecret: null,
       redirectUri: "https://example.com",
       clientType: "PUBLIC",
     },

@@ -1,6 +1,6 @@
-import { generateSecret } from "@calcom/platform-libraries";
 import type { Membership, Team, User } from "@calcom/prisma/client";
 import { AccessScope, OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
+import { createHash } from "node:crypto";
 import type { INestApplication } from "@nestjs/common";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import type { TestingModule } from "@nestjs/testing";
@@ -92,15 +92,18 @@ describe("OAuth2 Controller Endpoints", () => {
     /** Generate an authorization code directly via the service (bypasses HTTP layer). */
     async function generateAuthCode(
       scopes: AccessScope[] = [AccessScope.READ_BOOKING],
-      teamSlug?: string
+      teamSlug?: string,
+      codeChallenge?: string
     ): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         testClientId,
         authenticatedUser.id,
         testRedirectUri,
         scopes,
-        undefined,
-        teamSlug ?? team.slug
+        undefined, // state
+        teamSlug || team.slug || undefined,
+        codeChallenge,
+        codeChallenge ? "S256" : undefined
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;
@@ -146,12 +149,10 @@ describe("OAuth2 Controller Endpoints", () => {
         accepted: true,
       });
 
-      const [hashedSecret] = generateSecret(testClientSecret);
       oAuthClient = await oAuthClientFixture.create({
         clientId: testClientId,
         name: "Test OAuth Client",
         redirectUri: testRedirectUri,
-        clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         userId: clientOwner.id,
       });
@@ -187,10 +188,13 @@ describe("OAuth2 Controller Endpoints", () => {
     describe("POST /api/v2/auth/oauth2/token (authorization_code grant)", () => {
       describe("Positive tests", () => {
         it("should exchange authorization code for tokens", async () => {
-          const authorizationCode = await generateAuthCode([
-            AccessScope.READ_BOOKING,
-            AccessScope.READ_PROFILE,
-          ]);
+          const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+          const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+          const authorizationCode = await generateAuthCode(
+            [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],
+            undefined,
+            codeChallenge
+          );
 
           const response = await request(app.getHttpServer())
             .post("/api/v2/auth/oauth2/token")
@@ -199,7 +203,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code: authorizationCode,
-              client_secret: testClientSecret,
+              code_verifier: codeVerifier,
               redirect_uri: testRedirectUri,
             })
             .expect(200);
@@ -215,7 +219,10 @@ describe("OAuth2 Controller Endpoints", () => {
         });
 
         it("should exchange authorization code for tokens with JSON body", async () => {
-          const code = await generateAuthCode();
+          const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+          const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+
+          const code = await generateAuthCode(undefined, undefined, codeChallenge);
 
           const response = await request(app.getHttpServer())
             .post("/api/v2/auth/oauth2/token")
@@ -223,7 +230,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code,
-              client_secret: testClientSecret,
+              code_verifier: codeVerifier,
               redirect_uri: testRedirectUri,
             })
             .expect(200);
@@ -234,7 +241,10 @@ describe("OAuth2 Controller Endpoints", () => {
         });
 
         it("should exchange authorization code for tokens with application/x-www-form-urlencoded body", async () => {
-          const code = await generateAuthCode();
+          const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+          const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+
+          const code = await generateAuthCode(undefined, undefined, codeChallenge);
 
           const response = await request(app.getHttpServer())
             .post("/api/v2/auth/oauth2/token")
@@ -243,7 +253,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code,
-              client_secret: testClientSecret,
+              code_verifier: codeVerifier,
               redirect_uri: testRedirectUri,
             })
             .expect(200);
@@ -257,7 +267,10 @@ describe("OAuth2 Controller Endpoints", () => {
 
       describe("Negative tests", () => {
         it("should return 400 with RFC 6749 error for invalid/used authorization code", async () => {
-          const code = await generateAuthCode();
+          const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+          const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+
+          const code = await generateAuthCode(undefined, undefined, codeChallenge);
 
           // Use the code once
           await request(app.getHttpServer())
@@ -267,7 +280,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code,
-              client_secret: testClientSecret,
+              code_verifier: codeVerifier,
               redirect_uri: testRedirectUri,
             })
             .expect(200);
@@ -280,7 +293,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code,
-              client_secret: testClientSecret,
+              code_verifier: codeVerifier,
               redirect_uri: testRedirectUri,
             })
             .expect(400);
@@ -289,8 +302,10 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.error_description).toBe("code_invalid_or_expired");
         });
 
-        it("should return 401 for invalid client secret", async () => {
-          const code = await generateAuthCode();
+        it("should return 400 for missing code_verifier (PKCE mandatory)", async () => {
+          const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+          const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+          const code = await generateAuthCode(undefined, undefined, codeChallenge);
 
           const response = await request(app.getHttpServer())
             .post("/api/v2/auth/oauth2/token")
@@ -299,13 +314,12 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "authorization_code",
               code,
-              client_secret: "wrong-secret",
               redirect_uri: testRedirectUri,
             })
-            .expect(401);
+            .expect(400);
 
-          expect(response.body.error).toBe("invalid_client");
-          expect(response.body.error_description).toBe("invalid_client_credentials");
+          expect(response.body.error).toBe("invalid_request");
+          expect(response.body.error_description).toBe("code_verifier is required");
         });
 
         it("should return 400 for invalid grant type", async () => {
@@ -336,7 +350,7 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: "non-existent-client-id",
               grant_type: "authorization_code",
               code,
-              client_secret: testClientSecret,
+              code_verifier: "some-verifier",
               redirect_uri: testRedirectUri,
             })
             .expect(401);
@@ -352,7 +366,6 @@ describe("OAuth2 Controller Endpoints", () => {
             .send({
               grant_type: "authorization_code",
               code: "some-code",
-              client_secret: testClientSecret,
               redirect_uri: testRedirectUri,
             })
             .expect(400);
@@ -373,7 +386,6 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "refresh_token",
               refresh_token: refreshToken,
-              client_secret: testClientSecret,
             })
             .expect(200);
 
@@ -393,7 +405,6 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "refresh_token",
               refresh_token: "invalid-refresh-token",
-              client_secret: testClientSecret,
             })
             .expect(400);
 
@@ -401,7 +412,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.error_description).toBe("invalid_refresh_token");
         });
 
-        it("should return 401 for invalid client secret", async () => {
+        it("should ignore client_secret if provided during refresh", async () => {
           const response = await request(app.getHttpServer())
             .post("/api/v2/auth/oauth2/token")
             .type("form")
@@ -409,12 +420,11 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: testClientId,
               grant_type: "refresh_token",
               refresh_token: refreshToken,
-              client_secret: "wrong-secret",
+              client_secret: "some-ignored-secret",
             })
-            .expect(401);
+            .expect(200);
 
-          expect(response.body.error).toBe("invalid_client");
-          expect(response.body.error_description).toBe("invalid_client_credentials");
+          expect(response.body.access_token).toBeDefined();
         });
 
         it("should return 401 with RFC 6749 error for non-existent client_id", async () => {
@@ -425,7 +435,6 @@ describe("OAuth2 Controller Endpoints", () => {
               client_id: "wrong-client-id",
               grant_type: "refresh_token",
               refresh_token: refreshToken,
-              client_secret: testClientSecret,
             })
             .expect(401);
 
@@ -471,13 +480,18 @@ describe("OAuth2 Controller Endpoints", () => {
     /** Generate a user-scoped authorization code (no teamSlug) so the owner's userId is in the token. */
     async function generateAuthCodeForClient(
       clientId: string,
-      scopes: AccessScope[] = [AccessScope.READ_BOOKING]
+      scopes: AccessScope[] = [AccessScope.READ_BOOKING],
+      codeChallenge?: string
     ): Promise<string> {
       const result = await oAuthService.generateAuthorizationCode(
         clientId,
         owner.id,
         testRedirectUri,
-        scopes
+        scopes,
+        undefined, // state
+        undefined, // teamSlug
+        codeChallenge,
+        codeChallenge ? "S256" : undefined
       );
       const redirectUrl = new URL(result.redirectUrl);
       return redirectUrl.searchParams.get("code") as string;
@@ -519,13 +533,10 @@ describe("OAuth2 Controller Endpoints", () => {
         accepted: true,
       });
 
-      const [hashedSecret] = generateSecret(testClientSecret);
-
       pendingClient = await oAuthClientFixture.create({
         clientId: pendingClientId,
         name: "Pending OAuth Client",
         redirectUri: testRedirectUri,
-        clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         status: OAuthClientStatus.PENDING,
         userId: owner.id,
@@ -535,7 +546,6 @@ describe("OAuth2 Controller Endpoints", () => {
         clientId: rejectedClientId,
         name: "Rejected OAuth Client",
         redirectUri: testRedirectUri,
-        clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         status: OAuthClientStatus.REJECTED,
         userId: owner.id,
@@ -554,7 +564,9 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     it("should exchange authorization code for tokens with PENDING client owned by user", async () => {
-      const code = await generateAuthCodeForClient(pendingClientId);
+      const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+      const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+      const code = await generateAuthCodeForClient(pendingClientId, undefined, codeChallenge);
 
       const response = await request(app.getHttpServer())
         .post("/api/v2/auth/oauth2/token")
@@ -563,7 +575,7 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "authorization_code",
           code,
-          client_secret: testClientSecret,
+          code_verifier: codeVerifier,
           redirect_uri: testRedirectUri,
         })
         .expect(200);
@@ -574,7 +586,9 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     it("should refresh tokens with PENDING client owned by user", async () => {
-      const code = await generateAuthCodeForClient(pendingClientId);
+      const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+      const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+      const code = await generateAuthCodeForClient(pendingClientId, undefined, codeChallenge);
 
       const tokenResponse = await request(app.getHttpServer())
         .post("/api/v2/auth/oauth2/token")
@@ -583,7 +597,7 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "authorization_code",
           code,
-          client_secret: testClientSecret,
+          code_verifier: codeVerifier,
           redirect_uri: testRedirectUri,
         })
         .expect(200);
@@ -595,7 +609,6 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "refresh_token",
           refresh_token: tokenResponse.body.refresh_token,
-          client_secret: testClientSecret,
         })
         .expect(200);
 
@@ -609,7 +622,9 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     it("should reject token exchange when client becomes rejected", async () => {
-      const code = await generateAuthCodeForClient(pendingClientId);
+      const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+      const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+      const code = await generateAuthCodeForClient(pendingClientId, undefined, codeChallenge);
 
       await oAuthClientFixture.updateStatus(pendingClientId, OAuthClientStatus.REJECTED);
 
@@ -620,7 +635,7 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "authorization_code",
           code,
-          client_secret: testClientSecret,
+          code_verifier: codeVerifier,
           redirect_uri: testRedirectUri,
         })
         .expect(401);
@@ -632,7 +647,9 @@ describe("OAuth2 Controller Endpoints", () => {
     });
 
     it("should reject token refresh when client becomes rejected", async () => {
-      const code = await generateAuthCodeForClient(pendingClientId);
+      const codeVerifier = "test-verifier-that-is-long-enough-for-pkce-standard";
+      const codeChallenge = createHash("sha256").update(codeVerifier).digest("base64url");
+      const code = await generateAuthCodeForClient(pendingClientId, undefined, codeChallenge);
 
       const tokenResponse = await request(app.getHttpServer())
         .post("/api/v2/auth/oauth2/token")
@@ -641,7 +658,7 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "authorization_code",
           code,
-          client_secret: testClientSecret,
+          code_verifier: codeVerifier,
           redirect_uri: testRedirectUri,
         })
         .expect(200);
@@ -655,7 +672,6 @@ describe("OAuth2 Controller Endpoints", () => {
           client_id: pendingClientId,
           grant_type: "refresh_token",
           refresh_token: tokenResponse.body.refresh_token,
-          client_secret: testClientSecret,
         })
         .expect(401);
 

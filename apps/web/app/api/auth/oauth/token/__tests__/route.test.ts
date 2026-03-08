@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
 
 import { POST } from "../route";
@@ -55,10 +54,6 @@ vi.mock("@calcom/lib/pkce", () => ({
   verifyCodeChallenge: vi.fn(),
 }));
 
-vi.mock("@calcom/features/oauth/utils/generateSecret", () => ({
-  generateSecret: vi.fn(),
-}));
-
 vi.mock("jsonwebtoken", () => ({
   default: {
     sign: vi.fn(() => "mock_jwt_token"),
@@ -105,7 +100,6 @@ vi.mock("app/api/parseRequestData", () => ({
 }));
 
 const mockVerifyCodeChallenge = vi.mocked(verifyCodeChallenge);
-const mockGenerateSecret = vi.mocked(generateSecret);
 const mockJwt = vi.mocked(jwt);
 
 // Set up environment
@@ -129,7 +123,6 @@ describe("POST /api/auth/oauth/token", () => {
     vi.clearAllMocks();
     mockJwt.sign.mockReturnValue("mock_jwt_token" as never);
     mockVerifyCodeChallenge.mockReturnValue(false);
-    mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
     // Reset the mock for NextResponse.json
     mockNextResponseJson.mockImplementation(
       (data: unknown, options?: { status?: number; headers?: Record<string, string> }) => ({
@@ -278,7 +271,6 @@ describe("POST /api/auth/oauth/token", () => {
   describe("CONFIDENTIAL clients", () => {
     const mockConfidentialClient = {
       redirectUri: "https://app.example.com/callback",
-      clientSecret: "hashed_secret",
       clientType: "CONFIDENTIAL" as const,
       status: "APPROVED" as const,
     } as const;
@@ -287,11 +279,11 @@ describe("POST /api/auth/oauth/token", () => {
       userId: 1,
       teamId: null,
       scopes: [] as const,
-      codeChallenge: null,
-      codeChallengeMethod: null,
+      codeChallenge: "test_challenge",
+      codeChallengeMethod: "S256",
     } as const;
 
-    it("should exchange authorization code for tokens with valid client secret", async () => {
+    it("should exchange authorization code for tokens (legacy client_secret check removed)", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue(
         mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>
       );
@@ -299,14 +291,14 @@ describe("POST /api/auth/oauth/token", () => {
         mockAccessCode as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
       );
       prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
-      mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
+      mockVerifyCodeChallenge.mockReturnValue(true);
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
         code: "test_auth_code",
         client_id: "confidential_client_456",
-        client_secret: "plain_secret",
         redirect_uri: "https://app.example.com/callback",
+        code_verifier: "test_verifier",
       });
 
       const response = await POST(tokenRequest, { params: Promise.resolve({}) });
@@ -322,20 +314,27 @@ describe("POST /api/auth/oauth/token", () => {
         expires_in: 1800,
       });
 
-      expect(mockGenerateSecret).toHaveBeenCalledWith("plain_secret");
+      expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("test_verifier", "test_challenge", "S256");
       expect(prismaMock.accessCode.deleteMany).toHaveBeenCalled();
     });
 
-    it("should reject CONFIDENTIAL client without client_secret", async () => {
+    it("should reject CONFIDENTIAL client when PKCE was not used during authorize step", async () => {
+      // After clientSecret was dropped, CONFIDENTIAL clients MUST use PKCE.
+      // A code issued without code_challenge (pre-PKCE flow) must be rejected.
       prismaMock.oAuthClient.findUnique.mockResolvedValue(
         mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>
       );
+      prismaMock.accessCode.findFirst.mockResolvedValue(
+        { ...mockAccessCode, codeChallenge: null, codeChallengeMethod: null } as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
+      );
+      prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
         code: "test_auth_code",
         client_id: "confidential_client_456",
         redirect_uri: "https://app.example.com/callback",
+        // No code_verifier — and access code has no code_challenge either
       });
 
       const response = await POST(tokenRequest, { params: Promise.resolve({}) });
@@ -343,31 +342,8 @@ describe("POST /api/auth/oauth/token", () => {
       if (!response) throw new Error("Response is undefined");
       const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data.error).toBe("invalid_client");
-    });
-
-    it("should reject CONFIDENTIAL client with invalid client_secret", async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue(
-        mockConfidentialClient as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>
-      );
-      mockGenerateSecret.mockReturnValue(["different_hashed_secret", "wrong_secret"]);
-
-      const tokenRequest = createTokenRequest({
-        grant_type: "authorization_code",
-        code: "test_auth_code",
-        client_id: "confidential_client_456",
-        client_secret: "wrong_secret",
-        redirect_uri: "https://app.example.com/callback",
-      });
-
-      const response = await POST(tokenRequest, { params: Promise.resolve({}) });
-      expect(response).toBeDefined();
-      if (!response) throw new Error("Response is undefined");
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe("invalid_client");
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("invalid_request");
     });
 
     it("should accept CONFIDENTIAL client with code_verifier for enhanced security", async () => {
@@ -386,14 +362,12 @@ describe("POST /api/auth/oauth/token", () => {
         mockAccessCodeWithPKCE as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
       );
       prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
-      mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
       mockVerifyCodeChallenge.mockReturnValue(true);
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
         code: "test_auth_code",
         client_id: "confidential_client_456",
-        client_secret: "plain_secret",
         redirect_uri: "https://app.example.com/callback",
         code_verifier: "test_verifier",
       });
@@ -404,14 +378,6 @@ describe("POST /api/auth/oauth/token", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual({
-        access_token: "mock_jwt_token",
-        token_type: "bearer",
-        refresh_token: "mock_jwt_token",
-        expires_in: 1800,
-      });
-
-      expect(mockGenerateSecret).toHaveBeenCalledWith("plain_secret");
       expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("test_verifier", "test_challenge", "S256");
     });
 
@@ -431,14 +397,12 @@ describe("POST /api/auth/oauth/token", () => {
         mockAccessCodeWithPKCE as unknown as Awaited<ReturnType<typeof prismaMock.accessCode.findFirst>>
       );
       prismaMock.accessCode.deleteMany.mockResolvedValue({ count: 1 });
-      mockGenerateSecret.mockReturnValue(["hashed_secret", "plain_secret"]);
       mockVerifyCodeChallenge.mockReturnValue(false);
 
       const tokenRequest = createTokenRequest({
         grant_type: "authorization_code",
         code: "test_auth_code",
         client_id: "confidential_client_456",
-        client_secret: "plain_secret",
         redirect_uri: "https://app.example.com/callback",
         code_verifier: "wrong_verifier",
       });
@@ -494,7 +458,6 @@ describe("POST /api/auth/oauth/token", () => {
     it("should reject mismatched redirect_uri", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue({
         redirectUri: "https://app.example.com/callback",
-        clientSecret: null,
         clientType: "PUBLIC" as const,
         status: "APPROVED" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);
@@ -518,7 +481,6 @@ describe("POST /api/auth/oauth/token", () => {
     it("should reject expired authorization code", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue({
         redirectUri: "https://app.example.com/callback",
-        clientSecret: null,
         clientType: "PUBLIC" as const,
         status: "APPROVED" as const,
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);

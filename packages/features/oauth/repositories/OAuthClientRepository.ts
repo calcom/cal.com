@@ -7,9 +7,9 @@ export class OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findByClientId(clientId: string) {
-    return await this.prisma.oAuthClient.findFirst({
+    return await this.prisma.oAuthClient.findUnique({
       where: {
-        clientId: clientId,
+        clientId,
       },
       select: {
         redirectUri: true,
@@ -24,20 +24,6 @@ export class OAuthClientRepository {
         status: true,
         userId: true,
         createdAt: true,
-      },
-    });
-  }
-
-  async findByClientIdWithSecret(clientId: string) {
-    return this.prisma.oAuthClient.findUnique({
-      where: { clientId },
-      select: {
-        clientId: true,
-        redirectUri: true,
-        clientSecret: true,
-        clientType: true,
-        status: true,
-        userId: true,
       },
     });
   }
@@ -153,14 +139,13 @@ export class OAuthClientRepository {
     name: string;
     purpose: string;
     redirectUri: string;
-    clientSecret?: string;
     logo?: string;
     websiteUrl?: string;
     enablePkce?: boolean;
     userId?: number;
     status: OAuthClientStatus;
   }) {
-    const { name, purpose, redirectUri, clientSecret, logo, websiteUrl, enablePkce, userId, status } = data;
+    const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, userId, status } = data;
 
     const clientId = randomBytes(32).toString("hex");
 
@@ -174,7 +159,6 @@ export class OAuthClientRepository {
         logo,
         websiteUrl,
         status,
-        clientSecret,
         ...(userId && {
           user: {
             connect: { id: userId },
@@ -190,7 +174,6 @@ export class OAuthClientRepository {
       redirectUri: client.redirectUri,
       logo: client.logo,
       clientType: client.clientType,
-      clientSecret: client.clientSecret,
       isPkceEnabled: enablePkce,
       status: client.status,
     };

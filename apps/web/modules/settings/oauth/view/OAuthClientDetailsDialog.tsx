@@ -33,7 +33,6 @@ type OAuthClientDetails = {
   logo?: string | null;
   status?: string;
   rejectionReason?: string | null;
-  clientSecret?: string;
   isPkceEnabled?: boolean;
   clientType?: string;
   user?: {

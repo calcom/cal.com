@@ -1840,7 +1840,6 @@ enum OAuthClientStatus {
 model OAuthClient {
   clientId        String            @id @unique
   redirectUri     String
-  clientSecret    String?
   clientType      OAuthClientType   @default(CONFIDENTIAL)
   name            String
   purpose         String?

@@ -3,7 +3,7 @@ import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
@@ -275,11 +275,10 @@ export class OAuthService {
   async exchangeCodeForTokens(
     clientId: string,
     code: string,
-    clientSecret?: string,
     redirectUri?: string,
     codeVerifier?: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
+    const client = await this.oAuthClientRepository.findByClientId(clientId);
     if (!client) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
@@ -287,12 +286,6 @@ export class OAuthService {
     // RFC 6749 5.2: Redirect URI mismatch during Token exchange is 'invalid_grant'
     if (redirectUri && client.redirectUri !== redirectUri) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
-    }
-
-    if (!this.validateClient(client, clientSecret)) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
-        reason: "invalid_client_credentials",
-      });
     }
 
     const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
@@ -325,19 +318,12 @@ export class OAuthService {
 
   async refreshAccessToken(
     clientId: string,
-    refreshToken: string,
-    clientSecret?: string
+    refreshToken: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
+    const client = await this.oAuthClientRepository.findByClientId(clientId);
 
     if (!client) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
-    }
-
-    if (!this.validateClient(client, clientSecret)) {
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
-        reason: "invalid_client_credentials",
-      });
     }
 
     const decodedToken = this.verifyRefreshToken(refreshToken);
@@ -362,27 +348,21 @@ export class OAuthService {
     return tokens;
   }
 
-  private validateClient(
-    client: { clientType: string; clientSecret?: string | null },
-    clientSecret?: string
-  ): boolean {
-    if (client.clientType === "CONFIDENTIAL") {
-      if (!clientSecret) return false;
-
-      const [hashedSecret] = generateSecret(clientSecret);
-      if (client.clientSecret !== hashedSecret) return false;
-    }
-    return true;
-  }
-
   private verifyPKCE(
     client: { clientType: string },
     source: { codeChallenge?: string | null; codeChallengeMethod?: string | null },
     codeVerifier?: string
   ): {
     error: "invalid_request" | "invalid_grant";
-    reason: "pkce_missing_parameters_or_invalid_method" | "pkce_verification_failed";
+    reason: "pkce_missing_parameters_or_invalid_method" | "pkce_verification_failed" | "pkce_required_for_confidential";
   } | null {
+    if (client.clientType === "CONFIDENTIAL" && !source.codeChallenge) {
+      // After clientSecret was dropped, confidential clients MUST prove identity via PKCE.
+      // If the authorization code was issued without a code_challenge it means the client
+      // did not use PKCE during the authorize step, so we must reject the token exchange.
+      return { error: "invalid_request", reason: "pkce_required_for_confidential" };
+    }
+
     const shouldEnforcePKCE =
       client.clientType === "PUBLIC" || (client.clientType === "CONFIDENTIAL" && source.codeChallenge);
 
@@ -484,10 +464,10 @@ export type OAuthErrorReason =
   | "client_rejected"
   | "redirect_uri_mismatch"
   | "pkce_required"
+  | "pkce_required_for_confidential"
   | "invalid_code_challenge_method"
   | "team_not_found_or_no_access"
   | "access_denied"
-  | "invalid_client_credentials"
   | "code_invalid_or_expired"
   | "pkce_missing_parameters_or_invalid_method"
   | "pkce_verification_failed"
@@ -502,10 +482,10 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_rejected: "OAuth client has been rejected",
   redirect_uri_mismatch: "redirect_uri does not match OAuth client's redirect URI",
   pkce_required: "code_challenge required for public clients",
+  pkce_required_for_confidential: "PKCE is required for confidential clients",
   invalid_code_challenge_method: "code_challenge_method must be S256",
   team_not_found_or_no_access: "Team not found or user is not an admin/owner",
   access_denied: "The resource owner or authorization server denied the request.",
-  invalid_client_credentials: "invalid_client",
   code_invalid_or_expired: "invalid_grant",
   pkce_missing_parameters_or_invalid_method: "invalid_request",
   pkce_verification_failed: "invalid_grant",

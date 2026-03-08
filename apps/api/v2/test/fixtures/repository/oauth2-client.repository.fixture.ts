@@ -16,7 +16,6 @@ export class OAuth2ClientRepositoryFixture {
     clientId: string;
     name: string;
     redirectUri: string;
-    clientSecret?: string;
     clientType?: OAuthClientType;
     status?: OAuthClientStatus;
     logo?: string;
@@ -28,7 +27,6 @@ export class OAuth2ClientRepositoryFixture {
         clientId: data.clientId,
         name: data.name,
         redirectUri: data.redirectUri,
-        clientSecret: data.clientSecret,
         clientType: data.clientType || OAuthClientType.CONFIDENTIAL,
         status: data.status || OAuthClientStatus.APPROVED,
         logo: data.logo,

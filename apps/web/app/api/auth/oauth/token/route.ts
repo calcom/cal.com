@@ -29,7 +29,6 @@ async function handler(req: NextRequest) {
     const tokens = await oAuthService.exchangeCodeForTokens(
       client_id,
       code,
-      client_secret,
       redirect_uri,
       code_verifier
     );

@@ -40,7 +40,6 @@ export default function OAuthClientsAdminView() {
     onSuccess: async (data) => {
       setCreatedClient({
         clientId: data.clientId,
-        clientSecret: data.clientSecret,
         name: data.name,
         purpose: data.purpose ?? "",
         status: data.status,

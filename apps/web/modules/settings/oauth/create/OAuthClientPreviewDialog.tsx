@@ -82,40 +82,6 @@ export function OAuthClientPreviewDialog({
                   </Button>
                 </Tooltip>
               </div>
-            </div>
-
-            {client.clientSecret ? (
-              <div>
-                <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
-                <div className="flex">
-                  <code
-                    data-testid="oauth-client-submitted-client-secret"
-                    className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                    {client.clientSecret}
-                  </code>
-                  <Tooltip side="top" content={t("copy_to_clipboard")}>
-                    <Button
-                      onClick={() => {
-                        copyToClipboard(client.clientSecret ?? "", {
-                          onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                          onFailure: () => showToast(t("error"), "error"),
-                        });
-                      }}
-                      type="button"
-                      size="sm"
-                      className="rounded-l-none"
-                      StartIcon="clipboard">
-                      {t("copy")}
-                    </Button>
-                  </Tooltip>
-                </div>
-                <Alert
-                  severity="warning"
-                  message={t("oauth_client_client_secret_one_time_warning")}
-                  className="mt-3"
-                />
-              </div>
-            ) : null}
           </div>
 
           <DialogFooter className="mt-6">

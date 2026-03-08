@@ -11,7 +11,6 @@ const mocks = vi.hoisted(() => {
     createOAuthClient: vi.fn(),
     sendAdminOAuthClientNotification: vi.fn(),
     getTranslation: vi.fn(),
-    generateSecret: vi.fn(),
   };
 });
 
@@ -30,10 +29,6 @@ vi.mock("@calcom/i18n/server", () => ({
   getTranslation: mocks.getTranslation,
 }));
 
-vi.mock("@calcom/features/oauth/utils/generateSecret", () => ({
-  generateSecret: mocks.generateSecret,
-}));
-
 describe("submitClientHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +43,6 @@ describe("submitClientHandler", () => {
     }) as unknown as TFunction;
 
     mocks.getTranslation.mockResolvedValue(t);
-    mocks.generateSecret.mockReturnValue(["hashed-secret", "plain-secret"]);
 
     const createdClient = {
       clientId: "client_123",
@@ -57,8 +51,7 @@ describe("submitClientHandler", () => {
       redirectUri: "https://example.com/callback",
       logo: "https://example.com/logo.png",
       clientType: "CONFIDENTIAL",
-      clientSecret: "hashed-secret",
-      isPkceEnabled: false,
+      isPkceEnabled: true,
       status: "PENDING",
     };
 
@@ -89,10 +82,9 @@ describe("submitClientHandler", () => {
       name: input.name,
       purpose: input.purpose,
       redirectUri: input.redirectUri,
-      clientSecret: "hashed-secret",
       logo: input.logo,
       websiteUrl: input.websiteUrl,
-      enablePkce: input.enablePkce,
+      enablePkce: true, // Handler forces this to true now
       userId: ctx.user.id,
       status: "PENDING",
     });
@@ -111,12 +103,11 @@ describe("submitClientHandler", () => {
       clientId: createdClient.clientId,
       name: createdClient.name,
       purpose: createdClient.purpose,
-      clientSecret: "plain-secret",
       redirectUri: createdClient.redirectUri,
       logo: createdClient.logo,
       clientType: createdClient.clientType,
       status: createdClient.status,
-      isPkceEnabled: input.enablePkce,
+      isPkceEnabled: true, // Handler forces this to true now
     });
   });
 });
