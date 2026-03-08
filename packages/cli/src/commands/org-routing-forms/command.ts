@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import {
   organizationsRoutingFormsResponsesControllerCreateRoutingFormResponse as createRoutingFormResponse,
-  meControllerGetMe as getMe,
   organizationsRoutingFormsControllerGetOrganizationRoutingForms as getOrgRoutingForms,
   organizationsRoutingFormsResponsesControllerGetRoutingFormResponses as getRoutingFormResponses,
   organizationsRoutingFormsResponsesControllerUpdateRoutingFormResponse as updateRoutingFormResponse,
@@ -16,22 +15,6 @@ import {
   renderRoutingFormResponseList,
   renderUpdateResponseResult,
 } from "./output";
-
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization routing forms require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
 
 function parseTeamIds(teamIdsStr: string | undefined): number[] | undefined {
   if (!teamIdsStr) {
@@ -65,14 +48,15 @@ function registerRoutingFormsQueryCommands(routingFormsCmd: Command): void {
   routingFormsCmd
     .command("list")
     .description("List all organization routing forms")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of forms to return")
     .option("--skip <n>", "Number of forms to skip")
     .option("--team-ids <ids>", "Filter by team IDs (comma-separated)")
     .option("--json", "Output as JSON")
-    .action(async (options: { take?: string; skip?: string; teamIds?: string; json?: boolean }) => {
+    .action(async (options: { orgId: string; take?: string; skip?: string; teamIds?: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getOrgRoutingForms({
           path: { orgId },
@@ -93,6 +77,7 @@ function registerResponsesListCommand(responsesCmd: Command): void {
   responsesCmd
     .command("list <formId>")
     .description("List responses for a routing form")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of responses to return")
     .option("--skip <n>", "Number of responses to skip")
     .option("--sort-created <order>", "Sort by creation time (asc/desc)")
@@ -102,6 +87,7 @@ function registerResponsesListCommand(responsesCmd: Command): void {
       async (
         formId: string,
         options: {
+          orgId: string;
           take?: string;
           skip?: string;
           sortCreated?: string;
@@ -111,7 +97,7 @@ function registerResponsesListCommand(responsesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const { data: response } = await getRoutingFormResponses({
             path: { orgId, routingFormId: formId },
@@ -134,6 +120,7 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
   responsesCmd
     .command("create <formId>")
     .description("Create a routing form response and get available slots")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--start <date>", "Start date/time in ISO 8601 format (UTC)")
     .requiredOption("--end <date>", "End date/time in ISO 8601 format (UTC)")
     .option("--timezone <tz>", "Time zone for the response")
@@ -146,6 +133,7 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
       async (
         formId: string,
         options: {
+          orgId: string;
           start: string;
           end: string;
           timezone?: string;
@@ -158,7 +146,7 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const { data: response } = await createRoutingFormResponse({
             path: { orgId, routingFormId: formId },
@@ -184,12 +172,13 @@ function registerResponsesUpdateCommand(responsesCmd: Command): void {
   responsesCmd
     .command("update <formId> <responseId>")
     .description("Update a routing form response")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--response <json>", "Response data as JSON")
     .option("--json", "Output as JSON")
-    .action(async (formId: string, responseId: string, options: { response: string; json?: boolean }) => {
+    .action(async (formId: string, responseId: string, options: { orgId: string; response: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         let responseData: Record<string, unknown>;
         try {

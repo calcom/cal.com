@@ -7,7 +7,6 @@ import {
   organizationsAttributesOptionsControllerDeleteOrganizationAttributeOption as deleteOption,
   organizationsAttributesControllerGetOrganizationAttribute as getAttribute,
   organizationsAttributesControllerGetOrganizationAttributes as getAttributes,
-  meControllerGetMe as getMe,
   organizationsAttributesOptionsControllerGetOrganizationAttributeOptions as getOptions,
   organizationsAttributesOptionsControllerGetOrganizationAttributeOptionsForUser as getUserOptions,
   organizationsAttributesOptionsControllerUnassignOrganizationAttributeOptionFromUser as unassignOptionFromUser,
@@ -42,31 +41,16 @@ import {
 
 type AttributeType = CreateOrganizationAttributeInput["type"];
 
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization attributes require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
-
 function registerAttributeQueryCommands(attributesCmd: Command): void {
   attributesCmd
     .command("list")
     .description("List all organization attributes")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (options: { json?: boolean }) => {
+    .action(async (options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getAttributes({
           path: { orgId },
@@ -80,11 +64,12 @@ function registerAttributeQueryCommands(attributesCmd: Command): void {
   attributesCmd
     .command("get <attributeId>")
     .description("Get an attribute by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (attributeId: string, options: { json?: boolean }) => {
+    .action(async (attributeId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getAttribute({
           path: { orgId, attributeId },
@@ -100,6 +85,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
   attributesCmd
     .command("create")
     .description("Create a new organization attribute")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--name <name>", "Attribute name")
     .requiredOption("--slug <slug>", "Attribute slug")
     .requiredOption(
@@ -110,7 +96,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
     .option("--disabled", "Disable the attribute")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         name: string;
         slug: string;
         type: string;
@@ -120,7 +106,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const validTypes: AttributeType[] = ["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"];
           const typeUpper = options.type.toUpperCase() as AttributeType;
@@ -157,6 +143,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
   attributesCmd
     .command("update <attributeId>")
     .description("Update an organization attribute")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--name <name>", "Attribute name")
     .option("--slug <slug>", "Attribute slug")
     .option("--type <type>", "Attribute type (TEXT, NUMBER, SINGLE_SELECT, MULTI_SELECT)")
@@ -167,6 +154,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
       async (
         attributeId: string,
         options: {
+          orgId: string;
           name?: string;
           slug?: string;
           type?: string;
@@ -177,7 +165,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: UpdateOrganizationAttributeInput = {};
 
@@ -218,11 +206,12 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
   attributesCmd
     .command("delete <attributeId>")
     .description("Delete an organization attribute")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (attributeId: string, options: { json?: boolean }) => {
+    .action(async (attributeId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await deleteAttribute({
           path: { orgId, attributeId },
@@ -240,11 +229,12 @@ function registerOptionsCommands(attributesCmd: Command): void {
   optionsCmd
     .command("list <attributeId>")
     .description("List all options for an attribute")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (attributeId: string, options: { json?: boolean }) => {
+    .action(async (attributeId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getOptions({
           path: { orgId, attributeId },
@@ -258,6 +248,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
   optionsCmd
     .command("create <attributeId>")
     .description("Create an option for an attribute")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--value <value>", "Option value")
     .requiredOption("--slug <slug>", "Option slug")
     .option("--json", "Output as JSON")
@@ -265,6 +256,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
       async (
         attributeId: string,
         options: {
+          orgId: string;
           value: string;
           slug: string;
           json?: boolean;
@@ -272,7 +264,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: CreateOrganizationAttributeOptionInput = {
             value: options.value,
@@ -293,6 +285,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
   optionsCmd
     .command("update <attributeId> <optionId>")
     .description("Update an attribute option")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--value <value>", "Option value")
     .option("--slug <slug>", "Option slug")
     .option("--json", "Output as JSON")
@@ -301,6 +294,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
         attributeId: string,
         optionId: string,
         options: {
+          orgId: string;
           value?: string;
           slug?: string;
           json?: boolean;
@@ -308,7 +302,7 @@ function registerOptionsCommands(attributesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: UpdateOrganizationAttributeOptionInput = {};
 
@@ -329,11 +323,12 @@ function registerOptionsCommands(attributesCmd: Command): void {
   optionsCmd
     .command("delete <attributeId> <optionId>")
     .description("Delete an attribute option")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (attributeId: string, optionId: string, options: { json?: boolean }) => {
+    .action(async (attributeId: string, optionId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await deleteOption({
           path: { orgId, attributeId, optionId },
@@ -349,11 +344,12 @@ function registerUserOptionsCommands(attributesCmd: Command): void {
   attributesCmd
     .command("user-options <userId>")
     .description("Get all attribute options assigned to a user")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (userId: string, options: { json?: boolean }) => {
+    .action(async (userId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
         const userIdNum = parseInt(userId, 10);
 
         if (isNaN(userIdNum)) {
@@ -372,6 +368,7 @@ function registerUserOptionsCommands(attributesCmd: Command): void {
   attributesCmd
     .command("assign <userId>")
     .description("Assign an attribute option to a user")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--attribute-id <attributeId>", "Attribute ID")
     .option("--option-id <optionId>", "Option ID to assign")
     .option("--value <value>", "Value to assign (for TEXT/NUMBER attributes)")
@@ -380,6 +377,7 @@ function registerUserOptionsCommands(attributesCmd: Command): void {
       async (
         userId: string,
         options: {
+          orgId: string;
           attributeId: string;
           optionId?: string;
           value?: string;
@@ -388,7 +386,7 @@ function registerUserOptionsCommands(attributesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
           const userIdNum = parseInt(userId, 10);
 
           if (isNaN(userIdNum)) {
@@ -420,11 +418,12 @@ function registerUserOptionsCommands(attributesCmd: Command): void {
   attributesCmd
     .command("unassign <userId> <optionId>")
     .description("Unassign an attribute option from a user")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (userId: string, optionId: string, options: { json?: boolean }) => {
+    .action(async (userId: string, optionId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
         const userIdNum = parseInt(userId, 10);
 
         if (isNaN(userIdNum)) {

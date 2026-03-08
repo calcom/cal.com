@@ -1,33 +1,17 @@
 import type { Command } from "commander";
 import {
-  meControllerGetMe as getMe,
   organizationsBookingsControllerGetAllOrgTeamBookings as getOrgBookings,
   organizationsUsersBookingsControllerGetOrganizationUserBookings as getOrgUserBookings,
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { ApiVersion } from "../../shared/constants";
 import { withErrorHandling } from "../../shared/errors";
-import { apiVersionHeader, authHeader } from "../../shared/headers";
+import { apiVersionHeader } from "../../shared/headers";
 import { renderOrgBookingList } from "./output";
 import type { BookingStatus, OrgBookingList, SortOrder } from "./types";
 
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization bookings require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
-
 interface OrgBookingsListOptions {
+  orgId: string;
   status?: string;
   attendeeEmail?: string;
   attendeeName?: string;
@@ -42,14 +26,11 @@ interface OrgBookingsListOptions {
   json?: boolean;
 }
 
-interface OrgUserBookingsOptions extends OrgBookingsListOptions {
-  // same options as list
-}
-
 function registerOrgBookingsListCommand(orgBookingsCmd: Command): void {
   orgBookingsCmd
     .command("list")
     .description("List all organization bookings")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--status <status>", "Filter by status (upcoming,past,cancelled,recurring,unconfirmed)")
     .option("--attendee-email <email>", "Filter by attendee email")
     .option("--attendee-name <name>", "Filter by attendee name")
@@ -65,7 +46,7 @@ function registerOrgBookingsListCommand(orgBookingsCmd: Command): void {
     .action(async (options: OrgBookingsListOptions) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const statusArray = options.status ? [options.status as BookingStatus] : undefined;
 
@@ -96,6 +77,7 @@ function registerOrgUserBookingsCommand(orgBookingsCmd: Command): void {
   orgBookingsCmd
     .command("user <userId>")
     .description("List bookings for a specific user in the organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--status <status>", "Filter by status (upcoming,past,cancelled,recurring,unconfirmed)")
     .option("--attendee-email <email>", "Filter by attendee email")
     .option("--attendee-name <name>", "Filter by attendee name")
@@ -108,10 +90,10 @@ function registerOrgUserBookingsCommand(orgBookingsCmd: Command): void {
     .option("--take <n>", "Number of bookings to return")
     .option("--skip <n>", "Number of bookings to skip")
     .option("--json", "Output as JSON")
-    .action(async (userId: string, options: OrgUserBookingsOptions) => {
+    .action(async (userId: string, options: OrgBookingsListOptions) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const statusArray = options.status ? [options.status as BookingStatus] : undefined;
 

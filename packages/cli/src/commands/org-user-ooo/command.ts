@@ -3,7 +3,6 @@ import type { Command } from "commander";
 import {
   organizationsUsersOooControllerCreateOrganizationUserOoo as createOrgUserOoo,
   organizationsUsersOooControllerDeleteOrganizationUserOoo as deleteOrgUserOoo,
-  meControllerGetMe as getMe,
   organizationsUsersOooControllerGetOrganizationUserOoo as getOrgUserOooList,
   organizationsUsersOooControllerUpdateOrganizationUserOoo as updateOrgUserOoo,
 } from "../../generated/sdk.gen";
@@ -19,26 +18,11 @@ import {
 } from "./output";
 import { VALID_REASONS } from "./types";
 
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization user OOO management requires an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
-
 function registerOrgUserOooListCommand(oooCmd: Command): void {
   oooCmd
     .command("list <userId>")
     .description("List all out-of-office entries for a user in your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--sort-start <order>", "Sort by start time (asc or desc)")
     .option("--sort-end <order>", "Sort by end time (asc or desc)")
     .option("--take <n>", "Number of entries to return")
@@ -48,6 +32,7 @@ function registerOrgUserOooListCommand(oooCmd: Command): void {
       async (
         userId: string,
         options: {
+          orgId: string;
           sortStart?: string;
           sortEnd?: string;
           take?: string;
@@ -57,7 +42,7 @@ function registerOrgUserOooListCommand(oooCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const query: {
             sortStart?: "asc" | "desc";
@@ -95,6 +80,7 @@ function registerOrgUserOooCreateCommand(oooCmd: Command): void {
   oooCmd
     .command("create <userId>")
     .description("Create an out-of-office entry for a user in your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--start <date>", "Start date (ISO 8601 UTC, e.g. 2025-06-01T00:00:00.000Z)")
     .requiredOption("--end <date>", "End date (ISO 8601 UTC, e.g. 2025-06-10T23:59:59.999Z)")
     .option(
@@ -109,6 +95,7 @@ function registerOrgUserOooCreateCommand(oooCmd: Command): void {
       async (
         userId: string,
         options: {
+          orgId: string;
           start: string;
           end: string;
           reason: string;
@@ -124,7 +111,7 @@ function registerOrgUserOooCreateCommand(oooCmd: Command): void {
 
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: {
             start: string;
@@ -161,6 +148,7 @@ function registerOrgUserOooUpdateCommand(oooCmd: Command): void {
   oooCmd
     .command("update <userId> <oooId>")
     .description("Update an out-of-office entry for a user in your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--start <date>", "New start date (ISO 8601 UTC)")
     .option("--end <date>", "New end date (ISO 8601 UTC)")
     .option("--reason <reason>", "Reason (unspecified, vacation, travel, sick, public_holiday)")
@@ -172,6 +160,7 @@ function registerOrgUserOooUpdateCommand(oooCmd: Command): void {
         userId: string,
         oooId: string,
         options: {
+          orgId: string;
           start?: string;
           end?: string;
           reason?: string;
@@ -187,7 +176,7 @@ function registerOrgUserOooUpdateCommand(oooCmd: Command): void {
 
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: {
             start?: string;
@@ -229,11 +218,12 @@ function registerOrgUserOooDeleteCommand(oooCmd: Command): void {
   oooCmd
     .command("delete <userId> <oooId>")
     .description("Delete an out-of-office entry for a user in your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (userId: string, oooId: string, options: { json?: boolean }) => {
+    .action(async (userId: string, oooId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         await deleteOrgUserOoo({
           path: { orgId, userId: Number(userId), oooId: Number(oooId) },

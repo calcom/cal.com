@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import {
   organizationsDelegationCredentialControllerCreateDelegationCredential as createDelegationCredential,
-  meControllerGetMe as getMe,
   organizationsDelegationCredentialControllerUpdateDelegationCredential as updateDelegationCredential,
 } from "../../generated/sdk.gen";
 import type {
@@ -14,22 +13,6 @@ import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
 import { renderDelegationCredentialCreated, renderDelegationCredentialUpdated } from "./output";
-
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Delegation credentials require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
 
 function parseServiceAccountKey(
   keyJson: string
@@ -55,12 +38,13 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
   delegationCredentialsCmd
     .command("create")
     .description("Create a delegation credential for your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--workspace-platform-slug <slug>", "Workspace platform slug (e.g., google, microsoft)")
     .requiredOption("--domain <domain>", "Domain for the delegation credential")
     .requiredOption("--service-account-key <json>", "Service account key JSON (Google or Microsoft format)")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         workspacePlatformSlug: string;
         domain: string;
         serviceAccountKey: string;
@@ -68,7 +52,7 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const serviceAccountKey = parseServiceAccountKey(options.serviceAccountKey);
 
@@ -92,6 +76,7 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
   delegationCredentialsCmd
     .command("update <credentialId>")
     .description("Update a delegation credential")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--enabled <value>", "Enable or disable the credential (true/false)")
     .option("--service-account-key <json>", "New service account key JSON (Google or Microsoft format)")
     .option("--json", "Output as JSON")
@@ -99,6 +84,7 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
       async (
         credentialId: string,
         options: {
+          orgId: string;
           enabled?: string;
           serviceAccountKey?: string;
           json?: boolean;
@@ -106,7 +92,7 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const body: UpdateDelegationCredentialInput = {};
 

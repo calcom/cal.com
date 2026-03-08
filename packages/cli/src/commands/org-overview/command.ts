@@ -1,6 +1,5 @@
 import type { Command } from "commander";
 import {
-  meControllerGetMe as getMe,
   organizationsSchedulesControllerGetOrganizationSchedules as getOrgSchedules,
   organizationsUsersOooControllerGetOrganizationUsersOoo as getOrgUsersOoo,
 } from "../../generated/sdk.gen";
@@ -9,26 +8,11 @@ import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
 import { renderOrgOooList, renderOrgSchedulesList } from "./output";
 
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization overview requires an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
-
 function registerOrgOverviewOooCommand(overviewCmd: Command): void {
   overviewCmd
     .command("ooo")
     .description("List all out-of-office entries across the organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--email <email>", "Filter by user email address")
     .option("--sort-start <order>", "Sort by start time (asc or desc)")
     .option("--sort-end <order>", "Sort by end time (asc or desc)")
@@ -36,7 +20,7 @@ function registerOrgOverviewOooCommand(overviewCmd: Command): void {
     .option("--skip <n>", "Number of entries to skip")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         email?: string;
         sortStart?: string;
         sortEnd?: string;
@@ -46,7 +30,7 @@ function registerOrgOverviewOooCommand(overviewCmd: Command): void {
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const query: {
             email?: string;
@@ -88,18 +72,19 @@ function registerOrgOverviewSchedulesCommand(overviewCmd: Command): void {
   overviewCmd
     .command("schedules")
     .description("List all schedules across the organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of schedules to return")
     .option("--skip <n>", "Number of schedules to skip")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         take?: string;
         skip?: string;
         json?: boolean;
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const query: {
             take?: number;

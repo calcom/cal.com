@@ -54,6 +54,21 @@ export function renderWarning(message: string): void {
   console.log(chalk.yellow(message));
 }
 
+function stripAnsi(str: string): string {
+  // eslint-disable-next-line no-control-regex
+  return str.replace(/\x1B\[[0-9;]*m/g, "");
+}
+
+function visibleLength(str: string): number {
+  return stripAnsi(str).length;
+}
+
+function padEndVisible(str: string, targetLength: number): string {
+  const visible = visibleLength(str);
+  if (visible >= targetLength) return str;
+  return str + " ".repeat(targetLength - visible);
+}
+
 export function renderTable(headers: string[], rows: string[][]): void {
   if (rows.length === 0) {
     console.log(chalk.dim("No results found."));
@@ -61,7 +76,7 @@ export function renderTable(headers: string[], rows: string[][]): void {
   }
 
   const colWidths = headers.map((h, i) => {
-    const maxDataWidth = rows.reduce((max, row) => Math.max(max, (row[i] || "").length), 0);
+    const maxDataWidth = rows.reduce((max, row) => Math.max(max, visibleLength(row[i] || "")), 0);
     return Math.max(h.length, maxDataWidth);
   });
 
@@ -72,7 +87,7 @@ export function renderTable(headers: string[], rows: string[][]): void {
   console.log(chalk.dim(separator));
 
   for (const row of rows) {
-    const line = row.map((cell, i) => (cell || "").padEnd(colWidths[i])).join("  ");
+    const line = row.map((cell, i) => padEndVisible(cell || "", colWidths[i])).join("  ");
     console.log(line);
   }
 }

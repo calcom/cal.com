@@ -2,7 +2,6 @@ import type { Command } from "commander";
 import {
   organizationsWebhooksControllerCreateOrganizationWebhook as createOrgWebhook,
   organizationsWebhooksControllerDeleteWebhook as deleteOrgWebhook,
-  meControllerGetMe as getMe,
   organizationsWebhooksControllerGetOrganizationWebhook as getOrgWebhook,
   organizationsWebhooksControllerGetAllOrganizationWebhooks as getOrgWebhooks,
   organizationsWebhooksControllerUpdateOrgWebhook as updateOrgWebhook,
@@ -19,33 +18,18 @@ import {
   renderOrgWebhookUpdated,
 } from "./output";
 
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Organization webhooks require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
-
 function registerOrgWebhookQueryCommands(orgWebhooksCmd: Command): void {
   orgWebhooksCmd
     .command("list")
     .description("List all organization webhooks")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of webhooks to return")
     .option("--skip <n>", "Number of webhooks to skip")
     .option("--json", "Output as JSON")
-    .action(async (options: { take?: string; skip?: string; json?: boolean }) => {
+    .action(async (options: { orgId: string; take?: string; skip?: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getOrgWebhooks({
           path: { orgId },
@@ -82,6 +66,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
   orgWebhooksCmd
     .command("create")
     .description("Create an organization webhook")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--subscriber-url <url>", "Subscriber URL")
     .requiredOption("--triggers <triggers>", "Event triggers (comma-separated)")
     .option("--active <value>", "Active status (true/false)", "true")
@@ -89,7 +74,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
     .option("--payload-template <template>", "Payload template")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         subscriberUrl: string;
         triggers: string;
         active: string;
@@ -99,7 +84,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
+          const orgId = Number(options.orgId);
 
           const triggers = options.triggers
             .split(",")

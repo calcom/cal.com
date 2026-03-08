@@ -4,14 +4,12 @@ import {
   organizationsOrganizationsControllerDeleteOrganization as deleteManagedOrg,
   organizationsOrganizationsControllerGetOrganization as getManagedOrg,
   organizationsOrganizationsControllerGetOrganizations as getManagedOrgs,
-  meControllerGetMe as getMe,
   organizationsOrganizationsControllerUpdateOrganization as updateManagedOrg,
 } from "../../generated/sdk.gen";
 import type { CreateOrganizationInput, UpdateOrganizationInput } from "../../generated/types.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
-import { renderError } from "../../shared/output";
 import {
   renderManagedOrg,
   renderManagedOrgCreated,
@@ -20,16 +18,11 @@ import {
   renderManagedOrgUpdated,
 } from "./output";
 
-async function getOrgIdFromMe(): Promise<number | null> {
-  const { data: meResponse } = await getMe({ headers: authHeader() });
-  return meResponse?.data?.organizationId ?? null;
-}
-
 function registerManagedOrgsQueryCommands(managedOrgsCmd: Command): void {
   managedOrgsCmd
     .command("list")
     .description("List all managed organizations")
-    .option("--org-id <orgId>", "Organization ID (defaults to logged-in user's organization)")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--slug <slug>", "Filter by slug")
     .option("--metadata-key <key>", "Filter by metadata key")
     .option("--metadata-value <value>", "Filter by metadata value")
@@ -37,8 +30,7 @@ function registerManagedOrgsQueryCommands(managedOrgsCmd: Command): void {
     .option("--take <n>", "Number of organizations to return")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
-        orgId?: string;
+      async (options: { orgId: string;
         slug?: string;
         metadataKey?: string;
         metadataValue?: string;
@@ -48,18 +40,7 @@ function registerManagedOrgsQueryCommands(managedOrgsCmd: Command): void {
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-
-          let orgId: number;
-          if (options.orgId) {
-            orgId = Number(options.orgId);
-          } else {
-            const userOrgId = await getOrgIdFromMe();
-            if (!userOrgId) {
-              renderError("No organization ID found for the logged-in user. Please specify --org-id.");
-              return;
-            }
-            orgId = userOrgId;
-          }
+          const orgId = Number(options.orgId);
 
           const { data: response } = await getManagedOrgs({
             path: { orgId },
@@ -98,16 +79,15 @@ function registerManagedOrgsMutationCommands(managedOrgsCmd: Command): void {
   managedOrgsCmd
     .command("create")
     .description("Create a managed organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--name <name>", "Name of the managed organization")
-    .option("--org-id <orgId>", "Organization ID (defaults to logged-in user's organization)")
     .option("--slug <slug>", "Slug for the managed organization (kebab-case)")
     .option("--api-key-days-valid <days>", "API key validity in days (default: 30)")
     .option("--api-key-never-expires", "Set API key to never expire")
     .option("--json", "Output as JSON")
     .action(
-      async (options: {
+      async (options: { orgId: string;
         name: string;
-        orgId?: string;
         slug?: string;
         apiKeyDaysValid?: string;
         apiKeyNeverExpires?: boolean;
@@ -115,18 +95,7 @@ function registerManagedOrgsMutationCommands(managedOrgsCmd: Command): void {
       }) => {
         await withErrorHandling(async () => {
           await initializeClient();
-
-          let orgId: number;
-          if (options.orgId) {
-            orgId = Number(options.orgId);
-          } else {
-            const userOrgId = await getOrgIdFromMe();
-            if (!userOrgId) {
-              renderError("No organization ID found for the logged-in user. Please specify --org-id.");
-              return;
-            }
-            orgId = userOrgId;
-          }
+          const orgId = Number(options.orgId);
 
           const body: CreateOrganizationInput = {
             name: options.name,
@@ -149,32 +118,21 @@ function registerManagedOrgsMutationCommands(managedOrgsCmd: Command): void {
   managedOrgsCmd
     .command("update <managedOrgId>")
     .description("Update a managed organization")
-    .option("--org-id <orgId>", "Organization ID (defaults to logged-in user's organization)")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--name <name>", "New name for the managed organization")
     .option("--json", "Output as JSON")
     .action(
       async (
         managedOrgId: string,
         options: {
-          orgId?: string;
+          orgId: string;
           name?: string;
           json?: boolean;
         }
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-
-          let orgId: number;
-          if (options.orgId) {
-            orgId = Number(options.orgId);
-          } else {
-            const userOrgId = await getOrgIdFromMe();
-            if (!userOrgId) {
-              renderError("No organization ID found for the logged-in user. Please specify --org-id.");
-              return;
-            }
-            orgId = userOrgId;
-          }
+          const orgId = Number(options.orgId);
 
           const body: UpdateOrganizationInput = {};
 
