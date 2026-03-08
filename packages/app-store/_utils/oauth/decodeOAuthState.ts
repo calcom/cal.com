@@ -9,7 +9,14 @@ export function decodeOAuthState(req: NextApiRequest, appSlug?: string) {
   if (typeof req.query.state !== "string") {
     return undefined;
   }
-  const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
+
+  let state: IntegrationOAuthCallbackState;
+  try {
+    state = JSON.parse(req.query.state);
+  } catch (error) {
+    // Invalid JSON in state parameter
+    return undefined;
+  }
 
   if (appSlug && NONCE_EXEMPT_APPS.has(appSlug)) {
     return state;
