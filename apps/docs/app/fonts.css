@@ -6,6 +6,8 @@ h4,
 h5,
 h6 {
   font-family: var(--font-cal), sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 /* Cal Sans UI for body text */
