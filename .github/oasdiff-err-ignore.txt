@@ -250,3 +250,17 @@ PATCH /v2/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_G
 PATCH /v2/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
 PATCH /v2/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
 PATCH /v2/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
