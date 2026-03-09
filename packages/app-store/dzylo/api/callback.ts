@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
     if (!clientId) return res.status(400).json({ message: "Dzylo Crm consumer key missing." });
     if (!clientSecret) return res.status(400).json({ message: "Dzylo Crm consumer secret missing." });
-    if (code === undefined && typeof code !== "string") {
+    if (typeof code !== "string") {
       res.status(400).json({ message: "`code` must be a string" });
       return;
     }

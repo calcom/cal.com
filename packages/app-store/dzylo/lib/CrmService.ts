@@ -169,7 +169,7 @@ export default class DzyloCrmService implements CRM {
       description: this.getMeetingBody(event),
       location: getLocation(event),
     };
-    return axios({
+    const response = await axios({
       method: "put",
       url: `${BASE_URL}/events/update`,
       headers: {
@@ -177,22 +177,20 @@ export default class DzyloCrmService implements CRM {
         authorization: `Bearer ${this.accessToken}`,
       },
       data: dzyloEvent,
-    })
-      .then((data) => data.data)
-      .catch(() => undefined);
+    });
+    return response.data;
   };
 
   private deleteMeeting = async (uid: string) => {
-    return axios({
+    const response = await axios({
       method: "delete",
       url: `${BASE_URL}/events/update?ids=${uid}`,
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${this.accessToken}`,
       },
-    })
-      .then((data) => data.data)
-      .catch(() => undefined);
+    });
+    return response.data;
   };
 
   private dzyloAuth = async (credential: CredentialPayload) => {
@@ -234,21 +232,23 @@ export default class DzyloCrmService implements CRM {
           credential.userId
         );
         if (!dzyloCrmTokenInfo.data.error) {
+          const newTokenData = dzyloCrmTokenInfo.data as DzyloToken;
           await prisma.credential.update({
             where: {
               id: credential.id,
             },
             data: {
               key: {
-                ...(dzyloCrmTokenInfo.data as DzyloToken),
-                refresh_token: credentialKey.refresh_token,
+                ...newTokenData,
+                refresh_token: newTokenData.refresh_token,
               },
             },
           });
           this.accessToken = dzyloCrmTokenInfo.data.access_token;
         }
-      } catch {
-        return;
+      } catch (error) {
+        console.error("Failed to refresh Dzylo token", error);
+        throw new Error("Failed to refresh Dzylo CRM token");
       }
     };
 
