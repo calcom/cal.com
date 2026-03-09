@@ -70,9 +70,11 @@ export async function getCalIdConnectedApps({
 
   let credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   let userCalIdTeams: CalIdTeamQuery[] = [];
+  let calIdTeam: any;
+  let userMembershipInTeam: any;
 
   if (includeCalIdTeamInstalledApps || calIdTeamId) {
-    const calIdTeamsQuery = await prisma.calIdTeam.findMany({
+    userCalIdTeams = await prisma.calIdTeam.findMany({
       where: {
         members: {
           some: {
@@ -94,19 +96,42 @@ export async function getCalIdConnectedApps({
           },
           select: {
             role: true,
+            userId: true,
           },
         },
       },
     });
 
-    userCalIdTeams = calIdTeamsQuery;
+    calIdTeam = userCalIdTeams.find((calIdTeam) => calIdTeam.id === calIdTeamId);
+
+    userMembershipInTeam = calIdTeam?.members.find((member: any) => member.userId === user.id);
+
+    const isOwnerOfEventTeam = checkIfMemberAdminorOwner(userMembershipInTeam?.role);
 
     const calIdTeamAppCredentials = userCalIdTeams.flatMap((calIdTeamApp) => {
       return calIdTeamApp.credentials ? buildNonDelegationCredentials(calIdTeamApp.credentials.flat()) : [];
     });
 
     // For team-specific event types, only show team-level credentials.
-    if (!includeCalIdTeamInstalledApps || calIdTeamId) {
+    if (calIdTeamId) {
+      // Filter credentials to only include those from the specific team
+
+      const ownerScopedCreds = credentials.filter((cr) => {
+        console.log("App: ", cr.appId);
+
+        const appMeta = getAppFromSlug(cr.appId);
+
+        console.log("App Meta: ", appMeta);
+        return cr.userId === user.id && appMeta?.owner_scoped_installation;
+      });
+
+      console.log("Owner Scoped Creds: ", ownerScopedCreds);
+
+      credentials = [
+        ...calIdTeamAppCredentials.filter((c) => c.calIdTeamId === calIdTeamId),
+        ...ownerScopedCreds,
+      ];
+    } else if (!includeCalIdTeamInstalledApps) {
       credentials = calIdTeamAppCredentials;
     } else {
       // For the general apps listing (not team-specific event types),
@@ -123,9 +148,10 @@ export async function getCalIdConnectedApps({
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2, ...app }) => {
-      const userCredentialIds = credentials
-        .filter((c) => c.appId === app.slug && !c.calIdTeamId)
-        .map((c) => c.id);
+      const userCredentialIds: Array<number> = Array.from(
+        new Set(credentials.filter((c) => c.appId === app.slug && !c.calIdTeamId).map((c) => c.id))
+      );
+
       const invalidCredentialIds = credentials
         .filter((c) => c.appId === app.slug && c.invalid)
         .map((c) => c.id);
@@ -133,7 +159,6 @@ export async function getCalIdConnectedApps({
         credentials
           .filter((c) => c.appId === app.slug && c.calIdTeamId)
           .map(async (c) => {
-            const calIdTeam = userCalIdTeams.find((calIdTeam) => calIdTeam.id === c.calIdTeamId);
             if (!calIdTeam) {
               return null;
             }
@@ -142,8 +167,8 @@ export async function getCalIdConnectedApps({
               name: calIdTeam.name,
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
-              isAdmin: checkIfMemberAdminorOwner(calIdTeam.members[0].role),
-              userRole: calIdTeam.members[0].role,
+              isAdmin: userMembershipInTeam?.role === "OWNER",
+              userRole: userMembershipInTeam?.role,
             };
           })
       );

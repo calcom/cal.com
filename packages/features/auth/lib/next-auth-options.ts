@@ -14,6 +14,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { exchangePipedriveCode } from "@calcom/app-store/pipedrive-crm/api/callback";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -101,6 +102,19 @@ const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string
   });
   return { orgUsername, orgId: existingOrg?.id };
 };
+
+/**
+ * Helper function to handle pipedrive oauth code stored in the cookies
+ * Creates the proper app installation on the user account.
+ */
+async function handlePipedriveOAuthCallback(res: any, code: string, userId: number) {
+  try {
+    const result = await exchangePipedriveCode(code, userId);
+  } catch (e) {
+    log.error("Error handling Pipedrive OAuth callback", { userId, error: safeStringify(e) });
+    // Non-fatal: user can still log in, just won't have the integration set up
+  }
+}
 
 /**
  * Helper function to fetch UTM parameters from cookies
@@ -841,6 +855,7 @@ export const getOptions = ({
     utm_params?: string;
     device_details?: string;
     last_active_throttle?: string;
+    pipedrive_oauth_code?: string;
   }>;
   res?: any;
   req?: any;
@@ -1221,10 +1236,17 @@ export const getOptions = ({
     },
 
     async signIn(params) {
+      console.log("Signing in with cookies: ", cookies);
       const { user, profile, account } = params;
       log.debug("callbacks:signin", safeStringify({ email: user?.email, provider: account?.provider }));
 
       try {
+        if (cookies?.pipedrive_oauth_code) {
+          console.log("Cookie value is : ", cookies.pipedrive_oauth_code);
+          const code = cookies?.pipedrive_oauth_code;
+          await handlePipedriveOAuthCallback(res, code, user?.id as number);
+        }
+
         // Email provider always allowed
         if (account?.provider === "email") {
           return true;
@@ -1728,6 +1750,8 @@ export const getOptions = ({
         createdDate: string;
       };
 
+      let clearPipedriveCookie;
+
       try {
         // Capture UTM for One Tap signins
         if (message.account?.signupSource === "google-one-tap" && user?.id) {
@@ -1749,15 +1773,41 @@ export const getOptions = ({
       }
 
       try {
+        let fullCookies = res.getHeader("Set-Cookie");
+        clearPipedriveCookie = serialize("pipedrive_oauth_code", "", {
+          maxAge: 0,
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
+        if (fullCookies) {
+          // res.setHeader(
+          //   "Set-Cookie",
+          fullCookies = Array.isArray(fullCookies)
+            ? [...fullCookies, clearPipedriveCookie]
+            : [fullCookies, clearPipedriveCookie];
+          // );
+        } else {
+          fullCookies = [clearPipedriveCookie];
+        }
+
+        let loggedInCookie;
+
         // Set secure cookie for logged in user
         const useSecureCookies = WEBAPP_URL?.startsWith("https://");
         if (res && message?.user?.id) {
-          res.setHeader("Set-Cookie", [
-            `loggedInUserId=${message.user.id}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 7}; SameSite=Lax${
-              useSecureCookies ? "; Secure" : ""
-            }`,
-          ]);
-          log.debug("Set loggedInUserId cookie", { userId: message.user.id });
+          loggedInCookie = serialize("loggedInUserId", String(message.user.id), {
+            httpOnly: true,
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: "lax",
+            secure: useSecureCookies,
+          });
+
+          fullCookies = Array.isArray(fullCookies)
+            ? [...fullCookies, loggedInCookie]
+            : [fullCookies, loggedInCookie];
         }
 
         // Track new user signups with Dub
@@ -1778,6 +1828,8 @@ export const getOptions = ({
             );
           }
         }
+
+        res.setHeader("Set-Cookie", fullCookies);
       } catch (error) {
         log.error("Error in signIn event handler", { userId: user?.id, error: safeStringify(error) });
         // Non-fatal: don't block sign in
