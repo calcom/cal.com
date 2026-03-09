@@ -514,6 +514,10 @@ model User {
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
+  createdExperiments             Experiment[]                  @relation("CreatedExperiments")
+  updatedExperiments             Experiment[]                  @relation("UpdatedExperiments")
+  createdExperimentVariants      ExperimentVariant[]           @relation("CreatedExperimentVariants")
+  updatedExperimentVariants      ExperimentVariant[]           @relation("UpdatedExperimentVariants")
   filterSegments                 FilterSegment[]
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
@@ -1814,14 +1818,18 @@ enum ExperimentStatus {
 }
 
 model Experiment {
-  slug      String              @id
-  status    ExperimentStatus    @default(DRAFT)
-  winner    String?
-  startedAt DateTime?
-  stoppedAt DateTime?
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  variants  ExperimentVariant[]
+  slug        String              @id
+  status      ExperimentStatus    @default(DRAFT)
+  winner      String?
+  startedAt   DateTime?
+  stoppedAt   DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  createdBy   User?               @relation("CreatedExperiments", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById Int?
+  updatedBy   User?               @relation("UpdatedExperiments", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById Int?
+  variants    ExperimentVariant[]
 
   @@index([status])
 }
@@ -1831,6 +1839,10 @@ model ExperimentVariant {
   variantSlug    String
   weight         Int
   experiment     Experiment @relation(fields: [experimentSlug], references: [slug], onDelete: Cascade)
+  createdBy      User?      @relation("CreatedExperimentVariants", fields: [createdById], references: [id], onDelete: SetNull)
+  createdById    Int?
+  updatedBy      User?      @relation("UpdatedExperimentVariants", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById    Int?
 
   @@id([experimentSlug, variantSlug])
 }
