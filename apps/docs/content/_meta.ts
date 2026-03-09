@@ -7,7 +7,6 @@ export default {
   installation: "Installation",
   "database-migrations": "Database Migrations",
   upgrading: "Upgrading",
-  "sso-setup": "SSO Setup",
   docker: "Docker",
   "-- deployments": {
     type: "separator",
@@ -19,9 +18,4 @@ export default {
     title: "Apps",
   },
   apps: "Apps",
-  "-- guides": {
-    type: "separator",
-    title: "Guides",
-  },
-  guides: "Guides",
 };
