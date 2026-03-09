@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockSendEmailVerification = vi.fn().mockResolvedValue({ ok: true, skipped: false });
 const mockFindBlockedEmail = vi.fn();
 const mockDeleteEntry = vi.fn();
+const mockDeleteAllWorkflowReminders = vi.fn().mockResolvedValue(undefined);
+const mockFindActiveByUserId = vi.fn().mockResolvedValue([]);
 
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
   sendEmailVerification: (...args: unknown[]) => mockSendEmailVerification(...args),
@@ -15,6 +17,24 @@ vi.mock("@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository", (
 }));
 vi.mock("@calcom/features/watchlist/lib/utils/normalization", () => ({
   normalizeEmail: vi.fn((e: string) => e.toLowerCase()),
+}));
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
+  WorkflowReminderRepository: class {
+    findActiveByUserId = mockFindActiveByUserId;
+  },
+}));
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => ({
+  WorkflowRepository: {
+    deleteAllWorkflowReminders: (...args: unknown[]) => mockDeleteAllWorkflowReminders(...args),
+  },
+}));
+vi.mock("@calcom/lib/logger", () => ({
+  default: {
+    getSubLogger: () => ({
+      info: vi.fn(),
+      error: vi.fn(),
+    }),
+  },
 }));
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
@@ -46,6 +66,8 @@ describe("lockUserAccountHandler", () => {
     mockFindBlockedEmail.mockResolvedValue(null);
     mockDeleteEntry.mockResolvedValue(undefined);
     mockSendEmailVerification.mockResolvedValue({ ok: true, skipped: false });
+    mockDeleteAllWorkflowReminders.mockResolvedValue(undefined);
+    mockFindActiveByUserId.mockResolvedValue([]);
   });
 
   describe("unlocking a user", () => {
@@ -129,6 +151,57 @@ describe("lockUserAccountHandler", () => {
       });
 
       expect(mockSendEmailVerification).not.toHaveBeenCalled();
+    });
+
+    it("should cancel scheduled workflow reminders when locking a user", async () => {
+      const mockReminders = [
+        { id: 1, referenceId: "ref-1", method: "EMAIL" },
+        { id: 2, referenceId: "ref-2", method: "SMS" },
+      ];
+      mockFindActiveByUserId.mockResolvedValue(mockReminders);
+
+      await lockUserAccountHandler({
+        ctx: { user: mockUser as never },
+        input: { userId: 42, locked: true },
+      });
+
+      expect(mockFindActiveByUserId).toHaveBeenCalledWith({ userId: 42 });
+      expect(mockDeleteAllWorkflowReminders).toHaveBeenCalledWith(mockReminders);
+    });
+
+    it("should not call deleteAllWorkflowReminders when there are no reminders", async () => {
+      mockFindActiveByUserId.mockResolvedValue([]);
+
+      await lockUserAccountHandler({
+        ctx: { user: mockUser as never },
+        input: { userId: 42, locked: true },
+      });
+
+      expect(mockFindActiveByUserId).toHaveBeenCalledWith({ userId: 42 });
+      expect(mockDeleteAllWorkflowReminders).not.toHaveBeenCalled();
+    });
+
+    it("should not fail if cancelling workflow reminders throws an error", async () => {
+      mockFindActiveByUserId.mockRejectedValue(new Error("DB error"));
+
+      const result = await lockUserAccountHandler({
+        ctx: { user: mockUser as never },
+        input: { userId: 42, locked: true },
+      });
+
+      expect(result).toEqual({ success: true, userId: 42, locked: true });
+    });
+  });
+
+  describe("unlocking a user does not cancel workflow reminders", () => {
+    it("should not query for workflow reminders when unlocking", async () => {
+      await lockUserAccountHandler({
+        ctx: { user: mockUser as never },
+        input: { userId: 42, locked: false },
+      });
+
+      expect(mockFindActiveByUserId).not.toHaveBeenCalled();
+      expect(mockDeleteAllWorkflowReminders).not.toHaveBeenCalled();
     });
   });
 });

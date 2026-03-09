@@ -105,6 +105,29 @@ export class WorkflowReminderRepository {
     });
   }
 
+  async findActiveByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.workflowReminder.findMany({
+      where: {
+        AND: [
+          {
+            OR: [{ booking: { userId } }, { workflowStep: { workflow: { userId } } }],
+          },
+          {
+            OR: [{ cancelled: false }, { cancelled: null }],
+          },
+        ],
+        scheduledDate: {
+          gte: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+      },
+    });
+  }
+
   findByIdIncludeStepAndWorkflow(id: number) {
     return this.prismaClient.workflowReminder.findUnique({
       where: {
