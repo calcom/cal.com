@@ -140,8 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             waylPaymentProcessor: payload.paymentProcessor,
             waylOrderCode: payload.code,
             waylInternalId: payload.id,
-            // Remove webhookSecret from stored data after use (optional security hygiene)
-            webhookSecret: undefined,
+            // webhookSecret is intentionally kept — required to verify Wayl retries
           },
         },
       }),
