@@ -103,12 +103,21 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     },
   });
 
+  // Filter out users that belong to a different organization
+  const usersInOrg = users.filter((user) => {
+    if (user.organizationId && user.organizationId !== organizationId) {
+      log.warn(`Skipping user ${user.email} - belongs to another organization`);
+      return false;
+    }
+    return true;
+  });
+
   const translation = await getTranslation("en", "common");
 
   const newUserEmails = userEmails.filter((email) => !users.find((user) => user.email === email));
   let newUsers;
 
-  log.info(`Event processing ${newUserEmails.length} new users and ${users.length} existing users`);
+  log.info(`Event processing ${newUserEmails.length} new users and ${usersInOrg.length} existing users`);
 
   // For each team linked to the dsync group name provision members
   for (const group of groupNames) {
@@ -158,7 +167,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     // For existing users create membership for team and org if needed
     await prisma.membership.createMany({
       data: [
-        ...users
+        ...usersInOrg
           .map((user) => {
             return [
               {
@@ -183,8 +192,8 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     });
 
     // Send emails to new members
-    const newMembers = users.filter((user) => !user.teams.find((team) => team.teamId === group.teamId));
-    const newOrgMembers = users.filter(
+    const newMembers = usersInOrg.filter((user) => !user.teams.find((team) => team.teamId === group.teamId));
+    const newOrgMembers = usersInOrg.filter(
       (user) => !user.profiles.find((profile) => profile.organizationId === organizationId)
     );
     await Promise.allSettled([
@@ -226,7 +235,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
 
     // Add users to team event types if assignAllTeamMembers is enabled
     await addNewMembersToEventTypes({
-      userIds: [...(newUsers ? newUsers.map((user) => user.id) : []), ...users.map((user) => user.id)],
+      userIds: [...(newUsers ? newUsers.map((user) => user.id) : []), ...usersInOrg.map((user) => user.id)],
       teamId: group.teamId,
     });
   }
