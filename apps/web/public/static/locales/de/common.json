@@ -13,7 +13,8 @@
   "configure_your_webhook": "Verwenden Sie den folgenden Callback und das Verifizierungs-Token, um Ihren Webhook in der WhatsApp-App-Konfiguration zu abonnieren.",
   "select_whatsapp_template": "WhatsApp-Vorlage auswählen",
   "workflow_status": "Workflow-Status",
-  "workflow_reminders": "Workflow-Automatisierungen",
+  "select_attendee_for_their_workflow_status": "Teilnehmer auswählen, um den Workflow-Status anzuzeigen",
+  "workflow_status_description": "Workflow-Status für diese Buchung anzeigen",
   "pw_check_least_char": "Mindestens 7 Zeichen",
   "pw_check_mix_case": "Mischung aus Groß- und Kleinbuchstaben",
   "pw_check_number": "Mindestens eine Zahl",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Für immer Ihrer",
   "claim_username_yours_forever_description": "Einmal gesichert, für immer gesperrt",
   "workflow_trigger": "Wann soll dieser Workflow ausgelöst werden?",
-  "worflow_trigger_channel": "Auf welchem Kanal soll dieser Workflow ausgelöst werden?"
+  "worflow_trigger_channel": "Auf welchem Kanal soll dieser Workflow ausgelöst werden?",
+  "yourname_title_page": "Ihr Name",
+  "yourname_description_page": "Sichern Sie sich Ihren einzigartigen Cal-ID-Namen, bevor es jemand anderes tut.",
+  "yourname_title": "Sichern Sie sich Ihren {{appName}}-Namen.",
+  "yourname_description": "Sichern Sie sich Ihren einzigartigen {{appName}}-Namen, bevor es jemand anderes tut.",
+  "smart_suggestions": "Intelligente Vorschläge",
+  "loading_suggestions": "Lade Vorschläge...",
+  "shuffle": "Zufällig auswählen",
+  "congratulations": "Herzlichen Glückwunsch",
+  "redirecting_in": "Weiterleitung in",
+  "yourname_reserved": "Der Benutzername <strong>{{username}}</strong> ist reserviert."
 }

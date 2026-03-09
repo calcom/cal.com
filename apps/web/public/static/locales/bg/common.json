@@ -13,7 +13,8 @@
   "configure_your_webhook": "Използвайте следния callback и verification token, за да абонирате вашия webhook в конфигурацията на WhatsApp приложението.",
   "select_whatsapp_template": "Изберете whatsapp шаблон",
   "workflow_status": "Статус на работния процес",
-  "workflow_reminders": "Автоматизации на работния процес",
+  "select_attendee_for_their_workflow_status": "Изберете участник, за да видите статуса на неговия работен процес",
+  "workflow_status_description": "Вижте статуса на работния процес за тази резервация",
   "pw_check_least_char": "Поне 7 знака",
   "pw_check_mix_case": "Комбинация от главни и малки букви",
   "pw_check_number": "Поне една цифра",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Завинаги ваше",
   "claim_username_yours_forever_description": "След като е заявено, е заключено",
   "workflow_trigger": "Кога трябва да се задейства този работен процес?",
-  "worflow_trigger_channel": "В кой канал трябва да се задейства този работен процес?"
+  "worflow_trigger_channel": "В кой канал трябва да се задейства този работен процес?",
+  "yourname_title_page": "ВашетоИме",
+  "yourname_description_page": "Заявете уникалното си Cal ID име, преди някой друг да го направи.",
+  "yourname_title": "Притежавайте вашето {{appName}} име.",
+  "yourname_description": "Заявете уникалното си {{appName}} име, преди някой друг да го направи.",
+  "smart_suggestions": "Интелигентни предложения",
+  "loading_suggestions": "Зареждане на предложения...",
+  "shuffle": "Разбъркай",
+  "congratulations": "Поздравления",
+  "redirecting_in": "Пренасочване след",
+  "yourname_reserved": "Псевдонимът <strong>{{username}}</strong> е запазен."
 }

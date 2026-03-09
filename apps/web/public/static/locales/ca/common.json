@@ -13,7 +13,8 @@
   "configure_your_webhook": "Utilitza la següent URL de callback i el token de verificació per subscriure el teu webhook a la configuració de l'aplicació de WhatsApp.",
   "select_whatsapp_template": "Selecciona plantilla de WhatsApp",
   "workflow_status": "Estat del flux de treball",
-  "workflow_reminders": "Automatitzacions de fluxos de treball",
+  "select_attendee_for_their_workflow_status": "Selecciona una persona assistent per veure l'estat del seu flux de treball",
+  "workflow_status_description": "Consulta l'estat del flux de treball d'aquesta reserva",
   "pw_check_least_char": "Almenys 7 caràcters",
   "pw_check_mix_case": "Barreja de majúscules i minúscules",
   "pw_check_number": "Almenys un número",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Teu per sempre",
   "claim_username_yours_forever_description": "Un cop reclamat, queda bloquejat",
   "workflow_trigger": "Quan s'ha d'activar aquest flux de treball?",
-  "worflow_trigger_channel": "En quin canal s'ha d'activar aquest flux de treball?"
+  "worflow_trigger_channel": "En quin canal s'ha d'activar aquest flux de treball?",
+  "yourname_title_page": "El teu nom",
+  "yourname_description_page": "Reclama el teu nom de Cal ID únic abans que algú altre ho faci.",
+  "yourname_title": "Posseïx el teu nom de {{appName}}.",
+  "yourname_description": "Reclama el teu nom únic de {{appName}} abans que algú altre ho faci.",
+  "smart_suggestions": "Suggeriments intel·ligents",
+  "loading_suggestions": "Carregant suggeriments...",
+  "shuffle": "Barreja",
+  "congratulations": "Enhorabona",
+  "redirecting_in": "Redirigint en",
+  "yourname_reserved": "El nom d'usuari <strong>{{username}}</strong> està reservat."
 }

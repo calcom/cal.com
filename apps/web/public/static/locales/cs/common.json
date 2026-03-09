@@ -13,7 +13,8 @@
   "configure_your_webhook": "Použijte následující callback a ověřovací token k přihlášení vašeho webhooku v konfiguraci WhatsApp aplikace.",
   "select_whatsapp_template": "Vyberte šablonu WhatsApp",
   "workflow_status": "Stav pracovního postupu",
-  "workflow_reminders": "Automatizace pracovních postupů",
+  "select_attendee_for_their_workflow_status": "Vyberte účastníka pro zobrazení jeho stavu v pracovním postupu",
+  "workflow_status_description": "Zobrazit stav pracovního postupu pro tuto rezervaci",
   "pw_check_least_char": "Alespoň 7 znaků",
   "pw_check_mix_case": "Kombinace velkých a malých písmen",
   "pw_check_number": "Alespoň jedno číslo",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Navždy váš",
   "claim_username_yours_forever_description": "Jakmile je získán, je uzamčen",
   "workflow_trigger": "Kdy má být tento workflow spuštěn?",
-  "worflow_trigger_channel": "Na kterém kanálu má být tento workflow spuštěn?"
+  "worflow_trigger_channel": "Na kterém kanálu má být tento workflow spuštěn?",
+  "yourname_title_page": "Yourname",
+  "yourname_description_page": "Získejte své jedinečné Cal ID jméno dříve, než si ho vezme někdo jiný.",
+  "yourname_title": "Vlastněte své {{appName}} jméno.",
+  "yourname_description": "Získejte své jedinečné {{appName}} jméno dříve, než si ho vezme někdo jiný.",
+  "smart_suggestions": "Chytré návrhy",
+  "loading_suggestions": "Načítání návrhů...",
+  "shuffle": "Zamíchat",
+  "congratulations": "Gratulujeme",
+  "redirecting_in": "Přesměrování za",
+  "yourname_reserved": "Uživatelské jméno <strong>{{username}}</strong> je rezervováno."
 }

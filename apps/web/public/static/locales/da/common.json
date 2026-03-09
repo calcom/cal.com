@@ -13,7 +13,8 @@
   "configure_your_webhook": "Brug følgende callback og verificeringstoken til at abonnere på din webhook i WhatsApp-appkonfigurationen.",
   "select_whatsapp_template": "Vælg WhatsApp-skabelon",
   "workflow_status": "Workflow-status",
-  "workflow_reminders": "Workflow-automatiseringer",
+  "select_attendee_for_their_workflow_status": "Vælg en deltager for at se deres arbejdsgangsstatus",
+  "workflow_status_description": "Se arbejdsgangsstatus for denne booking",
   "pw_check_least_char": "Mindst 7 tegn",
   "pw_check_mix_case": "Blanding af store og små bogstaver",
   "pw_check_number": "Mindst ét tal",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Dit for evigt",
   "claim_username_yours_forever_description": "Når det er taget, er det låst",
   "workflow_trigger": "Hvornår skal dette workflow udløses?",
-  "worflow_trigger_channel": "Hvilken kanal skal dette workflow udløses på?"
+  "worflow_trigger_channel": "Hvilken kanal skal dette workflow udløses på?",
+  "yourname_title_page": "Dit navn",
+  "yourname_description_page": "Gør krav på dit unikke Cal ID-navn, før en anden gør det.",
+  "yourname_title": "Få dit eget {{appName}}-navn.",
+  "yourname_description": "Gør krav på dit unikke {{appName}}-navn, før en anden gør det.",
+  "smart_suggestions": "Smarte forslag",
+  "loading_suggestions": "Indlæser forslag...",
+  "shuffle": "Bland",
+  "congratulations": "Tillykke",
+  "redirecting_in": "Omdirigerer om",
+  "yourname_reserved": "Brugernavnet <strong>{{username}}</strong> er reserveret."
 }

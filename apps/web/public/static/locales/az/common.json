@@ -13,7 +13,8 @@
   "configure_your_webhook": "WhatsApp tətbiqi konfiqurasiyasında webhook-unuzu abunə etmək üçün aşağıdakı callback və doğrulama tokenindən istifadə edin.",
   "select_whatsapp_template": "WhatsApp şablonunu seçin",
   "workflow_status": "İş axınının statusu",
-  "workflow_reminders": "İş axınının avtomatlaşdırılması",
+  "select_attendee_for_their_workflow_status": "Tədbir iştirakçısını seçin və onun iş axını statusunu baxın",
+  "workflow_status_description": "Bu rezervasiya üçün iş axını statusuna baxın",
   "pw_check_least_char": "Ən azı 7 simvol",
   "pw_check_mix_case": "Böyük və kiçik hərflərin qarışığı",
   "pw_check_number": "Ən azı bir rəqəm",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Əbədi sizindir",
   "claim_username_yours_forever_description": "Əldə etdikdən sonra kilidlənir",
   "workflow_trigger": "Bu iş axını nə zaman işə salınmalıdır?",
-  "worflow_trigger_channel": "Bu iş axını hansı kanalda işə salınmalıdır?"
+  "worflow_trigger_channel": "Bu iş axını hansı kanalda işə salınmalıdır?",
+  "yourname_title_page": "SəninAdın",
+  "yourname_description_page": "Kimsə sizdən qabaq almazdan əvvəl öz unikal Cal ID adınızı seçin.",
+  "yourname_title": "Öz {{appName}} adınız sizə məxsus olsun.",
+  "yourname_description": "Kimsə sizdən əvvəl seçməsin deyə, unikal {{appName}} adınızı əldə edin.",
+  "smart_suggestions": "Ağıllı təkliflər",
+  "loading_suggestions": "Təkliflər yüklənir...",
+  "shuffle": "Qarışdır",
+  "congratulations": "Təbriklər",
+  "redirecting_in": "Yönləndirilirsiniz",
+  "yourname_reserved": "<strong>{{username}}</strong> adı artıq ayrılıb."
 }
