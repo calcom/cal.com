@@ -93,7 +93,7 @@
   "view": "Προβολή",
   "calendly_import": "Εισαγωγή από Calendly",
   "calendly_authorized": "Το Calendly έχει ήδη εισαχθεί",
-  "notify_calendly_import": "Ειδοποίηση προηγούμενων χρηστών κράτησης για τη μετάβασή σας",
+  "notify_calendly_import": "Ειδοποιήστε όσους είχαν κάνει κράτηση στο παρελθόν για το νέο σας Cal ID",
   "schedule": "Πρόγραμμα",
   "choose_a_meeting_type": "Επιλέξτε τύπο συνάντησης",
   "choose_a_team_member": "Επιλέξτε μέλος ομάδας",

@@ -93,7 +93,7 @@
   "view": "查看",
   "calendly_import": "从 Calendly 导入",
   "calendly_authorized": "已导入 Calendly",
-  "notify_calendly_import": "通知过往预约者您的迁移",
+  "notify_calendly_import": "通知以往预约用户您的新 Cal ID",
   "schedule": "日程安排",
   "choose_a_meeting_type": "选择会议类型",
   "choose_a_team_member": "选择团队成员",
