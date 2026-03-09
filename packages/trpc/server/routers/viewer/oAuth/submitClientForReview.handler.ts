@@ -1,9 +1,10 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
-import { getTranslation } from "@calcom/i18n/server";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
-
+import { TRPCError } from "@trpc/server";
 import type { TSubmitClientInputSchema } from "./submitClientForReview.schema";
 
 type SubmitClientOptions = {
@@ -21,6 +22,14 @@ type SubmitClientOptions = {
 export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientOptions) => {
   const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
   const userId = ctx.user.id;
+
+  const isFreeEmail = await checkIfFreeEmailDomain({ email: ctx.user.email });
+  if (isFreeEmail) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Use a company email instead",
+    });
+  }
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
