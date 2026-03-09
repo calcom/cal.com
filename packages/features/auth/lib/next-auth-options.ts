@@ -1232,6 +1232,24 @@ export const getOptions = ({
 
         // Credentials provider (except SAML IdP)
         if (account?.provider !== "saml-idp" && account?.type === "credentials") {
+          try {
+            if (account?.provider === "google-one-tap" && user?.id) {
+              const dbUser = await prisma.user.findFirst({
+                where: { id: user.id as number },
+                select: { metadata: true },
+              });
+              const existingMetadata =
+                (isPrismaObjOrUndefined(dbUser?.metadata) as Record<string, unknown>) ?? {};
+              await updateUserUTMIfNeeded(
+                user.id as number,
+                existingMetadata,
+                IdentityProvider.GOOGLE,
+                cookies?.utm_params
+              );
+            }
+          } catch {
+            log.error("Error updating UTM for Google One Tap user", { userId: user?.id });
+          }
           return true;
         }
 
@@ -1727,26 +1745,6 @@ export const getOptions = ({
         username: string;
         createdDate: string;
       };
-
-      try {
-        // Capture UTM for One Tap signins
-        if (message.account?.signupSource === "google-one-tap" && user?.id) {
-          const dbUser = await prisma.user.findFirst({
-            where: { id: user.id as number },
-            select: { metadata: true },
-          });
-          const existingMetadata =
-            (isPrismaObjOrUndefined(dbUser?.metadata) as Record<string, unknown>) ?? {};
-          await updateUserUTMIfNeeded(
-            user.id as number,
-            existingMetadata,
-            IdentityProvider.GOOGLE,
-            cookies?.utm_params
-          );
-        }
-      } catch (error) {
-        log.error("Error updating UTM in signIn event", { userId: user?.id, error: safeStringify(error) });
-      }
 
       try {
         // Set secure cookie for logged in user
