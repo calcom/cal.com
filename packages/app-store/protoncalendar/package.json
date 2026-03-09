@@ -3,7 +3,7 @@
     "version": "0.0.0",
     "main": "./index.ts",
     "private": true,
-    "description": "Proton Calendar integration for Cal.com",
+    "description": "Proton Calendar integration for Cal.com — read-only ICS feed sync with Proton-specific fixes for ghost events and cancelled recurring occurrences",
     "dependencies": {
         "@calcom/lib": "workspace:*",
         "@calcom/prisma": "workspace:*",
