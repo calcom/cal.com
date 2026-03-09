@@ -1,9 +1,9 @@
-import type { BookingStatus, PrismaClient } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
+import type { BookingStatus } from "@calcom/prisma/client";
 
 import type { InternalBookingForUnifiedCalendar } from "./unifiedMapper";
 
 export interface InternalBookingsQueryInput {
-  prisma: PrismaClient;
   userId: number;
   from: Date;
   to: Date;
@@ -21,7 +21,7 @@ const CANCELLED_INTERNAL_STATUSES: BookingStatus[] = ["CANCELLED", "REJECTED"];
 export const getInternalBookingsInRange = async (
   input: InternalBookingsQueryInput
 ): Promise<InternalBookingForUnifiedCalendar[]> => {
-  const scope = [{ userId: input.userId }];
+  const scope: any = [{ userId: input.userId }];
 
   if (input.teamIds.length > 0) {
     scope.push({ eventType: { teamId: { in: input.teamIds } } });
@@ -31,7 +31,7 @@ export const getInternalBookingsInRange = async (
     scope.push({ eventType: { calIdTeamId: { in: input.calIdTeamIds } } });
   }
 
-  const rows = await input.prisma.booking.findMany({
+  const rows = await prisma.booking.findMany({
     where: {
       OR: scope,
       startTime: {

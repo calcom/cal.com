@@ -185,6 +185,7 @@ const ConnectedCalendarList = ({
                                   setSyncPending(syncKey, true);
 
                                   try {
+                                    console.log("in_here_1");
                                     await toggleCalendarSync.mutateAsync({
                                       provider: syncProvider,
                                       credentialId: cal.credentialId,

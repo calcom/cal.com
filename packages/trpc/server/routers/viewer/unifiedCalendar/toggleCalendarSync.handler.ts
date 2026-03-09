@@ -2,12 +2,15 @@ import { dispatcher, JobName } from "@calid/job-dispatcher";
 import type { CalendarSyncJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
 
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TRPCContext } from "../../../createContext";
 import type { TToggleCalendarSyncInput, TToggleCalendarSyncOutput } from "./toggleCalendarSync.schema";
 
 interface CalendarOwnershipRow {
@@ -18,6 +21,18 @@ interface CalendarOwnershipRow {
 interface BooleanRow {
   value: boolean;
 }
+
+interface ConnectedCalendarCandidate {
+  calendarName: string | null;
+  isPrimary: boolean;
+}
+
+type ToggleOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TToggleCalendarSyncInput;
+};
 
 const log = logger.getSubLogger({ prefix: ["viewer", "unifiedCalendar", "toggleSync"] });
 
@@ -33,21 +48,23 @@ const providerCredentialTypePredicate = (provider: "GOOGLE" | "OUTLOOK"): Prisma
   return Prisma.sql`(c."type" ILIKE '%office365%' OR c."type" ILIKE '%outlook%' OR c."type" ILIKE '%microsoft%')`;
 };
 
-const providerIntegrationPredicate = (provider: "GOOGLE" | "OUTLOOK"): Prisma.Sql => {
+const isIntegrationTypeForProvider = (provider: "GOOGLE" | "OUTLOOK", integrationType: string): boolean => {
+  const normalized = integrationType.toLowerCase();
   if (provider === "GOOGLE") {
-    return Prisma.sql`sc."integration" ILIKE '%google%'`;
+    return normalized.includes("google");
   }
-  return Prisma.sql`(sc."integration" ILIKE '%office365%' OR sc."integration" ILIKE '%outlook%' OR sc."integration" ILIKE '%microsoft%')`;
+  return (
+    normalized.includes("office365") || normalized.includes("outlook") || normalized.includes("microsoft")
+  );
 };
 
 const findTrackedCalendarOwnedByUser = async (params: {
-  ctx: TRPCContext;
   userId: number;
   provider: "GOOGLE" | "OUTLOOK";
   credentialId: number;
   providerCalendarId: string;
 }): Promise<CalendarOwnershipRow | null> => {
-  const rows = await params.ctx.prisma.$queryRaw<CalendarOwnershipRow[]>(
+  const rows = await prisma.$queryRaw<CalendarOwnershipRow[]>(
     Prisma.sql`
       SELECT
         ec."id" AS "externalCalendarId",
@@ -66,12 +83,11 @@ const findTrackedCalendarOwnedByUser = async (params: {
 };
 
 const isCredentialOwnedByUser = async (params: {
-  ctx: TRPCContext;
   userId: number;
   provider: "GOOGLE" | "OUTLOOK";
   credentialId: number;
 }): Promise<boolean> => {
-  const rows = await params.ctx.prisma.$queryRaw<BooleanRow[]>(
+  const rows = await prisma.$queryRaw<BooleanRow[]>(
     Prisma.sql`
       SELECT true AS "value"
       FROM "Credential" c
@@ -85,50 +101,54 @@ const isCredentialOwnedByUser = async (params: {
   return Boolean(rows[0]?.value);
 };
 
-const isCalendarSelectedOrConnected = async (params: {
-  ctx: TRPCContext;
+const findConnectedCalendarCandidateOwnedByUser = async (params: {
   userId: number;
   provider: "GOOGLE" | "OUTLOOK";
   credentialId: number;
   providerCalendarId: string;
-}): Promise<boolean> => {
-  const selectedRows = await params.ctx.prisma.$queryRaw<BooleanRow[]>(
-    Prisma.sql`
-      SELECT true AS "value"
-      FROM "SelectedCalendar" sc
-      WHERE sc."userId" = ${params.userId}
-        AND sc."credentialId" = ${params.credentialId}
-        AND sc."externalId" = ${params.providerCalendarId}
-        AND ${providerIntegrationPredicate(params.provider)}
-      LIMIT 1
-    `
-  );
+}): Promise<ConnectedCalendarCandidate | null> => {
+  const credential = await prisma.credential.findFirst({
+    where: {
+      id: params.credentialId,
+      userId: params.userId,
+    },
+    select: credentialForCalendarServiceSelect,
+  });
 
-  if (selectedRows[0]?.value) {
-    return true;
+  if (!credential) {
+    return null;
   }
 
-  const destinationRows = await params.ctx.prisma.$queryRaw<BooleanRow[]>(
-    Prisma.sql`
-      SELECT true AS "value"
-      FROM "DestinationCalendar" dc
-      WHERE dc."userId" = ${params.userId}
-        AND dc."credentialId" = ${params.credentialId}
-        AND dc."externalId" = ${params.providerCalendarId}
-      LIMIT 1
-    `
+  const calendarCredentials = getCalendarCredentials([credential]);
+
+  const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, []);
+  const connectedCalendar = connectedCalendars.find(
+    (item) =>
+      item.credentialId === params.credentialId &&
+      isIntegrationTypeForProvider(params.provider, item.integration.type)
+  );
+  const candidate = connectedCalendar?.calendars?.find(
+    (calendar) => calendar.externalId === params.providerCalendarId
   );
 
-  return Boolean(destinationRows[0]?.value);
+  if (!candidate) {
+    return null;
+  }
+
+  return {
+    calendarName: candidate.name ?? null,
+    isPrimary: Boolean(candidate.primary) || candidate.externalId === "primary",
+  };
 };
 
 const ensureExternalCalendarTracked = async (params: {
-  ctx: TRPCContext;
   credentialId: number;
   provider: "GOOGLE" | "OUTLOOK";
   providerCalendarId: string;
+  calendarName: string | null;
+  isPrimary: boolean;
 }): Promise<CalendarOwnershipRow | null> => {
-  const rows = await params.ctx.prisma.$queryRaw<CalendarOwnershipRow[]>(
+  const rows = await prisma.$queryRaw<CalendarOwnershipRow[]>(
     Prisma.sql`
       INSERT INTO "ExternalCalendar" (
         "credentialId",
@@ -145,8 +165,8 @@ const ensureExternalCalendarTracked = async (params: {
         ${params.credentialId},
         CAST(${params.provider} AS "CalendarProvider"),
         ${params.providerCalendarId},
-        NULL,
-        ${params.providerCalendarId === "primary"},
+        ${params.calendarName},
+        ${params.isPrimary},
         false,
         CAST(${"IDLE"} AS "CalendarSyncStatus"),
         NOW(),
@@ -155,6 +175,8 @@ const ensureExternalCalendarTracked = async (params: {
       ON CONFLICT ("credentialId", "providerCalendarId")
       DO UPDATE SET
         "provider" = CAST(${params.provider} AS "CalendarProvider"),
+        "calendarName" = EXCLUDED."calendarName",
+        "isPrimary" = EXCLUDED."isPrimary",
         "updatedAt" = NOW()
       RETURNING "id" AS "externalCalendarId", "syncEnabled"
     `
@@ -164,14 +186,13 @@ const ensureExternalCalendarTracked = async (params: {
 };
 
 const updateSyncEnabled = async (params: {
-  ctx: TRPCContext;
   externalCalendarId: number;
   enabled: boolean;
   syncDisabledReason?: "USER_DISCONNECTED" | "USER_TOGGLED_OFF" | "SUBSCRIPTION_RENEWAL_FAILED" | null;
   syncDisabledBy?: "USER" | "SYSTEM" | null;
   syncDisabledAt?: Date | null;
 }) => {
-  await params.ctx.prisma.$executeRaw(
+  await prisma.$executeRaw(
     Prisma.sql`
       UPDATE "ExternalCalendar"
       SET
@@ -245,10 +266,8 @@ const enqueueCalendarSyncAction = async (params: {
 export const toggleCalendarSyncHandler = async ({
   ctx,
   input,
-}: {
-  ctx: TRPCContext;
-  input: TToggleCalendarSyncInput;
-}): Promise<TToggleCalendarSyncOutput> => {
+}: ToggleOptions): Promise<TToggleCalendarSyncOutput> => {
+  console.log("in_here_inside_toggleCalendarSyncHandler");
   const userId = ctx.user?.id;
   if (!userId) {
     throw new TRPCError({
@@ -257,8 +276,38 @@ export const toggleCalendarSyncHandler = async ({
     });
   }
 
+  const credentialOwned = await isCredentialOwnedByUser({
+    userId,
+    provider: input.provider,
+    credentialId: input.credentialId,
+  });
+  if (!credentialOwned) {
+    if (!input.enabled) {
+      return { enabled: false, enqueued: false };
+    }
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Calendar not found",
+    });
+  }
+
+  const connectedCandidate = input.enabled
+    ? await findConnectedCalendarCandidateOwnedByUser({
+        userId,
+        provider: input.provider,
+        credentialId: input.credentialId,
+        providerCalendarId: input.providerCalendarId,
+      })
+    : null;
+
+  if (input.enabled && !connectedCandidate) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Calendar not found",
+    });
+  }
+
   const trackedCalendar = await findTrackedCalendarOwnedByUser({
-    ctx,
     userId,
     provider: input.provider,
     credentialId: input.credentialId,
@@ -268,35 +317,13 @@ export const toggleCalendarSyncHandler = async ({
   const resolvedCalendar =
     trackedCalendar ??
     (input.enabled
-      ? await (async () => {
-          const credentialOwned = await isCredentialOwnedByUser({
-            ctx,
-            userId,
-            provider: input.provider,
-            credentialId: input.credentialId,
-          });
-          if (!credentialOwned) {
-            return null;
-          }
-
-          const isSelected = await isCalendarSelectedOrConnected({
-            ctx,
-            userId,
-            provider: input.provider,
-            credentialId: input.credentialId,
-            providerCalendarId: input.providerCalendarId,
-          });
-          if (!isSelected) {
-            return null;
-          }
-
-          return await ensureExternalCalendarTracked({
-            ctx,
-            credentialId: input.credentialId,
-            provider: input.provider,
-            providerCalendarId: input.providerCalendarId,
-          });
-        })()
+      ? await ensureExternalCalendarTracked({
+          credentialId: input.credentialId,
+          provider: input.provider,
+          providerCalendarId: input.providerCalendarId,
+          calendarName: connectedCandidate?.calendarName ?? null,
+          isPrimary: connectedCandidate?.isPrimary ?? input.providerCalendarId === "primary",
+        })
       : null);
 
   if (!resolvedCalendar) {
@@ -314,7 +341,6 @@ export const toggleCalendarSyncHandler = async ({
   }
 
   await updateSyncEnabled({
-    ctx,
     externalCalendarId: resolvedCalendar.externalCalendarId,
     enabled: input.enabled,
     syncDisabledReason: input.enabled ? null : "USER_TOGGLED_OFF",
@@ -332,7 +358,6 @@ export const toggleCalendarSyncHandler = async ({
     });
   } catch (error) {
     await updateSyncEnabled({
-      ctx,
       externalCalendarId: resolvedCalendar.externalCalendarId,
       enabled: resolvedCalendar.syncEnabled,
       syncDisabledReason: resolvedCalendar.syncEnabled ? null : "USER_TOGGLED_OFF",

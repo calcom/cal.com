@@ -1,5 +1,7 @@
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -10,8 +12,14 @@ import {
   mapInternalBookingToUnifiedItem,
   type ExternalEventForUnifiedCalendar,
 } from "../../../calendar/unifiedMapper";
-import type { TRPCContext } from "../../../createContext";
 import type { TUnifiedCalendarListInput, TUnifiedCalendarListOutput } from "./list.schema";
+
+type ListOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TUnifiedCalendarListInput;
+};
 
 const log = logger.getSubLogger({ prefix: ["viewer", "unifiedCalendar", "list"] });
 
@@ -78,18 +86,17 @@ const validateRange = (from: Date, to: Date): void => {
 };
 
 const getMembershipScopes = async (
-  ctx: TRPCContext,
   userId: number
 ): Promise<{ teamIds: number[]; calIdTeamIds: number[] }> => {
   const [teamMemberships, calIdMemberships] = await Promise.all([
-    ctx.prisma.membership.findMany({
+    prisma.membership.findMany({
       where: {
         userId,
         accepted: true,
       },
       select: { teamId: true },
     }),
-    ctx.prisma.calIdMembership.findMany({
+    prisma.calIdMembership.findMany({
       where: {
         userId,
         acceptedInvitation: true,
@@ -105,7 +112,6 @@ const getMembershipScopes = async (
 };
 
 const fetchExternalEvents = async (params: {
-  ctx: TRPCContext;
   userId: number;
   from: Date;
   to: Date;
@@ -149,7 +155,7 @@ const fetchExternalEvents = async (params: {
     predicates.push(Prisma.sql`e."calendarId" NOT IN (${Prisma.join(params.excludeExternalCalendarIds)})`);
   }
 
-  const rows = await params.ctx.prisma.$queryRaw<ExternalEventRow[]>(
+  const rows = await prisma.$queryRaw<ExternalEventRow[]>(
     Prisma.sql`
       SELECT
         e."id",
@@ -201,10 +207,7 @@ const compareByCursor = (
 export const listUnifiedCalendarHandler = async ({
   ctx,
   input,
-}: {
-  ctx: TRPCContext;
-  input: TUnifiedCalendarListInput;
-}): Promise<TUnifiedCalendarListOutput> => {
+}: ListOptions): Promise<TUnifiedCalendarListOutput> => {
   const startedAt = Date.now();
   const userId = ctx.user?.id;
   if (!userId) {
@@ -236,11 +239,10 @@ export const listUnifiedCalendarHandler = async ({
     limit: input.limit,
   });
 
-  const scopes = await getMembershipScopes(ctx, userId);
+  const scopes = await getMembershipScopes(userId);
 
   const [internalRows, externalRows] = await Promise.all([
     getInternalBookingsInRange({
-      prisma: ctx.prisma,
       userId,
       from,
       to,
@@ -252,7 +254,6 @@ export const listUnifiedCalendarHandler = async ({
     }),
     input.includeExternalEvents
       ? fetchExternalEvents({
-          ctx,
           userId,
           from,
           to,

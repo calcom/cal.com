@@ -20,14 +20,6 @@ interface ExternalCalendarSyncStateRow {
   syncEnabled: boolean;
 }
 
-interface CalendarCandidateRow {
-  credentialId: number;
-  provider: "GOOGLE" | "OUTLOOK";
-  providerCalendarId: string;
-  calendarName: string | null;
-  isPrimary: boolean;
-}
-
 const getProviderFromIntegrationType = (integrationType: string): "GOOGLE" | "OUTLOOK" | null => {
   const normalized = integrationType.toLowerCase();
   if (normalized.includes("google")) {
@@ -67,77 +59,6 @@ const buildCalendarSyncStateMap = async (params: {
   return new Map(rows.map((row) => [`${row.credentialId}:${row.providerCalendarId}`, row]));
 };
 
-const reconcileExternalCalendars = async (candidates: CalendarCandidateRow[]): Promise<void> => {
-  if (candidates.length === 0) {
-    return;
-  }
-
-  for (const candidate of candidates) {
-    await prisma.$executeRaw(
-      Prisma.sql`
-        INSERT INTO "ExternalCalendar" (
-          "credentialId",
-          "provider",
-          "providerCalendarId",
-          "calendarName",
-          "isPrimary",
-          "syncEnabled",
-          "syncStatus",
-          "createdAt",
-          "updatedAt"
-        )
-        VALUES (
-          ${candidate.credentialId},
-          CAST(${candidate.provider} AS "CalendarProvider"),
-          ${candidate.providerCalendarId},
-          ${candidate.calendarName},
-          ${candidate.isPrimary},
-          false,
-          CAST(${"IDLE"} AS "CalendarSyncStatus"),
-          NOW(),
-          NOW()
-        )
-        ON CONFLICT ("credentialId", "providerCalendarId")
-        DO UPDATE SET
-          "provider" = CAST(${candidate.provider} AS "CalendarProvider"),
-          "calendarName" = EXCLUDED."calendarName",
-          "isPrimary" = EXCLUDED."isPrimary",
-          "updatedAt" = NOW()
-      `
-    );
-  }
-
-  const byCredentialAndProvider = new Map<
-    string,
-    { credentialId: number; provider: "GOOGLE" | "OUTLOOK"; ids: string[] }
-  >();
-  for (const candidate of candidates) {
-    const key = `${candidate.credentialId}:${candidate.provider}`;
-    const current = byCredentialAndProvider.get(key);
-    if (!current) {
-      byCredentialAndProvider.set(key, {
-        credentialId: candidate.credentialId,
-        provider: candidate.provider,
-        ids: [candidate.providerCalendarId],
-      });
-      continue;
-    }
-    current.ids.push(candidate.providerCalendarId);
-  }
-
-  for (const group of Array.from(byCredentialAndProvider.values())) {
-    await prisma.$executeRaw(
-      Prisma.sql`
-        DELETE FROM "ExternalCalendar"
-        WHERE "credentialId" = ${group.credentialId}
-          AND "provider" = CAST(${group.provider} AS "CalendarProvider")
-          AND "syncEnabled" = false
-          AND "providerCalendarId" NOT IN (${Prisma.join(group.ids)})
-      `
-    );
-  }
-};
-
 export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalendarsOptions) => {
   const { user } = ctx;
   const onboarding = input?.onboarding || false;
@@ -151,27 +72,10 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
     });
 
   const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
-  const calendarCandidates: CalendarCandidateRow[] = connectedCalendars.flatMap((connectedCalendar) => {
-    const provider = getProviderFromIntegrationType(connectedCalendar.integration.type);
-    if (!provider) {
-      return [];
-    }
-    return (connectedCalendar.calendars ?? [])
-      .filter((cal) => typeof cal.externalId === "string" && cal.externalId.length > 0)
-      .map((cal) => ({
-        credentialId: connectedCalendar.credentialId,
-        provider,
-        providerCalendarId: cal.externalId,
-        calendarName: cal.name ?? null,
-        isPrimary: cal.externalId === "primary",
-      }));
-  });
-
-  await reconcileExternalCalendars(calendarCandidates);
-
   const providerCalendarIds = connectedCalendars
     .flatMap((cal) => cal.calendars?.map((c) => c.externalId) ?? [])
     .filter((id): id is string => typeof id === "string" && id.length > 0);
+  // Read-only path: sync state is derived from already-tracked ExternalCalendar rows.
   const cacheRepository = new CalendarCacheRepository();
   const [cacheStatuses, syncStateMap] = await Promise.all([
     cacheRepository.getCacheStatusByCredentialIds(credentialIds),
