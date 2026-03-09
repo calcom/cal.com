@@ -402,7 +402,7 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
     await test.step("should change the language and show Arabic translations", async () => {
       await page.goto("/settings/my-account/general");
 
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForLoadState("networkidle");
 
       await page.getByTestId("locale-select").click();
       await page.getByTestId("select-option-ar").click();
@@ -462,7 +462,7 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
 
     await test.step("should change the language and show Brazil-Portuguese translations", async () => {
       await page.goto("/settings/my-account/general");
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForLoadState("networkidle");
 
       await page.getByTestId("locale-select").click();
       await page.getByTestId("select-option-pt-BR").click();
