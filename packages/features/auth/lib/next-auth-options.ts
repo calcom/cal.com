@@ -599,7 +599,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
                 ...(payload.picture && { avatarUrl: payload.picture }),
                 email,
                 metadata: {
-                  signupSource: "google-one-tap", 
+                  signupSource: "google-one-tap",
                 },
                 identityProvider: IdentityProvider.GOOGLE,
                 identityProviderId: payload.sub,
@@ -1232,6 +1232,24 @@ export const getOptions = ({
 
         // Credentials provider (except SAML IdP)
         if (account?.provider !== "saml-idp" && account?.type === "credentials") {
+          try {
+            if (account?.provider === "google-one-tap" && user?.id) {
+              const dbUser = await prisma.user.findFirst({
+                where: { id: user.id as number },
+                select: { metadata: true },
+              });
+              const existingMetadata =
+                (isPrismaObjOrUndefined(dbUser?.metadata) as Record<string, unknown>) ?? {};
+              await updateUserUTMIfNeeded(
+                user.id as number,
+                existingMetadata,
+                IdentityProvider.GOOGLE,
+                cookies?.utm_params
+              );
+            }
+          } catch {
+            log.error("Error updating UTM for Google One Tap user", { userId: user?.id });
+          }
           return true;
         }
 
