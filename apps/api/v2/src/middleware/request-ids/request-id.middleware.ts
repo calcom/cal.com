@@ -1,7 +1,8 @@
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
-import { Injectable, NestMiddleware, Logger } from "@nestjs/common";
-import { Request, Response, NextFunction } from "express";
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
+import { NextFunction, Request, Response } from "express";
 import { v4 as uuid } from "uuid";
+import { extractIdFields } from "@/lib/extract-id-fields";
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
@@ -12,11 +13,11 @@ export class RequestIdMiddleware implements NestMiddleware {
     const requestId = vercelId ?? uuid();
     req.headers["X-Request-Id"] = requestId;
     const { method, headers, body: requestBody, baseUrl } = req;
-    let jsonBodyString = "{}";
+    let idFields = "{}";
 
     try {
       if (requestBody && typeof requestBody === "object") {
-        jsonBodyString = JSON.stringify(requestBody);
+        idFields = JSON.stringify(extractIdFields(requestBody as Record<string, unknown>));
       }
     } catch (err) {
       this.logger.error("Could not parse request body");
@@ -27,7 +28,7 @@ export class RequestIdMiddleware implements NestMiddleware {
       method,
       url: baseUrl,
       headers: filterReqHeaders(headers),
-      requestBody: jsonBodyString,
+      requestBody: idFields,
       timestamp: new Date().toISOString(),
     });
 

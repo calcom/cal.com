@@ -1,8 +1,8 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { Request, Response } from "express";
 import { tap } from "rxjs/operators";
+import { extractIdFields } from "@/lib/extract-id-fields";
 import { extractUserContext } from "@/lib/extract-user-context";
-import { stripPiiFromResponseData } from "@/lib/strip-pii";
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -24,15 +24,25 @@ export class ResponseInterceptor implements NestInterceptor {
         const { statusCode } = response;
         const responseTime = Date.now() - startTime;
 
-        let jsonBodyString = "{}";
+        let responseBody = "{}";
 
         try {
           if (data && typeof data === "object") {
-            const sanitizedData = stripPiiFromResponseData(data as Record<string, unknown>);
-            jsonBodyString = JSON.stringify(sanitizedData);
+            const dataObj = (data as Record<string, unknown>).data;
+            if (dataObj && typeof dataObj === "object" && !Array.isArray(dataObj)) {
+              responseBody = JSON.stringify(extractIdFields(dataObj as Record<string, unknown>));
+            } else if (Array.isArray(dataObj)) {
+              responseBody = JSON.stringify(
+                dataObj.map((item) =>
+                  item && typeof item === "object" ? extractIdFields(item as Record<string, unknown>) : item
+                )
+              );
+            } else {
+              responseBody = JSON.stringify(extractIdFields(data as Record<string, unknown>));
+            }
           }
         } catch (err) {
-          this.logger.error("Could not parse request body");
+          this.logger.error("Could not parse response body");
         }
 
         this.logger.log("Outgoing Response", {
@@ -41,7 +51,7 @@ export class ResponseInterceptor implements NestInterceptor {
           url,
           statusCode,
           responseTime,
-          responseBody: jsonBodyString,
+          responseBody,
           timestamp: new Date().toISOString(),
           ...userContext,
         });

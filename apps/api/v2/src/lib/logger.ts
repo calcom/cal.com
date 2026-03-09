@@ -1,6 +1,6 @@
 import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import type { LoggerOptions } from "winston";
-import { format, transports as Transports, config } from "winston";
+import { config, format, transports as Transports } from "winston";
 import type Transport from "winston-transport";
 
 const formattedTimestamp = format.timestamp({
@@ -50,14 +50,6 @@ export const loggerConfig = (): LoggerOptions => {
             environment: process.env.VERCEL_ENV,
             region: process.env.VERCEL_REGION,
             deploymentId: process.env.VERCEL_DEPLOYMENT_ID,
-            deploymentUrl: process.env.VERCEL_URL,
-          }
-        : undefined,
-      git: process.env.VERCEL
-        ? {
-            commit: process.env.VERCEL_GIT_COMMIT_SHA,
-            repo: process.env.VERCEL_GIT_REPO_SLUG,
-            ref: process.env.VERCEL_GIT_COMMIT_REF,
           }
         : undefined,
     },

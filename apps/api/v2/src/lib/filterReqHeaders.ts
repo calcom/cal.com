@@ -3,7 +3,6 @@ import { IncomingHttpHeaders } from "node:http";
 export function filterReqHeaders(headers: IncomingHttpHeaders): Partial<IncomingHttpHeaders> {
   return {
     "Content-Type": headers["Content-Type"] ?? headers["content-type"],
-    Authorization: headers["Authorization"] ?? headers["authorization"],
     "X-Cal-Client-Id": headers["X-Cal-Client-Id"] ?? headers["x-cal-client-id"],
     "Cal-Api-Version": headers["Cal-Api-Version"] ?? headers["cal-api-version"],
     "X-Request-Id": headers["X-Request-Id"] ?? headers["x-request-id"],

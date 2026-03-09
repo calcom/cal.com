@@ -1,6 +1,6 @@
 import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
-import { stripPiiFromObject } from "@/lib/strip-pii";
+import { extractIdFields } from "@/lib/extract-id-fields";
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request } from "express";
 
@@ -125,7 +125,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     const userContext = extractUserContext(request);
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
-      body: stripPiiFromObject(request.body as Record<string, unknown>),
+      body: extractIdFields(request.body as Record<string, unknown>),
       headers: filterReqHeaders(request.headers),
       url: request.url,
       method: request.method,
