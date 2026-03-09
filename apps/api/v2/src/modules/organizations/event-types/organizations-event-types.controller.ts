@@ -137,6 +137,7 @@ export class OrganizationsEventTypesController {
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
   @ApiOperation({ summary: "Create a phone call" })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
