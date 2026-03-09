@@ -264,7 +264,6 @@ GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references ad
 GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references added the new path request parameter 'teamId'
 GET /v2/organizations/{orgId}/teams/{teamId}/conferencing added the new path request parameter 'orgId'
 GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/default added the new path request parameter 'orgId'
-GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/default deleted the 'path' request parameter 'app'
 POST /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default added the new path request parameter 'orgId'
 DELETE /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect added the new path request parameter 'orgId'
 GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url for the 'path' request parameter 'orgId', the type/format was changed from 'string'/'' to 'number'/''
