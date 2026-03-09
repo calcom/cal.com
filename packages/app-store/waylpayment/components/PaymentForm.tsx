@@ -66,7 +66,7 @@ export default function WaylPaymentForm({ payment }: Props) {
         <p className="mt-1 text-gray-500">
           Amount:{" "}
           <span className="font-medium text-gray-700">
-            {(payment.amount / 1000).toLocaleString("ar-IQ")} IQD
+            {payment.amount.toLocaleString("ar-IQ")} IQD
           </span>
         </p>
       </div>

@@ -54,7 +54,7 @@ export default function WaylSetup() {
         <p className="mt-1 text-xs text-gray-400">
           Find your API key in your{" "}
           <a
-            href="https://dashboard.thewayl.com/settings/api"
+            href="https://dashboard.wayl.io/settings/api"
             target="_blank"
             rel="noreferrer"
             className="text-blue-600 underline"
