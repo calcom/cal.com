@@ -33,7 +33,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -55,6 +55,7 @@ export class TeamsVerifiedResourcesController {
   @Post("/emails/verification-code/request")
   @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_emails_requests" })
   @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -79,6 +80,7 @@ export class TeamsVerifiedResourcesController {
   @Post("/phones/verification-code/request")
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_phones_requests" })
   @HttpCode(HttpStatus.OK)
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {

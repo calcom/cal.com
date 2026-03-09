@@ -41,7 +41,7 @@ import {
   Query,
   Logger,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -114,6 +114,7 @@ export class OrganizationsEventTypesController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
   @ApiOperation({ summary: "Get an event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
@@ -136,6 +137,7 @@ export class OrganizationsEventTypesController {
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
   @ApiOperation({ summary: "Create a phone call" })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -164,6 +166,7 @@ export class OrganizationsEventTypesController {
     description:
       'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.',
   })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -223,6 +226,7 @@ export class OrganizationsEventTypesController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   @ApiOperation({ summary: "Update a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -255,6 +259,7 @@ export class OrganizationsEventTypesController {
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number

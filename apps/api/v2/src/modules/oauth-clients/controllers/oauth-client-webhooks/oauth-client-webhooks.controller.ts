@@ -71,6 +71,7 @@ export class OAuthClientWebhooksController {
     summary: "Update a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "clientId", type: String, required: true })
   @UseGuards(IsOAuthClientWebhookGuard)
   async updateOAuthClientWebhook(
     @Body() body: UpdateWebhookInputDto,
@@ -94,6 +95,7 @@ export class OAuthClientWebhooksController {
     summary: "Get a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "clientId", type: String, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   @UseGuards(IsOAuthClientWebhookGuard)
   async getOAuthClientWebhook(@GetWebhook() webhook: Webhook): Promise<OAuthClientWebhookOutputResponseDto> {
@@ -136,6 +138,7 @@ export class OAuthClientWebhooksController {
     summary: "Delete a webhook",
     description: `<Warning>These endpoints are deprecated and will be removed in the future.</Warning>`,
   })
+  @ApiParam({ name: "clientId", type: String, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   @UseGuards(IsOAuthClientWebhookGuard)
   async deleteOAuthClientWebhook(

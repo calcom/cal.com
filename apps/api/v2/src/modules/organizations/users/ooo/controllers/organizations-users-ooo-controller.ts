@@ -40,7 +40,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -67,6 +67,7 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Get all out-of-office entries for a user" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async getOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Query() query: GetOutOfOfficeEntryFiltersDTO
@@ -85,6 +86,7 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Create an out-of-office entry for a user" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async createOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Body() input: CreateOutOfOfficeEntryDto
@@ -101,6 +103,7 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Update an out-of-office entry for a user" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async updateOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("oooId", ParseIntPipe) oooId: number,
@@ -119,6 +122,8 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Delete an out-of-office entry for a user" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
+  @ApiParam({ name: "userId", type: Number, required: true })
   async deleteOrganizationUserOOO(
     @Param("oooId", ParseIntPipe) oooId: number
   ): Promise<UserOooOutputResponseDto> {

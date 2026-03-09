@@ -141,6 +141,7 @@ export class OrganizationsConferencingController {
   @Get("/teams/:teamId/conferencing")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "List team conferencing applications" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async listTeamConferencingApps(
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
@@ -160,6 +161,7 @@ export class OrganizationsConferencingController {
   @Post("/teams/:teamId/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set team default conferencing application" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -184,6 +186,7 @@ export class OrganizationsConferencingController {
   @Get("/teams/:teamId/conferencing/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get team default conferencing application" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -207,6 +210,7 @@ export class OrganizationsConferencingController {
   @Delete("/teams/:teamId/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Disconnect team conferencing application" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",

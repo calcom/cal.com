@@ -33,7 +33,7 @@ import {
   Redirect,
   BadRequestException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -105,6 +105,7 @@ export class OrganizationsStripeController {
   @Get("/check")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Check team Stripe connection" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async checkTeamStripeConnection(
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<StripCredentialsCheckOutputResponseDto> {
@@ -117,6 +118,7 @@ export class OrganizationsStripeController {
   @Get("/save")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save Stripe credentials" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,

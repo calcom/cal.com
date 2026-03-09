@@ -37,7 +37,7 @@ import {
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -110,6 +110,7 @@ export class OrganizationsWebhooksController {
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get a webhook" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async getOrganizationWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.organizationsWebhooksService.getWebhook(webhookId);
     return {
@@ -126,6 +127,7 @@ export class OrganizationsWebhooksController {
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete a webhook" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
     return {
@@ -142,6 +144,7 @@ export class OrganizationsWebhooksController {
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update a webhook" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async updateOrgWebhook(
     @Param("webhookId") webhookId: string,
     @Body() body: UpdateWebhookInputDto

@@ -28,7 +28,7 @@ import {
   Body,
   Req,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { Request } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -106,6 +106,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(

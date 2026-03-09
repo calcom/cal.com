@@ -14,7 +14,7 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -47,6 +47,7 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Create a private link for a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async createPrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -66,6 +67,7 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Get all private links for a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async getPrivateLinks(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
@@ -83,6 +85,7 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Update a private link for a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async updatePrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -103,6 +106,7 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Delete a private link for a team event type" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async deletePrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,

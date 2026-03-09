@@ -23,7 +23,7 @@ import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS, BOOKING_READ } from "@calcom/platform-constants";
 import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
@@ -82,6 +82,8 @@ export class OrganizationsTeamsBookingsController {
   @ApiOperation({
     summary: "Get booking references",
   })
+  @ApiParam({ name: "orgId", type: Number, required: true })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(
     @Param("bookingUid") bookingUid: string,

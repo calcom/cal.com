@@ -14,7 +14,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { X_CAL_CLIENT_ID_HEADER, X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
@@ -82,6 +82,7 @@ export class OrganizationsOrganizationsController {
     description:
       "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
   })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @UseGuards(IsManagedOrgInManagerOrg)
   async getOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
@@ -148,6 +149,7 @@ export class OrganizationsOrganizationsController {
     description:
       "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
   })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   @UseGuards(IsManagedOrgInManagerOrg)
   async deleteOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number

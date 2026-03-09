@@ -14,7 +14,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
@@ -110,6 +110,8 @@ export class OrganizationsTeamsController {
   @PlatformPlan("ESSENTIALS")
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,

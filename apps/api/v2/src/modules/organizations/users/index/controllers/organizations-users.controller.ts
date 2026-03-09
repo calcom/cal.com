@@ -38,7 +38,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -91,6 +91,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
+  @ApiParam({ name: "orgId", type: Number, required: true })
   async createOrganizationUser(
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,

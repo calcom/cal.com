@@ -3096,6 +3096,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3508,6 +3524,22 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3655,6 +3687,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3693,6 +3733,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3733,6 +3781,14 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3771,6 +3827,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3983,6 +4047,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4047,6 +4119,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4104,6 +4184,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4181,6 +4269,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4240,6 +4336,14 @@
           },
           {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4411,6 +4515,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -4478,6 +4590,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4555,6 +4675,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4624,6 +4752,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -6326,6 +6462,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6525,6 +6669,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6565,6 +6717,14 @@
           },
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6795,6 +6955,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6948,6 +7116,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -7022,6 +7198,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7079,6 +7263,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7156,6 +7348,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7208,6 +7408,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7270,6 +7478,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7342,6 +7558,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7515,6 +7739,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8032,6 +8264,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8074,6 +8314,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8146,6 +8394,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8198,6 +8454,22 @@
           },
           {
             "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8358,6 +8630,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8417,6 +8697,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8486,6 +8774,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8543,6 +8839,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8615,6 +8919,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8821,6 +9133,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8875,6 +9195,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8928,6 +9256,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -11781,6 +12117,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -11828,6 +12172,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11860,6 +12212,14 @@
           },
           {
             "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12597,6 +12957,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -12643,6 +13011,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -12678,6 +13054,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13070,6 +13454,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13175,6 +13567,14 @@
           },
           {
             "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13348,6 +13748,22 @@
         "description": "Sends a verification code to the email",
         "parameters": [
           {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -13388,6 +13804,22 @@
         "summary": "Request phone number verification code",
         "description": "Sends a verification code to the phone number",
         "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",
@@ -13438,6 +13870,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -13480,6 +13920,14 @@
         "parameters": [
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13560,6 +14008,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -13623,6 +14079,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -13669,6 +14133,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -13708,6 +14180,14 @@
           },
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15372,6 +15852,14 @@
             }
           },
           {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
@@ -15422,6 +15910,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15498,6 +15994,14 @@
               "example": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15529,6 +16033,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15571,6 +16083,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15618,6 +16146,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15653,6 +16197,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16046,6 +16606,14 @@
         "description": "Sends a verification code to the Email",
         "parameters": [
           {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
@@ -16086,6 +16654,14 @@
         "summary": "Request phone number verification code",
         "description": "Sends a verification code to the phone number",
         "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
           {
             "name": "Authorization",
             "in": "header",

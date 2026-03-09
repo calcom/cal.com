@@ -32,7 +32,7 @@ import {
   NotFoundException,
   Query,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -114,6 +114,7 @@ export class TeamsEventTypesController {
   @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiHeader(API_KEY_HEADER)
   @ApiOperation({ summary: "Create a phone call" })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
