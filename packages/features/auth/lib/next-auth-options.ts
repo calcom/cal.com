@@ -1753,6 +1753,26 @@ export const getOptions = ({
       let clearPipedriveCookie;
 
       try {
+        // Capture UTM for One Tap signins
+        if (message.account?.signupSource === "google-one-tap" && user?.id) {
+          const dbUser = await prisma.user.findFirst({
+            where: { id: user.id as number },
+            select: { metadata: true },
+          });
+          const existingMetadata =
+            (isPrismaObjOrUndefined(dbUser?.metadata) as Record<string, unknown>) ?? {};
+          await updateUserUTMIfNeeded(
+            user.id as number,
+            existingMetadata,
+            IdentityProvider.GOOGLE,
+            cookies?.utm_params
+          );
+        }
+      } catch (error) {
+        log.error("Error updating UTM in signIn event", { userId: user?.id, error: safeStringify(error) });
+      }
+
+      try {
         let fullCookies = res.getHeader("Set-Cookie");
         clearPipedriveCookie = serialize("pipedrive_oauth_code", "", {
           maxAge: 0,
