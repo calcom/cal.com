@@ -1,14 +1,14 @@
 # Installation
 
-There are multiple ways in which you can deploy Cal.com, providing support for customers who want to implement Cal.com within their existing infrastructure stack. Let's go through them one-by-one. You can find the instructions for deployment in our README file, which is the section you see when you scroll down in our GitHub repository, or if you've got a copy of Cal.com downloaded already, you can open the file contained in the downloaded repository called `README.md`.
+There are multiple ways in which you can deploy Cal.diy, providing support for customers who want to implement Cal.diy within their existing infrastructure stack. Let's go through them one-by-one. You can find the instructions for deployment in our README file, which is the section you see when you scroll down in our GitHub repository, or if you've got a copy of Cal.diy downloaded already, you can open the file contained in the downloaded repository called `README.md`.
 
 ## Requirements
 
-Cal.com runs with pretty minimal hardware requirements by itself. The most intensive part for the software is when you actually build the software, but once it's running it's relatively lightweight.
+Cal.diy runs with pretty minimal hardware requirements by itself. The most intensive part for the software is when you actually build the software, but once it's running it's relatively lightweight.
 
-Cal.com works with a very large range of operating systems, as it only requires JavaScript execution to run. **Cal.com is known to work well with Windows, Mac, Linux and BSD.** Although they do work well on all of them, for production deployments we would suggest Linux as the ideal platform. Any operating system that runs Node.js should be able to work too, but these are some of the common operating systems that we know work well.
+Cal.diy works with a very large range of operating systems, as it only requires JavaScript execution to run. **Cal.diy is known to work well with Windows, Mac, Linux and BSD.** Although they do work well on all of them, for production deployments we would suggest Linux as the ideal platform. Any operating system that runs Node.js should be able to work too, but these are some of the common operating systems that we know work well.
 
-To run Cal.com, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won't publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
+To run Cal.diy, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won't publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
 
 > To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your development environment. This version provides the best balance of stability, features, and security for this project. Please make sure to update your Node.js installation if necessary.
 
@@ -17,19 +17,19 @@ To run Cal.com, you need to install a few things. **Node.js, yarn, Git and Postg
 1. First, you git clone the repository with the following command, so you have a copy of the code.
 
 ```bash
-git clone https://github.com/calcom/cal.com.git
+git clone https://github.com/calcom/cal.diy.git
 ```
 
 > If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
 >
 > ```bash
-> git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
+> git clone -c core.symlinks=true https://github.com/calcom/cal.diy.git
 > ```
 
 2. Then, go into the directory you just cloned with
 
 ```bash
-cd cal.com
+cd cal.diy
 ```
 
 and run
@@ -38,7 +38,7 @@ and run
 yarn
 ```
 
-to install all of the dependencies. Essentially, dependencies are just things that Cal.com needs to install to be able to work.
+to install all of the dependencies. Essentially, dependencies are just things that Cal.diy needs to install to be able to work.
 
 3. Then, you just need to set up a couple of things. For that, we use a `.env` file. We just need to copy and paste the `.env.example` file and rename the copy to `.env`. Here you'll have a template with comments showing you the settings you need/might want to set.
 
@@ -73,7 +73,7 @@ yarn start
 
 There are a few features which require cron job setup. When self-hosting, you would probably need to set up cron jobs according to the hosting platform you are using. For instance, if you are hosting on Vercel, you would need to set up cron jobs by following [this document](https://vercel.com/guides/how-to-setup-cron-jobs).
 
-At cal.com, the cron jobs are found in the following directory:
+At cal.diy, the cron jobs are found in the following directory:
 
 ```
 /apps/web/app/api/cron
@@ -117,10 +117,6 @@ yarn workspace @calcom/api-v2 start
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template)
 
-## Elestio
-
-[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/cal.com)
-
 ### GCP
 
 [![Run on Google Cloud](https://storage.googleapis.com/gweb-cloudblog-publish/images/run_on_google_cloud.max-300x300.png)](https://deploy.cloud.run/?git_repo=https://github.com/calcom/docker)
@@ -135,8 +131,12 @@ yarn workspace @calcom/api-v2 start
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/calcom/cal.com)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/calcom/cal.diy)
+
+## Elestio
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/cal.diy)
 
 ## Other environments
 
-Cal.com effectively is just a Next.js application, so any possible solution you find online pertaining to Next.js applications should work. One example is Netlify, which is pretty similar to Vercel. It says it supports Next.js, so you can deploy Cal.com on Netlify. Refer to Netlify's docs on Next.js projects for more info. Another example is on a self hosted instance people may want to configure complex reverse proxies, SSL gateways and all sorts of other stuff. We can't officially support every configuration, but for any edge case where you may want to deploy Cal.com with X, just refer to X's docs on Next.js applications and you should be fine. That's it. Your new self hosted Cal.com instance should now be up and running.
+Cal.diy effectively is just a Next.js application, so any possible solution you find online pertaining to Next.js applications should work. One example is Netlify, which is pretty similar to Vercel. It says it supports Next.js, so you can deploy Cal.diy on Netlify. Refer to Netlify's docs on Next.js projects for more info. Another example is on a self hosted instance people may want to configure complex reverse proxies, SSL gateways and all sorts of other stuff. We can't officially support every configuration, but for any edge case where you may want to deploy Cal.diy with X, just refer to X's docs on Next.js applications and you should be fine. That's it. Your new self hosted Cal.diy instance should now be up and running.
