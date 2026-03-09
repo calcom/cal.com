@@ -28,7 +28,6 @@ const initialData: AppFlags = {
   "calendar-subscription-cache": false,
   "calendar-subscription-sync": false,
   "booker-botid": false,
-  "booking-calendar-view": false,
   "booking-email-sms-tasker": false,
   "bookings-v3": false,
   "booking-audit": false,

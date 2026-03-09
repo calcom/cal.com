@@ -30,7 +30,6 @@ export type AppFlags = {
   "calendar-subscription-sync": boolean;
 
   "booker-botid": boolean;
-  "booking-calendar-view": boolean;
   "booking-email-sms-tasker": boolean;
   "bookings-v3": boolean;
   "booking-audit": boolean;
