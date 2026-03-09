@@ -9,7 +9,6 @@ export default {
   upgrading: "Upgrading",
   docker: "Docker",
   apps: "Apps",
-  "license-key": "License Key",
   "-- deployments": {
     type: "separator",
     title: "Deployments",
