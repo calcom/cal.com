@@ -193,11 +193,7 @@ export async function handler(
     throw ErrorWithCode.Factory.BadRequest("Only Team Event Types are supported for Instant Meeting");
   }
 
-  if (!bookingData.creationSource) {
-    throw ErrorWithCode.Factory.BadRequest("creationSource is required for instant bookings");
-  }
-
-  const creationSource: CreationSource = bookingData.creationSource;
+  const creationSource: CreationSource = bookingData.creationSource ?? CreationSource.WEBAPP;
 
   const schema = getBookingDataSchema({
     view: bookingData?.rescheduleUid ? "reschedule" : "booking",
