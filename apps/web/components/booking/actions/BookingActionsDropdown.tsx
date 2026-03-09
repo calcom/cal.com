@@ -195,7 +195,6 @@ export function BookingActionsDropdown({
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
 
-  // Check if the logged-in user is a host (booking owner, event type host, or event type owner)
   const isHost = isUserHostOfBooking(booking);
 
   const isCalVideoLocation =
