@@ -1,6 +1,6 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "Wayl",
+  "name": "Wayl Payments",
   "slug": "waylpayment",
   "type": "waylpayment_payment",
   "logo": "icon.svg",
