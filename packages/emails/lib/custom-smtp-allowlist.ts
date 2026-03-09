@@ -19,6 +19,7 @@ export const CUSTOM_SMTP_ALLOWED_EMAILS = [
   "AttendeeDailyVideoDownloadTranscriptEmail",
 
   // Organizer booking emails
+  "OrganizerAddAttendeeEmail",
   "OrganizerAddGuestsEmail",
   "OrganizerAttendeeCancelledSeatEmail",
   "OrganizerCancelledEmail",
