@@ -17,11 +17,13 @@ import { UrlencodedBodyMiddleware } from "@/middleware/body/urlencoded.body.midd
 import { ResponseInterceptor } from "@/middleware/request-ids/request-id.interceptor";
 import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middleware";
 import { AuthModule } from "@/modules/auth/auth.module";
+import { ThirdPartyPermissionsGuard } from "@/modules/auth/guards/third-party-permissions/third-party-permissions.guard";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { VercelWebhookController } from "@/vercel-webhook.controller";
 
 @Module({
@@ -59,6 +61,7 @@ import { VercelWebhookController } from "@/vercel-webhook.controller";
     EndpointsModule,
     AuthModule,
     JwtModule,
+    TokensModule,
   ],
   controllers: [AppController, VercelWebhookController],
   providers: [
@@ -80,6 +83,10 @@ import { VercelWebhookController } from "@/vercel-webhook.controller";
     {
       provide: APP_GUARD,
       useClass: CustomThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThirdPartyPermissionsGuard,
     },
   ],
 })

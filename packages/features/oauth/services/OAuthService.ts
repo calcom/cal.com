@@ -1,17 +1,18 @@
 import { randomBytes } from "node:crypto";
 import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { ALL_KNOWN_SCOPES, isLegacyClient, OAUTH_SCOPES, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { OAuthClientStatus } from "@calcom/prisma/enums";
 import jwt from "jsonwebtoken";
-import logger from "@calcom/lib/logger";
 
 export interface OAuth2Client {
   clientId: string;
@@ -20,6 +21,7 @@ export interface OAuth2Client {
   logo: string | null;
   isTrusted: boolean;
   clientType: OAuthClientType;
+  scopes: AccessScope[];
 }
 
 export interface OAuth2Tokens {
@@ -27,6 +29,7 @@ export interface OAuth2Tokens {
   tokenType: string;
   refreshToken: string;
   expiresIn: number;
+  scope: string;
 }
 
 export interface AuthorizeResult {
@@ -85,13 +88,15 @@ export class OAuthService {
       logo: client.logo,
       isTrusted: client.isTrusted,
       clientType: client.clientType,
+      scopes: client.scopes,
     };
   }
 
   async getClientForAuthorization(
     clientId: string,
     redirectUri: string,
-    loggedInUserId?: number
+    loggedInUserId?: number,
+    scopeParam?: string
   ): Promise<OAuth2Client> {
     const client = await this.oAuthClientRepository.findByClientId(clientId);
 
@@ -103,6 +108,19 @@ export class OAuthService {
 
     this.ensureClientAccessAllowed(client, loggedInUserId);
 
+    if (!isLegacyClient(client.scopes)) {
+      const requestedScopes = parseScopeParam(scopeParam);
+      if (requestedScopes.length === 0) {
+        throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", { reason: "scope_required" });
+      }
+      this.validateRequestedScopes(client.scopes, requestedScopes);
+    } else {
+      const requestedScopes = parseScopeParam(scopeParam);
+      if (requestedScopes.length > 0) {
+        this.validateScopesAreKnown(requestedScopes);
+      }
+    }
+
     return {
       clientId: client.clientId,
       redirectUri: client.redirectUri,
@@ -110,6 +128,7 @@ export class OAuthService {
       logo: client.logo,
       isTrusted: client.isTrusted,
       clientType: client.clientType,
+      scopes: client.scopes,
     };
   }
 
@@ -117,7 +136,7 @@ export class OAuthService {
     clientId: string,
     loggedInUserId: number,
     redirectUri: string,
-    scopes: AccessScope[],
+    requestedScopes: AccessScope[],
     state?: string,
     teamSlug?: string,
     codeChallenge?: string,
@@ -131,8 +150,13 @@ export class OAuthService {
 
     this.ensureClientAccessAllowed(client, loggedInUserId);
 
-    // RFC 6749 4.1.2.1: Redirect URI mismatch on Auth step is 'invalid_request'
     this.validateRedirectUri(client.redirectUri, redirectUri);
+
+    if (!isLegacyClient(client.scopes)) {
+      this.validateRequestedScopes(client.scopes, requestedScopes);
+    } else if (requestedScopes.length > 0) {
+      this.validateScopesAreKnown(requestedScopes);
+    }
 
     if (client.clientType === "PUBLIC") {
       if (!codeChallenge) {
@@ -155,7 +179,6 @@ export class OAuthService {
     if (teamSlug) {
       const team = await this.teamsRepository.findTeamBySlugWithAdminRole(teamSlug, loggedInUserId);
       if (!team) {
-        // Specific OAuth error for user denying or failing permission
         throw new ErrorWithCode(ErrorCode.Unauthorized, "access_denied", {
           reason: "team_not_found_or_no_access",
         });
@@ -170,7 +193,7 @@ export class OAuthService {
       clientId,
       userId: teamSlug ? undefined : loggedInUserId,
       teamId,
-      scopes,
+      scopes: requestedScopes,
       codeChallenge,
       codeChallengeMethod,
     });
@@ -180,7 +203,19 @@ export class OAuthService {
       state,
     });
 
-    return { redirectUrl, authorizationCode, client };
+    return {
+      redirectUrl,
+      authorizationCode,
+      client: {
+        clientId: client.clientId,
+        redirectUri: client.redirectUri,
+        name: client.name,
+        logo: client.logo,
+        isTrusted: client.isTrusted,
+        clientType: client.clientType,
+        scopes: client.scopes,
+      },
+    };
   }
 
   private ensureClientAccessAllowed(
@@ -210,6 +245,28 @@ export class OAuthService {
   private validateRedirectUri(registeredUri: string, providedUri: string): void {
     if (providedUri !== registeredUri) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { reason: "redirect_uri_mismatch" });
+    }
+  }
+
+  private validateScopesAreKnown(requestedScopes: string[]): void {
+    const unknownScopes = requestedScopes.filter(
+      (scope) => !ALL_KNOWN_SCOPES.includes(scope as AccessScope)
+    );
+    if (unknownScopes.length > 0) {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", { reason: "unknown_scope" });
+    }
+  }
+
+  private validateRequestedScopes(clientScopes: AccessScope[], requestedScopes: string[]): void {
+    this.validateScopesAreKnown(requestedScopes);
+
+    const invalidScopes = requestedScopes.filter(
+      (requestedScope) => !clientScopes.includes(requestedScope as AccessScope)
+    );
+    if (invalidScopes.length > 0) {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_scope", {
+        reason: "scope_exceeds_client_registration",
+      });
     }
   }
 
@@ -290,7 +347,6 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
 
-    // RFC 6749 5.2: Redirect URI mismatch during Token exchange is 'invalid_grant'
     if (redirectUri && client.redirectUri !== redirectUri) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
     }
@@ -313,7 +369,6 @@ export class OAuthService {
 
     const pkceError = this.verifyPKCE(client, accessCode, codeVerifier);
     if (pkceError) {
-      // RFC 7636 4.4.1: If verification fails, return 'invalid_grant'
       throw new ErrorWithCode(ErrorCode.BadRequest, pkceError.error, { reason: pkceError.reason });
     }
 
@@ -431,12 +486,10 @@ export class OAuthService {
 
     const method = source.codeChallengeMethod || "S256";
 
-    // Structural missing params
     if (!source.codeChallenge || !codeVerifier || method !== "S256") {
       return { error: "invalid_request", reason: "pkce_missing_parameters_or_invalid_method" };
     }
 
-    // Logical mismatch
     if (!verifyCodeChallenge(codeVerifier, source.codeChallenge, method)) {
       return { error: "invalid_grant", reason: "pkce_verification_failed" };
     }
@@ -503,6 +556,7 @@ export class OAuthService {
       tokenType: "bearer",
       refreshToken,
       expiresIn: accessTokenExpiresIn,
+      scope: input.scopes.join(" "),
       refreshTokenSecret,
       refreshTokenExpiresIn,
     };
@@ -541,7 +595,10 @@ export type OAuthErrorReason =
   | "invalid_refresh_token"
   | "refresh_token_revoked"
   | "client_id_mismatch"
-  | "encryption_key_missing";
+  | "encryption_key_missing"
+  | "scope_exceeds_client_registration"
+  | "scope_required"
+  | "unknown_scope";
 
 // Mapping of OAuth error reasons to descriptive messages, keeping previous messages for compatibility
 export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
@@ -561,4 +618,7 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   refresh_token_revoked: "invalid_grant",
   client_id_mismatch: "invalid_grant",
   encryption_key_missing: "CALENDSO_ENCRYPTION_KEY is not set",
+  scope_exceeds_client_registration: SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR,
+  scope_required: "scope parameter is required for this OAuth client",
+  unknown_scope: "Requested scope is not a recognized scope",
 };

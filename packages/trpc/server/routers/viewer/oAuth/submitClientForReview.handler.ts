@@ -1,9 +1,8 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
-import { getTranslation } from "@calcom/i18n/server";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TSubmitClientInputSchema } from "./submitClientForReview.schema";
 
 type SubmitClientOptions = {
@@ -19,7 +18,7 @@ type SubmitClientOptions = {
 };
 
 export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientOptions) => {
-  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
+  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, scopes } = input;
   const userId = ctx.user.id;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
@@ -40,6 +39,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     logo,
     websiteUrl,
     enablePkce,
+    scopes,
     userId,
     status: "PENDING",
   });

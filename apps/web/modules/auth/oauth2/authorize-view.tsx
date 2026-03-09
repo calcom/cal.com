@@ -1,10 +1,7 @@
 "use client";
 
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
+import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,6 +12,11 @@ import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { useRouter } from "next/navigation";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { getScopeDisplayItems } from "./scopes";
 
 export function Authorize() {
   const { t } = useLocale();
@@ -38,7 +40,6 @@ export function Authorize() {
     value: string;
     label: string;
   } | null>();
-  const scopes = scope ? scope.toString().split(",") : [];
 
   const {
     data: client,
@@ -48,6 +49,7 @@ export function Authorize() {
     {
       clientId: client_id as string,
       redirectUri: redirect_uri,
+      scope: scope || undefined,
     },
     {
       enabled: status === "authenticated" && !!redirect_uri,
@@ -90,13 +92,15 @@ export function Authorize() {
     }
   }, [isPendingProfiles, show_account_selector]);
 
-  // Auto-authorize trusted clients
+  const isLegacy = isLegacyClient(client?.scopes ?? []);
+  const effectiveScopes = parseScopeParam(scope);
+
   useEffect(() => {
     if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
         redirectUri: client.redirectUri,
-        scopes,
+        scopes: effectiveScopes,
         codeChallenge: code_challenge || undefined,
         codeChallengeMethod: (code_challenge_method as "S256") || undefined,
         state,
@@ -118,7 +122,20 @@ export function Authorize() {
     }
   }, [status]);
 
+  useEffect(() => {
+    if (getClientError && redirect_uri && isScopeError(getClientError.message)) {
+      redirectToOAuthError({
+        redirectUri: redirect_uri,
+        trpcError: getClientError,
+        state,
+      });
+    }
+  }, [getClientError, redirect_uri, state]);
+
   if (getClientError) {
+    if (isScopeError(getClientError.message)) {
+      return <></>;
+    }
     return <div>{getClientError.message}</div>;
   }
 
@@ -200,35 +217,47 @@ export function Authorize() {
         <div className="mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        <ul className="text-sm stack-y-3">
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>{" "}
-            {t("associate_with_cal_account", { clientName: client.name })}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("see_personal_info")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("see_primary_email_address")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_event_type")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_availability")}
-          </li>
-          <li className="relative pl-5">
-            <span className="absolute left-0">&#10003;</span>
-            {t("access_bookings")}
-          </li>
-        </ul>
+        {isLegacy && effectiveScopes.length === 0 ? (
+          <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>{" "}
+              {t("associate_with_cal_account", { clientName: client.name })}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_personal_info")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("see_primary_email_address")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("connect_installed_apps")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_event_type")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_availability")}
+            </li>
+            <li className="relative pl-5">
+              <span className="absolute left-0">&#10003;</span>
+              {t("access_bookings")}
+            </li>
+          </ul>
+        ) : (
+          <ul className="text-sm stack-y-3" data-testid="scope-permissions-list">
+            {getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
+              <li key={idx} className="relative pl-5">
+                <span className="absolute left-0">&#10003;</span>
+                {label}
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>
             <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
@@ -260,7 +289,7 @@ export function Authorize() {
             onClick={() => {
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
-                scopes,
+                scopes: effectiveScopes,
                 redirectUri: client.redirectUri,
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
@@ -279,7 +308,15 @@ export function Authorize() {
   );
 }
 
-function mapTrpcCodeToOAuthError(code: string | undefined) {
+function isScopeError(errorMessage: string): boolean {
+  return (
+    errorMessage.includes(SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR) ||
+    errorMessage.includes(OAUTH_ERROR_REASONS["unknown_scope"])
+  );
+}
+
+function mapTrpcCodeToOAuthError(code: string | undefined, message?: string) {
+  if (message === OAUTH_ERROR_REASONS["unknown_scope"]) return "invalid_scope";
   if (code === "BAD_REQUEST") return "invalid_request";
   if (code === "UNAUTHORIZED") return "unauthorized_client";
   return "server_error";
@@ -322,7 +359,7 @@ function redirectToOAuthError({
 }) {
   const redirectUrl = buildOAuthErrorRedirectUrl({
     redirectUri,
-    error: mapTrpcCodeToOAuthError(trpcError.data?.code),
+    error: mapTrpcCodeToOAuthError(trpcError.data?.code, trpcError.message),
     errorDescription: trpcError.message,
     state,
   });

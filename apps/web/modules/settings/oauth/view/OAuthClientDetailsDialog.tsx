@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { isLegacyClient, OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AccessScope } from "@calcom/prisma/enums";
 
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
@@ -36,6 +38,7 @@ type OAuthClientDetails = {
   clientSecret?: string;
   isPkceEnabled?: boolean;
   clientType?: string;
+  scopes?: AccessScope[];
   user?: {
     email: string;
   } | null;
@@ -65,6 +68,7 @@ const OAuthClientDetailsDialog = ({
     redirectUri: string;
     websiteUrl: string;
     logo: string;
+    scopes: AccessScope[] | undefined;
   }) => void;
   onDelete?: (clientId: string) => void;
   isStatusChangePending?: boolean;
@@ -74,19 +78,25 @@ const OAuthClientDetailsDialog = ({
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
 
-  const [logo, setLogo] = useState("");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionReasonError, setShowRejectionReasonError] = useState(false);
+
+  const formEnablePkce =
+    client?.isPkceEnabled ?? (client?.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
+  const isLegacy = isLegacyClient(client?.scopes ?? []);
+  const formClientScopes = client?.scopes ?? [];
+
   const form = useForm<OAuthClientCreateFormValues>({
     defaultValues: {
-      name: "",
-      purpose: "",
-      redirectUri: "",
-      websiteUrl: "",
-      logo: "",
-      enablePkce: false,
+      name: client?.name ?? "",
+      purpose: client?.purpose ?? "",
+      redirectUri: client?.redirectUri ?? "",
+      websiteUrl: client?.websiteUrl ?? "",
+      logo: client?.logo ?? "",
+      enablePkce: formEnablePkce,
+      scopes: formClientScopes,
     },
   });
 
@@ -97,24 +107,6 @@ const OAuthClientDetailsDialog = ({
     setRejectionReason("");
     setShowRejectionReasonError(false);
   }, [open]);
-
-  useEffect(() => {
-    if (!client) return;
-
-    const enablePkce =
-      client.isPkceEnabled ?? (client.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
-    const nextLogo = client.logo ?? "";
-
-    setLogo(nextLogo);
-    form.reset({
-      name: client.name ?? "",
-      purpose: client.purpose ?? "",
-      redirectUri: client.redirectUri ?? "",
-      websiteUrl: client.websiteUrl ?? "",
-      logo: nextLogo,
-      enablePkce,
-    });
-  }, [client, form]);
 
   const status = client?.status;
 
@@ -210,6 +202,10 @@ const OAuthClientDetailsDialog = ({
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => {
               if (!canEdit) return;
+              if (!isLegacy && !values.scopes?.length) {
+                showToast(t("oauth_client_scope_required"), "error");
+                return;
+              }
               onUpdate?.({
                 clientId: client.clientId,
                 name: values.name.trim() || "",
@@ -217,6 +213,8 @@ const OAuthClientDetailsDialog = ({
                 redirectUri: values.redirectUri.trim() || "",
                 websiteUrl: values.websiteUrl.trim() || "",
                 logo: values.logo,
+                // note(Lauris): for legacy clients with no scopes selected, omit scopes to leave the DB unchanged.
+                scopes: isLegacy && !values.scopes?.length ? undefined : values.scopes,
               });
             })}>
             {status ? (
@@ -285,13 +283,7 @@ const OAuthClientDetailsDialog = ({
               </div>
             ) : null}
 
-            <OAuthClientFormFields
-              form={form}
-              logo={logo}
-              setLogo={setLogo}
-              isClientReadOnly={isFormDisabled}
-              isPkceLocked
-            />
+            <OAuthClientFormFields form={form} isClientReadOnly={isFormDisabled} isPkceLocked isLegacyOAuthClient={isLegacy} />
 
             {canDelete ? (
               <div className="pt-2">

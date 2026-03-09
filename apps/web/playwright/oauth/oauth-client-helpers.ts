@@ -29,6 +29,7 @@ type CreateOAuthClientInput = {
   redirectUri: string;
   websiteUrl: string;
   logoFileName: string;
+  scopes?: string[];
 };
 
 type CreateOAuthClientResult = {
@@ -51,6 +52,12 @@ export async function createPendingOAuthClient(
   await form.locator("#websiteUrl").fill(input.websiteUrl);
 
   await uploadOAuthClientLogo(page, input.logoFileName);
+
+  if (input.scopes) {
+    for (const scope of input.scopes) {
+      await page.getByTestId(`oauth-scope-checkbox-${scope}`).click();
+    }
+  }
 
   const pkceToggle = page.getByTestId("oauth-client-pkce-toggle");
   await expect(pkceToggle).toHaveAttribute("data-state", "unchecked");

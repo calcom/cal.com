@@ -1884,6 +1884,7 @@ model OAuthClient {
   status          OAuthClientStatus @default(APPROVED)
   userId          Int?
   user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  scopes          AccessScope[]
   createdAt       DateTime          @default(now())
 
   refreshTokens OAuthRefreshToken[]
@@ -1924,8 +1925,20 @@ model OAuthRefreshToken {
 }
 
 enum AccessScope {
+  // note(Lauris): legacy values (kept for backward compatibility with existing tokens/access codes)
   READ_BOOKING
   READ_PROFILE
+  // note(Lauris): new scope values
+  EVENT_TYPE_READ
+  EVENT_TYPE_WRITE
+  BOOKING_READ
+  BOOKING_WRITE
+  SCHEDULE_READ
+  SCHEDULE_WRITE
+  APPS_READ
+  APPS_WRITE
+  PROFILE_READ
+  PROFILE_WRITE
 }
 
 view BookingTimeStatus {

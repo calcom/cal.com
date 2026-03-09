@@ -82,6 +82,7 @@ test.describe("OAuth clients admin", () => {
       redirectUri: "https://example.com/callback",
       websiteUrl: "https://example.com",
       logoFileName: "cal.png",
+      scopes: ["BOOKING_READ"],
     });
 
     const pending1Name = `${testPrefix}pending-1-${Date.now()}`;

@@ -1,13 +1,14 @@
 import path from "node:path";
+
+import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import type { PrismaClient } from "@calcom/prisma";
-import type { OAuthClientType } from "@calcom/prisma/enums";
+import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { test } from "../lib/fixtures";
 
 async function loginAsSeededAdminAndGoToOAuthSettings(page: Page) {
   await page.goto("/auth/login");
 
-  // Seeded admin user from scripts/seed.ts
   await page.getByTestId("login-form").locator("#email").fill("admin@example.com");
   await page.getByTestId("login-form").locator("#password").fill("ADMINadmin2022!");
 
@@ -25,6 +26,7 @@ type CreateOAuthClientInput = {
   websiteUrl?: string;
   enablePkce: boolean;
   logoFileName?: string;
+  scopes?: AccessScope[];
 };
 
 type CreateOAuthClientResult = {
@@ -39,6 +41,7 @@ type UpdateOAuthClientInput = {
   redirectUri: string;
   websiteUrl: string;
   logoFileName?: string;
+  scopes?: AccessScope[];
 };
 
 type ExpectedOAuthClientDetails = {
@@ -50,6 +53,7 @@ type ExpectedOAuthClientDetails = {
   statusLabel: "Approved" | "Rejected" | "Pending";
   pkceEnabled: boolean;
   hasLogo: boolean;
+  scopes?: AccessScope[];
 };
 
 type TruthyExpectation = { kind: "truthy" };
@@ -64,6 +68,7 @@ type OAuthClientDbExpectations = {
   clientType?: OAuthClientType;
   clientSecret?: string | null | TruthyExpectation;
   logo?: string | null | TruthyExpectation;
+  scopes?: AccessScope[];
 };
 
 const oAuthClientSelect = {
@@ -76,6 +81,7 @@ const oAuthClientSelect = {
   clientType: true,
   clientSecret: true,
   logo: true,
+  scopes: true,
 } as const;
 
 async function createOAuthClient(
@@ -104,6 +110,17 @@ async function createOAuthClient(
     await expect(pkceToggle).toHaveAttribute("data-state", "checked");
   } else {
     await expect(pkceToggle).toHaveAttribute("data-state", "unchecked");
+  }
+
+  if (input.scopes) {
+    for (const scope of OAUTH_SCOPES) {
+      const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
+      const isChecked = await scopeCheckbox.isChecked();
+      const shouldBeChecked = input.scopes.includes(scope);
+      if (isChecked !== shouldBeChecked) {
+        await scopeCheckbox.click();
+      }
+    }
   }
 
   await page.getByTestId("oauth-client-create-submit").click();
@@ -143,6 +160,17 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
 
   if (input.logoFileName) {
     await uploadOAuthClientLogo(page, input.logoFileName);
+  }
+
+  if (input.scopes) {
+    for (const scope of OAUTH_SCOPES) {
+      const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
+      const isChecked = await scopeCheckbox.isChecked();
+      const shouldBeChecked = input.scopes.includes(scope);
+      if (isChecked !== shouldBeChecked) {
+        await scopeCheckbox.click();
+      }
+    }
   }
 
   const updateResponsePromise = page.waitForResponse((res) =>
@@ -245,6 +273,10 @@ async function expectOAuthClientInDb(
       expect(dbClient.logo).toBe(expected.logo);
     }
   }
+
+  if (expected.scopes !== undefined) {
+    expect(dbClient.scopes.sort()).toEqual(expected.scopes.sort());
+  }
 }
 
 async function expectOAuthClientDetails(
@@ -262,6 +294,18 @@ async function expectOAuthClientDetails(
   await expect(pkceToggle).toHaveAttribute("data-state", expected.pkceEnabled ? "checked" : "unchecked");
 
   await expect(details.locator('img[alt="Logo"][src]')).toHaveCount(expected.hasLogo ? 1 : 0);
+
+  if (expected.scopes) {
+    for (const scope of OAUTH_SCOPES) {
+      const scopeCheckbox = details.page().getByTestId(`oauth-scope-checkbox-${scope}`);
+      const shouldBeChecked = expected.scopes.includes(scope);
+      if (shouldBeChecked) {
+        await expect(scopeCheckbox).toBeChecked();
+      } else {
+        await expect(scopeCheckbox).not.toBeChecked();
+      }
+    }
+  }
 }
 
 async function expectOAuthClientInList(page: Page, input: { clientId: string; name: string }): Promise<void> {
@@ -291,7 +335,6 @@ test.describe("OAuth client creation", () => {
   test.afterEach(async ({ users, prisma }, testInfo) => {
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
 
-    // Clean up any clients created by the e2e tests (by naming convention)
     await prisma.oAuthClient.deleteMany({
       where: {
         name: {
@@ -311,23 +354,18 @@ test.describe("OAuth client creation", () => {
     const form = page.getByTestId("oauth-client-create-form");
     await expect(form).toBeVisible();
 
-    // Submit immediately - should trigger native browser required field validation
     await page.getByTestId("oauth-client-create-submit").click();
 
-    // Playwright can assert native validation message via validationMessage.
-    // This matches Chrome's default: "Please fill out this field."
     const nameInput = form.locator("#name");
     const purposeInput = form.locator("#purpose");
     const redirectUriInput = form.locator("#redirectUri");
 
     await expect(nameInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
 
-    // Fill name, submit -> purpose should be flagged
     await nameInput.fill("Test OAuth Client");
     await page.getByTestId("oauth-client-create-submit").click();
     await expect(purposeInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
 
-    // Fill purpose, submit -> redirect URI should be flagged
     await purposeInput.fill("Test purpose");
     await page.getByTestId("oauth-client-create-submit").click();
     await expect(redirectUriInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
@@ -343,13 +381,14 @@ test.describe("OAuth client creation", () => {
     const clientName = `${testPrefix}private-minimal-${Date.now()}`;
     const purpose = "Used for E2E testing (minimal)";
     const redirectUri = "https://example.com/callback";
+    const scopes: AccessScope[] = ["BOOKING_READ"];
 
-    // Ensure PKCE is off (private/confidential)
     const { clientId, clientSecret } = await createOAuthClient(page, {
       name: clientName,
       purpose,
       redirectUri,
       enablePkce: false,
+      scopes,
     });
     expect(clientSecret?.length).toBeGreaterThan(1);
 
@@ -374,6 +413,7 @@ test.describe("OAuth client creation", () => {
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: null,
+      scopes,
     });
 
     const editedName = `${testPrefix}private-minimal-edited-${Date.now()}`;
@@ -531,9 +571,8 @@ test.describe("OAuth client creation", () => {
     const purpose = "Used for E2E testing";
     const redirectUri = "https://example.com/callback";
     const websiteUrl = "https://example.com";
+    const scopes: AccessScope[] = ["BOOKING_READ"];
 
-    // Upload logo using ImageUploader testIds
-    // Ensure PKCE is off (private/confidential)
     const { clientId, clientSecret } = await createOAuthClient(page, {
       name: clientName,
       purpose,
@@ -541,6 +580,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl,
       enablePkce: false,
       logoFileName: "cal.png",
+      scopes,
     });
     expect(clientSecret?.length).toBeGreaterThan(1);
 
@@ -565,6 +605,7 @@ test.describe("OAuth client creation", () => {
       clientType: "CONFIDENTIAL",
       clientSecret: TRUTHY,
       logo: TRUTHY,
+      scopes,
     });
 
     const editedName = `${testPrefix}private-edited-${Date.now()}`;
@@ -635,15 +676,15 @@ test.describe("OAuth client creation", () => {
     const purpose = "Used for E2E testing (public)";
     const redirectUri = "https://example.com/callback";
     const websiteUrl = "https://example.com";
+    const scopes: AccessScope[] = ["BOOKING_READ"];
 
-    // Enable PKCE
-    // For public (PKCE) clients we should not show a client secret
     const { clientId } = await createOAuthClient(page, {
       name: clientName,
       purpose,
       redirectUri,
       websiteUrl,
       enablePkce: true,
+      scopes,
     });
 
     const details = await openOAuthClientDetails(page, clientId);
@@ -667,6 +708,7 @@ test.describe("OAuth client creation", () => {
       clientType: "PUBLIC",
       clientSecret: null,
       logo: null,
+      scopes,
     });
 
     const editedName = `${testPrefix}public-edited-${Date.now()}`;
@@ -723,6 +765,148 @@ test.describe("OAuth client creation", () => {
 
     await deleteOAuthClient(page, clientId, editedName);
 
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("creates OAuth client with single scope correctly stored in database", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
+    const clientName = `${testPrefix}single-scope-${Date.now()}`;
+    const purpose = "Testing single scope selection";
+    const redirectUri = "https://example.com/single-scope-callback";
+    const selectedScope: AccessScope = "BOOKING_READ";
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose,
+      redirectUri,
+      enablePkce: true,
+      scopes: [selectedScope],
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      name: clientName,
+      purpose,
+      redirectUri,
+      status: "PENDING",
+      clientType: "PUBLIC",
+      scopes: [selectedScope],
+    });
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("creates OAuth client with all scopes correctly stored in database", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
+    const clientName = `${testPrefix}all-scopes-${Date.now()}`;
+    const purpose = "Testing all scopes selection";
+    const redirectUri = "https://example.com/all-scopes-callback";
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose,
+      redirectUri,
+      enablePkce: true,
+      scopes: [...OAUTH_SCOPES],
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      name: clientName,
+      purpose,
+      redirectUri,
+      status: "PENDING",
+      clientType: "PUBLIC",
+      scopes: [...OAUTH_SCOPES],
+    });
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("updates OAuth client scopes correctly; UI checkboxes reflect state; DB stores updated scopes", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
+    const clientName = `${testPrefix}update-scopes-${Date.now()}`;
+    const purpose = "Testing scope updates";
+    const redirectUri = "https://example.com/update-scopes-callback";
+    const initialScopes: AccessScope[] = ["EVENT_TYPE_READ", "BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose,
+      redirectUri,
+      enablePkce: true,
+      scopes: initialScopes,
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      scopes: initialScopes,
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(details, {
+      clientId,
+      name: clientName,
+      purpose,
+      redirectUri,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+      scopes: initialScopes,
+    });
+    await closeOAuthClientDetails(page);
+
+    const updatedScopes: AccessScope[] = ["SCHEDULE_READ", "SCHEDULE_WRITE", "PROFILE_READ"];
+
+    await updateOAuthClient(page, {
+      clientId,
+      name: clientName,
+      purpose,
+      redirectUri,
+      websiteUrl: "",
+      scopes: updatedScopes,
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      scopes: updatedScopes,
+    });
+
+    const detailsAfterUpdate = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(detailsAfterUpdate, {
+      clientId,
+      name: clientName,
+      purpose,
+      redirectUri,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+      scopes: updatedScopes,
+    });
+    await closeOAuthClientDetails(page);
+
+    await page.reload();
+
+    const detailsAfterReload = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(detailsAfterReload, {
+      clientId,
+      name: clientName,
+      purpose,
+      redirectUri,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+      scopes: updatedScopes,
+    });
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 });

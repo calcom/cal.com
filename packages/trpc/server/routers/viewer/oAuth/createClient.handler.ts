@@ -1,6 +1,6 @@
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import type { PrismaClient } from "@calcom/prisma";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TCreateClientInputSchema } from "./createClient.schema";
 
 type AddClientOptions = {
@@ -11,7 +11,7 @@ type AddClientOptions = {
 };
 
 export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
-  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce } = input;
+  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, scopes } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
@@ -31,6 +31,7 @@ export const createClientHandler = async ({ ctx, input }: AddClientOptions) => {
     logo,
     websiteUrl,
     enablePkce,
+    scopes,
     status: "APPROVED",
   });
 

@@ -1,3 +1,4 @@
+import { AccessScopeSchema } from "@calcom/prisma/zod/inputTypeSchemas";
 import { z } from "zod";
 
 export type TCreateClientInputSchemaInput = {
@@ -7,6 +8,7 @@ export type TCreateClientInputSchemaInput = {
   logo?: string;
   websiteUrl?: string;
   enablePkce?: boolean;
+  scopes: z.infer<typeof AccessScopeSchema>[];
 };
 
 export type TCreateClientInputSchema = {
@@ -16,6 +18,7 @@ export type TCreateClientInputSchema = {
   logo?: string;
   websiteUrl?: string;
   enablePkce: boolean;
+  scopes: z.infer<typeof AccessScopeSchema>[];
 };
 
 export const ZCreateClientInputSchema: z.ZodType<
@@ -35,4 +38,5 @@ export const ZCreateClientInputSchema: z.ZodType<
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
   enablePkce: z.boolean().optional().default(false),
+  scopes: z.array(AccessScopeSchema).min(1, "At least one scope is required"),
 });

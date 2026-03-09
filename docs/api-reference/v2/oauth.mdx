@@ -23,16 +23,37 @@ As an example, you can view our OAuth flow in action on Zapier. Try to connect y
 ## 1. OAuth Client Credentials
 
 You can create an OAuth client via the following page https://app.cal.com/settings/developer/oauth. The OAuth client will be in a "pending" state
-and not yet ready to use.
+and not yet ready to use. You must select at least one scope when creating the OAuth client.
 
 An admin from Cal.com will then review your OAuth client and you will receive an email if it was accepted or rejected. If it was accepted then your OAuth client
 is ready to be used.
+
+### Available Scopes
+
+Scopes control which API endpoints the OAuth token can access. Once a user authorizes your client with a given set of scopes, the issued access token can only be used to call endpoints covered by those scopes — any request to an endpoint outside the granted scopes will be rejected. The following scopes are available:
+
+| Scope | Description | Endpoints |
+|-------|-------------|-----------|
+| `EVENT_TYPE_READ` | View event types | [Get all event types](https://cal.com/docs/api-reference/v2/event-types/get-all-event-types), <br/> [Get an event type](https://cal.com/docs/api-reference/v2/event-types/get-an-event-type), <br/> [Get event type private links](https://cal.com/docs/api-reference/v2/event-types-private-links/get-all-private-links-for-an-event-type) |
+| `EVENT_TYPE_WRITE` | Create, edit, and delete event types | [Create an event type](https://cal.com/docs/api-reference/v2/event-types/create-an-event-type), <br/> [Update an event type](https://cal.com/docs/api-reference/v2/event-types/update-an-event-type), <br/> [Delete an event type](https://cal.com/docs/api-reference/v2/event-types/delete-an-event-type), <br/> [Create a private link](https://cal.com/docs/api-reference/v2/event-types-private-links/create-a-private-link-for-an-event-type), <br/> [Update a private link](https://cal.com/docs/api-reference/v2/event-types-private-links/update-a-private-link-for-an-event-type), <br/> [Delete a private link](https://cal.com/docs/api-reference/v2/event-types-private-links/delete-a-private-link-for-an-event-type) |
+| `BOOKING_READ` | View bookings | [Get all bookings](https://cal.com/docs/api-reference/v2/bookings/get-all-bookings), <br/> [Get booking recordings](https://cal.com/docs/api-reference/v2/bookings/get-all-the-recordings-for-the-booking), <br/> [Get transcript download links](https://cal.com/docs/api-reference/v2/bookings/get-cal-video-real-time-transcript-download-links-for-the-booking), <br/> [Get calendar links](https://cal.com/docs/api-reference/v2/bookings/get-add-to-calendar-links-for-a-booking), <br/> [Get booking references](https://cal.com/docs/api-reference/v2/bookings/get-booking-references), <br/> [Get conferencing sessions](https://cal.com/docs/api-reference/v2/bookings/get-video-meeting-sessions-only-supported-for-cal-video) |
+| `BOOKING_WRITE` | Create, edit, and delete bookings | [Add guests to a booking](https://cal.com/docs/api-reference/v2/bookings-guests/add-guests-to-an-existing-booking), <br/> [Update booking location](https://cal.com/docs/api-reference/v2/bookings/update-booking-location-for-an-existing-booking), <br/> [Mark a booking absence](https://cal.com/docs/api-reference/v2/bookings/mark-a-booking-absence), <br/> [Reassign to auto-selected host](https://cal.com/docs/api-reference/v2/bookings/reassign-a-booking-to-auto-selected-host), <br/> [Reassign to a specific host](https://cal.com/docs/api-reference/v2/bookings/reassign-a-booking-to-a-specific-host), <br/> [Confirm a booking](https://cal.com/docs/api-reference/v2/bookings/confirm-a-booking), <br/> [Decline a booking](https://cal.com/docs/api-reference/v2/bookings/decline-a-booking) |
+| `SCHEDULE_READ` | View availability | [Get all schedules](https://cal.com/docs/api-reference/v2/schedules/get-all-schedules), <br/> [Get a schedule](https://cal.com/docs/api-reference/v2/schedules/get-a-schedule), <br/> [Get default schedule](https://cal.com/docs/api-reference/v2/schedules/get-default-schedule) |
+| `SCHEDULE_WRITE` | Create, edit, and delete availability | [Create a schedule](https://cal.com/docs/api-reference/v2/schedules/create-a-schedule), <br/> [Update a schedule](https://cal.com/docs/api-reference/v2/schedules/update-a-schedule), <br/> [Delete a schedule](https://cal.com/docs/api-reference/v2/schedules/delete-a-schedule) |
+| `APPS_READ` | View connected apps | [Check a calendar connection](https://cal.com/docs/api-reference/v2/calendars/check-a-calendar-connection) |
+| `APPS_WRITE` | Connect and disconnect apps | No endpoints currently use this scope |
+| `PROFILE_READ` | View personal info | [Get my profile](https://cal.com/docs/api-reference/v2/me/get-my-profile) |
+| `PROFILE_WRITE` | Edit personal info | [Update my profile](https://cal.com/docs/api-reference/v2/me/update-my-profile) |
+
+<Note>
+  Some endpoints like `POST /v2/bookings` (create), `POST /v2/bookings/:bookingUid/cancel` (cancel), and `POST /v2/bookings/:bookingUid/reschedule` (reschedule) are public endpoints that do not require any scope.
+</Note>
 
 ## 2. Authorize
 
 To initiate the OAuth flow, direct users to the following authorization URL:
 
-`https://app.cal.com/auth/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE`
+`https://app.cal.com/auth/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE&scope=BOOKING_READ%20BOOKING_WRITE`
 
 **URL Parameters:**
 
@@ -41,6 +62,7 @@ To initiate the OAuth flow, direct users to the following authorization URL:
 | `client_id` | Yes | Your OAuth client ID |
 | `redirect_uri` | Yes | Where users will be redirected after authorization. Must exactly match the registered redirect URI. |
 | `state` | Recommended | A securely generated random string to mitigate CSRF attacks |
+| `scope` | Yes | Space or comma-separated list of scopes to request (e.g. `BOOKING_READ BOOKING_WRITE` or `BOOKING_READ,BOOKING_WRITE`). Must be a subset of scopes enabled on the OAuth client. |
 | `code_challenge` | For public clients | PKCE code challenge (S256 method) |
 
 After users click **Allow**, they will be redirected to the `redirect_uri` with `code` (authorization code) and `state` as URL parameters:
@@ -57,10 +79,15 @@ Errors during the authorization step are displayed directly to the user on the C
 - **Client not approved**: The OAuth client has not been approved by a Cal.com admin yet.
 - **Mismatched redirect URI**: The `redirect_uri` does not match the one registered for the OAuth client.
 
-If an error occurs after the client is validated (e.g., the user denies access or has insufficient permissions), the user is redirected to the `redirect_uri` with an error:
+If an error occurs after the client is validated, the user is redirected to the `redirect_uri` with an error:
+
+- **Scope required**: If the `scope` parameter is missing, the error `scope parameter is required for this OAuth client` is displayed on the authorization page.
+- **Unknown scope**: If the `scope` parameter includes scope values that do not exist, the user is redirected with `error=invalid_scope` and `error_description=Requested scope is not a recognized scope`. This applies to both regular and legacy clients.
+- **Invalid scope**: If the `scope` parameter includes scopes not enabled on the OAuth client, the user is redirected with `error=invalid_request` and `error_description=Requested scope exceeds the client's registered scopes`.
+- **Access denied**: If the user denies access or has insufficient permissions, the user is redirected with an error.
 
 ```
-https://your-app.com/callback?error=access_denied&error_description=team_not_found_or_no_access&state=YOUR_STATE
+https://your-app.com/callback?error=invalid_request&error_description=Requested+scope+exceeds+the+client%27s+registered+scopes&state=YOUR_STATE
 ```
 
 ## 3. Exchange Token
@@ -198,12 +225,13 @@ Public clients (e.g. single-page apps, mobile apps) use PKCE instead of a `clien
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
   "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
   "token_type": "bearer",
-  "expires_in": 1800
+  "expires_in": 1800,
+  "scope": "BOOKING_READ BOOKING_WRITE"
 }
 ```
 
 <Note>
-  Access tokens expire after 30 minutes (`expires_in: 1800`). Use the refresh token to obtain a new access token.
+  Access tokens expire after 30 minutes (`expires_in: 1800`). Use the refresh token to obtain a new access token. The `scope` field contains the granted scopes as a space-separated string.
 </Note>
 
 #### Error Responses
@@ -381,9 +409,14 @@ Public clients do not use a `client_secret`. All parameters are required:
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
   "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
   "token_type": "bearer",
-  "expires_in": 1800
+  "expires_in": 1800,
+  "scope": "BOOKING_READ BOOKING_WRITE"
 }
 ```
+
+<Note>
+  Scopes are preserved from the original authorization. You do not need to re-request scopes when refreshing tokens.
+</Note>
 
 #### Error Responses
 
@@ -416,6 +449,42 @@ Public clients do not use a `client_secret`. All parameters are required:
     No OAuth client exists with the provided `client_id`.
   </Accordion>
 </AccordionGroup>
+
+## Legacy Client Migration
+
+If your OAuth client was created before scopes were introduced, it is considered a **legacy client**. A client is treated as legacy if it has no scopes configured, or if it only has the old legacy scope values (`READ_BOOKING` and/or `READ_PROFILE`). Access tokens issued by legacy clients can access any resource on behalf of the authorizing user — scopes are not enforced.
+
+You can migrate a legacy client to use explicit scopes without creating a new client. **Order matters** — follow these steps to avoid breaking existing integrations:
+
+### Step 1: Update your authorization URL
+
+Add a `scope` query parameter to your authorization URL **before** changing any client settings. Legacy clients skip scope validation during authorization, so users can already authorize with a scope parameter even while the client is still in legacy mode.
+
+```
+https://app.cal.com/auth/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&state=YOUR_STATE&scope=BOOKING_READ%20BOOKING_WRITE
+```
+
+New access tokens issued after this change will carry only the scopes you specified. For the full list of available scopes, see [Available Scopes](#available-scopes).
+
+### Step 2: Update client scopes in settings
+
+Once your authorization URL is updated and you have verified that new tokens are being issued with the correct scopes, open your OAuth client settings and select the matching scopes. Save the client.
+
+After this step, the client is no longer treated as a legacy client. Scope validation is enforced for all new authorization requests.
+
+<Warning>
+  Do **not** update the client scopes before updating your authorization URL. Doing so will immediately break the authorization flow for any user who visits the old URL without a `scope` parameter.
+</Warning>
+
+### Re-approval
+
+Updating scopes on a legacy client does **not** trigger re-approval as long as you only add user-level scopes (such as `BOOKING_READ`, `EVENT_TYPE_READ`, etc.). The client stays in its current approval status and no admin review is required.
+
+### Existing tokens
+
+Tokens issued before the migration continue to work until users re-authorize. There is no forced invalidation of existing tokens during the migration.
+
+---
 
 ## 5. Verify Access Token
 

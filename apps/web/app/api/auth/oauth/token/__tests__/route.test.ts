@@ -189,6 +189,7 @@ describe("POST /api/auth/oauth/token", () => {
         token_type: "bearer",
         refresh_token: "mock_jwt_token",
         expires_in: 1800,
+        scope: "",
       });
 
       expect(mockVerifyCodeChallenge).toHaveBeenCalledWith("test_verifier", "test_challenge", "S256");
@@ -320,6 +321,7 @@ describe("POST /api/auth/oauth/token", () => {
         token_type: "bearer",
         refresh_token: "mock_jwt_token",
         expires_in: 1800,
+        scope: "",
       });
 
       expect(mockGenerateSecret).toHaveBeenCalledWith("plain_secret");
@@ -409,6 +411,7 @@ describe("POST /api/auth/oauth/token", () => {
         token_type: "bearer",
         refresh_token: "mock_jwt_token",
         expires_in: 1800,
+        scope: "",
       });
 
       expect(mockGenerateSecret).toHaveBeenCalledWith("plain_secret");

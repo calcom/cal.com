@@ -1,3 +1,4 @@
+import { AccessScopeSchema } from "@calcom/prisma/zod/inputTypeSchemas";
 import { z } from "zod";
 
 export const ZSubmitClientInputSchema = z.object({
@@ -13,6 +14,7 @@ export const ZSubmitClientInputSchema = z.object({
     .optional()
     .transform((value) => (value === "" ? undefined : value)),
   enablePkce: z.boolean().optional().default(false),
+  scopes: z.array(AccessScopeSchema).min(1, "At least one scope is required"),
 });
 
 export const ZSubmitClientOutputSchema = z.object({

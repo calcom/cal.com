@@ -5,8 +5,10 @@ import { getTranslation } from "@calcom/i18n/server";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { OAuthClientStatus } from "@calcom/prisma/enums";
+import type { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
 
+import { isLegacyClient } from "@calcom/features/oauth/constants";
+import { hasScopeExpansion } from "./hasScopeExpansion";
 import type { TUpdateClientInputSchema } from "./updateClient.schema";
 
 type UpdateClientOptions = {
@@ -41,6 +43,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     redirectUri,
     websiteUrl,
     logo,
+    scopes,
   } = input;
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
@@ -61,7 +64,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     throw new TRPCError({ code: "BAD_REQUEST", message: "Rejection reason is required" });
   }
 
-  const isUpdatingFields = hasAnyFieldsChanged({ name, purpose, redirectUri, websiteUrl, logo });
+  const isUpdatingFields = hasAnyFieldsChanged({ name, purpose, redirectUri, websiteUrl, logo, scopes });
   const isUpdatingStatus = requestedStatus !== undefined;
 
   if (isUpdatingStatus && !isAdmin) {
@@ -83,12 +86,14 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
       logo: clientWithUser.logo,
       websiteUrl: clientWithUser.websiteUrl,
       redirectUri: clientWithUser.redirectUri,
+      scopes: clientWithUser.scopes,
     },
     proposedUpdates: {
       name,
       logo,
       websiteUrl,
       redirectUri,
+      scopes,
     },
   });
 
@@ -104,6 +109,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     redirectUri,
     logo,
     websiteUrl,
+    scopes,
     requestedStatus,
     rejectionReason,
     nextStatus,
@@ -161,6 +167,7 @@ type ClientFieldsForReapprovalCheck = {
   logo: string | null;
   websiteUrl: string | null;
   redirectUri: string;
+  scopes: AccessScope[];
 };
 
 function triggersReapprovalForOwnerEdit(params: {
@@ -172,6 +179,7 @@ function triggersReapprovalForOwnerEdit(params: {
     logo: string | null;
     websiteUrl: string | null;
     redirectUri: string;
+    scopes: AccessScope[];
   }>;
 }) {
   const { isAdmin, isOwner, currentClient, proposedUpdates } = params;
@@ -199,6 +207,14 @@ function triggersReapprovalForOwnerEdit(params: {
   if (
     proposedUpdates.redirectUri !== undefined &&
     proposedUpdates.redirectUri !== currentClient.redirectUri
+  ) {
+    return true;
+  }
+
+  if (
+    proposedUpdates.scopes !== undefined &&
+    !isLegacyClient(currentClient.scopes) &&
+    hasScopeExpansion(currentClient.scopes, proposedUpdates.scopes)
   ) {
     return true;
   }
@@ -263,6 +279,7 @@ type UpdateOAuthClientData = {
   redirectUri?: string;
   logo?: string | null;
   websiteUrl?: string | null;
+  scopes?: AccessScope[];
   status?: OAuthClientStatus;
   rejectionReason?: string | null;
 };
@@ -273,6 +290,7 @@ function buildUpdateClientUpdateData(params: {
   redirectUri: string | undefined;
   logo: string | null | undefined;
   websiteUrl: string | null | undefined;
+  scopes: AccessScope[] | undefined;
   requestedStatus: OAuthClientStatus | undefined;
   rejectionReason: string | undefined;
   nextStatus: OAuthClientStatus;
@@ -284,6 +302,7 @@ function buildUpdateClientUpdateData(params: {
     redirectUri,
     logo,
     websiteUrl,
+    scopes,
     requestedStatus,
     rejectionReason,
     nextStatus,
@@ -297,6 +316,7 @@ function buildUpdateClientUpdateData(params: {
   if (redirectUri !== undefined) updateData.redirectUri = redirectUri;
   if (logo !== undefined) updateData.logo = logo;
   if (websiteUrl !== undefined) updateData.websiteUrl = websiteUrl;
+  if (scopes !== undefined) updateData.scopes = scopes;
   if (nextStatus !== currentStatus) updateData.status = nextStatus;
 
   if (requestedStatus === "REJECTED") {

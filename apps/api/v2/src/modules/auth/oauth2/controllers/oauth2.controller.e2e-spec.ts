@@ -208,6 +208,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.refresh_token).toBeDefined();
           expect(response.body.token_type).toBe("bearer");
           expect(response.body.expires_in).toBe(1800);
+          expect(response.body.scope).toBe("READ_BOOKING READ_PROFILE");
           expect(response.headers["cache-control"]).toBe("no-store");
           expect(response.headers["pragma"]).toBe("no-cache");
 
@@ -231,6 +232,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.access_token).toBeDefined();
           expect(response.body.refresh_token).toBeDefined();
           expect(response.body.token_type).toBe("bearer");
+          expect(response.body.scope).toBe("READ_BOOKING");
         });
 
         it("should exchange authorization code for tokens with application/x-www-form-urlencoded body", async () => {
@@ -252,6 +254,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.refresh_token).toBeDefined();
           expect(response.body.token_type).toBe("bearer");
           expect(response.body.expires_in).toBe(1800);
+          expect(response.body.scope).toBe("READ_BOOKING");
         });
       });
 
@@ -381,6 +384,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.refresh_token).toBeDefined();
           expect(response.body.token_type).toBe("bearer");
           expect(response.body.expires_in).toBe(1800);
+          expect(response.body.scope).toBe("READ_BOOKING READ_PROFILE");
 
           refreshToken = response.body.refresh_token;
         });
@@ -459,6 +463,7 @@ describe("OAuth2 Controller Endpoints", () => {
 
           expect(firstResponse.body.access_token).toBeDefined();
           expect(firstResponse.body.refresh_token).toBeDefined();
+          expect(firstResponse.body.scope).toBe("READ_BOOKING");
 
           const newRefreshToken = firstResponse.body.refresh_token;
 
@@ -678,6 +683,7 @@ describe("OAuth2 Controller Endpoints", () => {
       expect(response.body.access_token).toBeDefined();
       expect(response.body.refresh_token).toBeDefined();
       expect(response.body.token_type).toBe("bearer");
+      expect(response.body.scope).toBe("READ_BOOKING");
     });
 
     it("should refresh tokens with PENDING client owned by user", async () => {
@@ -709,6 +715,7 @@ describe("OAuth2 Controller Endpoints", () => {
       expect(response.body.access_token).toBeDefined();
       expect(response.body.refresh_token).toBeDefined();
       expect(response.body.token_type).toBe("bearer");
+      expect(response.body.scope).toBe("READ_BOOKING");
     });
 
     it("should reject authorization code generation for REJECTED client even as owner", async () => {
@@ -778,6 +785,168 @@ describe("OAuth2 Controller Endpoints", () => {
       await membershipRepositoryFixture.delete(membership.id);
       await teamRepositoryFixture.delete(team.id);
       await userRepositoryFixture.delete(owner.id);
+      await app.close();
+    });
+  });
+
+  describe("Legacy OAuth client access token scopes", () => {
+    let app: INestApplication;
+    let moduleRef: TestingModule;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let oAuthClientFixture: OAuth2ClientRepositoryFixture;
+    let oAuthService: OAuthService;
+
+    let testUser: User;
+
+    const testClientSecret = "test-legacy-scopes-secret";
+    const testRedirectUri = "https://example.com/callback";
+
+    const nullScopesClientId = `test-legacy-null-scopes-${randomString()}`;
+    const emptyScopesClientId = `test-legacy-empty-scopes-${randomString()}`;
+    const readBookingClientId = `test-legacy-read-booking-${randomString()}`;
+    const readBookingReadProfileClientId = `test-legacy-read-booking-read-profile-${randomString()}`;
+
+    async function generateAuthCode(clientId: string, scopes: AccessScope[] = []): Promise<string> {
+      const result = await oAuthService.generateAuthorizationCode(
+        clientId,
+        testUser.id,
+        testRedirectUri,
+        scopes
+      );
+      const redirectUrl = new URL(result.redirectUrl);
+      return redirectUrl.searchParams.get("code") as string;
+    }
+
+    async function exchangeCode(clientId: string, code: string) {
+      return request(app.getHttpServer())
+        .post("/api/v2/auth/oauth2/token")
+        .type("form")
+        .send({
+          client_id: clientId,
+          grant_type: "authorization_code",
+          code,
+          client_secret: testClientSecret,
+          redirect_uri: testRedirectUri,
+        })
+        .expect(200);
+    }
+
+    beforeAll(async () => {
+      moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter, ZodExceptionFilter],
+        imports: [AppModule, UsersModule, AuthModule, PrismaModule],
+      }).compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+      await app.init();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+      oAuthClientFixture = new OAuth2ClientRepositoryFixture(moduleRef);
+      oAuthService = moduleRef.get(OAuthService);
+
+      testUser = await userRepositoryFixture.create({
+        email: `oauth2-legacy-scopes-${randomString()}@api.com`,
+      });
+
+      const [hashedSecret] = generateSecret(testClientSecret);
+
+      await oAuthClientFixture.create({
+        clientId: nullScopesClientId,
+        name: "Legacy Client NULL Scopes",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+      });
+
+      await oAuthClientFixture.create({
+        clientId: emptyScopesClientId,
+        name: "Legacy Client Empty Scopes",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+        scopes: [],
+      });
+
+      await oAuthClientFixture.create({
+        clientId: readBookingClientId,
+        name: "Legacy Client READ_BOOKING",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+        scopes: [AccessScope.READ_BOOKING],
+      });
+
+      await oAuthClientFixture.create({
+        clientId: readBookingReadProfileClientId,
+        name: "Legacy Client READ_BOOKING READ_PROFILE",
+        redirectUri: testRedirectUri,
+        clientSecret: hashedSecret,
+        clientType: OAuthClientType.CONFIDENTIAL,
+        scopes: [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],
+      });
+    });
+
+    it("NULL client scopes + empty requested scopes → token scope is empty", async () => {
+      const code = await generateAuthCode(nullScopesClientId);
+      const response = await exchangeCode(nullScopesClientId, code);
+      expect(response.body.scope).toBe("");
+    });
+
+    it("empty [] client scopes + empty requested scopes → token scope is empty", async () => {
+      const code = await generateAuthCode(emptyScopesClientId);
+      const response = await exchangeCode(emptyScopesClientId, code);
+      expect(response.body.scope).toBe("");
+    });
+
+    it("[READ_BOOKING] client scopes + empty requested scopes → token scope is empty", async () => {
+      const code = await generateAuthCode(readBookingClientId);
+      const response = await exchangeCode(readBookingClientId, code);
+      expect(response.body.scope).toBe("");
+    });
+
+    it("[READ_BOOKING, READ_PROFILE] client scopes + empty requested scopes → token scope is empty", async () => {
+      const code = await generateAuthCode(readBookingReadProfileClientId);
+      const response = await exchangeCode(readBookingReadProfileClientId, code);
+      expect(response.body.scope).toBe("");
+    });
+
+    it("NULL client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(nullScopesClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(nullScopesClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("empty [] client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(emptyScopesClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(emptyScopesClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("[READ_BOOKING] client scopes + [BOOKING_READ] requested → token scope contains BOOKING_READ", async () => {
+      const code = await generateAuthCode(readBookingClientId, [AccessScope.BOOKING_READ]);
+      const response = await exchangeCode(readBookingClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ");
+    });
+
+    it("[READ_BOOKING, READ_PROFILE] client scopes + [BOOKING_READ, BOOKING_WRITE] requested → token scope contains BOOKING_READ BOOKING_WRITE", async () => {
+      const code = await generateAuthCode(readBookingReadProfileClientId, [
+        AccessScope.BOOKING_READ,
+        AccessScope.BOOKING_WRITE,
+      ]);
+      const response = await exchangeCode(readBookingReadProfileClientId, code);
+      expect(response.body.scope).toBe("BOOKING_READ BOOKING_WRITE");
+    });
+
+    afterAll(async () => {
+      await oAuthClientFixture.delete(nullScopesClientId);
+      await oAuthClientFixture.delete(emptyScopesClientId);
+      await oAuthClientFixture.delete(readBookingClientId);
+      await oAuthClientFixture.delete(readBookingReadProfileClientId);
+      await userRepositoryFixture.delete(testUser.id);
       await app.close();
     });
   });

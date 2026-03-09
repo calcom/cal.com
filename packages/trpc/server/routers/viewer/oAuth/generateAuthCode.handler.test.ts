@@ -28,6 +28,7 @@ describe("generateAuthCodeHandler", () => {
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
       status: "APPROVED" as const,
+      scopes: [],
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
@@ -56,7 +57,15 @@ describe("generateAuthCodeHandler", () => {
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
 
-      expect(result.client).toEqual(mockPublicClient);
+      expect(result.client).toEqual({
+        clientId: mockPublicClient.clientId,
+        redirectUri: mockPublicClient.redirectUri,
+        name: mockPublicClient.name,
+        logo: mockPublicClient.logo,
+        isTrusted: mockPublicClient.isTrusted,
+        clientType: mockPublicClient.clientType,
+        scopes: mockPublicClient.scopes,
+      });
       expect(result.authorizationCode).toBeDefined();
       expect(prismaMock.accessCode.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -164,6 +173,7 @@ describe("generateAuthCodeHandler", () => {
       isTrusted: undefined,
       logo: undefined,
       status: "APPROVED" as const,
+      scopes: [],
     };
 
     it("should generate authorization code for CONFIDENTIAL client without PKCE", async () => {
@@ -193,7 +203,15 @@ describe("generateAuthCodeHandler", () => {
 
       const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
 
-      expect(result.client).toEqual(mockConfidentialClient);
+      expect(result.client).toEqual({
+        clientId: mockConfidentialClient.clientId,
+        redirectUri: mockConfidentialClient.redirectUri,
+        name: mockConfidentialClient.name,
+        logo: mockConfidentialClient.logo,
+        isTrusted: mockConfidentialClient.isTrusted,
+        clientType: mockConfidentialClient.clientType,
+        scopes: mockConfidentialClient.scopes,
+      });
       expect(result.authorizationCode).toBeDefined();
       expect(prismaMock.accessCode.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -304,6 +322,7 @@ describe("generateAuthCodeHandler", () => {
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
         status: "APPROVED" as const,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPublicClient);
@@ -379,6 +398,7 @@ describe("generateAuthCodeHandler", () => {
         name: "Test Pending Client",
         clientType: "CONFIDENTIAL" as const,
         status: "PENDING" as const,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPendingClient);
@@ -409,6 +429,7 @@ describe("generateAuthCodeHandler", () => {
         name: "Test Rejected Client",
         clientType: "CONFIDENTIAL" as const,
         status: "REJECTED" as const,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockRejectedClient);
@@ -440,6 +461,7 @@ describe("generateAuthCodeHandler", () => {
         clientType: "CONFIDENTIAL" as const,
         status: "REJECTED" as const,
         userId: 1,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockRejectedClientOwnedByUser);
@@ -471,6 +493,7 @@ describe("generateAuthCodeHandler", () => {
         clientType: "CONFIDENTIAL" as const,
         status: "PENDING" as const,
         userId: 1,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPendingClientOwnedByUser);
@@ -509,6 +532,7 @@ describe("generateAuthCodeHandler", () => {
         clientType: "CONFIDENTIAL" as const,
         status: "APPROVED" as const,
         userId: 1,
+        scopes: [],
       };
 
       prismaMock.oAuthClient.findFirst.mockResolvedValue(mockApprovedClientOwnedByUser);

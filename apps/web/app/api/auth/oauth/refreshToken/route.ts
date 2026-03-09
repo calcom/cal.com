@@ -1,12 +1,12 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
+import process from "node:process";
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseUrlFormData } from "app/api/parseRequestData";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   const { client_id, client_secret, grant_type, refresh_token } = await parseUrlFormData(req);
@@ -33,6 +33,7 @@ async function handler(req: NextRequest) {
         token_type: "bearer",
         refresh_token: tokens.refreshToken,
         expires_in: tokens.expiresIn,
+        scope: tokens.scope,
       },
       {
         status: 200,

@@ -34,4 +34,12 @@ export class OAuth2TokensDto {
   @IsNumber()
   @Expose({ name: "expiresIn" })
   expires_in!: number;
+
+  @ApiProperty({
+    description: "The granted scopes (space-delimited per RFC 6749)",
+    example: "BOOKING_READ BOOKING_WRITE",
+  })
+  @IsString()
+  @Expose()
+  scope!: string;
 }

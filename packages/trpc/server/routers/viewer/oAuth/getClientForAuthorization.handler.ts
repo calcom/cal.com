@@ -17,11 +17,16 @@ type GetClientForAuthorizationOptions = {
 
 export const getClientForAuthorizationHandler = async ({ ctx, input }: GetClientForAuthorizationOptions) => {
   try {
-    const { clientId, redirectUri } = input;
+    const { clientId, redirectUri, scope } = input;
 
     const oAuthService = getOAuthService();
 
-    const oAuthClient = await oAuthService.getClientForAuthorization(clientId, redirectUri, ctx.user.id);
+    const oAuthClient = await oAuthService.getClientForAuthorization(
+      clientId,
+      redirectUri,
+      ctx.user.id,
+      scope
+    );
 
     return {
       clientId: oAuthClient.clientId,
@@ -29,6 +34,7 @@ export const getClientForAuthorizationHandler = async ({ ctx, input }: GetClient
       name: oAuthClient.name,
       logo: oAuthClient.logo,
       isTrusted: oAuthClient.isTrusted,
+      scopes: oAuthClient.scopes,
     };
   } catch (error) {
     if (error instanceof ErrorWithCode) {

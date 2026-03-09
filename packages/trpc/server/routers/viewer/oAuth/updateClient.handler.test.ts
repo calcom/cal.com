@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TFunction } from "i18next";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { OAuthClientStatus, UserPermissionRole } from "@calcom/prisma/enums";
+import { AccessScope, OAuthClientStatus, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { updateClientHandler } from "./updateClient.handler";
 
@@ -380,6 +380,7 @@ describe("updateClientHandler", () => {
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
+      scopes: [AccessScope.BOOKING_READ],
       status: "APPROVED",
       user: null,
     });
@@ -439,6 +440,7 @@ describe("updateClientHandler", () => {
       redirectUri: REDIRECT_URI,
       websiteUrl: null,
       logo: null,
+      scopes: [AccessScope.BOOKING_READ],
       status: "APPROVED",
       user: null,
     });
@@ -483,6 +485,452 @@ describe("updateClientHandler", () => {
           redirectUri: updatedRedirectUri,
           status: "PENDING",
           rejectionReason: null,
+        },
+      })
+    );
+  });
+
+  it("sets status to PENDING when owner adds a new scope to an approved client", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_READ],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "PENDING",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+          status: "PENDING",
+          rejectionReason: null,
+        },
+      })
+    );
+  });
+
+  it("does not change status when owner removes a scope from an approved client", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ],
+        },
+      })
+    );
+  });
+
+  it("does not change status when owner adds READ alongside existing WRITE for the same resource", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_WRITE],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_WRITE, AccessScope.BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_WRITE, AccessScope.BOOKING_READ],
+        },
+      })
+    );
+  });
+
+  it("does not change status when owner demotes from WRITE to READ for the same resource", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_WRITE],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ],
+        },
+      })
+    );
+  });
+
+  it("sets status to PENDING when owner upgrades from READ to WRITE for the same resource", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_READ],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "PENDING",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_WRITE],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_WRITE],
+          status: "PENDING",
+          rejectionReason: null,
+        },
+      })
+    );
+  });
+
+  it("does not change status when owner demotes WRITE to READ while also removing another scope", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_WRITE, AccessScope.SCHEDULE_READ],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ],
+        },
+      })
+    );
+  });
+
+  it("sets status to PENDING when owner demotes one scope but adds an entirely new one", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_WRITE],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "PENDING",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: OWNER_USER_ID,
+        role: UserPermissionRole.USER,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+          status: "PENDING",
+          rejectionReason: null,
+        },
+      })
+    );
+  });
+
+  it("does not trigger reapproval when admin updates scopes", async () => {
+    mocks.findByClientIdIncludeUser.mockResolvedValue({
+      clientId: CLIENT_ID,
+      userId: OWNER_USER_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      scopes: [AccessScope.BOOKING_READ],
+      status: "APPROVED",
+      user: null,
+    });
+
+    const prismaUpdate = vi.fn().mockResolvedValue({
+      clientId: CLIENT_ID,
+      name: CLIENT_NAME,
+      purpose: CLIENT_PURPOSE,
+      status: "APPROVED",
+      redirectUri: REDIRECT_URI,
+      websiteUrl: null,
+      logo: null,
+      rejectionReason: null,
+    });
+
+    const ctx = {
+      user: {
+        id: 1,
+        role: UserPermissionRole.ADMIN,
+      },
+      prisma: {
+        oAuthClient: {
+          update: prismaUpdate,
+        },
+      } as unknown as PrismaClient,
+    };
+
+    await updateClientHandler({
+      ctx,
+      input: {
+        clientId: CLIENT_ID,
+        scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_WRITE],
+      },
+    });
+
+    expect(prismaUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clientId: CLIENT_ID },
+        data: {
+          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_WRITE],
         },
       })
     );

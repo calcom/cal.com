@@ -1,31 +1,31 @@
 "use client";
 
-import { useMemo } from "react";
-import type { Dispatch, SetStateAction } from "react";
-import type { RegisterOptions, UseFormReturn } from "react-hook-form";
-
+import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import type { AccessScope } from "@calcom/prisma/enums";
+import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
+import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { InfoIcon, KeyIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { useMemo } from "react";
+import type { RegisterOptions, UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
+import { scopeTranslationKey } from "../../../auth/oauth2/scopes";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 
 export const OAuthClientFormFields = ({
   form,
-  logo,
-  setLogo,
   isClientReadOnly,
   isPkceLocked,
+  isLegacyOAuthClient,
 }: {
   form: UseFormReturn<OAuthClientCreateFormValues>;
-  logo: string;
-  setLogo: Dispatch<SetStateAction<string>>;
   isClientReadOnly?: boolean;
   isPkceLocked?: boolean;
+  isLegacyOAuthClient?: boolean;
 }) => {
   const { t } = useLocale();
   const isFormDisabled = Boolean(isClientReadOnly);
@@ -131,6 +131,8 @@ export const OAuthClientFormFields = ({
         </div>
       </div>
 
+      <OAuthScopeCheckboxes form={form} disabled={isFormDisabled} isLegacy={isLegacyOAuthClient} />
+
       <div>
         <Label className="text-emphasis mb-2 block text-sm font-medium">{t("logo")}</Label>
         <div className="space-y-3">
@@ -138,7 +140,7 @@ export const OAuthClientFormFields = ({
             <Avatar
               alt={t("logo")}
               fallback={<KeyIcon className="text-subtle h-6 w-6" />}
-              imageSrc={logo}
+              imageSrc={form.watch("logo")}
               size="lg"
             />
             {allowUploadingLogo ? (
@@ -148,10 +150,9 @@ export const OAuthClientFormFields = ({
                 buttonMsg={t("upload_logo")}
                 testId="oauth-client-logo"
                 handleAvatarChange={(newLogo: string) => {
-                  setLogo(newLogo);
                   form.setValue("logo", newLogo);
                 }}
-                imageSrc={logo}
+                imageSrc={form.watch("logo")}
                 disabled={isFormDisabled}
               />
             ) : null}
@@ -161,3 +162,72 @@ export const OAuthClientFormFields = ({
     </>
   );
 };
+
+function OAuthScopeCheckboxes({
+  form,
+  disabled,
+  isLegacy,
+}: {
+  form: UseFormReturn<OAuthClientCreateFormValues>;
+  disabled: boolean;
+  isLegacy?: boolean;
+}) {
+  const { t } = useLocale();
+
+  return (
+    <Controller
+      control={form.control}
+      name="scopes"
+      render={({ field }) => {
+        const scopes = field.value || [];
+        return (
+          <div>
+            <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
+              {t("oauth_scopes")}
+              <Tooltip content={t("oauth_scopes_description")}>
+                <span>
+                  <Icon name="info" className="text-subtle h-4 w-4" />
+                </span>
+              </Tooltip>
+            </Label>
+            {isLegacy && (
+              <Alert
+                severity="warning"
+                className="mb-3"
+                title={
+                  <>
+                    {t("legacy_oauth_client_scopes_warning")}{" "}
+                    <a
+                      href="https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline">
+                      https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration
+                    </a>
+                  </>
+                }
+              />
+            )}
+            <div className="border-subtle space-y-1 rounded-md border p-3">
+              {OAUTH_SCOPES.map((scope) => (
+                <CheckboxField
+                  key={scope}
+                  data-testid={`oauth-scope-checkbox-${scope}`}
+                  checked={scopes.includes(scope)}
+                  disabled={disabled}
+                  description={t(scopeTranslationKey(scope))}
+                  onChange={(e) => {
+                    const newScopes = e.target.checked
+                      ? [...scopes, scope]
+                      : scopes.filter((s) => s !== scope);
+                    field.onChange(newScopes);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }}
+    />
+  );
+}

@@ -1,6 +1,5 @@
-import { ApiHeaderOptions } from "@nestjs/swagger";
-
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { ApiHeaderOptions } from "@nestjs/swagger";
 
 export const OPTIONAL_X_CAL_CLIENT_ID_HEADER: ApiHeaderOptions = {
   name: X_CAL_CLIENT_ID,
@@ -42,19 +41,20 @@ export const API_KEY_HEADER: ApiHeaderOptions = {
 export const API_KEY_OR_ACCESS_TOKEN_HEADER: ApiHeaderOptions = {
   name: "Authorization",
   description:
-    "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+    "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
   required: true,
 };
 
 export const OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER: ApiHeaderOptions = {
   name: "Authorization",
   description:
-    "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+    "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
   required: false,
 };
 
 export const ACCESS_TOKEN_HEADER: ApiHeaderOptions = {
   name: "Authorization",
-  description: "value must be `Bearer <token>` where `<token>` is managed user access token",
+  description:
+    "value must be `Bearer <token>` where `<token>` is managed user access token or OAuth access token",
   required: true,
 };
