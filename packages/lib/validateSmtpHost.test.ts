@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { validateSmtpHost } from "./validateSmtpHost";
 
 describe("validateSmtpHost", () => {
@@ -12,6 +11,8 @@ describe("validateSmtpHost", () => {
       ["0.0.0.0", "this-network"],
       ["0.1.2.3", "this-network alternate"],
       ["::1", "IPv6 loopback"],
+      ["0:0:0:0:0:0:0:1", "IPv6 loopback expanded"],
+      ["0000:0000:0000:0000:0000:0000:0000:0001", "IPv6 loopback fully expanded"],
       ["fe80::1", "IPv6 link-local"],
       ["::ffff:127.0.0.1", "IPv4-mapped loopback"],
       ["::ffff:169.254.169.254", "IPv4-mapped metadata"],
