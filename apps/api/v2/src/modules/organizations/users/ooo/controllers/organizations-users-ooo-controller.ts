@@ -40,7 +40,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
-import { ApiHeader, ApiOkResponse, ApiCreatedResponse, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -67,7 +67,6 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Get all out-of-office entries for a user" })
-  @ApiOkResponse({ type: UserOoosOutputResponseDto })
   async getOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Query() query: GetOutOfOfficeEntryFiltersDTO
@@ -86,7 +85,6 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Create an out-of-office entry for a user" })
-  @ApiCreatedResponse({ type: UserOooOutputResponseDto })
   async createOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Body() input: CreateOutOfOfficeEntryDto
@@ -103,7 +101,6 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Update an out-of-office entry for a user" })
-  @ApiOkResponse({ type: UserOooOutputResponseDto })
   async updateOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("oooId", ParseIntPipe) oooId: number,
@@ -122,7 +119,6 @@ export class OrganizationsUsersOOOController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Delete an out-of-office entry for a user" })
-  @ApiOkResponse({ type: UserOooOutputResponseDto })
   async deleteOrganizationUserOOO(
     @Param("oooId", ParseIntPipe) oooId: number
   ): Promise<UserOooOutputResponseDto> {
@@ -137,7 +133,6 @@ export class OrganizationsUsersOOOController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all out-of-office entries for organization users" })
-  @ApiOkResponse({ type: UserOoosOutputResponseDto })
   async getOrganizationUsersOOO(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: GetOrgUsersOutOfOfficeEntryFiltersDTO
