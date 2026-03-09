@@ -145,7 +145,7 @@ export default class DzyloCrmService implements CRM {
       attendee_phone: event.attendees[0].phoneNumber,
     };
 
-    return axios({
+    const response = await axios({
       method: "post",
       url: `${BASE_URL}/events/create`,
       headers: {
@@ -153,9 +153,8 @@ export default class DzyloCrmService implements CRM {
         authorization: `Bearer ${this.accessToken}`,
       },
       data: dzyloEvent,
-    })
-      .then((data) => data.data)
-      .catch(() => undefined);
+    });
+    return response.data;
   };
 
   private updateMeeting = async (uid: string, event: CalendarEvent) => {
