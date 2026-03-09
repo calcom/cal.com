@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getWorkingHours } from "@calcom/lib/availability";
+import { filterAvailabilityByBookerTimezone, getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
@@ -52,6 +52,7 @@ const availabilitySchema = z
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
+    timeZone: z.string().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -97,6 +98,7 @@ const _getEventType = async (id: number) => {
                   startTime: true,
                   endTime: true,
                   days: true,
+                  targetTimeZones: true,
                 },
               },
               timeZone: true,
@@ -120,6 +122,7 @@ const _getEventType = async (id: number) => {
               date: true,
               startTime: true,
               endTime: true,
+              targetTimeZones: true,
             },
           },
           timeZone: true,
@@ -131,6 +134,7 @@ const _getEventType = async (id: number) => {
           endTime: true,
           days: true,
           date: true,
+          targetTimeZones: true,
         },
       },
     },
@@ -205,6 +209,8 @@ type GetUserAvailabilityQuery = {
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  /** Booker's timezone - used to filter availability blocks with targetTimeZones */
+  timeZone?: string;
 };
 
 const _getCurrentSeats = async (
@@ -301,6 +307,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     returnDateOverrides,
     bypassBusyCalendarTimes = false,
     shouldServeCache,
+    timeZone: bookerTimezone,
   } = availabilitySchema.parse(query);
 
   log.debug(
@@ -490,12 +497,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
-  const availability = (
+  const rawAvailability = (
     schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
   ).map((a) => ({
     ...a,
     userId: user.id,
   }));
+
+  const availability = filterAvailabilityByBookerTimezone(rawAvailability, bookerTimezone);
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 
