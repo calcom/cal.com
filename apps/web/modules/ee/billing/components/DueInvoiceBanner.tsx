@@ -67,7 +67,10 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
 
   if (!data || data.length === 0) return null;
 
-  const sorted = [...data].sort(
+  const hasOrgRecord = data.some((r) => r.isOrganization);
+  const filtered = hasOrgRecord ? data.filter((r) => r.isOrganization) : data;
+
+  const sorted = [...filtered].sort(
     (a, b) =>
       (SEVERITY_ORDER[b.status as DunningStatus] ?? 0) - (SEVERITY_ORDER[a.status as DunningStatus] ?? 0)
   );
