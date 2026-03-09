@@ -9,4 +9,5 @@ export const PaymentServiceMap = {
   "mock-payment-app": import("./mock-payment-app/lib/PaymentService"),
   paypal: import("./paypal/lib/PaymentService"),
   stripepayment: import("./stripepayment/lib/PaymentService"),
+  waylpayment: import("./waylpayment/lib/PaymentService"),
 };

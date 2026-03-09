@@ -86,4 +86,5 @@ export const apiHandlers = {
   zohocalendar: import("./zohocalendar/api"),
   zohocrm: import("./zohocrm/api"),
   zoomvideo: import("./zoomvideo/api"),
+  waylpayment: import("./waylpayment/api"),
 };

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#0F1724"/>
+  <!-- Wayl wordmark-style W letterform -->
+  <path
+    d="M18 36 L34 84 L50 54 L66 84 L82 36 H96 L74 90 H58 L50 70 L42 90 H26 L4 36 Z"
+    fill="white"
+  />
+</svg>

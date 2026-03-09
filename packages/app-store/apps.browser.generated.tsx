@@ -51,6 +51,7 @@ export const EventTypeAddonMap = {
   umami: dynamic(() => import("./umami/components/EventTypeAppCardInterface")),
   "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
   zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
+  waylpayment: dynamic(() => import("./waylpayment/components/EventTypeAppCardInterface")),
 };
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
@@ -67,4 +68,5 @@ export const EventTypeSettingsMap = {
   plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppSettingsInterface")),
+  waylpayment: dynamic(() => import("./waylpayment/components/EventTypeAppSettingsInterface")),
 };

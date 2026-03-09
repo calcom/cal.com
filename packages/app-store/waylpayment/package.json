@@ -1,0 +1,9 @@
+{
+  "name": "@calcom/waylpayment",
+  "version": "0.0.1",
+  "description": "Wayl payment gateway integration for Cal.com",
+  "main": "./index.ts",
+  "license": "MIT",
+  "keywords": ["cal.com", "payment", "wayl", "iraq", "zaincash", "fastpay"],
+  "dependencies": {}
+}

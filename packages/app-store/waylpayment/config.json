@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Wayl",
+  "slug": "waylpayment",
+  "type": "waylpayment_payment",
+  "logo": "icon.svg",
+  "url": "https://thewayl.com",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "Wayl",
+  "email": "support@wayl.io",
+  "description": "Accept payments from Iraqi customers via ZainCash, FastPay, and other local Iraqi payment methods. Enable Pay to Book on your events — customers pay before their booking is confirmed. All amounts are in Iraqi Dinar (IQD).",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "isOAuth": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "waylpayment"
+}
