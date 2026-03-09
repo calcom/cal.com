@@ -2,8 +2,8 @@ import type { Command } from "commander";
 import {
   organizationsTeamsRoutingFormsResponsesControllerCreateRoutingFormResponse as createRoutingFormResponse,
   meControllerGetMe as getMe,
-  organizationsTeamsRoutingFormsControllerGetTeamRoutingForms as getTeamRoutingForms,
   organizationsTeamsRoutingFormsResponsesControllerGetRoutingFormResponses as getRoutingFormResponses,
+  organizationsTeamsRoutingFormsControllerGetTeamRoutingForms as getTeamRoutingForms,
   organizationsTeamsRoutingFormsResponsesControllerUpdateRoutingFormResponse as updateRoutingFormResponse,
 } from "../../generated/sdk.gen";
 import type { UpdateRoutingFormResponseInput } from "../../generated/types.gen";
@@ -236,9 +236,7 @@ function registerResponsesCommands(routingFormsCmd: Command): void {
 }
 
 export function registerTeamRoutingFormsCommand(program: Command): void {
-  const routingFormsCmd = program
-    .command("team-routing-forms")
-    .description("Manage team routing forms");
+  const routingFormsCmd = program.command("team-routing-forms").description("Manage team routing forms");
 
   registerRoutingFormsListCommand(routingFormsCmd);
   registerResponsesCommands(routingFormsCmd);

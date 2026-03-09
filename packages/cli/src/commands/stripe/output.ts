@@ -1,5 +1,11 @@
 import chalk from "chalk";
-import { type OutputOptions, renderDetail, renderHeader, renderSuccess, renderWarning } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderWarning,
+} from "../../shared/output";
 import type { StripeCheckResponse, StripeRedirectResponse, StripeSaveResponse } from "./types";
 
 export function renderStripeRedirect(
@@ -20,10 +26,7 @@ export function renderStripeRedirect(
   console.log(chalk.cyan(url));
 }
 
-export function renderStripeSaved(
-  data: StripeSaveResponse | undefined,
-  { json }: OutputOptions = {}
-): void {
+export function renderStripeSaved(data: StripeSaveResponse | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;
@@ -34,10 +37,7 @@ export function renderStripeSaved(
   }
 }
 
-export function renderStripeCheck(
-  data: StripeCheckResponse | undefined,
-  { json }: OutputOptions = {}
-): void {
+export function renderStripeCheck(data: StripeCheckResponse | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;

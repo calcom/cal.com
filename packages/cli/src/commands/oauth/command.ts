@@ -77,9 +77,7 @@ export function registerOAuthCommand(program: Command): void {
                 code_verifier: options.codeVerifier,
               };
             } else {
-              throw new Error(
-                "Either --client-secret (confidential) or --code-verifier (PKCE) is required"
-              );
+              throw new Error("Either --client-secret (confidential) or --code-verifier (PKCE) is required");
             }
           } else if (options.grantType === "refresh_token") {
             if (!options.refreshToken) {

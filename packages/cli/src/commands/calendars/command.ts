@@ -5,8 +5,8 @@ import {
   calendarsControllerCreateIcsFeed as createIcsFeed,
   calendarsControllerDeleteCalendarCredentials as deleteCalendarCredentials,
   calendarsControllerGetBusyTimes as getBusyTimes,
-  calendarsControllerGetCalendars as getCalendars,
   calendarsControllerRedirect as getCalendarRedirect,
+  calendarsControllerGetCalendars as getCalendars,
   calendarsControllerSave as saveCalendar,
   calendarsControllerSyncCredentials as syncCredentials,
 } from "../../generated/sdk.gen";

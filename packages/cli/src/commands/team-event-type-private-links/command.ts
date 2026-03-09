@@ -151,22 +151,20 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--json", "Output as JSON")
-    .action(
-      async (linkId: string, options: { teamId: string; eventTypeId: string; json?: boolean }) => {
-        await withErrorHandling(async () => {
-          await initializeClient();
-          await deletePrivateLink({
-            path: {
-              teamId: Number(options.teamId),
-              eventTypeId: Number(options.eventTypeId),
-              linkId,
-            },
-            headers: authHeader(),
-          });
-          renderPrivateLinkDeleted(linkId, options);
+    .action(async (linkId: string, options: { teamId: string; eventTypeId: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+        await deletePrivateLink({
+          path: {
+            teamId: Number(options.teamId),
+            eventTypeId: Number(options.eventTypeId),
+            linkId,
+          },
+          headers: authHeader(),
         });
-      }
-    );
+        renderPrivateLinkDeleted(linkId, options);
+      });
+    });
 }
 
 export function registerTeamEventTypePrivateLinksCommand(program: Command): void {

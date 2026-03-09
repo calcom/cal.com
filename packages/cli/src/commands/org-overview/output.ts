@@ -1,9 +1,4 @@
-import {
-  formatDate,
-  type OutputOptions,
-  renderHeader,
-  renderTable,
-} from "../../shared/output";
+import { formatDate, type OutputOptions, renderHeader, renderTable } from "../../shared/output";
 import type { OrgOooEntry, OrgSchedule } from "./types";
 
 function formatOooRow(entry: OrgOooEntry): string[] {
@@ -17,10 +12,7 @@ function formatOooRow(entry: OrgOooEntry): string[] {
   ];
 }
 
-export function renderOrgOooList(
-  entries: OrgOooEntry[] | undefined,
-  { json }: OutputOptions = {}
-): void {
+export function renderOrgOooList(entries: OrgOooEntry[] | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(entries, null, 2));
     return;
@@ -32,10 +24,7 @@ export function renderOrgOooList(
   }
 
   renderHeader("Organization Out-of-Office Entries");
-  renderTable(
-    ["ID", "User ID", "Start", "End", "Reason", "Notes"],
-    entries.map(formatOooRow)
-  );
+  renderTable(["ID", "User ID", "Start", "End", "Reason", "Notes"], entries.map(formatOooRow));
 }
 
 function formatScheduleRow(schedule: OrgSchedule): string[] {
@@ -63,8 +52,5 @@ export function renderOrgSchedulesList(
   }
 
   renderHeader("Organization Schedules");
-  renderTable(
-    ["ID", "Owner ID", "Name", "Timezone", "Default"],
-    schedules.map(formatScheduleRow)
-  );
+  renderTable(["ID", "Owner ID", "Name", "Timezone", "Default"], schedules.map(formatScheduleRow));
 }

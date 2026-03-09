@@ -1,6 +1,6 @@
 import type {
-  Attribute,
   AssignOptionUserOutput,
+  Attribute,
   CreateAttributeOptionOutput,
   CreateOrganizationAttributesOutput,
   DeleteAttributeOptionOutput,

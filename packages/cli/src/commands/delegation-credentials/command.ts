@@ -44,7 +44,8 @@ function registerDelegationCredentialMutationCommands(delegationCredentialsCmd: 
     .requiredOption("--service-account-key <json>", "Service account key JSON (Google or Microsoft format)")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         workspacePlatformSlug: string;
         domain: string;
         serviceAccountKey: string;

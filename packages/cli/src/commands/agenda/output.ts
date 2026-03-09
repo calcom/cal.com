@@ -1,5 +1,12 @@
 import chalk from "chalk";
-import { formatDateShort, formatTimeRange, type OutputOptions, renderHeader, renderTable, renderWarning } from "../../shared/output";
+import {
+  formatDateShort,
+  formatTimeRange,
+  type OutputOptions,
+  renderHeader,
+  renderTable,
+  renderWarning,
+} from "../../shared/output";
 import type { Booking, BookingList } from "../bookings/types";
 
 function formatRelativeDate(dateStr: string): string {

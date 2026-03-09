@@ -83,13 +83,7 @@ export function renderAttributeList(
 
   renderTable(
     ["ID", "Name", "Slug", "Type", "Enabled"],
-    attributes.map((a) => [
-      a.id,
-      a.name,
-      a.slug,
-      formatAttributeType(a.type),
-      a.enabled ? "Yes" : "No",
-    ])
+    attributes.map((a) => [a.id, a.name, a.slug, formatAttributeType(a.type), a.enabled ? "Yes" : "No"])
   );
 }
 
@@ -133,9 +127,7 @@ export function renderAttributeDeleted(
   { json }: OutputOptions = {}
 ): void {
   if (json) {
-    console.log(
-      JSON.stringify({ status: "success", message: `Attribute ${attributeId} deleted`, data })
-    );
+    console.log(JSON.stringify({ status: "success", message: `Attribute ${attributeId} deleted`, data }));
     return;
   }
 

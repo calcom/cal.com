@@ -41,7 +41,10 @@ function formatRoutingFormActivation(
   return "Inactive";
 }
 
-export function renderWorkflowList(workflows: TeamWorkflowList | undefined, { json }: OutputOptions = {}): void {
+export function renderWorkflowList(
+  workflows: TeamWorkflowList | undefined,
+  { json }: OutputOptions = {}
+): void {
   if (json) {
     console.log(JSON.stringify(workflows, null, 2));
     return;
@@ -226,7 +229,9 @@ export function renderRoutingFormWorkflowUpdated(
 
 export function renderRoutingFormWorkflowDeleted(workflowId: string, { json }: OutputOptions = {}): void {
   if (json) {
-    console.log(JSON.stringify({ status: "success", message: `Routing form workflow ${workflowId} deleted` }));
+    console.log(
+      JSON.stringify({ status: "success", message: `Routing form workflow ${workflowId} deleted` })
+    );
     return;
   }
 

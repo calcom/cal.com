@@ -76,7 +76,8 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
     .option("--payload-template <template>", "Payload template")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         subscriberUrl: string;
         triggers: string;
         active: string;

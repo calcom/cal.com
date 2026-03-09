@@ -153,4 +153,3 @@ export async function withErrorHandling<T>(fn: () => Promise<T>): Promise<T | un
     process.exit(1);
   }
 }
-

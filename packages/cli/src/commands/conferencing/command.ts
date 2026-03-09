@@ -1,9 +1,9 @@
 import type { Command } from "commander";
 import {
-  conferencingControllerDefault as setDefaultConferencingApp,
   conferencingControllerDisconnect as disconnectConferencingApp,
   conferencingControllerGetDefault as getDefaultConferencingApp,
   conferencingControllerListInstalledConferencingApps as listConferencingApps,
+  conferencingControllerDefault as setDefaultConferencingApp,
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";

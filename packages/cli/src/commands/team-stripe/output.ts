@@ -1,5 +1,12 @@
 import chalk from "chalk";
-import { type OutputOptions, renderDetail, renderError, renderHeader, renderSuccess, renderWarning } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderError,
+  renderHeader,
+  renderSuccess,
+  renderWarning,
+} from "../../shared/output";
 import type { TeamStripeCheckResponse, TeamStripeConnectUrlResponse, TeamStripeSaveResponse } from "./types";
 
 export function renderTeamStripeConnectionStatus(

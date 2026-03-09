@@ -1,9 +1,4 @@
-import {
-  type OutputOptions,
-  renderDetail,
-  renderHeader,
-  renderSuccess,
-} from "../../shared/output";
+import { type OutputOptions, renderDetail, renderHeader, renderSuccess } from "../../shared/output";
 import type { OAuth2ClientResponse, OAuth2Tokens } from "./types";
 
 export function renderOAuth2Client(
@@ -31,10 +26,7 @@ export function renderOAuth2Client(
   ]);
 }
 
-export function renderOAuth2Tokens(
-  data: OAuth2Tokens | undefined,
-  { json }: OutputOptions = {}
-): void {
+export function renderOAuth2Tokens(data: OAuth2Tokens | undefined, { json }: OutputOptions = {}): void {
   if (json) {
     console.log(JSON.stringify(data, null, 2));
     return;

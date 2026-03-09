@@ -26,9 +26,7 @@ async function getOrgId(): Promise<number> {
 }
 
 export function registerTeamSchedulesCommand(program: Command): void {
-  const teamSchedulesCmd = program
-    .command("team-schedules")
-    .description("Manage schedules for team members");
+  const teamSchedulesCmd = program.command("team-schedules").description("Manage schedules for team members");
 
   teamSchedulesCmd
     .command("list <teamId>")
@@ -66,26 +64,20 @@ export function registerTeamSchedulesCommand(program: Command): void {
     .description("Get schedules for a specific team member")
     .option("--event-type-id <id>", "Filter schedules by event type ID")
     .option("--json", "Output as JSON")
-    .action(
-      async (
-        teamId: string,
-        userId: string,
-        options: { eventTypeId?: string; json?: boolean }
-      ) => {
-        await withErrorHandling(async () => {
-          await initializeClient();
-          const orgId = await getOrgId();
+    .action(async (teamId: string, userId: string, options: { eventTypeId?: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+        const orgId = await getOrgId();
 
-          const { data: response } = await getUserSchedules({
-            path: { orgId, teamId: Number(teamId), userId: Number(userId) },
-            query: {
-              eventTypeId: options.eventTypeId ? Number(options.eventTypeId) : undefined,
-            },
-            headers: authHeader(),
-          });
-
-          renderUserScheduleList(response?.data, userId, { json: options.json });
+        const { data: response } = await getUserSchedules({
+          path: { orgId, teamId: Number(teamId), userId: Number(userId) },
+          query: {
+            eventTypeId: options.eventTypeId ? Number(options.eventTypeId) : undefined,
+          },
+          headers: authHeader(),
         });
-      }
-    );
+
+        renderUserScheduleList(response?.data, userId, { json: options.json });
+      });
+    });
 }

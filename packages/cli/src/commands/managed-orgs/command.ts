@@ -30,7 +30,8 @@ function registerManagedOrgsQueryCommands(managedOrgsCmd: Command): void {
     .option("--take <n>", "Number of organizations to return")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         slug?: string;
         metadataKey?: string;
         metadataValue?: string;
@@ -86,7 +87,8 @@ function registerManagedOrgsMutationCommands(managedOrgsCmd: Command): void {
     .option("--api-key-never-expires", "Set API key to never expire")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         name: string;
         slug?: string;
         apiKeyDaysValid?: string;

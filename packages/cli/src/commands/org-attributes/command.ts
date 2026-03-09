@@ -25,7 +25,6 @@ import type {
 import { initializeClient } from "../../shared/client";
 import { withErrorHandling } from "../../shared/errors";
 import { authHeader } from "../../shared/headers";
-
 import {
   renderAssignedOptions,
   renderAttribute,
@@ -91,15 +90,13 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
     .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--name <name>", "Attribute name")
     .requiredOption("--slug <slug>", "Attribute slug")
-    .requiredOption(
-      "--type <type>",
-      "Attribute type (TEXT, NUMBER, SINGLE_SELECT, MULTI_SELECT)"
-    )
+    .requiredOption("--type <type>", "Attribute type (TEXT, NUMBER, SINGLE_SELECT, MULTI_SELECT)")
     .option("--enabled", "Enable the attribute (default: true)")
     .option("--disabled", "Disable the attribute")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         name: string;
         slug: string;
         type: string;
@@ -114,9 +111,7 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
           const validTypes: AttributeType[] = ["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"];
           const typeUpper = options.type.toUpperCase() as AttributeType;
           if (!validTypes.includes(typeUpper)) {
-            throw new Error(
-              `Invalid type "${options.type}". Must be one of: ${validTypes.join(", ")}`
-            );
+            throw new Error(`Invalid type "${options.type}". Must be one of: ${validTypes.join(", ")}`);
           }
 
           const body: CreateOrganizationAttributeInput = {
@@ -175,17 +170,10 @@ function registerAttributeMutationCommands(attributesCmd: Command): void {
           if (options.name) body.name = options.name;
           if (options.slug) body.slug = options.slug;
           if (options.type) {
-            const validTypes: AttributeType[] = [
-              "TEXT",
-              "NUMBER",
-              "SINGLE_SELECT",
-              "MULTI_SELECT",
-            ];
+            const validTypes: AttributeType[] = ["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"];
             const typeUpper = options.type.toUpperCase() as AttributeType;
             if (!validTypes.includes(typeUpper)) {
-              throw new Error(
-                `Invalid type "${options.type}". Must be one of: ${validTypes.join(", ")}`
-              );
+              throw new Error(`Invalid type "${options.type}". Must be one of: ${validTypes.join(", ")}`);
             }
             body.type = typeUpper;
           }

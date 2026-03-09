@@ -1,4 +1,10 @@
-import { type OutputOptions, renderDetail, renderHeader, renderSuccess, renderTable } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderTable,
+} from "../../shared/output";
 import type { OrgUserSchedule, OrgUserScheduleDetail } from "./types";
 
 function formatDefaultLabel(isDefault: boolean): string {

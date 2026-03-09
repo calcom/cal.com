@@ -42,9 +42,7 @@ async function getOrgId(): Promise<number> {
     throw new Error("Could not fetch your profile. Are you logged in?");
   }
   if (!me.organizationId) {
-    throw new Error(
-      "Team roles require an organization. Your account does not belong to an organization."
-    );
+    throw new Error("Team roles require an organization. Your account does not belong to an organization.");
   }
 
   return me.organizationId;

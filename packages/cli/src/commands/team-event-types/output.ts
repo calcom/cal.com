@@ -1,4 +1,10 @@
-import { type OutputOptions, renderDetail, renderHeader, renderSuccess, renderTable } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderTable,
+} from "../../shared/output";
 import type {
   TeamEventType,
   TeamEventTypeCreateResponse,

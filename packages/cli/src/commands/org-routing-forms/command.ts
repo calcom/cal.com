@@ -53,24 +53,26 @@ function registerRoutingFormsQueryCommands(routingFormsCmd: Command): void {
     .option("--skip <n>", "Number of forms to skip")
     .option("--team-ids <ids>", "Filter by team IDs (comma-separated)")
     .option("--json", "Output as JSON")
-    .action(async (options: { orgId: string; take?: string; skip?: string; teamIds?: string; json?: boolean }) => {
-      await withErrorHandling(async () => {
-        await initializeClient();
-        const orgId = Number(options.orgId);
+    .action(
+      async (options: { orgId: string; take?: string; skip?: string; teamIds?: string; json?: boolean }) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const orgId = Number(options.orgId);
 
-        const { data: response } = await getOrgRoutingForms({
-          path: { orgId },
-          query: {
-            take: parseOptionalNumber(options.take),
-            skip: parseOptionalNumber(options.skip),
-            teamIds: parseTeamIds(options.teamIds),
-          },
-          headers: authHeader(),
+          const { data: response } = await getOrgRoutingForms({
+            path: { orgId },
+            query: {
+              take: parseOptionalNumber(options.take),
+              skip: parseOptionalNumber(options.skip),
+              teamIds: parseTeamIds(options.teamIds),
+            },
+            headers: authHeader(),
+          });
+
+          renderRoutingFormList(response?.data, options);
         });
-
-        renderRoutingFormList(response?.data, options);
-      });
-    });
+      }
+    );
 }
 
 function registerResponsesListCommand(responsesCmd: Command): void {
@@ -176,31 +178,37 @@ function registerResponsesUpdateCommand(responsesCmd: Command): void {
     .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--response <json>", "Response data as JSON")
     .option("--json", "Output as JSON")
-    .action(async (formId: string, responseId: string, options: { orgId: string; response: string; json?: boolean }) => {
-      await withErrorHandling(async () => {
-        await initializeClient();
-        const orgId = Number(options.orgId);
+    .action(
+      async (
+        formId: string,
+        responseId: string,
+        options: { orgId: string; response: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const orgId = Number(options.orgId);
 
-        let responseData: Record<string, unknown>;
-        try {
-          responseData = JSON.parse(options.response) as Record<string, unknown>;
-        } catch {
-          throw new Error("Invalid JSON provided for --response option");
-        }
+          let responseData: Record<string, unknown>;
+          try {
+            responseData = JSON.parse(options.response) as Record<string, unknown>;
+          } catch {
+            throw new Error("Invalid JSON provided for --response option");
+          }
 
-        const body: UpdateRoutingFormResponseInput = {
-          response: responseData,
-        };
+          const body: UpdateRoutingFormResponseInput = {
+            response: responseData,
+          };
 
-        const { data: response } = await updateRoutingFormResponse({
-          path: { orgId, routingFormId: formId, responseId: Number(responseId) },
-          body,
-          headers: authHeader(),
+          const { data: response } = await updateRoutingFormResponse({
+            path: { orgId, routingFormId: formId, responseId: Number(responseId) },
+            body,
+            headers: authHeader(),
+          });
+
+          renderUpdateResponseResult(response?.data, options);
         });
-
-        renderUpdateResponseResult(response?.data, options);
-      });
-    });
+      }
+    );
 }
 
 function registerResponsesCommands(routingFormsCmd: Command): void {

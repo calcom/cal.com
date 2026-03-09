@@ -73,7 +73,13 @@ export class OAuthAuth {
   private appUrl?: string;
 
   constructor(
-    options: { clientId?: string; clientSecret?: string; port?: number; apiUrl?: string; appUrl?: string } = {}
+    options: {
+      clientId?: string;
+      clientSecret?: string;
+      port?: number;
+      apiUrl?: string;
+      appUrl?: string;
+    } = {}
   ) {
     this.clientId = options.clientId;
     this.clientSecret = options.clientSecret;

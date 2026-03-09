@@ -84,7 +84,8 @@ function registerRoleMutationCommands(rolesCmd: Command): void {
     .option("--permissions <permissions>", "Comma-separated list of permissions (format: resource.action)")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         name: string;
         description?: string;
         color?: string;

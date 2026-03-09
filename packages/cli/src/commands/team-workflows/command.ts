@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import {
-  organizationTeamWorkflowsControllerCreateEventTypeWorkflow as createWorkflow,
   organizationTeamWorkflowsControllerCreateFormWorkflow as createRoutingFormWorkflow,
+  organizationTeamWorkflowsControllerCreateEventTypeWorkflow as createWorkflow,
   organizationTeamWorkflowsControllerDeleteRoutingFormWorkflow as deleteRoutingFormWorkflow,
   organizationTeamWorkflowsControllerDeleteWorkflow as deleteWorkflow,
   meControllerGetMe as getMe,
@@ -169,10 +169,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
     .command("create <teamId>")
     .description("Create a team workflow for event types")
     .requiredOption("--name <name>", "Workflow name")
-    .requiredOption(
-      "--trigger <trigger>",
-      `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`
-    )
+    .requiredOption("--trigger <trigger>", `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for beforeEvent/afterEvent triggers")
     .option("--offset-unit <unit>", "Offset unit (minutes, hours, days)")
     .option("--active-on-all", "Activate workflow on all event types")
@@ -195,11 +192,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
           await initializeClient();
           const orgId = await getOrgId();
 
-          const trigger = buildEventTypeTrigger(
-            options.trigger,
-            options.offsetValue,
-            options.offsetUnit
-          );
+          const trigger = buildEventTypeTrigger(options.trigger, options.offsetValue, options.offsetUnit);
 
           const isActiveOnAll = options.activeOnAll ?? true;
           const eventTypeIds = options.eventTypeIds
@@ -231,10 +224,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
     .command("update <teamId> <workflowId>")
     .description("Update a team workflow")
     .option("--name <name>", "New workflow name")
-    .option(
-      "--trigger <trigger>",
-      `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`
-    )
+    .option("--trigger <trigger>", `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for beforeEvent/afterEvent triggers")
     .option("--offset-unit <unit>", "Offset unit (minutes, hours, days)")
     .option("--active-on-all", "Activate workflow on all event types")
@@ -265,11 +255,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
           }
 
           if (options.trigger) {
-            body.trigger = buildEventTypeTrigger(
-              options.trigger,
-              options.offsetValue,
-              options.offsetUnit
-            );
+            body.trigger = buildEventTypeTrigger(options.trigger, options.offsetValue, options.offsetUnit);
           }
 
           if (options.activeOnAll !== undefined || options.eventTypeIds) {
@@ -315,9 +301,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
 }
 
 function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
-  const routingFormsCmd = workflowsCmd
-    .command("routing-forms")
-    .description("Manage routing form workflows");
+  const routingFormsCmd = workflowsCmd.command("routing-forms").description("Manage routing form workflows");
 
   routingFormsCmd
     .command("list <teamId>")
@@ -401,11 +385,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
           await initializeClient();
           const orgId = await getOrgId();
 
-          const trigger = buildRoutingFormTrigger(
-            options.trigger,
-            options.offsetValue,
-            options.offsetUnit
-          );
+          const trigger = buildRoutingFormTrigger(options.trigger, options.offsetValue, options.offsetUnit);
 
           const isActiveOnAll = options.activeOnAll ?? true;
           const routingFormIds = options.routingFormIds
@@ -437,10 +417,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
     .command("update <teamId> <workflowId>")
     .description("Update a routing form workflow")
     .option("--name <name>", "New workflow name")
-    .option(
-      "--trigger <trigger>",
-      `Trigger type (${VALID_ROUTING_FORM_TRIGGERS.join(", ")})`
-    )
+    .option("--trigger <trigger>", `Trigger type (${VALID_ROUTING_FORM_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for formSubmittedNoEvent trigger")
     .option("--offset-unit <unit>", "Offset unit (minutes, hours, days)")
     .option("--active-on-all", "Activate workflow on all routing forms")
@@ -471,11 +448,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
           }
 
           if (options.trigger) {
-            body.trigger = buildRoutingFormTrigger(
-              options.trigger,
-              options.offsetValue,
-              options.offsetUnit
-            );
+            body.trigger = buildRoutingFormTrigger(options.trigger, options.offsetValue, options.offsetUnit);
           }
 
           if (options.activeOnAll !== undefined || options.routingFormIds) {

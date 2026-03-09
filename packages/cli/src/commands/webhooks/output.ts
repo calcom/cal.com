@@ -1,5 +1,11 @@
 import chalk from "chalk";
-import { type OutputOptions, renderDetail, renderHeader, renderSuccess, renderTable } from "../../shared/output";
+import {
+  type OutputOptions,
+  renderDetail,
+  renderHeader,
+  renderSuccess,
+  renderTable,
+} from "../../shared/output";
 import type { Webhook, WebhookResponse, WebhooksResponse } from "./types";
 
 function formatActiveStatus(active: boolean): string {

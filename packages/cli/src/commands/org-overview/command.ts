@@ -20,7 +20,8 @@ function registerOrgOverviewOooCommand(overviewCmd: Command): void {
     .option("--skip <n>", "Number of entries to skip")
     .option("--json", "Output as JSON")
     .action(
-      async (options: { orgId: string;
+      async (options: {
+        orgId: string;
         email?: string;
         sortStart?: string;
         sortEnd?: string;
@@ -76,38 +77,32 @@ function registerOrgOverviewSchedulesCommand(overviewCmd: Command): void {
     .option("--take <n>", "Number of schedules to return")
     .option("--skip <n>", "Number of schedules to skip")
     .option("--json", "Output as JSON")
-    .action(
-      async (options: { orgId: string;
-        take?: string;
-        skip?: string;
-        json?: boolean;
-      }) => {
-        await withErrorHandling(async () => {
-          await initializeClient();
-          const orgId = Number(options.orgId);
+    .action(async (options: { orgId: string; take?: string; skip?: string; json?: boolean }) => {
+      await withErrorHandling(async () => {
+        await initializeClient();
+        const orgId = Number(options.orgId);
 
-          const query: {
-            take?: number;
-            skip?: number;
-          } = {};
+        const query: {
+          take?: number;
+          skip?: number;
+        } = {};
 
-          if (options.take) {
-            query.take = Number(options.take);
-          }
-          if (options.skip) {
-            query.skip = Number(options.skip);
-          }
+        if (options.take) {
+          query.take = Number(options.take);
+        }
+        if (options.skip) {
+          query.skip = Number(options.skip);
+        }
 
-          const { data: response } = await getOrgSchedules({
-            path: { orgId },
-            query,
-            headers: authHeader(),
-          });
-
-          renderOrgSchedulesList(response?.data, options);
+        const { data: response } = await getOrgSchedules({
+          path: { orgId },
+          query,
+          headers: authHeader(),
         });
-      }
-    );
+
+        renderOrgSchedulesList(response?.data, options);
+      });
+    });
 }
 
 export function registerOrgOverviewCommand(program: Command): void {

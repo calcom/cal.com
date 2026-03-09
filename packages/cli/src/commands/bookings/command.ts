@@ -1,14 +1,14 @@
 import type { Command } from "commander";
 import {
   bookingAttendeesController20240813AddAttendee as addAttendee,
-  bookingAttendeesController20240813GetBookingAttendees as getBookingAttendees,
-  bookingAttendeesController20240813GetBookingAttendee as getBookingAttendee,
   bookingGuestsController20240813AddGuests as addGuests,
   bookingsController20240813CancelBooking as cancelBooking,
   bookingsController20240813ConfirmBooking as confirmBooking,
   bookingsController20240813CreateBooking as createBooking,
   bookingsController20240813DeclineBooking as declineBooking,
   bookingsController20240813GetBooking as getBooking,
+  bookingAttendeesController20240813GetBookingAttendee as getBookingAttendee,
+  bookingAttendeesController20240813GetBookingAttendees as getBookingAttendees,
   bookingsController20240813GetBookingBySeatUid as getBookingBySeatUid,
   bookingsController20240813GetBookingRecordings as getBookingRecordings,
   bookingsController20240813GetBookingReferences as getBookingReferences,
