@@ -333,21 +333,31 @@ class HubspotCalendarService implements CRM {
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
+    const organizerEmail = event.organizer.email;
+    const hubspotOwnerId = await this.getHubspotOwnerIdFromEmail(organizerEmail);
+
+    const properties: Record<string, string> = {
+      hs_timestamp: Date.now().toString(),
+      hs_meeting_title: event.title,
+      hs_meeting_body: this.getHubspotMeetingBody(event),
+      hs_meeting_location: getLocation({
+        videoCallData: event.videoCallData,
+        additionalInformation: event.additionalInformation,
+        location: event.location,
+        uid: event.uid,
+      }),
+      hs_meeting_start_time: new Date(event.startTime).toISOString(),
+      hs_meeting_end_time: new Date(event.endTime).toISOString(),
+      hs_meeting_outcome: "RESCHEDULED",
+    };
+
+    if (hubspotOwnerId) {
+      properties.hubspot_owner_id = hubspotOwnerId;
+      this.log.debug("hubspot:meeting:setting_owner_on_update", { hubspotOwnerId });
+    }
+
     const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation({
-          videoCallData: event.videoCallData,
-          additionalInformation: event.additionalInformation,
-          location: event.location,
-          uid: event.uid,
-        }),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "RESCHEDULED",
-      },
+      properties,
     };
 
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
@@ -572,7 +582,7 @@ class HubspotCalendarService implements CRM {
       if (attendee.phone) {
         properties.phone = attendee.phone;
       }
-      
+
       return {
         properties,
       };

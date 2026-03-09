@@ -1065,6 +1065,7 @@ describe("HubspotCalendarService", () => {
 
   describe("updateEvent", () => {
     it("should update meeting with standard properties", async () => {
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({ results: [] });
       mockHubspotClient.crm.objects.meetings.basicApi.update.mockResolvedValue({
         id: "meeting-123",
         properties: {},
@@ -1081,6 +1082,39 @@ describe("HubspotCalendarService", () => {
       expect(mockHubspotClient.crm.objects.meetings.basicApi.update).toHaveBeenCalledWith("meeting-123", {
         properties: expect.objectContaining({
           hs_meeting_title: "Updated Meeting",
+          hs_meeting_outcome: "RESCHEDULED",
+        }),
+      });
+    });
+
+    it("should update meeting host (hubspot_owner_id) when organizer changes on reassignment", async () => {
+      mockHubspotClient.crm.owners.ownersApi.getPage.mockResolvedValue({
+        results: [{ id: "new-owner-456", email: "newhost@company.com" }],
+      });
+      mockHubspotClient.crm.objects.meetings.basicApi.update.mockResolvedValue({
+        id: "meeting-123",
+        properties: {},
+      });
+
+      const event = createMockEvent({
+        title: "Reassigned Meeting",
+        organizer: {
+          email: "newhost@company.com",
+          name: "New Host",
+          timeZone: "America/New_York",
+          language: {
+            translate: ((key: string) => key) as TFunction,
+            locale: "en",
+          },
+        },
+      });
+
+      await service.updateEvent("meeting-123", event);
+
+      expect(mockHubspotClient.crm.objects.meetings.basicApi.update).toHaveBeenCalledWith("meeting-123", {
+        properties: expect.objectContaining({
+          hubspot_owner_id: "new-owner-456",
+          hs_meeting_title: "Reassigned Meeting",
           hs_meeting_outcome: "RESCHEDULED",
         }),
       });
