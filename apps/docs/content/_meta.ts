@@ -9,7 +9,6 @@ export default {
   upgrading: "Upgrading",
   "sso-setup": "SSO Setup",
   docker: "Docker",
-  "license-key": "License Key",
   "-- deployments": {
     type: "separator",
     title: "Deployments",
