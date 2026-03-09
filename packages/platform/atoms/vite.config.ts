@@ -1,6 +1,5 @@
+import path, { resolve } from "node:path";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { resolve } from "path";
 import { defineConfig, loadEnv } from "vite";
 import dts from "vite-plugin-dts";
 
@@ -71,6 +70,7 @@ export default defineConfig(({ mode }) => {
           "react-dom/client",
           "@prisma/client",
           "react/jsx-dev-runtime",
+          "@trigger.dev/sdk",
         ],
         output: {
           format: "esm",
@@ -84,9 +84,6 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        fs: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
-        os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
         "@calcom/lib/markdownToSafeHTML": path.resolve(__dirname, "./lib/markdownToSafeHTML"),
         "@calcom/lib/hooks/useLocale": path.resolve(__dirname, "./lib/useLocale"),
@@ -99,10 +96,6 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
         "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
-        "@calcom/web/public/static/locales/en/common.json": path.resolve(
-          __dirname,
-          "../../../apps/web/public/static/locales/en/common.json"
-        ),
       },
     },
   };

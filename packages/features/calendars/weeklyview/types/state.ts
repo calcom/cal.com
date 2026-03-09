@@ -1,8 +1,22 @@
+import type { ReactNode } from "react";
+
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
+
+export type OutOfOfficeRenderProps = {
+  date: string;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  emoji?: string;
+  reason?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
+  borderDashed?: boolean;
+  className?: string;
+};
 
 export type View = "month" | "week" | "day";
 export type Hours =
@@ -58,6 +72,8 @@ type TimeRangeExtended = TimeRange & {
   toUser?: IToUser;
   reason?: string;
   emoji?: string;
+  notes?: string | null;
+  showNotePublicly?: boolean;
 };
 
 export type CalendarAvailableTimeslots = {
@@ -152,6 +168,20 @@ export type CalendarState = {
    * @default false
    */
   showTimezone?: boolean;
+  /**
+   * Selected booking UID to highlight the corresponding event
+   */
+  selectedBookingUid?: string | null;
+  /**
+   * Update the current time indicator when the page is refocused
+   * @default false
+   */
+  updateCurrentTimeOnFocus?: boolean;
+  /**
+   * Render function for out-of-office slots.
+   * Web consumers pass OutOfOfficeInSlots, atoms/platform can pass their own or null.
+   */
+  renderOutOfOffice?: (props: OutOfOfficeRenderProps) => ReactNode;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
+import { getVariableFormats } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
@@ -13,7 +14,6 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
-
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
   agentId: string;
@@ -34,6 +34,23 @@ type BookingWithRelations = NonNullable<
   >["booking"]
 >;
 
+/**
+ * Converts responses to variable format entries with both current and legacy formats
+ * for backward compatibility.
+ * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
+ */
+export function convertResponsesToVariableFormats(
+  responses: Record<string, { value?: unknown }>
+) {
+  return Object.fromEntries(
+    Object.entries(responses).flatMap(([key, value]) => {
+      const formats = getVariableFormats(key);
+      const valueStr = value.value?.toString() || "";
+      return formats.map((format) => [format, valueStr]);
+    })
+  );
+}
+
 function getVariablesFromFormResponse({
   responses,
   eventTypeId,
@@ -51,6 +68,8 @@ function getVariablesFromFormResponse({
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
@@ -94,17 +113,8 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
       .format("h:mm A"),
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
     eventTypeId: booking.eventTypeId?.toString() || "",
-    // Include any custom form responses
-    ...Object.fromEntries(
-      Object.entries(responses || {}).map(([key, value]) => [
-        key
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase(),
-        value.value?.toString() || "",
-      ])
-    ),
+    // Include custom form responses with both current and legacy variable formats for backward compatibility
+    ...convertResponsesToVariableFormats(responses || {}),
   };
 }
 
@@ -170,10 +180,10 @@ export async function executeAIPhoneCall(payload: string) {
     }
 
     const rateLimitIdentifier = data.teamId
-      ? `ai-phone-call:team:${data.teamId}`
+      ? `executeAIPhoneCall:team-${data.teamId}`
       : data.userId
-      ? `ai-phone-call:user:${data.userId}`
-      : null;
+        ? `executeAIPhoneCall:user-${data.userId}`
+        : null;
 
     if (!rateLimitIdentifier) {
       log.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {
@@ -192,9 +202,9 @@ export async function executeAIPhoneCall(payload: string) {
 
     // form triggers don't have a booking
     const booking = workflowReminder.booking as BookingWithRelations | null;
-    const responses = data.responses;
+    const routingFormResponses = data.responses;
 
-    if (!booking && !responses) {
+    if (!booking && !routingFormResponses) {
       log.warn(`No form responses or booking found for workflow reminder ${data.workflowReminderId}`);
       throw new Error("No booking, response, or form responses found");
     }
@@ -214,7 +224,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     // Prefer response variables if present, else fall back to booking
     let dynamicVariables: VariablesType | undefined;
-    if (responses) {
+    if (routingFormResponses) {
       const workflowStep = workflowReminder.workflowStep;
       const eventTypeId =
         data.routedEventTypeId ??
@@ -228,7 +238,7 @@ export async function executeAIPhoneCall(payload: string) {
         return;
       }
       dynamicVariables = getVariablesFromFormResponse({
-        responses,
+        responses: routingFormResponses,
         eventTypeId,
         numberToCall,
       });

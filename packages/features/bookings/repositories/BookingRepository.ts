@@ -1,11 +1,90 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
-import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
+import {
+  bookingAuthorizationCheckSelect,
+  bookingDetailsSelect,
+  bookingMinimalSelect,
+} from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { workflowSelect } from "../../ee/workflows/lib/getAllWorkflows";
+import type {
+  BookingUpdateData,
+  BookingWhereInput,
+  BookingWhereUniqueInput,
+  IBookingRepository,
+} from "./IBookingRepository";
+
+const workflowReminderSelect = {
+  id: true,
+  referenceId: true,
+  method: true,
+};
+
+const referenceSelect = {
+  uid: true,
+  type: true,
+  externalCalendarId: true,
+  credentialId: true,
+};
+
+type ManagedEventReassignmentCreateParams = {
+  uid: string;
+  userId: number;
+  userPrimaryEmail: string;
+  title: string;
+  description: string | null;
+  startTime: Date;
+  endTime: Date;
+  status: BookingStatus;
+  location: string | null;
+  smsReminderNumber: string | null;
+  responses?: Prisma.JsonValue | null;
+  customInputs?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  idempotencyKey: string;
+  eventTypeId: number;
+  attendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+    phoneNumber?: string | null;
+  }[];
+  paymentId?: number;
+  iCalUID: string;
+  iCalSequence: number;
+  tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+};
+
+export type ManagedEventReassignmentCreatedBooking = {
+  id: number;
+  uid: string;
+  title: string;
+  description: string | null;
+  startTime: Date;
+  endTime: Date;
+  location: string | null;
+  metadata: Prisma.JsonValue;
+  responses: Prisma.JsonValue;
+  iCalUID: string | null;
+  iCalSequence: number;
+  smsReminderNumber: string | null;
+  attendees: {
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+  }[];
+};
+
+export type ManagedEventCancellationResult = {
+  id: number;
+  uid: string;
+  metadata: Prisma.JsonValue;
+  status: BookingStatus;
+};
 
 export type FormResponse = Record<
   // Field ID
@@ -120,8 +199,195 @@ const buildWhereClauseForActiveBookings = ({
     : {}),
 });
 
-export class BookingRepository {
+const selectStatementToGetBookingForCalEventBuilder = {
+  id: true,
+  uid: true,
+  title: true,
+  startTime: true,
+  endTime: true,
+  description: true,
+  customInputs: true,
+  responses: true,
+  metadata: true,
+  location: true,
+  iCalUID: true,
+  iCalSequence: true,
+  oneTimePassword: true,
+  status: true,
+  eventTypeId: true,
+  userId: true,
+  smsReminderNumber: true,
+  cancellationReason: true,
+  rejectionReason: true,
+  rescheduledBy: true,
+  attendees: {
+    select: {
+      name: true,
+      email: true,
+      timeZone: true,
+      locale: true,
+      phoneNumber: true,
+      bookingSeat: {
+        select: {
+          id: true,
+          referenceUid: true,
+          bookingId: true,
+          attendeeId: true,
+          data: true,
+          metadata: true,
+        },
+      },
+    },
+  },
+  user: {
+    // Organizer
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      username: true,
+      timeZone: true,
+      locale: true,
+      timeFormat: true,
+      hideBranding: true,
+      destinationCalendar: true,
+      profiles: {
+        select: {
+          organizationId: true,
+          organization: { select: { hideBranding: true } },
+        },
+      },
+    },
+  },
+  // destination calendar of the Organizer
+  destinationCalendar: true,
+  eventType: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      hideCalendarNotes: true,
+      price: true,
+      currency: true,
+      length: true,
+      hideCalendarEventDetails: true,
+      hideOrganizerEmail: true,
+      schedulingType: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
+      customReplyToEmail: true,
+      disableRescheduling: true,
+      disableCancelling: true,
+      requiresConfirmation: true,
+      recurringEvent: true,
+      bookingFields: true,
+      metadata: true,
+      eventName: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+          hideBranding: true,
+          parent: { select: { hideBranding: true } },
+          members: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  username: true,
+                  timeZone: true,
+                  locale: true,
+                  timeFormat: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      users: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+          timeZone: true,
+          locale: true,
+          timeFormat: true,
+          destinationCalendar: true,
+        },
+      },
+      hosts: {
+        select: {
+          userId: true,
+          isFixed: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              username: true,
+              timeZone: true,
+              locale: true,
+              timeFormat: true,
+              destinationCalendar: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  references: {
+    where: {
+      deleted: null,
+    },
+    select: {
+      type: true,
+      meetingId: true,
+      meetingPassword: true,
+      meetingUrl: true,
+      uid: true,
+    },
+  },
+  seatsReferences: {
+    select: {
+      id: true,
+      referenceUid: true,
+      attendee: { select: { id: true, email: true, phoneNumber: true } },
+    },
+  },
+  assignmentReason: {
+    select: {
+      reasonEnum: true,
+      reasonString: true,
+    },
+    orderBy: {
+      createdAt: "desc" as const,
+    },
+    take: 1,
+  },
+};
+
+export class BookingRepository implements IBookingRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  /**
+   * Gets the fromReschedule field for a booking by UID
+   * Used to identify if this booking was created from a reschedule
+   * @param bookingUid - The unique identifier of the booking
+   * @returns The fromReschedule UID or null if not found/not a rescheduled booking
+   */
+  async getFromRescheduleUid(bookingUid: string): Promise<string | null> {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { fromReschedule: true },
+    });
+    return booking?.fromReschedule ?? null;
+  }
 
   async getBookingAttendees(bookingId: number) {
     return await this.prismaClient.attendee.findMany({
@@ -147,6 +413,113 @@ export class BookingRepository {
     });
   }
 
+  async findByUidIncludeEventTypeAttendeesAndUser({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        metadata: true,
+        uid: true,
+        location: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            id: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            schedulingType: true,
+            slug: true,
+            title: true,
+            metadata: true,
+            parentId: true,
+            teamId: true,
+            userId: true,
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+            workflows: {
+              select: {
+                workflow: {
+                  select: workflowSelect,
+                },
+              },
+            },
+            owner: {
+              select: {
+                id: true,
+                hideBranding: true,
+                email: true,
+                name: true,
+                timeZone: true,
+                locale: true,
+                profiles: {
+                  select: {
+                    organization: { select: { hideBranding: true } },
+                  },
+                },
+              },
+            },
+            team: {
+              select: {
+                parentId: true,
+                name: true,
+                id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+            noShow: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            email: true,
+            name: true,
+            destinationCalendar: true,
+            timeZone: true,
+            locale: true,
+            username: true,
+            timeFormat: true,
+          },
+        },
+        noShowHost: true,
+      },
+    });
+  }
+
   async findByUidIncludeEventType({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
@@ -168,6 +541,11 @@ export class BookingRepository {
         eventType: {
           select: {
             teamId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
             hosts: {
               select: {
                 userId: true,
@@ -190,37 +568,52 @@ export class BookingRepository {
     });
   }
 
-  /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
-  async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
-    const booking = await this.prismaClient.booking.findUnique({
+  async findByIdIncludeEventType({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
       },
       select: {
         userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
         eventType: {
           select: {
             teamId: true,
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
           },
         },
       },
     });
-
-    if (!booking) return false;
-
-    if (userId === booking.userId) return true;
-
-    // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType || !booking.eventType.teamId) return false;
-
-    // TODO add checks for team and org
-    const userRepo = new UserRepository(this.prismaClient);
-    const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
-      userId,
-      teamId: booking.eventType.teamId,
-    });
-
-    return isAdminOrUser;
   }
 
   async findFirstBookingByReschedule({ originalBookingUid }: { originalBookingUid: string }) {
@@ -277,6 +670,48 @@ export class BookingRepository {
             id: true,
           },
         },
+      },
+    });
+  }
+
+  async findByUidForAuthorizationCheck({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingAuthorizationCheckSelect,
+    });
+  }
+
+  async findByUidForDetails({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: bookingDetailsSelect,
+    });
+  }
+
+  async findRescheduledToBooking({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        fromReschedule: bookingUid,
+      },
+      select: {
+        uid: true,
+      },
+    });
+  }
+
+  async findPreviousBooking({ fromReschedule }: { fromReschedule: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: fromReschedule,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
       },
     });
   }
@@ -640,18 +1075,6 @@ export class BookingRepository {
       select: {
         ...bookingMinimalSelect,
         uid: true,
-        user: {
-          select: {
-            credentials: true,
-          },
-        },
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            meetingUrl: true,
-          },
-        },
       },
     });
   }
@@ -879,6 +1302,14 @@ export class BookingRepository {
             },
           },
         },
+        eventType: {
+          select: {
+            id: true,
+            minimumRescheduleNotice: true,
+            disableRescheduling: true,
+            userId: true,
+          },
+        },
         destinationCalendar: true,
         payment: true,
         references: true,
@@ -912,89 +1343,51 @@ export class BookingRepository {
       }),
     };
 
-    const userIds = users.map((user) => user.id);
-    const userEmails = users.map((user) => user.email);
+    const userIdSet = new Set(users.map((user) => user.id));
+    const userEmailSet = new Set(users.map((user) => user.email));
 
-    const whereCollectiveRoundRobinOwner: Prisma.BookingWhereInput = {
-      ...baseWhere,
-      userId: {
-        in: userIds,
+    const teamBookingsQuery = this.prismaClient.booking.findMany({
+      where: {
+        ...baseWhere,
+        eventType: { teamId },
       },
-      eventType: {
-        teamId,
+      include: {
+        attendees: {
+          select: { email: true },
+        },
       },
-    };
+    });
 
-    const whereCollectiveRoundRobinBookingsAttendee: Prisma.BookingWhereInput = {
-      ...baseWhere,
-      attendees: {
-        some: {
-          email: {
-            in: userEmails,
+    const managedBookingsQuery = includeManagedEvents
+      ? this.prismaClient.booking.findMany({
+          where: {
+            ...baseWhere,
+            eventType: { parent: { teamId } },
           },
-        },
-      },
-      eventType: {
-        teamId,
-      },
-    };
+        })
+      : Promise.resolve([] as Booking[]);
 
-    const whereManagedBookings: Prisma.BookingWhereInput = {
-      ...baseWhere,
-      userId: {
-        in: userIds,
-      },
-      eventType: {
-        parent: {
-          teamId,
-        },
-      },
-    };
+    const [allTeamBookings, allManagedBookings] = await Promise.all([
+      teamBookingsQuery,
+      managedBookingsQuery,
+    ]);
+
+    const relevantTeamBookings = allTeamBookings.filter((booking) => {
+      if (booking.userId !== null && userIdSet.has(booking.userId)) {
+        return true;
+      }
+      return booking.attendees.some((attendee) => userEmailSet.has(attendee.email));
+    });
+
+    const relevantManagedBookings = allManagedBookings.filter(
+      (booking) => booking.userId !== null && userIdSet.has(booking.userId)
+    );
 
     if (shouldReturnCount) {
-      const collectiveRoundRobinBookingsOwner = await this.prismaClient.booking.count({
-        where: whereCollectiveRoundRobinOwner,
-      });
-
-      const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.count({
-        where: whereCollectiveRoundRobinBookingsAttendee,
-      });
-
-      let managedBookings = 0;
-
-      if (includeManagedEvents) {
-        managedBookings = await this.prismaClient.booking.count({
-          where: whereManagedBookings,
-        });
-      }
-
-      const totalNrOfBooking =
-        collectiveRoundRobinBookingsOwner + collectiveRoundRobinBookingsAttendee + managedBookings;
-
-      return totalNrOfBooking;
+      return relevantTeamBookings.length + relevantManagedBookings.length;
     }
 
-    const collectiveRoundRobinBookingsOwner = await this.prismaClient.booking.findMany({
-      where: whereCollectiveRoundRobinOwner,
-    });
-
-    const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.findMany({
-      where: whereCollectiveRoundRobinBookingsAttendee,
-    });
-
-    let managedBookings: typeof collectiveRoundRobinBookingsAttendee = [];
-
-    if (includeManagedEvents) {
-      managedBookings = await this.prismaClient.booking.findMany({
-        where: whereManagedBookings,
-      });
-    }
-
-    return [
-      ...collectiveRoundRobinBookingsOwner,
-      ...collectiveRoundRobinBookingsAttendee,
-      ...managedBookings,
-    ];
+    return [...relevantTeamBookings, ...relevantManagedBookings];
   }
 
   async getValidBookingFromEventTypeForAttendee({
@@ -1122,7 +1515,12 @@ export class BookingRepository {
         AND "endTime" <= ${endDate};
     `;
     }
-    return totalBookingTime.totalMinutes ?? 0;
+
+    // PostgreSQL 16+ returns `numeric` type from EXTRACT(EPOCH FROM ...) instead of `double precision`.
+    // Prisma maps `numeric` to a JavaScript Decimal object, which causes string concatenation
+    // instead of numeric addition when used with the `+` operator (e.g., Decimal(30) + 30 = "3030").
+    // Explicitly convert to a plain number to ensure correct arithmetic in all callers.
+    return Number(totalBookingTime.totalMinutes ?? 0);
   }
 
   async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
@@ -1173,6 +1571,29 @@ export class BookingRepository {
             hideOrganizerEmail: true,
             teamId: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            hideBranding: true,
+            profiles: {
+              select: {
+                organizationId: true,
+                organization: { select: { hideBranding: true } },
+              },
+            },
           },
         },
         payment: {
@@ -1190,22 +1611,182 @@ export class BookingRepository {
     });
   }
 
+  async updateMany({ where, data }: { where: BookingWhereInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.updateMany({
+      where: where,
+      data,
+    });
+  }
+
+  async update({ where, data }: { where: BookingWhereUniqueInput; data: BookingUpdateData }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+    });
+  }
+
+  async updateNoShowHost({
+    bookingUid,
+    noShowHost,
+  }: {
+    bookingUid: string;
+    noShowHost: boolean;
+  }): Promise<{ id: number }> {
+    return await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { noShowHost },
+      select: { id: true },
+    });
+  }
+
+  /**
+   * Update a booking and return it with workflow reminders and references
+   * Used during booking cancellation to update status and retrieve related data in one query
+   */
+  async updateIncludeWorkflowRemindersAndReferences({
+    where,
+    data,
+  }: {
+    where: BookingWhereUniqueInput;
+    data: BookingUpdateData;
+  }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
+  /**
+   * Find bookings with workflow reminders for cleanup during cancellation
+   * Used after bulk cancellation of recurring events
+   */
+  async findManyIncludeWorkflowRemindersAndReferences({ where }: { where: BookingWhereInput }) {
+    return await this.prismaClient.booking.findMany({
+      where,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
   async getBookingForCalEventBuilder(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
+      select: selectStatementToGetBookingForCalEventBuilder,
+    });
+  }
+
+  async getBookingForCalEventBuilderFromUid(bookingUid: string) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: selectStatementToGetBookingForCalEventBuilder,
+    });
+  }
+
+  async findByIdIncludeDestinationCalendar(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        eventType: {
+          select: {
+            teamId: true,
+            bookingFields: true,
+            title: true,
+            hideOrganizerEmail: true,
+            recurringEvent: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            customReplyToEmail: true,
+            metadata: true,
+            schedulingType: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                hideBranding: true,
+                parent: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
+        destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+            profiles: {
+              select: {
+                organizationId: true,
+                organization: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findByIdForReassignment(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
       select: {
+        id: true,
         uid: true,
-        title: true,
+        eventTypeId: true,
+        userId: true,
         startTime: true,
         endTime: true,
+      },
+    });
+  }
+
+  async findByIdWithAttendeesPaymentAndReferences(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
         description: true,
         customInputs: true,
         responses: true,
+        startTime: true,
+        endTime: true,
         metadata: true,
+        status: true,
         location: true,
+        smsReminderNumber: true,
         iCalUID: true,
         iCalSequence: true,
-        oneTimePassword: true,
+        eventTypeId: true,
+        userId: true,
         attendees: {
           select: {
             name: true,
@@ -1214,143 +1795,44 @@ export class BookingRepository {
             locale: true,
             phoneNumber: true,
           },
+          orderBy: {
+            id: "asc",
+          },
         },
         user: {
-          // Organizer
           select: {
             id: true,
-            name: true,
-            email: true,
             username: true,
+            email: true,
+            name: true,
             timeZone: true,
             locale: true,
             timeFormat: true,
-            destinationCalendar: true,
-            profiles: { select: { organizationId: true } },
           },
         },
-        // destination calendar of the Organizer
-        destinationCalendar: true,
-        eventType: {
+        payment: {
           select: {
             id: true,
-            slug: true,
-            description: true,
-            hideCalendarNotes: true,
-            hideCalendarEventDetails: true,
-            hideOrganizerEmail: true,
-            schedulingType: true,
-            seatsPerTimeSlot: true,
-            seatsShowAttendees: true,
-            seatsShowAvailabilityCount: true,
-            customReplyToEmail: true,
-            disableRescheduling: true,
-            disableCancelling: true,
-            requiresConfirmation: true,
-            recurringEvent: true,
-            bookingFields: true,
-            metadata: true,
-            eventName: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
-                parentId: true,
-                members: {
-                  select: {
-                    user: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        username: true,
-                        timeZone: true,
-                        locale: true,
-                        timeFormat: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            users: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                timeZone: true,
-                locale: true,
-                timeFormat: true,
-                destinationCalendar: true,
-              },
-            },
-            hosts: {
-              select: {
-                userId: true,
-                isFixed: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    username: true,
-                    timeZone: true,
-                    locale: true,
-                    timeFormat: true,
-                    destinationCalendar: true,
-                  },
-                },
-              },
-            },
-            workflows: {
-              select: {
-                workflow: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            },
           },
         },
         references: {
           select: {
+            uid: true,
             type: true,
+            meetingUrl: true,
             meetingId: true,
             meetingPassword: true,
-            meetingUrl: true,
-          },
-          where: {
-            type: {
-              endsWith: "_video",
-            },
+            externalCalendarId: true,
+            credentialId: true,
+            thirdPartyRecurringEventId: true,
+            delegationCredentialId: true,
           },
         },
-        seatsReferences: {
+        workflowReminders: {
           select: {
             id: true,
-            referenceUid: true,
-            attendee: { select: { id: true, email: true, phoneNumber: true } },
-          },
-        },
-      },
-    });
-  }
-  async findByIdIncludeDestinationCalendar(bookingId: number) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      include: {
-        attendees: true,
-        eventType: true,
-        destinationCalendar: true,
-        references: true,
-        user: {
-          include: {
-            destinationCalendar: true,
-            credentials: true,
+            referenceId: true,
+            method: true,
           },
         },
       },
@@ -1363,7 +1845,13 @@ export class BookingRepository {
     updatedResponses,
   }: {
     bookingId: number;
-    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    newAttendees: {
+      name: string;
+      email: string;
+      timeZone: string;
+      locale: string | null;
+      phoneNumber?: string | null;
+    }[];
     updatedResponses: Prisma.InputJsonValue;
   }) {
     return await this.prismaClient.booking.update({
@@ -1380,6 +1868,361 @@ export class BookingRepository {
           },
         },
         responses: updatedResponses,
+      },
+    });
+  }
+
+  findByUidIncludeEventTypeAndReferences({ bookingUid }: { bookingUid: string }) {
+    return this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        status: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            teamId: true,
+            parentId: true,
+            slug: true,
+            title: true,
+            length: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            bookingFields: true,
+            metadata: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        attendees: true,
+        references: true,
+        customInputs: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        workflowReminders: true,
+        responses: true,
+        iCalUID: true,
+        iCalSequence: true,
+      },
+    });
+  }
+
+  async updateBookingStatus({
+    bookingId,
+    status,
+    cancellationReason,
+    cancelledBy,
+    rescheduledBy,
+    rescheduled,
+  }: {
+    bookingId: number;
+    status?: BookingStatus;
+    cancellationReason?: string;
+    cancelledBy?: string;
+    rescheduledBy?: string;
+    rescheduled?: boolean;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        ...(status !== undefined && { status }),
+        ...(rescheduled !== undefined && { rescheduled }),
+        ...(cancellationReason !== undefined && { cancellationReason }),
+        ...(cancelledBy !== undefined && { cancelledBy }),
+        ...(rescheduledBy !== undefined && { rescheduledBy }),
+        updatedAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  /**
+   * Cancels a booking as part of the Managed Event reassignment flow.
+   * Callers only pass domain data; repository handles persistence details.
+   */
+  async cancelBookingForManagedEventReassignment({
+    bookingId,
+    cancellationReason,
+    metadata,
+    tx,
+  }: {
+    bookingId: number;
+    cancellationReason: string;
+    metadata?: Record<string, unknown> | null;
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+  }): Promise<ManagedEventCancellationResult> {
+    const client = tx ?? this.prismaClient;
+    return client.booking.update({
+      where: { id: bookingId },
+      data: {
+        cancellationReason,
+        metadata: metadata as unknown as Prisma.InputJsonValue,
+        status: BookingStatus.CANCELLED,
+      },
+      select: {
+        id: true,
+        uid: true,
+        metadata: true,
+        status: true,
+      },
+    });
+  }
+
+  /**
+   * Creates a booking specifically for Managed Event reassignment flows.
+   * Encapsulates the select shape so callers don't deal with Prisma selections.
+   */
+  async createBookingForManagedEventReassignment(
+    params: ManagedEventReassignmentCreateParams
+  ): Promise<ManagedEventReassignmentCreatedBooking> {
+    const {
+      uid,
+      userId,
+      userPrimaryEmail,
+      title,
+      description,
+      startTime,
+      endTime,
+      status,
+      location,
+      smsReminderNumber,
+      responses,
+      customInputs,
+      metadata,
+      idempotencyKey,
+      eventTypeId,
+      attendees,
+      paymentId,
+      iCalUID,
+      iCalSequence,
+      tx,
+    } = params;
+    const client = tx ?? this.prismaClient;
+    return client.booking.create({
+      data: {
+        uid,
+        userPrimaryEmail,
+        title,
+        description,
+        startTime,
+        endTime,
+        status,
+        location,
+        smsReminderNumber,
+        responses: responses ?? undefined,
+        customInputs: (customInputs as unknown as Prisma.InputJsonValue) ?? undefined,
+        metadata: (metadata as unknown as Prisma.InputJsonValue) ?? undefined,
+        idempotencyKey,
+        iCalUID,
+        iCalSequence,
+        eventType: {
+          connect: { id: eventTypeId },
+        },
+        user: {
+          connect: { id: userId },
+        },
+        attendees: {
+          createMany: {
+            data: attendees.map((attendee) => ({
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              locale: attendee.locale,
+              phoneNumber: attendee.phoneNumber ?? null,
+            })),
+          },
+        },
+        payment: paymentId ? { connect: { id: paymentId } } : undefined,
+      },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        metadata: true,
+        responses: true,
+        iCalUID: true,
+        iCalSequence: true,
+        smsReminderNumber: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+          orderBy: {
+            id: "asc" as const,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Wraps the cancel+create operations for managed events in a single transaction.
+   */
+  async managedEventReassignmentTransaction({
+    bookingId,
+    cancellationReason,
+    metadata,
+    newBookingPlan,
+  }: {
+    bookingId: number;
+    cancellationReason: string;
+    metadata?: Record<string, unknown> | null;
+    newBookingPlan: Omit<ManagedEventReassignmentCreateParams, "tx">;
+  }): Promise<{
+    newBooking: ManagedEventReassignmentCreatedBooking;
+    cancelledBooking: ManagedEventCancellationResult;
+  }> {
+    return this.prismaClient.$transaction(async (tx) => {
+      const cancelledBooking = await this.cancelBookingForManagedEventReassignment({
+        bookingId,
+        cancellationReason,
+        metadata,
+        tx,
+      });
+
+      const newBooking = await this.createBookingForManagedEventReassignment({
+        ...newBookingPlan,
+        tx,
+      });
+
+      return { newBooking, cancelledBooking };
+    });
+  }
+
+  async findByIdForTargetEventTypeSearch(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        eventTypeId: true,
+        userId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async findByIdForWithUserIdAndEventTypeId(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+      },
+    });
+  }
+
+  async findByIdForReassignmentValidation(bookingId: number) {
+    return this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        status: true,
+        recurringEventId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async updateRecordedStatus({
+    bookingUid,
+    isRecorded,
+  }: {
+    bookingUid: string;
+    isRecorded: boolean;
+  }): Promise<void> {
+    await this.prismaClient.booking.update({
+      where: { uid: bookingUid },
+      data: { isRecorded },
+    });
+  }
+
+  async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
+    bookingUid,
+  }: {
+    bookingUid: string;
+  }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        eventType: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        assignmentReason: {
+          select: {
+            reasonString: true,
+          },
+          take: 1,
+          orderBy: {
+            createdAt: "asc" as const,
+          },
+        },
+        routedFromRoutingFormReponse: {
+          select: {
+            formId: true,
+          },
+        },
       },
     });
   }

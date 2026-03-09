@@ -83,6 +83,7 @@ type UserCredentialType = {
   teamId: number | null;
   key: Prisma.JsonValue;
   invalid: boolean | null;
+  encryptedKey: string | null;
 };
 
 export async function patchHandler(req: NextApiRequest) {

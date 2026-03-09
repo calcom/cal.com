@@ -26,6 +26,7 @@ export const bookingSelect = {
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
+      uuid: true,
     },
   },
   attendees: true,

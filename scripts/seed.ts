@@ -1,23 +1,23 @@
-import { uuid } from "short-uuid";
-import type z from "zod";
-
+import process from "node:process";
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
+import { hashAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
-
+import { uuid } from "short-uuid";
+import type z from "zod";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createUserAndEventType } from "./seed-utils";
+import { createOAuthClientForUser, createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
   email: string;
@@ -57,7 +57,7 @@ const setupPlatformUser = async (user: PlatformUser) => {
     completedOnboarding: user.completedOnboarding ?? true,
     locale: "en",
     schedules:
-      user.completedOnboarding ?? true
+      (user.completedOnboarding ?? true)
         ? {
             create: {
               name: "Working Hours",
@@ -167,7 +167,7 @@ async function createPlatformAndSetupUser({
 
   const membershipRole = MembershipRole.OWNER;
 
-  if (!!team) {
+  if (team) {
     await associateUserAndOrg({
       teamId: team.id,
       userId: platformUser.id,
@@ -184,18 +184,22 @@ async function createPlatformAndSetupUser({
       },
     });
 
-    await prisma.platformOAuthClient.create({
-      data: {
-        name: "Acme",
-        redirectUris: ["http://localhost:4321"],
-        permissions: 1023,
-        areEmailsEnabled: true,
-        organizationId: team.id,
-        id: "clxyyy21o0003sbk7yw5z6tzg",
-        secret:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
-      },
-    });
+    const clientId = process.env.SEED_PLATFORM_OAUTH_CLIENT_ID;
+    const secret = process.env.SEED_PLATFORM_OAUTH_CLIENT_SECRET;
+
+    if (clientId && secret) {
+      await prisma.platformOAuthClient.create({
+        data: {
+          name: "Acme",
+          redirectUris: ["http://localhost:4321"],
+          permissions: 1023,
+          areEmailsEnabled: true,
+          organizationId: team.id,
+          id: clientId,
+          secret,
+        },
+      });
+    }
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${membershipRole}'`);
   }
 }
@@ -226,6 +230,9 @@ async function createTeamAndAddUsers(
       return await prisma.team.create({
         data: {
           ...team,
+        },
+        include: {
+          eventTypes: true,
         },
       });
     } catch (_err) {
@@ -258,6 +265,27 @@ async function createTeamAndAddUsers(
       },
     });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
+  }
+
+  // Connect users and create hosts for team event types
+  for (const eventType of team.eventTypes) {
+    const isCollective = eventType.schedulingType === SchedulingType.COLLECTIVE;
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        users: {
+          connect: users.map((user) => ({ id: user.id })),
+        },
+        hosts: {
+          create: users.map((user) => ({
+            userId: user.id,
+            isFixed: isCollective,
+          })),
+        },
+      },
+    });
   }
 
   return team;
@@ -410,7 +438,7 @@ async function createOrganizationAndAddMembersAndTeams({
 
   const { organizationSettings, ...restOrgData } = orgData;
 
-  // Create organization with those users as members
+  // Step 1: Create organization (team) with just metadata and organizationSettings
   const orgInDb = await prisma.team.create({
     data: {
       ...restOrgData,
@@ -418,55 +446,73 @@ async function createOrganizationAndAddMembersAndTeams({
         ...(orgData.metadata && typeof orgData.metadata === "object" ? orgData.metadata : {}),
         isOrganization: true,
       },
-      orgProfiles: {
-        create: orgMembersInDb.map((member) => ({
-          uid: uuid(),
-          username: member.orgProfile.username,
-          movedFromUser: {
-            connect: {
-              id: member.id,
-            },
-          },
-          user: {
-            connect: {
-              id: member.id,
-            },
-          },
-        })),
-      },
       organizationSettings: {
         create: {
           ...organizationSettings,
         },
       },
-      members: {
-        create: orgMembersInDb.map((member) => ({
-          user: {
-            connect: {
-              id: member.id,
-            },
-          },
-          role: member.orgMembership.role || "MEMBER",
-          accepted: member.orgMembership.accepted,
-        })),
-      },
     },
     select: {
       id: true,
-      members: true,
-      orgProfiles: true,
     },
   });
 
-  const orgMembersInDBWithProfileId = await Promise.all(
-    orgMembersInDb.map(async (member) => ({
-      ...member,
-      profile: {
-        ...member.orgProfile,
-        id: orgInDb.orgProfiles.find((p) => p.userId === member.id)?.id,
-      },
-    }))
-  );
+  // Step 2: Create org profiles in batches to avoid large transactions
+  const profileBatchSize = 50;
+  for (let i = 0; i < orgMembersInDb.length; i += profileBatchSize) {
+    const batch = orgMembersInDb.slice(i, i + profileBatchSize);
+    await Promise.all(
+      batch.map((member) =>
+        prisma.profile.create({
+          data: {
+            uid: uuid(),
+            username: member.orgProfile.username,
+            organizationId: orgInDb.id,
+            userId: member.id,
+            movedFromUser: {
+              connect: {
+                id: member.id,
+              },
+            },
+          },
+        })
+      )
+    );
+  }
+
+  // Step 3: Create memberships using createMany for better performance
+  const membershipBatchSize = 100;
+  for (let i = 0; i < orgMembersInDb.length; i += membershipBatchSize) {
+    const batch = orgMembersInDb.slice(i, i + membershipBatchSize);
+    await prisma.membership.createMany({
+      data: batch.map((member) => ({
+        teamId: orgInDb.id,
+        userId: member.id,
+        role: member.orgMembership.role || "MEMBER",
+        accepted: member.orgMembership.accepted ?? false,
+      })),
+    });
+  }
+
+  // Step 4: Fetch created profiles to rebuild orgMembersInDBWithProfileId
+  const createdProfiles = await prisma.profile.findMany({
+    where: {
+      organizationId: orgInDb.id,
+      userId: { in: orgMembersInDb.map((m) => m.id) },
+    },
+    select: {
+      id: true,
+      userId: true,
+    },
+  });
+
+  const orgMembersInDBWithProfileId = orgMembersInDb.map((member) => ({
+    ...member,
+    profile: {
+      ...member.orgProfile,
+      id: createdProfiles.find((p) => p.userId === member.id)?.id,
+    },
+  }));
 
   // For each member create one event
   for (const member of orgMembersInDBWithProfileId) {
@@ -595,7 +641,7 @@ async function createOrganizationAndAddMembersAndTeams({
 
   // Create memberships for all the organization members with the respective teams
   for (const member of orgMembersInDBWithProfileId) {
-    for (const { slug: teamSlug, role: role } of member.inTeams) {
+    for (const { slug: teamSlug, role } of member.inTeams) {
       const team = organizationTeams.find((t) => t.slug === teamSlug);
       if (!team) {
         throw Error(`Team with slug ${teamSlug} not found`);
@@ -611,6 +657,143 @@ async function createOrganizationAndAddMembersAndTeams({
       });
     }
   }
+}
+
+async function seedApiKey(userId: number, apiKey: string) {
+  const hashedKey = hashAPIKey(apiKey);
+
+  const existingKey = await prisma.apiKey.findFirst({
+    where: { hashedKey },
+  });
+
+  if (existingKey) {
+    console.log(`🔑 API Key already exists, skipping.`);
+    return;
+  }
+
+  await prisma.apiKey.create({
+    data: {
+      userId,
+      hashedKey,
+      note: "Seeded API Key for local development",
+      expiresAt: null,
+    },
+  });
+
+  const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+  console.log(`🔑 Created seeded API Key: ${apiKeyPrefix}${apiKey}`);
+}
+
+async function ensureAcmeOwnerHasApiKeySeeded() {
+  const owner1AcmeUser = await prisma.user.findFirst({
+    where: { email: "owner1-acme@example.com" },
+  });
+  if (owner1AcmeUser) {
+    await seedApiKey(owner1AcmeUser.id, "0123456789abcdef0123456789abcdef");
+  }
+}
+
+async function seedPerHostLocationsInAcmeOrg() {
+  const acmeOrg = await prisma.team.findFirst({
+    where: { slug: "acme", parentId: null },
+    select: { id: true },
+  });
+  if (!acmeOrg) {
+    console.log("Acme org not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const acmeTeam = await prisma.team.findFirst({
+    where: { slug: "team1", parentId: acmeOrg.id },
+    select: { id: true },
+  });
+  if (!acmeTeam) {
+    console.log("Acme Team 1 not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const existingEvent = await prisma.eventType.findFirst({
+    where: { slug: "per-host-location-event", teamId: acmeTeam.id },
+  });
+  if (existingEvent) {
+    console.log("Per-host location event already seeded in Acme, skipping.");
+    return;
+  }
+
+  const owner = await prisma.user.findFirst({
+    where: { email: "owner1-acme@example.com" },
+    select: { id: true },
+  });
+  const member0 = await prisma.user.findFirst({
+    where: { email: "member0-acme@example.com" },
+    select: { id: true },
+  });
+  const member2 = await prisma.user.findFirst({
+    where: { email: "member2-acme@example.com" },
+    select: { id: true },
+  });
+  if (!owner || !member0 || !member2) {
+    console.log("Required Acme members not found, skipping per-host location seeding.");
+    return;
+  }
+
+  const hosts = [owner, member0, member2];
+
+  const ownerProfile = await prisma.profile.findFirst({
+    where: { userId: owner.id, organizationId: acmeOrg.id },
+    select: { id: true },
+  });
+
+  const eventType = await prisma.eventType.create({
+    data: {
+      title: "Per Host Location Event",
+      slug: "per-host-location-event",
+      length: 30,
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      enablePerHostLocations: true,
+      team: { connect: { id: acmeTeam.id } },
+      owner: { connect: { id: owner.id } },
+      ...(ownerProfile ? { profile: { connect: { id: ownerProfile.id } } } : {}),
+      users: { connect: hosts.map((h) => ({ id: h.id })) },
+      hosts: {
+        create: hosts.map((h) => ({
+          userId: h.id,
+          isFixed: false,
+        })),
+      },
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: owner.id,
+      eventTypeId: eventType.id,
+      type: "integrations:daily",
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: member0.id,
+      eventTypeId: eventType.id,
+      type: "link",
+      link: "https://example.com/meet",
+    },
+  });
+
+  await prisma.hostLocation.create({
+    data: {
+      userId: member2.id,
+      eventTypeId: eventType.id,
+      type: "userPhone",
+      phoneNumber: "+1234567890",
+    },
+  });
+
+  console.log(
+    `Seeded per-host locations in Acme Org for event "${eventType.slug}" (id=${eventType.id}): ` +
+      `owner1->Cal Video, member0->Link, member2->Phone`
+  );
 }
 
 async function main() {
@@ -956,7 +1139,7 @@ async function main() {
     },
   });
 
-  await createUserAndEventType({
+  const admin = await createUserAndEventType({
     user: {
       email: "admin@example.com",
       /** To comply with admin password requirements  */
@@ -966,6 +1149,21 @@ async function main() {
       role: "ADMIN",
     },
   });
+
+  const clientId = process.env.SEED_OAUTH2_CLIENT_ID;
+  const clientSecret = process.env.SEED_OAUTH2_CLIENT_SECRET_HASHED;
+
+  if (clientId && clientSecret) {
+    await createOAuthClientForUser(admin.id, {
+      clientId,
+      clientSecret,
+      name: "atoms examples app oauth 2 client",
+      purpose: "test atoms examples app with oauth 2",
+      redirectUri: "http://localhost:4321",
+      websiteUrl: "http://localhost:4321",
+      enablePkce: false,
+    });
+  }
 
   await createPlatformAndSetupUser({
     teamInput: {
@@ -1030,7 +1228,7 @@ async function main() {
     },
   });
 
-  if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
+  if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
     await createUserAndEventType({
       user: {
         email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
@@ -1046,7 +1244,7 @@ async function main() {
         },
       ],
       credentials: [
-        !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+        process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
           ? {
               type: "google_calendar",
               key: JSON.parse(process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS) as Prisma.JsonObject,
@@ -1420,7 +1618,10 @@ async function main() {
             },
             {
               id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
-              action: { type: "customPageMessage", value: "Custom Page Result" },
+              action: {
+                type: "customPageMessage",
+                value: "Custom Page Result",
+              },
               queryValue: {
                 id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
                 type: "group",
@@ -1460,7 +1661,10 @@ async function main() {
             },
             {
               id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
-              action: { type: "customPageMessage", value: "Multiselect chosen" },
+              action: {
+                type: "customPageMessage",
+                value: "Multiselect chosen",
+              },
               queryValue: {
                 id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
                 type: "group",
@@ -1482,7 +1686,10 @@ async function main() {
               id: "898899aa-4567-489a-bcde-f1823f708646",
               action: { type: "customPageMessage", value: "Fallback Message" },
               isFallback: true,
-              queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+              queryValue: {
+                id: "898899aa-4567-489a-bcde-f1823f708646",
+                type: "group",
+              },
             },
           ],
           fields: [
@@ -1531,11 +1738,14 @@ async function main() {
       });
     }
   }
+
+  await ensureAcmeOwnerHasApiKeySeeded();
+  await seedPerHostLocationsInAcmeOrg();
 }
 
 async function runSeed() {
   await prisma.$connect();
-  
+
   await mainAppStore();
   await main();
   await mainHugeEventTypesSeed();

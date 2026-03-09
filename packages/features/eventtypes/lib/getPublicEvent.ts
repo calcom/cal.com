@@ -7,7 +7,9 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -44,6 +46,11 @@ const userSelect = {
       name: true,
       slug: true,
       bannerUrl: true,
+      organizationSettings: {
+        select: {
+          disableAutofillOnBookingPage: true,
+        },
+      },
     },
   },
   defaultScheduleId: true,
@@ -63,6 +70,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     schedulingType: true,
     length: true,
     locations: true,
+    enablePerHostLocations: true,
     customInputs: true,
     disableGuests: true,
     metadata: true,
@@ -84,6 +92,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsPerTimeSlot: true,
     disableCancelling: true,
     disableRescheduling: true,
+    minimumRescheduleNotice: true,
     allowReschedulingCancelledBookings: true,
     seatsShowAvailabilityCount: true,
     bookingFields: true,
@@ -105,13 +114,24 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            organizationSettings: {
+              select: {
+                disableAutofillOnBookingPage: true,
+              },
+            },
           },
         },
         isPrivate: true,
+        organizationSettings: {
+          select: {
+            disableAutofillOnBookingPage: true,
+          },
+        },
       },
     },
     successRedirectUrl: true,
     forwardParamsSuccessRedirect: true,
+    redirectUrlOnNoRoutingFormResponse: true,
     workflows: {
       include: {
         workflow: {
@@ -152,6 +172,8 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    restrictionScheduleId: true,
+    useBookerTimezone: true,
     parent: {
       select: {
         team: {
@@ -321,6 +343,8 @@ export const getPublicEvent = async (
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
+      restrictionScheduleId: null,
+      useBookerTimezone: false,
       // Clears meta data since we don't want to send this in the public api.
       subsetOfUsers: users.map((user) => ({
         ...user,
@@ -501,25 +525,27 @@ export const getPublicEvent = async (
       length: eventWithUserProfiles.length,
     });
   }
-  const isTeamAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.teamId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
+  let canViewPrivateTeamMembers = false;
+  if (currentUserId && event.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    canViewPrivateTeamMembers = await permissionCheckService.checkPermission({
+      userId: currentUserId,
+      teamId: event.teamId,
+      permission: "team.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
 
-  const isOrgAdminOrOwner = await prisma.membership.findFirst({
-    where: {
-      userId: currentUserId ?? -1,
-      teamId: event.team?.parentId ?? -1,
-      accepted: true,
-      role: { in: ["ADMIN", "OWNER"] },
-    },
-  });
+    if (!canViewPrivateTeamMembers && event.team?.parentId) {
+      canViewPrivateTeamMembers = await permissionCheckService.checkPermission({
+        userId: currentUserId,
+        teamId: event.team.parentId,
+        permission: "team.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+    }
+  }
 
-  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+  if (event.team?.isPrivate && !canViewPrivateTeamMembers) {
     users = [];
   }
 
@@ -570,6 +596,8 @@ export const getPublicEvent = async (
     disableRescheduling: event.disableRescheduling,
     allowReschedulingCancelledBookings: event.allowReschedulingCancelledBookings,
     interfaceLanguage: event.interfaceLanguage,
+    restrictionScheduleId: event.restrictionScheduleId,
+    useBookerTimezone: event.useBookerTimezone,
   };
 };
 
@@ -639,7 +667,7 @@ export async function getUsersFromEvent(
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)
-      : (await getOwnerFromUsersArray(prisma, id)) ?? [];
+      : ((await getOwnerFromUsersArray(prisma, id)) ?? []);
   }
   if (!owner) {
     return null;

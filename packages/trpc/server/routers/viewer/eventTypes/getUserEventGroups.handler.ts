@@ -31,8 +31,8 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   const user = ctx.user;
   const userProfile = user.profile;
 
-  // Validate profile exists
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
+  // Validate profile exists and user has access
+  const profile = await ProfileRepository.findByUpIdWithAuth(userProfile.upId, user.id);
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
@@ -83,10 +83,13 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
   });
 
   const teamPermissionsArray = await Promise.all(teamPermissionChecks);
-  const teamPermissions = teamPermissionsArray.reduce((acc, item) => {
-    acc[item.teamId] = item.permissions;
-    return acc;
-  }, {} as Record<number, { canCreateEventType: boolean }>);
+  const teamPermissions = teamPermissionsArray.reduce(
+    (acc, item) => {
+      acc[item.teamId] = item.permissions;
+      return acc;
+    },
+    {} as Record<number, { canCreateEventType: boolean }>
+  );
 
   return {
     eventTypeGroups: filteredEventTypeGroups,

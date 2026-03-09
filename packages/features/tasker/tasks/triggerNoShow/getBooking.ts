@@ -19,6 +19,7 @@ export const getBooking = async (bookingId: number) => {
       eventTypeId: true,
       references: true,
       fromReschedule: true,
+      noShowHost: true,
       eventType: {
         select: {
           id: true,
@@ -50,6 +51,7 @@ export const getBooking = async (bookingId: number) => {
       user: {
         select: {
           id: true,
+          uuid: true,
           timeZone: true,
           email: true,
           name: true,

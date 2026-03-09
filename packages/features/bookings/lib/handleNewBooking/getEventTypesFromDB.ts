@@ -22,6 +22,7 @@ const getEventTypesFromDBSelect = {
   restrictionScheduleId: true,
   useBookerTimezone: true,
   disableRescheduling: true,
+  minimumRescheduleNotice: true,
   disableCancelling: true,
   users: {
     select: {
@@ -47,6 +48,8 @@ const getEventTypesFromDBSelect = {
       includeManagedEventsInLimits: true,
       rrResetInterval: true,
       rrTimestampBasis: true,
+      hideBranding: true,
+      parent: { select: { hideBranding: true } },
     },
   },
   bookingFields: true,
@@ -107,7 +110,13 @@ const getEventTypesFromDBSelect = {
   useEventTypeDestinationCalendarEmail: true,
   owner: {
     select: {
+      id: true,
       hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   },
   workflows: {
@@ -126,6 +135,7 @@ const getEventTypesFromDBSelect = {
       timeZone: true,
     },
   },
+  enablePerHostLocations: true,
   hosts: {
     select: {
       isFixed: true,
@@ -133,6 +143,16 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      location: {
+        select: {
+          id: true,
+          type: true,
+          credentialId: true,
+          link: true,
+          address: true,
+          phoneNumber: true,
+        },
+      },
       user: {
         select: {
           credentials: {
@@ -181,6 +201,9 @@ const getEventTypesFromDBSelect = {
       name: true,
     },
   },
+  rrHostSubsetEnabled: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
+  autoTranslateInstantMeetingTitleEnabled: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {

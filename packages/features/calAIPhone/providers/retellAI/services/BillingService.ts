@@ -7,6 +7,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import type { TrackingData } from "@calcom/lib/tracking";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
@@ -32,11 +33,13 @@ export class BillingService {
     teamId,
     agentId,
     workflowId,
+    tracking,
   }: {
     userId: number;
     teamId?: number;
     agentId?: string | null;
     workflowId?: string;
+    tracking?: TrackingData;
   }) {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
@@ -80,6 +83,14 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
+        ...(tracking?.googleAds?.gclid && {
+          gclid: tracking.googleAds.gclid,
+          campaignId: tracking.googleAds.campaignId,
+        }),
+        ...(tracking?.linkedInAds?.liFatId && {
+          liFatId: tracking.linkedInAds.liFatId,
+          linkedInCampaignId: tracking.linkedInAds?.campaignId,
+        }),
       },
       subscription_data: {
         metadata: {

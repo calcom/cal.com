@@ -1,5 +1,5 @@
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -138,6 +138,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
         },
       },
       notes: true,
+      showNotePublicly: true,
       user: fetchTeamMembersEntries
         ? {
             select: {

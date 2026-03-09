@@ -1,20 +1,20 @@
+import dayjs from "@calcom/dayjs";
+import { clearSessionCache } from "@calcom/features/auth/lib/getServerSession";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
+import { IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
-import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
-import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
 const verifySchema = z.object({
   token: z.string(),
+  makePrimary: z.string().optional(),
+  redirectTo: z.string().optional(),
 });
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
@@ -44,8 +44,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
 }
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { token } = verifySchema.parse(req.query);
-  const billingService = new StripeBillingService();
+  const { token, makePrimary, redirectTo } = verifySchema.parse(req.query);
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -73,9 +72,48 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
+    if (makePrimary === "true") {
+      const secondaryEmail = await prisma.secondaryEmail.findUnique({
+        where: { id: foundToken.secondaryEmailId },
+        select: { userId: true, email: true },
+      });
+
+      if (secondaryEmail) {
+        const primaryUser = await prisma.user.findUnique({
+          where: { id: secondaryEmail.userId },
+          select: { id: true, email: true, emailVerified: true },
+        });
+
+        if (primaryUser) {
+          await prisma.$transaction([
+            prisma.user.update({
+              where: { id: primaryUser.id },
+              data: { email: secondaryEmail.email, emailVerified: new Date() },
+            }),
+            prisma.secondaryEmail.update({
+              where: { id: foundToken.secondaryEmailId },
+              data: {
+                email: primaryUser.email,
+                emailVerified: primaryUser.emailVerified,
+              },
+            }),
+          ]);
+        }
+      }
+
+      clearSessionCache();
+    }
+
     await cleanUpVerificationTokens(foundToken.id);
 
-    return res.redirect(`${WEBAPP_URL}/settings/my-account/profile`);
+    const isSafePath =
+      redirectTo?.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.startsWith("/\\");
+    let redirectPath = isSafePath && redirectTo ? redirectTo : "/settings/my-account/profile";
+    if (makePrimary === "true") {
+      const separator = redirectPath.includes("?") ? "&" : "?";
+      redirectPath = `${redirectPath}${separator}sessionClear=1`;
+    }
+    return res.redirect(`${WEBAPP_URL}${redirectPath}`);
   }
 
   const user = await prisma.user.findFirst({
@@ -133,6 +171,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
+      const billingService = getBillingProviderService();
       await billingService.updateCustomer({
         customerId: userMetadataParsed.stripeCustomerId,
         email: updatedEmail,
@@ -174,7 +213,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   await moveUserToMatchingOrg({ email: user.email });
 
-  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+  const gettingStartedPath = await OnboardingPathService.getGettingStartedPath();
 
   return res.redirect(`${WEBAPP_URL}${hasCompletedOnboarding ? "/event-types" : gettingStartedPath}`);
 }

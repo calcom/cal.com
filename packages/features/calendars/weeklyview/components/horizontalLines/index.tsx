@@ -1,10 +1,8 @@
-import { useId } from "react";
-
 import type dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { BorderColor } from "@calcom/features/calendars/weeklyview/types/common";
 import classNames from "@calcom/ui/classNames";
-
-import type { BorderColor } from "../../types/common";
+import { useId } from "react";
 
 export const HorizontalLines = ({
   hours,
@@ -24,13 +22,13 @@ export const HorizontalLines = ({
   return (
     <div
       className={classNames(
-        "pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid divide-y",
+        "pointer-events-none relative z-60 col-start-1 col-end-2 row-start-1 grid divide-y",
         borderColor === "subtle" ? "divide-subtle" : "divide-default"
       )}
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(var(--gridDefaultSize),1fr)`,
       }}>
-      <div className="row-end-1 h-[--calendar-offset-top] " ref={containerOffsetRef} />
+      <div className="row-end-1 h-(--calendar-offset-top) " ref={containerOffsetRef} />
       {hours.map((hour) => (
         <div key={`${id}-${hour.get("hour")}`}>
           <div className="text-muted sticky left-0 z-20 -ml-14 -mt-2.5 w-14 pr-2 text-right text-xs leading-5 rtl:-mr-14">

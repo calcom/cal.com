@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { Linter } from "eslint";
+import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { parse } from "node-html-parser";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -9,11 +10,8 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 
-const linter = new Linter();
-const eslintRules = {
-  "no-undef": "error",
-  "no-unused-vars": "off",
-} as const;
+const nodeRequire = createRequire(__filename);
+const biomeBin = nodeRequire.resolve("@biomejs/biome/bin/biome");
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -431,71 +429,41 @@ async function expectValidHtmlEmbedSnippet(
 }
 
 function assertThatCodeIsValidVanillaJsCode(code: string) {
-  const lintResult = linter.verify(code, [
-    {
-      languageOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
-        parserOptions: { ecmaFeatures: { jsx: true } },
-        globals: {
-          window: "readonly",
-          document: "readonly",
-          navigator: "readonly",
-          Cal: "readonly",
-          console: "readonly",
-        },
-      },
-      rules: eslintRules,
-    },
-  ]);
+  // Use Biome to check if the code is syntactically valid JavaScript
+  const result = spawnSync("node", [biomeBin, "format", "--stdin-file-path", "snippet.js"], {
+    input: code,
+    encoding: "utf-8",
+  });
 
-  if (lintResult.length) {
+  if (result.status !== 0) {
     console.log(
       JSON.stringify({
-        lintResult,
+        biomeError: result.stderr,
         code,
       })
     );
   }
 
-  expect(lintResult.length).toBe(0);
+  expect(result.status).toBe(0);
 }
 
 function assertThatCodeIsValidReactCode(code: string) {
-  const lintResult = linter.verify(code, [
-    {
-      languageOptions: {
-        ecmaVersion: 2021,
-        sourceType: "module",
-        parserOptions: {
-          ecmaFeatures: { jsx: true },
-        },
-        globals: {
-          window: "readonly",
-          document: "readonly",
-          navigator: "readonly",
-          console: "readonly",
-        },
-      },
-      rules: {
-        ...eslintRules,
-        "@typescript-eslint/no-unused-vars": "off",
-        "no-undef": "off",
-        semi: "off",
-      },
-    },
-  ]);
+  // Use Biome to check if the code is syntactically valid JSX
+  const result = spawnSync("node", [biomeBin, "format", "--stdin-file-path", "snippet.jsx"], {
+    input: code,
+    encoding: "utf-8",
+  });
 
-  if (lintResult.length) {
+  if (result.status !== 0) {
     console.log(
       JSON.stringify({
-        lintResult,
+        biomeError: result.stderr,
         code,
       })
     );
   }
 
-  expect(lintResult.length).toBe(0);
+  expect(result.status).toBe(0);
 }
 
 async function expectValidReactEmbedSnippet(

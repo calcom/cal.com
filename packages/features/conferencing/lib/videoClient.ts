@@ -6,13 +6,14 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
 import { sendBrokenIntegrationEmail } from "@calcom/emails/integration-email-service";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { CAL_VIDEO, CAL_VIDEO_TYPE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialPayload, CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -25,8 +26,11 @@ const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
-  const uid: string = getUid(calEvent);
+const createMeeting = async (
+  credential: CredentialPayload | CredentialForCalendarService,
+  calEvent: CalendarEvent
+) => {
+  const uid: string = getUid(calEvent.uid);
   log.debug(
     "createMeeting",
     safeStringify({
@@ -53,7 +57,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     createdEvent: VideoCallData | undefined;
     credentialId: number;
   } = {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     uid,
     originalEvent: calEvent,
@@ -99,7 +103,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
 };
 
 const updateMeeting = async (
-  credential: CredentialPayload,
+  credential: CredentialPayload | CredentialForCalendarService,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -122,7 +126,7 @@ const updateMeeting = async (
       safeStringify({ bookingRef, canCallUpdateMeeting, calEvent, credential })
     );
     return {
-      appName: credential.appId || "",
+      appName: credential.appName || credential.appId || "",
       type: credential.type,
       success,
       uid,
@@ -131,7 +135,7 @@ const updateMeeting = async (
   }
 
   return {
-    appName: credential.appId || "",
+    appName: credential.appName || credential.appId || "",
     type: credential.type,
     success,
     uid,
@@ -140,7 +144,10 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
+const deleteMeeting = async (
+  credential: CredentialPayload | CredentialForCalendarService | null,
+  uid: string
+): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
     log.debug(
@@ -167,12 +174,13 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -190,12 +198,13 @@ export const createInstantMeetingWithCalVideo = async (endTime: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -216,12 +225,13 @@ const getRecordingsOfCalVideoByRoomName = async (
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -242,12 +252,13 @@ const getDownloadLinkOfCalVideoByRecordingId = async (
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -266,12 +277,13 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -290,12 +302,13 @@ const getAllTranscriptsAccessLinkFromMeetingId = async (meetingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -314,12 +327,13 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -350,12 +364,13 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
@@ -375,18 +390,45 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   const [videoAdapter] = await getVideoAdapters([
     {
       id: 0,
-      appId: "daily-video",
-      type: "daily_video",
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
       userId: null,
       user: { email: "" },
       teamId: null,
       key: dailyAppKeys,
+      encryptedKey: null,
       invalid: false,
       delegationCredentialId: null,
     },
   ]);
 
   return videoAdapter?.checkIfRoomNameMatchesInRecording?.(roomName, recordingId);
+};
+
+const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return { data: [] };
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: CAL_VIDEO,
+      type: CAL_VIDEO_TYPE,
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      encryptedKey: null,
+      invalid: false,
+      delegationCredentialId: null,
+    },
+  ]);
+
+  return videoAdapter?.getMeetingInformation?.(roomName) ?? { data: [] };
 };
 
 export {
@@ -401,4 +443,5 @@ export {
   submitBatchProcessorTranscriptionJob,
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
+  getCalVideoMeetingSessionsByRoomName,
 };

@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
@@ -150,6 +150,7 @@ describe("TeamRepository", () => {
           organizationSettings: true,
           isPlatform: true,
         },
+        orderBy: { id: "asc" },
       });
       expect(result).toEqual(mockTeams);
     });

@@ -7,7 +7,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -132,6 +132,8 @@ function SingleForm({
   }, [form]);
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
+      const currentValues = hookForm.getValues();
+      hookForm.reset(currentValues);
       showToast(t("form_updated_successfully"), "success");
     },
     onError(e) {
@@ -183,14 +185,14 @@ function SingleForm({
               className={classNames(
                 "bg-default flex-1",
                 isDesktop && "grid gap-8",
-                isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+                isDesktop && isTestPreviewOpen && "grid-cols-[1fr_400px]",
                 isDesktop && !isTestPreviewOpen && "grid-cols-1",
                 !isDesktop && "flex flex-col"
               )}>
               {isDesktop ? (
                 <motion.div
                   layout
-                  className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
+                  className="mx-auto w-full max-w-4xl px-3 lg:px-4 xl:px-0"
                   transition={{ duration: 0.3, ease: "easeInOut" }}>
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </motion.div>

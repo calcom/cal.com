@@ -20,6 +20,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { CheckIcon, ExternalLinkIcon } from "@coss/ui/icons";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -202,7 +203,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <span
           className={classNames(
             isInputUsernamePremium ? "border border-orange-400 " : "",
-            "border-default bg-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
+            "border-default bg-cal-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
@@ -216,7 +217,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 my-0 rounded-md font-sans text-sm leading-4 focus:!ring-0 sm:rounded-l-none",
+              "border-l my-0 rounded-md font-sans text-sm leading-4 focus:ring-0! sm:rounded-l-none",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",
@@ -251,7 +252,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 <></>
               )}
               {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Icon name="check" className="mt-[2px] h-4 w-4" />
+                <CheckIcon className="mt-[2px] h-4 w-4" />
               ) : (
                 <></>
               )}
@@ -307,7 +308,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 data-testid="go-to-billing"
                 href={paymentLink}>
                 <>
-                  {t("go_to_stripe_billing")} <Icon name="external-link" className="ml-1 h-4 w-4" />
+                  {t("go_to_stripe_billing")} <ExternalLinkIcon className="ml-1 h-4 w-4" />
                 </>
               </Button>
             )}

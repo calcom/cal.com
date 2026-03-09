@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import AdminAppsList from "~/apps/components/AdminAppsList";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -30,16 +30,19 @@ export function Setup(props: PageProps) {
     props.hasValidLicense ? "EXISTING" : "FREE"
   );
 
+  const hasLicenseStep = !props.hasValidLicense && !hasPickedAGPLv3;
+
   const defaultStep = useMemo(() => {
     if (props.userCount > 0) {
-      if (!props.hasValidLicense && !hasPickedAGPLv3) {
+      if (hasLicenseStep) {
         return SETUP_VIEW_SETPS.LICENSE;
       } else {
-        return SETUP_VIEW_SETPS.APPS;
+        // License step is not shown, so apps step is at position 2 instead of 3
+        return SETUP_VIEW_SETPS.APPS - 1;
       }
     }
     return SETUP_VIEW_SETPS.ADMIN_USER;
-  }, [props.userCount, props.hasValidLicense, hasPickedAGPLv3]);
+  }, [props.userCount, hasLicenseStep]);
 
   const steps: WizardStep[] = [
     {
@@ -52,13 +55,7 @@ export function Setup(props: PageProps) {
             setIsPending(true);
           }}
           onSuccess={() => {
-            // If there's already a valid license or user picked AGPLv3, skip to apps step
-            if (props.hasValidLicense || hasPickedAGPLv3) {
-              nav.onNext();
-              nav.onNext(); // Skip license step
-            } else {
-              nav.onNext();
-            }
+            nav.onNext();
           }}
           onError={() => {
             setIsPending(false);
@@ -71,7 +68,7 @@ export function Setup(props: PageProps) {
   ];
 
   // Only show license selection step if there's no valid license already and AGPLv3 wasn't picked
-  if (!props.hasValidLicense && !hasPickedAGPLv3) {
+  if (hasLicenseStep) {
     steps.push({
       title: t("choose_a_license"),
       description: t("choose_license_description"),
@@ -103,7 +100,7 @@ export function Setup(props: PageProps) {
   steps.push({
     title: t("enable_apps"),
     description: t("enable_apps_description", { appName: APP_NAME }),
-    contentClassname: "!pb-0 mb-[-1px]",
+    contentClassname: "pb-0! -mb-px",
     customActions: true,
     content: (setIsPending, nav) => {
       return (
@@ -113,7 +110,7 @@ export function Setup(props: PageProps) {
           classNames={{
             form: "mb-4 rounded-md bg-default px-0 pt-0 md:max-w-full",
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
-            verticalTabsItem: "!w-48 md:p-4",
+            verticalTabsItem: "w-48! md:p-4",
           }}
           baseURL={`/auth/setup?step=${steps.length}`}
           useQueryParam={true}

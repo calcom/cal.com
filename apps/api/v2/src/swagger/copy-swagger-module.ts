@@ -1,5 +1,5 @@
 import * as fs from "fs-extra";
-import * as path from "path";
+import * as path from "node:path";
 
 // First, copyNestSwagger is required to enable "@nestjs/swagger" in the "nest-cli.json",
 // because nest-cli.json is resolving "@nestjs/swagger" plugin from

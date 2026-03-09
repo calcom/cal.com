@@ -1,17 +1,16 @@
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
-  getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
+  getRoutedUsersWithContactOwnerAndFixedUsers,
 } from "@calcom/features/users/lib/getRoutedUsers";
-import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HttpError } from "@calcom/lib/http-error";
+import { UserRepository, withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma, { userSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
@@ -69,10 +68,8 @@ export const loadUsers = async ({
     return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
-    if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
-      throw new HttpError({ statusCode: 400, message: error.message });
-    }
-    throw new HttpError({ statusCode: 500, message: "Unable to load users" });
+    const httpError = getServerErrorFromUnknown(error);
+    throw httpError;
   }
 };
 
@@ -98,9 +95,18 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
     throw new Error("dynamicUserList is not properly defined or empty.");
   }
-  return findUsersByUsername({
+
+  const users = await findUsersByUsername({
     usernameList: dynamicUserList,
     orgSlug: currentOrgDomain ? currentOrgDomain : null,
+  });
+
+  // For dynamic group bookings: reorder users to match dynamicUserList order
+  // to ensure the first user in the URL is the organizer/host
+  return users.sort((a, b) => {
+    const aIndex = dynamicUserList.indexOf(a.username!);
+    const bIndex = dynamicUserList.indexOf(b.username!);
+    return aIndex - bIndex;
   });
 };
 

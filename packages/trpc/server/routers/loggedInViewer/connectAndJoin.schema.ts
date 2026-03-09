@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export const ZConnectAndJoinInputSchema = z.object({
+export type TConnectAndJoinInputSchema = {
+  token: string;
+};
+
+export const ZConnectAndJoinInputSchema: z.ZodType<TConnectAndJoinInputSchema> = z.object({
   token: z.string(),
 });
-
-export type TConnectAndJoinInputSchema = z.infer<typeof ZConnectAndJoinInputSchema>;

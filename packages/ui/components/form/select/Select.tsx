@@ -50,19 +50,19 @@ export const Select = <
       {...reactSelectProps}
       menuPlacement={menuPlacement}
       styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
-        }),
+        control: (base, _props) =>
+          Object.assign({}, base, {
+            minHeight: size === "sm" ? "28px" : "32px",
+            height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          }),
       }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
-            "bg-default flex cursor-pointer justify-between py-1.5 px-2 rounded-md text-default items-center",
+            "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
             state.isFocused && "bg-subtle",
-            state.isDisabled && "bg-muted",
+            state.isDisabled && "bg-cal-muted",
             state.isSelected && "bg-emphasis text-default",
             innerClassNames?.option
           ),
@@ -78,11 +78,11 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2 py-1"
-              : "h-8 px-3 py-2",
-            props.isDisabled && "bg-subtle",
+              ? "h-7 px-2 py-0.5"
+              : "h-8 px-3 py-1",
+            state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
             "rounded-[10px]",
-            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
+            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
@@ -91,7 +91,7 @@ export const Select = <
         multiValue: () =>
           cx(
             "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
-            size == "sm" ? "px-1.5 py-[1px] rounded-md" : "py-1 px-1.5 leading-none rounded-lg"
+            size == "sm" ? "px-1.5 py-px rounded-md" : "py-1 px-1.5 leading-none rounded-lg"
           ),
         menu: () =>
           cx(
@@ -101,12 +101,12 @@ export const Select = <
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
         menuList: () =>
           cx(
-            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-[1px]",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
             innerClassNames?.menuList
           ),
         indicatorsContainer: (state) =>
           cx(
-            "flex !items-start justify-center mt-0.5 h-full",
+            "flex items-start! justify-center mt-1 h-full",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"
@@ -219,7 +219,6 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

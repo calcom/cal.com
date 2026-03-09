@@ -1,16 +1,13 @@
-import type { SearchParams } from "app/_types";
-import type { Session } from "next-auth";
-import { unstable_cache } from "next/cache";
-
-import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
-
+import type { SearchParams } from "app/_types";
+import { unstable_cache } from "next/cache";
+import type { Session } from "next-auth";
+import { TeamsListing } from "~/ee/teams/components/TeamsListing";
 import { TeamsCTA } from "./CTA";
 
 const getCachedTeams = unstable_cache(
@@ -31,7 +28,11 @@ export const ServerTeamsListing = async ({
 }: {
   searchParams: SearchParams;
   session: Session;
-}) => {
+}): Promise<{
+  Main: JSX.Element;
+  CTA: JSX.Element | null;
+  showHeader: boolean;
+}> => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const autoAccept = Array.isArray(searchParams?.autoAccept)
     ? searchParams.autoAccept[0]
@@ -52,13 +53,22 @@ export const ServerTeamsListing = async ({
       }
     } catch (e) {
       errorMsgFromInvite = "Error while fetching teams";
-      if (e instanceof TRPCError) errorMsgFromInvite = e.message;
+      if (e instanceof ErrorWithCode) errorMsgFromInvite = e.message;
     }
   }
 
   const teams = await getCachedTeams(userId);
   const userProfile = session?.user?.profile;
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
+
+  // Filter to get accepted non-organization teams (same logic as TeamsListing)
+  const acceptedTeams = teams.filter((m) => m.accepted && !m.isOrganization);
+
+  // Check if user has a team plan (any accepted team with a slug)
+  const hasTeamPlan = teams.some((team) => team.accepted === true && team.slug !== null);
+
+  // Show header unless we're showing the upgrade banner (no teams and no team plan)
+  const showHeader = acceptedTeams.length > 0 || hasTeamPlan;
 
   const permissionCheckService = new PermissionCheckService();
   const canCreateTeam = orgId
@@ -84,5 +94,6 @@ export const ServerTeamsListing = async ({
       />
     ),
     CTA: !orgId || canCreateTeam ? <TeamsCTA /> : null,
+    showHeader,
   };
 };

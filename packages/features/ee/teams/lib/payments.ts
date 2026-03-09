@@ -1,21 +1,21 @@
-import type Stripe from "stripe";
-import { z } from "zod";
-
+import process from "node:process";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
-  MINIMUM_NUMBER_OF_ORG_SEATS,
-  ORGANIZATION_SELF_SERVE_MIN_SEATS,
+  ORG_TRIAL_DAYS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -25,6 +25,21 @@ const teamPaymentMetadataSchema = z.object({
   subscriptionItemId: z.string(),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
+
+export function getOrgPriceId(billingPeriod: "MONTHLY" | "ANNUALLY"): string {
+  const priceId =
+    billingPeriod === "ANNUALLY"
+      ? process.env.STRIPE_ORG_ANNUAL_PRICE_ID
+      : process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    const envVar =
+      billingPeriod === "ANNUALLY" ? "STRIPE_ORG_ANNUAL_PRICE_ID" : "STRIPE_ORG_MONTHLY_PRICE_ID";
+    throw new Error(`${envVar} is not set`);
+  }
+
+  return priceId;
+}
 
 /** Used to prevent double charges for the same team */
 export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
@@ -42,6 +57,21 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
 
+function getTeamPriceId(billingPeriod: BillingPeriod): string {
+  const priceId =
+    billingPeriod === "ANNUALLY"
+      ? process.env.STRIPE_TEAM_ANNUAL_PRICE_ID
+      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    throw new Error(
+      `Missing env var: ${billingPeriod === "ANNUALLY" ? "STRIPE_TEAM_ANNUAL_PRICE_ID" : "STRIPE_TEAM_MONTHLY_PRICE_ID"}`
+    );
+  }
+
+  return priceId;
+}
+
 /**
  * Used to generate a checkout session when trying to create a team
  */
@@ -50,16 +80,21 @@ export const generateTeamCheckoutSession = async ({
   teamSlug,
   userId,
   isOnboarding,
+  billingPeriod = BillingPeriod.MONTHLY,
+  tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
+  billingPeriod?: BillingPeriod;
+  tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
     getDubCustomer(userId.toString()),
   ]);
+  const priceId = getTeamPriceId(billingPeriod);
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
@@ -80,7 +115,7 @@ export const generateTeamCheckoutSession = async ({
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
-        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        price: priceId,
         /**Initially it will be just the team owner */
         quantity: 1,
       },
@@ -94,13 +129,26 @@ export const generateTeamCheckoutSession = async ({
     },
     subscription_data: {
       trial_period_days: 14, // Add a 14-day trial
+      metadata: {
+        ...(isOnboarding && { source: "onboarding" }),
+      },
     },
     metadata: {
+      type: CHECKOUT_SESSION_TYPES.TEAM_CREATION,
       teamName,
       teamSlug,
       userId,
+      billingPeriod,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds?.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
   });
   return session;
@@ -114,7 +162,6 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   teamId: number;
   /**
    * The actual number of seats in the team.
-   * The seats that we would charge for could be more than this depending on the MINIMUM_NUMBER_OF_ORG_SEATS in case of an organization
    * For a team it would be the same as this value
    */
   seatsUsed: number;
@@ -126,6 +173,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   isOrg?: boolean;
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
+  tracking?: TrackingData;
 }) => {
   const {
     teamId,
@@ -135,12 +183,13 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg,
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
+    tracking,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
 
-  // For orgs, enforce minimum of MINIMUM_NUMBER_OF_ORG_SEATS seats if `seatsToChargeFor` not set
-  const seats = isOrg ? Math.max(seatsUsed, MINIMUM_NUMBER_OF_ORG_SEATS) : seatsUsed;
+  // Use seatsUsed directly without enforcing minimum
+  const seats = seatsUsed;
   const quantity = seatsToChargeFor ? seatsToChargeFor : seats;
 
   const customer = await getStripeCustomerIdFromUserId(userId);
@@ -150,11 +199,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (
-      isOrg &&
-      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE &&
-      seats === ORGANIZATION_SELF_SERVE_MIN_SEATS
-    ) {
+    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
@@ -192,12 +237,21 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
     subscription_data: {
       metadata: {
         teamId,
         dubCustomerId: userId,
       },
+      ...(isOrg && ORG_TRIAL_DAYS && { trial_period_days: ORG_TRIAL_DAYS }),
     },
   });
   return { url: session.url };
@@ -248,17 +302,20 @@ export const purchaseTeamOrOrgSubscription = async (input: {
    * If the organization has a custom price per seat, it will create a new price in stripe and return its ID.
    */
   async function getFixedPrice() {
-    const fixedPriceId = isOrg
-      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
-
-    if (!fixedPriceId) {
-      throw new Error(
-        "You need to have STRIPE_ORG_MONTHLY_PRICE_ID and STRIPE_TEAM_MONTHLY_PRICE_ID env variables set"
+    if (isOrg) {
+      const fixedPriceId = getOrgPriceId(billingPeriod);
+      log.debug(
+        "Getting price ID",
+        safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod })
       );
+      return fixedPriceId;
     }
 
-    log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat }));
+    const fixedPriceId = getTeamPriceId(billingPeriod);
+    log.debug(
+      "Getting price ID",
+      safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod })
+    );
 
     return fixedPriceId;
   }
@@ -290,23 +347,13 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
      **/
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId, orgSeats } = team.metadata;
-    // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
-    // We can't go below this quantity for subscription
-    const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
+    const { subscriptionId, subscriptionItemId } = team.metadata;
     const membershipCount = team.members.length;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
-
-    if (team.isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
-      console.info(
-        `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
-      );
-      return;
-    }
 
     await stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],

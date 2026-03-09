@@ -13,7 +13,12 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
+import {
+  ZSubmitBatchProcessorJobRes,
+  ZGetTranscriptAccessLink,
+  getMeetingInformationResponseSchema,
+  TGetMeetingInformationResponsesSchema,
+} from "../zod";
 import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
 import { fetcher } from "./dailyApiFetcher";
 import {
@@ -24,28 +29,6 @@ import {
   meetingTokenSchema,
   ZGetMeetingTokenResponseSchema,
 } from "./types";
-
-const meetingParticipantSchema = z.object({
-  user_id: z.string().nullable(),
-  participant_id: z.string(),
-  user_name: z.string().nullable(),
-  join_time: z.number(),
-  duration: z.number(),
-});
-
-const meetingSessionSchema = z.object({
-  id: z.string(),
-  room: z.string(),
-  start_time: z.number(),
-  duration: z.number(),
-  ongoing: z.boolean(),
-  max_participants: z.number(),
-  participants: z.array(meetingParticipantSchema),
-});
-
-const getMeetingInformationResponseSchema = z.object({
-  data: z.array(meetingSessionSchema),
-});
 
 export interface DailyEventResult {
   id: string;
@@ -108,6 +91,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialForCalendarService & { invalid: bo
   appId: "daily-video",
   invalid: false,
   teamId: null,
+  encryptedKey: null,
   delegatedToId: null,
   delegatedTo: null,
   delegationCredentialId: null,
@@ -443,9 +427,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
       try {
-        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
-        const roomId = res.id;
-        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+        const allTranscripts = await fetcher(`/transcript?room_name=${roomName}`).then(getTranscripts.parse);
 
         if (!allTranscripts.data.length) return [];
 
@@ -522,7 +504,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err}`);
       }
     },
-    getMeetingInformation: async (roomName: string) => {
+    getMeetingInformation: async (roomName: string): Promise<TGetMeetingInformationResponsesSchema> => {
       try {
         const res = await fetcher(`/meetings?room=${encodeURIComponent(roomName)}`).then(
           getMeetingInformationResponseSchema.parse

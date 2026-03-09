@@ -1,4 +1,6 @@
-import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { getBillingPeriodRepository } from "@calcom/features/ee/billing/di/containers/BillingPeriodRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -15,7 +17,8 @@ type HasActiveTeamPlanOptions = {
 };
 
 export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlanOptions) => {
-  if (IS_SELF_HOSTED) return { isActive: true, isTrial: false };
+  const billingPeriodRepository = getBillingPeriodRepository();
+  if (IS_SELF_HOSTED) return { isActive: true, isTrial: false, billingPeriod: null };
 
   const whereClause: Prisma.MembershipWhereInput = { userId: ctx.user.id, accepted: true };
 
@@ -25,29 +28,41 @@ export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlan
 
   const teams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, whereClause);
 
-  if (!teams.length) return { isActive: false, isTrial: false };
+  if (!teams.length) return { isActive: false, isTrial: false, billingPeriod: null };
 
   let isTrial = false;
-  // check if user has at least on membership with an active plan
+  let relevantTeamId: number | null = null;
+  // check if user has at least one membership with an active plan
   for (const team of teams) {
     if (team.isPlatform && team.isOrganization) {
       const platformBilling = await prisma.platformBilling.findUnique({ where: { id: team.id } });
       if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
-        return { isActive: true, isTrial: false };
+        return { isActive: true, isTrial: false, billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id) };
       }
     }
-    const teamBillingService = new InternalTeamBilling(team);
+
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus === "active" || subscriptionStatus === "past_due") {
-      return { isActive: true, isTrial: false };
+    if (
+      subscriptionStatus === SubscriptionStatus.ACTIVE ||
+      subscriptionStatus === SubscriptionStatus.PAST_DUE
+    ) {
+      return { isActive: true, isTrial: false, billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id) };
     }
-    if (subscriptionStatus === "trialing") {
+    if (subscriptionStatus === SubscriptionStatus.TRIALING) {
       isTrial = true;
+      relevantTeamId = team.id;
     }
   }
 
-  return { isActive: false, isTrial };
+  const billingPeriod = relevantTeamId
+    ? await billingPeriodRepository.findBillingPeriodByTeamId(relevantTeamId)
+    : null;
+
+  return { isActive: false, isTrial, billingPeriod };
 };
 
 export default hasActiveTeamPlanHandler;

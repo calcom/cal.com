@@ -1,12 +1,11 @@
 /**
- * Provides a wrapper around localStorage to avoid errors in case of restricted storage access.
+ * Provides a wrapper around localStorage and sessionStorage to avoid errors in case of restricted storage access.
  *
  * TODO: In case of an embed if localStorage is not available(third party), use localStorage of parent(first party) that contains the iframe.
  */
 export const localStorage = {
   getItem(key: string) {
     try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       return window.localStorage.getItem(key);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -16,7 +15,6 @@ export const localStorage = {
   },
   setItem(key: string, value: string) {
     try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.setItem(key, value);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -27,7 +25,6 @@ export const localStorage = {
   },
   removeItem: (key: string) => {
     try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.removeItem(key);
     } catch {
       return;
@@ -35,11 +32,6 @@ export const localStorage = {
   },
 };
 
-/**
- * Provides a wrapper around localStorage to avoid errors in case of restricted storage access.
- *
- * TODO: In case of an embed if localStorage is not available(third party), use localStorage of parent(first party) that contains the iframe.
- */
 export const sessionStorage = {
   getItem(key: string) {
     try {

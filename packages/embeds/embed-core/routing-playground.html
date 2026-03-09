@@ -90,49 +90,25 @@
     }
 
     * {
-      --cal-brand-color: gray;
+      --cal-brand: gray;
     }
   </style>
 </head>
 
 <body>
   <div style="display: flex; flex-direction: column; gap: 10px;">
-    <div id="cal-booking-place-routingFormWithoutPrerender">
-    <a href="?only=ns:routingFormWithoutPrerender">Routing Form Without Prerender Demo</a>
-    <form id="cal-booking-place-routingFormWithoutPrerender-form">
-      <input type="text" name="name" placeholder="John Doe" />
-      <input type="email" name="email" placeholder="john@example.com" />
-      <select name="skills" placeholder="JavaScript, Node.js">
-        <option value="JavaScript">JavaScript</option>
-        <option value="Sales">Sales</option>
-      </select>
-    </form>
-    <button id="cal-booking-place-routingFormWithoutPrerender-submit" data-cal-namespace="routingFormWithoutPrerender" data-cal-config='{"cal.embed.pageType":"team.event.booking.slots", "guests":["guest1@example.com", "guest2@example.com"]}'>Submit</button>
-    <script>
-      requestAnimationFrame(function updateSubmitButtonLink() {
-        const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
-        const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
-        const name = form.querySelector("input[name='name']").value;
-        const email = form.querySelector("input[name='email']").value;
-        const skills = form.querySelector("select[name='skills']").value;
-        if (name && email) {
-          document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit").setAttribute("data-cal-link", `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Rating=5&skills=${skills}&Email=${email}`);
-        }
-        requestAnimationFrame(updateSubmitButtonLink);
-      });
-    </script>
-    </div>
     <div id="cal-booking-routingFormFullPrerender">
       <hr/>
-      <a href="?only=ns:routingFormFullPrerender&debug=1&param.email=test@example.com">Routing Form - Prerender Headless Router itself queuing the form response</a>
-      NOTE: Pass query param param.formId=FORM_UID_HERE to test with a particular routing form
+      <a style="display: block;" href="?only=ns:routingFormFullPrerender&debug=1&param.email=test@example.com">Routing Form - Prerender Headless Router itself queuing the form response</a>
+      NOTE: Pass query param param.formId=FORM_UID_HERE to test with a particular routing form. Easiest is to run seed-insights.ts script to create a seeded form and then use the form id here.
       <p>1. As page is loading, we prerender the headless router for the email passed as param.email</p>
       <p>2. Whenever email changes and onblur happens, the prerender is triggered for the new email and previous prerendered modal is removed</p>
       <p>3. The prerender of the headless router queues the form response and doesn't really record it. When the actual booking is made, the form response is recorded from the queue</p>
       <p>4. If the CTA click happens before the slots are considered stale(configurable via options.slotsStaleTimeMs), then it will open the prerendered modal without fetching the slots, otherwise it will fetch the slots(for the routedTeamMembers/contactOwner only) and till then skeleton will be shown</p>
-      <p>5. If the CTA click happens after iframeForceReloadThresholdMs has passed, then fresh headless router request is sent which could be really slow. It is important to do force reload after a certain time because the Routing Form itself could have changed in the meantime or Salesforce ownership might be available or some other change might have occured in Cal.com's side</p>
+      <p>5. If the CTA click happens after iframeForceReloadThresholdMs has passed, then fresh headless router request is sent which could be really slow. It is important to do force reload after a certain time because the Routing Form itself could have changed in the meantime or Salesforce ownership might be available or some other change might have occurred in Cal.com's side</p>
       <p>6. slotsStaleTimeMs is set to 10 seconds(default is 1 minute) and iframeForceReloadThresholdMs is set to 30 seconds(default is 15 minutes) and they are considered from the time when the prerender/modal call was made</p>
       <p>7. To avoid reaching the iframeForceReloadThresholdMs, user could prerender the router again and again judiciously</p>
+      <p>8. You can disable prerendering by passing the query param param.disablePrerender=true</p>
       </p>
       <div class="inline-embed-container">
         <script>
@@ -144,21 +120,115 @@
             debug: true,
             calOrigin: window.calOrigin,
           });
+
+          function trackLog(message) {
+            console.log(`${performance.now().toFixed(2)}ms [Tracking] ${message}`);
+          }
+
+          let listenersAdded = false;
+          let isAvailabilityLoaded = false;
+          // Track API start
+          let apiStartTime = null;
+
+          const linkPrerenderedCallback = (e) => {
+              trackLog("Link Prerendered");
+          };
+          Cal.ns["routingFormFullPrerender"]("on", { action: "linkPrerendered", callback: linkPrerenderedCallback });
+          
+          // Track latency b/w API execution and availability loading
+          const trackLatencyInShowingSlots = (namespace) => {
+            isAvailabilityLoaded = false;
+            apiStartTime = performance.now();
+            const trackAvailabilityLoaded = (source) => {
+              if (!apiStartTime) {
+                trackLog(`API start time not set - ${source}`);
+                return;
+              }
+              if (isAvailabilityLoaded) {
+                trackLog(`Availability already loaded - triggering again by: ${source}`);
+                return;
+              }
+
+              isAvailabilityLoaded = true;
+              const endTime = performance.now();
+              const timeDiff = endTime - apiStartTime;
+              trackLog(`Embed Modal API to Booker Ready: ${timeDiff.toFixed(2)}ms - triggered by: ${source}`);
+            };
+            trackLog(`Embed Modal API started at: ${apiStartTime.toFixed(2)}ms`);
+
+            // Setup availability tracking
+            isAvailabilityLoaded = false;
+            const api = namespace ? Cal.ns[namespace] : Cal;
+
+            const bookerViewedCallback = (e) => {
+              const data = e.detail.data;
+              if (data.slotsLoaded === true) {
+                trackAvailabilityLoaded("bookerViewed (slotsLoaded: true)");
+              } else {
+                trackLog("bookerViewed(slotsLoaded: false). Booker is ready but waiting for slots to load");
+              }
+            };
+
+            const bookerReopenedCallback = (e) => {
+              const data = e.detail.data;
+              if (data.slotsLoaded === true) {
+                trackAvailabilityLoaded("bookerReopened (slotsLoaded: true)");
+              } else {
+                trackLog("Booker was reopened and waiting for slots to load");
+              }
+            };
+
+            const bookerReadyCallback = () => {
+              trackAvailabilityLoaded("bookerReady event");
+            };
+
+            const bookerReloadedCallback = (e) => {
+              const data = e.detail.data;
+              if (data.slotsLoaded === true) {
+                trackAvailabilityLoaded("bookerReloaded (slotsLoaded: true)");
+              } else {
+                trackLog("Booker was reloaded and waiting for slots to load");
+              }
+            };
+
+            if (!listenersAdded) {
+              api("on", { action: "bookerViewed", callback: bookerViewedCallback });
+              api("on", { action: "bookerReady", callback: bookerReadyCallback });
+              api("on", { action: "bookerReopened", callback: bookerReopenedCallback });
+              api("on", { action: "bookerReloaded", callback: bookerReloadedCallback });
+              listenersAdded = true;
+            }
+          };
+
           window.routingFormFullPrerender = {
             buildRouterUrl: ({skills, location, name, email, formId}) => {
               // Send `email` as well as `Email` because E2e Tests currently use `Email` and `email` is needed by contact owner lookup. It doesn't accept Uppercase Email
-              return `router?form=${formId}&skills=${skills}&Location=${location}&name=${name}&Email=${email}&email=${email}&Rating=5`;
+              return `router?form=${formId}&Manager=fggfg&skills=${skills}&Location=${location}&name=${name}&Email=${email}&email=${email}&Rating=5`;
             },
             onFormSubmit: (e) => {
               e.preventDefault();
+
+              if(!window.params.formId) {
+                alert("Form ID is not set. Please set the form ID using the param.formId query parameter. Easiest is to run seed-insights.ts script to create a seeded form and then use the form id here. ");
+                return false;
+              }
+              e.preventDefault();
+              
+              const namespace = "routingFormFullPrerender";
+              trackLatencyInShowingSlots(namespace);
+              
               const skills = document.getElementById('cal-booking-place-routingFormFullPrerender-select-skills').value;
               const location = document.getElementById('cal-booking-place-routingFormFullPrerender-select-location').value;
               const name = document.getElementById('cal-booking-place-routingFormFullPrerender-input-name').value;
               const email = document.getElementById('cal-booking-place-routingFormFullPrerender-input-email').value;
               const routerUrl = window.routingFormFullPrerender.buildRouterUrl({skills, location, name, email, formId: window.params.formId});
-              Cal.ns.routingFormFullPrerender("modal", {
+              
+              Cal.ns[namespace]("modal", {
                 calLink: routerUrl,
                 calOrigin: window.calOrigin,
+                config: {
+                  "cal.embed.pageType": "team.event.booking.slots",
+                },
               });
             }
           }
@@ -166,33 +236,44 @@
         </script>
         <div id="cal-booking-place-routingFormFullPrerender">
           <div class="place"></div>
-          <form id="cal-booking-place-routingFormFullPrerender-form" onsubmit="window.routingFormFullPrerender.onFormSubmit(event)">
-          <label for="cal-booking-place-routingFormFullPrerender-input-name">Name</label>
-          <input required style="width: 400px" type="text" id="cal-booking-place-routingFormFullPrerender-input-name" placeholder="John Doe" />
-          <label for="cal-booking-place-routingFormFullPrerender-input-email">Email</label>
-          <input required style="width: 400px" type="email" id="cal-booking-place-routingFormFullPrerender-input-email" placeholder="john@example.com" />
-          <label for="cal-booking-place-routingFormFullPrerender-select-skills">Skills</label>
-          <select required style="width: 400px" id="cal-booking-place-routingFormFullPrerender-select-skills">
-            <option value="">Select a skill</option>
-            <option value="JavaScript">JavaScript</option>
-            <option value="React">React</option>
-            <option value="Node.js">Node.js</option>
-            <option value="Python">Python</option>
-            <option value="Sales">Sales</option>
-          </select>
-          
-          <label for="cal-booking-place-routingFormFullPrerender-select-location">Location</label>
-          <select required style="width: 400px" id="cal-booking-place-routingFormFullPrerender-select-location">
-            <option value="">Select a location</option>
-            <option value="New York">New York</option>
-            <option value="London">London</option>
-            <option value="Tokyo">Tokyo</option>
-            <option value="Berlin">Berlin</option>
-            <option value="Remote">Remote</option>
-          </select>
-          <button type="submit" id="cta-routingFormFullPrerender">Submit</button>
-        </form>
-      </div>
+          <form id="cal-booking-place-routingFormFullPrerender-form" onsubmit="window.routingFormFullPrerender.onFormSubmit(event)" style="display: flex; flex-direction: column; gap: 16px; max-width: 500px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="cal-booking-place-routingFormFullPrerender-input-name" style="font-weight: 500; color: #333; font-size: 14px;">Name</label>
+              <input required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" type="text" id="cal-booking-place-routingFormFullPrerender-input-name" placeholder="John Doe" />
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="cal-booking-place-routingFormFullPrerender-input-email" style="font-weight: 500; color: #333; font-size: 14px;">Email</label>
+              <input required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" type="email" id="cal-booking-place-routingFormFullPrerender-input-email" placeholder="john@example.com" />
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="cal-booking-place-routingFormFullPrerender-select-skills" style="font-weight: 500; color: #333; font-size: 14px;">Skills</label>
+              <select required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: white;" id="cal-booking-place-routingFormFullPrerender-select-skills">
+                <option value="">Select a skill</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="React">React</option>
+                <option value="Node.js">Node.js</option>
+                <option value="Python">Python</option>
+                <option value="Sales">Sales</option>
+              </select>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="cal-booking-place-routingFormFullPrerender-select-location" style="font-weight: 500; color: #333; font-size: 14px;">Location</label>
+              <select required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; background: white;" id="cal-booking-place-routingFormFullPrerender-select-location">
+                <option value="">Select a location</option>
+                <option value="New York">New York</option>
+                <option value="London">London</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Berlin">Berlin</option>
+                <option value="Remote">Remote</option>
+              </select>
+            </div>
+            
+            <button type="submit" id="cta-routingFormFullPrerender" style="padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: background 0.2s;">Submit</button>
+          </form>
+        </div>
 
       </div>
       
@@ -206,7 +287,7 @@
             pageType: "team.event.booking.slots",
             options: {
               slotsStaleTimeMs: 10 * 1000,
-              iframeForceReloadThresholdMs: 30 * 1000,
+              iframeForceReloadThresholdMs: 100 * 1000,
             },
           });
         }
@@ -220,6 +301,10 @@
           }
 
           if (!areFieldRequiredbyRoutingFormAvailable()) {
+            return;
+          }
+
+          if (window.params.disablePrerender) {
             return;
           }
 

@@ -6,8 +6,8 @@ import React, { useRef, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
+import { DownloadIcon, FileTextIcon, UploadIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useOnboardingStore, type Invite } from "../../store/onboarding-store";
@@ -156,7 +156,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               {selectedFile ? (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon name="file-text" className="text-emphasis" style={{ width: 32, height: 32 }} />
+                    <FileTextIcon className="text-emphasis" size={32} />
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <p className="text-emphasis text-sm font-medium">{selectedFile.name}</p>
@@ -166,11 +166,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
               ) : (
                 <div className="flex flex-col items-center gap-3">
                   <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-4 shadow-sm">
-                    <Icon
-                      name="upload"
-                      className="text-emphasis opacity-70"
-                      style={{ width: 32, height: 32 }}
-                    />
+                    <UploadIcon className="text-emphasis opacity-70" size={32} />
                   </div>
                   <p className="text-subtle text-center text-sm">{t("upload_csv_subtitle")}</p>
                 </div>
@@ -185,9 +181,9 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
 
           <div className="mb-2 flex flex-col gap-3">
             {/* Download template */}
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="download" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <DownloadIcon className="text-emphasis" size={16} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("need_template")}</p>
@@ -199,9 +195,9 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
             </div>
 
             {/* File upload */}
-            <div className="bg-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
+            <div className="bg-cal-muted border-subtle flex items-center gap-3 rounded-lg border p-4">
               <div className="from-default to-muted border-subtle flex items-center justify-center rounded-full border bg-gradient-to-b p-2 shadow-sm">
-                <Icon name="upload" className="text-emphasis" style={{ width: 16, height: 16 }} />
+                <UploadIcon className="text-emphasis" size={16} />
               </div>
               <div className="flex-1">
                 <p className="text-emphasis text-sm font-medium">{t("upload_your_file")}</p>
@@ -227,7 +223,7 @@ export const CSVUploadModal = ({ isOpen, onClose }: CSVUploadModalProps) => {
           </div>
         </div>
 
-        <div className="bg-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
+        <div className="bg-cal-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button color="minimal" onClick={handleClose} disabled={isUploading}>
             {t("cancel")}
           </Button>

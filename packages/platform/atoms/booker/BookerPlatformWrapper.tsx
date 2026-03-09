@@ -1,36 +1,35 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useQueryClient } from "@tanstack/react-query";
-import debounce from "lodash/debounce";
-import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
-import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import {
-  BookerStoreProvider,
-  useInitializeBookerStoreContext,
-  useBookerStoreContext,
   BookerStoreContext,
+  BookerStoreProvider,
+  useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
+import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
+import { useBookingForm } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useLocalSet } from "@calcom/features/bookings/Booker/hooks/useLocalSet";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
+import { Booker as BookerComponent } from "@calcom/web/modules/bookings/components/Booker";
+import { useQueryClient } from "@tanstack/react-query";
+import debounce from "lodash/debounce";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { shallow } from "zustand/shallow";
 import { useCreateBooking } from "../hooks/bookings/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/bookings/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/bookings/useCreateRecurringBooking";
 import {
-  useGetBookingForReschedule,
   QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+  useGetBookingForReschedule,
 } from "../hooks/bookings/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/bookings/useHandleBookEvent";
 import { useAtomGetPublicEvent } from "../hooks/event-types/public/useAtomGetPublicEvent";
@@ -70,12 +69,15 @@ const BookerPlatformWrapperComponent = (
     showNoAvailabilityDialog,
     silentlyHandleCalendarFailures = false,
     hideEventMetadata = false,
+    defaultPhoneCountry,
+    rrHostSubsetIds,
+    hideOrgTeamAvatar = false,
   } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
-  const [bookerState, setBookerState] = useBookerStoreContext(
+  const [_bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
   );
@@ -140,12 +142,18 @@ const BookerPlatformWrapperComponent = (
     },
   });
   const queryClient = useQueryClient();
+
   const username = useMemo(() => {
+    // when rescheduling, prefer the booking host's username from bookingData
+    // this ensures we fetch the correct event type even when an org admin reschedules
+    if (bookingData?.user?.username) {
+      return formatUsername(bookingData.user.username);
+    }
     if (props.username) {
       return formatUsername(props.username);
     }
     return "";
-  }, [props.username]);
+  }, [props.username, bookingData?.user?.username]);
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
@@ -185,6 +193,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   useInitializeBookerStoreContext({
     ...props,
@@ -201,6 +210,7 @@ const BookerPlatformWrapperComponent = (
     bookingData,
     isPlatform: true,
     allowUpdatingUrlParams,
+    defaultPhoneCountry,
   });
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -233,22 +243,20 @@ const BookerPlatformWrapperComponent = (
   const extraOptions = useMemo(() => {
     return restFormValues;
   }, [restFormValues]);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
-  const { timezone } = useTimePreferences();
+  const { timezone: rawTimezone } = useTimePreferences();
+  const timezone = useStableTimezone(
+    rawTimezone,
+    event?.data?.restrictionScheduleId != null
+      ? { id: event.data.restrictionScheduleId, useBookerTimezone: event.data.useBookerTimezone }
+      : undefined
+  );
 
   const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const startTime =
@@ -291,16 +299,17 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
-          teamId: teamId,
-        }
+        isTeamEvent: props.isTeamEvent,
+        teamId: teamId,
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
       : {}),
     enabled:
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
       !event?.isPending &&
-      Boolean(event?.data?.id),
+      event?.data?.id != null,
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     _silentCalendarFailures: silentlyHandleCalendarFailures,
@@ -392,6 +401,7 @@ const BookerPlatformWrapperComponent = (
     name: bookerForm.formName,
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
+    eventTypeId: event?.data?.id,
   });
 
   const verifyCode = useVerifyCode({
@@ -441,6 +451,11 @@ const BookerPlatformWrapperComponent = (
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
+    ...(props.isTeamEvent
+      ? {
+        rrHostSubsetIds: rrHostSubsetIds,
+      }
+      : {}),
   });
 
   const onOverlaySwitchStateChange = useCallback(
@@ -518,16 +533,16 @@ const BookerPlatformWrapperComponent = (
         confirmButtonDisabled={confirmButtonDisabled}
         fromUserNameRedirected=""
         hasSession={hasSession}
-        onGoBackInstantMeeting={function (): void {
+        onGoBackInstantMeeting={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onConnectNowInstantMeeting={function (): void {
+        onConnectNowInstantMeeting={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onOverlayClickNoCalendar={function (): void {
+        onOverlayClickNoCalendar={(): void => {
           throw new Error("Function not implemented.");
         }}
-        onClickOverlayContinue={function (): void {
+        onClickOverlayContinue={(): void => {
           throw new Error("Function not implemented.");
         }}
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}
@@ -568,13 +583,17 @@ const BookerPlatformWrapperComponent = (
         event={event}
         schedule={schedule}
         orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
-        bookerLayout={{ ...bookerLayout, hideEventTypeDetails: hideEventMetadata }}
+        bookerLayout={{
+          ...bookerLayout,
+          hideEventTypeDetails: hideEventMetadata,
+        }}
         verifyCode={verifyCode}
         isPlatform
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
+        hideOrgTeamAvatar={hideOrgTeamAvatar}
       />
     </AtomsWrapper>
   );

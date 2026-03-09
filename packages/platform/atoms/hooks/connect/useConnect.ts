@@ -18,7 +18,7 @@ export const useGetRedirectUrl = (
   redir?: string,
   isDryRun?: boolean
 ) => {
-  const redirectUrl = !!redir ? encodeURIComponent(redir) : "";
+  const redirectUrl = redir ? encodeURIComponent(redir) : "";
 
   const authUrl = useQuery({
     queryKey: getQueryKey(calendar),
@@ -49,7 +49,15 @@ export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string,
     const redirectUri = await refetch();
 
     if (redirectUri.data) {
-      window.location.href = redirectUri.data;
+      let targetWindow;
+      if (window !== window.top && window.top) {
+        // if its an iframe, the target window should be the parent window
+        targetWindow = window.top;
+      } else {
+        targetWindow = window;
+      }
+
+      targetWindow.location.href = redirectUri.data;
     }
   };
 

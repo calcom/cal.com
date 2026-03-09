@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import {
   getCalendarCredentials,
   getConnectedCalendars,
@@ -13,7 +12,7 @@ import {
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -92,14 +91,7 @@ async function deleteHandler(req: NextRequest) {
   const user = await authMiddleware();
   const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
-  const { integration, externalId, credentialId, eventTypeId } =
-    selectedCalendarSelectSchema.parse(searchParams);
-
-  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  await calendarCacheRepository.unwatchCalendar({
-    calendarId: externalId,
-    eventTypeIds: [eventTypeId ?? null],
-  });
+  const { integration, externalId, eventTypeId } = selectedCalendarSelectSchema.parse(searchParams);
 
   await SelectedCalendarRepository.delete({
     where: {

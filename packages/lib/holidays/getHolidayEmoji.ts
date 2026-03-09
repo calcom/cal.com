@@ -1,0 +1,101 @@
+const HOLIDAY_EMOJI_MAP: Array<{ keywords: string[]; emoji: string }> = [
+  { keywords: ["christmas", "xmas", "noël", "navidad", "natal", "weihnacht"], emoji: "🎄" },
+  { keywords: ["chinese new year", "lunar new year", "spring festival"], emoji: "🐉" },
+  { keywords: ["new year", "año nuevo", "nouvel an", "neujahr", "capodanno"], emoji: "🎆" },
+  { keywords: ["boxing day", "st. stephen", "saint stephen", "stephen's day"], emoji: "🎁" },
+  { keywords: ["epiphany", "three kings", "reyes magos"], emoji: "👑" },
+  { keywords: ["easter", "pascua", "pâques", "pasqua", "ostern"], emoji: "🐣" },
+  { keywords: ["good friday", "viernes santo", "vendredi saint", "karfreitag"], emoji: "✝️" },
+  { keywords: ["ascension", "himmelfahrt", "ascensión"], emoji: "✝️" },
+  { keywords: ["pentecost", "whit", "pfingsten", "pentecôte"], emoji: "🕊️" },
+  { keywords: ["assumption", "assomption", "asunción", "mariä himmelfahrt"], emoji: "✝️" },
+  { keywords: ["palm sunday"], emoji: "🌿" },
+  { keywords: ["ash wednesday"], emoji: "✝️" },
+  { keywords: ["mother", "día de la madre", "fête des mères", "muttertag"], emoji: "💐" },
+  { keywords: ["father", "día del padre", "fête des pères", "vatertag"], emoji: "👔" },
+  { keywords: ["thanksgiving"], emoji: "🦃" },
+  { keywords: ["halloween", "all saints", "todos los santos", "allerheiligen", "toussaint"], emoji: "🎃" },
+  { keywords: ["valentine", "san valentín", "saint valentin", "valentinstag"], emoji: "💕" },
+  { keywords: ["martin luther king"], emoji: "✊" },
+  { keywords: ["presidents", "präsidenten"], emoji: "🏛️" },
+  { keywords: ["juneteenth"], emoji: "✊" },
+  { keywords: ["columbus", "indigenous"], emoji: "🌎" },
+  { keywords: ["independence", "independencia", "4th of july", "fourth of july", "july 4"], emoji: "🎆" },
+  { keywords: ["bastille", "14 juillet", "quatorze juillet"], emoji: "🎆" },
+  { keywords: ["guy fawkes", "bonfire night"], emoji: "🎆" },
+  { keywords: ["national day", "día nacional", "fête nationale", "nationalfeiertag"], emoji: "🏛️" },
+  { keywords: ["republic day", "día de la república", "tag der republik"], emoji: "🏛️" },
+  { keywords: ["constitution", "constitución", "verfassung"], emoji: "📜" },
+  { keywords: ["memorial", "remembrance", "veterans", "armistice", "volkstrauertag"], emoji: "🎖️" },
+  { keywords: ["liberation", "liberación", "victory", "befreiung"], emoji: "🕊️" },
+  { keywords: ["revolution", "revolución"], emoji: "✊" },
+  { keywords: ["unity", "unification", "einheit", "german unity"], emoji: "🤝" },
+  { keywords: ["flag day", "día de la bandera"], emoji: "🚩" },
+  {
+    keywords: ["labor", "labour", "workers", "trabajo", "travail", "may day", "tag der arbeit"],
+    emoji: "👷",
+  },
+  { keywords: ["diwali", "deepavali", "dipavali"], emoji: "🪔" },
+  { keywords: ["holi"], emoji: "🎨" },
+  { keywords: ["dussehra", "dasara", "vijayadashami"], emoji: "🏹" },
+  { keywords: ["ganesh", "ganesha", "vinayaka"], emoji: "🐘" },
+  { keywords: ["navratri", "navaratri"], emoji: "💃" },
+  { keywords: ["raksha bandhan", "rakhi"], emoji: "🎀" },
+  { keywords: ["janmashtami", "krishna"], emoji: "🪈" },
+  { keywords: ["makar sankranti", "pongal", "lohri"], emoji: "🪁" },
+  { keywords: ["ugadi", "gudi padwa"], emoji: "🌸" },
+  { keywords: ["onam"], emoji: "🛶" },
+  { keywords: ["eid al-fitr", "eid ul-fitr", "eid-ul-fitr"], emoji: "🌙" },
+  { keywords: ["eid al-adha", "eid ul-adha", "eid-ul-adha", "bakrid"], emoji: "🐑" },
+  { keywords: ["ramadan", "ramazan"], emoji: "🌙" },
+  { keywords: ["muharram"], emoji: "🕌" },
+  { keywords: ["milad", "mawlid", "prophet"], emoji: "🕌" },
+  { keywords: ["hanukkah", "chanukah", "hanukka"], emoji: "🕎" },
+  { keywords: ["passover", "pesach", "pessah"], emoji: "🍷" },
+  { keywords: ["rosh hashanah", "rosh hashana"], emoji: "🍎" },
+  { keywords: ["yom kippur"], emoji: "📖" },
+  { keywords: ["sukkot", "succot"], emoji: "🌿" },
+  { keywords: ["purim"], emoji: "🎭" },
+  { keywords: ["shavuot"], emoji: "📜" },
+  { keywords: ["vesak", "buddha", "bodhi"], emoji: "🪷" },
+  { keywords: ["mid-autumn", "moon festival", "mooncake"], emoji: "🥮" },
+  { keywords: ["dragon boat", "duanwu"], emoji: "🐲" },
+  { keywords: ["qingming", "tomb sweeping"], emoji: "🪦" },
+  { keywords: ["golden week"], emoji: "🌸" },
+  { keywords: ["obon", "bon festival"], emoji: "🏮" },
+  { keywords: ["children's day", "kodomo no hi"], emoji: "🎏" },
+  { keywords: ["coming of age", "seijin no hi"], emoji: "👘" },
+  { keywords: ["carnival", "carnaval", "mardi gras"], emoji: "🎭" },
+  { keywords: ["st. patrick", "saint patrick", "san patricio"], emoji: "☘️" },
+  { keywords: ["oktoberfest"], emoji: "🍺" },
+  { keywords: ["summer solstice", "midsummer"], emoji: "☀️" },
+  { keywords: ["winter solstice"], emoji: "❄️" },
+  { keywords: ["spring equinox"], emoji: "🌸" },
+  { keywords: ["autumn equinox", "fall equinox"], emoji: "🍂" },
+  { keywords: ["bank holiday"], emoji: "🏦" },
+  { keywords: ["public holiday"], emoji: "📅" },
+  { keywords: ["school", "education"], emoji: "📚" },
+  { keywords: ["election", "voting"], emoji: "🗳️" },
+  { keywords: ["harvest", "cosecha"], emoji: "🌾" },
+  { keywords: ["peace", "paz"], emoji: "🕊️" },
+  { keywords: ["women", "mujer", "femme"], emoji: "👩" },
+  { keywords: ["youth", "juventud"], emoji: "👦" },
+  { keywords: ["king", "queen", "royal", "coronation"], emoji: "👑" },
+  { keywords: ["birthday", "cumpleaños", "anniversaire"], emoji: "🎂" },
+];
+
+const DEFAULT_HOLIDAY_EMOJI = "📆";
+
+export function getHolidayEmoji(holidayName: string): string {
+  const lowerName = holidayName.toLowerCase();
+
+  for (const { keywords, emoji } of HOLIDAY_EMOJI_MAP) {
+    if (keywords.some((kw) => lowerName.includes(kw))) {
+      return emoji;
+    }
+  }
+
+  return DEFAULT_HOLIDAY_EMOJI;
+}
+
+export { HOLIDAY_EMOJI_MAP, DEFAULT_HOLIDAY_EMOJI };
