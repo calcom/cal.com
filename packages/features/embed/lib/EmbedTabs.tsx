@@ -186,10 +186,18 @@ ${getEmbedTypeSpecificString({
     "data-testid": "Preview",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
-      { calLink: string; embedType: EmbedType; previewState: PreviewState; namespace: string }
-    >(function Preview({ calLink, embedType }, ref) {
+      {
+        calLink: string;
+        embedType: EmbedType;
+        previewState: PreviewState;
+        namespace: string;
+        userSettingsTimezone?: string;
+      }
+    >(function Preview({ calLink, embedType, userSettingsTimezone }, ref) {
       const bookerUrl = useEmbedBookerUrl();
-      const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
+      const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}${
+        userSettingsTimezone ? `&timezone=${encodeURIComponent(userSettingsTimezone)}` : ""
+      }`;
       if (ref instanceof Function || !ref) {
         return null;
       }

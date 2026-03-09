@@ -50,6 +50,7 @@ const embedType = searchParams.get("embedType");
 const calLink = searchParams.get("calLink");
 const bookerUrl = searchParams.get("bookerUrl");
 const embedLibUrl = searchParams.get("embedLibUrl");
+const timezone = searchParams.get("timezone");
 
 if (!bookerUrl || !embedLibUrl) {
   throw new Error('Can\'t Preview: Missing "bookerUrl" or "embedLibUrl" query parameter');
@@ -66,6 +67,10 @@ if (!isSafeUrlToLoadResourceFrom(bookerUrl)) {
 if (!calLink) {
   throw new Error('Missing "calLink" query parameter');
 }
+
+const calLinkWithTimezone = timezone
+  ? `${calLink}${calLink.includes("?") ? "&" : "?"}cal.tz=${encodeURIComponent(timezone)}`
+  : calLink;
 
 // TODO: Reuse the embed code snippet from the embed-snippet package - Not able to use it because of circular dependency
 // Install Cal Embed Code Snippet
@@ -118,18 +123,18 @@ previewWindow.Cal("init", {
 if (embedType === "inline") {
   previewWindow.Cal("inline", {
     elementOrSelector: "#my-embed",
-    calLink: calLink,
+    calLink: calLinkWithTimezone,
   });
 } else if (embedType === "floating-popup") {
   previewWindow.Cal("floatingButton", {
-    calLink: calLink,
+    calLink: calLinkWithTimezone,
     attributes: {
       id: "my-floating-button",
     },
   });
 } else if (embedType === "element-click") {
   const button = document.createElement("button");
-  button.setAttribute("data-cal-link", calLink);
+  button.setAttribute("data-cal-link", calLinkWithTimezone);
   button.innerHTML = "I am a button that exists on your website";
   document.body.appendChild(button);
 }
