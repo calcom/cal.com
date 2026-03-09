@@ -24,7 +24,7 @@ export function WideUpgradeBannerForMembers() {
         text: t("learn_more"),
         href: "https://cal.com/help/routing/routing-with-attributes",
       }}>
-      <UpgradePlanDialog tracking="members" target="organization">
+      <UpgradePlanDialog tracking="large-upgrade-banner-for-members" target="organization">
         <Button variant="outline">
           {t("try_for_free")}
           <Icon name="arrow-right" />
