@@ -103,20 +103,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ message: "No payment record — ignoring" });
   }
 
-  // ── Idempotency check — must run BEFORE signature verification ────────────
-  // After a successful payment, webhookSecret is cleared from Payment.data.
-  // If Wayl retries, the secret is gone and signature verification would fail.
-  // Returning 200 here stops the retry loop safely.
-  if (payment.success) {
-    return res.status(200).json({ message: "Already processed" });
-  }
-
   // ── Verify signature using the per-payment webhookSecret ──────────────────
+  // webhookSecret is retained in Payment.data even after success so that
+  // legitimate Wayl retries can always be verified. Never skip verification —
+  // doing so would create an unauthenticated payment-state oracle.
   const paymentData = payment.data as WaylPaymentData | null;
   const webhookSecret = paymentData?.webhookSecret;
 
-  // webhookSecret must always be present for unconfirmed payments.
-  // A missing secret on an unconfirmed payment means the record is corrupt.
   if (!webhookSecret) {
     console.error(`[WaylWebhook] No webhookSecret found for booking ${referenceId} — rejecting`);
     return res.status(401).json({ message: "Cannot verify request — missing webhook secret" });
@@ -126,6 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!signature || !verifySignature(rawBody, signature, webhookSecret)) {
     console.warn(`[WaylWebhook] Invalid signature for booking ${referenceId}`);
     return res.status(401).json({ message: "Invalid signature" });
+  }
+
+  // ── Idempotency check — runs after signature is verified ─────────────────
+  if (payment.success) {
+    return res.status(200).json({ message: "Already processed" });
   }
 
   // ── Handle successful payment ─────────────────────────────────────────────
