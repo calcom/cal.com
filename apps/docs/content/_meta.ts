@@ -8,15 +8,11 @@ export default {
   "database-migrations": "Database Migrations",
   upgrading: "Upgrading",
   docker: "Docker",
+  apps: "Apps",
   "license-key": "License Key",
   "-- deployments": {
     type: "separator",
     title: "Deployments",
   },
   deployments: "Deployments",
-  "-- apps": {
-    type: "separator",
-    title: "Apps",
-  },
-  apps: "Apps",
 };
