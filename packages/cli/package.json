@@ -3,18 +3,33 @@
   "version": "0.0.1",
   "description": "CLI for Cal.com API v2",
   "license": "MIT",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "calcom": "./dist/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/calcom/cal.com",
+    "directory": "packages/cli"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
-    "dist",
-    "!dist/**/*.map"
+    "dist"
   ],
   "scripts": {
     "generate": "openapi-ts",
     "build": "yarn generate && tsc -p tsconfig.json && cp -r src/templates dist/",
     "dev": "ts-node --transpile-only src/index.ts",
-    "type-check": "tsc --noEmit"
+    "clean": "rm -rf dist .turbo node_modules",
+    "type-check": "tsc --noEmit",
+    "type-check:ci": "tsc --noEmit",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "prepack": "yarn build"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.6.0",
@@ -22,8 +37,10 @@
     "commander": "12.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.10",
     "@hey-api/openapi-ts": "^0.61.0",
     "@types/node": "^20.17.23",
+    "ts-node": "10.9.2",
     "typescript": "5.9.3"
   }
 }
