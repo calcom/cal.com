@@ -26,7 +26,7 @@
     "dev": "ts-node --transpile-only src/index.ts",
     "clean": "rm -rf dist .turbo node_modules",
     "type-check": "tsc --noEmit",
-    "type-check:ci": "tsc --noEmit",
+    "type-check:ci": "yarn generate && tsc --noEmit",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "prepack": "yarn build"
