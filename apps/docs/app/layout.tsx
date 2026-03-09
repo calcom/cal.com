@@ -49,7 +49,12 @@ const navbar: React.ReactElement = (
 );
 
 const footer: React.ReactElement = (
-  <Footer>MIT {new Date().getFullYear()} © Cal.com, Inc.</Footer>
+  <Footer>
+    <small>
+      Cal.diy is the open source community edition of Cal.com. Cal.com® and Cal®
+      are a registered trademark by Cal.com, Inc. All rights reserved.
+    </small>
+  </Footer>
 );
 
 export const metadata: { title: string; description: string } = {

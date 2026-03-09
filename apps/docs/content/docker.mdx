@@ -2,11 +2,11 @@
 
 ### Introduction
 
-This image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.com](https://hub.docker.com/r/calcom/cal.com). Note for ARM Users: Use the `-arm` suffix for pulling images. Example: `docker pull calcom/cal.com:v5.6.19-arm`.
+This image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.diy](https://hub.docker.com/r/calcom/cal.diy). Note for ARM Users: Use the `-arm` suffix for pulling images. Example: `docker pull calcom/cal.diy:v5.6.19-arm`.
 
 ### Contributing
 
-The Docker configuration for Cal.com is officially maintained in the main Cal.com repository. The Dockerfile and docker-compose.yml are located in the root of the calcom/cal.com repository. If you want to contribute to the Docker setup, please open an issue or pull request in the main Cal.com repository.
+The Docker configuration for Cal.diy is officially maintained in the main Cal.diy repository. The Dockerfile and docker-compose.yml are located in the root of the calcom/cal.diy repository. If you want to contribute to the Docker setup, please open an issue or pull request in the main Cal.diy repository.
 
 ### Requirements
 
@@ -14,16 +14,16 @@ Make sure you have `docker` & `docker compose` installed on the server / system.
 
 ### Getting Started
 
-Clone the Cal.com repository
+Clone the Cal.diy repository
 
 ```bash
-git clone https://github.com/calcom/cal.com.git
+git clone https://github.com/calcom/cal.diy.git
 ```
 
 Change into the directory
 
 ```bash
-cd cal.com
+cd cal.diy
 ```
 
 Prepare your configuration: Rename .env.example to .env and then update .env
@@ -38,30 +38,30 @@ cp .env.example .env
 docker compose pull
 ```
 
-Start Cal.com via docker compose (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+Start Cal.diy via docker compose (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.diy web app, and Prisma Studio:
 
 ```bash
 docker compose up -d
 ```
 
-To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
+To run Cal.diy web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
 
 ```bash
 docker compose up -d calcom studio
 ```
 
-To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
+To run only the Cal.diy web app, ensure that DATABASE_URL is configured for an available database and run:
 
 ```bash
 docker compose up -d calcom
 ```
 
 1. Most configurations can be left as-is, but for configuration options see Important Run-time variables below. Update the appropriate values in your .env file, then proceed.
-2. Open a browser to http://localhost:3000, or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+2. Open a browser to http://localhost:3000, or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.diy, a setup wizard will initialize. Define your first user, and you're ready to go!
 
 ### Update Calcom Instance
 
-Stop the Cal.com stack
+Stop the Cal.diy stack
 
 ```bash
 docker compose down
@@ -73,7 +73,7 @@ Pull the latest changes
 docker compose pull
 ```
 
-Re-start the Cal.com stack
+Re-start the Cal.diy stack
 
 ```bash
 docker compose up -d
@@ -97,7 +97,7 @@ These variables must be provided at the time of the docker build, and can be pro
 
 ## Advanced Users - Building and Configuring
 
-For more detailed instructions on how to build and configure your own Docker image, refer to the Dockerfile and docker-compose.yml in the root of the Cal.com repository.
+For more detailed instructions on how to build and configure your own Docker image, refer to the Dockerfile and docker-compose.yml in the root of the Cal.diy repository.
 
 ## Troubleshooting
 
