@@ -103,13 +103,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ message: "No payment record — ignoring" });
   }
 
+  // ── Idempotency check — must run BEFORE signature verification ────────────
+  // After a successful payment, webhookSecret is cleared from Payment.data.
+  // If Wayl retries, the secret is gone and signature verification would fail.
+  // Returning 200 here stops the retry loop safely.
+  if (payment.success) {
+    return res.status(200).json({ message: "Already processed" });
+  }
+
   // ── Verify signature using the per-payment webhookSecret ──────────────────
   const paymentData = payment.data as WaylPaymentData | null;
   const webhookSecret = paymentData?.webhookSecret;
 
-  // webhookSecret must always be present — it was stored when the link was created.
-  // A missing secret means the payment record is corrupt; reject to avoid confirming
-  // bookings from unauthenticated requests.
+  // webhookSecret must always be present for unconfirmed payments.
+  // A missing secret on an unconfirmed payment means the record is corrupt.
   if (!webhookSecret) {
     console.error(`[WaylWebhook] No webhookSecret found for booking ${referenceId} — rejecting`);
     return res.status(401).json({ message: "Cannot verify request — missing webhook secret" });
@@ -124,11 +131,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // ── Handle successful payment ─────────────────────────────────────────────
   // Wayl sends event = "order.created" when payment is complete
   if (event === "order.created") {
-    if (payment.success) {
-      // Already processed — respond 200 to prevent duplicate retries
-      return res.status(200).json({ message: "Already processed" });
-    }
-
     await prisma.$transaction([
       prisma.payment.update({
         where: { id: payment.id },
