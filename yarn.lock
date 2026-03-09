@@ -2319,7 +2319,7 @@ __metadata:
     "@hookform/resolvers": "npm:2.9.7"
     "@sendgrid/client": "npm:7.7.0"
     "@sendgrid/mail": "npm:7.7.0"
-    libphonenumber-js: "npm:^1.11.18"
+    libphonenumber-js: "npm:^1.12.38"
     twilio: "npm:3.84.1"
     zod: "npm:3.25.76"
   peerDependencies:
@@ -2926,7 +2926,7 @@ __metadata:
     "@types/express": "npm:4.17.21"
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.14.3"
-    libphonenumber-js: "npm:1.10.49"
+    libphonenumber-js: "npm:1.12.38"
     luxon: "npm:3.4.4"
     zod: "npm:3.25.76"
   languageName: unknown
@@ -2977,6 +2977,8 @@ __metadata:
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
     zod-prisma-types: "npm:3.2.4"
+  bin:
+    prisma-enum-generator: ./run-enum-generator.js
   languageName: unknown
   linkType: soft
 
@@ -3412,7 +3414,7 @@ __metadata:
     jotai: "npm:2.12.2"
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
-    libphonenumber-js: "npm:^1.11.18"
+    libphonenumber-js: "npm:^1.12.38"
     lodash: "npm:4.17.23"
     markdown-it: "npm:13.0.1"
     md5: "npm:2.3.0"
@@ -27178,17 +27180,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:1.11.18":
-  version: 1.11.18
-  resolution: "libphonenumber-js@npm:1.11.18"
-  checksum: 10/102ecd0b93e392aca14330801c4e9da60008ba04f9ea1db7a0e1bdf46d6b4279fb31421ae38b0ca74bb37fe5a194004c4bf375d6cd5c953cdbb30bb01cec5e3f
+"libphonenumber-js@npm:1.12.38":
+  version: 1.12.38
+  resolution: "libphonenumber-js@npm:1.12.38"
+  checksum: 10/98e5a254190cda80f4aad7afe2a6e3ad4ce651cfc2f6fff8b8e31e6ab8c3ddceb2605ea03a217aaa9fbcd8898663a76763e3c89f61d975b968e2d8b37693ea63
   languageName: node
   linkType: hard
 
-"libphonenumber-js@patch:libphonenumber-js@1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::locator=calcom-monorepo%40workspace%3A.":
-  version: 1.11.18
-  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::version=1.11.18&hash=18a67d&locator=calcom-monorepo%40workspace%3A."
-  checksum: 10/0918299a9d38ef0adefaf8eafa757c1d843be06f9ac7b9cf58f35ff9091b32bf21b2d7cfa02a8f9700c56f49f9c7e4e6e40d7f342dac3a91e952226a9ea5c029
+"libphonenumber-js@patch:libphonenumber-js@1.12.38#./.yarn/patches/libphonenumber-js+1.12.38.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.12.38
+  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.12.38#./.yarn/patches/libphonenumber-js+1.12.38.patch::version=1.12.38&hash=18a67d&locator=calcom-monorepo%40workspace%3A."
+  checksum: 10/707404eda471b34d6441b5f9f3a75fdf5da8b8329900c17790ea91cc7db6f90db62dbb5ad561e2d9d0df942dea633f91eca4d6382f1833cbbf1f354be9437ff5
   languageName: node
   linkType: hard
 
