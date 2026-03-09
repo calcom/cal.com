@@ -47,13 +47,15 @@ function registerOrgWebhookQueryCommands(orgWebhooksCmd: Command): void {
   orgWebhooksCmd
     .command("get <webhookId>")
     .description("Get an organization webhook by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (webhookId: string, options: { json?: boolean }) => {
+    .action(async (webhookId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getOrgWebhook({
-          path: { webhookId },
+          path: { orgId, webhookId },
           headers: authHeader(),
         });
 
@@ -113,6 +115,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
   orgWebhooksCmd
     .command("update <webhookId>")
     .description("Update an organization webhook")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--subscriber-url <url>", "New subscriber URL")
     .option("--triggers <triggers>", "New event triggers (comma-separated)")
     .option("--active <value>", "Active status (true/false)")
@@ -123,6 +126,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
       async (
         webhookId: string,
         options: {
+          orgId: string;
           subscriberUrl?: string;
           triggers?: string;
           active?: string;
@@ -133,6 +137,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
+          const orgId = Number(options.orgId);
 
           const body: UpdateWebhookInputDto = {};
           if (options.subscriberUrl) body.subscriberUrl = options.subscriberUrl;
@@ -146,7 +151,7 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
           if (options.payloadTemplate) body.payloadTemplate = options.payloadTemplate;
 
           const { data: response } = await updateOrgWebhook({
-            path: { webhookId },
+            path: { orgId, webhookId },
             body,
             headers: authHeader(),
           });
@@ -159,13 +164,15 @@ function registerOrgWebhookMutationCommands(orgWebhooksCmd: Command): void {
   orgWebhooksCmd
     .command("delete <webhookId>")
     .description("Delete an organization webhook")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (webhookId: string, options: { json?: boolean }) => {
+    .action(async (webhookId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
+        const orgId = Number(options.orgId);
 
         await deleteOrgWebhook({
-          path: { webhookId },
+          path: { orgId, webhookId },
           headers: authHeader(),
         });
 
