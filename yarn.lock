@@ -2720,7 +2720,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@npm:*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -2764,9 +2764,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/lyra@workspace:packages/app-store/lyra"
   dependencies:
-    "@calcom/lib": "npm:*"
-    "@calcom/prisma": "npm:*"
-    "@calcom/types": "npm:*"
+    "@calcom/lib": "workspace:*"
+    "@calcom/prisma": "workspace:*"
+    "@calcom/types": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -2955,7 +2955,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/prisma@npm:*, @calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
+"@calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
@@ -3191,7 +3191,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/types@npm:*, @calcom/types@workspace:*, @calcom/types@workspace:packages/types":
+"@calcom/types@workspace:*, @calcom/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
   dependencies:
