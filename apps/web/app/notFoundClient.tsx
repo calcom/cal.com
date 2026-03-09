@@ -1,9 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useLayoutEffect } from "react";
-
 import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
@@ -11,6 +7,9 @@ import {
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLayoutEffect } from "react";
 
 enum PageType {
   ORG = "ORG",
@@ -115,32 +114,41 @@ export function NotFound({ host }: { host: string }) {
       <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
         <div className="text-center">
           <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
-          <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
-            {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
-          </h1>
           {isSubpage && pageType !== PageType.TEAM ? (
-            <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
+            <>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
+              </h1>
+              <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
+            </>
           ) : IS_CALCOM ? (
-            <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
-              {username ? (
-                <>
-                  <strong className="text-blue-500">{username}</strong>
-                  {` ${t("is_still_available")} `}
-                  <span className="text-blue-500">{t("register_now")}</span>.
-                </>
-              ) : null}
-            </a>
+            <>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                <a target="_blank" href={url} rel="noreferrer">
+                  {t(`404_the_${pageType.toLowerCase()}`)}{" "}
+                  {username ? (
+                    <>
+                      <strong className="text-blue-500">{username}</strong>
+                      {` ${t("is_still_available")} `}
+                      <span className="text-blue-500">{t("register_now")}</span>.
+                    </>
+                  ) : null}
+                </a>
+              </h1>
+              <span className="text-emphasis mt-2 inline-block text-lg">{t("page_doesnt_exist")}</span>
+            </>
           ) : (
-            <span className="mt-2 inline-block text-lg">
-              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
-              {username ? (
-                <>
-                  <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
-                  {t("is_still_available")}
-                </>
-              ) : null}
-            </span>
+            <>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                {t(`404_the_${pageType.toLowerCase()}`)}{" "}
+                {username ? (
+                  <>
+                    <strong className="text-green-500">{username}</strong> {t("is_still_available")}
+                  </>
+                ) : null}
+              </h1>
+              <span className="text-emphasis mt-2 inline-block text-lg">{t("page_doesnt_exist")}</span>
+            </>
           )}
         </div>
         <div className="mt-12">
