@@ -10,10 +10,8 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { appWithTranslation } from "next-i18next";
-import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
-import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import type { AppProps as NextAppProps } from "next/app";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "node:querystring";
 import type { PropsWithChildren, ReactNode } from "react";
@@ -29,21 +27,12 @@ import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import { useNuqsParams } from "@lib/hooks/useNuqsParams";
 import type { WithLocaleProps } from "@lib/withLocale";
 
-import { useViewerI18n } from "@components/I18nLanguageHandler";
-
-const I18nextAdapter = appWithTranslation<
-  NextJsAppProps<SSRConfig> & {
-    children: React.ReactNode;
-  }
->(({ children }) => <>{children}</>);
-
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
     WithLocaleProps<{
       themeBasis?: string;
       session: Session;
-      i18n?: SSRConfig;
     }>
   >,
   "Component"
@@ -70,11 +59,7 @@ const getEmbedNamespace = (query: ParsedUrlQuery) => {
   return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
 };
 
-const CustomI18nextProvider = (props: AppPropsWithChildren) => {
-  /**
-   * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
-   **/
-
+const LocaleProvider = ({ children, ...props }: AppPropsWithChildren) => {
   const session = useSession();
   const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
 
@@ -108,19 +93,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
     window.document.dir = dir(locale);
   }, [locale]);
 
-  const clientViewerI18n = useViewerI18n(locale);
-  const i18n = clientViewerI18n.data?.i18n ?? props.pageProps.i18n;
-
-  const passedProps = {
-    ...props,
-    pageProps: {
-      ...props.pageProps,
-
-      ...i18n,
-    },
-  };
-
-  return <I18nextAdapter {...passedProps} />;
+  return <>{children}</>;
 };
 
 const enum ThemeSupport {
@@ -279,7 +252,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const nuqsParams = useNuqsParams();
 
   const RemainingProviders = (
-    <CustomI18nextProvider {...props}>
+    <LocaleProvider {...props}>
       <TooltipProvider>
         <CalcomThemeProvider
           themeBasis={props.pageProps.themeBasis}
@@ -299,7 +272,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
           </NuqsAdapter>
         </CalcomThemeProvider>
       </TooltipProvider>
-    </CustomI18nextProvider>
+    </LocaleProvider>
   );
 
   if (isBookingPage) {

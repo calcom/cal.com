@@ -49,8 +49,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
       if (isPublic && paths) {
         const FIVE_MINUTES_IN_SECONDS = 5 * 60;
         const ONE_YEAR_IN_SECONDS = 31536000;
-        const SETTING_FOR_CACHED_BY_VERSION =
-          process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`;
 
         const IMMUTABLE_CACHE =
           process.env.NODE_ENV === "development"
@@ -60,8 +58,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const cacheRules = {
           session: "no-cache",
 
-          // i18n is accessed using CalComVersion, which updates on every release.
-          "i18n.get": SETTING_FOR_CACHED_BY_VERSION,
           // cityTimezones is accessed using a content hash that only changes when timezone data changes,
           // so we can safely mark it as immutable — the URL itself changes when the data changes.
           cityTimezones: IMMUTABLE_CACHE,
