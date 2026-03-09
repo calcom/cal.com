@@ -603,6 +603,7 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
     traceContext: passedTraceContext,
+    impersonatedByUserUuid,
   } = input;
   let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
 
@@ -1832,6 +1833,7 @@ async function handler(
         organizationId: eventOrganizationId,
         actionSource,
         traceContext,
+        impersonatedByUserUuid: impersonatedByUserUuid ?? null,
         deps,
       },
       deps.featuresRepository
@@ -2518,10 +2520,11 @@ async function handler(
     isRecurringBooking: !!input.bookingData.allRecurringDates,
     attendeeSeatId: evt.attendeeSeatId ?? null,
     tracingLogger,
+    impersonatedByUserUuid: impersonatedByUserUuid ?? null,
     isBookingAuditEnabled,
   });
 
-  const webhookLocation = metadata?.videoCallUrl || evt.location;
+  const webhookLocation= metadata?.videoCallUrl || evt.location;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {
@@ -2961,6 +2964,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking,
     attendeeSeatId,
     tracingLogger,
+    impersonatedByUserUuid,
     isBookingAuditEnabled,
   }: {
     booking: {
@@ -2987,6 +2991,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking: boolean;
     tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
     attendeeSeatId: string | null;
+    impersonatedByUserUuid: string | null;
     isBookingAuditEnabled: boolean;
   }) {
     try {
@@ -3020,6 +3025,8 @@ export class RegularBookingService implements IBookingService {
         logger: tracingLogger,
       });
 
+      const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
       // For recurring bookings we fire the events in the RecurringBookingService
       if (!isRecurringBooking) {
         if (originalRescheduledBooking) {
@@ -3040,6 +3047,7 @@ export class RegularBookingService implements IBookingService {
             }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         } else {
@@ -3049,6 +3057,7 @@ export class RegularBookingService implements IBookingService {
             auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         }
@@ -3059,11 +3068,25 @@ export class RegularBookingService implements IBookingService {
   }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      {
+        bookingData: input.bookingData,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+      },
+      this.deps
+    );
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      {
+        bookingData: input.bookingData,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+      },
+      this.deps
+    );
   }
 
   /**
@@ -3074,11 +3097,11 @@ export class RegularBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
-    const bookingMeta = input.bookingMeta ?? {};
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        ...bookingMeta,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       },
       this.deps,
       input.bookingDataSchemaGetter
