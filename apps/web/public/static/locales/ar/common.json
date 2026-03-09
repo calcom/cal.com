@@ -93,7 +93,7 @@
   "view": "عرض",
   "calendly_import": "استيراد من calendly",
   "calendly_authorized": "تم الاستيراد من Calendly بالفعل",
-  "notify_calendly_import": "إشعار العملاء السابقين بشأن انتقالك",
+  "notify_calendly_import": "أخبر الأشخاص الذين حجزوا سابقًا عن معرف Cal الجديد الخاص بك",
   "schedule": "جدولة",
   "choose_a_meeting_type": "اختر نوع الاجتماع",
   "choose_a_team_member": "اختر عضوًا في الفريق",

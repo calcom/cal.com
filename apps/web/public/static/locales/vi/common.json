@@ -93,7 +93,7 @@
   "view": "Xem",
   "calendly_import": "Nhập từ Calendly",
   "calendly_authorized": "Đã nhập từ Calendly",
-  "notify_calendly_import": "Thông báo cho những người đã đặt lịch về việc bạn di chuyển dữ liệu",
+  "notify_calendly_import": "Thông báo cho những người đã đặt lịch trước đây về ID Cal mới của bạn",
   "schedule": "Lịch trình",
   "choose_a_meeting_type": "Chọn loại cuộc họp",
   "choose_a_team_member": "Chọn thành viên trong nhóm",

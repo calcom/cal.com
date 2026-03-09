@@ -93,7 +93,7 @@
   "view": "Zobraziť",
   "calendly_import": "Importovať z Calendly",
   "calendly_authorized": "Calendly už bolo importované",
-  "notify_calendly_import": "Informovať predchádzajúcich objednávateľov o vašej migrácii",
+  "notify_calendly_import": "Oznámte minulým rezervujúcim vaše nové Cal ID",
   "schedule": "Rozvrh",
   "choose_a_meeting_type": "Vyberte typ stretnutia",
   "choose_a_team_member": "Vyberte člena tímu",

@@ -93,7 +93,7 @@
   "view": "Vis",
   "calendly_import": "Importer fra Calendly",
   "calendly_authorized": "Calendly allerede importeret",
-  "notify_calendly_import": "Underret tidligere bookere om din migration",
+  "notify_calendly_import": "Giv besked til tidligere bookere om dit nye Cal ID",
   "schedule": "Planlæg",
   "choose_a_meeting_type": "Vælg en mødetype",
   "choose_a_team_member": "Vælg et teammedlem",

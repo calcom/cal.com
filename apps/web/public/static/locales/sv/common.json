@@ -93,7 +93,7 @@
   "view": "Visa",
   "calendly_import": "Importera från Calendly",
   "calendly_authorized": "Calendly redan importerad",
-  "notify_calendly_import": "Meddela tidigare bokare om din migrering",
+  "notify_calendly_import": "Informera tidigare bokare om ditt nya Cal-ID",
   "schedule": "Schema",
   "choose_a_meeting_type": "Välj ett mötestyp",
   "choose_a_team_member": "Välj en teammedlem",

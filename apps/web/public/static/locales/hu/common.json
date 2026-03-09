@@ -93,7 +93,7 @@
   "view": "Megtekintés",
   "calendly_import": "Importálás a Calendly-ból",
   "calendly_authorized": "A Calendly már importálva lett",
-  "notify_calendly_import": "Értesítsd a korábbi foglalókat a migrációdról",
+  "notify_calendly_import": "Értesítse a korábbi foglalókat az új Cal ID-járól",
   "schedule": "Ütemezés",
   "choose_a_meeting_type": "Válassz találkozótípust",
   "choose_a_team_member": "Válassz csapattagot",

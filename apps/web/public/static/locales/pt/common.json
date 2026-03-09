@@ -93,7 +93,7 @@
   "view": "Ver",
   "calendly_import": "Importar do Calendly",
   "calendly_authorized": "Calendly já importado",
-  "notify_calendly_import": "Notifique os agendadores anteriores sobre sua migração",
+  "notify_calendly_import": "Notifique os antigos agendadores sobre o seu novo ID do Calendly",
   "schedule": "Agenda",
   "choose_a_meeting_type": "Escolha um tipo de reunião",
   "choose_a_team_member": "Escolha um membro da equipe",

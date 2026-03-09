@@ -93,7 +93,7 @@
   "view": "表示",
   "calendly_import": "Calendlyからインポート",
   "calendly_authorized": "Calendlyはすでにインポート済みです",
-  "notify_calendly_import": "過去に予約した方へ移行について通知する",
+  "notify_calendly_import": "過去に予約した方に新しいCal IDをお知らせする",
   "schedule": "スケジュール",
   "choose_a_meeting_type": "ミーティングタイプを選択",
   "choose_a_team_member": "チームメンバーを選択",

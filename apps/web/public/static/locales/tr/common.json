@@ -93,7 +93,7 @@
   "view": "Görüntüle",
   "calendly_import": "Calendly'den içe aktar",
   "calendly_authorized": "Calendly zaten içe aktarıldı",
-  "notify_calendly_import": "Geçmişte rezervasyon yapanlara geçişinizi bildir",
+  "notify_calendly_import": "Geçmişte rezervasyon yapanlara yeni Cal ID'nizi bildirin",
   "schedule": "Takvim",
   "choose_a_meeting_type": "Bir toplantı türü seçin",
   "choose_a_team_member": "Bir ekip üyesi seçin",

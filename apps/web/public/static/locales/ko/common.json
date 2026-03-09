@@ -93,7 +93,7 @@
   "view": "보기",
   "calendly_import": "Calendly에서 가져오기",
   "calendly_authorized": "이미 Calendly가 가져와졌습니다",
-  "notify_calendly_import": "이전 예약자에게 마이그레이션 사실 알리기",
+  "notify_calendly_import": "이전에 예약한 사람들에게 새 Cal ID를 알리세요",
   "schedule": "일정",
   "choose_a_meeting_type": "미팅 유형 선택",
   "choose_a_team_member": "팀원 선택",
