@@ -268,7 +268,11 @@ const OnboardingPage = (props: PageProps) => {
               )}
 
               {currentStep === "connected-video" && (
-                <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                <ConnectedVideoStep
+                  nextStep={goToNextStep}
+                  isPageLoading={isNextStepLoading}
+                  userId={user?.id}
+                />
               )}
             </Suspense>
           </StepCard>
