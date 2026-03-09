@@ -10,7 +10,7 @@
   "extendsFeature": "EventType",
   "publisher": "dzylo.ai",
   "email": "contact@dzylo.com",
-  "description": "Dzylo is an all-in-one, AI-powered software built for interior designers, architects, and contractors. From managing leads and generating quotations to tracking projects, approving expenses, handling vendor payments, and controlling inventory, Dzylo brings every part of your interior business into one powerful platform. With built-in automation and a Meta-verified WhatsApp API, Dzylo helps you save time, reduce costs, and deliver projects with confidence.",
+  "description": "Dzylo is a All in one Business Management Platform for Interior Businesses. It allows managing Interior Leads, Projects, Finances, and Whatsapp Automation among many others. It includes Modular and Interior Quotation tool. With cal.com integration you can automate leads ingestion and updates in CRM.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",

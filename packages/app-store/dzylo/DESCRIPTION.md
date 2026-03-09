@@ -7,4 +7,4 @@ items:
   - dzylo_calcom5.png
 ---
 
-Dzylo is All in one Business Management Platform for Interior Businesses. It allows managing Interior Leads, Projects, Finances, and Vendor Payments. It includes Modular and Interior Quotation tool. With cal.com integration you can automate leads ingestion and update in CRM.
+Dzylo is a All in one Business Management Platform for Interior Businesses. It allows managing Interior Leads, Projects, Finances, and Whatsapp Automation among many others. It includes Modular and Interior Quotation tool. With cal.com integration you can automate leads ingestion and updates in CRM.
