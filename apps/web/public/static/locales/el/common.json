@@ -13,7 +13,8 @@
   "configure_your_webhook": "Χρησιμοποιήστε το παρακάτω callback και το token επαλήθευσης για να εγγράψετε το webhook σας στη διαμόρφωση της εφαρμογής WhatsApp.",
   "select_whatsapp_template": "Επιλογή προτύπου WhatsApp",
   "workflow_status": "Κατάσταση ροής εργασίας",
-  "workflow_reminders": "Αυτοματοποιήσεις ροής εργασίας",
+  "select_attendee_for_their_workflow_status": "Επιλέξτε έναν συμμετέχοντα για να δείτε την κατάσταση της ροής εργασίας του",
+  "workflow_status_description": "Δείτε την κατάσταση της ροής εργασίας για αυτήν την κράτηση",
   "pw_check_least_char": "Τουλάχιστον 7 χαρακτήρες",
   "pw_check_mix_case": "Συνδυασμός κεφαλαίων & πεζών",
   "pw_check_number": "Τουλάχιστον ένας αριθμός",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "Δικό σας για πάντα",
   "claim_username_yours_forever_description": "Μόλις διεκδικηθεί, κλειδώνει",
   "workflow_trigger": "Πότε πρέπει να ενεργοποιηθεί αυτή η ροή εργασίας;",
-  "worflow_trigger_channel": "Σε ποιο κανάλι πρέπει να ενεργοποιηθεί αυτή η ροή εργασίας;"
+  "worflow_trigger_channel": "Σε ποιο κανάλι πρέπει να ενεργοποιηθεί αυτή η ροή εργασίας;",
+  "yourname_title_page": "Το όνομά σας",
+  "yourname_description_page": "Διεκδικήστε το μοναδικό σας όνομα Cal ID πριν το πάρει κάποιος άλλος.",
+  "yourname_title": "Κάντε δικό σας το όνομα σας στο {{appName}}.",
+  "yourname_description": "Διεκδικήστε το μοναδικό σας όνομα στο {{appName}} πριν το πάρει κάποιος άλλος.",
+  "smart_suggestions": "Έξυπνες προτάσεις",
+  "loading_suggestions": "Φόρτωση προτάσεων...",
+  "shuffle": "Τυχαία ανάμιξη",
+  "congratulations": "Συγχαρητήρια",
+  "redirecting_in": "Ανακατεύθυνση σε",
+  "yourname_reserved": "Το όνομα χρήστη <strong>{{username}}</strong> έχει δεσμευτεί."
 }

@@ -13,7 +13,8 @@
   "configure_your_webhook": "استخدم رابط الاستدعاء ورمز التحقق التالي للاشتراك في webhook الخاص بك في تكوين تطبيق WhatsApp.",
   "select_whatsapp_template": "اختر قالب WhatsApp",
   "workflow_status": "حالة سير العمل",
-  "workflow_reminders": "أتمتة سير العمل",
+  "select_attendee_for_their_workflow_status": "اختر أحد الحضور لعرض حالة سير العمل الخاصة به",
+  "workflow_status_description": "عرض حالة سير العمل لهذا الحجز",
   "pw_check_least_char": "7 أحرف على الأقل",
   "pw_check_mix_case": "مزيج من الحروف الكبيرة والصغيرة",
   "pw_check_number": "رقم واحد على الأقل",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "ملكك للأبد",
   "claim_username_yours_forever_description": "بمجرد حجزه، يصبح محفوظاً لك",
   "workflow_trigger": "متى يجب تشغيل سير العمل هذا؟",
-  "worflow_trigger_channel": "على أي قناة يجب تشغيل سير العمل هذا؟"
+  "worflow_trigger_channel": "على أي قناة يجب تشغيل سير العمل هذا؟",
+  "yourname_title_page": "اسمك",
+  "yourname_description_page": "احجز اسم المعرف الفريد الخاص بك في Cal قبل أن يحجزه شخص آخر.",
+  "yourname_title": "امتلك اسمك على {{appName}}.",
+  "yourname_description": "احجز اسمك الفريد على {{appName}} قبل أن يحجزه شخص آخر.",
+  "smart_suggestions": "اقتراحات ذكية",
+  "loading_suggestions": "جارٍ تحميل الاقتراحات...",
+  "shuffle": "عشوائي",
+  "congratulations": "مبروك",
+  "redirecting_in": "سيتم إعادة التوجيه خلال",
+  "yourname_reserved": "المعرف <strong>{{username}}</strong> محجوز."
 }

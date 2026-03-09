@@ -13,7 +13,8 @@
   "configure_your_webhook": "WhatsApp অ্যাপ কনফিগারেশনে আপনার webhook সাবস্ক্রাইব করতে নিম্নলিখিত callback এবং verification token ব্যবহার করুন।",
   "select_whatsapp_template": "WhatsApp টেমপ্লেট নির্বাচন করুন",
   "workflow_status": "ওয়ার্কফ্লো স্ট্যাটাস",
-  "workflow_reminders": "ওয়ার্কফ্লো অটোমেশন",
+  "select_attendee_for_their_workflow_status": "কোনো অংশগ্রহণকারী নির্বাচন করুন তাদের ওয়ার্কফ্লো স্ট্যাটাস দেখতে",
+  "workflow_status_description": "এই বুকিংয়ের জন্য ওয়ার্কফ্লো স্ট্যাটাস দেখুন",
   "pw_check_least_char": "কমপক্ষে 7 অক্ষর",
   "pw_check_mix_case": "বড় হাতের এবং ছোট হাতের মিশ্রণ",
   "pw_check_number": "কমপক্ষে একটি নম্বর",
@@ -3760,5 +3761,15 @@
   "claim_username_yours_forever_title": "চিরকালের জন্য আপনার",
   "claim_username_yours_forever_description": "একবার দাবি করলে, এটি লক হয়ে যায়",
   "workflow_trigger": "এই ওয়ার্কফ্লো কখন ট্রিগার করা উচিত?",
-  "worflow_trigger_channel": "কোন চ্যানেলে এই ওয়ার্কফ্লো ট্রিগার করা উচিত?"
+  "worflow_trigger_channel": "কোন চ্যানেলে এই ওয়ার্কফ্লো ট্রিগার করা উচিত?",
+  "yourname_title_page": "ইউরনেম",
+  "yourname_description_page": "আপনার অনন্য Cal ID নামটি অন্য কেউ নেওয়ার আগে দাবি করুন।",
+  "yourname_title": "নিজের {{appName}} নামের মালিক হোন।",
+  "yourname_description": "অন্য কেউ নেওয়ার আগেই আপনার ইউনিক {{appName}} নামটি দাবি করুন।",
+  "smart_suggestions": "স্মার্ট পরামর্শ",
+  "loading_suggestions": "পরামর্শ লোড হচ্ছে...",
+  "shuffle": "শাফ্‌ল করুন",
+  "congratulations": "অভিনন্দন",
+  "redirecting_in": "পুনঃনির্দেশ করা হচ্ছে",
+  "yourname_reserved": "<strong>{{username}}</strong> হ্যান্ডেলটি সংরক্ষণ করা হয়েছে।"
 }
