@@ -17,15 +17,12 @@ export function isUserHostOfBooking(booking: BookingItemProps): boolean {
     return false;
   }
 
-  // Check if user is the booking owner
   if (booking.user?.id != null && booking.user.id === loggedInUserId) {
     return true;
   }
 
-  // Check if user is an event type host AND assigned to this booking via attendee email
   const userHost = booking.eventType?.hosts?.find((host) => host.userId === loggedInUserId);
   if (userHost?.user?.email) {
-    // Verify the host is assigned to this booking by checking attendee emails
     const isAssignedToBooking = booking.attendees?.some(
       (attendee) => attendee.email === userHost.user?.email
     );
@@ -34,7 +31,6 @@ export function isUserHostOfBooking(booking: BookingItemProps): boolean {
     }
   }
 
-  // Check if user is the event type owner
   if (booking.eventType?.owner?.id != null && booking.eventType.owner.id === loggedInUserId) {
     return true;
   }

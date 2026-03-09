@@ -205,7 +205,6 @@ function BookingListItem(booking: BookingItemProps) {
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
   const cardCharged = booking?.payment[0]?.success;
 
-  // Check if the logged-in user is a host (owner, event type host, or event type owner)
   const isHost = isUserHostOfBooking(booking);
 
   const getSeatReferenceUid = () => {
