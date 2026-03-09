@@ -98,7 +98,7 @@ export class InputBookingsService_2024_08_13 {
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly platformBookingsService: PlatformBookingsService,
     private readonly usersRepository: UsersRepository
-  ) {}
+  ) { }
 
   async createBookingRequest(
     request: Request,
@@ -160,16 +160,16 @@ export class InputBookingsService_2024_08_13 {
     const guests =
       inputBooking.guests && platformClientId
         ? await this.platformBookingsService.getPlatformAttendeesEmails(
-            inputBooking.guests,
-            platformClientId
-          )
+          inputBooking.guests,
+          platformClientId
+        )
         : inputBooking.guests;
     const attendeeEmail =
       inputBooking.attendee.email && platformClientId
         ? await this.platformBookingsService.getPlatformAttendeeEmail(
-            inputBooking.attendee.email,
-            platformClientId
-          )
+          inputBooking.attendee.email,
+          platformClientId
+        )
         : inputBooking.attendee.email;
 
     const inputLocation = inputBooking.location || inputBooking.meetingUrl;
@@ -180,8 +180,8 @@ export class InputBookingsService_2024_08_13 {
 
     const needsSmsReminderNumber = eventType.bookingFields
       ? eventTypeBookingFieldsSchema
-          .parse(eventType.bookingFields)
-          .find((field) => field.name === "smsReminderNumber")
+        .parse(eventType.bookingFields)
+        .find((field) => field.name === "smsReminderNumber")
       : undefined;
 
     return {
@@ -217,13 +217,13 @@ export class InputBookingsService_2024_08_13 {
   private getRoutingFormData(
     routing:
       | {
-          teamMemberIds?: number[];
-          responseId?: number;
-          teamMemberEmail?: string;
-          skipContactOwner?: boolean;
-          crmAppSlug?: string;
-          crmOwnerRecordType?: string;
-        }
+        teamMemberIds?: number[];
+        responseId?: number;
+        teamMemberEmail?: string;
+        skipContactOwner?: boolean;
+        crmAppSlug?: string;
+        crmOwnerRecordType?: string;
+      }
       | undefined
   ) {
     if (!routing) return null;
@@ -401,8 +401,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     throw new BadRequestException(
-      `Booking location with type ${
-        (location as BookingInputLocation_2024_08_13).type
+      `Booking location with type ${(location as BookingInputLocation_2024_08_13).type
       } not valid.`
     );
   }
@@ -426,10 +425,8 @@ export class InputBookingsService_2024_08_13 {
     const isAllowed = allowedLocationTypes.includes(inputBookingLocation.type);
     if (!isAllowed) {
       throw new BadRequestException(
-        `Booking location with type ${
-          inputBookingLocation.type
-        } not valid for event type with id=${
-          dbEventType.id
+        `Booking location with type ${inputBookingLocation.type
+        } not valid for event type with id=${dbEventType.id
         }. The event type has following location types: ${allowedLocationTypes.join(
           ", "
         )}, and only these types are allowed for booking location.`
@@ -449,10 +446,8 @@ export class InputBookingsService_2024_08_13 {
       );
       if (!isAllowedIntegration) {
         throw new BadRequestException(
-          `Booking location with integration ${
-            inputBookingLocation.integration
-          } not valid for event type with id=${
-            dbEventType.id
+          `Booking location with integration ${inputBookingLocation.integration
+          } not valid for event type with id=${dbEventType.id
           }. The event type has following integrations: ${allowedIntegrations.join(
             ", "
           )}, and only these integrations are allowed for booking location.`
@@ -502,16 +497,16 @@ export class InputBookingsService_2024_08_13 {
     const guests =
       inputBooking.guests && platformClientId
         ? await this.platformBookingsService.getPlatformAttendeesEmails(
-            inputBooking.guests,
-            platformClientId
-          )
+          inputBooking.guests,
+          platformClientId
+        )
         : inputBooking.guests;
     const attendeeEmail =
       inputBooking.attendee.email && platformClientId
         ? await this.platformBookingsService.getPlatformAttendeeEmail(
-            inputBooking.attendee.email,
-            platformClientId
-          )
+          inputBooking.attendee.email,
+          platformClientId
+        )
         : inputBooking.attendee.email;
 
     const inputLocation = inputBooking.location || inputBooking.meetingUrl;
@@ -576,10 +571,10 @@ export class InputBookingsService_2024_08_13 {
       isIndividualSeatReschedule && "seatUid" in body
         ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
         : await this.transformInputRescheduleBooking(
-            bookingUid,
-            body,
-            isIndividualSeatReschedule
-          );
+          bookingUid,
+          body,
+          isIndividualSeatReschedule
+        );
 
     const oAuthClientParams =
       await this.platformBookingsService.getOAuthClientParams(
@@ -696,9 +691,9 @@ export class InputBookingsService_2024_08_13 {
       booking.endTime
     );
 
-    const startTime = DateTime.fromISO(inputBooking.start, {
-      zone: "utc",
-    }).setZone(attendee.timeZone);
+    const startTime = DateTime.fromISO(inputBooking.start).setZone(
+      attendee.timeZone
+    );
     const endTime = startTime.plus({ minutes: originalDurationInMinutes });
 
     return {
@@ -761,8 +756,8 @@ export class InputBookingsService_2024_08_13 {
     const attendee = bookingResponsesMissing
       ? booking.attendees[0]
       : booking.attendees.find(
-          (attendee) => attendee.email === bookingResponses.email
-        );
+        (attendee) => attendee.email === bookingResponses.email
+      );
 
     if (!attendee) {
       throw new NotFoundException(
@@ -783,9 +778,9 @@ export class InputBookingsService_2024_08_13 {
       booking.endTime
     );
 
-    const startTime = DateTime.fromISO(inputBooking.start, {
-      zone: "utc",
-    }).setZone(attendee.timeZone);
+    const startTime = DateTime.fromISO(inputBooking.start).setZone(
+      attendee.timeZone
+    );
     const endTime = startTime.plus({ minutes: originalDurationInMinutes });
     return {
       start: startTime.toISO(),
@@ -910,8 +905,8 @@ export class InputBookingsService_2024_08_13 {
 
     const oAuthClientParams = booking.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(
-          booking.eventTypeId
-        )
+        booking.eventTypeId
+      )
       : undefined;
 
     const newRequest = { ...request };
