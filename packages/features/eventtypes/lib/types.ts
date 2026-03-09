@@ -20,6 +20,7 @@ import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
 import type { EventType } from "./getEventTypeById";
+
 export type CustomInputParsed = typeof customInputSchema._output;
 
 export type AvailabilityOption = {
@@ -51,6 +52,7 @@ export type Host = {
   groupId: string | null;
   location?: HostLocation | null;
 };
+
 export type TeamMember = {
   value: string;
   label: string;
