@@ -1,4 +1,4 @@
-import { JobName } from "@calid/job-dispatcher";
+import { buildJobId, JobName } from "@calid/job-dispatcher";
 import { QueueName } from "@calid/queue";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
@@ -27,7 +27,7 @@ async function postHandler(request: NextRequest) {
       reason: "scheduled",
     },
     bullmqOptions: {
-      jobId: `renewSubscription:${bucket}`,
+      jobId: buildJobId(["calendarSync", "renewSubscription", bucket]),
       removeOnComplete: {
         age: 3600,
         count: 1000,

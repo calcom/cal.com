@@ -1,4 +1,4 @@
-import { dispatcher, JobName } from "@calid/job-dispatcher";
+import { buildJobId, dispatcher, JobName } from "@calid/job-dispatcher";
 import type { CalendarSyncJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
 
@@ -11,8 +11,6 @@ interface SyncedCalendarRow {
   credentialId: number;
   providerCalendarId: string;
 }
-
-const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
 
 const toProviderSlug = (provider: "GOOGLE" | "OUTLOOK"): "google" | "outlook" =>
   provider === "GOOGLE" ? "google" : "outlook";
@@ -80,7 +78,6 @@ export const disableSyncedCalendarsOnDisconnect = async (params: {
         return;
       }
       const provider = toProviderSlug(row.provider);
-      const providerCalendarId = sanitizeKeyPart(row.providerCalendarId);
       const payload: CalendarSyncJobData = {
         name: JobName.CALENDAR_SYNC,
         action: "disableCalendarSync",
@@ -99,7 +96,14 @@ export const disableSyncedCalendarsOnDisconnect = async (params: {
           name: JobName.CALENDAR_SYNC,
           data: payload,
           bullmqOptions: {
-            jobId: `disable:${provider}:${row.credentialId}:${providerCalendarId}:${row.externalCalendarId}`,
+            jobId: buildJobId([
+              "calendarSync",
+              "disableSync",
+              provider,
+              row.credentialId,
+              row.providerCalendarId,
+              row.externalCalendarId,
+            ]),
             attempts: 3,
             backoff: {
               type: "exponential",

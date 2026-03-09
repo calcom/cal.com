@@ -325,10 +325,11 @@ model ExternalCalendar {
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
 
-  credential    Credential                     @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credential    Credential                       @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   syncCursor    ExternalCalendarSyncCursor?
   subscriptions ExternalCalendarSubscription[]
   events        ExternalCalendarEvent[]
+  tombstones    ExternalCalendarEventTombstone[]
 
   @@unique([credentialId, providerCalendarId])
   @@index([credentialId])
@@ -399,6 +400,26 @@ model ExternalCalendarEvent {
   @@index([iCalUID])
   @@index([recurringEventId])
   @@index([calendarId, startTime, endTime])
+}
+
+model ExternalCalendarEventTombstone {
+  id                Int       @id @default(autoincrement())
+  calendarId        Int
+  externalEventId   String
+  iCalUID           String?
+  recurringEventId  String?
+  originalStartTime DateTime?
+  deletedAt         DateTime
+  expiresAt         DateTime
+  rawPayload        Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  calendar ExternalCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, externalEventId])
+  @@index([calendarId])
+  @@index([expiresAt])
 }
 
 enum IdentityProvider {

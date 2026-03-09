@@ -1,8 +1,7 @@
-import { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
-import { prisma } from "../../../prisma";
 import { getAdapter } from "../providers/registry";
 import {
   AuthExpiredError,
@@ -379,12 +378,16 @@ export const runDeltaCalendarSync = async (calendarId: number): Promise<void> =>
           throw error;
         }
 
+        console.log("in_here_result", result);
+
         const cappedChanges = dedupeByExternalEventId(result.changes).slice(0, MAX_OCCURRENCES_CAP);
         const deleteChanges = cappedChanges.filter((change) => change.changeType === "delete");
+        console.log("in_here_deleteChanges", deleteChanges);
         const upsertCandidates = cappedChanges.filter(
           (change) =>
             change.changeType === "upsert" && isInsideWindow(change.startTime, windowStart, windowEnd)
         );
+        console.log("in_here_upsertCandidates", upsertCandidates);
 
         await prisma.$transaction(async (tx) => {
           if (deleteChanges.length > 0) {

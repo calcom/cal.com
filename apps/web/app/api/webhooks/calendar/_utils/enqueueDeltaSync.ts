@@ -1,8 +1,10 @@
-import { JobName } from "@calid/job-dispatcher";
+import { buildJobId, JobName } from "@calid/job-dispatcher";
 import type { CalendarProvider, DeltaSyncWebhookJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
 
 import dispatcher from "@lib/job-disptacher";
+
+import { DELTA_SYNC_COALESCE_WINDOW_MS } from "./constants";
 
 const toProviderSlug = (provider: CalendarProvider): "google" | "outlook" => {
   return provider === "GOOGLE" ? "google" : "outlook";
@@ -17,6 +19,13 @@ export const enqueueDeltaSyncFromWebhook = async (input: {
   subscriptionId?: string | null;
   resourceId?: string | null;
 }) => {
+  const now = Date.now();
+  const receivedAtMs = Date.parse(input.receivedAt);
+  const anchorMs = Number.isFinite(receivedAtMs) ? receivedAtMs : now;
+  const bucketStartMs = Math.floor(anchorMs / DELTA_SYNC_COALESCE_WINDOW_MS) * DELTA_SYNC_COALESCE_WINDOW_MS;
+  const bucketRunAtMs = bucketStartMs + DELTA_SYNC_COALESCE_WINDOW_MS;
+  const delayMs = Math.max(0, bucketRunAtMs - now);
+
   const payload: DeltaSyncWebhookJobData = {
     name: JobName.CALENDAR_SYNC,
     action: "deltaSync",
@@ -35,7 +44,8 @@ export const enqueueDeltaSyncFromWebhook = async (input: {
     name: JobName.CALENDAR_SYNC,
     data: payload,
     bullmqOptions: {
-      jobId: `deltaSync:${input.calendarId}`,
+      jobId: buildJobId(["calendarSync", "deltaSync", input.calendarId, bucketStartMs]),
+      delay: delayMs,
       removeOnComplete: {
         age: 3600,
         count: 1000,

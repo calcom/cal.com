@@ -1,5 +1,5 @@
 import type { CalendarProviderAdapter } from "../adapter";
-import { getGoogleAuth } from "../auth";
+import { getGoogleAuthWithRefresh } from "../auth";
 import {
   CalendarProvider,
   CursorExpiredError,
@@ -54,7 +54,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
     windowEnd: Date;
     maxOccurrencesCap: number;
   }): Promise<InitialSyncResultDTO> {
-    const auth = getGoogleAuth(params.credential);
+    const auth = await getGoogleAuthWithRefresh(params.credential);
     const rawEvents: GoogleCalendarEventLike[] = [];
     const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(
       params.providerCalendarId
@@ -129,7 +129,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
     windowEnd: Date;
     maxOccurrencesCap: number;
   }): Promise<DeltaSyncResultDTO> {
-    const auth = getGoogleAuth(params.credential);
+    const auth = await getGoogleAuthWithRefresh(params.credential);
 
     if (!params.cursor.value) {
       throw new CursorExpiredError({
@@ -212,7 +212,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
     providerCalendarId: string;
     webhookUrl: string;
   }): Promise<ProviderSubscriptionDTO> {
-    const auth = getGoogleAuth(params.credential);
+    const auth = await getGoogleAuthWithRefresh(params.credential);
     const channelId = `calid-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const channelToken = `calid-token-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     // Google Calendar push channels are constrained to a maximum 7-day expiration.
@@ -302,7 +302,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
     credential: CredentialLike;
     subscription: ProviderSubscriptionDTO;
   }): Promise<void> {
-    const auth = getGoogleAuth(params.credential);
+    const auth = await getGoogleAuthWithRefresh(params.credential);
     const subscriptionId = params.subscription.subscriptionId;
     const resourceId = params.subscription.resourceId;
 

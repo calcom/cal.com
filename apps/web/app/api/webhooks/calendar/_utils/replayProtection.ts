@@ -1,8 +1,10 @@
 import type { CalendarProvider } from "@calid/job-engine";
 import { acquireDebounceLock } from "@calid/redis";
 
+import { DELTA_SYNC_COALESCE_WINDOW_MS } from "./constants";
+
 const WEBHOOK_REPLAY_TTL_SECONDS = 10 * 60;
-const WEBHOOK_DEBOUNCE_TTL_MS = 10 * 1000;
+const WEBHOOK_DEBOUNCE_TTL_MS = DELTA_SYNC_COALESCE_WINDOW_MS;
 
 export const registerWebhookReplay = async (
   provider: CalendarProvider,

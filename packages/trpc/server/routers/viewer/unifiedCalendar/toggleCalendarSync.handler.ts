@@ -1,4 +1,4 @@
-import { dispatcher, JobName } from "@calid/job-dispatcher";
+import { buildJobId, dispatcher, JobName } from "@calid/job-dispatcher";
 import type { CalendarSyncJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
 
@@ -38,8 +38,6 @@ const log = logger.getSubLogger({ prefix: ["viewer", "unifiedCalendar", "toggleS
 
 const toProviderSlug = (provider: "GOOGLE" | "OUTLOOK"): "google" | "outlook" =>
   provider === "GOOGLE" ? "google" : "outlook";
-
-const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
 
 const providerCredentialTypePredicate = (provider: "GOOGLE" | "OUTLOOK"): Prisma.Sql => {
   if (provider === "GOOGLE") {
@@ -224,7 +222,6 @@ const enqueueCalendarSyncAction = async (params: {
 }): Promise<void> => {
   const bucket = Math.floor(Date.now() / 15_000);
   const providerSlug = toProviderSlug(params.provider);
-  const safeProviderCalendarId = sanitizeKeyPart(params.providerCalendarId);
 
   const payload: CalendarSyncJobData = {
     name: JobName.CALENDAR_SYNC,
@@ -243,9 +240,14 @@ const enqueueCalendarSyncAction = async (params: {
     name: JobName.CALENDAR_SYNC,
     data: payload,
     bullmqOptions: {
-      jobId: `${params.enabled ? "initialSync" : "disableSync"}:${providerSlug}:${
-        params.credentialId
-      }:${safeProviderCalendarId}:${bucket}`,
+      jobId: buildJobId([
+        "calendarSync",
+        params.enabled ? "initialSync" : "disableSync",
+        providerSlug,
+        params.credentialId,
+        params.providerCalendarId,
+        bucket,
+      ]),
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -267,7 +269,6 @@ export const toggleCalendarSyncHandler = async ({
   ctx,
   input,
 }: ToggleOptions): Promise<TToggleCalendarSyncOutput> => {
-  console.log("in_here_inside_toggleCalendarSyncHandler");
   const userId = ctx.user?.id;
   if (!userId) {
     throw new TRPCError({

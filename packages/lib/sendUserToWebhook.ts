@@ -51,7 +51,6 @@ export const sendUserToMakeWebhook = async (userData: {
     } else {
       data = await response.text();
     }
-    console.log("in_here_data", data);
     log.info(`Successfully sent user data to Make webhook: ${JSON.stringify(data)}`);
   } catch (error) {
     log.error(`Error sending user data to Make webhook: ${error}`);

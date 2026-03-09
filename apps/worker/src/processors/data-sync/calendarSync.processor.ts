@@ -1,4 +1,4 @@
-import { dispatcher, JobName } from "@calid/job-dispatcher";
+import { buildJobId, dispatcher, JobName } from "@calid/job-dispatcher";
 import {
   disableCalendarSync,
   runDeltaCalendarSync,
@@ -9,8 +9,6 @@ import type { CalendarSyncJobData } from "@calid/job-engine";
 import type { Job } from "bullmq";
 import { QueueName } from "packages/queue/src";
 
-const sanitizeKeyPart = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, "_");
-
 export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
   const { calendarId, reason, action, disableReason, syncDisabledReason } = job.data;
 
@@ -20,7 +18,6 @@ export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
     if (renewalStats.autoDisableTargets.length > 0) {
       for (const target of renewalStats.autoDisableTargets) {
         const provider = target.provider.toLowerCase() as "google" | "outlook";
-        const providerCalendarId = sanitizeKeyPart(target.providerCalendarId);
         const payload: CalendarSyncJobData = {
           name: JobName.CALENDAR_SYNC,
           action: "disableCalendarSync",
@@ -38,7 +35,14 @@ export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
           name: JobName.CALENDAR_SYNC,
           data: payload,
           bullmqOptions: {
-            jobId: `disable:${provider}:${target.credentialId}:${providerCalendarId}:${target.calendarId}`,
+            jobId: buildJobId([
+              "calendarSync",
+              "disableSync",
+              provider,
+              target.credentialId,
+              target.providerCalendarId,
+              target.calendarId,
+            ]),
             attempts: 3,
             backoff: {
               type: "exponential",
@@ -94,10 +98,5 @@ export async function processCalendarSync(job: Job<CalendarSyncJobData>) {
     return;
   }
 
-  // // Legacy fallback path.
-  // job.log(`Starting legacy ${syncType} sync for ${provider}`);
-  // if (provider === "google" && userId !== undefined) {
-  //   await handleGoogleCalendarSync(Number(userId));
-  // }
   job.log("Legacy sync completed");
 }

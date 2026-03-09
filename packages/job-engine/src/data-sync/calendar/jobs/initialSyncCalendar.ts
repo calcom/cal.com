@@ -1,8 +1,7 @@
-import { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
-import { prisma } from "../../../prisma";
 import { getAdapter } from "../providers/registry";
 import {
   AuthExpiredError,

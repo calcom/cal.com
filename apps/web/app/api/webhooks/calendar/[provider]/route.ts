@@ -129,7 +129,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
 
       try {
-        await enqueueDeltaSyncFromWebhook({
+        const payload = {
           calendarId,
           provider,
           credentialId: calendarTarget.credentialId,
@@ -137,7 +137,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           receivedAt,
           subscriptionId: routing.subscriptionId ?? null,
           resourceId: routing.resourceId ?? null,
-        });
+        };
+        await enqueueDeltaSyncFromWebhook(payload);
 
         log.info("webhook_enqueued", {
           event: "webhook_enqueued",

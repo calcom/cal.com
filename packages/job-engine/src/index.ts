@@ -4,7 +4,6 @@ export * from "./default/bookingEmails.service";
 export * from "./default/bookingPaymentReminder.service";
 export * from "./default/type";
 
-export * from "./data-sync/calendarSync.service";
 export * from "./data-sync/calendlyImport.service";
 export * from "./data-sync/bookingExport.service";
 export * from "./data-sync/type";

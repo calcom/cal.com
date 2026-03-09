@@ -15,7 +15,8 @@
   "dependencies": {
     "@calid/job-engine": "*",
     "@calid/queue": "*",
-    "@calid/redis": "*"
+    "@calid/redis": "*",
+    "dotenv": "^17.2.4"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

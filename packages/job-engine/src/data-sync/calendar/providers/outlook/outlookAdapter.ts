@@ -1,5 +1,5 @@
 import type { CalendarProviderAdapter } from "../adapter";
-import { getOutlookAuth } from "../auth";
+import { getOutlookAuthWithRefresh } from "../auth";
 import {
   CalendarProvider,
   CursorExpiredError,
@@ -51,7 +51,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     windowEnd: Date;
     maxOccurrencesCap: number;
   }): Promise<InitialSyncResultDTO> {
-    const auth = getOutlookAuth(params.credential);
+    const auth = await getOutlookAuthWithRefresh(params.credential);
     const rawEvents: OutlookEventLike[] = [];
     const query = new URLSearchParams({
       startDateTime: params.windowStart.toISOString(),
@@ -125,7 +125,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     windowEnd: Date;
     maxOccurrencesCap: number;
   }): Promise<DeltaSyncResultDTO> {
-    const auth = getOutlookAuth(params.credential);
+    const auth = await getOutlookAuthWithRefresh(params.credential);
 
     if (!params.cursor.value) {
       throw new CursorExpiredError({
@@ -207,7 +207,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     providerCalendarId: string;
     webhookUrl: string;
   }): Promise<ProviderSubscriptionDTO> {
-    const auth = getOutlookAuth(params.credential);
+    const auth = await getOutlookAuthWithRefresh(params.credential);
     const clientState = `calid-outlook-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     const expirationDateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -263,7 +263,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     subscription: ProviderSubscriptionDTO;
     webhookUrl: string;
   }): Promise<ProviderSubscriptionDTO> {
-    const auth = getOutlookAuth(params.credential);
+    const auth = await getOutlookAuthWithRefresh(params.credential);
     void params.providerCalendarId;
     void params.webhookUrl;
     const expirationDateTime = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
@@ -320,7 +320,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     credential: CredentialLike;
     subscription: ProviderSubscriptionDTO;
   }): Promise<void> {
-    const auth = getOutlookAuth(params.credential);
+    const auth = await getOutlookAuthWithRefresh(params.credential);
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/subscriptions/${encodeURIComponent(
         params.subscription.subscriptionId
