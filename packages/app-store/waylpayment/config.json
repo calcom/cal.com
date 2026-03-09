@@ -4,7 +4,7 @@
   "slug": "waylpayment",
   "type": "waylpayment_payment",
   "logo": "icon.svg",
-  "url": "https://thewayl.com",
+  "url": "https://wayl.io",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "Wayl",
