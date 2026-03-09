@@ -26,6 +26,7 @@ function buildRequest({
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("encodeOAuthState", () => {

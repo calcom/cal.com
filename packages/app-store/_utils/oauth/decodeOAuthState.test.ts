@@ -38,6 +38,7 @@ function buildStateWithValidNonce(
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe("decodeOAuthState", () => {

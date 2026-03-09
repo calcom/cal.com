@@ -1,20 +1,8 @@
-import { createHmac, randomUUID } from "node:crypto";
-import process from "node:process";
 import { expect } from "@playwright/test";
+import { signOAuthState } from "@calcom/app-store/_utils/oauth/encodeOAuthState";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { test } from "../lib/fixtures";
-
-/**
- * Signs an OAuth state with HMAC-SHA256 nonce, mirroring the server's signOAuthState.
- * Requires NEXTAUTH_SECRET to match the running server's secret.
- */
-function signState(state: Record<string, unknown>, userId: number): string {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET not available in test environment");
-  const nonce = randomUUID();
-  const nonceHash = createHmac("sha256", secret).update(`${nonce}:${userId}`).digest("hex");
-  return JSON.stringify({ ...state, nonce, nonceHash });
-}
 
 function buildUnsignedState(overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
@@ -54,12 +42,12 @@ test.describe("OAuth CSRF Protection", () => {
       await user.apiLogin();
 
       // Use absolute URLs — getSafeRedirectUrl requires them
-      const validState = signState(
+      const validState = signOAuthState(
         {
           returnTo: `${WEBAPP_URL}/apps/installed/payment`,
           onErrorReturnTo: `${WEBAPP_URL}/apps`,
           fromApp: true,
-        },
+        } as IntegrationOAuthCallbackState,
         user.id
       );
 
@@ -76,8 +64,8 @@ test.describe("OAuth CSRF Protection", () => {
       await user.apiLogin();
 
       // Attacker signed this state with their own userId
-      const wrongUserState = signState(
-        { onErrorReturnTo: `${WEBAPP_URL}/apps/specific-path`, fromApp: true },
+      const wrongUserState = signOAuthState(
+        { onErrorReturnTo: `${WEBAPP_URL}/apps/specific-path`, fromApp: true } as IntegrationOAuthCallbackState,
         999999
       );
 
@@ -117,8 +105,8 @@ test.describe("OAuth CSRF Protection", () => {
       await user.apiLogin();
 
       // Use absolute URL — getSafeRedirectUrl requires it
-      const validState = signState(
-        { onErrorReturnTo: `${WEBAPP_URL}/apps/installed`, fromApp: true },
+      const validState = signOAuthState(
+        { onErrorReturnTo: `${WEBAPP_URL}/apps/installed`, fromApp: true } as IntegrationOAuthCallbackState,
         user.id
       );
 
