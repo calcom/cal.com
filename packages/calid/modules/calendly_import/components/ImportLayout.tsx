@@ -36,14 +36,40 @@ const ImportLayout = () => {
   const [userId, setUserId] = useState<number>();
   const session = useSession();
   const searchParams = useSearchParams();
+  const { t } = useLocale();
   const code = searchParams.get("code") || undefined;
   const redirected = searchParams.get("redirected") || undefined;
+  const state = searchParams.get("state") || undefined;
+
+  // When returning from Calendly OAuth with code + state=onboarding_finish_X, redirect to API callback
+  // so it can exchange the code for tokens and then redirect to onboarding finish flow
+  useEffect(() => {
+    if (!code || !state?.startsWith("onboarding_finish_")) return;
+    const stateUserId = state.split("_")[2];
+    if (!stateUserId) return;
+
+    const callbackUrl = `/api/import/calendly/callback?${new URLSearchParams({
+      code,
+      userId: stateUserId,
+      state,
+    })}`;
+    window.location.href = callbackUrl;
+  }, [code, state]);
 
   // Checks if the user has already authorized Calendly on first load
   useEffect(() => {
     if (!session || !session.data) return;
     session.data.user.id && setUserId(session.data.user.id);
   }, [session]);
+
+  // Don't render the normal import UI if we're redirecting to the callback (onboarding finish flow)
+  if (code && state?.startsWith("onboarding_finish_")) {
+    return (
+      <div className="text-subtle flex min-h-[200px] items-center justify-center text-sm">
+        {t("redirecting")}
+      </div>
+    );
+  }
 
   return <>{userId ? <CalendlyImportComponent userId={userId} redirected={redirected} /> : <></>}</>;
 };

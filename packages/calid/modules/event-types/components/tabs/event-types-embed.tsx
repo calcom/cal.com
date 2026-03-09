@@ -263,12 +263,12 @@ const generateReactCode = (
       return `/* First make sure that you have installed the package */
 
 /* If you are using yarn */
-// yarn add @calcom/embed-react
+// yarn add @calid/react-embed
 
 /* If you are using npm */
-// npm install @calcom/embed-react
+// npm install @calid/react-embed
 
-import Cal, { getCalApi } from "@calcom/embed-react";
+import Cal, { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 
 export default function MyApp() {
@@ -297,12 +297,12 @@ export default function MyApp() {
       return `/* First make sure that you have installed the package */
 
 /* If you are using yarn */
-// yarn add @calcom/embed-react
+// yarn add @calid/react-embed
 
 /* If you are using npm */
-// npm install @calcom/embed-react
+// npm install @calid/react-embed
 
-import { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 
 export default function MyApp() {
@@ -321,12 +321,12 @@ export default function MyApp() {
       return `/* First make sure that you have installed the package */
 
 /* If you are using yarn */
-// yarn add @calcom/embed-react
+// yarn add @calid/react-embed
 
 /* If you are using npm */
-// npm install @calcom/embed-react
+// npm install @calid/react-embed
 
-import { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 
 export default function MyApp() {
