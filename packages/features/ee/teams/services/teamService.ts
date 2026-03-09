@@ -507,65 +507,60 @@ export class TeamService {
     await TeamService.cleanupTempOrgRedirect(user, team);
     const newUsername = generateNewUsername(user);
 
-    const subTeamIds = await prisma.team.findMany({
-      where: {
-        parentId: team.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-    const subTeamIdArray = subTeamIds.map((t) => t.id);
-
-    // Transaction 1: Sub-team cleanup (Host, EventType, sub-team Membership)
-    await prisma.$transaction(async (tx) => {
-      if (subTeamIdArray.length > 0) {
+    await prisma.$transaction(
+      async (tx) => {
+        // Remove user from all sub-teams event type hosts
         await tx.host.deleteMany({
           where: {
             userId: membership.userId,
             eventType: {
-              teamId: { in: subTeamIdArray },
+              team: {
+                parentId: team.id,
+              },
             },
           },
         });
+        // Delete managed child events in sub-teams
         await tx.eventType.deleteMany({
           where: {
             userId: membership.userId,
             parent: {
-              teamId: { in: subTeamIdArray },
+              team: {
+                parentId: team.id,
+              },
             },
           },
         });
+        // Remove organizationId from the user
+        await tx.user.update({
+          where: { id: membership.userId },
+          data: {
+            organizationId: null,
+            username: newUsername,
+          },
+        });
+        // Delete the profile of the user from the organization
+        await tx.profile.deleteMany({
+          where: { userId: membership.userId, organizationId: team.id },
+        });
+        // Delete all sub-team memberships where this team is the organization
         await tx.membership.deleteMany({
           where: {
-            teamId: { in: subTeamIdArray },
+            team: {
+              parentId: team.id,
+            },
             userId: membership.userId,
           },
         });
-      }
-    });
-
-    // Transaction 2: Org-level cleanup (Profile, org Membership, User update)
-    await prisma.$transaction(async (tx) => {
-      await tx.profile.deleteMany({
-        where: {
-          userId: membership.userId,
-          organizationId: team.id,
-        },
-      });
-      await tx.membership.delete({
-        where: {
-          userId_teamId: { userId: membership.userId, teamId: team.id },
-        },
-      });
-      await tx.user.update({
-        where: { id: membership.userId },
-        data: {
-          organizationId: null,
-          username: newUsername,
-        },
-      });
-    });
+        // Delete the membership of the user from the organization
+        await tx.membership.delete({
+          where: {
+            userId_teamId: { userId: membership.userId, teamId: team.id },
+          },
+        });
+      },
+      { timeout: 15000 }
+    );
 
     // Generate new username for user leaving organization
     function generateNewUsername(user: UserWithTeams): string | null {
