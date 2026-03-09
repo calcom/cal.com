@@ -39,11 +39,9 @@ import { registerTeamRolesCommand } from "./commands/team-roles";
 import { registerTeamRoutingFormsCommand } from "./commands/team-routing-forms";
 import { registerTeamSchedulesCommand } from "./commands/team-schedules";
 import { registerTeamStripeCommand } from "./commands/team-stripe";
-import { registerTeamVerifiedResourcesCommand } from "./commands/team-verified-resources";
 import { registerTeamWorkflowsCommand } from "./commands/team-workflows";
 import { registerTeamsCommand } from "./commands/teams";
 import { registerTimezonesCommand } from "./commands/timezones";
-import { registerVerifiedResourcesCommand } from "./commands/verified-resources";
 import { registerWebhooksCommand } from "./commands/webhooks";
 
 const program: Command = new Command();
@@ -75,7 +73,6 @@ registerTeamRolesCommand(program);
 registerTeamRoutingFormsCommand(program);
 registerTeamSchedulesCommand(program);
 registerTeamStripeCommand(program);
-// registerTeamVerifiedResourcesCommand(program); // TODO: Uncomment when API output types are fixed
 registerTeamWorkflowsCommand(program);
 registerEventTypeWebhooksCommand(program);
 registerTeamEventTypeWebhooksCommand(program);
@@ -94,7 +91,6 @@ registerOrgUserOooCommand(program);
 registerOrgUserSchedulesCommand(program);
 registerManagedOrgsCommand(program);
 registerDelegationCredentialsCommand(program);
-// registerVerifiedResourcesCommand(program); // TODO: Uncomment when API output types are fixed
 registerStripeCommand(program);
 registerRoutingFormsCommand(program);
 registerOAuthCommand(program);
