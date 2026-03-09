@@ -87,6 +87,14 @@ export class BillingPeriodRepository {
     });
   }
 
+  async findBillingPeriodByTeamId(teamId: number): Promise<BillingPeriod | null> {
+    const billing = await this.prisma.teamBilling.findFirst({
+      where: { teamId },
+      select: { billingPeriod: true },
+    });
+    return billing?.billingPeriod ?? null;
+  }
+
   async getTeamForBillingUpdate(teamId: number) {
     return await this.prisma.team.findUnique({
       where: { id: teamId },
