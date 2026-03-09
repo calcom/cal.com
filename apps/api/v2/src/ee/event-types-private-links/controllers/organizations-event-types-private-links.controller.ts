@@ -36,6 +36,7 @@ import { PrivateLinksService } from "../services/private-links.service";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsEventTypesPrivateLinksController {
   constructor(
     private readonly privateLinksService: PrivateLinksService,
@@ -47,7 +48,6 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Create a private link for a team event type" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async createPrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -67,7 +67,6 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Get all private links for a team event type" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getPrivateLinks(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
@@ -85,7 +84,6 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Update a private link for a team event type" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async updatePrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -106,7 +104,6 @@ export class OrganizationsEventTypesPrivateLinksController {
   @PlatformPlan("ESSENTIALS")
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Delete a private link for a team event type" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async deletePrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,

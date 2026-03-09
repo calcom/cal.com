@@ -52,6 +52,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsWebhooksController {
   constructor(
     private organizationsWebhooksService: OrganizationsWebhooksService,
@@ -110,7 +111,6 @@ export class OrganizationsWebhooksController {
   @Get("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get a webhook" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getOrganizationWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.organizationsWebhooksService.getWebhook(webhookId);
     return {
@@ -127,7 +127,6 @@ export class OrganizationsWebhooksController {
   @Delete("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete a webhook" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<OrgWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
     return {
@@ -144,7 +143,6 @@ export class OrganizationsWebhooksController {
   @Patch("/:webhookId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update a webhook" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async updateOrgWebhook(
     @Param("webhookId") webhookId: string,
     @Body() body: UpdateWebhookInputDto

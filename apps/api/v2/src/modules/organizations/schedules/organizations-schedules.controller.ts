@@ -50,6 +50,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsSchedulesController {
   constructor(
     private schedulesService: SchedulesService_2024_06_11,
@@ -81,7 +82,6 @@ export class OrganizationsSchedulesController {
   @Post("/users/:userId/schedules")
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Create a schedule" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async createUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Body() bodySchedule: CreateScheduleInput_2024_06_11
@@ -100,7 +100,6 @@ export class OrganizationsSchedulesController {
   @Get("/users/:userId/schedules/:scheduleId")
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Get a schedule" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId") scheduleId: number
@@ -119,7 +118,6 @@ export class OrganizationsSchedulesController {
   @Get("/users/:userId/schedules")
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Get all schedules" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getUserSchedules(
     @Param("userId", ParseIntPipe) userId: number
   ): Promise<GetSchedulesOutput_2024_06_11> {
@@ -137,7 +135,6 @@ export class OrganizationsSchedulesController {
   @Patch("/users/:userId/schedules/:scheduleId")
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Update a schedule" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async updateUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId", ParseIntPipe) scheduleId: number,
@@ -158,7 +155,6 @@ export class OrganizationsSchedulesController {
   @HttpCode(HttpStatus.OK)
   @DocsTags("Orgs / Users / Schedules")
   @ApiOperation({ summary: "Delete a schedule" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async deleteUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
     @Param("scheduleId", ParseIntPipe) scheduleId: number

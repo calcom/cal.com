@@ -55,6 +55,7 @@ import type { Team } from "@calcom/prisma/client";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
 
@@ -91,7 +92,6 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a user" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async createOrganizationUser(
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,

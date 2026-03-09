@@ -55,6 +55,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsTeamsController {
   constructor(
     private organizationsTeamsService: OrganizationsTeamsService,
@@ -110,7 +111,6 @@ export class OrganizationsTeamsController {
   @PlatformPlan("ESSENTIALS")
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @ApiParam({ name: "teamId", type: Number, required: true })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
     return {

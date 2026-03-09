@@ -49,6 +49,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Organization Team Verified Resources")
+@ApiParam({ name: "orgId", type: Number, required: true })
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class OrgTeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
@@ -66,8 +68,6 @@ export class OrgTeamsVerifiedResourcesController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/verification-code/request")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -97,8 +97,6 @@ export class OrgTeamsVerifiedResourcesController {
   })
   @Post("/phones/verification-code/request")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {
@@ -120,7 +118,6 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async verifyEmail(
     @Body() body: VerifyEmailInput,
     @GetUser("id") userId: number,
@@ -153,7 +150,6 @@ export class OrgTeamsVerifiedResourcesController {
     name: "org_teams_verified_resources_phones_verify",
   })
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async verifyPhoneNumber(
     @Body() body: VerifyPhoneInput,
     @GetUser("id") userId: number,
@@ -179,7 +175,6 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getVerifiedEmails(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
@@ -203,7 +198,6 @@ export class OrgTeamsVerifiedResourcesController {
   @Get("/phones")
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getVerifiedPhoneNumbers(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() pagination: SkipTakePagination
@@ -229,7 +223,6 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/emails/:id")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getVerifiedEmailById(
     @Param("id") id: number,
     @Param("teamId", ParseIntPipe) teamId: number
@@ -249,7 +242,6 @@ export class OrgTeamsVerifiedResourcesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "orgId", type: Number, required: true })
   async getVerifiedPhoneById(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("id") id: number

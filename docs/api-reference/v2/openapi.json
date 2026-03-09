@@ -3630,7 +3630,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -3770,16 +3770,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
             }
           },
           {
@@ -4336,14 +4326,6 @@
           },
           {
             "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6622,7 +6604,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -13748,6 +13730,15 @@
         "description": "Sends a verification code to the email",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -13761,15 +13752,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -13805,6 +13787,15 @@
         "description": "Sends a verification code to the phone number",
         "parameters": [
           {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -13818,15 +13809,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ],
@@ -13870,20 +13852,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13927,20 +13909,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -14008,20 +13990,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -14079,20 +14061,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -14133,20 +14115,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -14187,20 +14169,20 @@
             }
           },
           {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15852,20 +15834,20 @@
             }
           },
           {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16606,20 +16588,20 @@
         "description": "Sends a verification code to the Email",
         "parameters": [
           {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16655,20 +16637,20 @@
         "description": "Sends a verification code to the phone number",
         "parameters": [
           {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
             "name": "Authorization",
             "in": "header",
             "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],

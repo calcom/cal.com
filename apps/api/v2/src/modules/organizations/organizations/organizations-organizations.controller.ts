@@ -46,6 +46,7 @@ const SCALE = "SCALE";
 @DocsTags("Managed Orgs")
 @ApiHeader(X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(X_CAL_SECRET_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsOrganizationsController {
   constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) {}
 
@@ -82,7 +83,6 @@ export class OrganizationsOrganizationsController {
     description:
       "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
   })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @UseGuards(IsManagedOrgInManagerOrg)
   async getOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
@@ -149,7 +149,6 @@ export class OrganizationsOrganizationsController {
     description:
       "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
   })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @UseGuards(IsManagedOrgInManagerOrg)
   async deleteOrganization(
     @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number

@@ -56,6 +56,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class OrganizationTeamWorkflowsController {
   constructor(
     private readonly eventTypeWorkflowsService: TeamEventTypeWorkflowsService,
@@ -97,7 +99,6 @@ export class OrganizationTeamWorkflowsController {
   @Get("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getWorkflowById(
@@ -112,7 +113,6 @@ export class OrganizationTeamWorkflowsController {
   @Get("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getRoutingFormWorkflowById(
@@ -129,7 +129,6 @@ export class OrganizationTeamWorkflowsController {
 
   @Post("/")
   @ApiOperation({ summary: "Create organization team workflow for event-types" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async createEventTypeWorkflow(
@@ -143,7 +142,6 @@ export class OrganizationTeamWorkflowsController {
 
   @Post("/routing-form")
   @ApiOperation({ summary: "Create organization team workflow for routing-forms" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async createFormWorkflow(
@@ -158,7 +156,6 @@ export class OrganizationTeamWorkflowsController {
   @Patch("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Update organization team workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async updateWorkflow(
@@ -179,7 +176,6 @@ export class OrganizationTeamWorkflowsController {
   @Patch("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Update organization routing form team workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async updateRoutingFormWorkflow(
@@ -200,7 +196,6 @@ export class OrganizationTeamWorkflowsController {
   @Delete("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async deleteWorkflow(
@@ -214,7 +209,6 @@ export class OrganizationTeamWorkflowsController {
   @Delete("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team routing-form workflow" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async deleteRoutingFormWorkflow(

@@ -54,6 +54,7 @@ export type EventTypeHandlerResponse = {
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Teams / Event Types")
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class TeamsEventTypesController {
   constructor(
     private readonly teamsEventTypesService: TeamsEventTypesService,
@@ -114,7 +115,6 @@ export class TeamsEventTypesController {
   @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiHeader(API_KEY_HEADER)
   @ApiOperation({ summary: "Create a phone call" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,

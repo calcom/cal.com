@@ -40,6 +40,7 @@ import type { Webhook } from "@calcom/prisma/client";
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
 @DocsTags("Event Types / Webhooks")
 @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiParam({ name: "eventTypeId", type: Number, required: true })
 export class EventTypeWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
@@ -66,7 +67,6 @@ export class EventTypeWebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook" })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   async updateEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
@@ -85,7 +85,6 @@ export class EventTypeWebhooksController {
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook" })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
@@ -119,7 +118,6 @@ export class EventTypeWebhooksController {
 
   @Delete("/:webhookId")
   @ApiOperation({ summary: "Delete a webhook" })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);

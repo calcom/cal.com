@@ -41,6 +41,8 @@ import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 @UseGuards(ApiAuthGuard, RolesGuard, IsTeamEventTypeWebhookGuard)
 @DocsTags("Teams / Event Types / Webhooks")
 @ApiHeader(API_KEY_HEADER)
+@ApiParam({ name: "teamId", type: Number, required: true })
+@ApiParam({ name: "eventTypeId", type: Number, required: true })
 export class TeamsEventTypesWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
@@ -49,7 +51,6 @@ export class TeamsEventTypesWebhooksController {
 
   @Post("/")
   @ApiOperation({ summary: "Create a webhook for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   async createTeamEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
@@ -69,8 +70,6 @@ export class TeamsEventTypesWebhooksController {
 
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   async updateTeamEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
@@ -90,8 +89,6 @@ export class TeamsEventTypesWebhooksController {
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   @Roles("TEAM_MEMBER")
   async getTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
@@ -106,7 +103,6 @@ export class TeamsEventTypesWebhooksController {
   @Get("/")
   @Roles("TEAM_MEMBER")
   @ApiOperation({ summary: "Get all webhooks for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async getTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Query() pagination: SkipTakePagination
@@ -129,8 +125,6 @@ export class TeamsEventTypesWebhooksController {
   @Delete("/:webhookId")
   @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Delete a webhook for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
-  @ApiParam({ name: "eventTypeId", type: Number, required: true })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async deleteTeamEventTypeWebhook(
     @GetWebhook() webhook: Webhook
@@ -147,7 +141,6 @@ export class TeamsEventTypesWebhooksController {
   @Delete("/")
   @Roles("TEAM_ADMIN")
   @ApiOperation({ summary: "Delete all webhooks for a team event type" })
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async deleteAllTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<DeleteManyWebhooksOutputResponseDto> {

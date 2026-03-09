@@ -44,6 +44,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, RolesGuard)
 @ApiTags("Teams Verified Resources")
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class TeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
@@ -55,7 +56,6 @@ export class TeamsVerifiedResourcesController {
   @Post("/emails/verification-code/request")
   @Throttle({ limit: 5, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_emails_requests" })
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestEmailVerificationCode(
     @Body() body: RequestEmailVerificationInput,
     @GetUser("username") username: string,
@@ -80,7 +80,6 @@ export class TeamsVerifiedResourcesController {
   @Post("/phones/verification-code/request")
   @Throttle({ limit: 3, ttl: 60000, blockDuration: 60000, name: "teams_verified_resources_phones_requests" })
   @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: "teamId", type: Number, required: true })
   async requestPhoneVerificationCode(
     @Body() body: RequestPhoneVerificationInput
   ): Promise<RequestPhoneVerificationOutput> {

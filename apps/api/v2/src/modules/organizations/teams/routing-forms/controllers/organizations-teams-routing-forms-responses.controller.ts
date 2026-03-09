@@ -48,6 +48,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   IsAdminAPIEnabledGuard
 )
 @ApiHeader(API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
+@ApiParam({ name: "teamId", type: Number, required: true })
+@ApiParam({ name: "routingFormId", type: String, required: true })
 export class OrganizationsTeamsRoutingFormsResponsesController {
   constructor(
     private readonly organizationsTeamsRoutingFormsResponsesService: OrganizationsTeamsRoutingFormsResponsesService
@@ -106,7 +109,6 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
-  @ApiParam({ name: "orgId", type: Number, required: true })
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(
