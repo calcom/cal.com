@@ -48,7 +48,7 @@ if [ -z "$DATABASE_URL" ]; then
   echo "    psql \$DATABASE_URL -f $APP_DIR/scripts/db-seed.sql"
 else
   echo "Seeding database..."
-  psql "$DATABASE_URL" -f "$APP_DIR/scripts/db-seed.sql"
+  psql --set=ON_ERROR_STOP=1 "$DATABASE_URL" -f "$APP_DIR/scripts/db-seed.sql"
   echo "✓ App registered in database"
 fi
 

@@ -44,7 +44,12 @@ export class PaymentService {
       select: { uid: true, title: true },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_WEBAPP_URL ?? "";
+    const appUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+    if (!appUrl) {
+      throw new Error(
+        "[WaylPayment] NEXT_PUBLIC_WEBAPP_URL is not set. Cannot build absolute webhook/redirect URLs."
+      );
+    }
     const webhookUrl = `${appUrl}/api/integrations/waylpayment/webhook`;
     const redirectionUrl = `${appUrl}/booking/${booking.uid}`;
 

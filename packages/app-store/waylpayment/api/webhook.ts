@@ -23,10 +23,22 @@ import type { WaylPaymentData } from "../lib/PaymentService";
 /** Disable Next.js body parsing — we need the raw body string for HMAC verification */
 export const config = { api: { bodyParser: false } };
 
+const MAX_BODY_BYTES = 100 * 1024; // 100 KB — Wayl webhook payloads are small
+
 async function getRawBody(req: NextApiRequest): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    let totalBytes = 0;
+
+    req.on("data", (chunk: Buffer) => {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error("Request body too large"));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
     req.on("error", reject);
   });
@@ -53,7 +65,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const rawBody = await getRawBody(req);
+  let rawBody: string;
+  try {
+    rawBody = await getRawBody(req);
+  } catch (err) {
+    return res.status(413).json({ message: "Request body too large" });
+  }
 
   let payload: WaylWebhookPayload;
   try {
@@ -90,15 +107,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const paymentData = payment.data as WaylPaymentData | null;
   const webhookSecret = paymentData?.webhookSecret;
 
-  if (webhookSecret) {
-    const signature = req.headers["x-wayl-signature-256"] as string | undefined;
+  // webhookSecret must always be present — it was stored when the link was created.
+  // A missing secret means the payment record is corrupt; reject to avoid confirming
+  // bookings from unauthenticated requests.
+  if (!webhookSecret) {
+    console.error(`[WaylWebhook] No webhookSecret found for booking ${referenceId} — rejecting`);
+    return res.status(401).json({ message: "Cannot verify request — missing webhook secret" });
+  }
 
-    if (!signature || !verifySignature(rawBody, signature, webhookSecret)) {
-      console.warn(`[WaylWebhook] Invalid signature for booking ${referenceId}`);
-      return res.status(401).json({ message: "Invalid signature" });
-    }
-  } else {
-    console.warn(`[WaylWebhook] No webhookSecret stored for booking ${referenceId} — skipping signature check`);
+  const signature = req.headers["x-wayl-signature-256"] as string | undefined;
+  if (!signature || !verifySignature(rawBody, signature, webhookSecret)) {
+    console.warn(`[WaylWebhook] Invalid signature for booking ${referenceId}`);
+    return res.status(401).json({ message: "Invalid signature" });
   }
 
   // ── Handle successful payment ─────────────────────────────────────────────

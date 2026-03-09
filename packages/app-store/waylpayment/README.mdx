@@ -5,7 +5,7 @@ description: Accept payments from Iraqi customers via ZainCash, FastPay, and oth
 
 ## Wayl Payment Gateway
 
-[Wayl](https://thewayl.com) is an Iraqi payment gateway that allows merchants to accept payments via ZainCash, FastPay, and other local Iraqi payment channels.
+[Wayl](https://wayl.io) is an Iraqi payment gateway that allows merchants to accept payments via ZainCash, FastPay, and other local Iraqi payment channels.
 
 ### Features
 
@@ -17,8 +17,8 @@ description: Accept payments from Iraqi customers via ZainCash, FastPay, and oth
 
 ### How to set up
 
-1. Create a merchant account at [thewayl.com](https://thewayl.com)
-2. Get your API key from your [Wayl dashboard](https://dashboard.thewayl.com/settings/api)
+1. Create a merchant account at [wayl.io](https://wayl.io)
+2. Get your API key from your [Wayl dashboard](https://dashboard.wayl.io/settings/api)
 3. Install the Wayl app from the Cal.com App Store
 4. Paste your API key and click **Connect**
 5. In any event type, go to **Payment** → enable **Require Payment** → set your price in IQD
@@ -34,14 +34,18 @@ When a customer books an event that requires payment:
 
 ### Webhook configuration
 
-After installing the app, configure the following webhook URL in your Wayl merchant dashboard:
+No manual webhook configuration is required. When a customer books a paid event, the
+integration automatically:
+
+1. Generates a unique cryptographic secret for that payment
+2. Creates the Wayl payment link with that secret embedded
+3. Wayl signs its webhook request with the same secret
+4. Cal.com verifies the signature on receipt before confirming any booking
+
+The only environment variable required is:
 
 ```
-https://YOUR_CALDOMAIN.com/api/integrations/waylpayment/webhook
+NEXT_PUBLIC_WEBAPP_URL=https://your-cal-domain.com
 ```
 
-Set a strong webhook secret in both your Wayl dashboard and your Cal.com `.env` file:
-
-```
-WAYL_WEBHOOK_SECRET=your-strong-random-secret
-```
+This is used to build the absolute webhook callback URL sent to Wayl.

@@ -56,9 +56,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // 3. Encrypt and store the credential
     const encryptionKey = process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY;
-    const encryptedKey = encryptionKey
-      ? symmetricEncrypt(apiKey, encryptionKey)
-      : apiKey; // fallback for dev; in prod the env var should always be set
+    if (!encryptionKey) {
+      return res.status(500).json({
+        message: "Server misconfiguration: CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY is not set.",
+      });
+    }
+    const encryptedKey = symmetricEncrypt(apiKey, encryptionKey);
 
     const existingCredential = await prisma.credential.findFirst({
       where: { userId: session.user.id, appId: app.slug },

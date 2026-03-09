@@ -15,7 +15,8 @@ cd cal.com
 yarn app-store:build
 
 # 3. Seed the database
-psql $DATABASE_URL -f packages/app-store/waylpayment/scripts/db-seed.sql
+# ⚠ Verify DATABASE_URL points to your LOCAL dev database before running
+psql --set=ON_ERROR_STOP=1 $DATABASE_URL -f packages/app-store/waylpayment/scripts/db-seed.sql
 
 # 4. Start dev server (keep app-store:watch running in a second terminal)
 yarn app-store:watch &

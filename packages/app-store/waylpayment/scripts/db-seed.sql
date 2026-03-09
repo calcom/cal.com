@@ -21,11 +21,11 @@ VALUES (
   ARRAY['payment']::"AppCategories"[],
   '{}',
   true,
-  NOW(),
-  NOW()
+  (NOW() AT TIME ZONE 'UTC'),
+  (NOW() AT TIME ZONE 'UTC')
 )
 ON CONFLICT (slug) DO UPDATE SET
   "dirName"   = EXCLUDED."dirName",
   categories  = EXCLUDED.categories,
-  enabled     = EXCLUDED.enabled,
-  "updatedAt" = NOW();
+  -- Do NOT override enabled: preserves intentional manual disablement
+  "updatedAt" = (NOW() AT TIME ZONE 'UTC');

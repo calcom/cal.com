@@ -5,5 +5,17 @@
   "main": "./index.ts",
   "license": "MIT",
   "keywords": ["cal.com", "payment", "wayl", "iraq", "zaincash", "fastpay"],
-  "dependencies": {}
+  "dependencies": {
+    "zod": "*",
+    "next": "*",
+    "react": "*",
+    "@prisma/client": "*",
+    "@calcom/prisma": "*",
+    "@calcom/lib": "*",
+    "@calcom/emails": "*",
+    "@calcom/types": "*",
+    "@calcom/app-store": "*",
+    "@calcom/ui": "*",
+    "@calcom/features": "*"
+  }
 }
