@@ -75,7 +75,7 @@ registerTeamRolesCommand(program);
 registerTeamRoutingFormsCommand(program);
 registerTeamSchedulesCommand(program);
 registerTeamStripeCommand(program);
-registerTeamVerifiedResourcesCommand(program);
+// registerTeamVerifiedResourcesCommand(program); // TODO: Uncomment when API output types are fixed
 registerTeamWorkflowsCommand(program);
 registerEventTypeWebhooksCommand(program);
 registerTeamEventTypeWebhooksCommand(program);
@@ -94,7 +94,7 @@ registerOrgUserOooCommand(program);
 registerOrgUserSchedulesCommand(program);
 registerManagedOrgsCommand(program);
 registerDelegationCredentialsCommand(program);
-registerVerifiedResourcesCommand(program);
+// registerVerifiedResourcesCommand(program); // TODO: Uncomment when API output types are fixed
 registerStripeCommand(program);
 registerRoutingFormsCommand(program);
 registerOAuthCommand(program);

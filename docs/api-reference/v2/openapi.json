@@ -8036,14 +8036,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8100,14 +8093,7 @@
         },
         "responses": {
           "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8174,14 +8160,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8228,14 +8207,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8341,14 +8313,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -24634,72 +24599,6 @@
           }
         }
       },
-      "UserOooOutputDto": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "number",
-            "description": "The ID of the user.",
-            "example": 2
-          },
-          "toUserId": {
-            "type": "number",
-            "description": "The ID of the user covering for the out of office period, if applicable.",
-            "example": 2
-          },
-          "id": {
-            "type": "number",
-            "description": "The ID of the ooo entry.",
-            "example": 2
-          },
-          "uuid": {
-            "type": "string",
-            "description": "The UUID of the ooo entry.",
-            "example": 2
-          },
-          "start": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-01T00:00:00.000Z"
-          },
-          "end": {
-            "format": "date-time",
-            "type": "string",
-            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-10T23:59:59.999Z"
-          },
-          "notes": {
-            "type": "string",
-            "description": "Optional notes for the out of office entry.",
-            "example": "Vacation in Hawaii"
-          },
-          "reason": {
-            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"],
-            "type": "string",
-            "description": "the reason for the out of office entry, if applicable",
-            "example": "vacation"
-          }
-        },
-        "required": ["userId", "id", "uuid", "start", "end"]
-      },
-      "UserOoosOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserOooOutputDto"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
       "CreateOutOfOfficeEntryDto": {
         "type": "object",
         "properties": {
@@ -24733,20 +24632,6 @@
           }
         },
         "required": ["start", "end"]
-      },
-      "UserOooOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/UserOooOutputDto"
-          }
-        },
-        "required": ["status", "data"]
       },
       "UpdateOutOfOfficeEntryDto": {
         "type": "object",
@@ -33297,27 +33182,129 @@
         },
         "required": ["email", "code"]
       },
-      "UserVerifiedEmailOutputData": {
+      "WorkingHours": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number",
-            "description": "The unique identifier for the verified email.",
-            "example": 789
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           },
-          "email": {
-            "type": "string",
-            "description": "The verified email address.",
-            "example": "user@example.com",
-            "format": "email"
+          "startTime": {
+            "type": "number"
+          },
+          "endTime": {
+            "type": "number"
           },
           "userId": {
             "type": "number",
-            "description": "The ID of the associated user, if applicable.",
-            "example": 45
+            "nullable": true
           }
         },
-        "required": ["id", "email", "userId"]
+        "required": ["days", "startTime", "endTime"]
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "eventTypeId": {
+            "type": "number",
+            "nullable": true
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "startTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endTime": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": ["id", "days", "startTime", "endTime"]
+      },
+      "ScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isManaged": {
+            "type": "boolean"
+          },
+          "workingHours": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkingHours"
+            }
+          },
+          "schedule": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityModel"
+            }
+          },
+          "availability": {
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "dateOverrides": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isLastSchedule": {
+            "type": "boolean"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "isManaged",
+          "workingHours",
+          "schedule",
+          "availability",
+          "timeZone",
+          "isDefault",
+          "isLastSchedule",
+          "readOnly"
+        ]
       },
       "UserVerifiedEmailOutput": {
         "type": "object",
@@ -33328,7 +33315,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
@@ -33349,28 +33336,6 @@
         },
         "required": ["phone", "code"]
       },
-      "UserVerifiedPhoneOutputData": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "The unique identifier for the verified email.",
-            "example": 789
-          },
-          "phoneNumber": {
-            "type": "string",
-            "description": "The verified phone number.",
-            "example": "+37255556666",
-            "format": "phone"
-          },
-          "userId": {
-            "type": "number",
-            "description": "The ID of the associated user, if applicable.",
-            "example": 45
-          }
-        },
-        "required": ["id", "phoneNumber", "userId"]
-      },
       "UserVerifiedPhoneOutput": {
         "type": "object",
         "properties": {
@@ -33380,7 +33345,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
@@ -33394,10 +33359,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
-            }
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
@@ -33411,41 +33373,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
-            }
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
-      },
-      "TeamVerifiedEmailOutputData": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "The unique identifier for the verified email.",
-            "example": 789
-          },
-          "email": {
-            "type": "string",
-            "description": "The verified email address.",
-            "example": "user@example.com",
-            "format": "email"
-          },
-          "teamId": {
-            "type": "number",
-            "description": "The ID of the associated team, if applicable.",
-            "example": 89
-          },
-          "userId": {
-            "type": "number",
-            "nullable": true,
-            "description": "The ID of the associated user, if applicable.",
-            "example": 45
-          }
-        },
-        "required": ["id", "email", "teamId"]
       },
       "TeamVerifiedEmailOutput": {
         "type": "object",
@@ -33456,38 +33387,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
-      },
-      "TeamVerifiedPhoneOutputData": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "description": "The unique identifier for the verified email.",
-            "example": 789
-          },
-          "phoneNumber": {
-            "type": "string",
-            "description": "The verified phone number.",
-            "example": "+37255556666",
-            "format": "phone"
-          },
-          "userId": {
-            "type": "number",
-            "nullable": true,
-            "description": "The ID of the associated user, if applicable.",
-            "example": 45
-          },
-          "teamId": {
-            "type": "number",
-            "description": "The ID of the associated team, if applicable.",
-            "example": 89
-          }
-        },
-        "required": ["id", "phoneNumber", "teamId"]
       },
       "TeamVerifiedPhoneOutput": {
         "type": "object",
@@ -33498,7 +33401,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
@@ -33512,10 +33415,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
-            }
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
@@ -33529,10 +33429,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
-            }
+            "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
         "required": ["status", "data"]
