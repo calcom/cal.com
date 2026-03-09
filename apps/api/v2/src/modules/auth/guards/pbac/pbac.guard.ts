@@ -1,5 +1,6 @@
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
-import { getTeamFeatureRepository, PermissionCheckService } from "@calcom/platform-libraries/pbac";
+import { PermissionCheckService } from "@calcom/platform-libraries/pbac";
+import { getTeamFeatureRepository } from "@calcom/platform-libraries/repositories";
 import {
   BadRequestException,
   CanActivate,

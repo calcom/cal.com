@@ -8,8 +8,8 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Dynamic import for ES module
-  const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
-  const featuresRepository = new FeaturesRepository(prisma);
+  const { getTeamFeatureRepository } = await import("@calcom/features/di/containers/TeamFeatureRepository");
+  const teamFeatureRepository = getTeamFeatureRepository();
   // Parse newEmail from args
   const newEmail = process.argv[2] || "hariom@cal.com";
   console.log(`Using newEmail: ${newEmail}`);
@@ -62,12 +62,7 @@ async function main() {
     },
   });
   if (!delegationFeature) {
-    await featuresRepository.setTeamFeatureState({
-      teamId: org.id,
-      featureId: "delegation-credential",
-      state: "enabled",
-      assignedBy: "prepare-local-script",
-    });
+    await teamFeatureRepository.upsert(org.id, "delegation-credential", true, "prepare-local-script");
     console.log("Created TeamFeatures: delegation-credential");
   } else {
     console.log("TeamFeatures: delegation-credential already exists, skipping.");
@@ -84,12 +79,7 @@ async function main() {
     },
   });
   if (!calendarCacheFeature) {
-    await featuresRepository.setTeamFeatureState({
-      teamId: org.id,
-      featureId: "calendar-cache",
-      state: "enabled",
-      assignedBy: "prepare-local-script",
-    });
+    await teamFeatureRepository.upsert(org.id, "calendar-cache", true, "prepare-local-script");
     console.log("Created TeamFeatures: calendar-cache");
   } else {
     console.log("TeamFeatures: calendar-cache already exists, skipping.");

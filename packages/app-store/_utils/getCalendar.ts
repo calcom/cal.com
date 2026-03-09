@@ -11,7 +11,9 @@ import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CalendarTelemetryWrapper } from "@calcom/features/calendar-subscription/lib/telemetry/CalendarTelemetryWrapper";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { isTelemetryEnabled } from "@calcom/lib/sentryWrapper";
 import type { Calendar, CalendarFetchMode } from "@calcom/types/Calendar";
@@ -58,13 +60,14 @@ export const getCalendar = async (
   // - "none": Don't use cache (for operations that don't use getAvailability, e.g., deleteEvent, listCalendars)
   let shouldServeCache = false;
   if (mode === "slots") {
-    const featuresRepository = getFeaturesRepository();
+    const featureRepository = getFeatureRepository();
+    const userFeatureRepository = getUserFeatureRepository();
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
-        featuresRepository.checkIfFeatureIsEnabledGlobally(
+        featureRepository.checkIfFeatureIsEnabledGlobally(
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
-        featuresRepository.checkIfUserHasFeatureNonHierarchical(
+        userFeatureRepository.checkIfUserHasFeatureNonHierarchical(
           credential.userId as number,
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),

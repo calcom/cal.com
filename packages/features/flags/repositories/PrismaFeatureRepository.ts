@@ -1,4 +1,4 @@
-import type { FeatureId } from "@calcom/features/flags/config";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
 import type { FeatureDto } from "@calcom/lib/dto/FeatureDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 
@@ -7,7 +7,7 @@ export interface IFeatureRepository {
   findBySlug(slug: string): Promise<FeatureDto | null>;
   update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto>;
   checkIfFeatureIsEnabledGlobally(slug: string): Promise<boolean>;
-  getFeatureFlagMap(): Promise<Record<string, boolean>>;
+  getFeatureFlagMap(): Promise<AppFlags>;
 }
 
 export class PrismaFeatureRepository implements IFeatureRepository {
@@ -78,14 +78,11 @@ export class PrismaFeatureRepository implements IFeatureRepository {
     return Boolean(feature?.enabled);
   }
 
-  async getFeatureFlagMap(): Promise<Record<string, boolean>> {
+  async getFeatureFlagMap(): Promise<AppFlags> {
     const flags = await this.findAll();
-    return flags.reduce(
-      (acc, flag) => {
-        acc[flag.slug as FeatureId] = flag.enabled;
-        return acc;
-      },
-      {} as Record<string, boolean>
-    );
+    return flags.reduce((acc, flag) => {
+      acc[flag.slug as FeatureId] = flag.enabled;
+      return acc;
+    }, {} as AppFlags);
   }
 }

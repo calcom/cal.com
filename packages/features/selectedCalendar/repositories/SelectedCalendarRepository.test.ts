@@ -1,12 +1,12 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PrismaTeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { beforeEach, describe, expect, test, vi, it } from "vitest";
+import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
 const mockPrismaClient = {
   selectedCalendar: {
@@ -412,13 +412,8 @@ describe("SelectedCalendarRepository", () => {
           },
         });
 
-        const featuresRepository = new FeaturesRepository(prismock);
-        await featuresRepository.setTeamFeatureState({
-          teamId: team.id,
-          featureId: "calendar-cache" as FeatureId,
-          state: "disabled",
-          assignedBy: "test",
-        });
+        const teamFeatureRepository = new PrismaTeamFeatureRepository(prismock);
+        await teamFeatureRepository.upsert(team.id, "calendar-cache" as FeatureId, false, "test");
 
         await prisma.selectedCalendar.create({
           data: {

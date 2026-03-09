@@ -1,22 +1,18 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
-
+import { getTeamFeatureRepository } from "@calcom/platform-libraries/repositories";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { FeatureId } from "@calcom/features/flags/config";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { Prisma } from "@calcom/prisma/client";
+import { TestingModule } from "@nestjs/testing";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 export class FeaturesRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
-  private featuresRepository: FeaturesRepository;
 
   constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
-    this.featuresRepository = new FeaturesRepository(this.prismaWriteClient);
   }
   async create(data: Prisma.FeatureCreateInput) {
     // note(Lauris): upserting because this create function is called in multiple tests in parallel and otherwise would lead to unique
@@ -33,28 +29,22 @@ export class FeaturesRepositoryFixture {
       | { teamId: number; featureId: string; state: "enabled" | "disabled"; assignedBy?: string }
       | { teamId: number; featureId: string; state: "inherit" }
   ) {
+    const teamFeatureRepository = getTeamFeatureRepository();
     if (input.state === "inherit") {
-      await this.featuresRepository.setTeamFeatureState({
-        teamId: input.teamId,
-        featureId: input.featureId as FeatureId,
-        state: input.state,
-      });
+      await teamFeatureRepository.delete(input.teamId, input.featureId as FeatureId);
     } else {
-      await this.featuresRepository.setTeamFeatureState({
-        teamId: input.teamId,
-        featureId: input.featureId as FeatureId,
-        state: input.state,
-        assignedBy: input.assignedBy ?? "test",
-      });
+      await teamFeatureRepository.upsert(
+        input.teamId,
+        input.featureId as FeatureId,
+        input.state === "enabled",
+        "assignedBy" in input ? (input.assignedBy ?? "test") : "test"
+      );
     }
   }
 
   async disableFeatureForTeam(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState({
-      teamId,
-      featureId: featureSlug as FeatureId,
-      state: "inherit",
-    });
+    const teamFeatureRepository = getTeamFeatureRepository();
+    await teamFeatureRepository.delete(teamId, featureSlug as FeatureId);
   }
 
   async deleteBySlug(slug: string) {
@@ -64,10 +54,7 @@ export class FeaturesRepositoryFixture {
   }
 
   async deleteTeamFeature(teamId: number, featureSlug: string) {
-    await this.featuresRepository.setTeamFeatureState({
-      teamId,
-      featureId: featureSlug as FeatureId,
-      state: "inherit",
-    });
+    const teamFeatureRepository = getTeamFeatureRepository();
+    await teamFeatureRepository.delete(teamId, featureSlug as FeatureId);
   }
 }

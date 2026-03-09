@@ -1,5 +1,5 @@
 import { Memoize, Unmemoize } from "@calcom/features/cache";
-import type { FeatureId } from "@calcom/features/flags/config";
+import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
 import type { FeatureDto } from "@calcom/lib/dto/FeatureDto";
 import { FeatureDtoArraySchema, FeatureDtoSchema } from "@calcom/lib/dto/FeatureDto";
 import type { IFeatureRepository } from "./PrismaFeatureRepository";
@@ -47,19 +47,11 @@ export class CachedFeatureRepository implements IFeatureRepository {
     return Boolean(feature && feature.enabled);
   }
 
-  /**
-   * Gets a map of all feature flags and their enabled status.
-   * Uses caching to avoid hitting the database on every request.
-   * @returns Promise<AppFlags> - A map of feature flags to their enabled status
-   */
-  public async getFeatureFlagMap() {
+  async getFeatureFlagMap(): Promise<AppFlags> {
     const flags = await this.findAll();
-    return flags.reduce(
-      (acc, flag) => {
-        acc[flag.slug as FeatureId] = flag.enabled;
-        return acc;
-      },
-      {} as Record<string, boolean>
-    );
+    return flags.reduce((acc, flag) => {
+      acc[flag.slug as FeatureId] = flag.enabled;
+      return acc;
+    }, {} as AppFlags);
   }
 }

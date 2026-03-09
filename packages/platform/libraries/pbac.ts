@@ -1,5 +1,3 @@
-export { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
-export { FeaturesRepository } from "@calcom/features/flags/features.repository";
 export type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 export type {
   CreateRoleData,

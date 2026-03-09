@@ -1,5 +1,5 @@
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { FeatureId } from "@calcom/features/flags/config";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -248,13 +248,7 @@ export const permissionsRouter = router({
     }
 
     // Enable PBAC feature for the organization
-    const featuresRepository = new FeaturesRepository(prisma);
-    await featuresRepository.setTeamFeatureState({
-      teamId: orgId,
-      featureId: "pbac",
-      state: "enabled",
-      assignedBy: "opt-in by user: " + ctx.user.id,
-    });
+    await teamFeatureRepository.upsert(orgId, "pbac" as FeatureId, true, "opt-in by user: " + ctx.user.id);
 
     return { success: true, message: "PBAC enabled successfully" };
   }),
