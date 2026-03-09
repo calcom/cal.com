@@ -10,14 +10,17 @@ import stripe from "../lib/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;
-  const state = decodeOAuthState(req, "stripe");
+  const state = decodeOAuthState(req);
 
   if (error) {
+    // User cancels flow
     if (error === "access_denied") {
-      return res.redirect(getSafeRedirectUrl(state?.onErrorReturnTo) ?? "/apps/installed/payment");
+      const safeReturnTo = getSafeRedirectUrl(state?.onErrorReturnTo) ?? "/apps/installed/payment";
+      return res.redirect(safeReturnTo);
     }
     const query = stringify({ error, error_description });
-    return res.redirect(`/apps/installed?${query}`);
+    res.redirect(`/apps/installed?${query}`);
+    return;
   }
 
   if (!req.session?.user?.id) {
@@ -30,9 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const data: StripeData = { ...response, default_currency: "" };
-  if (response.stripe_user_id) {
-    const account = await stripe.accounts.retrieve(response.stripe_user_id);
-    data.default_currency = account.default_currency;
+  if (response["stripe_user_id"]) {
+    const account = await stripe.accounts.retrieve(response["stripe_user_id"]);
+    data["default_currency"] = account.default_currency;
   }
 
   await createOAuthAppCredential(

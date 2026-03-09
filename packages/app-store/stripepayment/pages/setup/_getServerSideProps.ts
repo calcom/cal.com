@@ -8,6 +8,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+import { signOAuthState } from "@calcom/app-store/_utils/oauth/encodeOAuthState";
 import { getStripeAppKeys } from "../../lib/getStripeAppKeys";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -16,7 +17,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const session = await getServerSession({ req: ctx.req });
 
-  if (!session?.user?.uuid) {
+  if (!session?.user?.id || !session?.user?.uuid) {
     return {
       redirect: {
         destination: "/auth/login",
@@ -63,7 +64,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
         country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
       },
       redirect_uri,
-      state: JSON.stringify(state),
+      state: signOAuthState(state, session.user.id),
     };
 
     const params = z.record(z.any()).parse(stripeConnectParams);

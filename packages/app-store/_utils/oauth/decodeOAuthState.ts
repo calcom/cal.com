@@ -3,7 +3,7 @@ import process from "node:process";
 import type { NextApiRequest } from "next";
 import type { IntegrationOAuthCallbackState } from "../../types";
 
-const NONCE_EXEMPT_APPS = new Set(["stripe", "basecamp3", "dub", "webex", "tandem"]);
+const NONCE_EXEMPT_APPS = new Set(["basecamp3", "webex", "tandem"]);
 
 export function decodeOAuthState(req: NextApiRequest, appSlug?: string) {
   if (typeof req.query.state !== "string") {
@@ -28,6 +28,7 @@ export function decodeOAuthState(req: NextApiRequest, appSlug?: string) {
     .digest();
   const actual = Buffer.from(state.nonceHash, "hex");
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+    console.warn("[OAuth] State nonce verification failed");
     return undefined;
   }
 

@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
+import { signOAuthState } from "@calcom/app-store/_utils/oauth/encodeOAuthState";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { dubAppKeysSchema, scopeString } from "../lib/utils";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,9 +31,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   url.searchParams.append("redirect_uri", redirect_uris);
   url.searchParams.append("response_type", "code");
   url.searchParams.append("scope", scopeString);
-  if (typeof teamId === "string" && !Number.isNaN(Number(teamId))) {
-    url.searchParams.append("state", JSON.stringify({ teamId: Number(teamId) }));
-  }
+
+  const oauthState: IntegrationOAuthCallbackState = {
+    onErrorReturnTo: `${WEBAPP_URL}/apps/installed`,
+    fromApp: true,
+    ...(typeof teamId === "string" && !Number.isNaN(Number(teamId)) ? { teamId: Number(teamId) } : {}),
+  };
+  url.searchParams.append("state", signOAuthState(oauthState, loggedInUser.id));
   const oauthUrl = url.toString();
 
   return res.status(200).json({ url: oauthUrl });

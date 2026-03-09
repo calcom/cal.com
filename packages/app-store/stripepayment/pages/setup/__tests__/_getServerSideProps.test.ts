@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock dependencies before imports
 vi.mock("@calcom/features/auth/lib/getServerSession", () => ({
@@ -50,6 +50,7 @@ function createMockContext(overrides: Partial<GetServerSidePropsContext> = {}): 
 describe("Stripe Setup Page getServerSideProps", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXTAUTH_SECRET", "test-nextauth-secret");
     mockGetStripeAppKeys.mockResolvedValue({
       client_id: "ca_test_client_id",
       payment_fee_fixed: 0,
@@ -57,6 +58,10 @@ describe("Stripe Setup Page getServerSideProps", () => {
       public_key: "pk_test",
       webhook_secret: "whsec_test",
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("Slug validation", () => {
@@ -117,7 +122,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
       const ctx = createMockContext();
       const testUuid = "550e8400-e29b-41d4-a716-446655440000";
       mockGetServerSession.mockResolvedValue({
-        user: { uuid: testUuid },
+        user: { id: 42, uuid: testUuid },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -137,7 +142,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("OAuth redirect construction", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
+        user: { id: 42, uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -235,6 +240,22 @@ describe("Stripe Setup Page getServerSideProps", () => {
       expect(state.onErrorReturnTo).toBe("/settings/integrations");
     });
 
+    it("should include nonce and nonceHash in state for CSRF protection", async () => {
+      const ctx = createMockContext();
+
+      const result = await getServerSideProps(ctx);
+
+      const redirect = (result as { redirect: { destination: string; permanent: boolean } }).redirect;
+      const stateMatch = redirect.destination.match(/state=([^&]+)/);
+      expect(stateMatch).toBeTruthy();
+      const stateStr = decodeURIComponent(stateMatch![1]);
+      const state = JSON.parse(stateStr);
+      expect(state.nonce).toBeDefined();
+      expect(typeof state.nonce).toBe("string");
+      expect(state.nonceHash).toBeDefined();
+      expect(typeof state.nonceHash).toBe("string");
+    });
+
     it("should handle user with null name", async () => {
       mockPrisma.user.findUnique.mockResolvedValue({
         email: "user@example.com",
@@ -253,7 +274,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("Error handling", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
+        user: { id: 42, uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
@@ -282,7 +303,7 @@ describe("Stripe Setup Page getServerSideProps", () => {
   describe("E2E mode", () => {
     beforeEach(() => {
       mockGetServerSession.mockResolvedValue({
-        user: { uuid: "550e8400-e29b-41d4-a716-446655440000" },
+        user: { id: 42, uuid: "550e8400-e29b-41d4-a716-446655440000" },
         hasValidLicense: true,
         upId: "test",
         expires: "2024-12-31",
