@@ -8,14 +8,10 @@ export default {
   "database-migrations": "Database Migrations",
   upgrading: "Upgrading",
   docker: "Docker",
+  apps: "Apps",
   "-- deployments": {
     type: "separator",
     title: "Deployments",
   },
   deployments: "Deployments",
-  "-- apps": {
-    type: "separator",
-    title: "Apps",
-  },
-  apps: "Apps",
 };
