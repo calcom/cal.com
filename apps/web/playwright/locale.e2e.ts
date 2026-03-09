@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 import { submitAndWaitForResponse } from "./lib/testUtils";
 
@@ -403,9 +402,9 @@ test.describe("authorized user sees changed translations (de->ar)", async () => 
     await test.step("should change the language and show Arabic translations", async () => {
       await page.goto("/settings/my-account/general");
 
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForLoadState("networkidle");
 
-      await page.locator(".bg-default > div > div:nth-child(2)").first().click();
+      await page.getByTestId("locale-select").click();
       await page.getByTestId("select-option-ar").click();
 
       await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
@@ -463,10 +462,10 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
 
     await test.step("should change the language and show Brazil-Portuguese translations", async () => {
       await page.goto("/settings/my-account/general");
-      await page.waitForLoadState("domcontentloaded");
+      await page.waitForLoadState("networkidle");
 
-      await page.locator(".bg-default > div > div:nth-child(2)").first().click();
-      await page.locator("text=Português (Brasil)").click();
+      await page.getByTestId("locale-select").click();
+      await page.getByTestId("select-option-pt-BR").click();
 
       await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=general-submit-button]"),
