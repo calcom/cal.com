@@ -42,6 +42,16 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 
+/**
+ * ews-javascript-api's WriteValue concatenates raw strings into SOAP XML
+ * without escaping. HTML void elements like <br> break the XML parser.
+ * Wrapping in CDATA lets the parser skip the HTML content.
+ */
+function wrapInCdata(html: string): string {
+  if (!html) return html;
+  return `<![CDATA[${html}]]>`;
+}
+
 class ExchangeCalendarService implements Calendar {
   private integrationName = "";
   private log: typeof logger;
@@ -61,7 +71,7 @@ class ExchangeCalendarService implements Calendar {
     appointment.Start = DateTime.Parse(event.startTime);
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
-    appointment.Body = new MessageBody(BodyType.HTML, event.description || "");
+    appointment.Body = new MessageBody(BodyType.HTML, wrapInCdata(event.description || ""));
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
@@ -97,7 +107,7 @@ class ExchangeCalendarService implements Calendar {
     appointment.Start = DateTime.Parse(event.startTime);
     appointment.End = DateTime.Parse(event.endTime);
     appointment.Location = event.location || "";
-    appointment.Body = new MessageBody(BodyType.HTML, event.description || "");
+    appointment.Body = new MessageBody(BodyType.HTML, wrapInCdata(event.description || ""));
     event.attendees.forEach((attendee: Person) => {
       appointment.RequiredAttendees.Add(new Attendee(attendee.email));
     });
