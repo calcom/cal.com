@@ -105,6 +105,14 @@ export class SmtpConfigurationRepository {
     return count > 0;
   }
 
+  async isOrganization(teamId: number): Promise<boolean> {
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId },
+      select: { isOrganization: true },
+    });
+    return team?.isOrganization ?? false;
+  }
+
   async update(
     id: number,
     teamId: number,

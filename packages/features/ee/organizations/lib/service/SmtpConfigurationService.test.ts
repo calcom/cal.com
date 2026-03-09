@@ -64,6 +64,7 @@ function createMockRepository(): SmtpConfigurationRepository {
     findByTeamIdWithCredentials: vi.fn(),
     delete: vi.fn(),
     existsByTeamId: vi.fn(),
+    isOrganization: vi.fn(),
     update: vi.fn(),
   } as unknown as SmtpConfigurationRepository;
 }
@@ -91,8 +92,29 @@ describe("SmtpConfigurationService", () => {
   });
 
   describe("create", () => {
+    it("should reject non-organization team", async () => {
+      const mockRepo = createMockRepository();
+      vi.mocked(mockRepo.isOrganization).mockResolvedValue(false);
+
+      const service = createService(mockRepo);
+      await expect(
+        service.create({
+          teamId: TEAM_ID,
+          fromEmail: "noreply@org.com",
+          fromName: "Org",
+          smtpHost: "smtp.org.com",
+          smtpPort: 465,
+          smtpUser: "testuser",
+          smtpPassword: "testpass",
+          smtpSecure: true,
+        })
+      ).rejects.toThrow(expect.objectContaining({ code: ErrorCode.Forbidden }));
+      expect(mockRepo.create).not.toHaveBeenCalled();
+    });
+
     it("should encrypt credentials and create config", async () => {
       const mockRepo = createMockRepository();
+      vi.mocked(mockRepo.isOrganization).mockResolvedValue(true);
       vi.mocked(mockRepo.existsByTeamId).mockResolvedValue(false);
       vi.mocked(mockRepo.create).mockResolvedValue(makeConfig());
 
@@ -119,6 +141,7 @@ describe("SmtpConfigurationService", () => {
 
     it("should reject duplicate config for same team", async () => {
       const mockRepo = createMockRepository();
+      vi.mocked(mockRepo.isOrganization).mockResolvedValue(true);
       vi.mocked(mockRepo.existsByTeamId).mockResolvedValue(true);
 
       const service = createService(mockRepo);

@@ -75,6 +75,11 @@ export class SmtpConfigurationService {
   }
 
   async create(params: CreateSmtpConfigurationParams): Promise<SmtpConfigurationPublic> {
+    const isOrg = await this.repository.isOrganization(params.teamId);
+    if (!isOrg) {
+      throw new ErrorWithCode(ErrorCode.Forbidden, "SMTP configuration is only available for organizations");
+    }
+
     const exists = await this.repository.existsByTeamId(params.teamId);
     if (exists) {
       throw new ErrorWithCode(
