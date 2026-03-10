@@ -310,7 +310,7 @@ export async function createNewUsersConnectToOrgIfExists({
         // As a regular team member is allowed to change username during signup, we don't set any username for him
         const regularTeamMemberUsername = null;
 
-        const isBecomingAnOrgMember = parentId || isOrg;
+        const isBecomingAnOrgMember = !!orgId;
 
         const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
         const t = await getTranslation(language ?? "en", "common");

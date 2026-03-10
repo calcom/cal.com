@@ -716,6 +716,36 @@ describe("Invite Member Utils", () => {
         seatCount: 2,
       });
     });
+
+    it("does not set username when invite is for org scope but user is not connected to org", async () => {
+      mockUserCreate.mockResolvedValue({
+        id: 101,
+        email: "amy@medervahealth.com",
+      });
+      mockMembershipCreate.mockResolvedValue({});
+
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "amy@medervahealth.com", role: MembershipRole.MEMBER }],
+        isOrg: true,
+        teamId: 999,
+        parentId: null,
+        autoAcceptEmailDomain: "medervahealth.com",
+        orgConnectInfoByUsernameOrEmail: {
+          "amy@medervahealth.com": { orgId: undefined, autoAccept: false },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(mockUserCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            username: null,
+            organizationId: null,
+          }),
+        })
+      );
+    });
   });
 
   describe("createMemberships - Privilege Escalation Prevention", () => {
