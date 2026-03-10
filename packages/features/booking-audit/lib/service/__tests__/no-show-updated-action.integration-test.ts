@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getBookingAuditTaskConsumer } from "../../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../../di/BookingAuditViewerService.container";
 import { makeUserActor } from "../../makeActor";
-import type { BookingAuditTaskConsumer } from "../BookingAuditTaskConsumer";
+import type { BookingAuditTaskConsumer } from "../../tasker/BookingAuditTaskConsumer";
 import type { BookingAuditViewerService } from "../BookingAuditViewerService";
 import {
   cleanupTestData,
@@ -16,7 +16,7 @@ import {
 } from "./integration-utils";
 
 describe("No-Show Updated Action Integration", () => {
-  let bookingAuditTaskConsumer: BookingAuditTaskConsumer;
+  let bookingAuditTaskService: BookingAuditTaskConsumer;
   let bookingAuditViewerService: BookingAuditViewerService;
 
   let testData: {
@@ -30,7 +30,7 @@ describe("No-Show Updated Action Integration", () => {
   const additionalAttendeeEmails: string[] = [];
 
   beforeEach(async () => {
-    bookingAuditTaskConsumer = getBookingAuditTaskConsumer();
+    bookingAuditTaskService = getBookingAuditTaskConsumer();
     bookingAuditViewerService = getBookingAuditViewerService();
 
     const owner = await createTestUser({ name: "Test Host User" });
@@ -87,7 +87,7 @@ describe("No-Show Updated Action Integration", () => {
     it("should create audit record with host field containing userUuid and noShow", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.processAuditTask({
+      await bookingAuditTaskService.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -133,7 +133,7 @@ describe("No-Show Updated Action Integration", () => {
 
       const attendeesNoShow = [{ attendeeEmail: testData.attendee.email, noShow: { old: null, new: true } }];
 
-      await bookingAuditTaskConsumer.processAuditTask({
+      await bookingAuditTaskService.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -196,7 +196,7 @@ describe("No-Show Updated Action Integration", () => {
         { attendeeEmail: secondAttendeeEmail, noShow: { old: false, new: true } },
       ];
 
-      await bookingAuditTaskConsumer.processAuditTask({
+      await bookingAuditTaskService.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -238,7 +238,7 @@ describe("No-Show Updated Action Integration", () => {
     it("should create single audit record with both host and attendeesNoShow fields", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.processAuditTask({
+      await bookingAuditTaskService.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",
@@ -289,7 +289,7 @@ describe("No-Show Updated Action Integration", () => {
     it("should accept attendeesNoShow data with array format", async () => {
       const actor = makeUserActor(testData.owner.uuid);
 
-      await bookingAuditTaskConsumer.processAuditTask({
+      await bookingAuditTaskService.processAuditTask({
         bookingUid: testData.booking.uid,
         actor,
         action: "NO_SHOW_UPDATED",

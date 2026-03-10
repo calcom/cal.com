@@ -1,6 +1,13 @@
 export { getAuditActorRepository } from "@calcom/features/booking-audit/di/AuditActorRepository.container";
 export { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 export { BookingAuditTaskerProducerService } from "@calcom/features/booking-audit/lib/service/BookingAuditTaskerProducerService";
+export { BookingAuditTasker } from "@calcom/features/booking-audit/lib/tasker/BookingAuditTasker";
+export { BookingAuditSyncTasker } from "@calcom/features/booking-audit/lib/tasker/BookingAuditSyncTasker";
+export { BookingAuditTriggerTasker } from "@calcom/features/booking-audit/lib/tasker/BookingAuditTriggerTasker";
+export { BookingAuditTaskConsumer } from "@calcom/features/booking-audit/lib/tasker/BookingAuditTaskConsumer";
+export { PrismaBookingAuditRepository } from "@calcom/features/booking-audit/lib/repository/PrismaBookingAuditRepository";
+export { PrismaAuditActorRepository } from "@calcom/features/booking-audit/lib/repository/PrismaAuditActorRepository";
+export { BookingAuditActionServiceRegistry } from "@calcom/features/booking-audit/lib/service/BookingAuditActionServiceRegistry";
 export { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 export { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 export type {

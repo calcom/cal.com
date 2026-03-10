@@ -1,14 +1,14 @@
-import { TaskerService } from "@/lib/services/tasker.service";
 import { Logger } from "@/lib/logger.bridge";
+import { BookingAuditTaskerService } from "@/lib/services/tasker/booking-audit-tasker.service";
 import { Injectable } from "@nestjs/common";
 
 import { BookingAuditTaskerProducerService, getAuditActorRepository } from "@calcom/platform-libraries/bookings";
 
 @Injectable()
 export class BookingAuditProducerService extends BookingAuditTaskerProducerService {
-  constructor(taskerService: TaskerService, bridgeLogger: Logger) {
+  constructor(bookingAuditTasker: BookingAuditTaskerService, bridgeLogger: Logger) {
     super({
-      tasker: taskerService.getTasker(),
+      bookingAuditTasker,
       log: bridgeLogger,
       auditActorRepository: getAuditActorRepository(),
     });

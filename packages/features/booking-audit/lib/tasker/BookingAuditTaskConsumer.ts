@@ -1,6 +1,4 @@
-import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
-import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { JsonValue } from "@calcom/types/Json";
@@ -13,19 +11,17 @@ import type {
   BookingAuditType,
   IBookingAuditRepository,
 } from "../repository/IBookingAuditRepository";
+import type { IBookingAuditActionServiceRegistry } from "../service/BookingAuditActionServiceRegistry";
 import type { ActionSource } from "../types/actionSource";
 import type {
   BulkBookingAuditTaskConsumerPayload,
   SingleBookingAuditTaskConsumerPayload,
 } from "../types/bookingAuditTask";
-import type { IBookingAuditActionServiceRegistry } from "./BookingAuditActionServiceRegistry";
 
 interface BookingAuditTaskConsumerDeps {
   bookingAuditRepository: IBookingAuditRepository;
   auditActorRepository: IAuditActorRepository;
   featuresRepository: IFeaturesRepository;
-  attendeeRepository: IAttendeeRepository;
-  userRepository: UserRepository;
   actionServiceRegistry: IBookingAuditActionServiceRegistry;
 }
 
@@ -60,14 +56,6 @@ type BookingAudit = {
  *
  * Note: PENDING and AWAITING_HOST actions are intentionally not implemented.
  * These represent initial booking states captured by the CREATED action.
- *
- * Dependency Injection Note:
- * - `userRepository` is included in this service's dependencies because it's required by
- *   ActionServices (e.g., ReassignmentAuditActionService) that need to fetch user data.
- * - Currently, dependencies are passed down the flow: TaskConsumer → Registry → ActionService
- * - Future improvement: Consider creating a container/module system for action services
- *   that can build instances directly with their dependencies, eliminating the need to
- *   pass dependencies through intermediate layers.
  */
 export class BookingAuditTaskConsumer {
   private readonly actionServiceRegistry: IBookingAuditActionServiceRegistry;

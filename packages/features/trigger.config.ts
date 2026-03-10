@@ -19,6 +19,7 @@ export default defineConfig({
   dirs: [
     "./abuse-scoring/lib/tasker/trigger",
     "./bookings/lib/tasker/trigger/notifications",
+    "./booking-audit/lib/tasker/trigger",
     "./calendars/lib/tasker/trigger",
     "./ee/billing/service/dunning/trigger",
     "./ee/billing/service/proration/tasker/trigger",

@@ -1,6 +1,4 @@
-import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { type BookingAuditAction, BookingStatus } from "@calcom/prisma/enums";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -20,7 +18,7 @@ import {
 } from "../../service/__tests__/integration-utils";
 import type { IBookingAuditActionServiceRegistry } from "../../service/BookingAuditActionServiceRegistry";
 import type { BookingAuditProducerService } from "../../service/BookingAuditProducerService.interface";
-import { BookingAuditTaskConsumer } from "../../service/BookingAuditTaskConsumer";
+import { BookingAuditTaskConsumer } from "../../tasker/BookingAuditTaskConsumer";
 import type { DataRequirements } from "../../service/EnrichmentDataStore";
 import type { SingleBookingAuditTaskConsumerPayload } from "../../types/bookingAuditTask";
 import { AuditActionServiceHelper } from "../AuditActionServiceHelper";
@@ -111,8 +109,6 @@ describe("Cross-version deployment scenarios", () => {
       bookingAuditRepository: new PrismaBookingAuditRepository({ prismaClient: prisma }),
       auditActorRepository: new PrismaAuditActorRepository({ prismaClient: prisma }),
       featuresRepository: new FeaturesRepository(prisma),
-      attendeeRepository: new AttendeeRepository(prisma),
-      userRepository: new UserRepository(prisma),
       actionServiceRegistry: new DummyBookingAuditActionServiceRegistry(),
     });
     producer = getBookingAuditProducerService();
@@ -196,8 +192,6 @@ describe("Cross-version deployment scenarios", () => {
         data: fields,
         isBookingAuditEnabled: true,
       });
-
-      await processTaskQueue({ consumer });
 
       const audit = await prisma.bookingAudit.findFirst({
         where: { bookingUid: testData.booking.uid },

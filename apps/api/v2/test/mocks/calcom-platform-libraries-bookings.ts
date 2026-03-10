@@ -56,5 +56,33 @@ export class BookingAuditTaskerProducerService {
   constructor(_deps?: Record<string, unknown>) {}
 }
 
+export class BookingAuditTasker {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class BookingAuditSyncTasker {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class BookingAuditTriggerTasker {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class BookingAuditTaskConsumer {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class PrismaBookingAuditRepository {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class PrismaAuditActorRepository {
+  constructor(_deps?: Record<string, unknown>) {}
+}
+
+export class BookingAuditActionServiceRegistry {
+  constructor() {}
+}
+
 export const getAuditActorRepository = jest.fn();
 export const makeUserActor = jest.fn();

@@ -1,5 +1,4 @@
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import type { Tasker } from "@calcom/features/tasker/tasker";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
@@ -18,12 +17,13 @@ import { SeatRescheduledAuditActionService } from "../actions/SeatRescheduledAud
 import type { Actor, BookingAuditContext, PiiFreeActor } from "../dto/types";
 import { buildActorEmail, makeActorById } from "../makeActor";
 import type { IAuditActorRepository } from "../repository/IAuditActorRepository";
+import type { BookingAuditTasker } from "../tasker/BookingAuditTasker";
 import type { ActionSource } from "../types/actionSource";
 import type { BookingAuditAction } from "../types/bookingAuditTask";
 import type { BookingAuditProducerService } from "./BookingAuditProducerService.interface";
 
 interface BookingAuditTaskerProducerServiceDeps {
-  tasker: Tasker;
+  bookingAuditTasker: BookingAuditTasker;
   log: ISimpleLogger;
   auditActorRepository: IAuditActorRepository;
 }
@@ -31,19 +31,16 @@ interface BookingAuditTaskerProducerServiceDeps {
 /**
  * BookingAuditTaskerProducerService - Tasker-based implementation of BookingAuditProducerService
  *
- * Producer that uses Tasker for local/background job processing.
- * Task processing is handled by BookingAuditTaskConsumer.
- *
- * For future migration to trigger.dev, create BookingAuditTriggerProducerService
- * that implements the same BookingAuditProducerService interface.
+ * Producer that uses BookingAuditTasker for async/sync task processing.
+ * Task processing is handled by BookingAuditTaskConsumer via Trigger.dev or sync fallback.
  */
 export class BookingAuditTaskerProducerService implements BookingAuditProducerService {
-  private readonly tasker: Tasker;
+  private readonly bookingAuditTasker: BookingAuditTasker;
   private readonly log: BookingAuditTaskerProducerServiceDeps["log"];
   private readonly auditActorRepository: IAuditActorRepository;
 
   constructor(private readonly deps: BookingAuditTaskerProducerServiceDeps) {
-    this.tasker = deps.tasker;
+    this.bookingAuditTasker = deps.bookingAuditTasker;
     this.log = deps.log;
     this.auditActorRepository = deps.auditActorRepository;
   }
@@ -91,7 +88,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     bookingUid: string;
     actor: Actor;
     organizationId: number | null;
-    action: string;
+    action: BookingAuditAction;
     source: ActionSource;
     operationId?: string | null;
     version: number;
@@ -119,17 +116,19 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
       const operationId = params.operationId ?? uuidv4();
 
-      await this.tasker.create("bookingAudit", {
-        isBulk: false,
-        bookingUid: params.bookingUid,
-        actor: piiFreeActor,
-        organizationId: params.organizationId,
-        timestamp: Date.now(),
-        action: params.action as BookingAuditAction,
-        source: params.source,
-        operationId,
-        data: { version: params.version, fields: params.data },
-        context: params.context,
+      await this.bookingAuditTasker.processAuditTask({
+        payload: {
+          isBulk: false,
+          bookingUid: params.bookingUid,
+          actor: piiFreeActor,
+          organizationId: params.organizationId,
+          timestamp: Date.now(),
+          action: params.action,
+          source: params.source,
+          operationId,
+          data: { version: params.version, fields: params.data },
+          context: params.context,
+        },
       });
     } catch (error) {
       this.log.error(`Error while queueing ${params.action} audit`, safeStringify(error));
@@ -347,7 +346,7 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
     }>;
     actor: Actor;
     organizationId: number | null;
-    action: string;
+    action: BookingAuditAction;
     source: ActionSource;
     operationId?: string | null;
     version: number;
@@ -373,19 +372,21 @@ export class BookingAuditTaskerProducerService implements BookingAuditProducerSe
 
       const operationId = params.operationId ?? uuidv4();
 
-      await this.tasker.create("bookingAudit", {
-        isBulk: true,
-        bookings: params.bookings.map((b) => ({
-          bookingUid: b.bookingUid,
-          data: { version: params.version, fields: b.data },
-        })),
-        actor: piiFreeActor,
-        organizationId: params.organizationId,
-        timestamp: Date.now(),
-        action: params.action as BookingAuditAction,
-        source: params.source,
-        operationId,
-        context: params.context,
+      await this.bookingAuditTasker.processBulkAuditTask({
+        payload: {
+          isBulk: true,
+          bookings: params.bookings.map((b) => ({
+            bookingUid: b.bookingUid,
+            data: { version: params.version, fields: b.data },
+          })),
+          actor: piiFreeActor,
+          organizationId: params.organizationId,
+          timestamp: Date.now(),
+          action: params.action,
+          source: params.source,
+          operationId,
+          context: params.context,
+        },
       });
     } catch (error) {
       this.log.error(`Error while queueing bulk ${params.action} audit`, safeStringify(error));

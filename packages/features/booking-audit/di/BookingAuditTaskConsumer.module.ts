@@ -1,13 +1,10 @@
-import { BookingAuditTaskConsumer } from "@calcom/features/booking-audit/lib/service/BookingAuditTaskConsumer";
-import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
-import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditRepository.module";
 import { moduleLoader as auditActorRepositoryModuleLoader } from "@calcom/features/booking-audit/di/AuditActorRepository.module";
 import { moduleLoader as actionServiceRegistryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditActionServiceRegistry.module";
-import { moduleLoader as attendeeRepositoryModuleLoader } from "@calcom/features/bookings/di/Attendee.module";
+import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditRepository.module";
+import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { BookingAuditTaskConsumer } from "@calcom/features/booking-audit/lib/tasker/BookingAuditTaskConsumer";
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
-import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
-
-import { createModule, bindModuleToClassOnToken } from "../../di/di";
+import { bindModuleToClassOnToken, createModule } from "../../di/di";
 
 const bookingAuditTaskConsumerModule = createModule();
 const token = BOOKING_AUDIT_DI_TOKENS.BOOKING_AUDIT_TASK_CONSUMER;
@@ -22,8 +19,6 @@ const loadModule = bindModuleToClassOnToken({
     bookingAuditRepository: bookingAuditRepositoryModuleLoader,
     auditActorRepository: auditActorRepositoryModuleLoader,
     featuresRepository: featuresRepositoryModuleLoader,
-    attendeeRepository: attendeeRepositoryModuleLoader,
-    userRepository: userRepositoryModuleLoader,
     actionServiceRegistry: actionServiceRegistryModuleLoader,
   },
 });

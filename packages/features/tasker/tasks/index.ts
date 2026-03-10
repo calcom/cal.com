@@ -40,7 +40,6 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./sendProrationReminderEmail").then((module) => module.sendProrationReminderEmail),
   cancelProrationReminder: () =>
     import("./cancelProrationReminder").then((module) => module.cancelProrationReminder),
-  bookingAudit: () => import("./bookingAudit").then((module) => module.bookingAudit),
   webhookDelivery: () => import("./webhookDelivery").then((module) => module.webhookDelivery),
 };
 
