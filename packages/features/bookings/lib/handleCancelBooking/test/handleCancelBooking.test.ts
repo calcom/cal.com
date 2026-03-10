@@ -134,6 +134,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -265,6 +266,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -413,6 +415,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "Testing round robin cancellation with host as attendee",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -566,6 +569,7 @@ describe("Cancel Booking", () => {
         cancelledBy: primaryHost.email,
         cancellationReason: "Testing EMAIL_HOST workflow sends to secondary host in round robin",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -644,6 +648,7 @@ describe("Cancel Booking", () => {
           cancelledBy: organizer.email,
           cancellationReason: "Testing past booking cancellation",
         },
+        impersonatedByUserUuid: null,
         actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cannot cancel a booking that has already ended");
@@ -713,6 +718,7 @@ describe("Cancel Booking", () => {
           uid: uidOfBookingToBeCancelled,
           cancelledBy: organizer.email,
         },
+        impersonatedByUserUuid: null,
         actionSource: "WEBAPP",
       })
     ).rejects.toThrow("Cancellation reason is required");
@@ -825,6 +831,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -952,6 +959,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "No reason",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1070,6 +1078,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Attendee cancelled within time threshold",
       },
       userId: 999,
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1179,6 +1188,7 @@ describe("Cancel Booking", () => {
         cancelledBy: organizer.email,
         cancellationReason: "Organization booking cancellation test",
       },
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1302,6 +1312,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Cancelling seated event",
       },
       userId: organizer.id,
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1424,6 +1435,7 @@ describe("Cancel Booking", () => {
         allRemainingBookings: true,
       },
       userId: organizer.id,
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1546,6 +1558,7 @@ describe("Cancel Booking", () => {
         cancelSubsequentBookings: true,
       },
       userId: organizer.id,
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
@@ -1660,6 +1673,7 @@ describe("Cancel Booking", () => {
         cancellationReason: "Testing booking reference cleanup",
       },
       userId: organizer.id,
+      impersonatedByUserUuid: null,
       actionSource: "WEBAPP",
     });
 
