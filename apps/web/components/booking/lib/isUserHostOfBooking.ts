@@ -1,15 +1,5 @@
 import type { BookingItemProps } from "../types";
 
-/**
- * Determines if the logged-in user is a host for the booking.
- * A user is considered a host if they are:
- * - The booking owner (booking.user.id)
- * - An event type host assigned to this booking (in eventType.hosts AND booking attendees)
- * - The event type owner (eventType.owner.id)
- *
- * This function includes attendee-email verification to ensure event type hosts
- * are actually assigned to the specific booking before granting host permissions.
- */
 export function isUserHostOfBooking(booking: BookingItemProps): boolean {
   const loggedInUserId = booking.loggedInUser.userId;
 
