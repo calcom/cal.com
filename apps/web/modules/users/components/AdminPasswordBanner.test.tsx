@@ -32,6 +32,7 @@ function buildSession(overrides?: Partial<NonNullable<SessionContextValue["data"
   SessionContextValue["data"]
 > {
   return {
+    expires: "2099-01-01T00:00:00.000Z",
     hasValidLicense: true,
     upId: "usr_test",
     profileId: 1,
