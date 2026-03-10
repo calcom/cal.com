@@ -15,6 +15,7 @@ import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmai
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+import { ZTransferBillingSchema } from "./transferBilling.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
@@ -139,6 +140,10 @@ export const adminRouter = router({
   }),
   refreshDunning: authedAdminProcedure.input(ZRefreshDunningSchema).mutation(async (opts) => {
     const { default: handler } = await import("./refreshDunning.handler");
+    return handler(opts);
+  }),
+  transferBilling: authedAdminProcedure.input(ZTransferBillingSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./transferBilling.handler");
     return handler(opts);
   }),
   watchlist: watchlistRouter,

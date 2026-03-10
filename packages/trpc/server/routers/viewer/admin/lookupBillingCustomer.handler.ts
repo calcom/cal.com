@@ -1,5 +1,8 @@
-import { prisma } from "@calcom/prisma";
-
+import {
+  getAdminBillingRepository,
+  getSeatBillingStrategyFactory,
+} from "@calcom/features/ee/billing/di/containers/Billing";
+import type { AdminBillingRecord } from "@calcom/features/ee/billing/repository/adminBilling/AdminBillingRepository";
 import type { TrpcSessionUser } from "../../../types";
 import type { TLookupBillingCustomerInput } from "./lookupBillingCustomer.schema";
 
@@ -39,52 +42,23 @@ function getDunningExplanation(
   }
 }
 
-const billingSelect = {
-  id: true,
-  customerId: true,
-  subscriptionId: true,
-  status: true,
-  planName: true,
-  dunningStatus: {
-    select: {
-      status: true,
-      firstFailedAt: true,
-      lastFailedAt: true,
-      failureReason: true,
-      invoiceUrl: true,
-      notificationsSent: true,
-    },
-  },
-} as const;
-
-const teamSelect = {
-  id: true,
-  name: true,
-  slug: true,
-  isOrganization: true,
-} as const;
-
-type BillingResult = {
-  id: string;
-  customerId: string;
-  subscriptionId: string;
-  status: string;
-  planName: string;
-  dunningStatus: {
-    status: string;
-    firstFailedAt: Date | null;
-    lastFailedAt: Date | null;
-    failureReason: string | null;
-    invoiceUrl: string | null;
-    notificationsSent: number;
-  } | null;
-};
+async function resolveStrategyName(teamId: number | null): Promise<string | null> {
+  if (!teamId) return null;
+  try {
+    const factory = getSeatBillingStrategyFactory();
+    const strategy = await factory.createByTeamId(teamId);
+    return strategy.strategyName;
+  } catch {
+    return null;
+  }
+}
 
 function mapBillingResult(
-  b: BillingResult,
+  b: AdminBillingRecord,
   entityType: "team" | "organization",
-  team: { id: number; name: string; slug: string | null; isOrganization: boolean } | null
+  strategyName: string | null
 ) {
+  const team = b.team;
   const dunning = b.dunningStatus;
   const dunningStatus = (dunning?.status as string) ?? "CURRENT";
 
@@ -98,7 +72,18 @@ function mapBillingResult(
     teamId: team?.id ?? null,
     teamName: team?.name ?? null,
     teamSlug: team?.slug ?? null,
-    isOrganization: team?.isOrganization ?? (entityType === "organization"),
+    isOrganization: team?.isOrganization ?? entityType === "organization",
+    billingPeriod: b.billingPeriod,
+    billingMode: b.billingMode,
+    strategyName,
+    pricePerSeat: b.pricePerSeat,
+    paidSeats: b.paidSeats,
+    minSeats: b.minSeats,
+    highWaterMark: b.highWaterMark,
+    highWaterMarkPeriodStart: b.highWaterMarkPeriodStart?.toISOString() ?? null,
+    subscriptionStart: b.subscriptionStart?.toISOString() ?? null,
+    subscriptionTrialEnd: b.subscriptionTrialEnd?.toISOString() ?? null,
+    subscriptionEnd: b.subscriptionEnd?.toISOString() ?? null,
     dunningStatus,
     dunningFirstFailedAt: dunning?.firstFailedAt?.toISOString() ?? null,
     dunningLastFailedAt: dunning?.lastFailedAt?.toISOString() ?? null,
@@ -115,30 +100,18 @@ function mapBillingResult(
 
 export const lookupBillingCustomerHandler = async ({ input }: LookupBillingCustomerOptions) => {
   const { customerId } = input;
+  const repo = getAdminBillingRepository();
 
-  const [teamBillings, orgBillings] = await Promise.all([
-    prisma.teamBilling.findMany({
-      where: { customerId },
-      select: {
-        ...billingSelect,
-        team: { select: teamSelect },
-      },
-    }),
-    prisma.organizationBilling.findMany({
-      where: { customerId },
-      select: {
-        ...billingSelect,
-        team: { select: teamSelect },
-      },
-    }),
-  ]);
+  const billings = await repo.findByCustomerId(customerId);
 
-  return {
-    results: [
-      ...teamBillings.map((b) => mapBillingResult(b, "team", b.team ?? null)),
-      ...orgBillings.map((b) => mapBillingResult(b, "organization", b.team ?? null)),
-    ],
-  };
+  const results = await Promise.all(
+    billings.map(async ({ record, entityType }) => {
+      const strategyName = await resolveStrategyName(record.team?.id ?? null);
+      return mapBillingResult(record, entityType, strategyName);
+    })
+  );
+
+  return { results };
 };
 
 export default lookupBillingCustomerHandler;

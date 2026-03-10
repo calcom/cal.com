@@ -45,4 +45,6 @@ export const DI_TOKENS = {
   DUNNING_STRATEGY_FACTORY_MODULE: Symbol("DunningStrategyFactoryModule"),
   DUNNING_EMAIL_SERVICE: Symbol("DunningEmailService"),
   DUNNING_EMAIL_SERVICE_MODULE: Symbol("DunningEmailServiceModule"),
+  ADMIN_BILLING_REPOSITORY: Symbol("AdminBillingRepository"),
+  ADMIN_BILLING_REPOSITORY_MODULE: Symbol("AdminBillingRepositoryModule"),
 };

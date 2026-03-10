@@ -1,4 +1,5 @@
 import { createContainer } from "@calcom/features/di/di";
+import type { AdminBillingRepository } from "../../repository/adminBilling/AdminBillingRepository";
 import type { OrgDunningRepository } from "../../repository/dunning/OrgDunningRepository";
 import type { TeamDunningRepository } from "../../repository/dunning/TeamDunningRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
@@ -13,6 +14,7 @@ import type { TeamBillingServiceFactory } from "../../service/teams/TeamBillingS
 import { billingProviderServiceModuleLoader } from "../modules/BillingProviderService";
 import { dunningEmailServiceModuleLoader } from "../modules/DunningEmailService.module";
 import { dunningGuardModuleLoader } from "../modules/DunningGuard.module";
+import { adminBillingRepositoryModuleLoader } from "../modules/AdminBillingRepository.module";
 import { orgDunningRepositoryModuleLoader } from "../modules/OrgDunningRepository.module";
 import { dunningServiceFactoryModuleLoader } from "../modules/DunningServiceFactory.module";
 import { dunningStatusResolverModuleLoader } from "../modules/DunningStatusResolver.module";
@@ -34,6 +36,7 @@ dunningGuardModuleLoader.loadModule(billingContainer);
 dunningEmailServiceModuleLoader.loadModule(billingContainer);
 teamDunningRepositoryModuleLoader.loadModule(billingContainer);
 orgDunningRepositoryModuleLoader.loadModule(billingContainer);
+adminBillingRepositoryModuleLoader.loadModule(billingContainer);
 
 export function getTeamBillingServiceFactory(): TeamBillingServiceFactory {
   return billingContainer.get<TeamBillingServiceFactory>(DI_TOKENS.TEAM_BILLING_SERVICE_FACTORY);
@@ -77,4 +80,8 @@ export function getOrgDunningRepository(): OrgDunningRepository {
 
 export function getDunningEmailService(): DunningEmailService {
   return billingContainer.get<DunningEmailService>(DI_TOKENS.DUNNING_EMAIL_SERVICE);
+}
+
+export function getAdminBillingRepository(): AdminBillingRepository {
+  return billingContainer.get<AdminBillingRepository>(DI_TOKENS.ADMIN_BILLING_REPOSITORY);
 }

@@ -10,34 +10,24 @@ import {
   Sheet,
   SheetBody,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@calcom/ui/components/sheet";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useState } from "react";
 
+import { BillingDetailsSection } from "./BillingDetailsSection";
+import { DetailRow } from "./DetailRow";
+import { TransferBillingForm } from "./TransferBillingForm";
+import { dunningBadgeVariant } from "./billingUtils";
+
 interface CustomerLookupSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerId: string;
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-subtle text-xs">{label}</span>
-      <span className="text-emphasis text-right text-xs font-medium">{value}</span>
-    </div>
-  );
-}
-
-function dunningBadgeVariant(status: string) {
-  if (status === "CURRENT") return "green" as const;
-  if (status === "WARNING") return "orange" as const;
-  return "red" as const;
 }
 
 function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupSheetProps) {
@@ -89,55 +79,57 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                   <p className="text-subtle text-sm">{t("customer_lookup_no_results")}</p>
                 ) : (
                   <div className="space-y-3">
-                    {data.results.map((result) => (
-                      <div key={result.billingId} className="bg-default border-subtle rounded-lg border p-4">
+                    {data.results.map((billing) => (
+                      <div key={billing.billingId} className="bg-default border-subtle rounded-lg border p-4">
                         <div className="mb-3 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-emphasis text-sm font-semibold">
-                              {result.teamName ?? `Team #${result.teamId}`}
+                              {billing.teamName ?? `Team #${billing.teamId}`}
                             </span>
-                            <Badge variant={result.isOrganization ? "blue" : "gray"}>
-                              {result.isOrganization ? t("organization") : t("team")}
+                            <Badge variant={billing.isOrganization ? "blue" : "gray"}>
+                              {billing.isOrganization ? t("organization") : t("team")}
                             </Badge>
                           </div>
-                          <Badge variant={dunningBadgeVariant(result.dunningStatus)}>
-                            {result.dunningStatus.replace(/_/g, " ")}
+                          <Badge variant={dunningBadgeVariant(billing.dunningStatus)}>
+                            {billing.dunningStatus.replace(/_/g, " ")}
                           </Badge>
                         </div>
 
                         <div className="space-y-1">
-                          <DetailRow label={t("plan")} value={result.planName} />
-                          <DetailRow label={t("status")} value={result.subscriptionStatus} />
-                          <DetailRow label={t("customer_id")} value={result.customerId} />
-                          <DetailRow label={t("subscription_id")} value={result.subscriptionId} />
-                          {result.teamSlug && <DetailRow label={t("slug")} value={result.teamSlug} />}
+                          <DetailRow label={t("plan")} value={billing.planName} />
+                          <DetailRow label={t("status")} value={billing.subscriptionStatus} />
+                          <DetailRow label={t("customer_id")} value={billing.customerId} />
+                          <DetailRow label={t("subscription_id")} value={billing.subscriptionId} />
+                          {billing.teamSlug && <DetailRow label={t("slug")} value={billing.teamSlug} />}
                         </div>
 
-                        {result.dunningStatus !== "CURRENT" && (
+                        <BillingDetailsSection billing={billing} t={t} />
+
+                        {billing.dunningStatus !== "CURRENT" && (
                           <div className="border-subtle mt-3 border-t pt-3">
                             <h4 className="text-emphasis mb-2 text-xs font-semibold">
                               {t("dunning_details")}
                             </h4>
-                            <p className="text-subtle mb-3 text-xs italic">{result.dunningExplanation}</p>
+                            <p className="text-subtle mb-3 text-xs italic">{billing.dunningExplanation}</p>
                             <div className="space-y-1">
-                              {result.dunningFirstFailedAt && (
+                              {billing.dunningFirstFailedAt && (
                                 <DetailRow
                                   label={t("first_failed")}
-                                  value={new Date(result.dunningFirstFailedAt).toLocaleDateString()}
+                                  value={new Date(billing.dunningFirstFailedAt).toLocaleDateString()}
                                 />
                               )}
-                              {result.dunningLastFailedAt && (
+                              {billing.dunningLastFailedAt && (
                                 <DetailRow
                                   label={t("last_failed")}
-                                  value={new Date(result.dunningLastFailedAt).toLocaleDateString()}
+                                  value={new Date(billing.dunningLastFailedAt).toLocaleDateString()}
                                 />
                               )}
-                              {result.dunningFailureReason && (
-                                <DetailRow label={t("reason")} value={result.dunningFailureReason} />
+                              {billing.dunningFailureReason && (
+                                <DetailRow label={t("reason")} value={billing.dunningFailureReason} />
                               )}
                               <DetailRow
                                 label={t("notifications_sent")}
-                                value={String(result.dunningNotificationsSent)}
+                                value={String(billing.dunningNotificationsSent)}
                               />
                             </div>
                             <div className="mt-3 flex gap-2">
@@ -146,21 +138,18 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                                 size="sm"
                                 loading={
                                   refreshDunningMutation.isPending &&
-                                  refreshDunningMutation.variables?.billingId === result.billingId
+                                  refreshDunningMutation.variables?.billingId === billing.billingId
                                 }
                                 onClick={() => {
                                   refreshDunningMutation.mutate({
-                                    billingId: result.billingId,
-                                    entityType: result.entityType,
+                                    billingId: billing.billingId,
+                                    entityType: billing.entityType,
                                   });
                                 }}>
                                 {t("refresh_dunning_status")}
                               </Button>
-                              {result.dunningInvoiceUrl && (
-                                <a
-                                  href={result.dunningInvoiceUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer">
+                              {billing.dunningInvoiceUrl && (
+                                <a href={billing.dunningInvoiceUrl} target="_blank" rel="noopener noreferrer">
                                   <Button color="minimal" size="sm" type="button">
                                     {t("view_invoice")}
                                   </Button>
@@ -169,6 +158,16 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                             </div>
                           </div>
                         )}
+
+                        <div className="border-subtle mt-3 border-t pt-3">
+                          <TransferBillingForm
+                            billingId={billing.billingId}
+                            entityType={billing.entityType}
+                            onComplete={() => {
+                              utils.viewer.admin.lookupBillingCustomer.invalidate({ customerId });
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -203,9 +202,7 @@ export function CustomerLookupSection() {
   };
 
   return (
-    <PanelCard
-      title={t("customer_lookup_title")}
-      subtitle={t("customer_lookup_description")}>
+    <PanelCard title={t("customer_lookup_title")} subtitle={t("customer_lookup_description")}>
       <div className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <TextField
@@ -225,11 +222,7 @@ export function CustomerLookupSection() {
         </div>
       </div>
       {hasOpened && (
-        <CustomerLookupSheet
-          open={sheetOpen}
-          onOpenChange={setSheetOpen}
-          customerId={sheetCustomerId}
-        />
+        <CustomerLookupSheet open={sheetOpen} onOpenChange={setSheetOpen} customerId={sheetCustomerId} />
       )}
     </PanelCard>
   );
