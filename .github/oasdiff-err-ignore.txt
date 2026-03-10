@@ -324,6 +324,20 @@ PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added th
 PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'teamId'
 POST /v2/teams/{teamId}/verified-resources/emails/verification-code/request added the new path request parameter 'teamId'
 POST /v2/teams/{teamId}/verified-resources/phones/verification-code/request added the new path request parameter 'teamId'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
 GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
 GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/availability' from the response with the '200' status
 GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/id' from the response with the '200' status
