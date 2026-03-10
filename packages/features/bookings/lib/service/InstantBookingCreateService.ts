@@ -178,7 +178,7 @@ const triggerBrowserNotifications = async (args: {
 };
 
 export async function handler(
-  bookingData: CreateInstantBookingData,
+  bookingData: CreateInstantBookingData & Required<Pick<CreateInstantBookingData, "creationSource">>,
   deps: IInstantBookingCreateServiceDependencies,
   bookingMeta?: CreateBookingMeta
 ) {
@@ -195,11 +195,7 @@ export async function handler(
     throw ErrorWithCode.Factory.BadRequest("Only Team Event Types are supported for Instant Meeting");
   }
 
-  if (!bookingData.creationSource) {
-    throw ErrorWithCode.Factory.BadRequest("creationSource is required for instant bookings");
-  }
-
-  const creationSource: CreationSource = bookingData.creationSource;
+  const creationSource = bookingData.creationSource;
   const userUuid = bookingMeta?.userUuid ?? null;
 
   const schema = getBookingDataSchema({
@@ -463,7 +459,7 @@ async function fireBookingEvents({
 export class InstantBookingCreateService implements IBookingCreateService {
   constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
 
-  async createBooking(input: { bookingData: CreateInstantBookingData; bookingMeta?: CreateBookingMeta }): Promise<InstantBookingCreateResult> {
+  async createBooking(input: { bookingData: CreateInstantBookingData & Required<Pick<CreateInstantBookingData, "creationSource">>; bookingMeta?: CreateBookingMeta }): Promise<InstantBookingCreateResult> {
     return handler(input.bookingData, this.deps, input.bookingMeta);
   }
 }
