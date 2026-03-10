@@ -8,6 +8,7 @@ export const ZCreateInputSchema = z.object({
         z.object({
           start: z.date(),
           end: z.date(),
+          targetTimeZones: z.array(z.string()).optional(),
         })
       )
     )
