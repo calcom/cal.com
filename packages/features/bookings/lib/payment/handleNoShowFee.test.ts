@@ -61,6 +61,7 @@ vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
 
 vi.mock("@calcom/prisma", () => ({
   default: {},
+  prisma: {},
 }));
 
 describe("handleNoShowFee", () => {

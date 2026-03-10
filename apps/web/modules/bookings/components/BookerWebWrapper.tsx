@@ -126,6 +126,7 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     name: bookerForm.formName,
     requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
     onVerifyEmail: bookerForm.beforeVerifyEmail,
+    eventTypeId: event?.data?.id,
   });
   const slots = useSlots(event?.data ? { id: event.data.id, length: event.data.length } : null);
 
