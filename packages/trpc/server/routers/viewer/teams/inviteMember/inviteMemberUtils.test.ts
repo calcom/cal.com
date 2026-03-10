@@ -1,8 +1,8 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { Prisma } from "@calcom/prisma/client";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { TeamWithParent } from "./types";
 import type { UserWithMembership } from "./utils";
 import {
@@ -18,10 +18,19 @@ import {
   INVITE_STATUS,
 } from "./utils";
 
-const { mockCreateMany, mockUserCreate, mockMembershipCreate, mockTransaction } = vi.hoisted(() => {
+const {
+  mockCreateMany,
+  mockUserCreate,
+  mockMembershipCreate,
+  mockTransaction,
+  mockCreateUserInTransaction,
+  mockDeriveFromEmail,
+} = vi.hoisted(() => {
   const mockCreateManyFn = vi.fn();
   const mockUserCreateFn = vi.fn();
   const mockMembershipCreateFn = vi.fn();
+  const mockCreateUserInTransactionFn = vi.fn();
+  const mockDeriveFromEmailFn = vi.fn();
   const mockTransactionFn = vi.fn(async (callback: (tx: any) => Promise<unknown>) => {
     return callback({
       user: {
@@ -29,6 +38,7 @@ const { mockCreateMany, mockUserCreate, mockMembershipCreate, mockTransaction } 
       },
       membership: {
         create: mockMembershipCreateFn,
+        createMany: mockCreateManyFn,
       },
     });
   });
@@ -38,6 +48,8 @@ const { mockCreateMany, mockUserCreate, mockMembershipCreate, mockTransaction } 
     mockUserCreate: mockUserCreateFn,
     mockMembershipCreate: mockMembershipCreateFn,
     mockTransaction: mockTransactionFn,
+    mockCreateUserInTransaction: mockCreateUserInTransactionFn,
+    mockDeriveFromEmail: mockDeriveFromEmailFn,
   };
 });
 
@@ -54,6 +66,18 @@ vi.mock("@calcom/prisma", () => {
     },
   };
 });
+
+vi.mock("@calcom/features/users/di/UserCreationService.container", () => ({
+  getUserCreationService: () => ({
+    createUserInTransaction: mockCreateUserInTransaction,
+  }),
+}));
+
+vi.mock("@calcom/features/users/di/UsernameValidationService.container", () => ({
+  getUsernameValidationService: () => ({
+    deriveFromEmail: mockDeriveFromEmail,
+  }),
+}));
 
 vi.mock("@calcom/features/pbac/utils/isOrganisationAdmin", () => {
   return {
@@ -680,14 +704,18 @@ describe("Invite Member Utils", () => {
       mockMembershipCreate.mockReset();
       mockTransaction.mockClear();
       mockLogSeatAddition.mockClear();
+      mockCreateUserInTransaction.mockReset();
+      mockDeriveFromEmail.mockReset();
     });
 
     it("logs seat changes for new users on regular teams", async () => {
       let nextId = 100;
-      mockUserCreate.mockImplementation(async ({ data }) => ({
-        id: nextId++,
-        email: data.email,
-      }));
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
       mockMembershipCreate.mockResolvedValue({});
 
       const invitations = [
@@ -716,12 +744,246 @@ describe("Invite Member Utils", () => {
         seatCount: 2,
       });
     });
+
+    it("passes null username for non-org team invites (no parentId, not isOrg)", async () => {
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "alice@test.com", role: MembershipRole.MEMBER }],
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: null,
+        autoAcceptEmailDomain: null,
+        orgConnectInfoByUsernameOrEmail: {
+          "alice@test.com": { orgId: undefined, autoAccept: false },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(mockCreateUserInTransaction).toHaveBeenCalledTimes(1);
+      const createData = mockCreateUserInTransaction.mock.calls[0][1].data;
+      expect(createData.username).toBeNull();
+      expect(mockDeriveFromEmail).not.toHaveBeenCalled();
+    });
+
+    it("passes null username for multiple non-org team invites so they do not collide", async () => {
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [
+          { usernameOrEmail: "user1@test.com", role: MembershipRole.MEMBER },
+          { usernameOrEmail: "user2@test.com", role: MembershipRole.MEMBER },
+          { usernameOrEmail: "user3@test.com", role: MembershipRole.MEMBER },
+        ],
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: null,
+        autoAcceptEmailDomain: null,
+        orgConnectInfoByUsernameOrEmail: {
+          "user1@test.com": { orgId: undefined, autoAccept: false },
+          "user2@test.com": { orgId: undefined, autoAccept: false },
+          "user3@test.com": { orgId: undefined, autoAccept: false },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(mockCreateUserInTransaction).toHaveBeenCalledTimes(3);
+      for (let i = 0; i < 3; i++) {
+        expect(mockCreateUserInTransaction.mock.calls[i][1].data.username).toBeNull();
+      }
+      expect(mockDeriveFromEmail).not.toHaveBeenCalled();
+    });
+
+    it("derives username from email for org invites (isOrg=true)", async () => {
+      mockDeriveFromEmail.mockReturnValue("alice-test");
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "alice@test.com", role: MembershipRole.MEMBER }],
+        isOrg: true,
+        teamId: 1,
+        parentId: null,
+        autoAcceptEmailDomain: "test.com",
+        orgConnectInfoByUsernameOrEmail: {
+          "alice@test.com": { orgId: 1, autoAccept: true },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(mockDeriveFromEmail).toHaveBeenCalledWith("alice@test.com", "test.com", {
+        isPlatformManaged: undefined,
+      });
+      expect(mockCreateUserInTransaction).toHaveBeenCalledTimes(1);
+      expect(mockCreateUserInTransaction.mock.calls[0][1].data.username).toBe("alice-test");
+    });
+
+    it("derives username from email for sub-team invites (parentId set)", async () => {
+      mockDeriveFromEmail.mockReturnValue("bob-example");
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      const parentOrgId = 1000;
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "bob@example.com", role: MembershipRole.MEMBER }],
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: parentOrgId,
+        autoAcceptEmailDomain: "example.com",
+        orgConnectInfoByUsernameOrEmail: {
+          "bob@example.com": { orgId: parentOrgId, autoAccept: true },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      expect(mockDeriveFromEmail).toHaveBeenCalledWith("bob@example.com", "example.com", {
+        isPlatformManaged: undefined,
+      });
+      expect(mockCreateUserInTransaction).toHaveBeenCalledTimes(1);
+      expect(mockCreateUserInTransaction.mock.calls[0][1].data.username).toBe("bob-example");
+    });
+
+    it("throws human-readable error when user creation hits P2002 unique constraint", async () => {
+      const p2002Error = new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+        code: "P2002",
+        clientVersion: "5.0.0",
+      });
+      mockTransaction.mockRejectedValueOnce(p2002Error);
+
+      await expect(
+        createNewUsersConnectToOrgIfExists({
+          invitations: [{ usernameOrEmail: "dup@test.com", role: MembershipRole.MEMBER }],
+          isOrg: false,
+          teamId: mockedRegularTeam.id,
+          parentId: null,
+          autoAcceptEmailDomain: null,
+          orgConnectInfoByUsernameOrEmail: {
+            "dup@test.com": { orgId: undefined, autoAccept: false },
+          },
+          language: "en",
+          creationSource: CreationSource.WEBAPP,
+        })
+      ).rejects.toThrow("user_already_invited_or_member");
+    });
+
+    it("re-throws non-P2002 errors as-is", async () => {
+      const genericError = new Error("Some other database error");
+      mockTransaction.mockRejectedValueOnce(genericError);
+
+      await expect(
+        createNewUsersConnectToOrgIfExists({
+          invitations: [{ usernameOrEmail: "fail@test.com", role: MembershipRole.MEMBER }],
+          isOrg: false,
+          teamId: mockedRegularTeam.id,
+          parentId: null,
+          autoAcceptEmailDomain: null,
+          orgConnectInfoByUsernameOrEmail: {
+            "fail@test.com": { orgId: undefined, autoAccept: false },
+          },
+          language: "en",
+          creationSource: CreationSource.WEBAPP,
+        })
+      ).rejects.toThrow("Some other database error");
+    });
+
+    it("creates parent org membership when parentId is set", async () => {
+      mockDeriveFromEmail.mockReturnValue("carol-org");
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      const parentOrgId = 2000;
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "carol@org.com", role: MembershipRole.ADMIN }],
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: parentOrgId,
+        autoAcceptEmailDomain: "org.com",
+        orgConnectInfoByUsernameOrEmail: {
+          "carol@org.com": { orgId: parentOrgId, autoAccept: true },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      // First membership.create: team membership
+      expect(mockMembershipCreate).toHaveBeenCalledTimes(2);
+      expect(mockMembershipCreate.mock.calls[0][0].data.teamId).toBe(mockedRegularTeam.id);
+      expect(mockMembershipCreate.mock.calls[0][0].data.role).toBe(MembershipRole.ADMIN);
+
+      // Second membership.create: parent org membership
+      expect(mockMembershipCreate.mock.calls[1][0].data.teamId).toBe(parentOrgId);
+      expect(mockMembershipCreate.mock.calls[1][0].data.role).toBe(MembershipRole.MEMBER);
+    });
+
+    it("does not create parent org membership when parentId is null", async () => {
+      let nextId = 100;
+      mockCreateUserInTransaction.mockImplementation(
+        async (_tx: unknown, { data }: { data: { email: string } }) => ({
+          id: nextId++,
+          email: data.email,
+        })
+      );
+      mockMembershipCreate.mockResolvedValue({});
+
+      await createNewUsersConnectToOrgIfExists({
+        invitations: [{ usernameOrEmail: "dave@test.com", role: MembershipRole.MEMBER }],
+        isOrg: false,
+        teamId: mockedRegularTeam.id,
+        parentId: null,
+        autoAcceptEmailDomain: null,
+        orgConnectInfoByUsernameOrEmail: {
+          "dave@test.com": { orgId: undefined, autoAccept: false },
+        },
+        language: "en",
+        creationSource: CreationSource.WEBAPP,
+      });
+
+      // Only one membership.create call (team membership only, no parent org)
+      expect(mockMembershipCreate).toHaveBeenCalledTimes(1);
+      expect(mockMembershipCreate.mock.calls[0][0].data.teamId).toBe(mockedRegularTeam.id);
+    });
   });
 
   describe("createMemberships - Privilege Escalation Prevention", () => {
     beforeEach(() => {
       mockCreateMany.mockClear();
-      mockCreateMany.mockResolvedValue({ count: 0 });
+      mockCreateMany.mockResolvedValue({ count: 1 });
     });
 
     it("should NOT escalate privilege when attacker has OWNER role in unrelated team", async () => {
@@ -755,26 +1017,27 @@ describe("Invite Member Utils", () => {
         accepted: false,
       });
 
-      // Verify createMany was called
-      expect(mockCreateMany).toHaveBeenCalledTimes(1);
+      // createMany is called twice: once for team memberships, once for org memberships
+      expect(mockCreateMany).toHaveBeenCalledTimes(2);
 
-      // Get the data that was passed to createMany
-      const callArgs = mockCreateMany.mock.calls[0][0];
-      const createdMemberships = callArgs.data;
+      // First call: team memberships
+      const teamCallArgs = mockCreateMany.mock.calls[0][0];
+      const teamMemberships = teamCallArgs.data;
+      expect(teamMemberships).toHaveLength(1);
 
-      // Should create 2 memberships: one for team, one for org
-      expect(createdMemberships).toHaveLength(2);
-
-      // Check team membership - should be MEMBER (inviter's choice), NOT OWNER
-      const teamMembership = createdMemberships.find((m: any) => m.teamId === victimTeamId);
-      expect(teamMembership).toBeDefined();
+      const teamMembership = teamMemberships[0];
+      expect(teamMembership.teamId).toBe(victimTeamId);
       expect(teamMembership.role).toBe(MembershipRole.MEMBER);
       expect(teamMembership.userId).toBe(attacker.id);
       expect(teamMembership.accepted).toBe(false);
 
-      // Check org membership
-      const orgMembership = createdMemberships.find((m: any) => m.teamId === victimOrgId);
-      expect(orgMembership).toBeDefined();
+      // Second call: org memberships
+      const orgCallArgs = mockCreateMany.mock.calls[1][0];
+      const orgMemberships = orgCallArgs.data;
+      expect(orgMemberships).toHaveLength(1);
+
+      const orgMembership = orgMemberships[0];
+      expect(orgMembership.teamId).toBe(victimOrgId);
       expect(orgMembership.role).toBe(MembershipRole.MEMBER);
     });
 
@@ -806,15 +1069,19 @@ describe("Invite Member Utils", () => {
         accepted: true,
       });
 
-      const callArgs = mockCreateMany.mock.calls[0][0];
-      const createdMemberships = callArgs.data;
+      // First call: team memberships
+      const teamCallArgs = mockCreateMany.mock.calls[0][0];
+      const teamMemberships = teamCallArgs.data;
 
-      // Should only create team membership (org membership already exists)
-      expect(createdMemberships).toHaveLength(1);
+      expect(teamMemberships).toHaveLength(1);
 
       // Should preserve ADMIN role since user is ADMIN in parent org
-      const teamMembership = createdMemberships.find((m: any) => m.teamId === teamId);
-      expect(teamMembership.role).toBe(MembershipRole.ADMIN);
+      expect(teamMemberships[0].teamId).toBe(teamId);
+      expect(teamMemberships[0].role).toBe(MembershipRole.ADMIN);
+
+      // No org memberships needed (needToCreateOrgMembership: false)
+      // createMany called once for team, no second call for org since no org data
+      expect(mockCreateMany).toHaveBeenCalledTimes(1);
     });
 
     it("should use inviter's role when user has no membership in parent organization", async () => {
@@ -846,12 +1113,12 @@ describe("Invite Member Utils", () => {
         accepted: false,
       });
 
-      const callArgs = mockCreateMany.mock.calls[0][0];
-      const createdMemberships = callArgs.data;
+      // First call: team memberships
+      const teamCallArgs = mockCreateMany.mock.calls[0][0];
+      const teamMemberships = teamCallArgs.data;
 
-      const teamMembership = createdMemberships.find((m: any) => m.teamId === teamId);
       // Should use inviter's chosen role (MEMBER), not OWNER from unrelated team
-      expect(teamMembership.role).toBe(MembershipRole.MEMBER);
+      expect(teamMemberships[0].role).toBe(MembershipRole.MEMBER);
     });
 
     it("should use inviter's role when inviting to team without parent organization", async () => {
@@ -881,12 +1148,15 @@ describe("Invite Member Utils", () => {
         accepted: false,
       });
 
-      const callArgs = mockCreateMany.mock.calls[0][0];
-      const createdMemberships = callArgs.data;
+      // Only one createMany call (no org memberships when parentId is null)
+      expect(mockCreateMany).toHaveBeenCalledTimes(1);
 
-      expect(createdMemberships).toHaveLength(1);
+      const teamCallArgs = mockCreateMany.mock.calls[0][0];
+      const teamMemberships = teamCallArgs.data;
+
+      expect(teamMemberships).toHaveLength(1);
       // Should use inviter's chosen role when no parentId
-      expect(createdMemberships[0].role).toBe(MembershipRole.MEMBER);
+      expect(teamMemberships[0].role).toBe(MembershipRole.MEMBER);
     });
   });
 });

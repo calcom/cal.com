@@ -864,7 +864,7 @@ export class UserRepository {
 
   async create(
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       creationSource: CreationSource;
@@ -908,7 +908,7 @@ export class UserRepository {
         },
         creationSource,
         locked,
-        ...(organizationIdValue
+        ...(organizationIdValue && username
           ? {
               organizationId: organizationIdValue,
               profiles: {
@@ -938,7 +938,7 @@ export class UserRepository {
   async upsert(
     where: { email: string },
     createData: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       locked: boolean;
@@ -946,7 +946,7 @@ export class UserRepository {
       profile?: { username: string; organizationId: number; uid: string };
     },
     updateData: {
-      username?: string;
+      username?: string | null;
       hashedPassword?: string;
       emailVerified?: Date;
       identityProvider?: IdentityProvider;
@@ -1017,7 +1017,7 @@ export class UserRepository {
   async createInTransaction(
     txClient: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">,
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       locked: boolean;
@@ -1070,7 +1070,7 @@ export class UserRepository {
 
   async createMany(
     data: Array<{
-      username: string;
+      username: string | null;
       email: string;
       name?: string | null;
       organizationId?: number | null;

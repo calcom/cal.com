@@ -13,7 +13,7 @@ import type { CreationSource, IdentityProvider, UserPermissionRole } from "@calc
 
 export interface CreateUserInput {
   email: string;
-  username: string;
+  username: string | null;
   name?: string | null;
   password?: string;
   brandColor?: string;
@@ -110,7 +110,7 @@ export class UserCreationService {
 
     const user = await this.deps.userRepository.create({
       ...repoFields,
-      username: slugify(username),
+      username: username ? slugify(username) : null,
       ...(hashedPassword && { hashedPassword }),
       organizationId: data.organizationId ?? null,
       locked,
@@ -131,7 +131,7 @@ export class UserCreationService {
 
     const defaultSchedule = await buildDefaultSchedule();
     const organizationId = createData.organizationId ?? null;
-    const username = slugify(createData.username);
+    const username = createData.username ? slugify(createData.username) : null;
 
     return this.deps.userRepository.upsert(
       { email },
@@ -143,7 +143,7 @@ export class UserCreationService {
         organizationId,
         locked: createData.locked ?? false,
         defaultSchedule,
-        ...(organizationId ? { profile: buildProfile(username, organizationId) } : {}),
+        ...(organizationId && username ? { profile: buildProfile(username, organizationId) } : {}),
       },
       {
         ...updateRepoFields,
@@ -158,7 +158,7 @@ export class UserCreationService {
     const { repoFields } = toRepoData(data);
 
     const organizationId = data.organizationId ?? null;
-    const username = slugify(data.username);
+    const username = data.username ? slugify(data.username) : null;
     const defaultSchedule = data.isPlatformManaged ? undefined : await buildDefaultSchedule();
 
     return this.deps.userRepository.createInTransaction(txClient, {
@@ -168,7 +168,7 @@ export class UserCreationService {
       organizationId,
       locked: data.locked ?? false,
       ...(defaultSchedule && { defaultSchedule }),
-      ...(organizationId ? { profile: buildProfile(username, organizationId) } : {}),
+      ...(organizationId && username ? { profile: buildProfile(username, organizationId) } : {}),
     });
   }
 
@@ -177,7 +177,7 @@ export class UserCreationService {
       const { repoFields } = toRepoData(d);
       return {
         ...repoFields,
-        username: slugify(d.username),
+        username: d.username ? slugify(d.username) : null,
       };
     });
 

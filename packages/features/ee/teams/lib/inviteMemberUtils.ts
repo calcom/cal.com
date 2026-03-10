@@ -5,6 +5,8 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -14,10 +16,8 @@ import type {
   UserPassword,
   User as UserType,
 } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { TRPCError } from "@trpc/server";
 import type { TFunction } from "i18next";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
@@ -60,11 +60,7 @@ export async function getTeamOrThrow(teamId: number) {
     },
   });
 
-  if (!team)
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: `Team not found`,
-    });
+  if (!team) throw new ErrorWithCode(ErrorCode.NotFound, "Team not found");
 
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
@@ -169,10 +165,7 @@ export const sendExistingUserTeamInviteEmails = async ({
     log.debug("Sending team invite email to", safeStringify({ user, currentUserName, currentUserTeamName }));
 
     if (!currentUserTeamName) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "The team doesn't have a name",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "The team doesn't have a name");
     }
 
     // inform user of membership by email
@@ -241,68 +234,76 @@ export async function createMemberships({
   accepted: boolean;
 }) {
   log.debug("Creating memberships for", safeStringify({ teamId, language, invitees, parentId, accepted }));
-  try {
-    await prisma.membership.createMany({
-      data: invitees.flatMap((invitee) => {
-        const organizationRole = parentId
-          ? invitee?.teams?.find((membership) => membership.teamId === parentId)?.role
-          : undefined;
-        const data = [];
-        const createdAt = new Date();
-        // membership for the team
-        data.push({
-          createdAt,
-          teamId,
-          userId: invitee.id,
-          accepted,
-          role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
-        });
 
-        // membership for the org
-        if (parentId && invitee.needToCreateOrgMembership) {
-          data.push({
-            createdAt,
-            accepted,
-            teamId: parentId,
-            userId: invitee.id,
-            role: MembershipRole.MEMBER,
-          });
-        }
-        return data;
-      }),
+  const createdAt = new Date();
+
+  const teamMembershipData = invitees.map((invitee) => {
+    const organizationRole = parentId
+      ? invitee?.teams?.find((membership) => membership.teamId === parentId)?.role
+      : undefined;
+    return {
+      createdAt,
+      teamId,
+      userId: invitee.id,
+      accepted,
+      role: checkAdminOrOwner(organizationRole) ? organizationRole : invitee.newRole,
+    };
+  });
+
+  const orgMembershipData = parentId
+    ? invitees
+        .filter((invitee) => invitee.needToCreateOrgMembership)
+        .map((invitee) => ({
+          createdAt,
+          accepted,
+          teamId: parentId,
+          userId: invitee.id,
+          role: MembershipRole.MEMBER,
+        }))
+    : [];
+
+  // Use a transaction so team + org memberships are created atomically
+  const { teamResult, orgResult } = await prisma.$transaction(async (tx) => {
+    const teamResult = await tx.membership.createMany({
+      data: teamMembershipData,
+      skipDuplicates: true,
     });
 
-    const seatTracker = new SeatChangeTrackingService();
-    const teamSeatAdditions = parentId ? 0 : invitees.length;
-    const organizationSeatAdditions = parentId
-      ? invitees.filter((invitee) => invitee.needToCreateOrgMembership).length
-      : 0;
-
-    const trackingPromises: Promise<void>[] = [];
-    if (teamSeatAdditions > 0) {
-      trackingPromises.push(
-        seatTracker.logSeatAddition({
-          teamId,
-          seatCount: teamSeatAdditions,
-        })
-      );
+    let orgResult = { count: 0 };
+    if (orgMembershipData.length > 0) {
+      orgResult = await tx.membership.createMany({
+        data: orgMembershipData,
+        skipDuplicates: true,
+      });
     }
 
-    if (parentId && organizationSeatAdditions > 0) {
-      trackingPromises.push(
-        seatTracker.logSeatAddition({
-          teamId: parentId,
-          seatCount: organizationSeatAdditions,
-        })
-      );
-    }
+    return { teamResult, orgResult };
+  });
 
-    await Promise.all(trackingPromises);
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      logger.error("Failed to create memberships", teamId);
-    } else {
-      throw e;
-    }
+  if (teamResult.count === 0 && teamMembershipData.length > 0) {
+    throw new ErrorWithCode(ErrorCode.BadRequest, "user_already_invited_or_member");
   }
+
+  const seatTracker = new SeatChangeTrackingService();
+  const trackingPromises: Promise<void>[] = [];
+
+  if (!parentId && teamResult.count > 0) {
+    trackingPromises.push(
+      seatTracker.logSeatAddition({
+        teamId,
+        seatCount: teamResult.count,
+      })
+    );
+  }
+
+  if (parentId && orgResult.count > 0) {
+    trackingPromises.push(
+      seatTracker.logSeatAddition({
+        teamId: parentId,
+        seatCount: orgResult.count,
+      })
+    );
+  }
+
+  await Promise.all(trackingPromises);
 }

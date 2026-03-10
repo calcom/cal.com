@@ -17,11 +17,14 @@ import { getUsernameValidationService } from "@calcom/features/users/di/Username
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getTranslation } from "@calcom/i18n/server";
 import { ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationSettings, Team } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
@@ -293,64 +296,72 @@ export async function createNewUsersConnectToOrgIfExists({
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
   const userCreationService = getUserCreationService();
-  const createdUsers = await prisma.$transaction(
-    async (tx) => {
-      const createdUsers = [];
-      for (let index = 0; index < invitations.length; index++) {
-        const invitation = invitations[index];
-        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
-        const orgMemberUsername = getUsernameValidationService().deriveFromEmail(
-          invitation.usernameOrEmail,
-          autoAcceptEmailDomain ?? "",
-          { isPlatformManaged }
-        );
+  let createdUsers;
+  try {
+    createdUsers = await prisma.$transaction(
+      async (tx) => {
+        const createdUsers = [];
+        for (let index = 0; index < invitations.length; index++) {
+          const invitation = invitations[index];
+          const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
+          const isBecomingAnOrgMember = parentId || isOrg;
+          const username = isBecomingAnOrgMember
+            ? getUsernameValidationService().deriveFromEmail(
+                invitation.usernameOrEmail,
+                autoAcceptEmailDomain ?? "",
+                { isPlatformManaged }
+              )
+            : null;
 
-        const regularTeamMemberUsername = null;
-        const isBecomingAnOrgMember = parentId || isOrg;
+          const createdUser = await userCreationService.createUserInTransaction(tx, {
+            data: {
+              username,
+              email: invitation.usernameOrEmail,
+              verified: true,
+              invitedTo: teamId,
+              isPlatformManaged: !!isPlatformManaged,
+              timeFormat,
+              weekStart,
+              timeZone,
+              creationSource,
+              organizationId: orgId || null,
+              locked: false,
+            },
+          });
 
-        const createdUser = await userCreationService.createUserInTransaction(tx, {
-          data: {
-            username: (isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername) ?? "",
-            email: invitation.usernameOrEmail,
-            verified: true,
-            invitedTo: teamId,
-            isPlatformManaged: !!isPlatformManaged,
-            timeFormat,
-            weekStart,
-            timeZone,
-            creationSource,
-            organizationId: orgId || null,
-            locked: false,
-          },
-        });
-
-        // Team membership stays in the handler
-        await tx.membership.create({
-          data: {
-            teamId,
-            userId: createdUser.id,
-            role: invitation.role,
-            accepted: autoAccept,
-          },
-        });
-
-        if (parentId) {
+          // Team membership stays in the handler
           await tx.membership.create({
             data: {
-              createdAt: new Date(),
-              teamId: parentId,
+              teamId,
               userId: createdUser.id,
-              role: MembershipRole.MEMBER,
+              role: invitation.role,
               accepted: autoAccept,
             },
           });
+
+          if (parentId) {
+            await tx.membership.create({
+              data: {
+                createdAt: new Date(),
+                teamId: parentId,
+                userId: createdUser.id,
+                role: MembershipRole.MEMBER,
+                accepted: autoAccept,
+              },
+            });
+          }
+          createdUsers.push(createdUser);
         }
-        createdUsers.push(createdUser);
-      }
-      return createdUsers;
-    },
-    { timeout: 10000 }
-  );
+        return createdUsers;
+      },
+      { timeout: 10000 }
+    );
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      throw new ErrorWithCode(ErrorCode.BadRequest, "user_already_invited_or_member");
+    }
+    throw e;
+  }
 
   if (createdUsers.length > 0) {
     const seatTracker = new SeatChangeTrackingService();
@@ -632,15 +643,22 @@ export async function handleExistingUsersInvites({
           });
         }
 
-        await prisma.membership.create({
-          data: {
-            createdAt: new Date(),
-            userId: user.id,
-            teamId: team.id,
-            accepted: shouldAutoAccept,
-            role: user.newRole,
-          },
-        });
+        try {
+          await prisma.membership.create({
+            data: {
+              createdAt: new Date(),
+              userId: user.id,
+              teamId: team.id,
+              accepted: shouldAutoAccept,
+              role: user.newRole,
+            },
+          });
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+            throw new ErrorWithCode(ErrorCode.BadRequest, "user_already_invited_or_member");
+          }
+          throw e;
+        }
 
         // If auto-accepting into org, also accept any pending sub-team memberships
         if (shouldAutoAccept) {
