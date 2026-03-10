@@ -1,7 +1,6 @@
 import type { Command } from "commander";
 import {
   organizationsTeamsRoutingFormsResponsesControllerCreateRoutingFormResponse as createRoutingFormResponse,
-  meControllerGetMe as getMe,
   organizationsTeamsRoutingFormsResponsesControllerGetRoutingFormResponses as getRoutingFormResponses,
   organizationsTeamsRoutingFormsControllerGetTeamRoutingForms as getTeamRoutingForms,
   organizationsTeamsRoutingFormsResponsesControllerUpdateRoutingFormResponse as updateRoutingFormResponse,
@@ -16,22 +15,6 @@ import {
   renderRoutingFormResponseList,
   renderUpdateResponseResult,
 } from "./output";
-
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Team routing forms require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
 
 function parseOptionalNumber(value: string | undefined): number | undefined {
   if (!value) {
@@ -58,6 +41,7 @@ function registerRoutingFormsListCommand(routingFormsCmd: Command): void {
   routingFormsCmd
     .command("list <teamId>")
     .description("List all routing forms for a team")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of forms to return")
     .option("--skip <n>", "Number of forms to skip")
     .option("--sort-created <order>", "Sort by creation time (asc/desc)")
@@ -67,6 +51,7 @@ function registerRoutingFormsListCommand(routingFormsCmd: Command): void {
       async (
         teamId: string,
         options: {
+          orgId: string;
           take?: string;
           skip?: string;
           sortCreated?: string;
@@ -76,10 +61,9 @@ function registerRoutingFormsListCommand(routingFormsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await getTeamRoutingForms({
-            path: { orgId, teamId: Number(teamId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId) },
             query: {
               take: parseOptionalNumber(options.take),
               skip: parseOptionalNumber(options.skip),
@@ -99,6 +83,7 @@ function registerResponsesListCommand(responsesCmd: Command): void {
   responsesCmd
     .command("list <teamId> <formId>")
     .description("List responses for a team routing form")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--take <n>", "Number of responses to return")
     .option("--skip <n>", "Number of responses to skip")
     .option("--sort-created <order>", "Sort by creation time (asc/desc)")
@@ -109,6 +94,7 @@ function registerResponsesListCommand(responsesCmd: Command): void {
         teamId: string,
         formId: string,
         options: {
+          orgId: string;
           take?: string;
           skip?: string;
           sortCreated?: string;
@@ -118,10 +104,9 @@ function registerResponsesListCommand(responsesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await getRoutingFormResponses({
-            path: { orgId, teamId: Number(teamId), routingFormId: formId },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId), routingFormId: formId },
             query: {
               take: parseOptionalNumber(options.take),
               skip: parseOptionalNumber(options.skip),
@@ -141,6 +126,7 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
   responsesCmd
     .command("create <teamId> <formId>")
     .description("Create a team routing form response and get available slots")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--start <date>", "Start date/time in ISO 8601 format (UTC)")
     .requiredOption("--end <date>", "End date/time in ISO 8601 format (UTC)")
     .option("--timezone <tz>", "Time zone for the response")
@@ -154,6 +140,7 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
         teamId: string,
         formId: string,
         options: {
+          orgId: string;
           start: string;
           end: string;
           timezone?: string;
@@ -166,10 +153,9 @@ function registerResponsesCreateCommand(responsesCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await createRoutingFormResponse({
-            path: { orgId, teamId: Number(teamId), routingFormId: formId },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId), routingFormId: formId },
             query: {
               start: options.start,
               end: options.end,
@@ -192,6 +178,7 @@ function registerResponsesUpdateCommand(responsesCmd: Command): void {
   responsesCmd
     .command("update <teamId> <formId> <responseId>")
     .description("Update a team routing form response")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--response <json>", "Response data as JSON")
     .option("--json", "Output as JSON")
     .action(
@@ -199,7 +186,7 @@ function registerResponsesUpdateCommand(responsesCmd: Command): void {
         teamId: string,
         formId: string,
         responseId: string,
-        options: { response: string; json?: boolean }
+        options: { orgId: string; response: string; json?: boolean }
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
@@ -216,7 +203,12 @@ function registerResponsesUpdateCommand(responsesCmd: Command): void {
           };
 
           const { data: response } = await updateRoutingFormResponse({
-            path: { teamId: Number(teamId), routingFormId: formId, responseId: Number(responseId) },
+            path: {
+              orgId: Number(options.orgId),
+              teamId: Number(teamId),
+              routingFormId: formId,
+              responseId: Number(responseId),
+            },
             body,
             headers: authHeader(),
           });

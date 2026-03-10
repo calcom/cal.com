@@ -118,20 +118,23 @@ export function renderRoutingFormResponse(
 }
 
 export function renderRoutingFormResponseList(
-  response: RoutingFormResponse | undefined,
+  responses: RoutingFormResponse[] | undefined,
   { json }: OutputOptions = {}
 ): void {
   if (json) {
-    console.log(JSON.stringify(response, null, 2));
+    console.log(JSON.stringify(responses, null, 2));
     return;
   }
 
-  if (!response) {
+  if (!responses?.length) {
     console.log("No routing form responses found.");
     return;
   }
 
-  renderResponseDetail(response);
+  renderTable(
+    ["ID", "Form ID", "Routed To", "Created"],
+    responses.map((r) => [String(r.id), r.formId, r.routedToBookingUid || "-", formatDateTime(r.createdAt)])
+  );
 }
 
 export function renderCreateResponseResult(

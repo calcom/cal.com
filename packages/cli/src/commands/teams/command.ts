@@ -6,7 +6,6 @@ import {
   teamsMembershipsControllerDeleteTeamMembership as deleteMembership,
   teamsControllerDeleteTeam as deleteTeam,
   organizationsTeamsBookingsControllerGetBookingReferences as getBookingReferences,
-  meControllerGetMe as getMe,
   teamsMembershipsControllerGetTeamMembership as getMembership,
   teamsMembershipsControllerGetTeamMemberships as getMemberships,
   organizationsTeamsControllerGetMyTeams as getMyTeams,
@@ -44,22 +43,6 @@ import {
   renderTeamUpdated,
 } from "./output";
 import type { BookingReferenceFilterType } from "./types";
-
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "This command requires an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
 
 function registerTeamQueryCommands(teamsCmd: Command): void {
   teamsCmd
@@ -484,16 +467,16 @@ function registerOrgScopedTeamCommands(teamsCmd: Command): void {
   teamsCmd
     .command("me")
     .description("Get teams for current user (requires organization)")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--skip <n>", "Number of items to skip")
     .option("--take <n>", "Maximum number of items to return")
     .option("--json", "Output as JSON")
-    .action(async (options: { skip?: string; take?: string; json?: boolean }) => {
+    .action(async (options: { orgId: string; skip?: string; take?: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
 
         const { data: response } = await getMyTeams({
-          path: { orgId },
+          path: { orgId: Number(options.orgId) },
           query: {
             skip: options.skip ? Number(options.skip) : undefined,
             take: options.take ? Number(options.take) : undefined,
@@ -508,32 +491,35 @@ function registerOrgScopedTeamCommands(teamsCmd: Command): void {
   teamsCmd
     .command("all-event-types")
     .description("Get all team event types across organization (requires organization)")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--skip <n>", "Number of items to skip")
     .option("--take <n>", "Maximum number of items to return")
     .option("--sort-created <order>", "Sort by creation date (asc or desc)")
     .option("--json", "Output as JSON")
-    .action(async (options: { skip?: string; take?: string; sortCreated?: string; json?: boolean }) => {
-      await withErrorHandling(async () => {
-        await initializeClient();
-        const orgId = await getOrgId();
+    .action(
+      async (options: { orgId: string; skip?: string; take?: string; sortCreated?: string; json?: boolean }) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
 
-        const { data: response } = await getTeamsEventTypes({
-          path: { orgId },
-          query: {
-            skip: options.skip ? Number(options.skip) : undefined,
-            take: options.take ? Number(options.take) : undefined,
-            sortCreatedAt: options.sortCreated as "asc" | "desc" | undefined,
-          },
-          headers: authHeader(),
+          const { data: response } = await getTeamsEventTypes({
+            path: { orgId: Number(options.orgId) },
+            query: {
+              skip: options.skip ? Number(options.skip) : undefined,
+              take: options.take ? Number(options.take) : undefined,
+              sortCreatedAt: options.sortCreated as "asc" | "desc" | undefined,
+            },
+            headers: authHeader(),
+          });
+
+          renderTeamEventTypesList(response?.data, options);
         });
-
-        renderTeamEventTypesList(response?.data, options);
-      });
-    });
+      }
+    );
 
   teamsCmd
     .command("references <teamId> <bookingUid>")
     .description("Get booking references for a team booking (requires organization)")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option(
       "--type <type>",
       "Filter by reference type (google_calendar, office365_calendar, daily_video, google_video, office365_video, zoom_video)"
@@ -544,17 +530,17 @@ function registerOrgScopedTeamCommands(teamsCmd: Command): void {
         teamId: string,
         bookingUid: string,
         options: {
+          orgId: string;
           type?: string;
           json?: boolean;
         }
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await getBookingReferences({
             path: {
-              orgId,
+              orgId: Number(options.orgId),
               teamId: Number(teamId),
               bookingUid,
             },

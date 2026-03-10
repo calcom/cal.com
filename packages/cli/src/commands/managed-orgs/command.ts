@@ -62,13 +62,15 @@ function registerManagedOrgsQueryCommands(managedOrgsCmd: Command): void {
   managedOrgsCmd
     .command("get <managedOrgId>")
     .description("Get a managed organization by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (managedOrgId: string, options: { json?: boolean }) => {
+    .action(async (managedOrgId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
+        const orgId = Number(options.orgId);
 
         const { data: response } = await getManagedOrg({
-          path: { managedOrganizationId: Number(managedOrgId) },
+          path: { orgId, managedOrganizationId: Number(managedOrgId) },
         });
 
         renderManagedOrg(response?.data, options);
@@ -153,13 +155,15 @@ function registerManagedOrgsMutationCommands(managedOrgsCmd: Command): void {
   managedOrgsCmd
     .command("delete <managedOrgId>")
     .description("Delete a managed organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (managedOrgId: string, options: { json?: boolean }) => {
+    .action(async (managedOrgId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
+        const orgId = Number(options.orgId);
 
         await deleteManagedOrg({
-          path: { managedOrganizationId: Number(managedOrgId) },
+          path: { orgId, managedOrganizationId: Number(managedOrgId) },
         });
 
         renderManagedOrgDeleted(managedOrgId, options);

@@ -4,7 +4,6 @@ import {
   organizationTeamWorkflowsControllerCreateEventTypeWorkflow as createWorkflow,
   organizationTeamWorkflowsControllerDeleteRoutingFormWorkflow as deleteRoutingFormWorkflow,
   organizationTeamWorkflowsControllerDeleteWorkflow as deleteWorkflow,
-  meControllerGetMe as getMe,
   organizationTeamWorkflowsControllerGetRoutingFormWorkflowById as getRoutingFormWorkflowById,
   organizationTeamWorkflowsControllerGetRoutingFormWorkflows as getRoutingFormWorkflows,
   organizationTeamWorkflowsControllerGetWorkflowById as getWorkflowById,
@@ -34,22 +33,6 @@ import {
   renderWorkflowUpdated,
 } from "./output";
 import { VALID_EVENT_TYPE_TRIGGERS, VALID_ROUTING_FORM_TRIGGERS } from "./types";
-
-async function getOrgId(): Promise<number> {
-  const { data: response } = await getMe({ headers: authHeader() });
-  const me = response?.data;
-
-  if (!me) {
-    throw new Error("Could not fetch your profile. Are you logged in?");
-  }
-  if (!me.organizationId) {
-    throw new Error(
-      "Team workflows require an organization. Your account does not belong to an organization."
-    );
-  }
-
-  return me.organizationId;
-}
 
 function buildEventTypeTrigger(
   triggerType: string,
@@ -115,6 +98,7 @@ function registerWorkflowQueryCommands(workflowsCmd: Command): void {
   workflowsCmd
     .command("list <teamId>")
     .description("List all team workflows")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--skip <n>", "Number of items to skip")
     .option("--take <n>", "Maximum number of items to return")
     .option("--json", "Output as JSON")
@@ -122,6 +106,7 @@ function registerWorkflowQueryCommands(workflowsCmd: Command): void {
       async (
         teamId: string,
         options: {
+          orgId: string;
           skip?: string;
           take?: string;
           json?: boolean;
@@ -129,10 +114,9 @@ function registerWorkflowQueryCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await getWorkflows({
-            path: { orgId, teamId: Number(teamId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId) },
             query: {
               skip: options.skip ? Number(options.skip) : undefined,
               take: options.take ? Number(options.take) : undefined,
@@ -148,14 +132,14 @@ function registerWorkflowQueryCommands(workflowsCmd: Command): void {
   workflowsCmd
     .command("get <teamId> <workflowId>")
     .description("Get a team workflow by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (teamId: string, workflowId: string, options: { json?: boolean }) => {
+    .action(async (teamId: string, workflowId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
 
         const { data: response } = await getWorkflowById({
-          path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+          path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
           headers: authHeader(),
         });
 
@@ -168,6 +152,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
   workflowsCmd
     .command("create <teamId>")
     .description("Create a team workflow for event types")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--name <name>", "Workflow name")
     .requiredOption("--trigger <trigger>", `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for beforeEvent/afterEvent triggers")
@@ -179,6 +164,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
       async (
         teamId: string,
         options: {
+          orgId: string;
           name: string;
           trigger: string;
           offsetValue?: string;
@@ -190,7 +176,6 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const trigger = buildEventTypeTrigger(options.trigger, options.offsetValue, options.offsetUnit);
 
@@ -210,7 +195,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
           };
 
           const { data: response } = await createWorkflow({
-            path: { orgId, teamId: Number(teamId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId) },
             body,
             headers: authHeader(),
           });
@@ -223,6 +208,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
   workflowsCmd
     .command("update <teamId> <workflowId>")
     .description("Update a team workflow")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--name <name>", "New workflow name")
     .option("--trigger <trigger>", `Trigger type (${VALID_EVENT_TYPE_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for beforeEvent/afterEvent triggers")
@@ -235,6 +221,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
         teamId: string,
         workflowId: string,
         options: {
+          orgId: string;
           name?: string;
           trigger?: string;
           offsetValue?: string;
@@ -246,7 +233,6 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const body: UpdateEventTypeWorkflowDto = {};
 
@@ -271,7 +257,7 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
           }
 
           const { data: response } = await updateWorkflow({
-            path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
             body,
             headers: authHeader(),
           });
@@ -284,14 +270,14 @@ function registerWorkflowMutationCommands(workflowsCmd: Command): void {
   workflowsCmd
     .command("delete <teamId> <workflowId>")
     .description("Delete a team workflow")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (teamId: string, workflowId: string, options: { json?: boolean }) => {
+    .action(async (teamId: string, workflowId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
 
         await deleteWorkflow({
-          path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+          path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
           headers: authHeader(),
         });
 
@@ -306,6 +292,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
   routingFormsCmd
     .command("list <teamId>")
     .description("List all routing form workflows")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--skip <n>", "Number of items to skip")
     .option("--take <n>", "Maximum number of items to return")
     .option("--json", "Output as JSON")
@@ -313,6 +300,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
       async (
         teamId: string,
         options: {
+          orgId: string;
           skip?: string;
           take?: string;
           json?: boolean;
@@ -320,10 +308,9 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const { data: response } = await getRoutingFormWorkflows({
-            path: { orgId, teamId: Number(teamId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId) },
             query: {
               skip: options.skip ? Number(options.skip) : undefined,
               take: options.take ? Number(options.take) : undefined,
@@ -339,14 +326,14 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
   routingFormsCmd
     .command("get <teamId> <workflowId>")
     .description("Get a routing form workflow by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (teamId: string, workflowId: string, options: { json?: boolean }) => {
+    .action(async (teamId: string, workflowId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
 
         const { data: response } = await getRoutingFormWorkflowById({
-          path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+          path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
           headers: authHeader(),
         });
 
@@ -357,6 +344,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
   routingFormsCmd
     .command("create <teamId>")
     .description("Create a routing form workflow")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--name <name>", "Workflow name")
     .option(
       "--trigger <trigger>",
@@ -372,6 +360,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
       async (
         teamId: string,
         options: {
+          orgId: string;
           name: string;
           trigger: string;
           offsetValue?: string;
@@ -383,7 +372,6 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const trigger = buildRoutingFormTrigger(options.trigger, options.offsetValue, options.offsetUnit);
 
@@ -403,7 +391,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
           };
 
           const { data: response } = await createRoutingFormWorkflow({
-            path: { orgId, teamId: Number(teamId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId) },
             body,
             headers: authHeader(),
           });
@@ -416,6 +404,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
   routingFormsCmd
     .command("update <teamId> <workflowId>")
     .description("Update a routing form workflow")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--name <name>", "New workflow name")
     .option("--trigger <trigger>", `Trigger type (${VALID_ROUTING_FORM_TRIGGERS.join(", ")})`)
     .option("--offset-value <value>", "Offset value for formSubmittedNoEvent trigger")
@@ -428,6 +417,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
         teamId: string,
         workflowId: string,
         options: {
+          orgId: string;
           name?: string;
           trigger?: string;
           offsetValue?: string;
@@ -439,7 +429,6 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
       ) => {
         await withErrorHandling(async () => {
           await initializeClient();
-          const orgId = await getOrgId();
 
           const body: UpdateFormWorkflowDto = {};
 
@@ -464,7 +453,7 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
           }
 
           const { data: response } = await updateRoutingFormWorkflow({
-            path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+            path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
             body,
             headers: authHeader(),
           });
@@ -477,14 +466,14 @@ function registerRoutingFormWorkflowCommands(workflowsCmd: Command): void {
   routingFormsCmd
     .command("delete <teamId> <workflowId>")
     .description("Delete a routing form workflow")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .option("--json", "Output as JSON")
-    .action(async (teamId: string, workflowId: string, options: { json?: boolean }) => {
+    .action(async (teamId: string, workflowId: string, options: { orgId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
-        const orgId = await getOrgId();
 
         await deleteRoutingFormWorkflow({
-          path: { orgId, teamId: Number(teamId), workflowId: Number(workflowId) },
+          path: { orgId: Number(options.orgId), teamId: Number(teamId), workflowId: Number(workflowId) },
           headers: authHeader(),
         });
 

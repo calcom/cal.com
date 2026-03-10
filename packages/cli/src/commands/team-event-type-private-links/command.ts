@@ -20,14 +20,16 @@ function registerPrivateLinksQueryCommands(privateLinksCmd: Command): void {
   privateLinksCmd
     .command("list")
     .description("List all private links for a team event type")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--json", "Output as JSON")
-    .action(async (options: { teamId: string; eventTypeId: string; json?: boolean }) => {
+    .action(async (options: { orgId: string; teamId: string; eventTypeId: string; json?: boolean }) => {
       await withErrorHandling(async () => {
         await initializeClient();
         const { data: response } = await getPrivateLinks({
           path: {
+            orgId: Number(options.orgId),
             teamId: Number(options.teamId),
             eventTypeId: Number(options.eventTypeId),
           },
@@ -40,30 +42,38 @@ function registerPrivateLinksQueryCommands(privateLinksCmd: Command): void {
   privateLinksCmd
     .command("get <linkId>")
     .description("Get a private link by ID")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--json", "Output as JSON")
-    .action(async (linkId: string, options: { teamId: string; eventTypeId: string; json?: boolean }) => {
-      await withErrorHandling(async () => {
-        await initializeClient();
-        const { data: response } = await getPrivateLinks({
-          path: {
-            teamId: Number(options.teamId),
-            eventTypeId: Number(options.eventTypeId),
-          },
-          headers: authHeader(),
-        });
+    .action(
+      async (
+        linkId: string,
+        options: { orgId: string; teamId: string; eventTypeId: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const { data: response } = await getPrivateLinks({
+            path: {
+              orgId: Number(options.orgId),
+              teamId: Number(options.teamId),
+              eventTypeId: Number(options.eventTypeId),
+            },
+            headers: authHeader(),
+          });
 
-        const link = response?.data?.find((l) => l.linkId === linkId);
-        renderPrivateLink(link, options);
-      });
-    });
+          const link = response?.data?.find((l) => l.linkId === linkId);
+          renderPrivateLink(link, options);
+        });
+      }
+    );
 }
 
 function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
   privateLinksCmd
     .command("create")
     .description("Create a private link for a team event type")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--expires-at <date>", "Expiration date (ISO 8601 format, e.g. 2024-12-31T23:59:59.000Z)")
@@ -71,6 +81,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
     .option("--json", "Output as JSON")
     .action(
       async (options: {
+        orgId: string;
         teamId: string;
         eventTypeId: string;
         expiresAt?: string;
@@ -90,6 +101,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
 
           const { data: response } = await createPrivateLink({
             path: {
+              orgId: Number(options.orgId),
               teamId: Number(options.teamId),
               eventTypeId: Number(options.eventTypeId),
             },
@@ -104,6 +116,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
   privateLinksCmd
     .command("update <linkId>")
     .description("Update a private link for a team event type")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--expires-at <date>", "New expiration date (ISO 8601 format)")
@@ -113,6 +126,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
       async (
         linkId: string,
         options: {
+          orgId: string;
           teamId: string;
           eventTypeId: string;
           expiresAt?: string;
@@ -133,6 +147,7 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
 
           const { data: response } = await updatePrivateLink({
             path: {
+              orgId: Number(options.orgId),
               teamId: Number(options.teamId),
               eventTypeId: Number(options.eventTypeId),
               linkId,
@@ -148,23 +163,30 @@ function registerPrivateLinksMutationCommands(privateLinksCmd: Command): void {
   privateLinksCmd
     .command("delete <linkId>")
     .description("Delete a private link for a team event type")
+    .requiredOption("--org-id <orgId>", "Organization ID")
     .requiredOption("--team-id <teamId>", "Team ID")
     .requiredOption("--event-type-id <eventTypeId>", "Event type ID")
     .option("--json", "Output as JSON")
-    .action(async (linkId: string, options: { teamId: string; eventTypeId: string; json?: boolean }) => {
-      await withErrorHandling(async () => {
-        await initializeClient();
-        await deletePrivateLink({
-          path: {
-            teamId: Number(options.teamId),
-            eventTypeId: Number(options.eventTypeId),
-            linkId,
-          },
-          headers: authHeader(),
+    .action(
+      async (
+        linkId: string,
+        options: { orgId: string; teamId: string; eventTypeId: string; json?: boolean }
+      ) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          await deletePrivateLink({
+            path: {
+              orgId: Number(options.orgId),
+              teamId: Number(options.teamId),
+              eventTypeId: Number(options.eventTypeId),
+              linkId,
+            },
+            headers: authHeader(),
+          });
+          renderPrivateLinkDeleted(linkId, options);
         });
-        renderPrivateLinkDeleted(linkId, options);
-      });
-    });
+      }
+    );
 }
 
 export function registerTeamEventTypePrivateLinksCommand(program: Command): void {
