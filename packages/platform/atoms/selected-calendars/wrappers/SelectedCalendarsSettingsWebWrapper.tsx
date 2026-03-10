@@ -12,6 +12,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Select, Switch } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -107,6 +108,12 @@ const ConnectedCalendarList = ({
     });
   }, []);
 
+  function isGoogleHolidayCalendar(calendarId: string): boolean {
+    return calendarId.includes("#holiday@group.v.calendar.google.com");
+  }
+
+  const publicGoogleSyncDisabledMessage = "Sync cannot be enabled for public Google holiday calendars";
+
   return (
     <List noBorderTreatment className="p-6 pt-2">
       {items.map((connectedCalendar) => {
@@ -146,12 +153,58 @@ const ConnectedCalendarList = ({
                           integrationType: connectedCalendar.integration.type,
                           syncProvider: "syncProvider" in cal ? cal.syncProvider : null,
                         });
+                        const isPublicGoogleCalendar = isGoogleHolidayCalendar(cal.externalId);
                         const syncToggleDisabled =
                           isDisabled ||
+                          !cal.isSelected ||
+                          isPublicGoogleCalendar ||
                           Boolean(pendingSyncKeys[syncKey]) ||
                           !syncProvider ||
                           typeof cal.credentialId !== "number" ||
                           cal.credentialId <= 0;
+                        const syncToggle = (
+                          <Switch
+                            checked={syncEnabled}
+                            disabled={syncToggleDisabled}
+                            onCheckedChange={async (checked) => {
+                              if (!syncProvider || typeof cal.credentialId !== "number") {
+                                showToast("Failed to update calendar sync. Please try again.", "error");
+                                return;
+                              }
+
+                              const previousValue = syncEnabled;
+                              setSyncStateByKey((prev) => ({
+                                ...prev,
+                                [syncKey]: checked,
+                              }));
+                              setSyncPending(syncKey, true);
+
+                              try {
+                                await toggleCalendarSync.mutateAsync({
+                                  provider: syncProvider,
+                                  credentialId: cal.credentialId,
+                                  providerCalendarId: cal.externalId,
+                                  enabled: checked,
+                                });
+
+                                showToast(
+                                  checked ? t("enable_calendar_sync") : t("disable_calendar_sync"),
+                                  "success"
+                                );
+                                await utils.viewer.calendars.connectedCalendars.invalidate();
+                              } catch (error) {
+                                setSyncStateByKey((prev) => ({
+                                  ...prev,
+                                  [syncKey]: previousValue,
+                                }));
+                                showToast("Failed to update calendar sync. Please try again.", "error");
+                                void error;
+                              } finally {
+                                setSyncPending(syncKey, false);
+                              }
+                            }}
+                          />
+                        );
                         return (
                           <div key={cal.externalId} className="flex items-center justify-between gap-4">
                             <CalendarSwitch
@@ -168,47 +221,13 @@ const ConnectedCalendarList = ({
                             />
                             <div className="flex shrink-0 items-center gap-2">
                               <span className="text-subtle text-xs font-medium">Sync</span>
-                              <Switch
-                                checked={syncEnabled}
-                                disabled={syncToggleDisabled}
-                                onCheckedChange={async (checked) => {
-                                  if (!syncProvider || typeof cal.credentialId !== "number") {
-                                    showToast("Failed to update calendar sync. Please try again.", "error");
-                                    return;
-                                  }
-
-                                  const previousValue = syncEnabled;
-                                  setSyncStateByKey((prev) => ({
-                                    ...prev,
-                                    [syncKey]: checked,
-                                  }));
-                                  setSyncPending(syncKey, true);
-
-                                  try {
-                                    await toggleCalendarSync.mutateAsync({
-                                      provider: syncProvider,
-                                      credentialId: cal.credentialId,
-                                      providerCalendarId: cal.externalId,
-                                      enabled: checked,
-                                    });
-
-                                    showToast(
-                                      checked ? t("enable_calendar_sync") : t("disable_calendar_sync"),
-                                      "success"
-                                    );
-                                    await utils.viewer.calendars.connectedCalendars.invalidate();
-                                  } catch (error) {
-                                    setSyncStateByKey((prev) => ({
-                                      ...prev,
-                                      [syncKey]: previousValue,
-                                    }));
-                                    showToast("Failed to update calendar sync. Please try again.", "error");
-                                    void error;
-                                  } finally {
-                                    setSyncPending(syncKey, false);
-                                  }
-                                }}
-                              />
+                              {isPublicGoogleCalendar ? (
+                                <Tooltip content={publicGoogleSyncDisabledMessage}>
+                                  <span className="inline-flex">{syncToggle}</span>
+                                </Tooltip>
+                              ) : (
+                                syncToggle
+                              )}
                             </div>
                           </div>
                         );

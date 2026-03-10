@@ -34,6 +34,11 @@ type ToggleOptions = {
   input: TToggleCalendarSyncInput;
 };
 
+type ToggleForUserOptions = {
+  userId: number;
+  input: TToggleCalendarSyncInput;
+};
+
 const log = logger.getSubLogger({ prefix: ["viewer", "unifiedCalendar", "toggleSync"] });
 
 const toProviderSlug = (provider: "GOOGLE" | "OUTLOOK"): "google" | "outlook" =>
@@ -265,18 +270,10 @@ const enqueueCalendarSyncAction = async (params: {
   });
 };
 
-export const toggleCalendarSyncHandler = async ({
-  ctx,
+export const toggleCalendarSyncForUser = async ({
+  userId,
   input,
-}: ToggleOptions): Promise<TToggleCalendarSyncOutput> => {
-  const userId = ctx.user?.id;
-  if (!userId) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Unauthorized",
-    });
-  }
-
+}: ToggleForUserOptions): Promise<TToggleCalendarSyncOutput> => {
   const credentialOwned = await isCredentialOwnedByUser({
     userId,
     provider: input.provider,
@@ -384,4 +381,19 @@ export const toggleCalendarSyncHandler = async ({
   });
 
   return { enabled: input.enabled, enqueued: true };
+};
+
+export const toggleCalendarSyncHandler = async ({
+  ctx,
+  input,
+}: ToggleOptions): Promise<TToggleCalendarSyncOutput> => {
+  const userId = ctx.user?.id;
+  if (!userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+    });
+  }
+
+  return toggleCalendarSyncForUser({ userId, input });
 };

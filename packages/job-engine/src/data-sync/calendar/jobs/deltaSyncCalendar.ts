@@ -382,13 +382,10 @@ export const runDeltaCalendarSync = async (calendarId: number): Promise<void> =>
 
         const cappedChanges = dedupeByExternalEventId(result.changes).slice(0, MAX_OCCURRENCES_CAP);
         const deleteChanges = cappedChanges.filter((change) => change.changeType === "delete");
-        console.log("in_here_deleteChanges", deleteChanges);
         const upsertCandidates = cappedChanges.filter(
           (change) =>
             change.changeType === "upsert" && isInsideWindow(change.startTime, windowStart, windowEnd)
         );
-        console.log("in_here_upsertCandidates", upsertCandidates);
-
         await prisma.$transaction(async (tx) => {
           if (deleteChanges.length > 0) {
             deletedCount += await deleteByExternalEventIds(
