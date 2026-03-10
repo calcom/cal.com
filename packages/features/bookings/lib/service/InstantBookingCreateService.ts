@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type {
+  CreateBookingMeta,
   CreateInstantBookingData,
   InstantBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
@@ -25,6 +26,7 @@ import { sendNotification } from "@calcom/features/notifications/sendNotificatio
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
@@ -178,7 +180,7 @@ const triggerBrowserNotifications = async (args: {
 export async function handler(
   bookingData: CreateInstantBookingData,
   deps: IInstantBookingCreateServiceDependencies,
-  userUuid?: string | null
+  bookingMeta?: CreateBookingMeta
 ) {
   // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
   const { prismaClient: prisma } = deps;
@@ -193,7 +195,12 @@ export async function handler(
     throw ErrorWithCode.Factory.BadRequest("Only Team Event Types are supported for Instant Meeting");
   }
 
-  const creationSource: CreationSource = bookingData.creationSource ?? CreationSource.WEBAPP;
+  if (!bookingData.creationSource) {
+    throw ErrorWithCode.Factory.BadRequest("creationSource is required for instant bookings");
+  }
+
+  const creationSource: CreationSource = bookingData.creationSource;
+  const userUuid = bookingMeta?.userUuid ?? null;
 
   const schema = getBookingDataSchema({
     view: bookingData?.rescheduleUid ? "reschedule" : "booking",
@@ -331,7 +338,7 @@ export async function handler(
   });
 
   // Trigger Webhook
-  const orgId = eventType.team?.parentId ?? null;
+  const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: eventType.team?.id })) ?? null;
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
     uid: newBooking.uid,
@@ -456,7 +463,7 @@ async function fireBookingEvents({
 export class InstantBookingCreateService implements IBookingCreateService {
   constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
 
-  async createBooking(input: { bookingData: CreateInstantBookingData; userUuid?: string | null }): Promise<InstantBookingCreateResult> {
-    return handler(input.bookingData, this.deps, input.userUuid);
+  async createBooking(input: { bookingData: CreateInstantBookingData; bookingMeta?: CreateBookingMeta }): Promise<InstantBookingCreateResult> {
+    return handler(input.bookingData, this.deps, input.bookingMeta);
   }
 }
