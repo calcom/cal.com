@@ -4,6 +4,7 @@ import {
   organizationsUsersOooControllerCreateOrganizationUserOoo as createOrgUserOoo,
   organizationsUsersOooControllerDeleteOrganizationUserOoo as deleteOrgUserOoo,
   organizationsUsersOooControllerGetOrganizationUserOoo as getOrgUserOooList,
+  organizationsUsersOooControllerGetOrganizationUsersOoo as getOrgUsersOooList,
   organizationsUsersOooControllerUpdateOrganizationUserOoo as updateOrgUserOoo,
 } from "../../generated/sdk.gen";
 import { initializeClient } from "../../shared/client";
@@ -15,6 +16,7 @@ import {
   renderOrgUserOooDeleted,
   renderOrgUserOooList,
   renderOrgUserOooUpdated,
+  renderOrgUsersOooList,
 } from "./output";
 import { VALID_REASONS } from "./types";
 
@@ -235,11 +237,73 @@ function registerOrgUserOooDeleteCommand(oooCmd: Command): void {
     });
 }
 
+function registerOrgUsersOooListAllCommand(oooCmd: Command): void {
+  oooCmd
+    .command("list-all")
+    .description("List all out-of-office entries for all users in your organization")
+    .requiredOption("--org-id <orgId>", "Organization ID")
+    .option("--email <email>", "Filter by user email")
+    .option("--sort-start <order>", "Sort by start time (asc or desc)")
+    .option("--sort-end <order>", "Sort by end time (asc or desc)")
+    .option("--take <n>", "Number of entries to return")
+    .option("--skip <n>", "Number of entries to skip")
+    .option("--json", "Output as JSON")
+    .action(
+      async (options: {
+        orgId: string;
+        email?: string;
+        sortStart?: string;
+        sortEnd?: string;
+        take?: string;
+        skip?: string;
+        json?: boolean;
+      }) => {
+        await withErrorHandling(async () => {
+          await initializeClient();
+          const orgId = Number(options.orgId);
+
+          const query: {
+            email?: string;
+            sortStart?: "asc" | "desc";
+            sortEnd?: "asc" | "desc";
+            take?: number;
+            skip?: number;
+          } = {};
+
+          if (options.email) {
+            query.email = options.email;
+          }
+          if (options.sortStart === "asc" || options.sortStart === "desc") {
+            query.sortStart = options.sortStart;
+          }
+          if (options.sortEnd === "asc" || options.sortEnd === "desc") {
+            query.sortEnd = options.sortEnd;
+          }
+          if (options.take) {
+            query.take = Number(options.take);
+          }
+          if (options.skip) {
+            query.skip = Number(options.skip);
+          }
+
+          const { data: response } = await getOrgUsersOooList({
+            path: { orgId },
+            query,
+            headers: authHeader(),
+          });
+
+          renderOrgUsersOooList(response?.data, options);
+        });
+      }
+    );
+}
+
 export function registerOrgUserOooCommand(program: Command): void {
   const oooCmd = program
     .command("org-user-ooo")
     .description("Manage out-of-office entries for users in your organization");
   registerOrgUserOooListCommand(oooCmd);
+  registerOrgUsersOooListAllCommand(oooCmd);
   registerOrgUserOooCreateCommand(oooCmd);
   registerOrgUserOooUpdateCommand(oooCmd);
   registerOrgUserOooDeleteCommand(oooCmd);

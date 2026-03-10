@@ -100,3 +100,31 @@ export function renderOrgUserOooDeleted(oooId: string, userId: string, { json }:
 
   renderSuccess(`Out-of-office entry ${oooId} deleted for user ${userId}.`);
 }
+
+export function renderOrgUsersOooList(
+  entries: OrgUserOooEntry[] | undefined,
+  { json }: OutputOptions = {}
+): void {
+  if (json) {
+    console.log(JSON.stringify(entries, null, 2));
+    return;
+  }
+
+  if (!entries?.length) {
+    console.log("No out-of-office entries found for organization users.");
+    return;
+  }
+
+  console.log("Out-of-office entries for organization users:\n");
+  renderTable(
+    ["ID", "User ID", "Start", "End", "Reason", "Notes"],
+    entries.map((entry) => [
+      String(entry.id),
+      String(entry.userId),
+      formatDate(entry.start),
+      formatDate(entry.end),
+      entry.reason || "unspecified",
+      entry.notes || "",
+    ])
+  );
+}
