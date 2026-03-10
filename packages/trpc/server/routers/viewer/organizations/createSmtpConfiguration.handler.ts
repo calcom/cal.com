@@ -1,4 +1,5 @@
 import { getSmtpConfigurationService } from "@calcom/features/di/smtpConfiguration/containers/smtpConfiguration";
+import { resolveAndValidateSmtpHost } from "@calcom/lib/validateSmtpHost";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,6 +26,15 @@ function getOrganizationId(user: NonNullable<TrpcSessionUser>): number {
 
 export const createSmtpConfigurationHandler = async ({ ctx, input }: CreateSmtpConfigurationOptions) => {
   const organizationId = getOrganizationId(ctx.user);
+
+  const hostCheck = await resolveAndValidateSmtpHost(input.smtpHost);
+  if (!hostCheck.valid) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: hostCheck.error || "SMTP host is not allowed",
+    });
+  }
+
   const service = getSmtpConfigurationService();
 
   return service.create({

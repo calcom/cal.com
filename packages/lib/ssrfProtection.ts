@@ -29,6 +29,8 @@ const CLOUD_METADATA_ENDPOINTS: string[] = [
   "169.254.169.253", // Azure alternate
   "metadata.google.internal", // GCP metadata
   "metadata.google.com", // GCP alternate
+  "metadata.internal", // Generic cloud metadata
+  "instance-data", // AWS instance data (some regions)
 ];
 
 // Hostnames blocked on Cal.com SaaS (includes metadata + localhost)

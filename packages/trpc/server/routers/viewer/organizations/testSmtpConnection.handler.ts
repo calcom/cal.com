@@ -3,6 +3,7 @@ import {
   getSmtpService,
 } from "@calcom/features/di/smtpConfiguration/containers/smtpConfiguration";
 import logger from "@calcom/lib/logger";
+import { resolveAndValidateSmtpHost } from "@calcom/lib/validateSmtpHost";
 
 import { TRPCError } from "@trpc/server";
 
@@ -53,6 +54,15 @@ export const testSmtpConnectionHandler = async ({ ctx, input }: TestSmtpConnecti
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "SMTP username and password are required",
+    });
+  }
+
+  // DNS rebinding protection: resolve hostname and check resolved IPs
+  const hostCheck = await resolveAndValidateSmtpHost(input.smtpHost);
+  if (!hostCheck.valid) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: hostCheck.error || "SMTP host is not allowed",
     });
   }
 
