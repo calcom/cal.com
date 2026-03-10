@@ -8,7 +8,7 @@ import {
   UpdatePrivateLinkOutput,
 } from "@calcom/platform-types";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { PrivateLinksService_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/services/private-links.service";
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import {
@@ -43,6 +43,7 @@ import { TeamsEventTypesService } from "@/modules/teams/event-types/services/tea
     default: "2024-09-04",
   },
 })
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsEventTypesPrivateLinksController_2024_09_04 {
   constructor(
     private readonly privateLinksService: PrivateLinksService_2024_09_04,

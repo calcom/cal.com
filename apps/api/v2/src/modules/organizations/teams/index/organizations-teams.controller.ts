@@ -14,7 +14,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
@@ -56,6 +56,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsTeamsController {
   constructor(
     private organizationsTeamsService: OrganizationsTeamsService,
@@ -114,6 +115,7 @@ export class OrganizationsTeamsController {
   @OAuthPermissions(["TEAM_PROFILE_READ"])
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team" })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
