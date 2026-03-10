@@ -431,70 +431,74 @@ describe("CredentialsProvider authorize", () => {
       const originalKey = process.env.CALENDSO_ENCRYPTION_KEY;
       process.env.CALENDSO_ENCRYPTION_KEY = "test";
 
-      const { isPasswordValid } = await import("@calcom/lib/auth/isPasswordValid");
-      vi.mocked(isPasswordValid).mockReturnValue(false);
-      vi.mocked(verifyPassword).mockResolvedValue(true);
+      try {
+        const { isPasswordValid } = await import("@calcom/lib/auth/isPasswordValid");
+        vi.mocked(isPasswordValid).mockReturnValue(false);
+        vi.mocked(verifyPassword).mockResolvedValue(true);
 
-      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
-      vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
+        const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+        vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
 
-      const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
-      vi.mocked(totpAuthenticatorCheck).mockReturnValue(true);
+        const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
+        vi.mocked(totpAuthenticatorCheck).mockReturnValue(true);
 
-      const mockUser = createMockUser({
-        role: UserPermissionRole.ADMIN,
-        identityProvider: IdentityProvider.CAL,
-        twoFactorEnabled: true,
-        twoFactorSecret: "encrypted_secret",
-      });
-      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+        const mockUser = createMockUser({
+          role: UserPermissionRole.ADMIN,
+          identityProvider: IdentityProvider.CAL,
+          twoFactorEnabled: true,
+          twoFactorSecret: "encrypted_secret",
+        });
+        mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
 
-      const result = await authorizeCredentials({
-        email: mockUser.email,
-        password: "password123",
-        totpCode: "123456",
-        backupCode: "",
-      });
+        const result = await authorizeCredentials({
+          email: mockUser.email,
+          password: "password123",
+          totpCode: "123456",
+          backupCode: "",
+        });
 
-      expect(result?.role).toBe("INACTIVE_ADMIN");
-      expect(result?.inactiveAdminReason).toBe("password");
-
-      process.env.CALENDSO_ENCRYPTION_KEY = originalKey;
+        expect(result?.role).toBe("INACTIVE_ADMIN");
+        expect(result?.inactiveAdminReason).toBe("password");
+      } finally {
+        process.env.CALENDSO_ENCRYPTION_KEY = originalKey;
+      }
     });
 
     it("does not set inactiveAdminReason when admin requirements are met", async () => {
       const originalKey = process.env.CALENDSO_ENCRYPTION_KEY;
       process.env.CALENDSO_ENCRYPTION_KEY = "test";
 
-      const { isPasswordValid } = await import("@calcom/lib/auth/isPasswordValid");
-      vi.mocked(isPasswordValid).mockReturnValue(true);
-      vi.mocked(verifyPassword).mockResolvedValue(true);
+      try {
+        const { isPasswordValid } = await import("@calcom/lib/auth/isPasswordValid");
+        vi.mocked(isPasswordValid).mockReturnValue(true);
+        vi.mocked(verifyPassword).mockResolvedValue(true);
 
-      const { symmetricDecrypt } = await import("@calcom/lib/crypto");
-      vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
+        const { symmetricDecrypt } = await import("@calcom/lib/crypto");
+        vi.mocked(symmetricDecrypt).mockReturnValue("a".repeat(32));
 
-      const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
-      vi.mocked(totpAuthenticatorCheck).mockReturnValue(true);
+        const { totpAuthenticatorCheck } = await import("@calcom/lib/totp");
+        vi.mocked(totpAuthenticatorCheck).mockReturnValue(true);
 
-      const mockUser = createMockUser({
-        role: UserPermissionRole.ADMIN,
-        identityProvider: IdentityProvider.CAL,
-        twoFactorEnabled: true,
-        twoFactorSecret: "encrypted_secret",
-      });
-      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+        const mockUser = createMockUser({
+          role: UserPermissionRole.ADMIN,
+          identityProvider: IdentityProvider.CAL,
+          twoFactorEnabled: true,
+          twoFactorSecret: "encrypted_secret",
+        });
+        mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
 
-      const result = await authorizeCredentials({
-        email: mockUser.email,
-        password: "password123",
-        totpCode: "123456",
-        backupCode: "",
-      });
+        const result = await authorizeCredentials({
+          email: mockUser.email,
+          password: "password123",
+          totpCode: "123456",
+          backupCode: "",
+        });
 
-      expect(result?.role).toBe(UserPermissionRole.ADMIN);
-      expect(result?.inactiveAdminReason).toBeUndefined();
-
-      process.env.CALENDSO_ENCRYPTION_KEY = originalKey;
+        expect(result?.role).toBe(UserPermissionRole.ADMIN);
+        expect(result?.inactiveAdminReason).toBeUndefined();
+      } finally {
+        process.env.CALENDSO_ENCRYPTION_KEY = originalKey;
+      }
     });
   });
 });
