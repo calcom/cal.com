@@ -4947,5 +4947,9 @@
   "dunning_cancellation_email_footer": "Ödəniş tamamlandıqdan sonra abunəliyiniz aktiv qalacaq və hesabınıza giriş bərpa olunacaq.",
   "dunning_cancellation_email_footer_2": "Suallarınız və ya ödənişlə bağlı köməyə ehtiyacınız varsa, sadəcə bu e-poçta cavab verin.",
   "update_payment_method": "Ödəniş üsulunu yenilə",
+  "update_billing_details": "Ödəniş məlumatlarını yenilə",
+  "update_billing": "Ödənişi yenilə",
+  "resubscribe": "Yenidən abunə ol",
+  "discount_25": "-25%",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
