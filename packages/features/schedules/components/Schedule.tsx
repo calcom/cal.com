@@ -419,7 +419,7 @@ const TargetTimezonesDropdown = ({
               }}
               className="border-default h-4 w-4 rounded"
             />
-            <span className="text-sm">{t("show_for_everyone")}</span>
+            <span className="text-sm">{t("all")}</span>
           </label>
           {timezoneOptions.map((tz) => (
             <label

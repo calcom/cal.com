@@ -706,8 +706,6 @@
   "code_is_incorrect": "Code is incorrect.",
   "add_time_availability": "Add new time slot",
   "show_for_timezones": "Show for timezones",
-  "show_for_everyone": "Everyone",
-  "show_for_specific_timezones": "{{count}} timezone(s)",
   "add_an_extra_layer_of_security": "Add an extra layer of security to your account in case your password is stolen.",
   "2fa": "Two-Factor Authentication",
   "2fa_disabled": "Two-Factor authentication can only be enabled for email and password authentication",
