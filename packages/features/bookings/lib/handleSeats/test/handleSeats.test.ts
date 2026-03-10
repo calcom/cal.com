@@ -1976,6 +1976,8 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
+          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled
@@ -2115,6 +2117,8 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
+          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled
@@ -2967,6 +2971,8 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
+          actionSource: "WEBAPP",
         });
 
         // Ensure that the booking has been cancelled

@@ -2,7 +2,7 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
@@ -45,19 +45,22 @@ async function fireBookingAcceptedEvent({
   acceptedBookings,
   isBookingAuditEnabled,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   acceptedBookings: {
     uid: string;
     oldStatus: BookingStatus;
   }[];
   isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid: string | null;
 }) {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
+    const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
     if (acceptedBookings.length > 1) {
       const operationId = uuidv4();
       await bookingEventHandlerService.onBulkBookingsAccepted({
@@ -71,6 +74,7 @@ async function fireBookingAcceptedEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     } else if (acceptedBookings.length === 1) {
@@ -83,6 +87,7 @@ async function fireBookingAcceptedEvent({
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     }
@@ -133,8 +138,9 @@ export async function handleConfirmation(args: {
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   actor: Actor;
+  impersonatedByUserUuid: string | null;
 }) {
   const {
     user,
@@ -149,6 +155,7 @@ export async function handleConfirmation(args: {
     traceContext,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -428,6 +435,7 @@ export async function handleConfirmation(args: {
     actionSource,
     isBookingAuditEnabled,
     tracingLogger,
+    impersonatedByUserUuid,
   });
 
   //Workflows - set reminders for confirmed events
@@ -455,7 +463,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          hideBranding: evtOfBooking.hideBranding ?? false,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
           traceContext: spanContext,
@@ -468,7 +476,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        hideBranding: evtOfBooking.hideBranding,
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,

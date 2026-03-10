@@ -1,4 +1,4 @@
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 
 import { deleteMultipleScheduledSMS } from "../reminders/providers/twilioProvider";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
