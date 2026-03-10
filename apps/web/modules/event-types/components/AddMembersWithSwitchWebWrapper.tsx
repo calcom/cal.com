@@ -47,6 +47,7 @@ function InviteByEmailSection({
   });
 
   const handleInvite = () => {
+    if(isLoading) return;
     const emails = parseEmails(emailInput);
     if (!emails.length) return;
 
