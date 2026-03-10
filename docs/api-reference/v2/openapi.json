@@ -8076,7 +8076,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8133,7 +8140,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8200,7 +8214,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8247,7 +8268,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8353,7 +8381,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -25256,6 +25291,72 @@
           }
         }
       },
+      "UserOooOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "The ID of the user.",
+            "example": 2
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "id": {
+            "type": "number",
+            "description": "The ID of the ooo entry.",
+            "example": 2
+          },
+          "uuid": {
+            "type": "string",
+            "description": "The UUID of the ooo entry.",
+            "example": 2
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "reason": {
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"],
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation"
+          }
+        },
+        "required": ["userId", "id", "uuid", "start", "end"]
+      },
+      "UserOoosOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserOooOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CreateOutOfOfficeEntryDto": {
         "type": "object",
         "properties": {
@@ -25289,6 +25390,20 @@
           }
         },
         "required": ["start", "end"]
+      },
+      "UserOooOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserOooOutputDto"
+          }
+        },
+        "required": ["status", "data"]
       },
       "UpdateOutOfOfficeEntryDto": {
         "type": "object",
