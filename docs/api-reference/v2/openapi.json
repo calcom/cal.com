@@ -3096,6 +3096,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3508,6 +3524,22 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3598,7 +3630,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -3655,6 +3687,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3694,6 +3734,14 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3725,13 +3773,11 @@
             }
           },
           {
-            "name": "app",
+            "name": "orgId",
             "required": true,
             "in": "path",
-            "description": "Conferencing application type",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -3771,6 +3817,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3983,6 +4037,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4047,6 +4109,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4104,6 +4174,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4181,6 +4259,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4240,6 +4326,14 @@
           },
           {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4411,6 +4505,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -4478,6 +4580,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4555,6 +4665,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4624,6 +4742,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -6326,6 +6452,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6478,7 +6612,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -6525,6 +6659,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6565,6 +6707,14 @@
           },
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6795,6 +6945,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6948,6 +7106,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -7022,6 +7188,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7079,6 +7253,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7156,6 +7338,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7208,6 +7398,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7270,6 +7468,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7342,6 +7548,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7515,6 +7729,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8032,6 +8254,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8081,6 +8311,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8160,6 +8398,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8219,6 +8465,22 @@
           },
           {
             "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8393,6 +8655,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8452,6 +8722,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8521,6 +8799,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8578,6 +8864,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8650,6 +8944,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8856,6 +9158,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8910,6 +9220,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8963,6 +9281,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -11816,6 +12142,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -11863,6 +12197,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11895,6 +12237,14 @@
           },
           {
             "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12632,6 +12982,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -12678,6 +13036,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -12713,6 +13079,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13105,6 +13479,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13210,6 +13592,14 @@
           },
           {
             "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13390,6 +13780,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13430,6 +13836,22 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13480,6 +13902,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13528,6 +13958,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13602,6 +14040,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13665,6 +14111,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13711,6 +14165,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13756,6 +14218,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15414,6 +15884,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -15457,6 +15935,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15533,6 +16019,14 @@
               "example": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15564,6 +16058,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15606,6 +16108,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15653,6 +16171,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15688,6 +16222,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16088,6 +16638,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -16128,6 +16686,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
