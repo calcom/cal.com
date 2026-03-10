@@ -7,7 +7,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
 
-import { isLegacyClient } from "@calcom/features/oauth/constants";
+import { isLegacyClient, TEAM_SCOPES, ORG_SCOPES } from "@calcom/features/oauth/constants";
+import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { hasScopeExpansion } from "./hasScopeExpansion";
 import type { TUpdateClientInputSchema } from "./updateClient.schema";
 
@@ -211,12 +212,17 @@ function triggersReapprovalForOwnerEdit(params: {
     return true;
   }
 
-  if (
-    proposedUpdates.scopes !== undefined &&
-    !isLegacyClient(currentClient.scopes) &&
-    hasScopeExpansion(currentClient.scopes, proposedUpdates.scopes)
-  ) {
-    return true;
+  if (proposedUpdates.scopes !== undefined) {
+    if (!isLegacyClient(currentClient.scopes) && hasScopeExpansion(currentClient.scopes, proposedUpdates.scopes)) {
+      return true;
+    }
+
+    if (isLegacyClient(currentClient.scopes)) {
+      const teamAndOrgScopes = new Set<string>([...TEAM_SCOPES, ...ORG_SCOPES]);
+      if (proposedUpdates.scopes.some((scope) => teamAndOrgScopes.has(scope as NewAccessScope))) {
+        return true;
+      }
+    }
   }
 
   return false;

@@ -1,14 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { isLegacyClient, OAUTH_SCOPES } from "@calcom/features/oauth/constants";
+import { isLegacyClient, ORG_SCOPES, TEAM_SCOPES } from "@calcom/features/oauth/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
-
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -18,11 +14,11 @@ import {
   DialogContent,
   DialogFooter,
 } from "@calcom/ui/components/dialog";
-
+import { Label, TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Label, TextArea } from "@calcom/ui/components/form";
-
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
@@ -227,11 +223,11 @@ const OAuthClientDetailsDialog = ({
               </div>
             ) : null}
 
-            {status === "PENDING" ? (
+            {status === "PENDING" && !showAdminActions ? (
               <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
             ) : null}
 
-            {status === "APPROVED" ? (
+            {status === "APPROVED" && !showAdminActions ? (
               <Alert severity="warning" title={t("oauth_client_approved_reapproval_info")} />
             ) : null}
 
@@ -245,6 +241,14 @@ const OAuthClientDetailsDialog = ({
                     <p>{t("oauth_client_rejected_resubmit_info")}</p>
                   </div>
                 }
+              />
+            ) : null}
+
+            {showAdminActions && hasTeamOrOrgScopes(formClientScopes) ? (
+              <Alert
+                severity="warning"
+                title={t("oauth_client_team_org_scopes_warning")}
+                data-testid="oauth-client-team-org-scopes-warning"
               />
             ) : null}
 
@@ -364,6 +368,11 @@ const OAuthClientDetailsDialog = ({
     </Dialog>
   );
 };
+
+function hasTeamOrOrgScopes(scopes: AccessScope[]): boolean {
+  const teamOrOrgSet = new Set<string>([...TEAM_SCOPES, ...ORG_SCOPES]);
+  return scopes.some((s) => teamOrOrgSet.has(s));
+}
 
 function getStatusBadgeVariant(status: string) {
   switch (status) {

@@ -1,16 +1,17 @@
 "use client";
 
-import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { NewAccessScope } from "@calcom/features/oauth/constants";
+import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
 import type { AccessScope } from "@calcom/prisma/enums";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { InfoIcon, KeyIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { useMemo } from "react";
+import { InfoIcon, KeyIcon } from "@coss/ui/icons";
+import { useMemo, useState } from "react";
 import type { RegisterOptions, UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { scopeTranslationKey } from "../../../auth/oauth2/scopes";
@@ -180,6 +181,12 @@ function OAuthScopeCheckboxes({
       name="scopes"
       render={({ field }) => {
         const scopes = field.value || [];
+
+        const handleToggleScope = (scope: NewAccessScope, checked: boolean) => {
+          const newScopes = checked ? [...scopes, scope] : scopes.filter((s) => s !== scope);
+          field.onChange(newScopes);
+        };
+
         return (
           <div>
             <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
@@ -208,20 +215,16 @@ function OAuthScopeCheckboxes({
                 }
               />
             )}
-            <div className="border-subtle space-y-1 rounded-md border p-3">
-              {OAUTH_SCOPES.map((scope) => (
-                <CheckboxField
-                  key={scope}
-                  data-testid={`oauth-scope-checkbox-${scope}`}
-                  checked={scopes.includes(scope)}
+            <div className="space-y-2">
+              {OAUTH_SCOPE_CATEGORIES.map((category, index) => (
+                <ScopeCategorySection
+                  key={category.labelKey}
+                  labelKey={category.labelKey}
+                  categoryScopes={category.scopes}
+                  selectedScopes={scopes}
                   disabled={disabled}
-                  description={t(scopeTranslationKey(scope))}
-                  onChange={(e) => {
-                    const newScopes = e.target.checked
-                      ? [...scopes, scope]
-                      : scopes.filter((s) => s !== scope);
-                    field.onChange(newScopes);
-                  }}
+                  onToggleScope={handleToggleScope}
+                  defaultExpanded={index === 0}
                 />
               ))}
             </div>
@@ -229,5 +232,62 @@ function OAuthScopeCheckboxes({
         );
       }}
     />
+  );
+}
+
+function ScopeCategorySection({
+  labelKey,
+  categoryScopes,
+  selectedScopes,
+  disabled,
+  onToggleScope,
+  defaultExpanded,
+}: {
+  labelKey: string;
+  categoryScopes: NewAccessScope[];
+  selectedScopes: AccessScope[];
+  disabled: boolean;
+  onToggleScope: (scope: NewAccessScope, checked: boolean) => void;
+  defaultExpanded: boolean;
+}) {
+  const { t } = useLocale();
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  const selectedCount = categoryScopes.filter((s) => selectedScopes.includes(s)).length;
+  const totalCount = categoryScopes.length;
+
+  return (
+    <div className="border-subtle rounded-md border">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between p-3"
+        onClick={() => setExpanded((prev) => !prev)}
+        data-testid={`oauth-scope-category-${labelKey}`}>
+        <div className="flex items-center gap-2">
+          <Icon
+            name="chevron-right"
+            className={`text-subtle h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
+          />
+          <span className="text-emphasis text-sm font-medium">{t(labelKey)}</span>
+        </div>
+        <span className="text-subtle text-xs">
+          {selectedCount}/{totalCount}
+        </span>
+      </button>
+      {expanded ? (
+        <div className="border-subtle space-y-1 border-t px-3 pb-3 pt-2">
+          {categoryScopes.map((scope) => (
+            <CheckboxField
+              key={scope}
+              data-testid={`oauth-scope-checkbox-${scope}`}
+              checked={selectedScopes.includes(scope)}
+              disabled={disabled}
+              description={t(scopeTranslationKey(scope))}
+              onChange={(e) => onToggleScope(scope, e.target.checked)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

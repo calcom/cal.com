@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { OAUTH_SCOPES } from "@calcom/features/oauth/constants";
+import { OAUTH_SCOPE_CATEGORIES, OAUTH_SCOPES } from "@calcom/features/oauth/constants";
 import type { PrismaClient } from "@calcom/prisma";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { expect, type Locator, type Page } from "@playwright/test";
@@ -84,6 +84,17 @@ const oAuthClientSelect = {
   scopes: true,
 } as const;
 
+async function expandAllScopeCategories(page: Page) {
+  for (const category of OAUTH_SCOPE_CATEGORIES) {
+    const categoryButton = page.getByTestId(`oauth-scope-category-${category.labelKey}`);
+    const chevron = categoryButton.locator('svg');
+    const isExpanded = await chevron.evaluate((el) => el.classList.contains("rotate-90"));
+    if (!isExpanded) {
+      await categoryButton.click();
+    }
+  }
+}
+
 async function createOAuthClient(
   page: Page,
   input: CreateOAuthClientInput
@@ -113,6 +124,7 @@ async function createOAuthClient(
   }
 
   if (input.scopes) {
+    await expandAllScopeCategories(page);
     for (const scope of OAUTH_SCOPES) {
       const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
       const isChecked = await scopeCheckbox.isChecked();
@@ -163,6 +175,7 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
   }
 
   if (input.scopes) {
+    await expandAllScopeCategories(page);
     for (const scope of OAUTH_SCOPES) {
       const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
       const isChecked = await scopeCheckbox.isChecked();
@@ -296,6 +309,7 @@ async function expectOAuthClientDetails(
   await expect(details.locator('img[alt="Logo"][src]')).toHaveCount(expected.hasLogo ? 1 : 0);
 
   if (expected.scopes) {
+    await expandAllScopeCategories(details.page());
     for (const scope of OAUTH_SCOPES) {
       const scopeCheckbox = details.page().getByTestId(`oauth-scope-checkbox-${scope}`);
       const shouldBeChecked = expected.scopes.includes(scope);

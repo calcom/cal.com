@@ -2,6 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -55,6 +56,7 @@ export class AtomsSchedulesController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Query() queryParams: GetAtomSchedulesQueryParams
@@ -77,6 +79,7 @@ export class AtomsSchedulesController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getScheduleByEventSlug(
     @GetUser() user: UserWithProfile,
     @Param("eventSlug") eventSlug: string
@@ -92,6 +95,7 @@ export class AtomsSchedulesController {
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getAllUserSchedules(
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<Awaited<GetAvailabilityListHandlerReturn>>> {
@@ -105,6 +109,7 @@ export class AtomsSchedulesController {
 
   @Patch("schedules/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Update atom schedule" })
   async updateSchedule(
@@ -126,6 +131,7 @@ export class AtomsSchedulesController {
 
   @Post("schedules/create")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Create atom schedule" })
   async createSchedule(
@@ -142,6 +148,7 @@ export class AtomsSchedulesController {
 
   @Post("schedules/:scheduleId/duplicate")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Duplicate existing schedule" })
   async duplicateExistingSchedule(

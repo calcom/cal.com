@@ -8,6 +8,7 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -41,6 +42,7 @@ export class SchedulesController_2024_04_15 {
 
   @Post("/")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   async createSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: CreateScheduleInput_2024_04_15
@@ -55,6 +57,7 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getDefaultSchedule(
     @GetUser() user: UserWithProfile
   ): Promise<GetDefaultScheduleOutput_2024_04_15 | null> {
@@ -68,6 +71,7 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
@@ -82,6 +86,7 @@ export class SchedulesController_2024_04_15 {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_04_15> {
     const schedules = await this.schedulesService.getUserSchedules(
       user.id,
@@ -98,6 +103,7 @@ export class SchedulesController_2024_04_15 {
   // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput_2024_04_15,
@@ -118,6 +124,7 @@ export class SchedulesController_2024_04_15 {
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number

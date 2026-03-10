@@ -6,6 +6,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -88,6 +89,7 @@ export class GcalController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
+  @OAuthPermissions(["APPS_READ"])
   @ApiOperation({ summary: "Check a calendar connection status" })
   async check(@GetUser("id") userId: number): Promise<GcalCheckOutput> {
     const gcalCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(

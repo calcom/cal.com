@@ -28,6 +28,7 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
@@ -65,6 +66,7 @@ export class OrganizationsTeamsController {
   @ApiOperation({ summary: "Get all teams" })
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_PROFILE_READ"])
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -81,6 +83,7 @@ export class OrganizationsTeamsController {
   @ApiOperation({ summary: "Get teams membership for user" })
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_MEMBERSHIP_READ"])
   async getMyTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination,
@@ -108,6 +111,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_PROFILE_READ"])
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team" })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
@@ -120,6 +124,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_PROFILE_WRITE"])
   @Delete("/:teamId")
   @Throttle({ limit: 1, ttl: 1000, blockDuration: 1000, name: "org_teams_delete" })
   @ApiOperation({ summary: "Delete a team" })
@@ -137,6 +142,7 @@ export class OrganizationsTeamsController {
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_PROFILE_WRITE"])
   @Patch("/:teamId")
   @ApiOperation({ summary: "Update a team" })
   async updateTeam(
@@ -154,6 +160,7 @@ export class OrganizationsTeamsController {
   @Post()
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_PROFILE_WRITE"])
   @ApiOperation({ summary: "Create a team" })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,

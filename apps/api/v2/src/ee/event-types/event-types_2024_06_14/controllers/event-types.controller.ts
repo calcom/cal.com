@@ -21,6 +21,7 @@ import {
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -83,6 +84,7 @@ export class EventTypesController_2024_06_14 {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -108,6 +110,7 @@ export class EventTypesController_2024_06_14 {
 
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -181,6 +184,7 @@ export class EventTypesController_2024_06_14 {
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @HttpCode(HttpStatus.OK)
@@ -209,6 +213,7 @@ export class EventTypesController_2024_06_14 {
 
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({

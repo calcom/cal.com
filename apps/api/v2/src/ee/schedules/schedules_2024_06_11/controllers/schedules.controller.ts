@@ -3,6 +3,7 @@ import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -53,6 +54,7 @@ export class SchedulesController_2024_06_11 {
 
   @Post("/")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @ApiOperation({
     summary: "Create a schedule",
     description: `
@@ -87,6 +89,7 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   @ApiResponse({
     status: 200,
     type: GetDefaultScheduleOutput_2024_06_11,
@@ -109,6 +112,7 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   @ApiOperation({
     summary: "Get a schedule",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -127,6 +131,7 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
+  @OAuthPermissions(["SCHEDULE_READ"])
   @ApiOperation({
     summary: "Get all schedules",
     description: `Get all schedules of the authenticated user.
@@ -145,6 +150,7 @@ export class SchedulesController_2024_06_11 {
 
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @ApiOperation({
     summary: "Update a schedule",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -169,6 +175,7 @@ export class SchedulesController_2024_06_11 {
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
   @Permissions([SCHEDULE_WRITE])
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @ApiOperation({
     summary: "Delete a schedule",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,

@@ -1,3 +1,29 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries";
+import {
+  CreateTeamEventTypeInput_2024_06_14,
+  GetOrganizationEventTypesQuery_2024_06_14,
+  GetTeamEventTypesQuery_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+  UpdateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
@@ -9,6 +35,7 @@ import {
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
@@ -25,33 +52,6 @@ import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-
 import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
-  Param,
-  ParseIntPipe,
-  Body,
-  Patch,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  NotFoundException,
-  Query,
-  Logger,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { handleCreatePhoneCall } from "@calcom/platform-libraries";
-import {
-  CreateTeamEventTypeInput_2024_06_14,
-  GetOrganizationEventTypesQuery_2024_06_14,
-  GetTeamEventTypesQuery_2024_06_14,
-  TeamEventTypeOutput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
 
 export type EventTypeHandlerResponse = {
   data: DatabaseTeamEventType[] | DatabaseTeamEventType;
@@ -77,6 +77,7 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/event-types")
   @ApiOperation({ summary: "Create an event type" })
@@ -111,6 +112,7 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types/:eventTypeId")
   @ApiOperation({ summary: "Get an event type" })
@@ -133,6 +135,7 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
   @ApiOperation({ summary: "Create a phone call" })
@@ -157,6 +160,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
   @ApiOperation({
@@ -193,6 +197,7 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/event-types")
   @ApiOperation({
@@ -220,6 +225,7 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   @ApiOperation({ summary: "Update a team event type" })
@@ -251,6 +257,7 @@ export class OrganizationsEventTypesController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)

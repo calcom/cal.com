@@ -29,6 +29,8 @@ describe("generateAuthCodeHandler", () => {
       clientType: "PUBLIC" as const,
       status: "APPROVED" as const,
       scopes: [],
+      logo: null,
+      isTrusted: false,
     };
 
     it("should generate authorization code for PUBLIC client with valid PKCE", async () => {
@@ -170,8 +172,8 @@ describe("generateAuthCodeHandler", () => {
       redirectUri: "https://app.example.com/callback",
       name: "Test Confidential Client",
       clientType: "CONFIDENTIAL" as const,
-      isTrusted: undefined,
-      logo: undefined,
+      isTrusted: false,
+      logo: null,
       status: "APPROVED" as const,
       scopes: [],
     };

@@ -4,7 +4,9 @@ import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
+
 import type { TSubmitClientInputSchema } from "./submitClientForReview.schema";
 
 type SubmitClientOptions = {

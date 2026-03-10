@@ -5,6 +5,7 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
@@ -67,6 +68,7 @@ export class TeamsEventTypesController {
   @ApiHeader(API_KEY_HEADER)
   @Post("/")
   @ApiOperation({ summary: "Create an event type" })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -91,6 +93,7 @@ export class TeamsEventTypesController {
   @ApiHeader(API_KEY_HEADER)
   @Get("/:eventTypeId")
   @ApiOperation({ summary: "Get an event type" })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
@@ -114,6 +117,7 @@ export class TeamsEventTypesController {
   @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiHeader(API_KEY_HEADER)
   @ApiOperation({ summary: "Create a phone call" })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -141,6 +145,7 @@ export class TeamsEventTypesController {
     description:
       'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.',
   })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
@@ -173,6 +178,7 @@ export class TeamsEventTypesController {
   @ApiHeader(API_KEY_HEADER)
   @Patch("/:eventTypeId")
   @ApiOperation({ summary: "Update a team event type" })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -206,6 +212,7 @@ export class TeamsEventTypesController {
   @Delete("/:eventTypeId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete a team event type" })
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number

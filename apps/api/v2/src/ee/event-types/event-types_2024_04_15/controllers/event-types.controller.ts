@@ -16,6 +16,7 @@ import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_
 import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -64,6 +65,7 @@ export class EventTypesController_2024_04_15 {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   async createEventType(
     @Body() body: CreateEventTypeInput_2024_04_15,
@@ -79,6 +81,7 @@ export class EventTypesController_2024_04_15 {
 
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard)
   async getEventType(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -98,6 +101,7 @@ export class EventTypesController_2024_04_15 {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard)
   async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
     const eventTypes = await getEventTypesByViewer({
@@ -167,6 +171,7 @@ export class EventTypesController_2024_04_15 {
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
@@ -185,6 +190,7 @@ export class EventTypesController_2024_04_15 {
 
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard)
   async deleteEventType(
     @Param() params: EventTypeIdParams_2024_04_15,

@@ -10,13 +10,13 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
-import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 import { useRouter } from "next/navigation";
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { getScopeDisplayItems } from "./scopes";
+import { getGroupedScopeDisplayItems } from "./scopes";
 
 export function Authorize() {
   const { t } = useLocale();
@@ -94,6 +94,7 @@ export function Authorize() {
 
   const isLegacy = isLegacyClient(client?.scopes ?? []);
   const effectiveScopes = parseScopeParam(scope);
+  const scopeGroups = getGroupedScopeDisplayItems(effectiveScopes, t);
 
   useEffect(() => {
     if (client?.isTrusted) {
@@ -249,14 +250,23 @@ export function Authorize() {
             </li>
           </ul>
         ) : (
-          <ul className="text-sm stack-y-3" data-testid="scope-permissions-list">
-            {getScopeDisplayItems(effectiveScopes, t).map((label, idx) => (
-              <li key={idx} className="relative pl-5">
-                <span className="absolute left-0">&#10003;</span>
-                {label}
-              </li>
+          <div className="space-y-4 text-sm">
+            {scopeGroups.map((group) => (
+              <div key={group.categoryKey ?? "all"}>
+                {group.categoryKey ? (
+                  <div className="text-emphasis mb-1 font-semibold" data-testid={`scope-category-${group.categoryKey}`}>{t(group.categoryKey)}</div>
+                ) : null}
+                <ul className="stack-y-3" data-testid="scope-permissions-list">
+                  {group.items.map((label, idx) => (
+                    <li key={idx} className="relative pl-5">
+                      <span className="absolute left-0">&#10003;</span>
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
         <div className="flex p-3 mt-8 mb-8 rounded-md bg-subtle">
           <div>

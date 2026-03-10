@@ -73,6 +73,7 @@ import {
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -238,6 +239,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/recordings")
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -259,6 +261,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/transcripts")
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -285,6 +288,7 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @ApiOperation({
     summary: "Get all bookings",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -406,6 +410,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/mark-absent")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -431,6 +436,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/reassign")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -455,6 +461,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/reassign/:userId")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -486,6 +493,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/confirm")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -510,6 +518,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/decline")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -535,6 +544,7 @@ export class BookingsController_2024_08_13 {
   @Get("/:bookingUid/calendar-links")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
@@ -557,6 +567,7 @@ export class BookingsController_2024_08_13 {
   @PlatformPlan("SCALE")
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get booking references",
@@ -584,6 +595,7 @@ export class BookingsController_2024_08_13 {
   @HttpCode(HttpStatus.OK)
   @Pbac(["booking.readRecordings"])
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({

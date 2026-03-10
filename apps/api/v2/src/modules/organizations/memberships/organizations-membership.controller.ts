@@ -5,6 +5,7 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -53,6 +54,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_READ"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get all memberships" })
@@ -74,6 +76,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a membership" })
@@ -90,6 +93,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_READ"])
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -107,6 +111,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -125,6 +130,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update a membership" })

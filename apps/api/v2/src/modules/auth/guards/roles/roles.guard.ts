@@ -1,3 +1,4 @@
+import { AuthMethods } from "@/lib/enums/auth-methods";
 import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -17,10 +18,17 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
+    const request = context.switchToHttp().getRequest<
+      Request & { pbacAuthorizedRequest?: boolean; authMethod?: AuthMethods }
+    >();
 
     if (request.pbacAuthorizedRequest === true) {
       this.logger.debug("PBAC authorized request, skipping legacy role checking");
+      return true;
+    }
+
+    if (request.authMethod === AuthMethods["THIRD_PARTY_ACCESS_TOKEN"]) {
+      this.logger.debug("Third-party access token request, skipping role checking — authorized by OAuthPermissionsGuard via scopes");
       return true;
     }
 
