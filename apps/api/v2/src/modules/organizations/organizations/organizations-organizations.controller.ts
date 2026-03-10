@@ -14,7 +14,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { X_CAL_CLIENT_ID_HEADER, X_CAL_SECRET_KEY_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
@@ -46,6 +46,7 @@ const SCALE = "SCALE";
 @DocsTags("Managed Orgs")
 @ApiHeader(X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(X_CAL_SECRET_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsOrganizationsController {
   constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) {}
 

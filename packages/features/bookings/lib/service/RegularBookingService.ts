@@ -45,6 +45,10 @@ import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/book
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -599,6 +603,7 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
     traceContext: passedTraceContext,
+    impersonatedByUserUuid,
   } = input;
   let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
 
@@ -1483,6 +1488,11 @@ async function handler(
     where: {
       userId: organizerUser.id,
     },
+    select: {
+      organizationId: true,
+      username: true,
+      organization: { select: { hideBranding: true } },
+    },
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
@@ -1571,6 +1581,20 @@ async function handler(
     })
     .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
+    .withHideBranding(
+      await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
+        team: eventType.team
+          ? { hideBranding: eventType.team.hideBranding, parent: eventType.team.parent }
+          : null,
+        owner: {
+          id: organizerUser.id,
+          hideBranding: organizerUser.hideBranding,
+          profiles: organizerOrganizationProfile
+            ? [{ organization: organizerOrganizationProfile.organization }]
+            : [],
+        },
+      } satisfies EventTypeBrandingData)
+    )
     .build();
 
   if (!builtEvt) {
@@ -1809,6 +1833,7 @@ async function handler(
         organizationId: eventOrganizationId,
         actionSource,
         traceContext,
+        impersonatedByUserUuid: impersonatedByUserUuid ?? null,
         deps,
       },
       deps.featuresRepository
@@ -2495,10 +2520,11 @@ async function handler(
     isRecurringBooking: !!input.bookingData.allRecurringDates,
     attendeeSeatId: evt.attendeeSeatId ?? null,
     tracingLogger,
+    impersonatedByUserUuid: impersonatedByUserUuid ?? null,
     isBookingAuditEnabled,
   });
 
-  const webhookLocation = metadata?.videoCallUrl || evt.location;
+  const webhookLocation= metadata?.videoCallUrl || evt.location;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {
@@ -2617,7 +2643,7 @@ async function handler(
           workflows,
           smsReminderNumber: smsReminderNumber || null,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+          hideBranding: evt.hideBranding || !!platformClientId,
           seatReferenceUid: evt.attendeeSeatId,
           isDryRun,
           triggers: [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED],
@@ -2801,7 +2827,7 @@ async function handler(
       evt: evtWithMetadata,
       workflows,
       requiresConfirmation: !isConfirmedByDefault,
-      hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+      hideBranding: (evt.hideBranding ?? false) || !!platformClientId,
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
@@ -2816,7 +2842,7 @@ async function handler(
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
-      hideBranding: !!eventType.owner?.hideBranding || !!platformClientId,
+      hideBranding: evt.hideBranding || !!platformClientId,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
       isConfirmedByDefault,
@@ -2938,6 +2964,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking,
     attendeeSeatId,
     tracingLogger,
+    impersonatedByUserUuid,
     isBookingAuditEnabled,
   }: {
     booking: {
@@ -2964,6 +2991,7 @@ export class RegularBookingService implements IBookingService {
     isRecurringBooking: boolean;
     tracingLogger: ReturnType<typeof distributedTracing.getTracingLogger>;
     attendeeSeatId: string | null;
+    impersonatedByUserUuid: string | null;
     isBookingAuditEnabled: boolean;
   }) {
     try {
@@ -2997,6 +3025,8 @@ export class RegularBookingService implements IBookingService {
         logger: tracingLogger,
       });
 
+      const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
       // For recurring bookings we fire the events in the RecurringBookingService
       if (!isRecurringBooking) {
         if (originalRescheduledBooking) {
@@ -3017,6 +3047,7 @@ export class RegularBookingService implements IBookingService {
             }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         } else {
@@ -3026,6 +3057,7 @@ export class RegularBookingService implements IBookingService {
             auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId }),
             source: actionSource,
             operationId: null,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         }
@@ -3036,11 +3068,25 @@ export class RegularBookingService implements IBookingService {
   }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      {
+        bookingData: input.bookingData,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+      },
+      this.deps
+    );
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler.bind(this)({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
+    return handler.bind(this)(
+      {
+        bookingData: input.bookingData,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+      },
+      this.deps
+    );
   }
 
   /**
@@ -3051,11 +3097,11 @@ export class RegularBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
-    const bookingMeta = input.bookingMeta ?? {};
     return handler.bind(this)(
       {
         bookingData: input.bookingData,
-        ...bookingMeta,
+        ...input.bookingMeta,
+        impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       },
       this.deps,
       input.bookingDataSchemaGetter

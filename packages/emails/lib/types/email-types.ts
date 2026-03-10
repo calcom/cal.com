@@ -20,4 +20,5 @@ export type EmailVerifyCode = {
   };
   verificationEmailCode: string;
   isVerifyingEmail?: boolean;
+  hideLogo?: boolean;
 };
