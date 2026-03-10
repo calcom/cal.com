@@ -6,9 +6,9 @@ import { NextResponse } from "next/server";
 
 import dispatcher from "@lib/job-disptacher";
 
-const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-const getCurrentQuarterBucket = (): number => Math.floor(Date.now() / FIFTEEN_MINUTES_MS);
+const getCurrentDayBucket = (): number => Math.floor(Date.now() / ONE_DAY_MS);
 
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
@@ -17,7 +17,7 @@ async function postHandler(request: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  const bucket = getCurrentQuarterBucket();
+  const bucket = getCurrentDayBucket();
   const job = await dispatcher.dispatch({
     queue: QueueName.DATA_SYNC,
     name: JobName.CALENDAR_SYNC,

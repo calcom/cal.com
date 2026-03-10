@@ -2,7 +2,7 @@ name: Cron - calendar-subscription-renewal
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "0 0 * * *"
 
 jobs:
   cron-calendar-subscription-renewal:
