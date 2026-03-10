@@ -1,0 +1,29 @@
+name: Trigger Vercel Deployments
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        deploy-hook-secret:
+          - VERCEL_DEPLOY_HOOK_CANARY
+          # Add more secrets here to trigger additional Vercel project deployments, e.g.:
+          # - VERCEL_DEPLOY_HOOK_DOCS
+          # - VERCEL_DEPLOY_HOOK_STAGING
+    steps:
+      - name: Trigger Vercel Deploy
+        env:
+          DEPLOY_HOOK: ${{ secrets[matrix.deploy-hook-secret] }}
+        run: |
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo "::warning::Secret ${{ matrix.deploy-hook-secret }} is not set. Skipping."
+            exit 0
+          fi
+          curl -sf -X POST "$DEPLOY_HOOK" \
+            -o /dev/null -w "HTTP status: %{http_code}\n" \
+            || { echo "::error::Failed to trigger deploy for ${{ matrix.deploy-hook-secret }}"; exit 1; }
+          echo "Successfully triggered deploy for ${{ matrix.deploy-hook-secret }}"
