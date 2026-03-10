@@ -16,6 +16,7 @@ import {
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialConfigurationError,
 } from "@calcom/lib/CalendarAppError";
+import { CALENDAR_EVENT_ORIGIN_MARKER, OUTLOOK_EVENT_ORIGIN_PROPERTY_ID } from "@calcom/lib/calendarOrigin";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -509,7 +510,9 @@ export default class Office365CalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarServiceEvent) => {
-    const office365Event: Event = {
+    const office365Event: Event & {
+      singleValueExtendedProperties?: Array<{ id: string; value: string }>;
+    } = {
       subject: event.title,
       body: {
         contentType: "text",
@@ -559,6 +562,12 @@ export default class Office365CalendarService implements Calendar {
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
+      singleValueExtendedProperties: [
+        {
+          id: OUTLOOK_EVENT_ORIGIN_PROPERTY_ID,
+          value: CALENDAR_EVENT_ORIGIN_MARKER,
+        },
+      ],
     };
     if (event.hideCalendarEventDetails) {
       office365Event.sensitivity = "private";

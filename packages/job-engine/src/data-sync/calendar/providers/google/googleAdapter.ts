@@ -1,3 +1,5 @@
+import { CALENDAR_EVENT_ORIGIN_MARKER, GOOGLE_EVENT_ORIGIN_PRIVATE_KEY } from "@calcom/lib/calendarOrigin";
+
 import type { CalendarProviderAdapter } from "../adapter";
 import { getGoogleAuthWithRefresh } from "../auth";
 import {
@@ -43,6 +45,9 @@ const capOccurrences = <T>(items: T[], maxOccurrencesCap: number): T[] => {
 };
 
 const getGoogleChannelExpirationMs = (): number => Date.now() + GOOGLE_CHANNEL_TTL_MS;
+
+const isAppOriginEvent = (event: NormalizedCalendarEventDTO): boolean =>
+  event.origin === CALENDAR_EVENT_ORIGIN_MARKER;
 
 export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
   readonly provider = CalendarProvider.GOOGLE;
@@ -109,10 +114,12 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
 
     const mapped = rawEvents
       .map((event) => this.mapGoogleEventToNormalized(event, params.providerCalendarId, "upsert"))
-      .filter((event): event is NormalizedCalendarEventDTO => event !== null);
+      .filter((event): event is NormalizedCalendarEventDTO => event !== null)
+      .filter((event) => isWithinWindow(event.startTime, params.windowStart, params.windowEnd));
+    const filteredExternalOnlyEvent = mapped.filter((event) => !isAppOriginEvent(event));
 
     return {
-      events: capOccurrences(mapped, params.maxOccurrencesCap),
+      events: capOccurrences(filteredExternalOnlyEvent, params.maxOccurrencesCap),
       nextCursor: {
         type: "GOOGLE_SYNC_TOKEN",
         value: nextSyncToken,
@@ -196,6 +203,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
         return this.mapGoogleEventToNormalized(event, params.providerCalendarId, changeType);
       })
       .filter((event): event is NormalizedCalendarEventDTO => event !== null)
+      .filter((event) => !isAppOriginEvent(event))
       .filter((event) => isWithinWindow(event.startTime, params.windowStart, params.windowEnd));
 
     return {
@@ -442,6 +450,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
       provider: CalendarProvider.GOOGLE,
       externalEventId: id,
       iCalUID: typeof event.iCalUID === "string" ? event.iCalUID : null,
+      origin: this.extractGoogleOriginMarker(event.extendedProperties),
       calendarId: providerCalendarId,
       recurringEventId: typeof event.recurringEventId === "string" ? event.recurringEventId : null,
       originalStartTime: this.extractGoogleOriginalStart(event.originalStartTime),
@@ -462,6 +471,25 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
       rawPayload: event,
       changeType,
     };
+  }
+
+  private extractGoogleOriginMarker(value: unknown): string | null {
+    const extendedProperties = value as Record<string, unknown> | null;
+    if (!extendedProperties || typeof extendedProperties !== "object") {
+      return null;
+    }
+
+    const privateProps = extendedProperties.private as Record<string, unknown> | undefined;
+    if (!privateProps || typeof privateProps !== "object") {
+      return null;
+    }
+
+    const origin = privateProps[GOOGLE_EVENT_ORIGIN_PRIVATE_KEY];
+    if (typeof origin !== "string") {
+      return null;
+    }
+
+    return origin === CALENDAR_EVENT_ORIGIN_MARKER ? origin : null;
   }
 
   private extractGoogleStart(

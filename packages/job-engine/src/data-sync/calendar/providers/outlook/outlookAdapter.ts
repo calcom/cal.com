@@ -1,3 +1,5 @@
+import { CALENDAR_EVENT_ORIGIN_MARKER, OUTLOOK_EVENT_ORIGIN_PROPERTY_ID } from "@calcom/lib/calendarOrigin";
+
 import type { CalendarProviderAdapter } from "../adapter";
 import { getOutlookAuthWithRefresh } from "../auth";
 import {
@@ -48,6 +50,9 @@ const inWindow = (startIso: string, windowStart: Date, windowEnd: Date): boolean
   return ms >= windowStart.getTime() && ms <= windowEnd.getTime();
 };
 
+const isAppOriginEvent = (event: NormalizedCalendarEventDTO): boolean =>
+  event.origin === CALENDAR_EVENT_ORIGIN_MARKER;
+
 export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
   readonly provider = CalendarProvider.OUTLOOK;
 
@@ -63,6 +68,9 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     const query = new URLSearchParams({
       startDateTime: params.windowStart.toISOString(),
       endDateTime: params.windowEnd.toISOString(),
+      $select:
+        "id,iCalUId,seriesMasterId,originalStart,start,end,isAllDay,subject,body,location,onlineMeeting,showAs,lastModifiedDateTime,createdDateTime,singleValueExtendedProperties",
+      $expand: `singleValueExtendedProperties($filter=id eq '${OUTLOOK_EVENT_ORIGIN_PROPERTY_ID}')`,
     });
     let requestUrl: string | null = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(
       params.providerCalendarId
@@ -112,10 +120,12 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     const mapped = rawEvents
       .map((event) => this.mapOutlookEventToNormalized(event, params.providerCalendarId, "upsert"))
       .filter((event): event is NormalizedCalendarEventDTO => event !== null);
-    // .filter((event) => inWindow(event.startTime, params.windowStart, params.windowEnd));
+    const filtered = mapped
+      .filter((event) => !isAppOriginEvent(event))
+      .filter((event) => inWindow(event.startTime, params.windowStart, params.windowEnd));
 
     return {
-      events: capOccurrences(mapped, params.maxOccurrencesCap),
+      events: capOccurrences(filtered, params.maxOccurrencesCap),
       nextCursor: {
         type: "OUTLOOK_DELTA_LINK",
         value: deltaLink,
@@ -195,6 +205,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
         return this.mapOutlookEventToNormalized(event, params.providerCalendarId, "upsert");
       })
       .filter((event): event is NormalizedCalendarEventDTO => event !== null)
+      .filter((event) => !isAppOriginEvent(event))
       .filter(
         (event) =>
           event.changeType === "delete" || inWindow(event.startTime, params.windowStart, params.windowEnd)
@@ -491,6 +502,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       provider: CalendarProvider.OUTLOOK,
       externalEventId: id,
       iCalUID: typeof event.iCalUId === "string" ? event.iCalUId : null,
+      origin: this.extractOutlookOriginMarker(event.singleValueExtendedProperties),
       calendarId: providerCalendarId,
       recurringEventId: typeof event.seriesMasterId === "string" ? event.seriesMasterId : null,
       originalStartTime: typeof event.originalStart === "string" ? event.originalStart : null,
@@ -529,6 +541,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       provider: CalendarProvider.OUTLOOK,
       externalEventId: id,
       iCalUID: typeof event.iCalUId === "string" ? event.iCalUId : null,
+      origin: this.extractOutlookOriginMarker(event.singleValueExtendedProperties),
       calendarId: providerCalendarId,
       recurringEventId: typeof event.seriesMasterId === "string" ? event.seriesMasterId : null,
       originalStartTime: typeof event.originalStart === "string" ? event.originalStart : null,
@@ -585,5 +598,26 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       return undefined;
     }
     return typeof meeting.joinUrl === "string" ? meeting.joinUrl : undefined;
+  }
+
+  private extractOutlookOriginMarker(value: unknown): string | null {
+    if (!Array.isArray(value)) {
+      return null;
+    }
+
+    for (const property of value) {
+      if (!property || typeof property !== "object") {
+        continue;
+      }
+      const typedProperty = property as Record<string, unknown>;
+      if (typedProperty.id !== OUTLOOK_EVENT_ORIGIN_PROPERTY_ID) {
+        continue;
+      }
+      if (typedProperty.value === CALENDAR_EVENT_ORIGIN_MARKER) {
+        return CALENDAR_EVENT_ORIGIN_MARKER;
+      }
+    }
+
+    return null;
   }
 }

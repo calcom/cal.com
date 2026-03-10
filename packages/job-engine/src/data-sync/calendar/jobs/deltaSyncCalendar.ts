@@ -378,8 +378,6 @@ export const runDeltaCalendarSync = async (calendarId: number): Promise<void> =>
           throw error;
         }
 
-        console.log("in_here_result", result);
-
         const cappedChanges = dedupeByExternalEventId(result.changes).slice(0, MAX_OCCURRENCES_CAP);
         const deleteChanges = cappedChanges.filter((change) => change.changeType === "delete");
         const upsertCandidates = cappedChanges.filter(

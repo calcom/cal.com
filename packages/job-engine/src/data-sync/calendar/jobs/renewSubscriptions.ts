@@ -102,6 +102,7 @@ const isRecreateFallbackError = (error: unknown): boolean => {
 };
 
 const getRenewalCandidates = async (params: {
+  now: Date;
   threshold: Date;
   batchSize: number;
   cursorId: number;
@@ -128,7 +129,9 @@ const getRenewalCandidates = async (params: {
       WHERE s."id" > ${params.cursorId}
         AND s."isActive" = true
         AND cals."syncEnabled" = true
-        AND (s."expirationDateTime" IS NULL OR s."expirationDateTime" <= ${params.threshold})
+        AND s."expirationDateTime" IS NOT NULL
+        AND s."expirationDateTime" > ${params.now}
+        AND s."expirationDateTime" <= ${params.threshold}
       ORDER BY s."id" ASC
       LIMIT ${params.batchSize}
     `
@@ -520,6 +523,7 @@ export const runSubscriptionRenewalCron = async (
 
   while (true) {
     const batch = await getRenewalCandidates({
+      now,
       threshold,
       batchSize,
       cursorId,

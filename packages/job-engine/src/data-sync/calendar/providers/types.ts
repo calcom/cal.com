@@ -36,6 +36,7 @@ export interface NormalizedCalendarEventDTO {
   provider: CalendarProvider;
   externalEventId: string;
   iCalUID: string | null;
+  origin?: string | null;
   calendarId: string;
   recurringEventId: string | null;
   originalStartTime: string | null;
