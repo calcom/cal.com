@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ZGetHostsWithLocationOptionsInputSchema = z.object({
   eventTypeId: z.number(),
-  cursor: z.number().optional(),
+  cursor: z.number().nullish(),
   limit: z.number().min(1).max(100).default(10),
 });
 
