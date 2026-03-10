@@ -1,9 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import type { TFunction } from "i18next";
-
 import type { PrismaClient } from "@calcom/prisma";
-
+import type { TFunction } from "i18next";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitClientForReviewHandler } from "./submitClientForReview.handler";
 
 const mocks = vi.hoisted(() => {
@@ -12,6 +9,7 @@ const mocks = vi.hoisted(() => {
     sendAdminOAuthClientNotification: vi.fn(),
     getTranslation: vi.fn(),
     generateSecret: vi.fn(),
+    checkIfFreeEmailDomain: vi.fn(),
   };
 });
 
@@ -34,12 +32,45 @@ vi.mock("@calcom/features/oauth/utils/generateSecret", () => ({
   generateSecret: mocks.generateSecret,
 }));
 
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: mocks.checkIfFreeEmailDomain,
+}));
+
 describe("submitClientHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
+  it("throws an error when user has a free email domain", async () => {
+    mocks.checkIfFreeEmailDomain.mockResolvedValue(true);
+
+    const ctx = {
+      user: {
+        id: 42,
+        email: "submitter@gmail.com",
+        name: "Submitter Name",
+      },
+      prisma: {} as unknown as PrismaClient,
+    };
+
+    const input = {
+      name: "My Test Client",
+      purpose: "My test purpose",
+      redirectUri: "https://example.com/callback",
+      logo: "https://example.com/logo.png",
+      websiteUrl: "https://example.com",
+      enablePkce: false,
+    };
+
+    await expect(submitClientForReviewHandler({ ctx, input })).rejects.toThrow("Use a company email instead");
+
+    expect(mocks.checkIfFreeEmailDomain).toHaveBeenCalledWith({ email: "submitter@gmail.com" });
+    expect(mocks.createOAuthClient).not.toHaveBeenCalled();
+    expect(mocks.sendAdminOAuthClientNotification).not.toHaveBeenCalled();
+  });
+
   it("creates an OAuth client and sends the admin notification email with expected parameters", async () => {
+    mocks.checkIfFreeEmailDomain.mockResolvedValue(false);
     const t = ((key: string, vars?: Record<string, unknown>) => {
       if (key === "admin_oauth_notification_email_subject") {
         return `admin_oauth_notification_email_subject:${String(vars?.clientName ?? "")}`;
