@@ -10,7 +10,7 @@ export class GetRoutingFormResponsesOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @ApiProperty({ type: RoutingFormResponseOutput })
+  @ApiProperty({ type: [RoutingFormResponseOutput] })
   @Expose()
   @Type(() => RoutingFormResponseOutput)
   data!: RoutingFormResponseOutput[];
