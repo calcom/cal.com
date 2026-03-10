@@ -1743,6 +1743,24 @@ export class EventTypeRepository implements IEventTypesRepository {
     };
   }
 
+  async findChildrenByParentIdIncludeOwner(parentId: number) {
+    return this.prismaClient.eventType.findMany({
+      where: { parentId },
+      select: {
+        hidden: true,
+        slug: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            eventTypes: { select: { slug: true } },
+          },
+        },
+      },
+    });
+  }
+
   async findByIdWithParentAndUserId(eventTypeId: number) {
     return this.prismaClient.eventType.findUnique({
       where: { id: eventTypeId },
@@ -1767,6 +1785,32 @@ export class EventTypeRepository implements IEventTypesRepository {
         id: true,
         parentId: true,
         userId: true,
+      },
+    });
+  }
+
+  async findByIdIncludeBrandingInfo({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        team: {
+          select: {
+            hideBranding: true,
+            parent: { select: { hideBranding: true } },
+          },
+        },
+        owner: {
+          select: {
+            id: true,
+            hideBranding: true,
+            profiles: {
+              select: {
+                organization: { select: { hideBranding: true } },
+              },
+            },
+          },
+        },
       },
     });
   }
