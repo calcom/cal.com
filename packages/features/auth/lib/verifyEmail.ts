@@ -1,10 +1,9 @@
-import { randomBytes, createHash } from "node:crypto";
-import { totp } from "otplib";
-
+import { createHash, randomBytes } from "node:crypto";
+import process from "node:process";
 import {
+  sendChangeOfEmailVerificationLink,
   sendEmailVerificationCode,
   sendEmailVerificationLink,
-  sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/auth-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
@@ -12,9 +11,10 @@ import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/wat
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/i18n/server";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { prisma } from "@calcom/prisma";
+import { totp } from "otplib";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -25,6 +25,8 @@ interface VerifyEmailType {
   secondaryEmailId?: number;
   isVerifyingEmail?: boolean;
   isPlatform?: boolean;
+  extraParams?: Record<string, string>;
+  hideBranding?: boolean;
 }
 
 export const sendEmailVerification = async ({
@@ -33,6 +35,7 @@ export const sendEmailVerification = async ({
   username,
   secondaryEmailId,
   isPlatform = false,
+  extraParams,
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
@@ -70,6 +73,7 @@ export const sendEmailVerification = async ({
 
   const params = new URLSearchParams({
     token,
+    ...extraParams,
   });
 
   await sendEmailVerificationLink({
@@ -90,6 +94,7 @@ export const sendEmailVerificationByCode = async ({
   language,
   username,
   isVerifyingEmail,
+  hideBranding,
 }: VerifyEmailType) => {
   if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
@@ -112,6 +117,7 @@ export const sendEmailVerificationByCode = async ({
       name: username,
     },
     isVerifyingEmail,
+    hideLogo: hideBranding,
   });
 
   return { ok: true, skipped: false };
