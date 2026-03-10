@@ -41,6 +41,8 @@ import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 @UseGuards(ApiAuthGuard, RolesGuard, IsTeamEventTypeWebhookGuard)
 @DocsTags("Teams / Event Types / Webhooks")
 @ApiHeader(API_KEY_HEADER)
+@ApiParam({ name: "teamId", type: Number, required: true })
+@ApiParam({ name: "eventTypeId", type: Number, required: true })
 export class TeamsEventTypesWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
