@@ -6,7 +6,10 @@ import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingsRepository_2024_08_13 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getById(id: number) {
     return this.dbRead.prisma.booking.findUnique({
@@ -68,6 +71,25 @@ export class BookingsRepository_2024_08_13 {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         uid: bookingUid,
+      },
+    });
+  }
+
+  async getByUidWithAttendees(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid,
+      },
+      select: {
+        id: true,
+        attendees: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            timeZone: true,
+          },
+        },
       },
     });
   }
