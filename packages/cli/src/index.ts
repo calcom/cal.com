@@ -21,6 +21,7 @@ import { registerOrgMembershipsCommand } from "./commands/org-memberships";
 import { registerOrgOverviewCommand } from "./commands/org-overview";
 import { registerOrgRolesCommand } from "./commands/org-roles";
 import { registerOrgRoutingFormsCommand } from "./commands/org-routing-forms";
+import { registerOrgTeamVerifiedResourcesCommand } from "./commands/org-team-verified-resources";
 import { registerOrgUserOooCommand } from "./commands/org-user-ooo";
 import { registerOrgUserSchedulesCommand } from "./commands/org-user-schedules";
 import { registerOrgUsersCommand } from "./commands/org-users";
@@ -39,9 +40,11 @@ import { registerTeamRolesCommand } from "./commands/team-roles";
 import { registerTeamRoutingFormsCommand } from "./commands/team-routing-forms";
 import { registerTeamSchedulesCommand } from "./commands/team-schedules";
 import { registerTeamStripeCommand } from "./commands/team-stripe";
+import { registerTeamVerifiedResourcesCommand } from "./commands/team-verified-resources";
 import { registerTeamWorkflowsCommand } from "./commands/team-workflows";
 import { registerTeamsCommand } from "./commands/teams";
 import { registerTimezonesCommand } from "./commands/timezones";
+import { registerVerifiedResourcesCommand } from "./commands/verified-resources";
 import { registerWebhooksCommand } from "./commands/webhooks";
 
 const program: Command = new Command();
@@ -94,6 +97,9 @@ registerDelegationCredentialsCommand(program);
 registerStripeCommand(program);
 registerRoutingFormsCommand(program);
 registerOAuthCommand(program);
+registerVerifiedResourcesCommand(program);
+registerTeamVerifiedResourcesCommand(program);
+registerOrgTeamVerifiedResourcesCommand(program);
 
 program.parseAsync(process.argv).catch((err: Error) => {
   console.error(`Error: ${err.message}`);
