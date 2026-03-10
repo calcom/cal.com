@@ -14,6 +14,10 @@ import {
 } from "../types";
 
 type OutlookEventLike = Record<string, unknown>;
+const OUTLOOK_SUBSCRIPTION_MAX_MINUTES = 10070;
+const OUTLOOK_SUBSCRIPTION_SAFETY_MINUTES = 10;
+const OUTLOOK_SUBSCRIPTION_TTL_MS =
+  (OUTLOOK_SUBSCRIPTION_MAX_MINUTES - OUTLOOK_SUBSCRIPTION_SAFETY_MINUTES) * 60 * 1000;
 
 const getFirstHeaderValue = (
   headers: Record<string, string | string[] | undefined>,
@@ -32,6 +36,9 @@ const capOccurrences = <T>(items: T[], maxOccurrencesCap: number): T[] => {
   }
   return items.slice(0, maxOccurrencesCap);
 };
+
+const getOutlookSubscriptionExpirationIso = (): string =>
+  new Date(Date.now() + OUTLOOK_SUBSCRIPTION_TTL_MS).toISOString();
 
 const inWindow = (startIso: string, windowStart: Date, windowEnd: Date): boolean => {
   const ms = Date.parse(startIso);
@@ -59,7 +66,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     });
     let requestUrl: string | null = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(
       params.providerCalendarId
-    )}/calendarView?${query.toString()}`;
+    )}/calendarView/delta?${query.toString()}`;
     let deltaLink: string | null = null;
 
     while (requestUrl) {
@@ -73,7 +80,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       if (!response.ok) {
         throw new ProviderTransientError({
           provider: this.provider,
-          message: `Outlook calendarView failed with status ${response.status}.`,
+          message: `Outlook calendarView delta failed with status ${response.status}.`,
         });
       }
 
@@ -98,7 +105,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     if (!deltaLink) {
       throw new ProviderTransientError({
         provider: this.provider,
-        message: "Outlook calendarView did not return @odata.deltaLink.",
+        message: "Outlook calendarView delta did not return @odata.deltaLink.",
       });
     }
 
@@ -209,22 +216,24 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
   }): Promise<ProviderSubscriptionDTO> {
     const auth = await getOutlookAuthWithRefresh(params.credential);
     const clientState = `calid-outlook-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    const expirationDateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const expirationDateTime = getOutlookSubscriptionExpirationIso();
 
+    const headers = {
+      authorization: `Bearer ${auth.accessToken}`,
+      "content-type": "application/json",
+    };
+    const body = JSON.stringify({
+      changeType: "created,updated,deleted",
+      notificationUrl: params.webhookUrl,
+      lifecycleNotificationUrl: params.webhookUrl,
+      resource: `/me/calendars/${encodeURIComponent(params.providerCalendarId)}/events`,
+      expirationDateTime,
+      clientState,
+    });
     const response = await fetch("https://graph.microsoft.com/v1.0/subscriptions", {
       method: "POST",
-      headers: {
-        authorization: `Bearer ${auth.accessToken}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        changeType: "created,updated,deleted",
-        notificationUrl: params.webhookUrl,
-        lifecycleNotificationUrl: params.webhookUrl,
-        resource: `/me/calendars/${encodeURIComponent(params.providerCalendarId)}/events`,
-        expirationDateTime,
-        clientState,
-      }),
+      headers,
+      body,
     });
 
     if (!response.ok) {
@@ -266,7 +275,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     const auth = await getOutlookAuthWithRefresh(params.credential);
     void params.providerCalendarId;
     void params.webhookUrl;
-    const expirationDateTime = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+    const expirationDateTime = getOutlookSubscriptionExpirationIso();
 
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/subscriptions/${encodeURIComponent(
