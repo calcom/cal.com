@@ -76,6 +76,13 @@ describe("CalendarCacheEventRepository (integration)", () => {
   beforeAll(async () => {
     repository = new CalendarCacheEventRepository(prisma);
 
+    // Ensure the App row exists for the FK constraint on Credential.appId
+    await prisma.$executeRaw`
+      INSERT INTO "App" ("slug", "dirName", "categories", "keys", "createdAt", "updatedAt")
+      VALUES ('google-calendar', 'googlecalendar', ARRAY['calendar']::"AppCategories"[], '{}', NOW(), NOW())
+      ON CONFLICT ("slug") DO NOTHING
+    `;
+
     testUser = await prisma.user.create({
       data: {
         email: `${uid("caltest")}@example.com`,

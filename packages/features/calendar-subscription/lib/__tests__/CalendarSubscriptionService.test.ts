@@ -72,6 +72,7 @@ const mockSubscriptionResult = {
 const mockEvents = {
   provider: "google_calendar" as const,
   syncToken: "new-sync-token",
+  isIncrementalSync: true,
   items: [
     {
       id: "event-1",
@@ -325,13 +326,13 @@ describe("CalendarSubscriptionService", () => {
   });
 
   describe("processEvents", () => {
-    test("should process events when both cache and sync are enabled", async () => {
+    test("should process events with cache and sync when triggered by webhook", async () => {
       mockFeatureRepository.checkIfFeatureIsEnabledGlobally
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
       mockUserFeatureRepository.checkIfUserHasFeature.mockResolvedValue(true);
 
-      await service.processEvents(mockSelectedCalendar);
+      await service.processEvents(mockSelectedCalendar, { trigger: "webhook" });
 
       expect(mockAdapter.fetchEvents).toHaveBeenCalledWith(mockSelectedCalendar, mockCredential);
       expect(mockSelectedCalendarRepository.updateSyncStatus).toHaveBeenCalledWith(mockSelectedCalendar.id, {
@@ -350,13 +351,25 @@ describe("CalendarSubscriptionService", () => {
       );
     });
 
+    test("should not process sync when triggered by cron (default)", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockResolvedValue(true);
+
+      await service.processEvents(mockSelectedCalendar);
+
+      expect(mockCalendarCacheEventService.handleEvents).toHaveBeenCalled();
+      expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
+    });
+
     test("should not process cache when cache is disabled globally", async () => {
       mockFeatureRepository.checkIfFeatureIsEnabledGlobally
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
       mockUserFeatureRepository.checkIfUserHasFeature.mockResolvedValue(true);
 
-      await service.processEvents(mockSelectedCalendar);
+      await service.processEvents(mockSelectedCalendar, { trigger: "webhook" });
 
       expect(mockCalendarCacheEventService.handleEvents).not.toHaveBeenCalled();
       expect(mockCalendarSyncService.handleEvents).toHaveBeenCalled();
@@ -366,12 +379,80 @@ describe("CalendarSubscriptionService", () => {
       mockFeatureRepository.checkIfFeatureIsEnabledGlobally
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
-      mockUserFeatureRepository.checkIfUserHasFeature.mockResolvedValue(false);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockImplementation((_userId, slug) => {
+        if (slug === "calendar-subscription-cache") return Promise.resolve(false);
+        return Promise.resolve(true);
+      });
 
-      await service.processEvents(mockSelectedCalendar);
+      await service.processEvents(mockSelectedCalendar, { trigger: "webhook" });
 
       expect(mockCalendarCacheEventService.handleEvents).not.toHaveBeenCalled();
       expect(mockCalendarSyncService.handleEvents).toHaveBeenCalled();
+    });
+
+    test("should not process sync when sync is disabled for user", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockImplementation((_userId, slug) => {
+        if (slug === "calendar-subscription-sync") return Promise.resolve(false);
+        return Promise.resolve(true);
+      });
+
+      await service.processEvents(mockSelectedCalendar);
+
+      expect(mockCalendarCacheEventService.handleEvents).toHaveBeenCalled();
+      expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
+    });
+
+    test("should not process sync when adapter reports full sync even via webhook", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockResolvedValue(true);
+      mockAdapter.fetchEvents.mockResolvedValue({ ...mockEvents, isIncrementalSync: false });
+
+      await service.processEvents(mockSelectedCalendar, { trigger: "webhook" });
+
+      expect(mockCalendarCacheEventService.handleEvents).toHaveBeenCalled();
+      expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
+    });
+
+    test("should still fetch events and save syncToken on full sync via webhook when only sync is enabled", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockImplementation((_userId, slug) => {
+        if (slug === "calendar-subscription-cache") return Promise.resolve(false);
+        return Promise.resolve(true);
+      });
+      mockAdapter.fetchEvents.mockResolvedValue({ ...mockEvents, isIncrementalSync: false });
+
+      await service.processEvents(mockSelectedCalendar, { trigger: "webhook" });
+
+      expect(mockAdapter.fetchEvents).toHaveBeenCalled();
+      expect(mockSelectedCalendarRepository.updateSyncStatus).toHaveBeenCalledWith(
+        mockSelectedCalendar.id,
+        expect.objectContaining({ syncToken: "new-sync-token" })
+      );
+      expect(mockCalendarCacheEventService.handleEvents).not.toHaveBeenCalled();
+      expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
+    });
+
+    test("should return early via cron when only sync is enabled (no cache)", async () => {
+      mockFeatureRepository.checkIfFeatureIsEnabledGlobally
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+      mockUserFeatureRepository.checkIfUserHasFeature.mockImplementation((_userId, slug) => {
+        if (slug === "calendar-subscription-cache") return Promise.resolve(false);
+        return Promise.resolve(true);
+      });
+
+      await service.processEvents(mockSelectedCalendar);
+
+      expect(mockAdapter.fetchEvents).not.toHaveBeenCalled();
+      expect(mockCalendarCacheEventService.handleEvents).not.toHaveBeenCalled();
+      expect(mockCalendarSyncService.handleEvents).not.toHaveBeenCalled();
     });
 
     test("should return early when both cache and sync are disabled", async () => {

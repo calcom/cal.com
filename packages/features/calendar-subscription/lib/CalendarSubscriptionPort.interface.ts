@@ -37,6 +37,8 @@ export type CalendarSubscriptionEvent = {
   provider: CalendarSubscriptionProvider;
   syncToken: string | null;
   items: CalendarSubscriptionEventItem[];
+  /** False when the adapter fell back to a full re-fetch (e.g. expired sync token) */
+  isIncrementalSync?: boolean;
 };
 
 export type CalendarCredential = CredentialForCalendarServiceWithEmail;

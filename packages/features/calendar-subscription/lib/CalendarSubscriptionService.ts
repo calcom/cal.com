@@ -154,7 +154,6 @@ export class CalendarSubscriptionService {
   /**
    * Process webhook
    */
-  // biome-ignore lint/complexity/noExcessiveLinesPerFunction: webhook processing requires multiple steps
   async processWebhook(provider: CalendarSubscriptionProvider, request: Request) {
     const startTime = performance.now();
     log.debug("processWebhook", { provider });
@@ -193,7 +192,7 @@ export class CalendarSubscriptionService {
         return null;
       }
 
-      const eventsProcessed = await this.processEvents(selectedCalendar);
+      const eventsProcessed = await this.processEvents(selectedCalendar, { trigger: "webhook" });
 
       const durationMs = performance.now() - startTime;
 
@@ -238,8 +237,10 @@ export class CalendarSubscriptionService {
    * - update sync
    * @returns Object with counts of events fetched, cached, and synced, plus propagation lag metrics
    */
-  // biome-ignore lint/complexity/noExcessiveLinesPerFunction: event processing requires multiple steps
-  async processEvents(selectedCalendar: SelectedCalendar): Promise<{
+  async processEvents(
+    selectedCalendar: SelectedCalendar,
+    { trigger = "cron" }: { trigger?: "webhook" | "cron" } = {}
+  ): Promise<{
     eventsFetched: number;
     eventsCached: number;
     eventsSynced: number;
@@ -269,15 +270,25 @@ export class CalendarSubscriptionService {
       return result;
     }
 
-    const [cacheEnabled, syncEnabled, cacheEnabledForUser] = await Promise.all([
+    const [cacheEnabled, syncEnabled, cacheEnabledForUser, syncEnabledForUser] = await Promise.all([
       this.isCacheEnabled(),
       this.isSyncEnabled(),
       this.isCacheEnabledForUser(selectedCalendar.userId),
+      this.isSyncEnabledForUser(selectedCalendar.userId),
     ]);
 
-    if (!cacheEnabled && !syncEnabled) {
-      log.info("Cache and sync are globally disabled", {
+    const shouldCache = cacheEnabled && cacheEnabledForUser;
+    // Sync only makes sense for webhook-triggered incremental changes
+    const shouldSync = syncEnabled && syncEnabledForUser && trigger === "webhook";
+
+    if (!shouldCache && !shouldSync) {
+      log.info("Neither cache nor sync enabled for user", {
         channelId: selectedCalendar.channelId,
+        cacheEnabled,
+        cacheEnabledForUser,
+        syncEnabled,
+        syncEnabledForUser,
+        trigger,
       });
       return result;
     }
@@ -323,12 +334,14 @@ export class CalendarSubscriptionService {
       return result;
     }
 
+    const shouldProcessSync = shouldSync && events.isIncrementalSync;
+
     result.eventsFetched = events.items.length;
 
     metrics.distribution("calendar.subscription.events.fetched", events.items.length, {
       attributes: {
         provider: selectedCalendar.integration,
-        incremental: !!selectedCalendar.syncToken,
+        incremental: !!events.isIncrementalSync,
       },
     });
 
@@ -351,7 +364,7 @@ export class CalendarSubscriptionService {
       syncErrorCount: 0,
     });
 
-    if (cacheEnabled && cacheEnabledForUser) {
+    if (shouldCache) {
       log.debug("Caching events", { count: events.items.length });
       await this.deps.calendarCacheEventService.handleEvents(selectedCalendar, events.items);
       result.eventsCached = events.items.length;
@@ -361,7 +374,7 @@ export class CalendarSubscriptionService {
       });
     }
 
-    if (syncEnabled) {
+    if (shouldProcessSync) {
       log.debug("Syncing events", { count: events.items.length });
       await this.deps.calendarSyncService.handleEvents(selectedCalendar, events.items);
       result.eventsSynced = events.items.length;
@@ -374,8 +387,8 @@ export class CalendarSubscriptionService {
     metrics.distribution("calendar.subscription.processEvents.duration_ms", performance.now() - startTime, {
       attributes: {
         provider: selectedCalendar.integration,
-        cache: cacheEnabled && cacheEnabledForUser ? "on" : "off",
-        sync: syncEnabled ? "on" : "off",
+        cache: shouldCache ? "on" : "off",
+        sync: shouldProcessSync ? "on" : "off",
       },
     });
 
@@ -465,6 +478,17 @@ export class CalendarSubscriptionService {
    */
   async isSyncEnabled(): Promise<boolean> {
     return this.deps.featureRepository.checkIfFeatureIsEnabledGlobally(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_SYNC_FEATURE
+    );
+  }
+
+  /**
+   * Check if sync is enabled for user (checks user-level and team hierarchy)
+   * @returns true if sync is enabled for the user
+   */
+  async isSyncEnabledForUser(userId: number): Promise<boolean> {
+    return this.deps.userFeatureRepository.checkIfUserHasFeature(
+      userId,
       CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_SYNC_FEATURE
     );
   }

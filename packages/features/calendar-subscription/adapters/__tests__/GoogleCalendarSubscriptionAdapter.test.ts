@@ -1,11 +1,9 @@
 import "../__mocks__/CalendarAuth";
 
-import { beforeEach, describe, expect, test, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GoogleCalendarSubscriptionAdapter } from "../GoogleCalendarSubscription.adapter";
 
 const addMonthsFromNow = (months: number) => {
@@ -332,6 +330,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       expect(result).toEqual({
         provider: "google_calendar",
         syncToken: "new-sync-token",
+        isIncrementalSync: true,
         items: [
           {
             id: "event-1",
@@ -531,6 +530,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(result.syncToken).toBe("fresh-sync-token");
       expect(result.items).toHaveLength(1);
+      expect(result.isIncrementalSync).toBe(false);
     });
 
     test("should not retry on 410 when there is no sync token", async () => {

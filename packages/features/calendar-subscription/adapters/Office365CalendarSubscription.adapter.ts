@@ -1,12 +1,11 @@
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
 import type {
-  CalendarSubscriptionEvent,
-  ICalendarSubscriptionPort,
-  CalendarSubscriptionResult,
   CalendarCredential,
+  CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
+  CalendarSubscriptionResult,
+  ICalendarSubscriptionPort,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter"] });
@@ -157,18 +156,31 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
 
   async fetchEvents(
     selectedCalendar: SelectedCalendar,
-    credential: CalendarCredential
+    credential: CalendarCredential,
+    isRetry = false
   ): Promise<CalendarSubscriptionEvent> {
     const client = await this.getGraphClient(credential);
 
+    const hadDeltaLink = !!selectedCalendar.syncToken;
     let deltaLink = selectedCalendar.syncToken ?? null;
     const items: MicrosoftGraphEvent[] = [];
 
     if (deltaLink) {
-      const path = this.stripBase(deltaLink);
-      const r = await this.request<MicrosoftGraphEventsResponse>(client, "GET", path);
-      items.push(...r.value);
-      deltaLink = r["@odata.deltaLink"] ?? deltaLink;
+      try {
+        const path = this.stripBase(deltaLink);
+        const r = await this.request<MicrosoftGraphEventsResponse>(client, "GET", path);
+        items.push(...r.value);
+        deltaLink = r["@odata.deltaLink"] ?? deltaLink;
+      } catch (error) {
+        // Microsoft Graph returns 410 Gone or 404 when the delta link is expired/invalid
+        const statusMatch = String(error).match(/Graph (\d+)/);
+        const status = statusMatch ? Number(statusMatch[1]) : 0;
+        if ((status === 410 || status === 404) && !isRetry) {
+          log.info("Delta link expired, performing full sync", { externalId: selectedCalendar.externalId });
+          return this.fetchEvents({ ...selectedCalendar, syncToken: null }, credential, true);
+        }
+        throw error;
+      }
     } else {
       let next: string | null = `/me/calendars/${selectedCalendar.externalId}/events/delta`;
       while (next) {
@@ -187,6 +199,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       provider: "office365_calendar",
       syncToken: deltaLink,
       items: this.parseEvents(items),
+      isIncrementalSync: hadDeltaLink && !isRetry,
     };
   }
 

@@ -49,7 +49,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
         ${e.id ?? randomUUID()}, ${e.selectedCalendarId}, ${e.externalId}, ${e.externalEtag},
         ${e.iCalUID}, ${e.iCalSequence ?? 0}, ${e.summary}, ${e.description},
         ${e.location}, ${e.start}, ${e.end}, ${e.isAllDay ?? false}, ${e.timeZone},
-        ${e.status ?? "confirmed"}::"CalendarCacheEventStatus", ${e.recurringEventId},
+        ${(e.status ?? "confirmed") as string}::"CalendarCacheEventStatus", ${e.recurringEventId},
         ${e.originalStartTime}, ${e.externalCreatedAt}, ${e.externalUpdatedAt},
         NOW(), NOW()
       )`

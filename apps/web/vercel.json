@@ -1,9 +1,9 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/calendar-subscriptions",
-      "schedule": "*/5 * * * *"
-    },
+    "crons": [
+      {
+        "path": "/api/cron/calendar-subscriptions",
+        "schedule": "*/5 * * * *"
+      },
     {
       "path": "/api/cron/calendar-subscriptions-cleanup",
       "schedule": "0 3 * * *"

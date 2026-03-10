@@ -1,18 +1,16 @@
-import type { calendar_v3 } from "@googleapis/calendar";
-import { v4 as uuid } from "uuid";
-
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
 import dayjs from "@calcom/dayjs";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
+import type { calendar_v3 } from "@googleapis/calendar";
+import { v4 as uuid } from "uuid";
 import type {
-  ICalendarSubscriptionPort,
-  CalendarSubscriptionResult,
+  CalendarCredential,
   CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
-  CalendarCredential,
+  CalendarSubscriptionResult,
+  ICalendarSubscriptionPort,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });
@@ -111,6 +109,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     log.info("Attempt to fetch events from Google Calendar", { externalId: selectedCalendar.externalId });
     const client = await this.getClient(credential);
 
+    const hadSyncToken = !!selectedCalendar.syncToken;
     let syncToken = selectedCalendar.syncToken || undefined;
     let pageToken;
 
@@ -136,6 +135,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     }
 
     const events: calendar_v3.Schema$Event[] = [];
+    let fellBackToFullSync = false;
     try {
       do {
         const { data }: { data: calendar_v3.Schema$Events } = await client.events.list(params);
@@ -161,7 +161,9 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       const err = error as { code?: number };
       if (err.code === 410 && params.syncToken && !isRetry) {
         log.info("Sync token expired, performing full sync", { externalId: selectedCalendar.externalId });
-        return this.fetchEvents({ ...selectedCalendar, syncToken: null }, credential, true);
+        fellBackToFullSync = true;
+        const fullResult = await this.fetchEvents({ ...selectedCalendar, syncToken: null }, credential, true);
+        return { ...fullResult, isIncrementalSync: false };
       }
       throw error;
     }
@@ -170,6 +172,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       provider: "google_calendar",
       syncToken: syncToken || null,
       items: this.parseEvents(events),
+      isIncrementalSync: hadSyncToken && !fellBackToFullSync,
     };
   }
 
