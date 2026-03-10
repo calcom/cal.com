@@ -284,14 +284,15 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                             schedule.startDate,
                             { day: "numeric", month: "long" },
                             language
-                          )} ${schedule.endDate
+                          )} ${
+                            schedule.endDate
                               ? `- ${formatLocalizedDateTime(
-                                schedule.endDate,
-                                { day: "numeric", month: "long" },
-                                language
-                              )}`
+                                  schedule.endDate,
+                                  { day: "numeric", month: "long" },
+                                  language
+                                )}`
                               : ``
-                            }`}</div>
+                          }`}</div>
                           <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
                         <Button
@@ -392,9 +393,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
-          disabled={
-            seoIndexingMutation.isPending || user.organizationSettings?.allowSEOIndexing === false
-          }
+          disabled={seoIndexingMutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);
