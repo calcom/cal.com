@@ -258,8 +258,11 @@ export class AvailableSlotsService {
 
     // Batch-fetch all attendee users in a single query, including secondary verified emails,
     // to avoid missing attendees who booked with an alias/secondary Cal.com address.
-    const guestUsers = await userRepo.findManyByEmailsIncludingSecondary({ emails: attendeeEmails });
-    const guestUserByEmail = new Map(guestUsers.map((u) => [u.email.toLowerCase(), u]));
+    // Use the returned `byEmail` map (keyed by ALL matched emails, primary + secondary)
+    // so that an attendee who booked with their alias email resolves to the correct user.
+    const { byEmail: guestUserByEmail } = await userRepo.findManyByEmailsIncludingSecondary({
+      emails: attendeeEmails,
+    });
 
     const guestBusyTimes: EventBusyDate[] = [];
     for (const email of attendeeEmails) {

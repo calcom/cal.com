@@ -291,12 +291,17 @@ export class UserRepository {
 
   /**
    * Like findManyByEmails but also matches users whose verified secondary emails
-   * are in the provided list.  Returns deduplicated user records (by id).
-   * Use this when attendee emails may be secondary/alias addresses rather than
-   * the user's primary Cal.com email.
+   * are in the provided list.
+   *
+   * Returns an object with:
+   * - `users`: deduplicated user records (by id)
+   * - `byEmail`: a Map<lowercase-email, user> keyed by *every* email address
+   *   (primary **and** matched secondary) that resolves to each user.
+   *   Use this map to look up a user by the email the attendee actually booked with,
+   *   which may be a secondary/alias address rather than the user's primary Cal.com email.
    */
   async findManyByEmailsIncludingSecondary({ emails }: { emails: string[] }) {
-    if (!emails.length) return [];
+    if (!emails.length) return { users: [], byEmail: new Map() };
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 
     // Primary-email match
@@ -305,16 +310,17 @@ export class UserRepository {
       select: userSelect,
     });
 
-    // Secondary-email match: find users who have a verified secondary email in the list
+    // Secondary-email match: find users who have a verified secondary email in the list,
+    // and retain the email→userId mapping so we can build the lookup map correctly.
     const secondaryEmailRecords = await this.prismaClient.secondaryEmail.findMany({
       where: {
         email: { in: normalizedEmails },
         emailVerified: { not: null },
       },
-      select: { userId: true },
+      select: { userId: true, email: true },
     });
-    const secondaryUserIds = secondaryEmailRecords.map((r) => r.userId);
 
+    const secondaryUserIds = secondaryEmailRecords.map((r) => r.userId);
     let bySecondary: (typeof byPrimary)[number][] = [];
     if (secondaryUserIds.length > 0) {
       bySecondary = await this.prismaClient.user.findMany({
@@ -323,16 +329,34 @@ export class UserRepository {
       });
     }
 
+    // Build a userId → user lookup for secondary matches
+    const secondaryUserById = new Map(bySecondary.map((u) => [u.id, u]));
+
     // Deduplicate by id (primary match takes precedence)
     const seen = new Set<number>();
-    const result: (typeof byPrimary)[number][] = [];
+    const users: (typeof byPrimary)[number][] = [];
     for (const user of [...byPrimary, ...bySecondary]) {
       if (!seen.has(user.id)) {
         seen.add(user.id);
-        result.push(user);
+        users.push(user);
       }
     }
-    return result;
+
+    // Build a map keyed by every email (primary + secondary) that resolves to each user.
+    // This allows callers to look up a user by the email the attendee booked with,
+    // even if that email is a secondary alias rather than the user's primary address.
+    const byEmail = new Map<string, (typeof byPrimary)[number]>();
+    for (const user of byPrimary) {
+      byEmail.set(user.email.toLowerCase(), user);
+    }
+    for (const record of secondaryEmailRecords) {
+      const user = secondaryUserById.get(record.userId);
+      if (user && !byEmail.has(record.email.toLowerCase())) {
+        byEmail.set(record.email.toLowerCase(), user);
+      }
+    }
+
+    return { users, byEmail };
   }
 
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {

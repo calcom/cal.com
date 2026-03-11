@@ -18,6 +18,12 @@ type PrivateAvailableSlotsService = {
   }) => Promise<{ start: Date; end: Date }[]>;
 };
 
+/** Build the { users, byEmail } shape that findManyByEmailsIncludingSecondary now returns. */
+function makeUserResult(userList: { id: number; email: string }[]) {
+  const byEmail = new Map(userList.map((u) => [u.email.toLowerCase(), u]));
+  return { users: userList, byEmail };
+}
+
 describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
   let service: AvailableSlotsService;
   let mockDependencies: {
@@ -26,7 +32,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       findAllExistingBookingsForEventTypeBetween: ReturnType<typeof vi.fn>;
     };
     userRepo: {
-      findManyByEmails: ReturnType<typeof vi.fn>;
+      findManyByEmailsIncludingSecondary: ReturnType<typeof vi.fn>;
     };
   };
 
@@ -43,7 +49,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
         findAllExistingBookingsForEventTypeBetween: vi.fn().mockResolvedValue([]),
       },
       userRepo: {
-        findManyByEmails: vi.fn().mockResolvedValue([]),
+        findManyByEmailsIncludingSecondary: vi.fn().mockResolvedValue(makeUserResult([])),
       },
     };
 
@@ -63,7 +69,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     });
 
     expect(result).toEqual([]);
-    expect(mockDependencies.userRepo.findManyByEmails).not.toHaveBeenCalled();
+    expect(mockDependencies.userRepo.findManyByEmailsIncludingSecondary).not.toHaveBeenCalled();
   });
 
   it("should return empty array when the booking has no attendees", async () => {
@@ -83,7 +89,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     });
 
     expect(result).toEqual([]);
-    expect(mockDependencies.userRepo.findManyByEmails).not.toHaveBeenCalled();
+    expect(mockDependencies.userRepo.findManyByEmailsIncludingSecondary).not.toHaveBeenCalled();
   });
 
   it("should return empty array when attendee is not a Cal.com user", async () => {
@@ -92,8 +98,8 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       uid: rescheduleUid,
       attendees: [{ email: "guest@external.com", name: "External Guest" }],
     });
-    // findManyByEmails returns empty array (not a Cal.com user)
-    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([]);
+    // No matching Cal.com user found
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue(makeUserResult([]));
 
     const result = await (
       service as unknown as PrivateAvailableSlotsService
@@ -116,9 +122,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: "host@example.com", name: "Host User" }],
     });
     // The attendee IS a Cal.com user — but they're also a host
-    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
-      { id: hostUserId, email: "host@example.com" },
-    ]);
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue(
+      makeUserResult([{ id: hostUserId, email: "host@example.com" }])
+    );
 
     const result = await (
       service as unknown as PrivateAvailableSlotsService
@@ -146,9 +152,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: guestEmail, name: "Cal.com Guest" }],
     });
 
-    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
-      { id: guestUserId, email: guestEmail },
-    ]);
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue(
+      makeUserResult([{ id: guestUserId, email: guestEmail }])
+    );
 
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween.mockResolvedValue([
       {
@@ -178,7 +184,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       end: guestBookingEnd,
     });
 
-    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledWith({
+    expect(mockDependencies.userRepo.findManyByEmailsIncludingSecondary).toHaveBeenCalledWith({
       emails: [guestEmail],
     });
 
@@ -187,6 +193,54 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       startDate: startTime.toDate(),
       endDate: endTime.toDate(),
     });
+  });
+
+  it("should match attendee by secondary/alias email (not just primary email)", async () => {
+    const guestUserId = 99;
+    const primaryEmail = "primary@calcom-user.com";
+    const aliasEmail = "alias@gmail.com"; // the email the attendee used to book
+
+    const guestBookingStart = new Date("2026-03-15T10:00:00.000Z");
+    const guestBookingEnd = new Date("2026-03-15T11:00:00.000Z");
+
+    mockDependencies.bookingRepo.findBookingByUid.mockResolvedValue({
+      id: 1,
+      uid: rescheduleUid,
+      attendees: [{ email: aliasEmail, name: "Alias Guest" }],
+    });
+
+    // byEmail map is keyed by the alias email (secondary), not the primary
+    const guestUser = { id: guestUserId, email: primaryEmail };
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue({
+      users: [guestUser],
+      byEmail: new Map([[aliasEmail, guestUser]]),
+    });
+
+    mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween.mockResolvedValue([
+      {
+        id: 200,
+        uid: "another-booking-uid",
+        userId: guestUserId,
+        startTime: guestBookingStart,
+        endTime: guestBookingEnd,
+        title: "Guest's Existing Meeting",
+        attendees: [],
+        eventType: { id: 10, beforeEventBuffer: 0, afterEventBuffer: 0, seatsPerTimeSlot: null },
+      },
+    ]);
+
+    const result = await (
+      service as unknown as PrivateAvailableSlotsService
+    )._getGuestBusyTimesForReschedule({
+      rescheduleUid,
+      startTime,
+      endTime,
+      hostUserIds: new Set([1]),
+    });
+
+    // Guest should be found even though they booked with their secondary email
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ start: guestBookingStart, end: guestBookingEnd });
   });
 
   it("should skip the booking being rescheduled itself from guest busy times", async () => {
@@ -199,9 +253,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: guestEmail, name: "Cal.com Guest" }],
     });
 
-    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
-      { id: guestUserId, email: guestEmail },
-    ]);
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue(
+      makeUserResult([{ id: guestUserId, email: guestEmail }])
+    );
 
     // The guest's bookings include the booking being rescheduled
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween.mockResolvedValue([
@@ -251,10 +305,12 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     });
 
     // Both guests returned in single batch query
-    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
-      { id: guest1UserId, email: guest1Email },
-      { id: guest2UserId, email: guest2Email },
-    ]);
+    mockDependencies.userRepo.findManyByEmailsIncludingSecondary.mockResolvedValue(
+      makeUserResult([
+        { id: guest1UserId, email: guest1Email },
+        { id: guest2UserId, email: guest2Email },
+      ])
+    );
 
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween
       .mockResolvedValueOnce([
@@ -296,8 +352,8 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     expect(result[1]).toEqual({ start: guest2BookingStart, end: guest2BookingEnd });
 
     // Verify only ONE batch query was made for all attendees
-    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledTimes(1);
-    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledWith({
+    expect(mockDependencies.userRepo.findManyByEmailsIncludingSecondary).toHaveBeenCalledTimes(1);
+    expect(mockDependencies.userRepo.findManyByEmailsIncludingSecondary).toHaveBeenCalledWith({
       emails: [guest1Email, guest2Email],
     });
   });
