@@ -4,6 +4,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { sanitizePaymentDataForClient } from "@calcom/features/ee/payments/pages/sanitizePaymentDataForClient";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import {
   sendVerificationCode,
@@ -97,6 +98,7 @@ export type TeamQuery = Prisma.TeamGetPayload<{
 export { credentialForCalendarServiceSelect };
 export { paymentDataSelect };
 export { getClientSecretFromPayment };
+export { sanitizePaymentDataForClient };
 
 export type { GroupedAttribute } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";
 export { groupMembershipAttributes } from "@calcom/trpc/server/routers/viewer/attributes/getByUserId.handler";

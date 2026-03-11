@@ -1,5 +1,9 @@
 import type { TeamQuery } from "@calcom/platform-libraries";
-import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
+import {
+  checkAdminOrOwner,
+  getClientSecretFromPayment,
+  sanitizePaymentDataForClient,
+} from "@calcom/platform-libraries";
 import type {
   App,
   CredentialDataWithTeamName,
@@ -429,7 +433,10 @@ export class EventTypesAtomService {
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       },
       booking,
-      payment,
+      payment: {
+        ...payment,
+        data: sanitizePaymentDataForClient(payment.data),
+      },
       clientSecret: getClientSecretFromPayment(payment),
       profile,
     };

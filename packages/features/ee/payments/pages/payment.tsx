@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
+import { sanitizePaymentDataForClient } from "@calcom/features/ee/payments/pages/sanitizePaymentDataForClient";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -85,7 +86,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       },
       booking,
-      payment,
+      payment: {
+        ...payment,
+        data: sanitizePaymentDataForClient(payment.data),
+      },
       clientSecret: getClientSecretFromPayment(payment),
       profile,
     },
