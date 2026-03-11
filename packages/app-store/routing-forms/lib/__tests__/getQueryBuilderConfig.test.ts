@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-import { vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import type { RoutingForm } from "../../types/types";
 import { FormFieldsInitialConfig } from "../InitialConfig";
@@ -12,6 +11,15 @@ vi.mock("../InitialConfig", () => ({
       text: { type: "text" },
       select: { type: "select" },
       multiselect: { type: "multiselect" },
+      number: { type: "number" },
+      phone: { type: "text" },
+      email: { type: "text" },
+      address: { type: "text" },
+      url: { type: "text" },
+      multiemail: { type: "text" },
+      boolean: { type: "text" },
+      checkbox: { type: "multiselect" },
+      radio: { type: "select" },
     },
     operators: {
       is_empty: {},
@@ -48,15 +56,11 @@ describe("getQueryBuilderConfig", () => {
   it("should generate correct config for all field types", () => {
     const config = getQueryBuilderConfigForFormFields(mockForm);
 
-    expect(config.fields).toHaveProperty("field1");
-    expect(config.fields).toHaveProperty("field2");
-    expect(config.fields).toHaveProperty("field3");
-
     expect(config.fields.field1).toEqual({
       label: "Text Field",
       type: "text",
       valueSources: ["value"],
-      fieldSettings: {},
+      fieldSettings: { listValues: undefined },
     });
 
     expect(config.fields.field2).toEqual({
@@ -105,30 +109,25 @@ describe("getQueryBuilderConfig", () => {
 
     const config = getQueryBuilderConfigForFormFields(formWithRouterField);
 
-    expect(config.fields).toHaveProperty("innerField");
     expect(config.fields.innerField).toEqual({
       label: "Router Field",
       type: "text",
       valueSources: ["value"],
-      fieldSettings: {},
+      fieldSettings: { listValues: undefined },
     });
   });
 
-  it("should throw an error for unsupported field types", () => {
-    const formWithUnsupportedField: MockedForm = {
-      ...mockForm,
-      fields: [
-        {
-          id: "unsupportedField",
-          label: "Unsupported Field",
-          type: "unsupported" as any,
-        },
-      ],
-    };
+  it("should gracefully fallback unknown field types to text", () => {
+    const config = getQueryBuilderConfigForFormFields({
+      fields: [{ id: "x", label: "Unknown", type: "future_type" as any }],
+    });
 
-    expect(() => getQueryBuilderConfigForFormFields(formWithUnsupportedField)).toThrow(
-      "Unsupported field type:unsupported"
-    );
+    expect(config.fields.x).toEqual({
+      label: "Unknown",
+      type: "text",
+      valueSources: ["value"],
+      fieldSettings: { listValues: undefined },
+    });
   });
 
   it("should remove specific operators when forReporting is true", () => {
@@ -160,5 +159,57 @@ describe("getQueryBuilderConfig", () => {
         fields: expect.any(Object),
       })
     );
+  });
+
+  it("supports extended text-like field types", () => {
+    const form: MockedForm = {
+      fields: [
+        { id: "address", label: "Address", type: "address" },
+        { id: "url", label: "URL", type: "url" },
+        { id: "multiemail", label: "Multi Email", type: "multiemail" },
+        { id: "boolean", label: "Boolean", type: "boolean" },
+      ],
+    };
+    const config = getQueryBuilderConfigForFormFields(form);
+    expect(config.fields.address.type).toBe("text");
+    expect(config.fields.url.type).toBe("text");
+    expect(config.fields.multiemail.type).toBe("text");
+    expect(config.fields.boolean.type).toBe("text");
+  });
+
+  it("supports checkbox and radio option field types", () => {
+    const form: MockedForm = {
+      fields: [
+        {
+          id: "checkbox",
+          label: "Checkbox",
+          type: "checkbox",
+          options: [
+            { id: "a", label: "A" },
+            { id: "b", label: "B" },
+          ],
+        },
+        {
+          id: "radio",
+          label: "Radio",
+          type: "radio",
+          options: [
+            { id: "x", label: "X" },
+            { id: "y", label: "Y" },
+          ],
+        },
+      ],
+    };
+    const config = getQueryBuilderConfigForFormFields(form);
+    expect(config.fields.checkbox.type).toBe("multiselect");
+    expect(config.fields.checkbox.fieldSettings.listValues).toEqual([
+      { value: "a", title: "A" },
+      { value: "b", title: "B" },
+    ]);
+    expect(config.fields.radio.type).toBe("select");
+    expect(config.fields.radio.fieldSettings.listValues).toEqual([
+      { value: "x", title: "X" },
+      { value: "y", title: "Y" },
+    ]);
   });
 });

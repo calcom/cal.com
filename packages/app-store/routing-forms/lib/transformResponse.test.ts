@@ -141,4 +141,50 @@ describe("getFieldResponseForJsonLogic", () => {
       expect(result).toBe("1");
     });
   });
+
+  describe("extended field types", () => {
+    it("should handle checkbox like multiselect", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = ["Option 1", "2"];
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toEqual(["1", "2"]);
+    });
+
+    it("should handle radio like select", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "1", label: "Option 1" },
+          { id: "2", label: "Option 2" },
+        ],
+      };
+      const value = "Option 2";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("2");
+    });
+
+    it("should leave address/url/multiemail/boolean values as-is", () => {
+      expect(
+        getFieldResponseForJsonLogic({ field: { type: "address", options: undefined }, value: "123 Main" })
+      ).toBe("123 Main");
+      expect(
+        getFieldResponseForJsonLogic({ field: { type: "url", options: undefined }, value: "https://x.com" })
+      ).toBe("https://x.com");
+      expect(
+        getFieldResponseForJsonLogic({
+          field: { type: "multiemail", options: undefined },
+          value: "a@example.com,b@example.com",
+        })
+      ).toBe("a@example.com,b@example.com");
+      expect(
+        getFieldResponseForJsonLogic({ field: { type: "boolean", options: undefined }, value: "true" })
+      ).toBe("true");
+    });
+  });
 });

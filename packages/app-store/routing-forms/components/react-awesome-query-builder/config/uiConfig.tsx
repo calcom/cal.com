@@ -76,9 +76,26 @@ const EmailFactory = (props: WidgetProps | undefined) => {
   );
 };
 
-// react-query-builder types have missing type property on Widget
-//TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
-// So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
+const AddressFactory = (props: WidgetProps | undefined) => {
+  if (!props) return <div />;
+  return <TextWidget placeholder="Enter address" {...props} />;
+};
+
+const UrlFactory = (props: WidgetProps | undefined) => {
+  if (!props) return <div />;
+  return <TextWidget type="url" placeholder="https://..." {...props} />;
+};
+
+const MultiEmailFactory = (props: WidgetProps | undefined) => {
+  if (!props) return <div />;
+  return <TextWidget placeholder="Enter email(s), comma-separated" {...props} />;
+};
+
+const BooleanFactory = (props: WidgetProps | undefined) => {
+  if (!props) return <div />;
+  return <TextWidget placeholder="true or false" {...props} />;
+};
+
 function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
   const widgetsWithFactory: Widgets = {
     ...widgets,
@@ -111,11 +128,34 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.text,
       factory: EmailFactory,
     },
+    address: {
+      ...widgets.text,
+      factory: AddressFactory,
+    },
+    url: {
+      ...widgets.text,
+      factory: UrlFactory,
+    },
+    multiemail: {
+      ...widgets.text,
+      factory: MultiEmailFactory,
+    },
+    boolean: {
+      ...widgets.text,
+      factory: BooleanFactory,
+    },
+    checkbox: {
+      ...widgets.multiselect,
+      factory: MultiSelectFactory,
+    } as SelectWidgetType,
+    radio: {
+      ...widgets.select,
+      factory: SelectFactory,
+    } as SelectWidgetType,
   };
   return widgetsWithFactory;
 }
 
-// These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
 const sharedSettingsProps: Partial<Settings> = {
   renderField: (props) => renderComponent(props, FieldSelect),
   renderOperator: (props) => renderComponent(props, FieldSelect),

@@ -1,13 +1,9 @@
 import type { z } from "zod";
 
 import type { Field, FormResponse } from "../types/types";
+import { RoutingFormFieldType } from "./FieldTypes";
 import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 
-/**
- * It takes care of correctly transforming the input to label or id depending on various cases
- * - It allows us to prefill with ID or Label
- * - It allows backward compatibility with legacy routes(with labels for options)
- */
 function transformSelectValue({
   field,
   idOrLabel,
@@ -20,7 +16,6 @@ function transformSelectValue({
   if (!options) {
     return idOrLabel;
   }
-  // Because for legacy saved options, routes must have labels in them instead of ids
   const shouldUseLabelAsValue = areSelectOptionsInLegacyFormat(
     field as typeof field & z.BRAND<"FIELD_WITH_OPTIONS">
   );
@@ -28,29 +23,27 @@ function transformSelectValue({
   if (foundOptionById) {
     if (shouldUseLabelAsValue) {
       return foundOptionById.label;
-    } else {
-      // If shouldUseLabelAsValue is false, then we must use id as value
-      // Because shouldUseLabelAsValue is false, id must be set already
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return foundOptionById.id!;
     }
-  } else {
-    // No option was found that matches ID
-    // So check if the label is provided
-    const foundOptionByLabel = options.find((option) => {
-      return option.label === idOrLabel;
-    });
-    if (foundOptionByLabel) {
-      if (!shouldUseLabelAsValue) {
-        // If shouldUseLabelAsValue is false, then we must use id as value
-        // Because shouldUseLabelAsValue is false, id must be set already
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return foundOptionByLabel.id!;
-      }
-    }
+    return foundOptionById.id!;
   }
+
+  const foundOptionByLabel = options.find((option) => option.label === idOrLabel);
+  if (foundOptionByLabel && !shouldUseLabelAsValue) {
+    return foundOptionByLabel.id!;
+  }
+
   return idOrLabel;
 }
+
+const MULTISELECT_FIELD_TYPES = new Set<string>([
+  RoutingFormFieldType.MULTI_SELECT,
+  RoutingFormFieldType.CHECKBOX,
+]);
+
+const SINGLE_SELECT_FIELD_TYPES = new Set<string>([
+  RoutingFormFieldType.SINGLE_SELECT,
+  RoutingFormFieldType.RADIO,
+]);
 
 export function getFieldResponseForJsonLogic({
   field,
@@ -62,25 +55,20 @@ export function getFieldResponseForJsonLogic({
   if (!value) {
     return "";
   }
-  // type="number" still gives value as a string but we need to store that as number so that number operators can work.
-  if (field.type === "number") {
+  if (field.type === RoutingFormFieldType.NUMBER) {
     if (typeof value === "string") {
       return Number(value);
     }
     return value;
   }
-  if (field.type === "multiselect") {
-    // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
+
+  if (MULTISELECT_FIELD_TYPES.has(field.type)) {
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
-
-    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
-      return transformSelectValue({ field, idOrLabel });
-    });
-
+    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => transformSelectValue({ field, idOrLabel }));
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  if (SINGLE_SELECT_FIELD_TYPES.has(field.type)) {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array

@@ -25,6 +25,12 @@ const assertCommonWidgetTypes = (config: any) => {
   expect(config.widgets).toHaveProperty("select");
   expect(config.widgets).toHaveProperty("phone");
   expect(config.widgets).toHaveProperty("email");
+  expect(config.widgets).toHaveProperty("address");
+  expect(config.widgets).toHaveProperty("url");
+  expect(config.widgets).toHaveProperty("multiemail");
+  expect(config.widgets).toHaveProperty("boolean");
+  expect(config.widgets).toHaveProperty("checkbox");
+  expect(config.widgets).toHaveProperty("radio");
 };
 
 const assertSelectOperators = (config: any) => {
@@ -78,6 +84,15 @@ describe("Query Builder Config", () => {
 
     it("should have maxNesting set to 1 in settings", () => {
       assertMaxNesting(FormFieldsBaseConfig, 1);
+    });
+
+    it("should expose extended field types", () => {
+      expect(FormFieldsBaseConfig.types).toHaveProperty("address");
+      expect(FormFieldsBaseConfig.types).toHaveProperty("url");
+      expect(FormFieldsBaseConfig.types).toHaveProperty("multiemail");
+      expect(FormFieldsBaseConfig.types).toHaveProperty("boolean");
+      expect(FormFieldsBaseConfig.types).toHaveProperty("checkbox");
+      expect(FormFieldsBaseConfig.types).toHaveProperty("radio");
     });
   });
 

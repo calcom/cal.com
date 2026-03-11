@@ -1,6 +1,6 @@
 "use client";
 
-import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
+import { FieldTypes, FIELD_TYPES_WITH_OPTIONS } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
@@ -208,7 +208,7 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(fieldType) ? (
+          {(FIELD_TYPES_WITH_OPTIONS as ReadonlyArray<string>).includes(fieldType) ? (
             <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput
