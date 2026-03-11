@@ -1,5 +1,10 @@
 {
-    "crons": [
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "crons": [
       {
         "path": "/api/cron/calendar-subscriptions",
         "schedule": "*/5 * * * *"
