@@ -7,6 +7,7 @@ export const VideoApiAdapterMap =
     ? {}
     : {
         dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
+        bigbluebutton: import("./bigbluebutton/lib/VideoApiAdapter"),
         huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
         jelly: import("./jelly/lib/VideoApiAdapter"),
         jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),

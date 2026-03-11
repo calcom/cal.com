@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 export const AppSetupPageMap = {
+  bigbluebutton: import("../../bigbluebutton/pages/setup/_getServerSideProps"),
   alby: import("../../alby/pages/setup/_getServerSideProps"),
   make: import("../../make/pages/setup/_getServerSideProps"),
   stripe: import("../../stripepayment/pages/setup/_getServerSideProps"),

@@ -1,0 +1,24 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://bigbluebutton.org/",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:bigbluebutton_video",
+      "label": "BigBlueButton"
+    }
+  },
+  "description": "BigBlueButton is an open-source web conferencing system designed for online learning. Host your own server and get full control over your meetings with recording, breakout rooms, and more.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "isOAuth": false,
+  "concurrentMeetings": true
+}
