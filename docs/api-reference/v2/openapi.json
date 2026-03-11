@@ -20004,7 +20004,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled. In case of Booker atom need to pass 'email' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'bob@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20036,7 +20036,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled. In case of Booker atom need to pass 'name' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{name: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-fields"
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20055,7 +20055,7 @@
         "type": "object",
         "properties": {
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20109,7 +20109,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=busy`,      the reschedule reason field will be prefilled with this value and disabled."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20148,7 +20148,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=masterclass`,      the title field will be prefilled with this value and disabled."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20187,7 +20187,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=hello`,      the notes field will be prefilled with this value and disabled."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20226,7 +20226,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=lauris@cal.com`,      the guests field will be prefilled with this value and disabled."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always true because it's a default field",
             "example": true,
             "default": true
@@ -20271,7 +20271,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20308,7 +20308,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20352,7 +20352,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20393,7 +20393,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20437,7 +20437,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20478,7 +20478,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20519,7 +20519,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20558,7 +20558,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20602,7 +20602,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20650,7 +20650,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20691,7 +20691,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
@@ -20732,7 +20732,7 @@
             "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "isDefault": {
-            "type": "object",
+            "type": "boolean",
             "description": "This property is always false because it's not default field but custom field",
             "example": false,
             "default": false
