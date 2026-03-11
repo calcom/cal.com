@@ -1,6 +1,6 @@
 ## Proton Calendar
 
-[Proton Calendar](https://proton.me/calendar) is a private, end-to-end encrypted calendar from Proton (the makers of ProtonMail). It is designed with privacy as a core principle, meaning your calendar data is encrypted and only you can see it.
+[Proton Calendar](https://proton.me/calendar) is a private, end-to-end encrypted calendar from Proton (the makers of ProtonMail). It is designed with privacy as a core principle, and your calendar data remains encrypted in Proton; however, shared ICS links should be treated as secrets — anyone with the link can read your calendar events.
 
 This integration connects Proton Calendar to Cal.com via a **read-only ICS feed URL** that Proton Calendar allows you to share. No OAuth flow or API keys are required.
 

@@ -45,8 +45,9 @@ async function fetchWithCache(url: string): Promise<string> {
   });
 
   if (!response.ok) {
+    // Do NOT include the URL in the error message — it is a secret access token
     throw new Error(
-      `Proton Calendar ICS fetch failed: HTTP ${response.status} ${response.statusText} for URL: ${url}`
+      `Proton Calendar ICS fetch failed: HTTP ${response.status} ${response.statusText}`
     );
   }
 
@@ -312,7 +313,7 @@ class ProtonCalendarService implements Calendar {
               }
 
               currentStart = dayjs(currentEvent.startDate.toJSDate());
-              if (currentStart.isBetween(rangeStart, rangeEnd)) {
+              if (currentStart.isBetween(rangeStart, rangeEnd, null, "[)")) {
                 events.push({
                   start: currentStart.toISOString(),
                   end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),

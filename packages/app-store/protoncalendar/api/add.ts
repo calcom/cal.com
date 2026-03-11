@@ -31,17 +31,10 @@ function validateProtonIcsUrl(url: string): { valid: boolean; message: string } 
     return { valid: false, message: "The ICS feed URL must use HTTPS." };
   }
 
-  const ALLOWED_HOSTS = [
-    ".proton.me",
-    ".protonmail.com",
-    "proton.me",
-    "protonmail.com",
-    "calendar.proton.me",
-    "calendar.protonmail.com",
-  ];
+  const ALLOWED_HOSTS = ["proton.me", "protonmail.com"];
 
   const isAllowed = ALLOWED_HOSTS.some(
-    (host) => parsed.hostname === host || parsed.hostname.endsWith(host)
+    (host) => parsed.hostname === host || parsed.hostname.endsWith(`.${host}`)
   );
 
   if (!isAllowed) {
@@ -58,14 +51,17 @@ function validateProtonIcsUrl(url: string): { valid: boolean; message: string } 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { url, urls: rawUrls } = req.body as { url?: string; urls?: string[] };
+    const { url, urls: rawUrls } = req.body as { url?: string; urls?: unknown };
+
+    // Runtime-validate before accessing array methods to prevent pre-try-catch throws
+    const normalizedRawUrls = Array.isArray(rawUrls) ? rawUrls : undefined;
 
     // Normalise to an array — the setup UI sends a single `url`, but we store
     // an array for consistency with ics-feedcalendar so future multi-calendar
     // support is straightforward.
     const urls: string[] = (
-      rawUrls && rawUrls.length > 0 ? rawUrls : url ? [url] : []
-    ).map((u: string) => u.trim()).filter(Boolean);
+      normalizedRawUrls && normalizedRawUrls.length > 0 ? normalizedRawUrls : url ? [url] : []
+    ).map((u: unknown) => String(u).trim()).filter(Boolean);
 
     if (urls.length === 0) {
       return res.status(400).json({ message: "Please provide a Proton Calendar ICS feed URL." });
@@ -118,11 +114,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       await prisma.credential.create({ data });
     } catch (e) {
-      log.error("Could not add Proton Calendar ICS feed", e);
+      // Log only the sanitized message to avoid leaking ICS share URLs (which are credentials)
       const message =
         e instanceof Error
           ? e.message
           : "Could not connect to Proton Calendar. Please check your ICS feed URL and try again.";
+      log.error("Could not add Proton Calendar ICS feed", { message });
       return res.status(500).json({ message });
     }
 
