@@ -98,7 +98,10 @@ export function TeamsListing({
 
       {teams.length === 0 && isPendingTeamPlan && <SkeletonLoaderTeamList />}
 
-      {teams.length === 0 && !isPendingTeamPlan && <FullscreenUpgradeBannerForTeamsPage />}
+      {teams.length === 0 &&
+        teamInvites.length === 0 &&
+        organizationInvites.length === 0 &&
+        !isPendingTeamPlan && <FullscreenUpgradeBannerForTeamsPage />}
 
       {/* Only show tip when not showing the upgrade banner */}
       {teams.length > 0 && (
