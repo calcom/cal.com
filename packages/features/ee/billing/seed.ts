@@ -11,6 +11,7 @@
  *   npx tsx packages/features/ee/billing/seed.ts --active-user
  *   npx tsx packages/features/ee/billing/seed.ts --dunning
  *   npx tsx packages/features/ee/billing/seed.ts --resubscribe
+ *   npx tsx packages/features/ee/billing/seed.ts --trial
  *   npx tsx packages/features/ee/billing/seed.ts --all
  *   npx tsx packages/features/ee/billing/seed.ts --cleanup
  *
@@ -18,6 +19,7 @@
  *   --skip-stripe       Skip Stripe API calls (use fake IDs)
  *   --cleanup           Clean up before seeding
  *   --min-seats <N>     Set minSeats floor for active-user billing
+ *   --trial-days <N>    Set trial duration in days (default: 14)
  */
 
 import { spawn } from "node:child_process";
@@ -29,6 +31,7 @@ const PRORATION_SCRIPT = "packages/features/ee/billing/service/dueInvoice/seed-p
 const ACTIVE_USER_SCRIPT = "packages/features/ee/billing/active-user/seed-active-user-test.ts";
 const DUNNING_SCRIPT = "packages/features/ee/billing/service/dunning/seed-dunning-test.ts";
 const RESUBSCRIBE_SCRIPT = "packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts";
+const TRIAL_SCRIPT = "packages/features/ee/billing/service/trial/seed-trial-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
 
@@ -79,6 +82,13 @@ async function seedResubscribe(cleanup: boolean) {
   return run(RESUBSCRIBE_SCRIPT, extra);
 }
 
+async function seedTrial(cleanup: boolean, trialDays?: number | null) {
+  console.log("\n--- Seeding Trial test data ---\n");
+  const extra = cleanup ? ["--cleanup"] : [];
+  if (trialDays) extra.push("--trial-days", String(trialDays));
+  return run(TRIAL_SCRIPT, extra);
+}
+
 async function seedAll(cleanup: boolean) {
   let code = await seedHwm(cleanup);
   if (code !== 0) return code;
@@ -89,6 +99,8 @@ async function seedAll(cleanup: boolean) {
   code = await seedDunning(cleanup);
   if (code !== 0) return code;
   code = await seedResubscribe(cleanup);
+  if (code !== 0) return code;
+  code = await seedTrial(cleanup);
   return code;
 }
 
@@ -103,6 +115,8 @@ async function cleanupAll() {
   code = await run(DUNNING_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(RESUBSCRIBE_SCRIPT, ["--cleanup", "--skip-stripe"]);
+  if (code !== 0) return code;
+  code = await run(TRIAL_SCRIPT, ["--cleanup", "--skip-stripe"]);
   return code;
 }
 
@@ -126,11 +140,12 @@ async function interactive() {
   console.log("  3) Seed Active User Billing test data");
   console.log("  4) Seed Dunning Enforcement test data");
   console.log("  5) Seed Resubscribe test data");
-  console.log("  6) Seed all");
-  console.log("  7) Cleanup all test data");
+  console.log("  6) Seed Trial test data");
+  console.log("  7) Seed all");
+  console.log("  8) Cleanup all test data");
   console.log("  q) Quit\n");
 
-  const choice = await prompt("Choose [1-7, q]: ");
+  const choice = await prompt("Choose [1-8, q]: ");
 
   if (choice === "q" || choice === "") {
     console.log("Bye.");
@@ -138,7 +153,7 @@ async function interactive() {
   }
 
   let cleanup = false;
-  if (["1", "2", "3", "4", "5", "6"].includes(choice)) {
+  if (["1", "2", "3", "4", "5", "6", "7"].includes(choice)) {
     const ans = await prompt("Run cleanup before seeding? [y/N]: ");
     cleanup = ans.toLowerCase() === "y";
   }
@@ -174,9 +189,12 @@ async function interactive() {
       code = await seedResubscribe(cleanup);
       break;
     case "6":
-      code = await seedAll(cleanup);
+      code = await seedTrial(cleanup);
       break;
     case "7":
+      code = await seedAll(cleanup);
+      break;
+    case "8":
       code = await cleanupAll();
       break;
     default:
@@ -205,6 +223,9 @@ async function main() {
   if (args.includes("--resubscribe")) {
     process.exit(await seedResubscribe(args.includes("--cleanup")));
   }
+  if (args.includes("--trial")) {
+    process.exit(await seedTrial(args.includes("--cleanup")));
+  }
   if (args.includes("--all")) {
     process.exit(await seedAll(args.includes("--cleanup")));
   }
@@ -215,6 +236,7 @@ async function main() {
     !args.includes("--active-user") &&
     !args.includes("--dunning") &&
     !args.includes("--resubscribe") &&
+    !args.includes("--trial") &&
     !args.includes("--all")
   ) {
     process.exit(await cleanupAll());
