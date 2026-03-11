@@ -129,6 +129,17 @@ export const createUnifiedCalendarBookingHandler = async ({
 
   try {
     const eventManagerResult = await eventManager.create(calEvent);
+    const hasHostCalendarReference = eventManagerResult.referencesToCreate.some(
+      (reference) => reference.type.includes("_calendar") && Boolean(reference.uid)
+    );
+
+    if (!hasHostCalendarReference) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create event on the selected destination calendar",
+      });
+    }
+
     await replaceBookingReferences({
       bookingId: booking.id,
       references: eventManagerResult.referencesToCreate,
