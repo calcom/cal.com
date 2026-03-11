@@ -4,7 +4,11 @@
   "slug": "famulor",
   "type": "famulor_automation",
   "logo": "icon-dark.svg",
-  "url": "https://docs.famulor.io/ai-assistants/cal-com-scheduling",
+  "url": "https://docs.famulor.io/en/ai-assistants/cal-com-scheduling",
+  "externalLink": {
+    "url": "https://www.famulor.io",
+    "newTab": true
+  },
   "variant": "automation",
   "categories": ["automation"],
   "publisher": "Famulor",
