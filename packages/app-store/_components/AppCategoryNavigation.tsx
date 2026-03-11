@@ -44,14 +44,12 @@ const AppCategoryNavigation = ({
         <VerticalTabs
           tabs={appCategories}
           sticky
-          linkShallow
           itemClassname={classNames?.verticalTabsItem}
         />
       </div>
       <div className="block xl:hidden">
         <HorizontalTabs
           tabs={appCategories}
-          linkShallow
           scrollActiveTabIntoView
         />
       </div>
