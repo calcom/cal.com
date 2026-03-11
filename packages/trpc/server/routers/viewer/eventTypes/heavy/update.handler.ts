@@ -11,7 +11,7 @@ import { isUrlScanningEnabled } from "@calcom/features/ee/workflows/lib/urlScann
 import { checkSuccessRedirectUrlAllowed } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
 import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
@@ -388,7 +388,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  const membershipRepo = new MembershipRepository(ctx.prisma);
+  const membershipRepo = new PrismaMembershipRepository(ctx.prisma);
 
   if (restrictionScheduleId) {
     // Verify that the user owns the restriction schedule or is a team member

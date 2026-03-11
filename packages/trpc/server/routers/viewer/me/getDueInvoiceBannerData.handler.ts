@@ -10,14 +10,9 @@ type Props = {
   };
 };
 
-const MANAGE_BILLING_FALLBACK_ROLES = [
-  MembershipRole.ADMIN,
-  MembershipRole.OWNER,
-];
+const MANAGE_BILLING_FALLBACK_ROLES = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
-export const getDueInvoiceBannerDataHandler = async ({
-  ctx,
-}: Props): Promise<DunningBannerRecord[]> => {
+export const getDueInvoiceBannerDataHandler = async ({ ctx }: Props): Promise<DunningBannerRecord[]> => {
   const { user } = ctx;
   const permissionCheckService = new PermissionCheckService();
 
@@ -49,9 +44,7 @@ export const getDueInvoiceBannerDataHandler = async ({
       if (!resolved || seen.has(resolved.billingId)) return;
       seen.add(resolved.billingId);
 
-      const banners = await resolved.service.getBannerData([
-        resolved.billingId,
-      ]);
+      const banners = await resolved.service.getBannerData([resolved.billingId]);
       results.push(...banners);
     })
   );

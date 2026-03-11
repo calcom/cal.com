@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export type MembershipCheckResult = {
@@ -9,7 +9,7 @@ export type MembershipCheckResult = {
 };
 
 export class MembershipService {
-  constructor(private readonly membershipRepository: MembershipRepository = new MembershipRepository()) {}
+  constructor(private readonly membershipRepository: PrismaMembershipRepository) {}
 
   /**
    * Checks the membership status of a user within a specific team.

@@ -1,10 +1,9 @@
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TOrgPasswordResetSchema } from "./sendPasswordReset.schema";
 
@@ -27,7 +26,7 @@ const sendPasswordResetHandler = async ({ ctx, input }: SendPasswordResetOptions
     });
   }
 
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
   const targetMembership = await membershipRepository.findUniqueByUserIdAndTeamId({
     userId,
     teamId: organizationId,

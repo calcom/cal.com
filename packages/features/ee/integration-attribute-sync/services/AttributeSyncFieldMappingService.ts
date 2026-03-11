@@ -8,7 +8,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 import type { AttributeType } from "@calcom/prisma/enums";
 
@@ -20,7 +20,7 @@ interface IAttributeSyncFieldMappingServiceDeps {
   attributeToUserRepository: PrismaAttributeToUserRepository;
   attributeRepository: PrismaAttributeRepository;
   attributeOptionRepository: PrismaAttributeOptionRepository;
-  membershipRepository: MembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
 }
 
 export class AttributeSyncFieldMappingService {

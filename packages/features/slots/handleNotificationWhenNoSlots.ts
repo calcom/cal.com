@@ -1,7 +1,7 @@
 import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails/organization-email-service";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
@@ -41,7 +41,7 @@ const constructDataHash = (eventDetails: EventDetails) => {
 
 export interface INoSlotsNotificationService {
   teamRepo: TeamRepository;
-  membershipRepo: MembershipRepository;
+  membershipRepo: PrismaMembershipRepository;
   redisClient: IRedisService;
 }
 

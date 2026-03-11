@@ -1,12 +1,12 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import { Plan, SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { ISeatBillingStrategy } from "../seatBillingStrategy/ISeatBillingStrategy";
 import type { SeatBillingStrategyFactory } from "../seatBillingStrategy/SeatBillingStrategyFactory";
 import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
@@ -88,7 +88,7 @@ describe("TeamBillingService", () => {
   let mockTeamBillingDataRepository: ITeamBillingDataRepository;
   let mockBillingRepository: IBillingRepository;
   let defaultResolver: SeatBillingStrategyFactory;
-  let mockMembershipRepository: MembershipRepository;
+  let mockMembershipRepository: PrismaMembershipRepository;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -98,7 +98,7 @@ describe("TeamBillingService", () => {
     defaultResolver = createMockFactory(createMockStrategy());
     mockMembershipRepository = {
       countByTeamId: vi.fn().mockResolvedValue(1),
-    } as unknown as MembershipRepository;
+    } as unknown as PrismaMembershipRepository;
   });
 
   afterEach(() => {

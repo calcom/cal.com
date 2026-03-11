@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -26,11 +26,11 @@ export function getTeamIdFromSamlTenant(tenant: string): number | null {
  * IdP is authoritative when domain matches org's verified domain or user is already a member.
  */
 export class SamlAccountLinkingService {
-  private membershipRepository: MembershipRepository;
+  private membershipRepository: PrismaMembershipRepository;
   private orgSettingsRepository: OrganizationSettingsRepository;
 
   constructor(prismaClient: PrismaClient = prisma) {
-    this.membershipRepository = new MembershipRepository(prismaClient);
+    this.membershipRepository = new PrismaMembershipRepository(prismaClient);
     this.orgSettingsRepository = new OrganizationSettingsRepository(prismaClient);
   }
 

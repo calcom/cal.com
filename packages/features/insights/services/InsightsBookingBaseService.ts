@@ -11,7 +11,7 @@ import {
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -409,7 +409,7 @@ export class InsightsBookingBaseService {
     // Get all users from the organization
     const userIdsFromOrg =
       teamsFromOrg.length > 0
-        ? (await MembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
+        ? (await PrismaMembershipRepository.findAllByTeamIds({ teamIds, select: { userId: true } })).map(
             (m) => m.userId
           )
         : [];
@@ -454,7 +454,7 @@ export class InsightsBookingBaseService {
       }
     }
 
-    const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+    const usersFromTeam = await PrismaMembershipRepository.findAllByTeamIds({
       teamIds: [options.teamId],
       select: { userId: true },
     });

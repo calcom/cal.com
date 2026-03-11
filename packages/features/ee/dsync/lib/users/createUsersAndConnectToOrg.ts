@@ -1,5 +1,5 @@
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getUserCreationService } from "@calcom/features/users/di/UserCreationService.container";
 import { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
@@ -71,7 +71,7 @@ export const createUsersAndConnectToOrg = async ({
   });
 
   // Create memberships for new members
-  const membershipResult = await MembershipRepository.createMany(
+  const membershipResult = await PrismaMembershipRepository.createMany(
     users.map((user) => ({
       userId: user.id,
       teamId: org.id,

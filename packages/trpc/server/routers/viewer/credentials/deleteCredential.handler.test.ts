@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -10,8 +10,8 @@ vi.mock("@calcom/features/credentials/handleDeleteCredential", () => ({
   default: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: {
     getAdminOrOwnerMembership: vi.fn(),
   },
 }));
@@ -27,17 +27,17 @@ describe("deleteCredentialHandler", () => {
   });
 
   it("rejects team credential deletion when user has no admin/owner membership", async () => {
-    vi.mocked(MembershipRepository.getAdminOrOwnerMembership).mockResolvedValue(null);
+    vi.mocked(PrismaMembershipRepository.getAdminOrOwnerMembership).mockResolvedValue(null);
 
     await expect(
       deleteCredentialHandler({ ctx: makeCtx(), input: { id: 10, teamId: 99 } })
     ).rejects.toThrow(TRPCError);
 
-    expect(MembershipRepository.getAdminOrOwnerMembership).toHaveBeenCalledWith(1, 99);
+    expect(PrismaMembershipRepository.getAdminOrOwnerMembership).toHaveBeenCalledWith(1, 99);
   });
 
   it("allows team credential deletion for admin/owner", async () => {
-    vi.mocked(MembershipRepository.getAdminOrOwnerMembership).mockResolvedValue({ id: 1 });
+    vi.mocked(PrismaMembershipRepository.getAdminOrOwnerMembership).mockResolvedValue({ id: 1 });
     const handleDeleteCredential = (await import("@calcom/features/credentials/handleDeleteCredential"))
       .default;
 
@@ -57,7 +57,7 @@ describe("deleteCredentialHandler", () => {
 
     await deleteCredentialHandler({ ctx: makeCtx(), input: { id: 10 } });
 
-    expect(MembershipRepository.getAdminOrOwnerMembership).not.toHaveBeenCalled();
+    expect(PrismaMembershipRepository.getAdminOrOwnerMembership).not.toHaveBeenCalled();
     expect(handleDeleteCredential).toHaveBeenCalledWith({
       userId: 1,
       userMetadata: {},

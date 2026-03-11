@@ -1,7 +1,7 @@
 import type { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
 import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
@@ -49,7 +49,7 @@ describe("AttributeSyncFieldMappingService", () => {
       attributeToUserRepository: mockAttributeToUserRepository as unknown as PrismaAttributeToUserRepository,
       attributeRepository: mockAttributeRepository as unknown as PrismaAttributeRepository,
       attributeOptionRepository: mockAttributeOptionRepository as unknown as PrismaAttributeOptionRepository,
-      membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
+      membershipRepository: mockMembershipRepository as unknown as PrismaMembershipRepository,
     });
   });
 

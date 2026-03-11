@@ -2,7 +2,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
@@ -21,7 +21,7 @@ import { BookingAuditViewerService } from "../BookingAuditViewerService";
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/users/repositories/UserRepository");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
-vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/credentials/repositories/CredentialRepository");
 
 type MockBooking = {
@@ -215,7 +215,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
     findRescheduledLogsOfBooking: Mock<IBookingAuditRepository["findRescheduledLogsOfBooking"]>;
   };
   let mockMembershipRepository: {
-    hasMembership: Mock<MembershipRepository["hasMembership"]>;
+    hasMembership: Mock<PrismaMembershipRepository["hasMembership"]>;
   };
   let mockPermissionCheckService: {
     checkPermission: Mock<PermissionCheckService["checkPermission"]>;
@@ -306,8 +306,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
     vi.mocked(UserRepository).mockImplementation(function () {
       return mockUserRepository as unknown as UserRepository;
     });
-    vi.mocked(MembershipRepository).mockImplementation(function () {
-      return mockMembershipRepository as unknown as MembershipRepository;
+    vi.mocked(PrismaMembershipRepository).mockImplementation(function () {
+      return mockMembershipRepository as unknown as PrismaMembershipRepository;
     });
     vi.mocked(PermissionCheckService).mockImplementation(function () {
       return mockPermissionCheckService as unknown as PermissionCheckService;
@@ -320,7 +320,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
       bookingAuditRepository: mockBookingAuditRepository as unknown as IBookingAuditRepository,
       userRepository: mockUserRepository as unknown as UserRepository,
       bookingRepository: mockBookingRepository as unknown as BookingRepository,
-      membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
+      membershipRepository: mockMembershipRepository as unknown as PrismaMembershipRepository,
       attendeeRepository: mockAttendeeRepository as unknown as IAttendeeRepository,
       credentialRepository: mockCredentialRepository as unknown as CredentialRepository,
       log: mockLog as unknown as ISimpleLogger,

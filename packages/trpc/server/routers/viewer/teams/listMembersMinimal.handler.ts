@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersMinimalInput } from "./listMembersMinimal.schema";
@@ -13,7 +13,7 @@ type GetOptions = {
 // Get all members from non-private teams the user belongs to. Excluding organizations.
 export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
   const userId = ctx.user.id;
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
 
   const teamIds = await membershipRepository.findAcceptedNonPrivateTeamIdsByUserId({ userId });
 

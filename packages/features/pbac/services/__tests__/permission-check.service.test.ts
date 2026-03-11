@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -14,7 +14,7 @@ import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("../permission.service");
 
 vi.mock("@calcom/prisma", () => ({
@@ -65,7 +65,7 @@ describe("PermissionCheckService", () => {
       mockRepository,
       mockFeaturesRepository as unknown as FeaturesRepository,
       mockPermissionService as unknown as PermissionService,
-      mockMembershipRepository as unknown as MembershipRepository
+      mockMembershipRepository as unknown as PrismaMembershipRepository
     );
   });
 

@@ -1,6 +1,5 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { prisma } from "@calcom/prisma";
 
 type HasTeamPlanOptions = {
   ctx: {
@@ -11,7 +10,7 @@ type HasTeamPlanOptions = {
 export const hasTeamPlanHandler = async ({ ctx }: HasTeamPlanOptions) => {
   const userId = ctx.user.id;
 
-  const membershipRepository = new MembershipRepository(prisma);
+  const membershipRepository = getMembershipRepository();
   const memberships = await membershipRepository.findAllMembershipsByUserIdForBilling({ userId });
   const hasTeamPlan = memberships.some(
     (membership) => membership.accepted === true && membership.team.slug !== null

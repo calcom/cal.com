@@ -1,5 +1,5 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -20,7 +20,7 @@ export class BookingAuditPermissionError extends Error {
 
 interface BookingAuditAccessServiceDeps {
   bookingRepository: BookingRepository;
-  membershipRepository: MembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
 }
 
 /**
@@ -30,7 +30,7 @@ interface BookingAuditAccessServiceDeps {
  */
 export class BookingAuditAccessService {
   private readonly bookingRepository: BookingRepository;
-  private readonly membershipRepository: MembershipRepository;
+  private readonly membershipRepository: PrismaMembershipRepository;
   private readonly permissionCheckService: PermissionCheckService;
 
   constructor(deps: BookingAuditAccessServiceDeps) {

@@ -1,13 +1,12 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { getActiveUserBillingService } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.container";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetActiveUserBreakdownInputSchema } from "./getActiveUserBreakdown.schema";
 
@@ -27,7 +26,7 @@ export const getActiveUserBreakdownHandler = async ({ ctx, input }: GetActiveUse
 
   const { teamId } = input;
 
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
   const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId,

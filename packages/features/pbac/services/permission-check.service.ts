@@ -1,6 +1,7 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import logger from "@calcom/lib/logger";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -20,13 +21,13 @@ export class PermissionCheckService {
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
   private readonly teamFeatureRepository: ITeamFeatureRepository;
   private readonly permissionService: PermissionService;
-  private readonly membershipRepository: MembershipRepository;
+  private readonly membershipRepository: PrismaMembershipRepository;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
     teamFeatureRepository: ITeamFeatureRepository = getTeamFeatureRepository(),
     permissionService: PermissionService = new PermissionService(),
-    membershipRepository: MembershipRepository = new MembershipRepository()
+    membershipRepository: PrismaMembershipRepository = getMembershipRepository()
   ) {
     this.teamFeatureRepository = teamFeatureRepository;
     this.permissionService = permissionService;

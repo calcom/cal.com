@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/billing-email-service";
 import type { PrismaCreditsRepository } from "@calcom/features/credits/repositories/PrismaCreditsRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { CreditType } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -87,7 +87,7 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 });
 
 vi.mock("@calcom/lib/server/repository/credits");
-vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/emails/billing-email-service", () => ({
   sendCreditBalanceLimitReachedEmails: vi.fn().mockResolvedValue(undefined),
@@ -216,7 +216,7 @@ describe("CreditService", () => {
 
     describe("getTeamWithAvailableCredits", () => {
       it("should return team with available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -246,7 +246,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -442,7 +442,7 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           { teamId: 1 },
         ]);
 
@@ -911,7 +911,7 @@ describe("CreditService", () => {
     });
 
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
-      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+      vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
         { teamId: 2 },
       ]);
 
@@ -943,14 +943,14 @@ describe("CreditService", () => {
         creditType: CreditType.MONTHLY,
       });
 
-      expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
+      expect(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
       expect(mockCreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
       expect(mockCreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
     });
 
     describe("Organization priority", () => {
       it("should use organization credits when user belongs to org, ignoring team memberships", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           { teamId: 1 },
           { teamId: 2 },
         ]);
@@ -989,7 +989,7 @@ describe("CreditService", () => {
       });
 
       it("should return org with limitReached when org has no credits, ignoring teams", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           { teamId: 1 },
           { teamId: 2 },
         ]);
@@ -1029,7 +1029,7 @@ describe("CreditService", () => {
       });
 
       it("should check teams when user has no org membership", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        vi.mocked(PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           { teamId: 2 },
         ]);
 

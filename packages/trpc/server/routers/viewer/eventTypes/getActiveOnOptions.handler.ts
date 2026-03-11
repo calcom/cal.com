@@ -1,5 +1,5 @@
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
@@ -29,7 +29,7 @@ type Option = {
 };
 
 type MembershipEventType = Awaited<
-  ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
+  ReturnType<typeof PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
 >[number]["team"]["eventTypes"][number];
 
 type EventType = Omit<MembershipEventType, "forwardParamsSuccessRedirect"> & {
@@ -70,7 +70,7 @@ const fetchEventTypeGroups = async ({
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
 
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
+    PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
         upId: userProfile.upId,
       },

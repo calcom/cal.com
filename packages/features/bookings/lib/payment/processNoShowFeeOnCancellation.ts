@@ -1,9 +1,8 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import type { Payment } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { handleNoShowFee } from "./handleNoShowFee";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
@@ -28,7 +27,7 @@ export const processNoShowFeeOnCancellation = async ({
 
   // Skip no-show fee if the booking was cancelled by a team/org admin
   if (cancelledByUserId && booking.eventType?.teamId) {
-    const membershipRepository = new MembershipRepository();
+    const membershipRepository = getMembershipRepository();
     const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
       userId: cancelledByUserId,
       teamId: booking.eventType.teamId,

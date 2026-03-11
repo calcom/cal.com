@@ -1,9 +1,7 @@
 import { getAttributesForTeam } from "@calcom/features/attributes/lib/getAttributes";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
 
 type GetAttributesForTeamHandlerOptions = {
@@ -19,7 +17,7 @@ export default async function getAttributesForTeamHandler({
 }: GetAttributesForTeamHandlerOptions) {
   const { teamId } = input;
   const { user } = ctx;
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
   const isMemberOfTeam = await membershipRepository.findUniqueByUserIdAndTeamId({ userId: user.id, teamId });
 
   if (!isMemberOfTeam) {

@@ -1,4 +1,4 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 
 type HasTeamMembershipOptions = {
   ctx: {
@@ -8,7 +8,7 @@ type HasTeamMembershipOptions = {
 
 export const hasTeamMembershipHandler = async ({ ctx }: HasTeamMembershipOptions) => {
   const userId = ctx.user.id;
-  const hasTeamMembership = await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
+  const hasTeamMembership = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId });
   return { hasTeamMembership };
 };
 

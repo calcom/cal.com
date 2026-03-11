@@ -1,11 +1,10 @@
-import { MembershipService } from "@calcom/features/membership/services/membershipService";
+import { getMembershipService } from "@calcom/features/di/containers/MembershipService";
+import type { MembershipService } from "@calcom/features/membership/services/MembershipService";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
-import { HashedLinkRepository } from "../repository/HashedLinkRepository";
-import { type HashedLinkInputType } from "../repository/HashedLinkRepository";
+import { type HashedLinkInputType, HashedLinkRepository } from "../repository/HashedLinkRepository";
 
 type NormalizedLink = {
   link: string;
@@ -24,7 +23,7 @@ export class HashedLinkService {
 
   constructor(deps?: HashedLinkServiceDeps) {
     this.hashedLinkRepository = deps?.hashedLinkRepository ?? HashedLinkRepository.create();
-    this.membershipService = deps?.membershipService ?? new MembershipService();
+    this.membershipService = deps?.membershipService ?? getMembershipService();
   }
 
   /**

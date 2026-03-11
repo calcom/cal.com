@@ -28,8 +28,8 @@ const { mockPasswordResetRequest } = vi.hoisted(() => {
   return { mockPasswordResetRequest };
 });
 
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: MockMembershipRepository,
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({

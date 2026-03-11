@@ -90,7 +90,7 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
   return prismaWhere;
 };
 
-export class MembershipRepository {
+export class PrismaMembershipRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
   async countByTeamId({ teamId }: { teamId: number }): Promise<number> {

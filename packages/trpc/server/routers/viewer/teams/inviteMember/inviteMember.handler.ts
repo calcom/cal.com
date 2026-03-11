@@ -1,12 +1,12 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -273,7 +273,7 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     const inviteeEmails = (typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail).map(
       (u) => (typeof u === "string" ? u : u.email)
     );
-    const membershipRepository = new MembershipRepository();
+    const membershipRepository = getMembershipRepository();
     skipDunningCheck = await membershipRepository.areAllEmailsAcceptedMembers({
       emails: inviteeEmails,
       teamId: team.parentId,

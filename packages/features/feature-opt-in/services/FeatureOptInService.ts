@@ -1,9 +1,9 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
@@ -409,7 +409,7 @@ export class FeatureOptInService implements IFeatureOptInService {
   }
 
   private async getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-    const membershipRepository = new MembershipRepository(prisma);
+    const membershipRepository = getMembershipRepository();
     const memberships = await membershipRepository.findAllByUserId({
       userId,
       filters: { accepted: true },

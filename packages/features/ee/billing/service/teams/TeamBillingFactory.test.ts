@@ -1,4 +1,4 @@
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
@@ -16,7 +16,7 @@ describe("TeamBilling", () => {
   let mockTeamBillingDataRepository: ITeamBillingDataRepository;
   let mockBillingRepository: IBillingRepository;
   let mockSeatBillingStrategyFactory: SeatBillingStrategyFactory;
-  let mockMembershipRepository: MembershipRepository;
+  let mockMembershipRepository: PrismaMembershipRepository;
   let factory: TeamBillingServiceFactory;
 
   const createMockBillingProviderService = (): IBillingProviderService => ({
@@ -59,7 +59,9 @@ describe("TeamBilling", () => {
     mockTeamBillingDataRepository = createMockTeamBillingDataRepository();
     mockBillingRepository = createMockBillingRepository();
     mockSeatBillingStrategyFactory = { createByTeamId: vi.fn() } as unknown as SeatBillingStrategyFactory;
-    mockMembershipRepository = { countByTeamId: vi.fn().mockResolvedValue(1) } as unknown as MembershipRepository;
+    mockMembershipRepository = {
+      countByTeamId: vi.fn().mockResolvedValue(1),
+    } as unknown as PrismaMembershipRepository;
   });
 
   afterEach(() => {

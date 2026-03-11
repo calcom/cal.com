@@ -16,8 +16,8 @@ const { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository } = vi.hoisted
   return { mockFindUniqueByUserIdAndTeamId, MockMembershipRepository };
 });
 
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: MockMembershipRepository,
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("./handleNoShowFee", () => ({

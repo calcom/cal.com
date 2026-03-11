@@ -1,12 +1,12 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IBillingRepository } from "../repository/billing/IBillingRepository";
 import { Plan, SubscriptionStatus } from "../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { ISeatBillingStrategy } from "../service/seatBillingStrategy/ISeatBillingStrategy";
 import type { SeatBillingStrategyFactory } from "../service/seatBillingStrategy/SeatBillingStrategyFactory";
 import { TeamBillingPublishResponseStatus } from "../service/teams/ITeamBillingService";
@@ -49,7 +49,7 @@ describe("TeamBillingService", () => {
   let mockTeamBillingDataRepository: ITeamBillingDataRepository;
   let mockBillingRepository: IBillingRepository;
   let defaultResolver: SeatBillingStrategyFactory;
-  let mockMembershipRepository: MembershipRepository;
+  let mockMembershipRepository: PrismaMembershipRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,7 +90,9 @@ describe("TeamBillingService", () => {
     } as unknown as IBillingRepository;
 
     defaultResolver = createMockFactory(createMockStrategy());
-    mockMembershipRepository = { countByTeamId: vi.fn().mockResolvedValue(1) } as unknown as MembershipRepository;
+    mockMembershipRepository = {
+      countByTeamId: vi.fn().mockResolvedValue(1),
+    } as unknown as PrismaMembershipRepository;
 
     teamBillingService = new TeamBillingService({
       team: mockTeam,

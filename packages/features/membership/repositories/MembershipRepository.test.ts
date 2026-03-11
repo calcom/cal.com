@@ -1,6 +1,6 @@
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MembershipRepository } from "./MembershipRepository";
+import { PrismaMembershipRepository as MembershipRepository } from "./PrismaMembershipRepository";
 
 vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {

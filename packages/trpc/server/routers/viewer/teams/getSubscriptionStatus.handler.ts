@@ -1,14 +1,13 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
 
@@ -28,7 +27,7 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
 
   const { teamId } = input;
 
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
   const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId,

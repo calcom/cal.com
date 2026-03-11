@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
@@ -13,7 +13,7 @@ import {
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
-vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 const DB = {
   bookings: {} as Record<
     string,
@@ -138,7 +138,7 @@ const mockBookingRepository: {
 };
 
 const mockMembershipRepository: {
-  hasMembership: Mock<MembershipRepository["hasMembership"]>;
+  hasMembership: Mock<PrismaMembershipRepository["hasMembership"]>;
 } = {
   hasMembership: vi.fn().mockImplementation(({ userId, teamId }) => {
     const key = `${userId}-${teamId}`;
@@ -164,8 +164,8 @@ describe("BookingAuditAccessService - Permission Checks", () => {
     vi.mocked(BookingRepository).mockImplementation(function () {
       return mockBookingRepository as unknown as BookingRepository;
     });
-    vi.mocked(MembershipRepository).mockImplementation(function () {
-      return mockMembershipRepository as unknown as MembershipRepository;
+    vi.mocked(PrismaMembershipRepository).mockImplementation(function () {
+      return mockMembershipRepository as unknown as PrismaMembershipRepository;
     });
     vi.mocked(PermissionCheckService).mockImplementation(function () {
       return mockPermissionCheckService as unknown as PermissionCheckService;
@@ -173,7 +173,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
 
     service = new BookingAuditAccessService({
       bookingRepository: mockBookingRepository as unknown as BookingRepository,
-      membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
+      membershipRepository: mockMembershipRepository as unknown as PrismaMembershipRepository,
     });
   });
 

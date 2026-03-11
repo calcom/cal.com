@@ -1,7 +1,7 @@
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -45,7 +45,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   } else {
     // if user id is part of a team, user can't buy credits for themselves
-    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
+    const memberships = await PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships(ctx.user.id);
 
     if (memberships && memberships.length > 0) {
       throw new TRPCError({

@@ -62,8 +62,8 @@ vi.mock("../config", () => {
 });
 
 // Mock MembershipRepository
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: class {
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: class {
     findAllByUserId(...args: unknown[]): unknown {
       return mockFindAllByUserId(...args);
     }
@@ -708,8 +708,8 @@ describe("FeatureOptInService", () => {
         findOwnedTeamsByUserId: vi.fn(),
       };
 
-      vi.doMock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-        MembershipRepository: class {
+      vi.doMock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+        PrismaMembershipRepository: class {
           findAllByUserId(...args: unknown[]): unknown {
             return mockMembershipRepository.findAllByUserId(...args);
           }

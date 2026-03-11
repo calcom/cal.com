@@ -1,10 +1,6 @@
-import { cookies, headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -12,8 +8,10 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { Contact } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
 import { intercom } from "@calcom/web/modules/ee/support/lib/intercom/intercom";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { cookies, headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: [`/api/support/conversation`] });
 
@@ -45,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   const { user } = session;
 
-  const membershipRepository = new MembershipRepository(prisma);
+  const membershipRepository = getMembershipRepository();
   const memberships = await membershipRepository.findAllMembershipsByUserIdForBilling({ userId: user.id });
   const billingPlanService = new BillingPlanService();
   const plan = await billingPlanService.getUserPlanByMemberships(memberships);

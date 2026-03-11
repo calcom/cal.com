@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -62,7 +62,7 @@ export async function checkOnboardingRedirect(
 
   // Check for any team membership (pending or accepted) to handle users who signed up via invite token
   // When users sign up with an invite token, the membership is auto-accepted
-  const hasTeamMembership = await MembershipRepository.hasAnyTeamMembershipByUserId({ userId });
+  const hasTeamMembership = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId });
 
   if (hasTeamMembership) {
     return "/onboarding/personal/settings";

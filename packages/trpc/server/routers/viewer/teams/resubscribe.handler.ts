@@ -1,10 +1,9 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TResubscribeInputSchema } from "./resubscribe.schema";
 
@@ -19,7 +18,7 @@ export const resubscribeHandler = async ({ ctx, input }: ResubscribeOptions) => 
   const { teamId } = input;
   const userId = ctx.user.id;
 
-  const membershipRepository = new MembershipRepository();
+  const membershipRepository = getMembershipRepository();
   const membership = await membershipRepository.findUniqueByUserIdAndTeamId({
     userId,
     teamId,

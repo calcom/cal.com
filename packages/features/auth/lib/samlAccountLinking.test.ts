@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
 
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 
 import {
@@ -31,7 +31,7 @@ let getVerifiedDomainsSpy: MockInstance;
 
 function setupMocks(config: { verifiedDomains?: string[]; hasMembership?: boolean }) {
   hasAcceptedMembershipSpy = vi
-    .spyOn(MembershipRepository.prototype, "hasAcceptedMembershipByEmail")
+    .spyOn(PrismaMembershipRepository.prototype, "hasAcceptedMembershipByEmail")
     .mockResolvedValue(config.hasMembership ?? false);
 
   getVerifiedDomainsSpy = vi

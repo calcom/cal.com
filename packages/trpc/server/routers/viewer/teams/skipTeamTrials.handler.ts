@@ -1,6 +1,6 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -31,7 +31,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const ownedTeams = await MembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
+    const ownedTeams = await PrismaMembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
       role: "OWNER",
     });
 

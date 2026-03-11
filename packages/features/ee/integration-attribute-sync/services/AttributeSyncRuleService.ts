@@ -6,13 +6,13 @@ import {
   type IAttributeCondition,
   RuleOperatorEnum,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { getAttributeService } from "@calcom/features/attributes/di/AttributeService.container";
 import type { UserAttribute } from "@calcom/features/attributes/services/AttributeService";
 
 interface IAttributeSyncRuleServiceDeps {
-  membershipRepository: MembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
   attributeToUserRepository: PrismaAttributeToUserRepository;
 }
 

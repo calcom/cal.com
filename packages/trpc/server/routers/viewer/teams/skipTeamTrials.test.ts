@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { prisma } from "@calcom/prisma";
 
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
@@ -44,8 +44,8 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: {
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: {
     findAllAcceptedTeamMemberships: vi.fn(),
   },
 }));
@@ -77,7 +77,7 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should set user's trialEndsAt to null", async () => {
-    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce([]);
+    vi.mocked(PrismaMembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce([]);
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -99,7 +99,7 @@ describe("skipTeamTrialsHandler", () => {
       { id: 102, name: "Team 2", isOrganization: false, parentId: null, metadata: null },
     ];
 
-    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
+    vi.mocked(PrismaMembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
       .mockResolvedValueOnce(SubscriptionStatus.TRIALING) // First team is in trial
@@ -110,7 +110,7 @@ describe("skipTeamTrialsHandler", () => {
 
     expect(prisma.user.update).toHaveBeenCalled();
 
-    expect(MembershipRepository.findAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
+    expect(PrismaMembershipRepository.findAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
       role: "OWNER",
     });
 

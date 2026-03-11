@@ -1,11 +1,11 @@
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { MembershipRepository } from "../repositories/MembershipRepository";
-import { MembershipService } from "./membershipService";
+import type { PrismaMembershipRepository } from "../repositories/PrismaMembershipRepository";
+import { MembershipService } from "./MembershipService";
 
 const mockMembershipRepository = {
   findUniqueByUserIdAndTeamId: vi.fn(),
-} as unknown as MembershipRepository;
+} as unknown as PrismaMembershipRepository;
 
 const service = new MembershipService(mockMembershipRepository);
 
@@ -36,7 +36,7 @@ describe("MembershipService", () => {
       vi.mocked(mockMembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         accepted: false,
         role: MembershipRole.MEMBER,
-      } as Awaited<ReturnType<MembershipRepository["findUniqueByUserIdAndTeamId"]>>);
+      } as Awaited<ReturnType<PrismaMembershipRepository["findUniqueByUserIdAndTeamId"]>>);
 
       const result = await service.checkMembership(1, 100);
 
@@ -52,7 +52,7 @@ describe("MembershipService", () => {
       vi.mocked(mockMembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         accepted: true,
         role: MembershipRole.MEMBER,
-      } as Awaited<ReturnType<MembershipRepository["findUniqueByUserIdAndTeamId"]>>);
+      } as Awaited<ReturnType<PrismaMembershipRepository["findUniqueByUserIdAndTeamId"]>>);
 
       const result = await service.checkMembership(1, 100);
 
@@ -68,7 +68,7 @@ describe("MembershipService", () => {
       vi.mocked(mockMembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         accepted: true,
         role: MembershipRole.ADMIN,
-      } as Awaited<ReturnType<MembershipRepository["findUniqueByUserIdAndTeamId"]>>);
+      } as Awaited<ReturnType<PrismaMembershipRepository["findUniqueByUserIdAndTeamId"]>>);
 
       const result = await service.checkMembership(1, 100);
 
@@ -84,7 +84,7 @@ describe("MembershipService", () => {
       vi.mocked(mockMembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
         accepted: true,
         role: MembershipRole.OWNER,
-      } as Awaited<ReturnType<MembershipRepository["findUniqueByUserIdAndTeamId"]>>);
+      } as Awaited<ReturnType<PrismaMembershipRepository["findUniqueByUserIdAndTeamId"]>>);
 
       const result = await service.checkMembership(1, 100);
 

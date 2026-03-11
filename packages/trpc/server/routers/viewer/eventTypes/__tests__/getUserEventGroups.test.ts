@@ -24,8 +24,8 @@ const { mockFindAllByUpIdIncludeTeam, MockMembershipRepository } = vi.hoisted(()
   return { mockFindAllByUpIdIncludeTeam, MockMembershipRepository };
 });
 
-vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
-  MembershipRepository: MockMembershipRepository,
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
+  PrismaMembershipRepository: MockMembershipRepository,
 }));
 
 vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
@@ -162,7 +162,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
@@ -221,7 +221,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
@@ -274,7 +274,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];
@@ -357,7 +357,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/MembershipRepository").MembershipRepository.findAllByUpIdIncludeTeam
+            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
           >
         >
       >[0];

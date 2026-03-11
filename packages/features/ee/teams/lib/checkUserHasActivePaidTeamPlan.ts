@@ -1,7 +1,7 @@
 import { getTeamBillingServiceFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import { getBillingPeriodRepository } from "@calcom/features/ee/billing/di/containers/BillingPeriodRepository";
 import { SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -39,7 +39,7 @@ export async function checkUserHasActivePaidTeamPlan(
     whereClause.role = "OWNER";
   }
 
-  const teams = await MembershipRepository.findAllAcceptedTeamMemberships(userId, whereClause);
+  const teams = await PrismaMembershipRepository.findAllAcceptedTeamMemberships(userId, whereClause);
 
   if (!teams.length) {
     return { isActive: false, isTrial: false, billingPeriod: null };

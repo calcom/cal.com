@@ -1,4 +1,4 @@
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
@@ -14,7 +14,7 @@ export interface ITeamBillingServiceFactoryDeps {
   billingRepositoryFactory: (isOrganization: boolean) => IBillingRepository;
   isTeamBillingEnabled: boolean;
   seatBillingStrategyFactory: SeatBillingStrategyFactory;
-  membershipRepository: MembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
 }
 
 export class TeamBillingServiceFactory {

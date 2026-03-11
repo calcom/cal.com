@@ -1,6 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 export const membershipRepositoryModule = createModule();
@@ -10,7 +10,7 @@ const loadModule = bindModuleToClassOnToken({
   module: membershipRepositoryModule,
   moduleToken,
   token,
-  classs: MembershipRepository,
+  classs: PrismaMembershipRepository,
   dep: prismaModuleLoader,
 });
 
@@ -19,4 +19,4 @@ export const moduleLoader: ModuleLoader = {
   loadModule,
 };
 
-export type { MembershipRepository };
+export type { PrismaMembershipRepository };

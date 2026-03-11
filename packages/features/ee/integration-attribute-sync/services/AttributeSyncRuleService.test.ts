@@ -1,6 +1,6 @@
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -49,7 +49,7 @@ describe("AttributeSyncRuleService", () => {
     vi.mocked(getAttributeService).mockReturnValue(mockAttributeService);
 
     service = new AttributeSyncRuleService({
-      membershipRepository: mockMembershipRepository as unknown as MembershipRepository,
+      membershipRepository: mockMembershipRepository as unknown as PrismaMembershipRepository,
       attributeToUserRepository: mockAttributeToUserRepository as unknown as PrismaAttributeToUserRepository,
     });
   });

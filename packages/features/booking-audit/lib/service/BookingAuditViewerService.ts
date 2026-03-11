@@ -2,7 +2,7 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { IAttendeeRepository } from "@calcom/features/bookings/repositories/IAttendeeRepository";
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { DisplayField, TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
@@ -24,7 +24,7 @@ interface BookingAuditViewerServiceDeps {
   bookingAuditRepository: IBookingAuditRepository;
   userRepository: UserRepository;
   bookingRepository: BookingRepository;
-  membershipRepository: MembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
   attendeeRepository: IAttendeeRepository;
   log: ISimpleLogger;
   credentialRepository: CredentialRepository;
@@ -72,7 +72,7 @@ export class BookingAuditViewerService {
   private readonly bookingAuditRepository: IBookingAuditRepository;
   private readonly userRepository: UserRepository;
   private readonly bookingRepository: BookingRepository;
-  private readonly membershipRepository: MembershipRepository;
+  private readonly membershipRepository: PrismaMembershipRepository;
   private readonly attendeeRepository: IAttendeeRepository;
   private readonly credentialRepository: CredentialRepository;
   private readonly rescheduledAuditActionService: RescheduledAuditActionService;
