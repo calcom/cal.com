@@ -1,20 +1,19 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 import { doOnOrgDomain } from "@calcom/web/playwright/lib/testUtils";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { expectHostsToBe } from "../lib/pages/bookingSuccessPage";
 import {
-  getEmbedIframe,
   bookEvent,
+  expectActualFormResponseConnectedToQueuedFormResponse,
   expectEmbedIFrameToBeVisible,
   getAllFormResponses,
-  expectActualFormResponseConnectedToQueuedFormResponse,
+  getEmbedIframe,
   getLatestQueuedFormResponse,
+  getQueuedFormResponse,
 } from "../lib/testUtils";
 
 // in parallel mode sometimes handleNewBooking endpoint throws "No available users found" error, this never happens in serial mode.
@@ -111,6 +110,69 @@ test.describe("Prerender Headless Router", () => {
         hosts: expectedRoutedTeamMembers.map((user) => ({ email: user.email })),
         frame: prerenderedIframe,
       });
+    });
+  });
+
+  test("should not create routing form response when cal.isBookingDryRun=true is passed in modal config but not in prerender", async ({
+    page,
+    embeds,
+    users,
+  }) => {
+    const userFixture = await users.create(
+      { username: "routing-forms" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        hasSubteam: true,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        seedRoutingFormWithAttributeRouting: true,
+        seedRoutingForms: true,
+      }
+    );
+
+    const orgMembership = await userFixture.getOrgMembership();
+    const teamMembership = await userFixture.getFirstTeamMembership();
+    const routingForm = userFixture.routingForms[0];
+
+    const calNamespace = "routingFormFullPrerender";
+    // Note: param.dryRunOnlyForModal=true causes the modal config to include cal.isBookingDryRun=true
+    // but prerender does NOT include it - this is the key scenario being tested
+    await embeds.gotoPlayground({
+      calNamespace,
+      url: `/embed/routing-playground.html?only=ns:${calNamespace}&param.formId=${routingForm.id}&calOrigin=${WEBAPP_URL}&cal.embed.logging=1&param.dryRunOnlyForModal=true`,
+    });
+
+    await doOnOrgDomain({ orgSlug: orgMembership.team.slug, page }, async ({ page }) => {
+      await fillRoutingRequiredAttributes(page, {
+        skills: "JavaScript",
+        location: "London",
+        email: "embed-user@example.com",
+      });
+
+      const expectedRoutedTeamMembers = [teamMembership.user];
+      // Prerender happens without dry-run, so a real queuedFormResponseId is created
+      const { prerenderedIframe, queuedFormResponseId } = await expectPrerenderedRoutedTeamBookingPage({
+        page,
+        calNamespace,
+        calLink: `/team/${teamMembership.team.slug}/team-javascript`,
+        embeds,
+        routedTeamMemberIds: expectedRoutedTeamMembers.map((user) => user.id),
+        routingForm,
+      });
+
+      await fillRestOfTheFormAndSubmit(page);
+      await expectEmbedIFrameToBeVisible({ calNamespace, page });
+
+      // Wait for the connect method to have time to execute (which would call recordResponseIfQueued)
+      await page.waitForTimeout(3000);
+
+      // In dry-run mode, the queued response should NOT be converted to an actual routing form response
+      const queuedFormResponseFromDb = await getQueuedFormResponse(queuedFormResponseId);
+      expect(queuedFormResponseFromDb?.actualResponse).toBeNull();
+
+      // Verify no routing form responses were created
+      const allFormResponses = await getAllFormResponses(routingForm.id);
+      expect(allFormResponses.length).toBe(0);
     });
   });
 });

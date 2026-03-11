@@ -8,6 +8,7 @@ window.params = {
   email: emailQueryParam,
   formId: url.searchParams.get("param.formId"),
   disablePrerender: url.searchParams.get("param.disablePrerender") === "true",
+  dryRunOnlyForModal: url.searchParams.get("param.dryRunOnlyForModal") === "true",
 };
 
 window.generateRandomHexColor = function generateRandomHexColor() {
