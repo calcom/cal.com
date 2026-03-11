@@ -153,7 +153,9 @@ export class CalVideoSettings {
   @IsOptional()
   @IsUrl()
   @DocsPropertyOptional({
+    type: String,
     description: "URL to which participants are redirected when they exit the call",
+    nullable: true,
   })
   redirectUrlOnExit?: string | null;
 

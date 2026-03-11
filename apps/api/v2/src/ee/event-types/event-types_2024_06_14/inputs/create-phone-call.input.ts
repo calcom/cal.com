@@ -29,7 +29,7 @@ export class CreatePhoneCallInput {
   calApiKey!: string;
 
   @IsBoolean()
-  @DocsProperty({ description: "Enabled status", default: true })
+  @DocsProperty({ type: Boolean, description: "Enabled status", default: true })
   enabled = true;
 
   @IsEnum(TemplateType)

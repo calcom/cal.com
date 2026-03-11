@@ -19232,7 +19232,7 @@
             "type": "string"
           },
           "required": {
-            "type": "object",
+            "type": "boolean",
             "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "hidden": {
@@ -19436,8 +19436,9 @@
             "description": "If true, the guests will not be able to record the meeting"
           },
           "redirectUrlOnExit": {
-            "type": "object",
-            "description": "URL to which participants are redirected when they exit the call"
+            "type": "string",
+            "description": "URL to which participants are redirected when they exit the call",
+            "nullable": true
           },
           "enableAutomaticRecordingForOrganizer": {
             "type": "boolean",
@@ -19988,7 +19989,7 @@
             "type": "string"
           },
           "required": {
-            "type": "object",
+            "type": "boolean",
             "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "hidden": {
@@ -23834,7 +23835,7 @@
             "description": "CAL API Key"
           },
           "enabled": {
-            "type": "object",
+            "type": "boolean",
             "default": true,
             "description": "Enabled status"
           },
