@@ -204,49 +204,51 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
-          <Link
-            data-test-id={item.name}
-            onClick={() => trackNavigationClick(item.name)}
-            href={item.href}
-            aria-label={t(item.name)}
-            target={item.target}
-            className={classNames(
-              "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-              item.child
-                ? `aria-[aria-current='page']:bg-transparent!`
-                : `[&[aria-current='page']]:bg-emphasis`,
-              isChild
-                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
-                    props.index === 0 ? "mt-0" : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"
-                  }`
-                : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm md:justify-center lg:justify-start",
-              isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                : ""
-            )}
-            aria-current={current ? "page" : undefined}>
-            {item.icon && (
-              <Icon
-                name={item.isLoading ? "rotate-cw" : item.icon}
-                className={classNames(
-                  "todesktop:!text-blue-500 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit lg:ltr:mr-2 lg:rtl:ml-2",
-                  item.isLoading && "animate-spin"
-                )}
-                aria-hidden="true"
-                aria-current={current ? "page" : undefined}
-              />
-            )}
-            {isLocaleReady ? (
-              <span
-                className="hidden w-full justify-between truncate text-ellipsis lg:flex"
-                data-testid={`${item.name}-test`}>
-                {t(item.name)}
-                {item.badge && item.badge}
-              </span>
-            ) : (
-              <SkeletonText className="h-[20px] w-full" />
-            )}
-          </Link>
+          <span>
+            <Link
+              data-test-id={item.name}
+              onClick={() => trackNavigationClick(item.name)}
+              href={item.href}
+              aria-label={t(item.name)}
+              target={item.target}
+              className={classNames(
+                "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+                item.child
+                  ? `aria-[aria-current='page']:bg-transparent!`
+                  : `[&[aria-current='page']]:bg-emphasis`,
+                isChild
+                  ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
+                      props.index === 0 ? "mt-0" : "mt-1  hover:mt-1 [&[aria-current='page']]:mt-1"
+                    }`
+                  : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm md:justify-center lg:justify-start",
+                isLocaleReady
+                  ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                  : ""
+              )}
+              aria-current={current ? "page" : undefined}>
+              {item.icon && (
+                <Icon
+                  name={item.isLoading ? "rotate-cw" : item.icon}
+                  className={classNames(
+                    "todesktop:!text-blue-500 h-4 w-4 shrink-0 aria-[aria-current='page']:text-inherit lg:ltr:mr-2 lg:rtl:ml-2",
+                    item.isLoading && "animate-spin"
+                  )}
+                  aria-hidden="true"
+                  aria-current={current ? "page" : undefined}
+                />
+              )}
+              {isLocaleReady ? (
+                <span
+                  className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+                  data-testid={`${item.name}-test`}>
+                  {t(item.name)}
+                  {item.badge && item.badge}
+                </span>
+              ) : (
+                <SkeletonText className="h-[20px] w-full" />
+              )}
+            </Link>
+          </span>
         </Tooltip>
       )}
       {hasChildren && (
