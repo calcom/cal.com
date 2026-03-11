@@ -226,7 +226,8 @@ export class GoogleCalendarService {
       orderBy: "startTime",
     });
     const items = (response.data.items || []) as GoogleCalendarEventResponse[];
-    return items.filter((e) => e.start?.dateTime != null) as GoogleCalendarEventResponse[];
+    // Include both timed events (start.dateTime) and all-day events (start.date)
+    return items.filter((e) => e.start?.dateTime != null || e.start?.date != null) as GoogleCalendarEventResponse[];
   }
 
   private async createEventWithClient(
