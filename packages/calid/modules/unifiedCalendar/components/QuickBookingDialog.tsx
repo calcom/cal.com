@@ -70,7 +70,6 @@ const buildTimeOptions = (maxMinutes: number): TimeOption[] => {
 
 const START_TIME_OPTIONS = buildTimeOptions(LAST_START_MINUTES);
 const END_TIME_OPTIONS = buildTimeOptions(LAST_END_MINUTES);
-
 const parseMinuteValue = (value: string): number | null => {
   if (!value) return null;
   const parsed = Number(value);
@@ -393,8 +392,9 @@ export const QuickBookingDialog = ({
                   <CalendarIcon className="text-muted-foreground h-4 w-4" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="bg-default w-auto p-0" align="start">
                 <Calendar
+                  className="bg-default"
                   mode="single"
                   selected={selectedDate ?? undefined}
                   onSelect={(date) => setSelectedDate(date ? startOfDay(date) : null)}
@@ -411,7 +411,7 @@ export const QuickBookingDialog = ({
                 onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                   setStartMinutes(parseMinuteValue(event.target.value))
                 }
-                className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
+                className=" bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
                 <option value="">Select start time</option>
                 {START_TIME_OPTIONS.map((option) => (
                   <option key={`start-${option.value}`} value={option.value}>

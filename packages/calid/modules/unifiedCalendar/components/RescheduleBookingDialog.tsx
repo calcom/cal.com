@@ -6,7 +6,8 @@ import { Label } from "@calid/features/ui/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { differenceInMinutes, format, setHours, setMinutes, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import type { ChangeEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
@@ -52,7 +53,6 @@ const buildTimeOptions = (maxMinutes: number): TimeOption[] => {
 
 const START_TIME_OPTIONS = buildTimeOptions(LAST_START_MINUTES);
 const END_TIME_OPTIONS = buildTimeOptions(LAST_END_MINUTES);
-
 const parseMinuteValue = (value: string): number | null => {
   if (!value) return null;
   const parsed = Number(value);
@@ -187,8 +187,9 @@ export const RescheduleBookingDialog = ({
                   <CalendarIcon className="text-muted-foreground h-4 w-4" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="bg-default w-auto p-0" align="start">
                 <Calendar
+                  className="bg-default"
                   mode="single"
                   selected={selectedDate ?? undefined}
                   onSelect={(date) => setSelectedDate(date ? startOfDay(date) : null)}

@@ -433,7 +433,7 @@ const UnifiedCalendarPage = () => {
 
       {selectedEvent && !isMobile && (
         <Sheet open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
-          <SheetContent className="sm:max-w-sm">
+          <SheetContent className="bg-default sm:max-w-sm">
             <SheetHeader>
               <SheetTitle className="text-sm">Event Details</SheetTitle>
             </SheetHeader>
@@ -454,7 +454,7 @@ const UnifiedCalendarPage = () => {
 
       {selectedEvent && isMobile && (
         <Dialog open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="max-w-[95vw]">
+          <DialogContent className="bg-default max-w-[95vw]">
             <DialogHeader>
               <DialogTitle className="text-sm">Event Details</DialogTitle>
             </DialogHeader>

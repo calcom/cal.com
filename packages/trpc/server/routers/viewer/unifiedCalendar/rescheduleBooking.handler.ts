@@ -39,9 +39,7 @@ export const rescheduleUnifiedCalendarBookingHandler = async ({
   const existingBooking = await prisma.booking.findFirst({
     where: {
       id: input.bookingId,
-      user: {
-        id: ctx.user.id,
-      },
+      userId: ctx.user.id,
       status: {
         notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
       },
