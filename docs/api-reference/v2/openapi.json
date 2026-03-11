@@ -20903,7 +20903,7 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "object",
+            "type": "number",
             "example": 60,
             "nullable": true
           },
@@ -20940,15 +20940,15 @@
             "type": "boolean"
           },
           "seatsPerTimeSlot": {
-            "type": "object",
+            "type": "number",
             "nullable": true
           },
           "forwardParamsSuccessRedirect": {
-            "type": "object",
+            "type": "boolean",
             "nullable": true
           },
           "successRedirectUrl": {
-            "type": "object",
+            "type": "string",
             "nullable": true
           },
           "isInstantEvent": {
@@ -20963,7 +20963,14 @@
             "nullable": true
           },
           "bookingLimitsCount": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookerActiveBookingsLimit": {
             "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
@@ -20972,7 +20979,14 @@
             "type": "boolean"
           },
           "bookingLimitsDuration": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
             "type": "array",
@@ -20995,7 +21009,14 @@
             "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
           },
           "confirmationPolicy": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "requiresBookerEmailVerification": {
             "type": "boolean"
@@ -21301,7 +21322,7 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "object",
+            "type": "number",
             "example": 60,
             "nullable": true
           },
@@ -21338,15 +21359,15 @@
             "type": "boolean"
           },
           "seatsPerTimeSlot": {
-            "type": "object",
+            "type": "number",
             "nullable": true
           },
           "forwardParamsSuccessRedirect": {
-            "type": "object",
+            "type": "boolean",
             "nullable": true
           },
           "successRedirectUrl": {
-            "type": "object",
+            "type": "string",
             "nullable": true
           },
           "isInstantEvent": {
@@ -21361,7 +21382,14 @@
             "nullable": true
           },
           "bookingLimitsCount": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookerActiveBookingsLimit": {
             "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
@@ -21370,7 +21398,14 @@
             "type": "boolean"
           },
           "bookingLimitsDuration": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseBookingLimitsDuration_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "bookingWindow": {
             "type": "array",
@@ -21393,7 +21428,14 @@
             "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
           },
           "confirmationPolicy": {
-            "type": "object"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BaseConfirmationPolicy_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
           },
           "requiresBookerEmailVerification": {
             "type": "boolean"
@@ -21480,11 +21522,11 @@
             "type": "number"
           },
           "ownerId": {
-            "type": "object",
+            "type": "number",
             "nullable": true
           },
           "parentEventTypeId": {
-            "type": "object",
+            "type": "number",
             "description": "For managed event types, parent event type is the event type that this event type is based on",
             "nullable": true
           },

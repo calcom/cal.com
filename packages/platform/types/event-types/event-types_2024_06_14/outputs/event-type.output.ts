@@ -33,9 +33,11 @@ import {
 import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
+import { BaseBookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
+import { BaseConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
 import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.input";
-import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
+import { Disabled_2024_06_14 } from "../inputs/disabled.input";
 import { EmailSettings_2024_06_14 } from "../inputs/email-settings.input";
 import {
   EmailDefaultFieldOutput_2024_06_14,
@@ -184,7 +186,10 @@ class EventTypeTeam {
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
-  EmailSettings_2024_06_14
+  EmailSettings_2024_06_14,
+  BaseBookingLimitsCount_2024_06_14,
+  BaseConfirmationPolicy_2024_06_14,
+  Disabled_2024_06_14
 )
 class BaseEventTypeOutput_2024_06_14 {
   @IsInt()
@@ -276,7 +281,7 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsInt()
   @IsOptional()
-  @ApiPropertyOptional({ example: 60, nullable: true })
+  @ApiPropertyOptional({ type: Number, example: 60, nullable: true })
   slotInterval?: number | null;
 
   @IsOptional()
@@ -323,16 +328,16 @@ class BaseEventTypeOutput_2024_06_14 {
   lockTimeZoneToggleOnBookingPage!: boolean;
 
   @IsInt()
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: Number, nullable: true })
   @IsOptional()
   seatsPerTimeSlot?: number | null;
 
   @IsBoolean()
-  @DocsProperty({ nullable: true })
+  @DocsProperty({ type: Boolean, nullable: true })
   forwardParamsSuccessRedirect!: boolean | null;
 
   @IsString()
-  @DocsProperty({ nullable: true })
+  @DocsProperty({ type: String, nullable: true })
   successRedirectUrl!: string | null;
 
   @IsBoolean()
@@ -349,7 +354,12 @@ class BaseEventTypeOutput_2024_06_14 {
   scheduleId!: number | null;
 
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    oneOf: [
+      { $ref: getSchemaPath(BaseBookingLimitsCount_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
@@ -359,11 +369,16 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    oneOf: [
+      { $ref: getSchemaPath(BaseBookingLimitsDuration_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
@@ -381,21 +396,26 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookerLayouts_2024_06_14)
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: BookerLayouts_2024_06_14 })
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    oneOf: [
+      { $ref: getSchemaPath(BaseConfirmationPolicy_2024_06_14) },
+      { $ref: getSchemaPath(Disabled_2024_06_14) },
+    ],
+  })
   confirmationPolicy?: ConfirmationPolicy_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   requiresBookerEmailVerification?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   hideCalendarNotes?: boolean;
 
   @IsOptional()
@@ -411,12 +431,12 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Number })
   offsetStart?: number;
 
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: String })
   customName?: string;
 
   @IsOptional()
@@ -426,17 +446,18 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   useDestinationCalendarEmail?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   hideCalendarEventDetails?: boolean;
 
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
     description:
       "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events",
   })
@@ -495,6 +516,7 @@ class BaseEventTypeOutput_2024_06_14 {
   @IsOptional()
   @IsBoolean()
   @ApiPropertyOptional({
+    type: Boolean,
     description: "Enabling this option allows for past events to be rescheduled.",
   })
   allowReschedulingPastBookings?: boolean;
@@ -563,12 +585,13 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @IsInt()
   @IsOptional()
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: Number, nullable: true })
   ownerId?: number | null;
 
   @IsInt()
   @IsOptional()
   @ApiPropertyOptional({
+    type: Number,
     description:
       "For managed event types, parent event type is the event type that this event type is based on",
     nullable: true,
@@ -583,7 +606,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @IsBoolean()
   @IsOptional()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   assignAllTeamMembers?: boolean;
 
   @IsEnum(["roundRobin", "collective", "managed"] as const)
@@ -592,7 +615,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: Boolean })
   hideCalendarEventDetails?: boolean;
 
   @ValidateNested()
@@ -612,6 +635,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @IsOptional()
   @ApiPropertyOptional({
+    type: Boolean,
     description: "Rescheduled events will be assigned to the same host as initially scheduled.",
   })
   rescheduleWithSameRoundRobinHost?: boolean;
