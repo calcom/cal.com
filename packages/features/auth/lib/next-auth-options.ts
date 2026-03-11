@@ -273,8 +273,27 @@ export async function authorizeCredentials(
     return "INACTIVE_ADMIN";
   };
 
-  // Create a NextAuth compatible user object using our presenter
-  return AdapterUserPresenter.fromCalUser(user, validateRole(user.role), hasActiveTeams);
+  const role = validateRole(user.role);
+  const baseUser = AdapterUserPresenter.fromCalUser(user, role, hasActiveTeams);
+
+  if (role === "INACTIVE_ADMIN") {
+    const passwordValid = isPasswordValid(credentials.password, false, true);
+    const has2FA = user.twoFactorEnabled;
+
+    let reason: "both" | "password" | "2fa";
+
+    if (!passwordValid && !has2FA) {
+      reason = "both";
+    } else if (!passwordValid) {
+      reason = "password";
+    } else {
+      reason = "2fa";
+    }
+
+    return { ...baseUser, inactiveAdminReason: reason };
+  }
+
+  return baseUser;
 }
 
 export const CalComCredentialsProvider = CredentialsProvider({
@@ -729,6 +748,7 @@ export const getOptions = ({
           locale: user?.locale,
           profileId: user.profile?.id ?? token.profileId ?? null,
           upId: user.profile?.upId ?? token.upId ?? null,
+          inactiveAdminReason: user.inactiveAdminReason,
         } as JWT;
       }
 
@@ -954,6 +974,7 @@ export const getOptions = ({
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
+          inactiveAdminReason: token.inactiveAdminReason,
         },
       };
       return calendsoSession;
