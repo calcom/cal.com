@@ -370,12 +370,113 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
 const Provider = ({ children }: ProviderProps) => children;
 
+const UrlWidget = (props: TextLikeComponentPropsRAQB) => {
+  return <TextWidget type="url" {...props} />;
+};
+
+const AddressWidget = (props: TextLikeComponentPropsRAQB) => {
+  return <TextWidget type="text" placeholder={props.placeholder || "Enter address"} {...props} />;
+};
+
+const MultiEmailWidget = (props: TextLikeComponentPropsRAQB) => {
+  return <TextWidget type="email" placeholder={props.placeholder || "Enter email addresses"} {...props} />;
+};
+
+const RadioWidget = ({
+  listValues,
+  setValue,
+  value,
+  readOnly,
+}: SelectLikeComponentPropsRAQB) => {
+  if (!listValues) {
+    return null;
+  }
+  return (
+    <div className="mb-2 flex flex-col gap-1">
+      {listValues.map((item) => (
+        <label key={item.value} className="flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            value={item.value}
+            checked={value === item.value}
+            disabled={readOnly}
+            onChange={() => setValue(item.value)}
+            className="h-4 w-4"
+          />
+          {item.title}
+        </label>
+      ))}
+    </div>
+  );
+};
+
+const CheckboxWidget = ({
+  listValues,
+  setValue,
+  value,
+  readOnly,
+}: SelectLikeComponentPropsRAQB<string[]>) => {
+  if (!listValues) {
+    return null;
+  }
+  const currentValues: string[] = Array.isArray(value) ? value : value ? [value as unknown as string] : [];
+  return (
+    <div className="mb-2 flex flex-col gap-1">
+      {listValues.map((item) => (
+        <label key={item.value} className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            value={item.value}
+            checked={currentValues.includes(item.value)}
+            disabled={readOnly}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setValue([...currentValues, item.value]);
+              } else {
+                setValue(currentValues.filter((v) => v !== item.value));
+              }
+            }}
+            className="h-4 w-4"
+          />
+          {item.title}
+        </label>
+      ))}
+    </div>
+  );
+};
+
+const BooleanWidget = ({
+  value,
+  setValue,
+  readOnly,
+  label,
+}: TextLikeComponentPropsRAQB<boolean>) => {
+  return (
+    <label className="mb-2 flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={!!value}
+        disabled={readOnly}
+        onChange={(e) => setValue(e.target.checked)}
+        className="h-4 w-4"
+      />
+      {label}
+    </label>
+  );
+};
+
 const widgets = {
   TextWidget,
   TextAreaWidget,
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  UrlWidget,
+  AddressWidget,
+  MultiEmailWidget,
+  RadioWidget,
+  CheckboxWidget,
+  BooleanWidget,
   FieldSelect,
   Button,
   ButtonGroup,

@@ -91,8 +91,8 @@ export const FormBuilder = function FormBuilder({
   title: string;
   description: string;
   addFieldLabel: string;
-  disabled: boolean;
-  LockedIcon: false | JSX.Element;
+  disabled?: boolean;
+  LockedIcon?: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useFormContext } from "react-hook-form";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -159,6 +160,13 @@ function SingleForm({
   } as UptoDateForm;
 
   const handleSubmit = (data: RoutingFormWithResponseCount) => {
+    const fieldsWithIds = data.fields?.map((field) => {
+      if (!field.id) {
+        return { ...field, identifier: field.name, id: uuidv4() };
+      }
+      return field;
+    });
+    data.fields = fieldsWithIds;
     mutation.mutate({
       ...data,
     });

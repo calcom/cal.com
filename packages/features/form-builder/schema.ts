@@ -110,6 +110,7 @@ export const fieldTypeConfigSchema = z
   });
 
 export const fieldsSchema = z.array(fieldSchema);
+export type BookingField = z.infer<typeof fieldSchema>;
 
 function stringifyResponse(response: unknown): string {
   if (typeof response !== "string") {

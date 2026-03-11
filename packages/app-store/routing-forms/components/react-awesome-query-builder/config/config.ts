@@ -15,6 +15,24 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    boolean: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
@@ -40,6 +58,61 @@ function getTypes(configFor: ConfigFor) {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        url: {
+          ...BasicConfig.types.text.widgets.text,
+        },
+      },
+    },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        address: {
+          ...BasicConfig.types.text.widgets.text,
+        },
+      },
+    },
+    multiemail: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        multiemail: {
+          ...BasicConfig.types.text.widgets.text,
+        },
+      },
+    },
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+        radio: {
+          ...BasicConfig.types.select.widgets.select,
+        },
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        checkbox: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+        },
+      },
+    },
+    boolean: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        boolean: {
+          ...BasicConfig.types.text.widgets.text,
+          operators: ["select_equals", "select_not_equals"],
+        },
       },
     },
     multiselect: {

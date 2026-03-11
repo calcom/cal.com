@@ -27,6 +27,12 @@ const {
   MultiSelectWidget,
   SelectWidget,
   NumberWidget,
+  UrlWidget,
+  AddressWidget,
+  MultiEmailWidget,
+  RadioWidget,
+  CheckboxWidget,
+  BooleanWidget,
   FieldSelect,
   Conjs,
   Button,
@@ -58,6 +64,28 @@ const PhoneFactory = (props: WidgetProps | undefined) => {
   }
   return <TextWidget type="tel" {...props} />;
 };
+
+const UrlFactory = (props: WidgetProps | undefined) => renderComponent(props, UrlWidget);
+const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
+const MultiEmailFactory = (props: WidgetProps | undefined) => renderComponent(props, MultiEmailWidget);
+
+const RadioFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, RadioWidget);
+
+const CheckboxFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, CheckboxWidget);
+
+const BooleanFactory = (props: WidgetProps | undefined) => renderComponent(props, BooleanWidget);
 
 const EmailFactory = (props: WidgetProps | undefined) => {
   if (!props) {
@@ -110,6 +138,30 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     email: {
       ...widgets.text,
       factory: EmailFactory,
+    },
+    url: {
+      ...widgets.text,
+      factory: UrlFactory,
+    },
+    address: {
+      ...widgets.text,
+      factory: AddressFactory,
+    },
+    multiemail: {
+      ...widgets.text,
+      factory: MultiEmailFactory,
+    },
+    radio: {
+      ...widgets.select,
+      factory: RadioFactory,
+    } as SelectWidgetType,
+    checkbox: {
+      ...widgets.multiselect,
+      factory: CheckboxFactory,
+    } as SelectWidgetType,
+    boolean: {
+      ...widgets.text,
+      factory: BooleanFactory,
     },
   };
   return widgetsWithFactory;
