@@ -256,8 +256,9 @@ export class AvailableSlotsService {
       return [];
     }
 
-    // Batch-fetch all attendee users in a single query to avoid N+1 DB calls
-    const guestUsers = await userRepo.findManyByEmails({ emails: attendeeEmails });
+    // Batch-fetch all attendee users in a single query, including secondary verified emails,
+    // to avoid missing attendees who booked with an alias/secondary Cal.com address.
+    const guestUsers = await userRepo.findManyByEmailsIncludingSecondary({ emails: attendeeEmails });
     const guestUserByEmail = new Map(guestUsers.map((u) => [u.email.toLowerCase(), u]));
 
     const guestBusyTimes: EventBusyDate[] = [];
