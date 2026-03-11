@@ -1,6 +1,5 @@
 import { ErrorWithCode } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
-
 import { BookingRepository } from "../repositories/BookingRepository";
 import { BookingAccessService } from "./BookingAccessService";
 
@@ -27,7 +26,7 @@ export class BookingDetailsService {
   }
 
   async getBookingDetails({ userId, bookingUid }: { userId: number; bookingUid: string }) {
-    const hasAccess = await this.bookingAccessService.checkBookingAccessWithPBAC({
+    const hasAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
       userId,
       bookingUid,
     });
