@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePostHog } from "posthog-js/react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DunningStatus } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -39,8 +42,19 @@ function getBannerConfig(record: BannerRecord) {
   }
 }
 
+function getDunningTrackingProps(record: BannerRecord) {
+  return {
+    status: record.status,
+    team_id: record.teamId,
+    team_name: record.teamName,
+    is_enterprise: record.isEnterprise,
+    is_organization: record.isOrganization,
+  };
+}
+
 function ResubscribeAction({ record }: { record: BannerRecord }) {
   const { t } = useLocale();
+  const posthog = usePostHog();
   const resubscribeMutation = trpc.viewer.teams.resubscribe.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
@@ -54,7 +68,10 @@ function ResubscribeAction({ record }: { record: BannerRecord }) {
 
   return (
     <button
-      onClick={() => resubscribeMutation.mutate({ teamId: record.teamId })}
+      onClick={() => {
+        posthog?.capture("dunning_banner_resubscribe_clicked", getDunningTrackingProps(record));
+        resubscribeMutation.mutate({ teamId: record.teamId });
+      }}
       disabled={resubscribeMutation.isPending}
       className="border-b border-b-black hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed">
       {resubscribeMutation.isPending ? <Spinner className="inline h-4 w-4 animate-spin" /> : t("resubscribe")}
@@ -64,17 +81,18 @@ function ResubscribeAction({ record }: { record: BannerRecord }) {
 
 export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
   const { t } = useLocale();
+  const posthog = usePostHog();
 
-  if (!data || data.length === 0) return null;
+  const hasData = data && data.length > 0;
 
-  const hasOrgRecord = data.some((r) => r.isOrganization);
-  const filtered = hasOrgRecord ? data.filter((r) => r.isOrganization) : data;
+  const displayRecord = hasData ? getDisplayRecord(data) : null;
 
-  const sorted = [...filtered].sort(
-    (a, b) =>
-      (SEVERITY_ORDER[b.status as DunningStatus] ?? 0) - (SEVERITY_ORDER[a.status as DunningStatus] ?? 0)
-  );
-  const displayRecord = sorted[0];
+  useEffect(() => {
+    if (!displayRecord) return;
+    posthog?.capture("dunning_banner_shown", getDunningTrackingProps(displayRecord));
+  }, [displayRecord?.teamId, displayRecord?.status]);
+
+  if (!displayRecord) return null;
 
   const { variant, messageKey } = getBannerConfig(displayRecord);
   const needsResubscribe =
@@ -96,11 +114,28 @@ export function DueInvoiceBanner({ data }: DueInvoiceBannerProps) {
             href={paymentUrl}
             target={displayRecord.invoiceUrl ? "_blank" : undefined}
             rel={displayRecord.invoiceUrl ? "noopener noreferrer" : undefined}
-            className="border-b border-b-black hover:opacity-80">
+            className="border-b border-b-black hover:opacity-80"
+            onClick={() =>
+              posthog?.capture("dunning_banner_pay_now_clicked", {
+                ...getDunningTrackingProps(displayRecord),
+                payment_url_type: displayRecord.invoiceUrl ? "invoice" : "billing_page",
+              })
+            }>
             {t("pay_now")}
           </a>
         )
       }
     />
   );
+}
+
+function getDisplayRecord(data: DueInvoiceBannerProps["data"]): BannerRecord {
+  const hasOrgRecord = data.some((r) => r.isOrganization);
+  const filtered = hasOrgRecord ? data.filter((r) => r.isOrganization) : data;
+
+  const sorted = [...filtered].sort(
+    (a, b) =>
+      (SEVERITY_ORDER[b.status as DunningStatus] ?? 0) - (SEVERITY_ORDER[a.status as DunningStatus] ?? 0)
+  );
+  return sorted[0];
 }
