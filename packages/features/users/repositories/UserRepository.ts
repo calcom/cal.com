@@ -277,6 +277,18 @@ export class UserRepository {
     return user;
   }
 
+  async findManyByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    const users = await this.prismaClient.user.findMany({
+      where: {
+        email: { in: normalizedEmails },
+      },
+      select: userSelect,
+    });
+    return users;
+  }
+
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 

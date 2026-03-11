@@ -256,13 +256,19 @@ export class AvailableSlotsService {
       return [];
     }
 
-    // For each attendee, check if they are a Cal.com user (and not already a host)
+    // Batch-fetch all attendee users in a single query to avoid N+1 DB calls
+    const guestUsers = await userRepo.findManyByEmails({ emails: attendeeEmails });
+    const guestUserByEmail = new Map(guestUsers.map((u) => [u.email.toLowerCase(), u]));
+
     const guestBusyTimes: EventBusyDate[] = [];
     for (const email of attendeeEmails) {
-      const guestUser = await userRepo.findByEmail({ email });
+      const guestUser = guestUserByEmail.get(email.toLowerCase()) ?? null;
       if (!guestUser) {
         // Not a Cal.com user — skip (preserve existing behavior)
-        log.debug("_getGuestBusyTimesForReschedule: attendee is not a Cal.com user", { email });
+        const maskedEmail = email.replace(/(?<=^.).*(?=@)/, "***");
+        log.debug("_getGuestBusyTimesForReschedule: attendee is not a Cal.com user", {
+          email: maskedEmail,
+        });
         continue;
       }
       if (hostUserIds.has(guestUser.id)) {
@@ -270,9 +276,10 @@ export class AvailableSlotsService {
         continue;
       }
 
+      const maskedEmail = guestUser.email.replace(/(?<=^.).*(?=@)/, "***");
       log.debug("_getGuestBusyTimesForReschedule: fetching busy times for Cal.com guest", {
         guestUserId: guestUser.id,
-        email,
+        email: maskedEmail,
       });
 
       // Fetch the guest's accepted bookings in the requested range

@@ -26,7 +26,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       findAllExistingBookingsForEventTypeBetween: ReturnType<typeof vi.fn>;
     };
     userRepo: {
-      findByEmail: ReturnType<typeof vi.fn>;
+      findManyByEmails: ReturnType<typeof vi.fn>;
     };
   };
 
@@ -43,7 +43,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
         findAllExistingBookingsForEventTypeBetween: vi.fn().mockResolvedValue([]),
       },
       userRepo: {
-        findByEmail: vi.fn().mockResolvedValue(null),
+        findManyByEmails: vi.fn().mockResolvedValue([]),
       },
     };
 
@@ -63,7 +63,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     });
 
     expect(result).toEqual([]);
-    expect(mockDependencies.userRepo.findByEmail).not.toHaveBeenCalled();
+    expect(mockDependencies.userRepo.findManyByEmails).not.toHaveBeenCalled();
   });
 
   it("should return empty array when the booking has no attendees", async () => {
@@ -83,7 +83,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     });
 
     expect(result).toEqual([]);
-    expect(mockDependencies.userRepo.findByEmail).not.toHaveBeenCalled();
+    expect(mockDependencies.userRepo.findManyByEmails).not.toHaveBeenCalled();
   });
 
   it("should return empty array when attendee is not a Cal.com user", async () => {
@@ -92,8 +92,8 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       uid: rescheduleUid,
       attendees: [{ email: "guest@external.com", name: "External Guest" }],
     });
-    // userRepo.findByEmail returns null (not a Cal.com user)
-    mockDependencies.userRepo.findByEmail.mockResolvedValue(null);
+    // findManyByEmails returns empty array (not a Cal.com user)
+    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([]);
 
     const result = await (
       service as unknown as PrivateAvailableSlotsService
@@ -116,10 +116,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: "host@example.com", name: "Host User" }],
     });
     // The attendee IS a Cal.com user — but they're also a host
-    mockDependencies.userRepo.findByEmail.mockResolvedValue({
-      id: hostUserId,
-      email: "host@example.com",
-    });
+    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
+      { id: hostUserId, email: "host@example.com" },
+    ]);
 
     const result = await (
       service as unknown as PrivateAvailableSlotsService
@@ -147,10 +146,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: guestEmail, name: "Cal.com Guest" }],
     });
 
-    mockDependencies.userRepo.findByEmail.mockResolvedValue({
-      id: guestUserId,
-      email: guestEmail,
-    });
+    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
+      { id: guestUserId, email: guestEmail },
+    ]);
 
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween.mockResolvedValue([
       {
@@ -180,6 +178,10 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       end: guestBookingEnd,
     });
 
+    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledWith({
+      emails: [guestEmail],
+    });
+
     expect(mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween).toHaveBeenCalledWith({
       userIdAndEmailMap: new Map([[guestUserId, guestEmail]]),
       startDate: startTime.toDate(),
@@ -197,10 +199,9 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: guestEmail, name: "Cal.com Guest" }],
     });
 
-    mockDependencies.userRepo.findByEmail.mockResolvedValue({
-      id: guestUserId,
-      email: guestEmail,
-    });
+    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
+      { id: guestUserId, email: guestEmail },
+    ]);
 
     // The guest's bookings include the booking being rescheduled
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween.mockResolvedValue([
@@ -249,9 +250,11 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       ],
     });
 
-    mockDependencies.userRepo.findByEmail
-      .mockResolvedValueOnce({ id: guest1UserId, email: guest1Email })
-      .mockResolvedValueOnce({ id: guest2UserId, email: guest2Email });
+    // Both guests returned in single batch query
+    mockDependencies.userRepo.findManyByEmails.mockResolvedValue([
+      { id: guest1UserId, email: guest1Email },
+      { id: guest2UserId, email: guest2Email },
+    ]);
 
     mockDependencies.bookingRepo.findAllExistingBookingsForEventTypeBetween
       .mockResolvedValueOnce([
@@ -291,5 +294,11 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({ start: guest1BookingStart, end: guest1BookingEnd });
     expect(result[1]).toEqual({ start: guest2BookingStart, end: guest2BookingEnd });
+
+    // Verify only ONE batch query was made for all attendees
+    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledTimes(1);
+    expect(mockDependencies.userRepo.findManyByEmails).toHaveBeenCalledWith({
+      emails: [guest1Email, guest2Email],
+    });
   });
 });
