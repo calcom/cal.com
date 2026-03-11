@@ -1,4 +1,4 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -13,6 +13,7 @@ import { createHandler } from "./createWithPaymentIntent.handler";
 
 vi.stubEnv("STRIPE_PRIVATE_KEY", "test-stripe-private-key");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "test-stripe-org-monthly-price-id");
+vi.stubEnv("STRIPE_ORG_ANNUAL_PRICE_ID", "test-stripe-org-annual-price-id");
 vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "test-stripe-org-product-id");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW", "37");
 

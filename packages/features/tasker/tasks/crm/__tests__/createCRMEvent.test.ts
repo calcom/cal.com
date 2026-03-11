@@ -1,4 +1,4 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
@@ -406,10 +406,7 @@ describe("createCRMEvent", () => {
       .mockResolvedValueOnce(mockSalesforceCredential)
       .mockResolvedValueOnce(mockHubspotCredential);
 
-    prismaMock.credential.findMany.mockResolvedValueOnce([
-      mockSalesforceCredential,
-      mockHubspotCredential,
-    ]);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockSalesforceCredential, mockHubspotCredential]);
 
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 

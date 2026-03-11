@@ -1,5 +1,35 @@
-import { bootstrap } from "@/app";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  AttendeeCancelledEmail,
+  AttendeeDeclinedEmail,
+  AttendeeRequestEmail,
+  AttendeeRescheduledEmail,
+  AttendeeScheduledEmail,
+  OrganizerCancelledEmail,
+  OrganizerRequestEmail,
+  OrganizerRescheduledEmail,
+  OrganizerScheduledEmail,
+} from "@calcom/platform-libraries/emails";
+import type {
+  BookingOutput_2024_08_13,
+  CreateBookingInput_2024_08_13,
+  GetBookingOutput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
+import type { Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
@@ -8,37 +38,6 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import {
-  OrganizerScheduledEmail,
-  AttendeeScheduledEmail,
-  OrganizerRescheduledEmail,
-  AttendeeRescheduledEmail,
-  OrganizerCancelledEmail,
-  AttendeeCancelledEmail,
-  AttendeeRequestEmail,
-  OrganizerRequestEmail,
-  AttendeeDeclinedEmail,
-} from "@calcom/platform-libraries/emails";
-import type {
-  CreateBookingInput_2024_08_13,
-  BookingOutput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-  GetBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type { User, Team } from "@calcom/prisma/client";
 
 jest
   .spyOn(AttendeeScheduledEmail.prototype, "getHtml")
@@ -73,6 +72,7 @@ type EmailSetup = {
   eventTypeId: number;
   createdBookingUid: string;
   rescheduledBookingUid: string;
+  accessToken: string;
 };
 
 describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
@@ -85,6 +85,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
+  let tokensRepositoryFixture: TokensRepositoryFixture;
 
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
@@ -94,12 +95,9 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   const userEmailsDisabled = `confirm-emails-2024-08-13-user-${randomString()}@api.com`;
 
   beforeAll(async () => {
-    const moduleRef = await withApiAuth(
-      authEmail,
-      Test.createTestingModule({
-        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-      })
-    )
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+    })
       .overrideGuard(PermissionsGuard)
       .useValue({
         canActivate: () => true,
@@ -112,6 +110,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+    tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
 
     organization = await teamRepositoryFixture.create({
       name: `confirm-emails-2024-08-13-organization-${randomString()}`,
@@ -152,6 +151,8 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       },
     });
 
+    const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClientEmailsEnabled.id);
+
     const userSchedule: CreateScheduleInput_2024_04_15 = {
       name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
@@ -174,6 +175,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       eventTypeId: event.id,
       createdBookingUid: "",
       rescheduledBookingUid: "",
+      accessToken: tokens.accessToken,
     };
   }
 
@@ -188,6 +190,8 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         },
       },
     });
+    const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClientEmailsDisabled.id);
+
     const userSchedule: CreateScheduleInput_2024_04_15 = {
       name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
@@ -209,6 +213,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       eventTypeId: event.id,
       createdBookingUid: "",
       rescheduledBookingUid: "",
+      accessToken: tokens.accessToken,
     };
   }
 
@@ -277,6 +282,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${emailsDisabledSetup.createdBookingUid}/confirm`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.accessToken}`)
         .expect(200)
         .then(async (response) => {
           const responseBody: GetBookingOutput_2024_08_13 = response.body;
@@ -331,6 +337,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${emailsDisabledSetup.createdBookingUid}/decline`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.accessToken}`)
         .expect(200)
         .then(async (response) => {
           const responseBody: GetBookingOutput_2024_08_13 = response.body;
@@ -391,6 +398,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         return request(app.getHttpServer())
           .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/confirm`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${emailsEnabledSetup.accessToken}`)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingOutput_2024_08_13 = response.body;
@@ -508,6 +516,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
         return request(app.getHttpServer())
           .post(`/v2/bookings/${emailsEnabledSetup.createdBookingUid}/decline`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${emailsEnabledSetup.accessToken}`)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingOutput_2024_08_13 = response.body;

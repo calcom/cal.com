@@ -1,7 +1,6 @@
-import { describe, expect, vi, beforeEach, test } from "vitest";
-
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import {
   SchedulingType,
   TimeUnit,
@@ -10,7 +9,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { EmailWorkflowService } from "./EmailWorkflowService";
 
 vi.mock("@calcom/emails/workflow-email-service", () => ({
@@ -21,13 +20,39 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
 vi.mock("@calcom/prisma", () => ({
   default: {},
   prisma: {},
+}));
+
+vi.mock("@calcom/emails/lib/generateIcsString", () => ({
+  default: vi.fn().mockReturnValue("mock-ics-content"),
+}));
+
+const mockTranslationService = vi.hoisted(() => ({
+  getWorkflowStepTranslation: vi.fn(),
+}));
+
+vi.mock("@calcom/features/di/containers/TranslationService", () => ({
+  getTranslationService: vi.fn().mockResolvedValue(mockTranslationService),
+}));
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = await vi.importActual<typeof import("@calcom/lib/constants")>("@calcom/lib/constants");
+  return {
+    ...actual,
+    WEBAPP_URL: "https://cal.com",
+    APP_NAME: "Cal.com",
+  };
+});
+
+vi.mock("short-uuid", () => ({
+  __esModule: true,
+  default: () => ({ fromUUID: (uid: string) => uid }),
 }));
 
 const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findByIdIncludeStepAndWorkflow"> = {
@@ -43,6 +68,7 @@ describe("EmailWorkflowService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockReset();
     emailWorkflowService = new EmailWorkflowService(
       mockWorkflowReminderRepository as WorkflowReminderRepository,
       mockBookingSeatRepository as BookingSeatRepository
@@ -497,6 +523,313 @@ describe("EmailWorkflowService", () => {
           hideBranding: false,
         })
       ).rejects.toThrow("Either evt or formData must be provided");
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - ICS attachment", () => {
+    const mockBookingInfo = {
+      uid: "booking-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+    };
+
+    test("should NOT include ICS attachment for BOOKING_REQUESTED trigger even when includeCalendarEvent is true", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BOOKING_REQUESTED,
+      });
+
+      expect(result.attachments).toBeUndefined();
+    });
+
+    test("should include ICS attachment for BEFORE_EVENT trigger when includeCalendarEvent is true", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: true,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.attachments).toBeDefined();
+      expect(result.attachments).toHaveLength(1);
+      expect(result.attachments?.[0].filename).toBe("event.ics");
+      expect(result.attachments?.[0].contentType).toBe("text/calendar; charset=UTF-8; method=REQUEST");
+    });
+
+    test("should NOT include ICS attachment when includeCalendarEvent is false", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "Test Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.attachments).toBeUndefined();
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Auto Translation", () => {
+    const mockBookingInfo = {
+      uid: "booking-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: "h:mma",
+      },
+      attendees: [
+        {
+          name: "Spanish Attendee",
+          email: "attendee@example.com",
+          timeZone: "Europe/Madrid",
+          language: { locale: "es" },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockReset();
+    });
+
+    test("should use translated content when autoTranslateEnabled is true and translation exists", async () => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockResolvedValue({
+        translatedBody: "Cuerpo traducido",
+        translatedSubject: "Asunto traducido",
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).toHaveBeenCalledTimes(1);
+      expect(result.subject).toBe("Asunto traducido");
+      expect(result.html).toContain("Cuerpo traducido");
+    });
+
+    test("should use original content when autoTranslateEnabled is false", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: false,
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).not.toHaveBeenCalled();
+      expect(result.subject).toBe("Original Subject");
+    });
+
+    test("should fallback to original content when translation not found", async () => {
+      vi.mocked(mockTranslationService.getWorkflowStepTranslation).mockResolvedValue({
+        translatedBody: null,
+        translatedSubject: null,
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).toHaveBeenCalledTimes(1);
+      expect(result.subject).toBe("Original Subject");
+    });
+
+    test("should not translate for non-attendee actions", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["organizer@example.com"],
+        hideBranding: false,
+        emailSubject: "Original Subject",
+        emailBody: "Original Body",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_HOST,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+        workflowStepId: 123,
+        autoTranslateEnabled: true,
+        sourceLocale: "en",
+      });
+
+      expect(mockTranslationService.getWorkflowStepTranslation).not.toHaveBeenCalled();
+      expect(result.subject).toBe("Original Subject");
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Cal Video meeting URL", () => {
+    const mockBookingInfoWithCalVideo = {
+      uid: "booking-cal-video-123",
+      bookerUrl: "https://cal.com",
+      title: "Test Meeting with Cal Video",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: TimeFormat.TWELVE_HOUR,
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      videoCallData: {
+        type: "daily_video",
+        url: "https://test-org.daily.co/test-room-name",
+        id: "test-room-name",
+        password: "test-password",
+      },
+      location: "Cal Video",
+    };
+
+    test("should use Cal.com video URL instead of daily.co URL for REMINDER template when using Cal video", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithCalVideo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "", // Empty body with REMINDER template triggers REMINDER template
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The meetingUrl should NOT contain daily.co
+      expect(result.html).not.toContain("daily.co");
+      // The meetingUrl should contain the Cal.com video URL format
+      expect(result.html).toContain("/video/booking-cal-video-123");
+    });
+
+    test("should use Cal.com video URL instead of daily.co URL for custom template when using Cal video", async () => {
+      const customEmailBody = "Join the meeting at {MEETING_URL}";
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithCalVideo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: customEmailBody,
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.CUSTOM,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // The meetingUrl should NOT contain daily.co
+      expect(result.html).not.toContain("daily.co");
+      // The meetingUrl should contain the Cal.com video URL format
+      expect(result.html).toContain("/video/booking-cal-video-123");
+    });
+
+    test("should use Cal.com video URL format when videoCallData.url contains daily.co domain", async () => {
+      const mockBookingInfoWithDailyCoUrl = {
+        ...mockBookingInfoWithCalVideo,
+        videoCallData: {
+          type: "daily_video",
+          url: "https://some-org.daily.co/another-room-name",
+          id: "another-room-name",
+          password: "test-password",
+        },
+      };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfoWithDailyCoUrl,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "Test Subject",
+        emailBody: "", // Empty body with REMINDER template triggers REMINDER template
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      // Even though videoCallData.url contains daily.co, the meetingUrl should NOT contain it
+      expect(result.html).not.toContain("daily.co");
+      expect(result.html).not.toContain("some-org.daily.co");
+      expect(result.html).not.toContain("another-room-name");
+      // Should use Cal.com video URL instead
+      expect(result.html).toContain("/video/booking-cal-video-123");
     });
   });
 });

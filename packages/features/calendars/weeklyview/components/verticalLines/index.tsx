@@ -1,7 +1,6 @@
 import type dayjs from "@calcom/dayjs";
+import type { BorderColor } from "@calcom/features/calendars/weeklyview/types/common";
 import classNames from "@calcom/ui/classNames";
-
-import type { BorderColor } from "../../types/common";
 
 export const VerticalLines = ({ days, borderColor }: { days: dayjs.Dayjs[]; borderColor: BorderColor }) => {
   const isRTL = () => {

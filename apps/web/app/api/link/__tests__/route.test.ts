@@ -1,5 +1,9 @@
+import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
   defaultResponderForAppDir:
@@ -36,42 +40,49 @@ vi.mock("@calcom/lib/crypto", () => ({
   ),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: {
+vi.mock("@calcom/prisma", () => {
+  const mockBookingFindUniqueOrThrow = vi.fn().mockResolvedValue({
+    id: 1,
+    uid: "test-booking-uid",
+    recurringEventId: null,
+  });
+  const mockUserFindUniqueOrThrow = vi.fn().mockResolvedValue({
+    id: 1,
+    uuid: "user-uuid",
+    email: "test@example.com",
+    username: "testuser",
+    role: "USER",
+    destinationCalendar: null,
+  });
+  const mockPrismaObj = {
     booking: {
-      findUniqueOrThrow: vi.fn().mockResolvedValue({
-        id: 1,
-        uid: "test-booking-uid",
-        recurringEventId: null,
-      }),
+      findUniqueOrThrow: mockBookingFindUniqueOrThrow,
     },
     user: {
-      findUniqueOrThrow: vi.fn().mockResolvedValue({
-        id: 1,
-        locale: "en",
-      }),
+      findUniqueOrThrow: mockUserFindUniqueOrThrow,
     },
+  };
+  return {
+    default: mockPrismaObj,
+    prisma: mockPrismaObj,
+  };
+});
+
+vi.mock("@calcom/trpc/server/routers/viewer/bookings/confirm.handler", () => ({
+  confirmHandler: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/tracing/factory", () => ({
+  distributedTracing: {
+    createTrace: vi.fn().mockReturnValue({}),
   },
 }));
 
-vi.mock("@calcom/trpc/server/createContext", () => ({
-  createContext: vi.fn().mockResolvedValue({}),
+vi.mock("@calcom/features/booking-audit/lib/makeActor", () => ({
+  makeUserActor: vi.fn().mockReturnValue({ type: "user", id: "test-uuid" }),
 }));
 
-vi.mock("@calcom/trpc/server/routers/viewer/bookings/_router", () => ({
-  bookingsRouter: {},
-}));
-
-vi.mock("@calcom/trpc/server/trpc", () => ({
-  createCallerFactory: vi.fn().mockReturnValue(() => ({
-    confirm: vi.fn().mockResolvedValue({}),
-  })),
-}));
-
-vi.mock("@lib/buildLegacyCtx", () => ({
-  buildLegacyRequest: vi.fn().mockReturnValue({}),
-}));
-
+import prisma from "@calcom/prisma";
 // Import after mocks are set up
 import { GET } from "../route";
 
@@ -86,13 +97,16 @@ const createMockRequest = (url: string): NextRequest => {
   } as unknown as NextRequest;
 };
 
+// Vitest sets NEXT_PUBLIC_WEBAPP_URL to http://app.cal.local:3000 (see vitest.config.mts)
+const EXPECTED_REDIRECT_ORIGIN = "http://app.cal.local:3000";
+
 describe("link route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("GET handler - redirect URL construction", () => {
-    it("should redirect to booking page with the same origin as the request", async () => {
+    it("should redirect to booking page using WEBAPP_URL (fixes localhost redirect when behind proxy)", async () => {
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -102,11 +116,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
     });
 
-    it("should preserve custom domain origin in redirect URL", async () => {
+    it("should use WEBAPP_URL for redirects, not request.url (avoids localhost when proxy sends localhost)", async () => {
       const baseUrl = "https://custom-domain.company.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -116,11 +130,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://custom-domain.company.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
     });
 
-    it("should preserve self-hosted domain origin in redirect URL", async () => {
+    it("should use WEBAPP_URL for self-hosted deployments", async () => {
       const baseUrl = "https://calcom.internal.company.net/api/link?action=reject&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -130,11 +144,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://calcom.internal.company.net");
-      expect(location).not.toContain("localhost");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
+      expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
     });
 
-    it("should construct redirect URLs relative to the request URL for various origins", async () => {
+    it("should construct redirect URLs using WEBAPP_URL regardless of request origin", async () => {
       const testOrigins = [
         "https://app.cal.com",
         "https://acme.cal.com",
@@ -153,21 +167,19 @@ describe("link route", () => {
         expect(location).toBeTruthy();
         const redirectUrl = new URL(location!);
 
-        expect(redirectUrl.origin).toBe(origin);
+        expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
         expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
       }
     });
   });
 
   describe("GET handler - error handling", () => {
-    it("should redirect with error message when TRPC throws an error", async () => {
+    it("should redirect with error message when confirmHandler throws a TRPCError", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock createCallerFactory to throw a TRPCError
-      const { createCallerFactory } = await import("@calcom/trpc/server/trpc");
-      vi.mocked(createCallerFactory).mockReturnValue(() => ({
-        confirm: vi.fn().mockRejectedValue(new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })),
-      }));
+      mockConfirmHandler.mockRejectedValueOnce(
+        new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })
+      );
 
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
@@ -178,19 +190,15 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
       expect(redirectUrl.searchParams.get("error")).toBe("Custom error");
     });
 
-    it("should preserve origin in error redirect URL", async () => {
+    it("should use WEBAPP_URL for error redirects (not localhost when behind proxy)", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock createCallerFactory to throw a TRPCError
-      const { createCallerFactory } = await import("@calcom/trpc/server/trpc");
-      vi.mocked(createCallerFactory).mockReturnValue(() => ({
-        confirm: vi.fn().mockRejectedValue(new TRPCError({ code: "INTERNAL_SERVER_ERROR" })),
-      }));
+      mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "INTERNAL_SERVER_ERROR" }));
 
       const baseUrl = "https://self-hosted.company.org/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
@@ -201,8 +209,126 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://self-hosted.company.org");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
+    });
+  });
+
+  describe("confirmHandler flow", () => {
+    it("should call confirmHandler with correct arguments for accept action", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: true,
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should call confirmHandler with confirmed=false for reject action", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=reject&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should call confirmHandler with reason when provided in query params", async () => {
+      const baseUrl =
+        "https://app.example.com/api/link?action=reject&token=encrypted-token&reason=test-reason";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            reason: "test-reason",
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should pass recurringEventId when booking has one", async () => {
+      // Update mock to return booking with recurringEventId
+      vi.mocked(prisma.booking.findUniqueOrThrow).mockResolvedValueOnce({
+        id: 1,
+        uid: "test-booking-uid",
+        recurringEventId: "recurring-123",
+      } as Awaited<ReturnType<typeof prisma.booking.findUniqueOrThrow>>);
+
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            recurringEventId: "recurring-123",
+            confirmed: true,
+          }),
+        })
+      );
+    });
+
+    it("should pass user context to confirmHandler", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctx: expect.objectContaining({
+            user: expect.objectContaining({
+              id: 1,
+              uuid: "user-uuid",
+              email: "test@example.com",
+              username: "testuser",
+              role: "USER",
+            }),
+          }),
+        })
+      );
+    });
+
+    it("should pass actor from makeUserActor to confirmHandler", async () => {
+      const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
+      const req = createMockRequest(baseUrl);
+
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            actor: { type: "user", id: "test-uuid" },
+          }),
+        })
+      );
     });
   });
 });

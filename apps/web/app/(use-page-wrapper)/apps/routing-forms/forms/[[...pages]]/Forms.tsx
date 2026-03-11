@@ -1,43 +1,38 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-import posthog from "posthog-js";
-
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
-import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
-import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
+import { FilterResults } from "~/filters/components/FilterResults";
+import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { ShellMain } from "@calcom/features/shell/Shell";
-import { UpgradeTip } from "@calcom/features/tips";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type {
-  SetNewFormDialogState,
   NewFormDialogState,
+  SetNewFormDialogState,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
 import {
   FormAction,
   FormActionsDropdown,
   FormActionsProvider,
 } from "@calcom/web/components/apps/routing-forms/FormActions";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { useHasPaidPlan, useHasTeamPlan } from "~/billing/hooks/useHasPaidPlan";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import { CreateButtonWithTeamsList } from "~/ee/teams/components/createButton/CreateButtonWithTeamsList";
+import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
+import { ShellMain } from "~/shell/Shell";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
@@ -60,6 +55,7 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
 export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
+  const { hasTeamPlan, isPending: isPendingTeamPlan } = useHasTeamPlan();
   const routerQuery = useRouterQuery();
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const utils = trpc.useUtils();
@@ -89,38 +85,6 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const forms = queryRes.data?.filtered;
-  const features = [
-    {
-      icon: <Icon name="file-text" className="h-5 w-5 text-orange-500" />,
-      title: t("create_your_first_form"),
-      description: t("create_your_first_form_description"),
-    },
-    {
-      icon: <Icon name="shuffle" className="h-5 w-5 text-lime-500" />,
-      title: t("create_your_first_route"),
-      description: t("route_to_the_right_person"),
-    },
-    {
-      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
-      title: t("reporting"),
-      description: t("reporting_feature"),
-    },
-    {
-      icon: <Icon name="circle-check" className="h-5 w-5 text-teal-500" />,
-      title: t("test_routing_form"),
-      description: t("test_preview_description"),
-    },
-    {
-      icon: <Icon name="mail" className="h-5 w-5 text-yellow-500" />,
-      title: t("routing_forms_send_email_owner"),
-      description: t("routing_forms_send_email_owner_description"),
-    },
-    {
-      icon: <Icon name="download" className="h-5 w-5 text-violet-500" />,
-      title: t("download_responses"),
-      description: t("download_responses_description"),
-    },
-  ];
 
   async function moveRoutingForm(index: number, increment: 1 | -1) {
     const types = forms?.map((type) => {
@@ -148,6 +112,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   return (
     <LicenseRequired>
       <ShellMain
+        disableSticky={true}
         heading={t("routing")}
         CTA={
           hasPaidPlan && forms?.length ? (
@@ -155,25 +120,8 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           ) : null
         }
         subtitle={t("routing_forms_description")}>
-        <UpgradeTip
-          plan="team"
-          title={t("teams_plan_required")}
-          description={t("routing_forms_are_a_great_way")}
-          features={features}
-          background="/tips/routing-forms"
-          isParentLoading={<SkeletonLoaderTeamList />}
-          buttons={
-            <div className="stack-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          }>
+        {isPendingTeamPlan && <SkeletonLoaderTeamList />}
+        {!isPendingTeamPlan && hasTeamPlan && (
           <FormActionsProvider
             appUrl={appUrl}
             newFormDialogState={newFormDialogState}
@@ -304,7 +252,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="_delete"
                                       routingForm={form}
                                       color="destructive"
-                                      className="w-full"
+                                      className="w-full rounded-t-none"
                                       StartIcon="trash">
                                       {t("delete")}
                                     </FormAction>
@@ -333,7 +281,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
               </FilterResults>
             </div>
           </FormActionsProvider>
-        </UpgradeTip>
+        )}
       </ShellMain>
     </LicenseRequired>
   );

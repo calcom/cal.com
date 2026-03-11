@@ -17,15 +17,15 @@ import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { SYSTEM_PHONE_FIELDS } from "@calcom/lib/bookings/SystemField";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown },
 >(
   usersFromTeam: T[]
 ) => {
@@ -176,12 +176,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        hour: string;
-        count: number;
-      }>
-    >(query);
+    const results =
+      await this.prisma.$queryRaw<
+        Array<{
+          hour: string;
+          count: number;
+        }>
+      >(query);
 
     // Create a map of results by hour for easy lookup
     const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
@@ -406,7 +407,7 @@ export class InsightsBookingBaseService {
       parentId: options.orgId,
       select: { id: true },
     });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
+    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
 
     // Get all users from the organization
     const userIdsFromOrg =
@@ -419,7 +420,7 @@ export class InsightsBookingBaseService {
     const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
 
     if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
       conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
     }
 
@@ -485,8 +486,6 @@ export class InsightsBookingBaseService {
     offset?: number;
     timeZone: string;
   }) {
-    const DATE_FORMAT = "YYYY-MM-DD";
-    const TIME_FORMAT = "HH:mm:ss";
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -524,25 +523,26 @@ export class InsightsBookingBaseService {
       OFFSET ${offset}
     `;
 
-    const csvData = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        uid: string | null;
-        title: string;
-        createdAt: Date;
-        timeStatus: string;
-        eventTypeId: number | null;
-        eventLength: number;
-        startTime: Date;
-        endTime: Date;
-        paid: boolean;
-        userEmail: string;
-        userUsername: string;
-        rating: number | null;
-        ratingFeedback: string | null;
-        noShowHost: boolean;
-      }>
-    >(csvDataQuery);
+    const csvData =
+      await this.prisma.$queryRaw<
+        Array<{
+          id: number;
+          uid: string | null;
+          title: string;
+          createdAt: Date;
+          timeStatus: string;
+          eventTypeId: number | null;
+          eventLength: number;
+          startTime: Date;
+          endTime: Date;
+          paid: boolean;
+          userEmail: string;
+          userUsername: string;
+          rating: number | null;
+          ratingFeedback: string | null;
+          noShowHost: boolean;
+        }>
+      >(csvDataQuery);
 
     if (csvData.length === 0) {
       return { data: csvData, total: totalCount };
@@ -590,145 +590,20 @@ export class InsightsBookingBaseService {
             bookingFields: true,
           },
         },
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
 
-    // 3. Process bookings: extract phone data and build attendee map
-    const phoneFieldsCache = new Map<number, { name: string; label: string }[]>();
-    const allPhoneFieldLabels = new Set<string>();
-    let maxAttendees = 0;
-    const finalBookingMap = new Map<
-      string,
-      {
-        noShowGuests: string | null;
-        noShowGuestsCount: number;
-        attendeeList: string[];
-        attendeePhoneNumbers: (string | null)[];
-        phoneQuestionResponses: Record<string, string | null>;
-      }
-    >();
-
-    const extractPhoneValue = (value: unknown): string | null => {
-      if (typeof value === "string" && value.trim()) return value;
-      if (value && typeof value === "object" && "value" in value) {
-        const val = (value as { value: unknown }).value;
-        if (typeof val === "string" && val.trim()) return val;
-      }
-      return null;
-    };
-
-    for (const booking of bookings) {
-      const eventTypeId = booking.eventTypeId;
-      let phoneFields: { name: string; label: string }[] | null = null;
-
-      if (eventTypeId) {
-        if (phoneFieldsCache.has(eventTypeId)) {
-          phoneFields = phoneFieldsCache.get(eventTypeId) || null;
-        } else if (booking.eventType?.bookingFields) {
-          const parsed = eventTypeBookingFields.safeParse(booking.eventType.bookingFields);
-          if (parsed.success) {
-            phoneFields = parsed.data
-              .filter((field) => field.type === "phone" && !SYSTEM_PHONE_FIELDS.has(field.name))
-              .map((field) => ({ name: field.name, label: field.label || field.name }));
-            phoneFieldsCache.set(eventTypeId, phoneFields);
-            phoneFields.forEach((field) => allPhoneFieldLabels.add(field.label));
-          }
-        }
-      }
-
-      const attendeeList =
-        booking.seatsReferences.length > 0
-          ? booking.seatsReferences.map((ref) => ref.attendee)
-          : booking.attendees;
-
-      const formattedAttendees: string[] = [];
-      const noShowAttendees: string[] = [];
-      const attendeePhoneNumbers: (string | null)[] = [];
-      let noShowGuestsCount = 0;
-
-      const phoneQuestionResponses: Record<string, string | null> = {};
-      let systemPhoneValue: string | null = null;
-
-      if (booking.responses && typeof booking.responses === "object") {
-        const responses = booking.responses as Record<string, unknown>;
-
-        systemPhoneValue =
-          extractPhoneValue(responses.attendeePhoneNumber) ||
-          extractPhoneValue(responses.smsReminderNumber) ||
-          null;
-
-        if (phoneFields) {
-          for (const field of phoneFields) {
-            phoneQuestionResponses[field.label] = extractPhoneValue(responses[field.name]);
-          }
-        }
-      }
-
-      const firstPhoneQuestionValue = Object.values(phoneQuestionResponses).find((v) => v !== null) || null;
-      const phoneFallback = systemPhoneValue || firstPhoneQuestionValue;
-
-      for (const attendee of attendeeList) {
-        if (attendee) {
-          const formatted = `${attendee.name} (${attendee.email})`;
-          formattedAttendees.push(formatted);
-          attendeePhoneNumbers.push(attendee.phoneNumber || phoneFallback);
-          if (attendee.noShow) {
-            noShowAttendees.push(formatted);
-            noShowGuestsCount++;
-          }
-        }
-      }
-
-      if (formattedAttendees.length > maxAttendees) {
-        maxAttendees = formattedAttendees.length;
-      }
-
-      // List all no-show guests (name and email)
-      const noShowGuests = noShowAttendees.length > 0 ? noShowAttendees.join("; ") : null;
-
-      finalBookingMap.set(booking.uid, {
-        noShowGuests,
-        noShowGuestsCount,
-        attendeeList: formattedAttendees,
-        attendeePhoneNumbers,
-        phoneQuestionResponses,
-      });
-    }
-
-    // 4. Combine booking data with attendee data and format for CSV
-    const data = csvData.map((bookingTimeStatus) => {
-      const dateAndTime = {
-        createdAt: bookingTimeStatus.createdAt.toISOString(),
-        createdAt_date: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(DATE_FORMAT),
-        createdAt_time: dayjs(bookingTimeStatus.createdAt).tz(timeZone).format(TIME_FORMAT),
-        startTime: bookingTimeStatus.startTime.toISOString(),
-        startTime_date: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(DATE_FORMAT),
-        startTime_time: dayjs(bookingTimeStatus.startTime).tz(timeZone).format(TIME_FORMAT),
-        endTime: bookingTimeStatus.endTime.toISOString(),
-        endTime_date: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(DATE_FORMAT),
-        endTime_time: dayjs(bookingTimeStatus.endTime).tz(timeZone).format(TIME_FORMAT),
-      };
-
-      const attendeeData = bookingTimeStatus.uid ? finalBookingMap.get(bookingTimeStatus.uid) : null;
-
-      const result: Record<string, unknown> = {
-        ...bookingTimeStatus,
-        ...dateAndTime,
-        noShowGuests: attendeeData?.noShowGuests || null,
-        noShowGuestsCount: attendeeData?.noShowGuestsCount || 0,
-      };
-
-      for (let i = 1; i <= maxAttendees; i++) {
-        result[`attendee${i}`] = attendeeData?.attendeeList[i - 1] || null;
-        result[`attendeePhone${i}`] = attendeeData?.attendeePhoneNumbers[i - 1] || null;
-      }
-
-      allPhoneFieldLabels.forEach((label) => {
-        result[label] = attendeeData?.phoneQuestionResponses[label] || null;
-      });
-
-      return result;
-    });
+    // 3. Transform bookings data for CSV export
+    const data = transformBookingsForCsv(csvData as BookingTimeStatusData[], bookings, timeZone);
 
     return { data, total: totalCount };
   }
@@ -779,15 +654,16 @@ export class InsightsBookingBaseService {
     ORDER BY bs."date"
   `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          bookingsCount: number;
+          timeStatus: string;
+          noShowHost: boolean;
+          noShowGuests: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: {
@@ -889,12 +765,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromSelected = await this.prisma.$queryRaw<
-      Array<{
-        eventTypeId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromSelected =
+      await this.prisma.$queryRaw<
+        Array<{
+          eventTypeId: number;
+          count: number;
+        }>
+      >(query);
 
     const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
 
@@ -995,12 +872,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1058,12 +936,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1121,13 +1000,14 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number | null;
-        rating: number | null;
-        ratingFeedback: string | null;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number | null;
+          rating: number | null;
+          ratingFeedback: string | null;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1219,19 +1099,20 @@ export class InsightsBookingBaseService {
       FROM booking_stats bs, guest_stats gs
     `;
 
-    const stats = await this.prisma.$queryRaw<
-      Array<{
-        total_bookings: bigint;
-        completed_bookings: bigint;
-        rescheduled_bookings: bigint;
-        cancelled_bookings: bigint;
-        no_show_host_bookings: bigint;
-        avg_rating: number | null;
-        total_ratings: bigint;
-        ratings_above_3: bigint;
-        no_show_guests: bigint;
-      }>
-    >(query);
+    const stats =
+      await this.prisma.$queryRaw<
+        Array<{
+          total_bookings: bigint;
+          completed_bookings: bigint;
+          rescheduled_bookings: bigint;
+          cancelled_bookings: bigint;
+          no_show_host_bookings: bigint;
+          avg_rating: number | null;
+          total_ratings: bigint;
+          ratings_above_3: bigint;
+          no_show_guests: bigint;
+        }>
+      >(query);
 
     const rawStats = stats[0];
     return rawStats
@@ -1300,15 +1181,16 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const recentNoShowBookings = await this.prisma.$queryRaw<
-      Array<{
-        bookingId: number;
-        startTime: Date;
-        eventTypeName: string;
-        guestName: string;
-        guestEmail: string;
-      }>
-    >(query);
+    const recentNoShowBookings =
+      await this.prisma.$queryRaw<
+        Array<{
+          bookingId: number;
+          startTime: Date;
+          eventTypeName: string;
+          guestName: string;
+          guestEmail: string;
+        }>
+      >(query);
 
     return recentNoShowBookings;
   }
@@ -1348,12 +1230,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        count: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          count: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: number } = {};
@@ -1406,13 +1289,14 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        ratings_above_3: number;
-        total_ratings: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          ratings_above_3: number;
+          total_ratings: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};

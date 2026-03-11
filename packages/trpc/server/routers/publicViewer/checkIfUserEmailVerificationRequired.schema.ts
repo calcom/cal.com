@@ -1,8 +1,13 @@
 import { z } from "zod";
 
-export const ZUserEmailVerificationRequiredSchema = z.object({
-  userSessionEmail: z.string().optional(),
-  email: z.string(),
-});
+export type TUserEmailVerificationRequiredSchema = {
+  userSessionEmail?: string;
+  email: string;
+};
 
-export type TUserEmailVerificationRequiredSchema = z.infer<typeof ZUserEmailVerificationRequiredSchema>;
+export const ZUserEmailVerificationRequiredSchema: z.ZodType<TUserEmailVerificationRequiredSchema> = z.object(
+  {
+    userSessionEmail: z.string().optional(),
+    email: z.string(),
+  }
+);

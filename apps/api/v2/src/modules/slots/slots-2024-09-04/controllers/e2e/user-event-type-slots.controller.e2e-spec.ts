@@ -1,5 +1,28 @@
-import { bootstrap } from "@/app";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
+import type {
+  CreateScheduleInput_2024_06_11,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
+} from "@calcom/platform-types";
+import type { EventType, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import { advanceTo, clear } from "jest-date-mock";
+import { DateTime } from "luxon";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
+import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OOORepositoryFixture } from "test/fixtures/repository/ooo.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -16,30 +39,6 @@ import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import { advanceTo, clear } from "jest-date-mock";
-import { DateTime } from "luxon";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
-import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OOORepositoryFixture } from "test/fixtures/repository/ooo.repository.fixture";
-import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import type {
-  CreateScheduleInput_2024_06_11,
-  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
-} from "@calcom/platform-types";
-import type { EventType, User, Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {
@@ -831,9 +830,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-seated-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -866,8 +867,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
-        referenceUid: "100",
+      await bookingSeatsRepositoryFixture.create({
+        referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {
           connect: {
@@ -960,9 +961,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventType.id}`,
+        uid: `booking-uid-seated-range-${seatedEventType.id}-${randomString()}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
@@ -995,8 +998,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
-        referenceUid: "100",
+      await bookingSeatsRepositoryFixture.create({
+        referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {
           connect: {
@@ -1325,6 +1328,11 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     describe("variable length", () => {
       let responseReservedVariableSlot: ReserveSlotOutputData_2024_09_04;
+
+      beforeAll(async () => {
+        await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+      });
+
       it("should not be able to reserve a slot for variable length event type with invalid duration", async () => {
         const slotStartTime = "2050-09-05T10:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
@@ -1349,7 +1357,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
         advanceTo(newDate);
 
         const slotDuration = 60;
-        const slotStartTime = "2050-09-05T10:00:00.000Z";
+        // Use 2050-09-06 to avoid overlap with other tests that reserve 2050-09-05
+        const slotStartTime = "2050-09-06T09:00:00.000Z";
         const reserveResponse = await request(app.getHttpServer())
           .post(`/v2/slots/reservations`)
           .send({
@@ -1378,7 +1387,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
         const response = await request(app.getHttpServer())
           .get(
-            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-09&duration=60`
+            `/v2/slots?eventTypeId=${variableLengthEventType.id}&start=2050-09-05&end=2050-09-10&duration=60`
           )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
           .expect(200);
@@ -1391,10 +1400,10 @@ describe("Slots 2024-09-04 Endpoints", () => {
         const days = Object.keys(slots);
         expect(days.length).toEqual(5);
 
-        const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        const expectedSlotsUTC2050_09_06 = expectedSlotsUTC["2050-09-06"].filter(
           (slot) => slot.start !== slotStartTime
         );
-        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+        expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-06": expectedSlotsUTC2050_09_06 });
 
         const dbSlot = await selectedSlotRepositoryFixture.getByUid(
           responseReservedVariableSlot.reservationUid
@@ -1410,7 +1419,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       });
 
       it("request slot contains already existing reserved slot", async () => {
-        // Try to reserve 9:45-12:45 when 10:00-11:00 is taken
+        // Try to reserve 8:45-11:45 when 09:00-10:00 on 2050-09-06 is taken
         const newSlotStart = DateTime.fromISO(responseReservedVariableSlot.slotStart)
           .minus({ minutes: 15 })
           .toISO();

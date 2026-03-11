@@ -18,6 +18,7 @@ export type AppConfig = {
     workerReadPoolMax: number;
     workerWritePoolMax: number;
     redisUrl: string;
+    usePool: boolean;
   };
   next: {
     authSecret: string;
@@ -32,4 +33,8 @@ export type AppConfig = {
     baseUrl: string;
   };
   e2e: boolean;
+  enableSlotsWorkers: boolean;
+  slotsWorkerPoolSize: number;
+  vercel: boolean;
+  enableAsyncTasker: boolean;
 };

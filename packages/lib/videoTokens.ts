@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 
 // 262992 minutes is 6 months
 export function generateVideoToken(recordingId: string, expiresInMinutes = 262992) {
@@ -11,12 +11,15 @@ export function generateVideoToken(recordingId: string, expiresInMinutes = 26299
   return `${payload}:${hmac}`;
 }
 
-export function verifyVideoToken(token: string): { valid: boolean; recordingId?: string } {
+export function verifyVideoToken(token: string): {
+  valid: boolean;
+  recordingId?: string;
+} {
   try {
     const [recordingId, expires, receivedHmac] = token.split(":");
     const secret = process.env.CAL_VIDEO_RECORDING_TOKEN_SECRET || "default-secret-change-me";
 
-    if (Date.now() > parseInt(expires)) {
+    if (Date.now() > parseInt(expires, 10)) {
       return { valid: false };
     }
 

@@ -52,13 +52,19 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     shouldListUserEvents = true;
   }
 
-  // Get teams where user has eventType.read permission for PBAC readonly check
   const permissionCheckService = new PermissionCheckService();
-  const teamsWithEventTypeReadPermission = await permissionCheckService.getTeamIdsWithPermission({
-    userId: user.id,
-    permission: "eventType.read",
-    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-  });
+  const [teamsWithEventTypeReadPermission, teamsWithEventTypeUpdatePermission] = await Promise.all([
+    permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "eventType.read",
+      fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+    }),
+    permissionCheckService.getTeamIdsWithPermission({
+      userId: user.id,
+      permission: "eventType.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    }),
+  ]);
 
   const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
@@ -295,7 +301,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 return res;
               })
               .filter((evType) =>
-                membership.role === MembershipRole.MEMBER
+                !teamsWithEventTypeUpdatePermission.includes(team.id)
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
               )

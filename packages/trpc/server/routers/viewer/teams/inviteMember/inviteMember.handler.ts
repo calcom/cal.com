@@ -1,13 +1,14 @@
 import { type TFunction } from "i18next";
 
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { DueInvoiceService } from "@calcom/features/ee/billing/service/dueInvoice/DueInvoiceService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { getTranslation } from "@calcom/i18n/server";
+import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -50,18 +51,21 @@ function getOrgConnectionInfoGroupedByUsernameOrEmail({
   team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
-  return uniqueInvitations.reduce((acc, invitation) => {
-    return {
-      ...acc,
-      [invitation.usernameOrEmail]: getOrgConnectionInfo({
-        orgVerified: orgState.orgVerified,
-        orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
-        email: invitation.usernameOrEmail,
-        team,
-        isOrg: isOrg,
-      }),
-    };
-  }, {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>);
+  return uniqueInvitations.reduce(
+    (acc, invitation) => {
+      return {
+        ...acc,
+        [invitation.usernameOrEmail]: getOrgConnectionInfo({
+          orgVerified: orgState.orgVerified,
+          orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
+          email: invitation.usernameOrEmail,
+          team,
+          isOrg: isOrg,
+        }),
+      };
+    },
+    {} as Record<string, ReturnType<typeof getOrgConnectionInfo>>
+  );
 }
 
 function getInvitationsForNewUsers({
@@ -231,7 +235,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = teamBillingServiceFactory.init(team);
-  await teamBillingService.updateQuantity();
+  await teamBillingService.updateQuantity("addition");
 
   return {
     // TODO: Better rename it to invitations only maybe?
@@ -261,6 +265,26 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You are not authorized to invite team members in this organization's team",
+    });
+  }
+
+  // Check if invitations are blocked due to unpaid invoices
+  const dueInvoiceService = new DueInvoiceService();
+  const inviteeEmails = (typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail).map(
+    (u) => (typeof u === "string" ? u : u.email)
+  );
+  const canInvite = await dueInvoiceService.canInviteToTeam({
+    teamId: team.id,
+    inviteeEmails,
+    isSubTeam: !!team.parentId,
+    parentOrgId: team.parentId,
+  });
+
+  if (!canInvite.allowed) {
+    const translation = await getTranslation(input.language ?? "en", "common");
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: translation(canInvite.reason ?? "invitations_blocked_unpaid_invoice"),
     });
   }
 

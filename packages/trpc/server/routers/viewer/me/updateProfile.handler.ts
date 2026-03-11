@@ -12,12 +12,13 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import type { JsonValue } from "@calcom/types/Json";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -240,7 +241,22 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     },
   } satisfies Prisma.UserDefaultArgs;
 
-  let updatedUser: Prisma.UserGetPayload<typeof updatedUserSelect>;
+  // Explicit type to avoid Prisma.UserGetPayload conditional types leaking into .d.ts files
+  type UpdatedUserResult = {
+    id: number;
+    username: string | null;
+    email: string;
+    identityProvider: string | null;
+    identityProviderId: string | null;
+    metadata: JsonValue;
+    name: string | null;
+    createdDate: Date;
+    avatarUrl: string | null;
+    locale: string | null;
+    schedules: { id: number }[];
+  };
+
+  let updatedUser: UpdatedUserResult;
 
   try {
     updatedUser = await prisma.user.update({
@@ -313,7 +329,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailFrom: user.email,
           // We know email has been changed here so we can use input
 
-          emailTo: input.email!,
+          emailTo: input.email ?? "",
         },
       });
     }

@@ -1,13 +1,7 @@
 "use client";
 
-import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -16,14 +10,16 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
-
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
   locale: {
@@ -180,6 +176,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     options={localeOptions}
                     value={value}
                     onChange={onChange}
+                    data-testid="locale-select"
                   />
                 </>
               )}
@@ -192,25 +189,33 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   <Label className="text-emphasis mt-6">
                     <>{t("timezone")}</>
                   </Label>
-                  <TimezoneSelect
-                    id="timezone"
-                    value={value}
-                    onChange={(event) => {
-                      if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
-                    }}
-                  />
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <div className="w-full sm:w-1/2">
+                      <TimezoneSelect
+                        id="timezone"
+                        value={value}
+                        onChange={(event) => {
+                          if (event)
+                            formMethods.setValue("timeZone", event.value, {
+                              shouldDirty: true,
+                            });
+                        }}
+                      />
+                    </div>
+                    {!watchedTzSchedules.length && (
+                      <Button
+                        className="w-full sm:w-1/2"
+                        color="secondary"
+                        StartIcon="calendar"
+                        onClick={() => setIsTZScheduleOpen(true)}>
+                        {t("schedule_timezone_change")}
+                      </Button>
+                    )}
+                  </div>
                 </>
               )}
             />
-            {!watchedTzSchedules.length ? (
-              <Button
-                color="secondary"
-                className="mt-2"
-                StartIcon="calendar"
-                onClick={() => setIsTZScheduleOpen(true)}>
-                {t("schedule_timezone_change")}
-              </Button>
-            ) : (
+            {watchedTzSchedules.length > 0 && (
               <div className="bg-cal-muted border-subtle mt-2 rounded-md border p-4">
                 <Label>{t("travel_schedule")}</Label>
                 <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
@@ -239,7 +244,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
                         <Button
-                          color="secondary"
+                          color="destructive"
                           className="ml-auto"
                           variant="icon"
                           StartIcon="trash-2"
@@ -283,6 +288,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
+              <Icon name="info" className="mr-2" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller
@@ -371,7 +377,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         />
         <TravelScheduleModal
           open={isTZScheduleOpen}
-          onOpenChange={() => setIsTZScheduleOpen(false)}
+          onOpenChange={setIsTZScheduleOpen}
           setValue={formMethods.setValue}
           existingSchedules={formMethods.getValues("travelSchedules") ?? []}
         />

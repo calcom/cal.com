@@ -15,7 +15,7 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
+import PhoneInput from "@calcom/web/components/phone-input";
 import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,7 +23,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { MapPinIcon } from "@coss/ui/icons";
 
 import { QueryCell } from "../../lib/QueryCell";
 
@@ -257,8 +257,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             }
           }}>
           <div className="flex flex-row md:space-x-3">
-            <div className="bg-subtle mx-auto hidden h-12 w-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10 md:flex">
-              <Icon name="map-pin" className="text-emphasis h-6 w-6" />
+            <div className="bg-subtle hidden h-10 w-10 shrink-0 justify-center rounded-full md:flex">
+              <MapPinIcon className="m-auto h-6 w-6" />
             </div>
             <div className="w-full md:pt-1">
               <DialogHeader title={t("edit_location")} />

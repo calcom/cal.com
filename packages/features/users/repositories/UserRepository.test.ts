@@ -1,12 +1,11 @@
- 
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, test, vi, expect, beforeEach } from "vitest";
 
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CreationSource } from "@calcom/prisma/enums";
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   return {
     getTranslation: async (locale: string, namespace: string) => {
       const t = (key: string) => key;

@@ -6,10 +6,19 @@ import { usePathname } from "next/navigation";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Icon } from "@calcom/ui/components/icon";
+import { Badge } from "@calcom/ui/components/badge";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  EllipsisVerticalIcon,
+  LockIcon,
+  RotateCwIcon,
+  UsersIcon,
+} from "@coss/ui/icons";
 
 type OnboardingTeamsBrowserViewProps = {
-  teams: Array<{ name: string }>;
+  teams: Array<{ name: string; slug?: string | null; isMigrated?: boolean }>;
   organizationLogo?: string | null;
   organizationName?: string;
   organizationBanner?: string | null;
@@ -52,15 +61,15 @@ export const OnboardingTeamsBrowserView = ({
       <div className="border-subtle bg-default flex min-w-0 shrink-0 items-center gap-3 rounded-t-2xl border-b p-3">
         {/* Navigation buttons */}
         <div className="flex shrink-0 items-center gap-4 opacity-50">
-          <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-          <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-          <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
+          <ArrowLeftIcon className="text-subtle h-4 w-4" />
+          <ArrowRightIcon className="text-subtle h-4 w-4" />
+          <RotateCwIcon className="text-subtle h-4 w-4" />
         </div>
         <div className="bg-cal-muted flex w-full min-w-0 items-center gap-2 rounded-[32px] px-3 py-2">
-          <Icon name="lock" className="text-subtle h-4 w-4" />
+          <LockIcon className="text-subtle h-4 w-4" />
           <p className="text-default truncate text-sm font-medium leading-tight">{displayUrl}/teams</p>
         </div>
-        <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
+        <EllipsisVerticalIcon className="text-subtle h-4 w-4" />
       </div>
 
       {/* Content */}
@@ -135,19 +144,36 @@ export const OnboardingTeamsBrowserView = ({
                           }
                         />
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
-                          <h3 className="text-subtle text-sm font-semibold leading-none">{team.name}</h3>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="text-subtle line-clamp-1 min-w-0 truncate text-sm font-semibold leading-none">
+                              {team.name}
+                            </h3>
+                            {team.isMigrated && (
+                              <Badge variant="green" className="shrink-0 text-xs">
+                                {t("migrating")}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-muted text-xs font-medium leading-tight">
-                            {t("onboarding_teams_browser_view_team_description")}
+                            {team.slug && slug
+                              ? `${slug}.${subdomainSuffix()}/${team.slug}`
+                              : team.slug
+                                ? `${team.slug}.${subdomainSuffix()}`
+                                : t("onboarding_teams_browser_view_team_description")}
                           </p>
                         </div>
-                        <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+                        {team.isMigrated ? (
+                          <CheckIcon className="text-emphasis h-5 w-5" />
+                        ) : (
+                          <ArrowRightIcon className="text-subtle h-4 w-4" />
+                        )}
                       </div>
                     </div>
                   ))
               ) : (
                 <div className="flex flex-col items-center justify-center gap-3 px-5 py-12">
                   <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-full">
-                    <Icon name="users" className="text-subtle h-8 w-8" />
+                    <UsersIcon className="text-subtle h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-1 text-center">
                     <p className="text-default truncate text-sm font-semibold leading-tight">

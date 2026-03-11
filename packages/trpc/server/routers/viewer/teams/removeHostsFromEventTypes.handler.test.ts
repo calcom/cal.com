@@ -44,9 +44,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("throws UNAUTHORIZED if user does not have eventType.update permission", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(false);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     await expect(
       removeHostsFromEventTypesHandler({
@@ -70,9 +72,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("deletes hosts when user has permission and all users are team members", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Mock that all userIds are valid team members
     (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
@@ -119,14 +123,14 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("only removes hosts for userIds that are team members (filters out non-members)", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Mock that only userId 101 is a team member, 102 is not
-    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-    ]);
+    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 101 }]);
 
     const mockDeleteResult = { count: 1 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -161,9 +165,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("handles empty userIds array", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Empty array means no memberships to validate
     (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([]);
@@ -200,9 +206,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("handles empty eventTypeIds array", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Mock that all userIds are valid team members
     (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
@@ -242,9 +250,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("returns count of 0 when no hosts match the criteria", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Mock that all userIds are valid team members
     (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
@@ -265,14 +275,14 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("returns count of 0 when userId is a team member but not a host on the specified event types", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // User 999 is a valid team member
-    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 999 },
-    ]);
+    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 999 }]);
 
     // But they're not a host on any of the event types
     const mockDeleteResult = { count: 0 };
@@ -307,9 +317,11 @@ describe("removeHostsFromEventTypesHandler", () => {
 
   it("returns count of 0 when event types do not belong to the specified team", async () => {
     const mockCheckPermission = vi.fn().mockResolvedValue(true);
-    (PermissionCheckService as any).mockImplementation(() => ({
-      checkPermission: mockCheckPermission,
-    }));
+    (PermissionCheckService as any).mockImplementation(function () {
+      return {
+        checkPermission: mockCheckPermission,
+      };
+    });
 
     // Mock that all userIds are valid team members
     (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([

@@ -1,5 +1,5 @@
-import type { EventAdvancedBaseProps } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
-import { EventAdvancedTab } from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
+import type { EventAdvancedBaseProps } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
+import { EventAdvancedTab } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
 
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { useGetVerifiedEmails } from "../hooks/useGetVerifiedEmails";

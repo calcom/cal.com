@@ -8,15 +8,18 @@ import { TRPCError } from "@trpc/server";
 
 import { defaultResponderForAppDir } from "./defaultResponderForAppDir";
 
-vi.mock("next/server", () => ({
-  NextRequest: class MockNextRequest {},
-  NextResponse: {
-    json: vi.fn((body, init) => ({
-      json: vi.fn().mockResolvedValue(body),
-      status: init?.status || 200,
-    })),
-  },
-}));
+vi.mock("next/server", () => {
+  class MockNextRequest extends Request {}
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: {
+      json: vi.fn((body, init) => ({
+        json: vi.fn().mockResolvedValue(body),
+        status: init?.status || 200,
+      })),
+    },
+  };
+});
 
 describe("defaultResponderForAppDir", () => {
   it("should return a JSON response when handler resolves with a result", async () => {

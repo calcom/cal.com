@@ -9,6 +9,7 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
   select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
 }> & {
   delegatedToId?: string | null;
+  appName?: string;
 };
 
 export type CredentialForCalendarService = CredentialPayload & {
@@ -54,7 +55,8 @@ export type Office365CredentialPayload = CredentialPayload & {
   } | null;
 };
 
-export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
+export type CredentialFrontendPayload = Omit<CredentialPayload, "key" | "encryptedKey"> & {
   /** We should type error if keys are leaked to the frontend */
   key?: never;
+  encryptedKey?: never;
 };

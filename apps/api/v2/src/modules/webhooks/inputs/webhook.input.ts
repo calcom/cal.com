@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
-import { WebhookTriggerEvents } from "@calcom/platform-libraries";
+import { WebhookTriggerEvents, WebhookVersion } from "@calcom/platform-libraries";
 
 export class CreateWebhookInputDto {
   @IsString()
@@ -29,6 +29,8 @@ export class CreateWebhookInputDto {
 
   @IsArray()
   @ApiProperty({
+    isArray: true,
+    enum: WebhookTriggerEvents,
     example: [
       "BOOKING_CREATED",
       "BOOKING_RESCHEDULED",
@@ -39,7 +41,6 @@ export class CreateWebhookInputDto {
       "BOOKING_NO_SHOW",
       "BOOKING_REOPENED",
     ],
-    enum: WebhookTriggerEvents,
   })
   @IsEnum(WebhookTriggerEvents, { each: true })
   triggers!: WebhookTriggerEvents[];
@@ -48,6 +49,15 @@ export class CreateWebhookInputDto {
   @IsOptional()
   @ApiPropertyOptional()
   secret?: string;
+
+  @IsOptional()
+  @IsEnum(WebhookVersion)
+  @ApiPropertyOptional({
+    description: "The version of the webhook",
+    example: WebhookVersion.V_2021_10_20,
+    enum: WebhookVersion,
+  })
+  version?: WebhookVersion;
 }
 
 export class UpdateWebhookInputDto extends PartialType(CreateWebhookInputDto) {}
