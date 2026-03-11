@@ -8,7 +8,8 @@ class IsAfterFrom implements ValidatorConstraintInterface {
     const obj = args.object as { from?: string };
     if (!obj.from || !to) return true;
     if (new Date(to).getTime() < new Date(obj.from).getTime()) {
-      throw new BadRequestException("'to' must not be before 'from'");
+      return false;
+    }
     }
     return true;
   }
