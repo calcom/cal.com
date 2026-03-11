@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Voor ontwikkeling kun je een localhost-URL gebruiken (bijv. http://localhost:3000).",
   "authentication_mode": "Verificatiemodus",
   "use_pkce": "Gebruik PKCE (aanbevolen voor mobiele/SPA-applicaties)",
+  "pkce_cannot_be_changed_after_creation": "PKCE kan niet worden gewijzigd na aanmaak. Om deze instelling te wijzigen, moet u een nieuwe OAuth-client aanmaken.",
   "oauth_scopes": "Scopes",
   "oauth_scopes_description": "Selecteer de rechten die jouw OAuth-client nodig heeft",
   "oauth_scope_category_user": "Gebruiker",

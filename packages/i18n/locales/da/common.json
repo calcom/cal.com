@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Til udvikling kan du bruge en localhost-URL (f.eks. http://localhost:3000).",
   "authentication_mode": "Autentificeringstilstand",
   "use_pkce": "Brug PKCE (anbefales til mobil-/SPA-applikationer)",
+  "pkce_cannot_be_changed_after_creation": "PKCE kan ikke ændres efter oprettelse. For at ændre denne indstilling skal du oprette en ny OAuth-klient.",
   "oauth_scopes": "Scopes",
   "oauth_scopes_description": "Vælg de tilladelser, din OAuth-klient har brug for",
   "oauth_scope_category_user": "Bruger",

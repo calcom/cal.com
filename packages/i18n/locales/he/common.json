@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "לפיתוח, ניתן להשתמש בכתובת localhost (לדוגמה http://localhost:3000).",
   "authentication_mode": "מצב אימות",
   "use_pkce": "השתמש ב-PKCE (מומלץ לאפליקציות מובייל/SPA)",
+  "pkce_cannot_be_changed_after_creation": "לא ניתן לשנות את הגדרת PKCE לאחר היצירה. כדי לשנות הגדרה זו, צור לקוח OAuth חדש.",
   "oauth_scopes": "הרשאות",
   "oauth_scopes_description": "בחר את ההרשאות שלהן לקוח ה-OAuth שלך זקוק",
   "oauth_scope_category_user": "משתמש",

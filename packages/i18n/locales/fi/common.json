@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Kehitystyössä voit käyttää localhost-osoitetta (esim. http://localhost:3000).",
   "authentication_mode": "Todennustila",
   "use_pkce": "Käytä PKCE:tä (suositeltu mobiili- ja SPA-sovelluksille)",
+  "pkce_cannot_be_changed_after_creation": "PKCE-asetusta ei voi muuttaa luomisen jälkeen. Vaihtaaksesi tämän asetuksen luo uusi OAuth-asiakas.",
   "oauth_scopes": "Oikeusalueet",
   "oauth_scopes_description": "Valitse OAuth-asiakkaasi tarvitsemat käyttöoikeudet",
   "oauth_scope_category_user": "Käyttäjä",

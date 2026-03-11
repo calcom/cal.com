@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Pentru dezvoltare, puteți folosi un URL localhost (ex: http://localhost:3000).",
   "authentication_mode": "Mod de autentificare",
   "use_pkce": "Folosește PKCE (recomandat pentru aplicații mobile/SPA)",
+  "pkce_cannot_be_changed_after_creation": "PKCE nu poate fi modificat după creare. Pentru a schimba această setare, creați un nou client OAuth.",
   "oauth_scopes": "Domenii de aplicare",
   "oauth_scopes_description": "Selectați permisiunile de care are nevoie clientul dvs. OAuth",
   "oauth_scope_category_user": "Utilizator",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "개발 환경에서는 localhost URL을 사용할 수 있습니다 (예: http://localhost:3000).",
   "authentication_mode": "인증 모드",
   "use_pkce": "PKCE 사용 (모바일/SPA 애플리케이션에 권장)",
+  "pkce_cannot_be_changed_after_creation": "PKCE는 생성 후 변경할 수 없습니다. 이 설정을 변경하려면 새 OAuth 클라이언트를 생성하세요.",
   "oauth_scopes": "범위",
   "oauth_scopes_description": "OAuth 클라이언트에 필요한 권한을 선택하세요.",
   "oauth_scope_category_user": "사용자",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Arenduseks võid kasutada localhost URL-i (nt http://localhost:3000).",
   "authentication_mode": "Autentimisrežiim",
   "use_pkce": "Kasuta PKCE-d (soovitatav mobiili/SPA rakendustele)",
+  "pkce_cannot_be_changed_after_creation": "PKCE-d ei saa pärast loomist muuta. Selle seadistuse muutmiseks looge uus OAuth klient.",
   "oauth_scopes": "Õigused",
   "oauth_scopes_description": "Vali õigused, mida sinu OAuth kliendil on vaja",
   "oauth_scope_category_user": "Kasutaja",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Geliştirme için localhost URL'si kullanabilirsiniz (örn. http://localhost:3000).",
   "authentication_mode": "Kimlik doğrulama modu",
   "use_pkce": "PKCE kullan (mobil/SPA uygulamaları için önerilir)",
+  "pkce_cannot_be_changed_after_creation": "PKCE, oluşturulduktan sonra değiştirilemez. Bu ayarı değiştirmek için yeni bir OAuth istemcisi oluşturun.",
   "oauth_scopes": "Kapsamlar",
   "oauth_scopes_description": "OAuth istemcinizin ihtiyaç duyduğu izinleri seçin",
   "oauth_scope_category_user": "Kullanıcı",

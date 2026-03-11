@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "للتطوير، يمكنك استخدام عنوان URL محلي (مثل http://localhost:3000).",
   "authentication_mode": "وضع المصادقة",
   "use_pkce": "استخدام PKCE (موصى به لتطبيقات الهاتف المحمول/SPA)",
+  "pkce_cannot_be_changed_after_creation": "لا يمكن تبديل PKCE بعد الإنشاء. لتغيير هذا الإعداد، قم بإنشاء عميل OAuth جديد.",
   "oauth_scopes": "الصلاحيات",
   "oauth_scopes_description": "حدد الأذونات التي يحتاجها عميل OAuth الخاص بك",
   "oauth_scope_category_user": "مستخدم",

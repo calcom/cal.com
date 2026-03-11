@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "សម្រាប់ការអភិវឌ្ឍន៍ អ្នកអាចប្រើ localhost URL (ឧទាហរណ៍ http://localhost:3000)។",
   "authentication_mode": "របៀបផ្ទៀងផ្ទាត់",
   "use_pkce": "ប្រើ PKCE (ណែនាំសម្រាប់កម្មវិធីទូរស័ព្ទ/SPA)",
+  "pkce_cannot_be_changed_after_creation": "មិនអាចប្តូរ PKCE បានបន្ទាប់ពីបង្កើតរួចហើយ។ ដើម្បីផ្លាស់ប្តូរការកំណត់នេះ សូមបង្កើតម៉ាស៊ីនភ្ញៀវ OAuth ថ្មី។",
   "oauth_scopes": "ដែនកំណត់សិទ្ធិ",
   "oauth_scopes_description": "ជ្រើសសិទ្ធិដែលអតិថិជន OAuth របស់អ្នកត្រូវការ",
   "oauth_scope_category_user": "អ្នកប្រើប្រាស់",

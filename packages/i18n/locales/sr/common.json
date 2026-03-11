@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Za razvoj možete koristiti localhost URL (npr. http://localhost:3000).",
   "authentication_mode": "Režim potvrde identiteta",
   "use_pkce": "Koristi PKCE (preporučeno za mobilne/SPA aplikacije)",
+  "pkce_cannot_be_changed_after_creation": "PKCE ne može biti promenjen nakon kreiranja. Da biste promenili ovu postavku, kreirajte novog OAuth klijenta.",
   "oauth_scopes": "Opsezi",
   "oauth_scopes_description": "Izaberite dozvole koje su potrebne vašem OAuth klijentu",
   "oauth_scope_category_user": "Korisnik",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Pour le développement, vous pouvez utiliser une URL localhost (par exemple http://localhost:3000).",
   "authentication_mode": "Mode d'authentification",
   "use_pkce": "Utiliser PKCE (recommandé pour les applications mobiles/SPA)",
+  "pkce_cannot_be_changed_after_creation": "PKCE ne peut pas être modifié après la création. Pour modifier ce paramètre, créez un nouveau client OAuth.",
   "oauth_scopes": "Autorisations",
   "oauth_scopes_description": "Sélectionnez les autorisations nécessaires pour votre client OAuth",
   "oauth_scope_category_user": "Utilisateur",

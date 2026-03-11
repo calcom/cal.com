@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Garapenerako, localhost URL bat erabil dezakezu (adib. http://localhost:3000).",
   "authentication_mode": "Autentifikazio modua",
   "use_pkce": "Erabili PKCE (gomendatua mugikorretarako/SPA aplikazioetarako)",
+  "pkce_cannot_be_changed_after_creation": "PKCE ezin da aldatu sortu ondoren. Ezarpen hau aldatzeko, sortu OAuth bezero berri bat.",
   "oauth_scopes": "Esparruak",
   "oauth_scopes_description": "Aukeratu zure OAuth bezeroak behar dituen baimenak",
   "oauth_scope_category_user": "Erabiltzailea",

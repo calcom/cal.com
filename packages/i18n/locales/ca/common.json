@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Per al desenvolupament, podeu utilitzar una URL de localhost (p. ex. http://localhost:3000).",
   "authentication_mode": "Mode d'autenticació",
   "use_pkce": "Utilitzar PKCE (recomanat per a aplicacions mòbils/SPA)",
+  "pkce_cannot_be_changed_after_creation": "PKCE no es pot canviar després de la creació. Per modificar aquesta configuració, creeu un nou client OAuth.",
   "oauth_scopes": "Àmbits",
   "oauth_scopes_description": "Seleccioneu els permisos que necessita el vostre client OAuth",
   "oauth_scope_category_user": "Usuari",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Pre vývoj môžete použiť localhost URL (napr. http://localhost:3000).",
   "authentication_mode": "Režim autentifikácie",
   "use_pkce": "Použiť PKCE (odporúčané pre mobilné/SPA aplikácie)",
+  "pkce_cannot_be_changed_after_creation": "PKCE nemožno zmeniť po vytvorení. Ak chcete zmeniť toto nastavenie, vytvorte nového OAuth klienta.",
   "oauth_scopes": "Rozsahy práv",
   "oauth_scopes_description": "Vyberte oprávnenia, ktoré váš OAuth klient potrebuje",
   "oauth_scope_category_user": "Používateľ",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "ডেভেলপমেন্টের জন্য, আপনি একটি localhost URL ব্যবহার করতে পারেন (যেমন http://localhost:3000)।",
   "authentication_mode": "প্রমাণীকরণ মোড",
   "use_pkce": "PKCE ব্যবহার করুন (মোবাইল/SPA অ্যাপ্লিকেশনের জন্য প্রস্তাবিত)",
+  "pkce_cannot_be_changed_after_creation": "তৈরি করার পরে PKCE টগল করা যাবে না। এই সেটিং পরিবর্তন করতে, একটি নতুন OAuth ক্লায়েন্ট তৈরি করুন।",
   "oauth_scopes": "স্কোপসমূহ",
   "oauth_scopes_description": "আপনার OAuth ক্লায়েন্টের জন্য প্রয়োজনীয় অনুমতিসমূহ নির্বাচন করুন",
   "oauth_scope_category_user": "ব্যবহারকারী",

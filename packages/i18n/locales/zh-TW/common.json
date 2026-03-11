@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "開發階段可使用 localhost 網址（例如：http://localhost:3000）。",
   "authentication_mode": "驗證模式",
   "use_pkce": "使用 PKCE（建議用於行動裝置／SPA 應用程式）",
+  "pkce_cannot_be_changed_after_creation": "PKCE 無法在建立後切換。若要變更此設定，請建立新的 OAuth 客戶端。",
   "oauth_scopes": "權限範圍（Scopes）",
   "oauth_scopes_description": "選擇您的 OAuth 用戶端所需的權限",
   "oauth_scope_category_user": "使用者",

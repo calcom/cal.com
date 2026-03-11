@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Fejlesztéshez használhatsz localhost URL-t (pl. http://localhost:3000).",
   "authentication_mode": "Hitelesítési mód",
   "use_pkce": "PKCE használata (ajánlott mobil/SPA alkalmazásokhoz)",
+  "pkce_cannot_be_changed_after_creation": "A PKCE nem módosítható a létrehozás után. A beállítás megváltoztatásához hozzon létre egy új OAuth klienst.",
   "oauth_scopes": "Jogosultságok",
   "oauth_scopes_description": "Válaszd ki, hogy az OAuth kliensed milyen jogosultságokra van szüksége.",
   "oauth_scope_category_user": "Felhasználó",

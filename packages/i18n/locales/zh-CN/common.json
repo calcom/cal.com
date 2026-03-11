@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "开发时可使用本地地址（如：http://localhost:3000）。",
   "authentication_mode": "认证模式",
   "use_pkce": "使用 PKCE（推荐用于移动端/SPA 应用）",
+  "pkce_cannot_be_changed_after_creation": "创建后无法切换 PKCE。要更改此设置，请创建新的 OAuth 客户端。",
   "oauth_scopes": "权限范围",
   "oauth_scopes_description": "请选择您的 OAuth 客户端所需的权限",
   "oauth_scope_category_user": "用户",

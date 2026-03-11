@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Για ανάπτυξη, μπορείτε να χρησιμοποιήσετε ένα URL localhost (π.χ. http://localhost:3000).",
   "authentication_mode": "Λειτουργία αυθεντικοποίησης",
   "use_pkce": "Χρήση PKCE (συνιστάται για εφαρμογές mobile/SPA)",
+  "pkce_cannot_be_changed_after_creation": "Το PKCE δεν μπορεί να ενεργοποιηθεί ή να απενεργοποιηθεί μετά τη δημιουργία. Για να αλλάξετε αυτήν τη ρύθμιση, δημιουργήστε έναν νέο πελάτη OAuth.",
   "oauth_scopes": "Scopes",
   "oauth_scopes_description": "Επιλέξτε τα δικαιώματα που χρειάζεται ο OAuth client σας",
   "oauth_scope_category_user": "Χρήστης",

@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Do celów deweloperskich możesz użyć adresu localhost (np. http://localhost:3000).",
   "authentication_mode": "Tryb uwierzytelniania",
   "use_pkce": "Użyj PKCE (zalecane dla aplikacji mobilnych/SPA)",
+  "pkce_cannot_be_changed_after_creation": "PKCE nie może być przełączane po utworzeniu. Aby zmienić to ustawienie, utwórz nowego klienta OAuth.",
   "oauth_scopes": "Zakresy",
   "oauth_scopes_description": "Wybierz uprawnienia wymagane przez Twojego klienta OAuth",
   "oauth_scope_category_user": "Użytkownik",

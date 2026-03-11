@@ -1137,6 +1137,7 @@
   "website_url_tooltip": "Để phát triển, bạn có thể sử dụng URL localhost (ví dụ: http://localhost:3000).",
   "authentication_mode": "Chế độ xác thực",
   "use_pkce": "Sử dụng PKCE (khuyến nghị cho ứng dụng di động/SPA)",
+  "pkce_cannot_be_changed_after_creation": "Không thể bật/tắt PKCE sau khi đã tạo. Để thay đổi cài đặt này, vui lòng tạo OAuth client mới.",
   "oauth_scopes": "Phạm vi",
   "oauth_scopes_description": "Chọn quyền mà OAuth client của bạn cần",
   "oauth_scope_category_user": "Người dùng",

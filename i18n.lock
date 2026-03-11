@@ -5796,6 +5796,7 @@ checksums:
     website_url_tooltip: 5273a63ddb66defb3b1acb01797a71cf
     authentication_mode: 8caf3022c25f5f2b151210a5fc22d345
     use_pkce: 9dae4569dacd39185c80d309d53f1cc6
+    pkce_cannot_be_changed_after_creation: 50d8a1f1ae2a3e6ba0e4160e23195565
     oauth_scopes: 8fd98b2e43a81cf8b256deb28107b0d4
     oauth_scopes_description: 7cfc13d327f8a216db861623a66e218e
     oauth_scope_category_user: 61073457a5c3901084b557d065f876be
