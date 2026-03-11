@@ -83,6 +83,10 @@ const buildDateWithMinutes = (date: Date, minutes: number): Date => {
   return setMinutes(setHours(normalizedDate, Math.floor(minutes / 60)), minutes % 60);
 };
 
+const toValidLocationCredentialId = (credentialId: number | null | undefined) => {
+  return typeof credentialId === "number" && credentialId > 0 ? credentialId : null;
+};
+
 const buildLocationValue = (params: {
   locationType: string;
   locationInput: string;
@@ -314,7 +318,7 @@ export const QuickBookingDialog = ({
       calendarId,
       attendees: normalizedAttendees,
       location: derivedLocation.location,
-      locationCredentialId: selectedLocationOption?.credentialId ?? null,
+      locationCredentialId: toValidLocationCredentialId(selectedLocationOption?.credentialId),
       description: notes.trim() || undefined,
     });
   };

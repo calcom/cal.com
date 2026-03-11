@@ -256,7 +256,10 @@ const UnifiedCalendarPage = () => {
           providerCalendarId: targetCalendar.providerCalendarId,
         },
         location: draft.location,
-        locationCredentialId: draft.locationCredentialId,
+        locationCredentialId:
+          typeof draft.locationCredentialId === "number" && draft.locationCredentialId > 0
+            ? draft.locationCredentialId
+            : null,
         note: draft.description ?? null,
       });
 
