@@ -1,10 +1,8 @@
-import { expect } from "@playwright/test";
-import { v4 as uuidv4 } from "uuid";
-
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
 import { test } from "./lib/fixtures";
 import {
   confirmReschedule,
@@ -136,6 +134,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { id: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -156,6 +155,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     const references = await prisma.bookingSeat.findMany({
       where: { bookingId: booking.id },
+      orderBy: { id: "asc" },
     });
 
     await page.goto(
@@ -203,6 +203,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { id: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -282,6 +283,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { id: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -522,6 +524,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { id: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
