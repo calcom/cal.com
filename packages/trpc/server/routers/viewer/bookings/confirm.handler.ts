@@ -2,8 +2,9 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -11,18 +12,26 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
@@ -34,11 +43,7 @@ import { TRPCError } from "@trpc/server";
 import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import logger from "@calcom/lib/logger";
+
 type ConfirmOptions = {
   ctx: {
     user: Pick<
@@ -47,7 +52,7 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor; impersonatedByUserUuid: string | null };
 };
 
 async function fireRejectionEvent({
@@ -58,6 +63,7 @@ async function fireRejectionEvent({
   rejectionReason,
   isBookingAuditEnabled,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -69,11 +75,13 @@ async function fireRejectionEvent({
   }[];
   isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid: string | null;
 }): Promise<void> {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
     if (rejectedBookings.length > 1) {
       const operationId = uuidv4();
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBulkBookingsRejected({
         bookings: rejectedBookings.map((booking) => ({
           bookingUid: booking.uid,
@@ -86,10 +94,12 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBookingRejected({
         bookingUid: booking.uid,
         actor,
@@ -99,6 +109,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     }
@@ -120,6 +131,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -167,6 +179,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           workflows: {
@@ -197,6 +211,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
+          profiles: {
+            select: {
+              organization: { select: { hideBranding: true } },
+            },
+          },
         },
       },
       id: true,
@@ -351,6 +371,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
+    hideBranding: booking.eventType?.id
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
+          team: booking.eventType.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: user.hideBranding,
+            profiles: user.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -425,6 +457,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       traceContext,
       actionSource,
       actor,
+      impersonatedByUserUuid,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -517,6 +550,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       rejectedBookings,
       isBookingAuditEnabled,
       tracingLogger: log,
+      impersonatedByUserUuid,
     });
 
     // send BOOKING_REJECTED webhooks
@@ -537,8 +571,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const webhookData: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
@@ -562,7 +597,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

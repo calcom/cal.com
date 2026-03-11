@@ -425,11 +425,118 @@ describe("generateAuthCodeHandler", () => {
       await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
         new TRPCError({
           code: "UNAUTHORIZED",
-          message: OAUTH_ERROR_REASONS.client_not_approved,
+          message: OAUTH_ERROR_REASONS.client_rejected,
         })
       );
 
       expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should reject REJECTED client even when user is the owner", async () => {
+      const mockRejectedClientOwnedByUser = {
+        clientId: "rejected_client_owned",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Rejected Client Owned",
+        clientType: "CONFIDENTIAL" as const,
+        status: "REJECTED" as const,
+        userId: 1,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockRejectedClientOwnedByUser);
+
+      const input = {
+        clientId: "rejected_client_owned",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      await expect(generateAuthCodeHandler({ ctx: mockCtx, input })).rejects.toThrow(
+        new TRPCError({
+          code: "UNAUTHORIZED",
+          message: OAUTH_ERROR_REASONS.client_rejected,
+        })
+      );
+
+      expect(prismaMock.accessCode.create).not.toHaveBeenCalled();
+    });
+
+    it("should allow PENDING client when user is the owner", async () => {
+      const mockPendingClientOwnedByUser = {
+        clientId: "pending_client_owned",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Pending Client Owned",
+        clientType: "CONFIDENTIAL" as const,
+        status: "PENDING" as const,
+        userId: 1,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockPendingClientOwnedByUser);
+      prismaMock.accessCode.create.mockResolvedValue({
+        id: 1,
+        code: "test_auth_code",
+        clientId: "pending_client_owned",
+        userId: 1,
+        teamId: null,
+        scopes: [],
+        codeChallenge: null,
+        codeChallengeMethod: null,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const input = {
+        clientId: "pending_client_owned",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
+      expect(result.authorizationCode).toBeDefined();
+    });
+
+    it("should allow APPROVED client when user is the owner", async () => {
+      const mockApprovedClientOwnedByUser = {
+        clientId: "approved_client_owned",
+        redirectUri: "https://app.example.com/callback",
+        name: "Test Approved Client Owned",
+        clientType: "CONFIDENTIAL" as const,
+        status: "APPROVED" as const,
+        userId: 1,
+      };
+
+      prismaMock.oAuthClient.findFirst.mockResolvedValue(mockApprovedClientOwnedByUser);
+      prismaMock.accessCode.create.mockResolvedValue({
+        id: 1,
+        code: "test_auth_code",
+        clientId: "approved_client_owned",
+        userId: 1,
+        teamId: null,
+        scopes: [],
+        codeChallenge: null,
+        codeChallengeMethod: null,
+        expiresAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const input = {
+        clientId: "approved_client_owned",
+        scopes: [],
+        teamSlug: undefined,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        redirectUri: "https://app.example.com/callback",
+      };
+
+      const result = await generateAuthCodeHandler({ ctx: mockCtx, input });
+      expect(result.authorizationCode).toBeDefined();
     });
   });
 });

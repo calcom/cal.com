@@ -2065,6 +2065,7 @@ __metadata:
     "@calcom/dailyvideo": "workspace:*"
     "@calcom/dayjs": "workspace:*"
     "@calcom/features": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/office365video": "workspace:*"
     "@calcom/testing": "workspace:*"
@@ -2096,6 +2097,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@1.0.4"
     "@radix-ui/react-popover-atoms": "npm:@radix-ui/react-popover@1.0.6"
     "@radix-ui/react-slot": "npm:1.1.2"
@@ -2309,6 +2311,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/ee@workspace:packages/features/ee"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/ui": "workspace:*"
@@ -2316,7 +2319,7 @@ __metadata:
     "@hookform/resolvers": "npm:2.9.7"
     "@sendgrid/client": "npm:7.7.0"
     "@sendgrid/mail": "npm:7.7.0"
-    libphonenumber-js: "npm:^1.11.18"
+    libphonenumber-js: "npm:^1.12.38"
     twilio: "npm:3.84.1"
     zod: "npm:3.25.76"
   peerDependencies:
@@ -2496,6 +2499,7 @@ __metadata:
   resolution: "@calcom/feature-auth@workspace:packages/features/auth"
   dependencies:
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/trpc": "workspace:*"
@@ -2517,6 +2521,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/testing": "workspace:*"
     "@calcom/trpc": "workspace:*"
@@ -2649,6 +2654,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/i18n@workspace:*, @calcom/i18n@workspace:packages/i18n":
+  version: 0.0.0-use.local
+  resolution: "@calcom/i18n@workspace:packages/i18n"
+  dependencies:
+    "@calcom/tsconfig": "workspace:*"
+    i18next: "npm:23.2.3"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/ics-feed@workspace:packages/app-store/ics-feedcalendar"
@@ -2727,6 +2742,7 @@ __metadata:
     "@biomejs/biome": "npm:2.3.10"
     "@calcom/config": "workspace:*"
     "@calcom/dayjs": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
     "@calcom/types": "workspace:*"
     "@faker-js/faker": "npm:7.6.0"
@@ -2893,6 +2909,7 @@ __metadata:
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
     "@calcom/features": "workspace:*"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@types/node": "npm:20.17.23"
     "@vitejs/plugin-react": "npm:5.1.2"
@@ -2919,7 +2936,7 @@ __metadata:
     "@types/express": "npm:4.17.21"
     class-transformer: "npm:0.5.1"
     class-validator: "npm:0.14.3"
-    libphonenumber-js: "npm:1.10.49"
+    libphonenumber-js: "npm:1.12.38"
     luxon: "npm:3.4.4"
     zod: "npm:3.25.76"
   languageName: unknown
@@ -2970,6 +2987,8 @@ __metadata:
     uuid: "npm:8.3.2"
     zod: "npm:3.25.76"
     zod-prisma-types: "npm:3.2.4"
+  bin:
+    prisma-enum-generator: ./run-enum-generator.js
   languageName: unknown
   linkType: soft
 
@@ -3140,6 +3159,7 @@ __metadata:
   resolution: "@calcom/testing@workspace:packages/testing"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/tsconfig": "workspace:*"
@@ -3153,6 +3173,7 @@ __metadata:
   resolution: "@calcom/trpc@workspace:packages/trpc"
   dependencies:
     "@biomejs/biome": "npm:2.3.10"
+    "@calcom/i18n": "workspace:*"
     "@formbricks/api": "npm:3.0.0"
     "@tanstack/react-query": "npm:5.17.19"
     "@trpc/client": "npm:11.0.0-next-beta.222"
@@ -3274,6 +3295,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/vital@workspace:packages/app-store/vital"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/types": "workspace:*"
     "@tryvital/vital-node": "npm:1.4.6"
@@ -3402,7 +3424,7 @@ __metadata:
     jotai: "npm:2.12.2"
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
-    libphonenumber-js: "npm:^1.11.18"
+    libphonenumber-js: "npm:^1.12.38"
     lodash: "npm:4.17.23"
     markdown-it: "npm:13.0.1"
     md5: "npm:2.3.0"
@@ -17137,6 +17159,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "WipeMyCal@workspace:packages/app-store/wipemycalother"
   dependencies:
+    "@calcom/i18n": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@calcom/types": "workspace:*"
     queue: "npm:6.0.2"
@@ -22682,25 +22705,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:4.4.1":
-  version: 4.4.1
-  resolution: "fast-xml-parser@npm:4.4.1"
+"fast-xml-parser@npm:4.5.4":
+  version: 4.5.4
+  resolution: "fast-xml-parser@npm:4.5.4"
   dependencies:
     strnum: "npm:^1.0.5"
   bin:
     fxparser: src/cli/cli.js
-  checksum: 10/0c05ab8703630d8c857fafadbd78d0020d3a8e54310c3842179cd4a0d9d97e96d209ce885e91241f4aa9dd8dfc2fd924a682741a423d65153cad34da2032ec44
+  checksum: 10/991f11a15d82be778c3452e5f1109975d66276bb951ba4db87417507da15d0b1c09d15a4e4db15a216cf3315b4325f66ff3b7f9b7557d6a2055103755fb39cce
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:5.3.4":
-  version: 5.3.4
-  resolution: "fast-xml-parser@npm:5.3.4"
+"fast-xml-parser@npm:5.3.5":
+  version: 5.3.5
+  resolution: "fast-xml-parser@npm:5.3.5"
   dependencies:
-    strnum: "npm:^2.1.0"
+    strnum: "npm:^2.1.2"
   bin:
     fxparser: src/cli/cli.js
-  checksum: 10/0d7e6872fed7c3065641400d43cdf24c03177f05c343bfb31df53b79f0900b085c103f647852d0b00693125aa3f0e9d8b8cfc4273b168d4da0308f857dafe830
+  checksum: 10/913363c2cf9ab8038bd2b666698d99d44b977725f0198f3dfff3a5d34c3109ef49d3a163a0f390f69ed00ad33b81355112dec8be5e79a13f8e6c7aaf146204b8
   languageName: node
   linkType: hard
 
@@ -27167,17 +27190,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:1.11.18":
-  version: 1.11.18
-  resolution: "libphonenumber-js@npm:1.11.18"
-  checksum: 10/102ecd0b93e392aca14330801c4e9da60008ba04f9ea1db7a0e1bdf46d6b4279fb31421ae38b0ca74bb37fe5a194004c4bf375d6cd5c953cdbb30bb01cec5e3f
+"libphonenumber-js@npm:1.12.38":
+  version: 1.12.38
+  resolution: "libphonenumber-js@npm:1.12.38"
+  checksum: 10/98e5a254190cda80f4aad7afe2a6e3ad4ce651cfc2f6fff8b8e31e6ab8c3ddceb2605ea03a217aaa9fbcd8898663a76763e3c89f61d975b968e2d8b37693ea63
   languageName: node
   linkType: hard
 
-"libphonenumber-js@patch:libphonenumber-js@1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::locator=calcom-monorepo%40workspace%3A.":
-  version: 1.11.18
-  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::version=1.11.18&hash=18a67d&locator=calcom-monorepo%40workspace%3A."
-  checksum: 10/0918299a9d38ef0adefaf8eafa757c1d843be06f9ac7b9cf58f35ff9091b32bf21b2d7cfa02a8f9700c56f49f9c7e4e6e40d7f342dac3a91e952226a9ea5c029
+"libphonenumber-js@patch:libphonenumber-js@1.12.38#./.yarn/patches/libphonenumber-js+1.12.38.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.12.38
+  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.12.38#./.yarn/patches/libphonenumber-js+1.12.38.patch::version=1.12.38&hash=18a67d&locator=calcom-monorepo%40workspace%3A."
+  checksum: 10/707404eda471b34d6441b5f9f3a75fdf5da8b8329900c17790ea91cc7db6f90db62dbb5ad561e2d9d0df942dea633f91eca4d6382f1833cbbf1f354be9437ff5
   languageName: node
   linkType: hard
 
@@ -36309,10 +36332,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"strnum@npm:^2.1.0":
-  version: 2.1.1
-  resolution: "strnum@npm:2.1.1"
-  checksum: 10/d5fe6e4333cddc17569331048e403e876ffcf629989815f0359b0caf05dae9441b7eef3d7dd07427313ac8b3f05a8f60abc1f61efc15f97245dbc24028362bc9
+"strnum@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "strnum@npm:2.1.2"
+  checksum: 10/7d894dff385e3a5c5b29c012cf0a7ea7962a92c6a299383c3d6db945ad2b6f3e770511356a9774dbd54444c56af1dc7c435dad6466c47293c48173274dd6c631
   languageName: node
   linkType: hard
 
