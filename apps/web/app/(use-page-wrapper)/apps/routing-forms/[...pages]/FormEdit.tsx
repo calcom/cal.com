@@ -208,7 +208,7 @@ function Field({
               }}
             />
           </div>
-          {["select", "multiselect"].includes(fieldType) ? (
+          {["select", "multiselect", "checkbox", "radio"].includes(fieldType) ? (
             <div className="bg-cal-muted w-full rounded-[10px] p-2">
               <Label className="text-subtle">{t("options")}</Label>
               <MultiOptionInput

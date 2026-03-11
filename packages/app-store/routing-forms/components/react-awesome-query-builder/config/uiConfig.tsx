@@ -76,7 +76,6 @@ const EmailFactory = (props: WidgetProps | undefined) => {
   );
 };
 
-// react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
 function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
@@ -110,6 +109,33 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     email: {
       ...widgets.text,
       factory: EmailFactory,
+    },
+    address: {
+      ...widgets.text,
+      factory: TextFactory,
+      valuePlaceholder: "Enter Address",
+    },
+    multiemail: {
+      ...widgets.text,
+      factory: TextFactory,
+      valuePlaceholder: "Enter Email",
+    },
+    checkbox: {
+      ...(widgets.multiselect ?? widgets.text),
+      factory: MultiSelectFactory,
+    } as SelectWidgetType,
+    radio: {
+      ...(widgets.select ?? widgets.text),
+      factory: SelectFactory,
+    } as SelectWidgetType,
+    boolean: {
+      ...widgets.boolean,
+      factory: TextFactory,
+    },
+    url: {
+      ...widgets.text,
+      factory: TextFactory,
+      valuePlaceholder: "Enter URL",
     },
   };
   return widgetsWithFactory;

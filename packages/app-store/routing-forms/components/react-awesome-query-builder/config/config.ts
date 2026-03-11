@@ -15,6 +15,24 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     email: {
       ...BasicConfig.widgets.text,
     },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
+    checkbox: {
+      ...BasicConfig.widgets.multiselect,
+    },
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
+    boolean: {
+      ...BasicConfig.widgets.boolean,
+    },
+    url: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
@@ -40,6 +58,58 @@ function getTypes(configFor: ConfigFor) {
       ...BasicConfig.types.text,
       widgets: {
         ...BasicConfig.types.text.widgets,
+      },
+    },
+    address: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        address: {
+          ...BasicConfig.types.text.widgets.text,
+        },
+      },
+    },
+    multiemail: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        multiemail: {
+          ...BasicConfig.types.text.widgets.text,
+        },
+      },
+    },
+    checkbox: {
+      ...BasicConfig.types.multiselect,
+      widgets: {
+        ...BasicConfig.types.multiselect.widgets,
+        checkbox: {
+          ...BasicConfig.types.multiselect.widgets.multiselect,
+          operators: [...(BasicConfig.types.multiselect.widgets.multiselect.operators || [])],
+        },
+      },
+    },
+    radio: {
+      ...BasicConfig.types.select,
+      widgets: {
+        ...BasicConfig.types.select.widgets,
+        radio: {
+          ...BasicConfig.types.select.widgets.select,
+        },
+      },
+    },
+    boolean: {
+      ...BasicConfig.types.boolean,
+      widgets: {
+        ...BasicConfig.types.boolean.widgets,
+      },
+    },
+    url: {
+      ...BasicConfig.types.text,
+      widgets: {
+        ...BasicConfig.types.text.widgets,
+        url: {
+          ...BasicConfig.types.text.widgets.text,
+        },
       },
     },
     multiselect: {

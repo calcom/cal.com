@@ -64,7 +64,13 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
+          listValues:
+            fieldType === "select" ||
+            fieldType === "multiselect" ||
+            fieldType === "checkbox" ||
+            fieldType === "radio"
+              ? options
+              : undefined,
         },
       };
     } else {
