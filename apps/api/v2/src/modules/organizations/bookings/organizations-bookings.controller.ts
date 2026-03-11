@@ -1,10 +1,24 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
+  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
-  OPTIONAL_API_KEY_HEADER,
-  OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -14,12 +28,10 @@ import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.g
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { ReportBookingSpamInput } from "@/modules/organizations/bookings/inputs/report-booking-spam.input";
+import { ReportBookingSpamOutput } from "@/modules/organizations/bookings/outputs/report-booking-spam.output";
+import { OrganizationsBookingsSpamReportService } from "@/modules/organizations/bookings/services/organizations-bookings-spam-report.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/bookings",
@@ -31,7 +43,10 @@ import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@ca
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class OrganizationsBookingsController {
-  constructor(private readonly bookingsService: BookingsService_2024_08_13) {}
+  constructor(
+    private readonly bookingsService: BookingsService_2024_08_13,
+    private readonly spamReportService: OrganizationsBookingsSpamReportService
+  ) {}
 
   @Get("/")
   @ApiOperation({ summary: "Get organization bookings" })
@@ -55,6 +70,31 @@ export class OrganizationsBookingsController {
       status: SUCCESS_STATUS,
       data: bookings,
       pagination,
+    };
+  }
+
+  @Post("/:bookingUid/report-spam")
+  @ApiOperation({ summary: "Report a booking as spam" })
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @HttpCode(HttpStatus.OK)
+  async reportBookingAsSpam(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("bookingUid") bookingUid: string,
+    @Body() body: ReportBookingSpamInput,
+    @GetUser() user: UserWithProfile
+  ): Promise<ReportBookingSpamOutput> {
+    const result = await this.spamReportService.reportBookingAsSpam({
+      bookingUid,
+      orgId,
+      userId: user.id,
+      userEmail: user.email,
+      description: body.description,
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: result,
     };
   }
 }
