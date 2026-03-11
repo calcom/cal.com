@@ -1,7 +1,7 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2026_02_25 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -18,7 +18,7 @@ import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings/:bookingUid/guests",
-  version: VERSION_2024_08_13_VALUE,
+  version: [VERSION_2024_08_13, VERSION_2026_02_25],
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings / Guests")

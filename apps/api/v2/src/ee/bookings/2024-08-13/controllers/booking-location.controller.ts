@@ -1,7 +1,7 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
 import { BookingLocationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location.service";
-import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { VERSION_2024_08_13, VERSION_2026_02_25 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -25,7 +25,7 @@ import {
 
 @Controller({
   path: "/v2/bookings/:bookingUid/location",
-  version: VERSION_2024_08_13_VALUE,
+  version: [VERSION_2024_08_13, VERSION_2026_02_25],
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")

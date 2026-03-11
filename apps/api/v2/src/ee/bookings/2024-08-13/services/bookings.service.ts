@@ -914,6 +914,8 @@ export class BookingsService_2024_08_13 {
 
     if (!hasSeatsPresent) return false;
 
+    if (!isIndividualSeatReschedule && !authUser?.id) return false;
+
     return await this.isIndividualSeatOrOrgAdminReschedule(
       isIndividualSeatReschedule,
       booking.userId,

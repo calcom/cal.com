@@ -1,8 +1,7 @@
+import type { Prisma } from "@calcom/prisma/client";
+import { TestingModule } from "@nestjs/testing";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TestingModule } from "@nestjs/testing";
-
-import type { Prisma } from "@calcom/prisma/client";
 
 export class AttendeeRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -15,5 +14,9 @@ export class AttendeeRepositoryFixture {
 
   async create(attendee: Prisma.AttendeeCreateInput) {
     return this.prismaWriteClient.attendee.create({ data: attendee });
+  }
+
+  async findAllByBookingId(bookingId: number) {
+    return this.prismaReadClient.attendee.findMany({ where: { bookingId } });
   }
 }

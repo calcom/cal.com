@@ -568,10 +568,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       isBookingAuditEnabled,
     });
   } else {
-    if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
-      await attendeeRepository.deleteManyByBookingId(bookingToDelete.id);
-    }
-
     const updatedBooking = await bookingRepository.updateIncludeWorkflowRemindersAndReferences({
       where: {
         uid: bookingToDelete.uid,

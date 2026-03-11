@@ -1,27 +1,26 @@
+import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
 import {
   BookingLocations,
   createBookingScenario,
   getBooker,
+  getDate,
   getGoogleCalendarCredential,
   getOrganizer,
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockSuccessfulVideoMeetingCreation,
   TestData,
-  getDate,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { BookingStatus } from "@calcom/prisma/enums";
 import {
   expectBookingCancelledWebhookToHaveBeenFired,
   expectWorkflowToBeNotTriggered,
   expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect, vi } from "vitest";
-
-import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
-import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { describe, expect, vi } from "vitest";
 
 vi.mock("@calcom/features/bookings/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),
@@ -1219,7 +1218,7 @@ describe("Cancel Booking", () => {
     });
   });
 
-  test("Should cancel seated event and delete all attendees when seatsPerTimeSlot is enabled", async () => {
+  test("Should cancel seated event and preserve attendees in the DB when seatsPerTimeSlot is enabled", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
     const booker = getBooker({
@@ -1324,6 +1323,16 @@ describe("Cancel Booking", () => {
     expect(result.success).toBe(true);
     expect(result.onlyRemovedAttendee).toBe(false);
     expect(result.bookingId).toBe(idOfBookingToBeCancelled);
+
+    // Verify attendees are preserved in the DB after cancellation
+    const attendeesAfterCancellation = await prismaMock.attendee.findMany({
+      where: {
+        bookingId: idOfBookingToBeCancelled,
+      },
+    });
+    expect(attendeesAfterCancellation.length).toBe(2);
+    const attendeeEmails = attendeesAfterCancellation.map((a: { email: string }) => a.email).sort();
+    expect(attendeeEmails).toEqual([attendee2.email, booker.email].sort());
   });
 
   test("Should cancel all remaining recurring bookings when allRemainingBookings is true", async () => {

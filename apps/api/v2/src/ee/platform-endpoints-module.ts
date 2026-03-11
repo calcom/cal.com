@@ -2,6 +2,7 @@ import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 import { BookingsModule_2024_04_15 } from "@/ee/bookings/2024-04-15/bookings.module";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
+import { BookingsModule_2026_02_25 } from "@/ee/bookings/2026-02-25/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesPrivateLinksModule_2024_06_14 } from "@/ee/event-types-private-links/2024-06-14/event-types-private-links.module";
 import { EventTypesPrivateLinksModule_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/event-types-private-links.module";
@@ -36,6 +37,7 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
     CalendarsModule,
     BookingsModule_2024_04_15,
     BookingsModule_2024_08_13,
+    BookingsModule_2026_02_25,
     TeamsMembershipsModule,
     TeamsOOOModule,
     TeamsInviteModule,

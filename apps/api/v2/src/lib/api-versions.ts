@@ -7,6 +7,7 @@ import {
   VERSION_2024_06_14,
   VERSION_2024_08_13,
   VERSION_2024_09_04,
+  VERSION_2026_02_25,
 } from "@calcom/platform-constants";
 
 export const API_VERSIONS_VALUES: VersionValue = API_VERSIONS as unknown as VersionValue;
@@ -15,9 +16,11 @@ export const VERSION_2024_06_11_VALUE: VersionValue = VERSION_2024_06_11 as unkn
 export const VERSION_2024_04_15_VALUE: VersionValue = VERSION_2024_04_15 as unknown as VersionValue;
 export const VERSION_2024_08_13_VALUE: VersionValue = VERSION_2024_08_13 as unknown as VersionValue;
 export const VERSION_2024_09_04_VALUE: VersionValue = VERSION_2024_09_04 as unknown as VersionValue;
+export const VERSION_2026_02_25_VALUE: VersionValue = VERSION_2026_02_25 as unknown as VersionValue;
 
 export { VERSION_2024_04_15 };
 export { VERSION_2024_06_11 };
 export { VERSION_2024_06_14 };
 export { VERSION_2024_08_13 };
 export { VERSION_2024_09_04 };
+export { VERSION_2026_02_25 };

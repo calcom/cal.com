@@ -1,4 +1,9 @@
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+  VERSION_2026_02_25,
+} from "@calcom/platform-constants";
 import type {
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -16,6 +21,7 @@ import { Test } from "@nestjs/testing";
 import { DateTime } from "luxon";
 import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -45,6 +51,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let bookingSeatRepositoryFixture: BookingSeatRepositoryFixture;
+    let attendeeRepositoryFixture: AttendeeRepositoryFixture;
 
     const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
@@ -81,6 +88,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       bookingSeatRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
+      attendeeRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: `seated-bookings-organization-${randomString()}`,
@@ -1093,23 +1101,232 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 expect(data.cancellationReason).toEqual("I will be travelling without internet");
 
                 const seats = await bookingSeatRepositoryFixture.findAllByBookingId(data.id);
-                expect(seats.length).toEqual(0);
+                expect(seats.length).toBeGreaterThan(0);
               } else {
                 throw new Error("Invalid response data - expected booking but received array response");
               }
             });
         });
       });
+
+      describe("VERSION_2026_02_25 returns attendees for cancelled seated bookings", () => {
+        let createdSeatedBooking4: CreateSeatedBookingOutput_2024_08_13;
+
+        it("should book a seated event type for VERSION_2026_02_25 test", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString(),
+            eventTypeId: seatedEventTypeId,
+            attendee: {
+              name: nameAttendeeOne,
+              email: emailAttendeeOne,
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            bookingFieldsResponses: {
+              codingLanguage: "TypeScript",
+            },
+            metadata: {
+              userId: "100",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2026_02_25)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+              if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+                const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+                expect(data.seatUid).toBeDefined();
+                expect(data.id).toBeDefined();
+                expect(data.uid).toBeDefined();
+                expect(data.status).toEqual("accepted");
+                expect(data.attendees.length).toEqual(1);
+                createdSeatedBooking4 = data;
+              } else {
+                throw new Error("Invalid response data - expected seated booking");
+              }
+            });
+        });
+
+        it("should cancel and return attendees in response with VERSION_2026_02_25", async () => {
+          const cancelBody: CancelBookingInput_2024_08_13 = {
+            cancellationReason: "Testing new version attendee response",
+          };
+
+          const cancelResponse = await request(app.getHttpServer())
+            .post(`/v2/bookings/${createdSeatedBooking4.uid}/cancel`)
+            .send(cancelBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2026_02_25)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .expect(200);
+
+          const responseBody: RescheduleBookingOutput_2024_08_13 = cancelResponse.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            expect(data.attendees.length).toBeGreaterThan(0);
+            expect(data.attendees[0].name).toEqual(nameAttendeeOne);
+            expect(data.attendees[0].email).toEqual(emailAttendeeOne);
+
+            const attendeesInDb = await attendeeRepositoryFixture.findAllByBookingId(data.id);
+            expect(attendeesInDb.length).toBeGreaterThan(0);
+            expect(attendeesInDb.some((a) => a.email === emailAttendeeOne)).toBe(true);
+
+            const seats = await bookingSeatRepositoryFixture.findAllByBookingId(data.id);
+            expect(seats.length).toBeGreaterThan(0);
+          } else {
+            throw new Error("Invalid response data - expected seated booking");
+          }
+        });
+
+        it("should return empty attendees for same cancelled booking with VERSION_2024_08_13", async () => {
+          const getResponse = await request(app.getHttpServer())
+            .get(`/v2/bookings/${createdSeatedBooking4.uid}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .expect(200);
+
+          const responseBody: GetBookingOutput_2024_08_13 = getResponse.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            expect(data.attendees.length).toEqual(0);
+          } else {
+            throw new Error("Invalid response data - expected seated booking");
+          }
+        });
+
+        it("should return attendees when fetching cancelled booking with VERSION_2026_02_25", async () => {
+          const getResponse = await request(app.getHttpServer())
+            .get(`/v2/bookings/${createdSeatedBooking4.uid}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2026_02_25)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .expect(200);
+
+          const responseBody: GetBookingOutput_2024_08_13 = getResponse.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            expect(data.attendees.length).toBeGreaterThan(0);
+            expect(data.attendees[0].name).toEqual(nameAttendeeOne);
+            expect(data.attendees[0].email).toEqual(emailAttendeeOne);
+          } else {
+            throw new Error("Invalid response data - expected seated booking");
+          }
+        });
+      });
+
+      describe("cancel seated booking preserves attendees in DB", () => {
+        let createdSeatedBooking3: CreateSeatedBookingOutput_2024_08_13;
+
+        it("should book a seated event type for DB attendee preservation test", async () => {
+          const body: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2030, 0, 9, 14, 0, 0)).toISOString(),
+            eventTypeId: seatedEventTypeId,
+            attendee: {
+              name: nameAttendeeOne,
+              email: emailAttendeeOne,
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            bookingFieldsResponses: {
+              codingLanguage: "TypeScript",
+            },
+            metadata: {
+              userId: "100",
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseDataIsCreateSeatedBooking(responseBody.data)).toBe(true);
+
+              if (responseDataIsCreateSeatedBooking(responseBody.data)) {
+                const data: CreateSeatedBookingOutput_2024_08_13 = responseBody.data;
+                expect(data.seatUid).toBeDefined();
+                expect(data.id).toBeDefined();
+                expect(data.uid).toBeDefined();
+                expect(data.status).toEqual("accepted");
+                expect(data.attendees.length).toEqual(1);
+                createdSeatedBooking3 = data;
+              } else {
+                throw new Error("Invalid response data - expected seated booking");
+              }
+            });
+        });
+
+        it("should cancel the seated booking as host and verify attendees are preserved in DB", async () => {
+          const cancelBody: CancelBookingInput_2024_08_13 = {
+            cancellationReason: "Testing attendee preservation",
+          };
+
+          const cancelResponse = await request(app.getHttpServer())
+            .post(`/v2/bookings/${createdSeatedBooking3.uid}/cancel`)
+            .send(cancelBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .expect(200);
+
+          const responseBody: RescheduleBookingOutput_2024_08_13 = cancelResponse.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsGetSeatedBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsGetSeatedBooking(responseBody.data)) {
+            const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
+            expect(data.status).toEqual("cancelled");
+            // API response should return empty attendees for VERSION_2024_08_13 backward compatibility
+            expect(data.attendees.length).toEqual(0);
+
+            // Verify attendee records are preserved in the database
+            const attendeesInDb = await attendeeRepositoryFixture.findAllByBookingId(data.id);
+            expect(attendeesInDb.length).toBeGreaterThan(0);
+            expect(attendeesInDb.some((a) => a.email === emailAttendeeOne)).toBe(true);
+
+            // Verify booking seats are preserved in the DB
+            const seats = await bookingSeatRepositoryFixture.findAllByBookingId(data.id);
+            expect(seats.length).toBeGreaterThan(0);
+          } else {
+            throw new Error("Invalid response data - expected seated booking");
+          }
+        });
+      });
     });
 
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
-      return Object.prototype.hasOwnProperty.call(data, "seatUid");
+      return Object.hasOwn(data, "seatUid");
     }
 
     function responseDataIsGetSeatedBooking(data: any): data is GetSeatedBookingOutput_2024_08_13 {
-      return data?.attendees?.every((attendee: any) =>
-        Object.prototype.hasOwnProperty.call(attendee, "seatUid")
-      );
+      if (!Array.isArray(data?.attendees)) return false;
+      if (data.attendees.length === 0) return !Object.hasOwn(data, "bookingFieldsResponses");
+      return data.attendees.every((attendee: any) => Object.hasOwn(attendee, "seatUid"));
     }
 
     afterAll(async () => {
