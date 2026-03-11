@@ -15,6 +15,7 @@ const log = logger.getSubLogger({ prefix: ["CachedCalendarWrapper"] });
 
 export class CalendarCacheWrapper implements Calendar {
   static STALE_SYNC_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
+  static MAX_CACHE_RANGE_MONTHS = 3;
 
   constructor(
     private deps: {
@@ -46,6 +47,18 @@ export class CalendarCacheWrapper implements Calendar {
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown> {
     return this.deps.originalCalendar.deleteEvent(uid, event, externalCalendarId);
+  }
+
+  /**
+   * Returns true when dateTo exceeds the cache's reliable range.
+   * Far-future queries bypass the cache because it may not have
+   * complete event data beyond this horizon.
+   */
+  private isDateRangeBeyondCacheLimit(dateTo: string): boolean {
+    const requestedEnd = new Date(dateTo);
+    const cacheLimit = new Date();
+    cacheLimit.setMonth(cacheLimit.getMonth() + CalendarCacheWrapper.MAX_CACHE_RANGE_MONTHS);
+    return requestedEnd > cacheLimit;
   }
 
   private isStale(calendar: IntegrationCalendar): boolean {
@@ -123,6 +136,15 @@ export class CalendarCacheWrapper implements Calendar {
     });
 
     if (!selectedCalendars?.length) return [];
+
+    if (this.isDateRangeBeyondCacheLimit(dateTo)) {
+      log.debug("Date range exceeds cache limit, falling back to original calendar", {
+        dateTo,
+        maxCacheRangeMonths: CalendarCacheWrapper.MAX_CACHE_RANGE_MONTHS,
+      });
+      metrics.count("calendar.cache.bypass.date_range_exceeded", 1);
+      return this.deps.originalCalendar.getAvailability(params);
+    }
 
     const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
     const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
@@ -214,6 +236,15 @@ export class CalendarCacheWrapper implements Calendar {
     });
 
     if (!selectedCalendars?.length) return [];
+
+    if (this.isDateRangeBeyondCacheLimit(dateTo)) {
+      log.debug("Date range exceeds cache limit, falling back to original calendar (withTimeZones)", {
+        dateTo,
+        maxCacheRangeMonths: CalendarCacheWrapper.MAX_CACHE_RANGE_MONTHS,
+      });
+      metrics.count("calendar.cache.bypass.date_range_exceeded.timezone", 1);
+      return (await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(params)) ?? [];
+    }
 
     const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
     const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);

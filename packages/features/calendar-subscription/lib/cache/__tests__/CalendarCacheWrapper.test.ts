@@ -620,6 +620,208 @@ describe("CalendarCacheWrapper", () => {
     });
   });
 
+  describe("date range cache bypass", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2025-06-01T00:00:00Z"));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should bypass cache and use original calendar when dateTo exceeds 3 months", async () => {
+      const syncedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-09-15T10:00:00Z"), end: new Date("2025-09-15T11:00:00Z") },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
+
+      const result = await wrapper.getAvailability({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-15",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-15",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+    });
+
+    it("should use cache when dateTo is within 3 months", async () => {
+      const syncedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+        },
+      ];
+
+      const cachedEvents: EventBusyDate[] = [
+        { start: new Date("2025-08-01T10:00:00Z"), end: new Date("2025-08-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue(cachedEvents);
+
+      const result = await wrapper.getAvailability({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-08-01",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(cachedEvents);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalled();
+      expect(mockOriginalCalendar.getAvailability).not.toHaveBeenCalled();
+    });
+
+    it("should use cache at exact 3-month boundary", async () => {
+      const syncedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+        },
+      ];
+
+      vi.mocked(mockRepository.findAllBySelectedCalendarIdsBetween).mockResolvedValue([]);
+
+      await wrapper.getAvailability({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-01",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).toHaveBeenCalled();
+      expect(mockOriginalCalendar.getAvailability).not.toHaveBeenCalled();
+    });
+
+    it("should bypass cache in getAvailabilityWithTimeZones when dateTo exceeds 3 months", async () => {
+      const syncedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        {
+          start: new Date("2025-09-15T10:00:00Z"),
+          end: new Date("2025-09-15T11:00:00Z"),
+          timeZone: "America/New_York",
+        },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailabilityWithTimeZones).mockResolvedValue(originalEvents);
+
+      const result = await wrapper.getAvailabilityWithTimeZones({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-15",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockOriginalCalendar.getAvailabilityWithTimeZones).toHaveBeenCalledWith({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-15",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when original calendar does not implement getAvailabilityWithTimeZones and date range exceeds limit", async () => {
+      const syncedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+        },
+      ];
+
+      mockOriginalCalendar.getAvailabilityWithTimeZones = undefined;
+
+      const result = await wrapper.getAvailabilityWithTimeZones({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-09-15",
+        selectedCalendars: syncedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual([]);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+    });
+
+    it("should bypass cache regardless of calendar sync state when date range exceeds limit", async () => {
+      const mixedCalendars: IntegrationCalendar[] = [
+        {
+          id: "cal-1",
+          externalId: "ext-1",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
+        },
+        {
+          id: "cal-2",
+          externalId: "ext-2",
+          integration: "google_calendar",
+          syncToken: null,
+          syncSubscribedAt: null,
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-10-01T10:00:00Z"), end: new Date("2025-10-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
+
+      const result = await wrapper.getAvailability({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-10-01",
+        selectedCalendars: mixedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalledWith({
+        dateFrom: "2025-06-01",
+        dateTo: "2025-10-01",
+        selectedCalendars: mixedCalendars,
+        mode: "slots",
+      });
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+    });
+  });
+
   describe("other Calendar methods", () => {
     it("should delegate createEvent to original calendar", async () => {
       const mockEvent: CalendarServiceEvent = {
