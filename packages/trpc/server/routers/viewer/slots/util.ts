@@ -222,6 +222,79 @@ export class AvailableSlotsService {
     return currentSeats;
   }
 
+  /**
+   * When a host reschedules a booking, we check if the attendee (guest) is also a Cal.com user.
+   * If so, we fetch their existing bookings and return them as busy times, so the host
+   * can only pick time slots that work for both parties.
+   *
+   * Fixes: https://github.com/calcom/cal.com/issues/16378
+   */
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    startTime,
+    endTime,
+    hostUserIds,
+  }: {
+    rescheduleUid: string;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    /** IDs of the host users, so we don't double-count them as guests */
+    hostUserIds: Set<number>;
+  }): Promise<EventBusyDate[]> {
+    const bookingRepo = this.dependencies.bookingRepo;
+    const userRepo = this.dependencies.userRepo;
+
+    // Find the original booking to get attendee emails
+    const originalBooking = await bookingRepo.findBookingByUid({ bookingUid: rescheduleUid });
+    if (!originalBooking) {
+      log.debug("_getGuestBusyTimesForReschedule: original booking not found", { rescheduleUid });
+      return [];
+    }
+
+    const attendeeEmails: string[] = originalBooking.attendees.map((a) => a.email);
+    if (!attendeeEmails.length) {
+      return [];
+    }
+
+    // For each attendee, check if they are a Cal.com user (and not already a host)
+    const guestBusyTimes: EventBusyDate[] = [];
+    for (const email of attendeeEmails) {
+      const guestUser = await userRepo.findByEmail({ email });
+      if (!guestUser) {
+        // Not a Cal.com user — skip (preserve existing behavior)
+        log.debug("_getGuestBusyTimesForReschedule: attendee is not a Cal.com user", { email });
+        continue;
+      }
+      if (hostUserIds.has(guestUser.id)) {
+        // Already counted as a host
+        continue;
+      }
+
+      log.debug("_getGuestBusyTimesForReschedule: fetching busy times for Cal.com guest", {
+        guestUserId: guestUser.id,
+        email,
+      });
+
+      // Fetch the guest's accepted bookings in the requested range
+      const guestBookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        userIdAndEmailMap: new Map([[guestUser.id, guestUser.email]]),
+        startDate: startTime.toDate(),
+        endDate: endTime.toDate(),
+      });
+
+      for (const booking of guestBookings) {
+        // Skip the booking being rescheduled itself
+        if (booking.uid === rescheduleUid) continue;
+        guestBusyTimes.push({
+          start: booking.startTime,
+          end: booking.endTime,
+        });
+      }
+    }
+
+    return guestBusyTimes;
+  }
+
   private async _getEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -1497,6 +1570,44 @@ export class AvailableSlotsService {
             return !!item;
           }
         );
+    }
+
+    // When the host is rescheduling, check if the guest is also a Cal.com user and
+    // filter out slots that conflict with the guest's existing bookings.
+    // See: https://github.com/calcom/cal.com/issues/16378
+    if (input.rescheduleUid) {
+      const hostUserIds = new Set(usersWithCredentials.map((u) => u.id));
+      try {
+        const guestBusyTimes = await this._getGuestBusyTimesForReschedule({
+          rescheduleUid: input.rescheduleUid,
+          startTime,
+          endTime,
+          hostUserIds,
+        });
+
+        if (guestBusyTimes.length > 0) {
+          const eventLength = input.duration || eventType.length;
+          availableTimeSlots = availableTimeSlots.filter(
+            (slot) =>
+              !checkForConflicts({
+                time: slot.time,
+                busy: guestBusyTimes,
+                eventLength,
+              })
+          );
+          log.debug("Filtered slots by guest availability", {
+            rescheduleUid: input.rescheduleUid,
+            guestBusyTimesCount: guestBusyTimes.length,
+            remainingSlots: availableTimeSlots.length,
+          });
+        }
+      } catch (err) {
+        // Non-fatal: log and continue without guest availability check
+        log.warn("Failed to fetch guest busy times for reschedule, proceeding without guest check", {
+          rescheduleUid: input.rescheduleUid,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     // fr-CA uses YYYY-MM-DD
