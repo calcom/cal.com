@@ -1,8 +1,7 @@
-import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-
 import type { WeekDay } from "@calcom/platform-types";
 import type { Availability, Schedule } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { UsersRepository } from "@/modules/users/users.repository";
 
 type DatabaseSchedule = Schedule & { availability: Availability[] };
 
@@ -66,6 +65,8 @@ export class OutputSchedulesService_2024_06_11 {
         endTime: this.padHoursMinutesWithZeros(
           override.endTime.getUTCHours() + ":" + override.endTime.getUTCMinutes()
         ),
+        createdAt: override.createdAt?.toISOString() ?? null,
+        updatedAt: override.updatedAt?.toISOString() ?? null,
       })),
     };
   }

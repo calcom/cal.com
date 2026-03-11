@@ -1,11 +1,63 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, IsString, ValidateNested, IsArray, IsTimeZone, IsNumber } from "class-validator";
-
 import {
-  ScheduleAvailabilityInput_2024_06_11,
-  ScheduleOverrideInput_2024_06_11,
-} from "../inputs/create-schedule.input";
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsISO8601,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  Matches,
+  ValidateNested,
+} from "class-validator";
+import { TIME_FORMAT_HH_MM } from "../constants";
+import { ScheduleAvailabilityInput_2024_06_11 } from "../inputs/create-schedule.input";
+
+export class ScheduleOverrideOutput_2024_06_11 {
+  @IsISO8601({ strict: true })
+  @ApiProperty({
+    example: "2024-05-20",
+  })
+  date!: string;
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "startTime must be a valid time format HH:MM" })
+  @ApiProperty({
+    example: "12:00",
+    description: "startTime must be a valid time in format HH:MM e.g. 12:00",
+  })
+  startTime!: string;
+
+  @IsString()
+  @Matches(TIME_FORMAT_HH_MM, { message: "endTime must be a valid time format HH:MM" })
+  @ApiProperty({
+    example: "13:00",
+    description: "endTime must be a valid time in format HH:MM e.g. 13:00",
+  })
+  endTime!: string;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiPropertyOptional({
+    type: String,
+    example: "2024-05-20T00:00:00.000Z",
+    description: "The date and time when the override was created.",
+    nullable: true,
+  })
+  createdAt?: string | null;
+
+  @IsOptional()
+  @IsDateString()
+  @ApiPropertyOptional({
+    type: String,
+    example: "2024-05-20T00:00:00.000Z",
+    description: "The date and time when the override was last updated.",
+    nullable: true,
+  })
+  updatedAt?: string | null;
+}
 
 export class ScheduleOutput_2024_06_11 {
   @IsNumber()
@@ -50,16 +102,18 @@ export class ScheduleOutput_2024_06_11 {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverrideInput_2024_06_11)
+  @Type(() => ScheduleOverrideOutput_2024_06_11)
   @ApiProperty({
-    type: [ScheduleOverrideInput_2024_06_11],
+    type: [ScheduleOverrideOutput_2024_06_11],
     example: [
       {
         date: "2024-05-20",
         startTime: "18:00",
         endTime: "21:00",
+        createdAt: "2024-05-20T00:00:00.000Z",
+        updatedAt: "2024-05-20T00:00:00.000Z",
       },
     ],
   })
-  overrides!: ScheduleOverrideInput_2024_06_11[];
+  overrides!: ScheduleOverrideOutput_2024_06_11[];
 }
