@@ -7,6 +7,7 @@ export interface IFeatureRepository {
   findBySlug(slug: string): Promise<FeatureDto | null>;
   update(input: { featureId: FeatureId; enabled: boolean; updatedBy?: number }): Promise<FeatureDto>;
   checkIfFeatureIsEnabledGlobally(slug: string): Promise<boolean>;
+  getFeatureFlagMap(): Promise<Record<string, boolean>>;
 }
 
 export class PrismaFeatureRepository implements IFeatureRepository {
@@ -75,5 +76,16 @@ export class PrismaFeatureRepository implements IFeatureRepository {
       select: { enabled: true },
     });
     return Boolean(feature?.enabled);
+  }
+
+  async getFeatureFlagMap(): Promise<Record<string, boolean>> {
+    const flags = await this.findAll();
+    return flags.reduce(
+      (acc, flag) => {
+        acc[flag.slug as FeatureId] = flag.enabled;
+        return acc;
+      },
+      {} as Record<string, boolean>
+    );
   }
 }
