@@ -18,6 +18,7 @@
     "dev-off": "git checkout -- package.json vite.config.ts"
   },
   "devDependencies": {
+    "@calcom/i18n": "workspace:*",
     "@rollup/plugin-node-resolve": "15.0.1",
     "@tailwindcss/cli": "4.1.16",
     "@tailwindcss/postcss": "4.1.15",
@@ -79,7 +80,6 @@
   },
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@calcom/i18n": "workspace:*",
     "@radix-ui/react-dialog-atoms": "npm:@radix-ui/react-dialog@1.0.4",
     "@radix-ui/react-popover-atoms": "npm:@radix-ui/react-popover@1.0.6",
     "@radix-ui/react-slot": "1.1.2",
