@@ -5,7 +5,6 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import prisma from "@calcom/prisma";
 import type { Booking, DestinationCalendar } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -279,12 +278,29 @@ export const resolveUnifiedTargetDestinationCalendar = async (params: {
     });
   }
 
-  return DestinationCalendarRepository.createIfNotExistsForUser({
-    userId: params.user.id,
-    integration: integrationType,
-    externalId: matchedCalendar.externalId,
-    credentialId: matchedGroup.credentialId ?? null,
-    delegationCredentialId: matchedGroup.delegationCredentialId ?? null,
-    primaryEmail: matchedGroup.primary?.email ?? null,
+  const existingRuntimeDestination = await prisma.destinationCalendar.findFirst({
+    where: {
+      userId: null,
+      eventTypeId: null,
+      integration: integrationType,
+      externalId: matchedCalendar.externalId,
+      primaryEmail: matchedGroup.primary?.email ?? null,
+      credentialId: matchedGroup.credentialId ?? null,
+      delegationCredentialId: matchedGroup.delegationCredentialId ?? null,
+    },
+  });
+
+  if (existingRuntimeDestination) {
+    return existingRuntimeDestination;
+  }
+
+  return prisma.destinationCalendar.create({
+    data: {
+      integration: integrationType,
+      externalId: matchedCalendar.externalId,
+      credentialId: matchedGroup.credentialId ?? null,
+      delegationCredentialId: matchedGroup.delegationCredentialId ?? null,
+      primaryEmail: matchedGroup.primary?.email ?? null,
+    },
   });
 };
