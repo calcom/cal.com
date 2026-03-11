@@ -1,29 +1,36 @@
 "use client";
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
-import { XIcon } from "lucide-react";
-import { cn } from "@coss/ui/lib/utils";
 import { Button } from "@coss/ui/components/button";
 import { ScrollArea } from "@coss/ui/components/scroll-area";
+import { cn } from "@coss/ui/lib/utils";
+import { XIcon } from "lucide-react";
+import type React from "react";
 
-const DialogCreateHandle = DialogPrimitive.createHandle;
+export const DialogCreateHandle: typeof DialogPrimitive.createHandle =
+  DialogPrimitive.createHandle;
 
-const Dialog = DialogPrimitive.Root;
+export const Dialog: typeof DialogPrimitive.Root = DialogPrimitive.Root;
 
-const DialogPortal = DialogPrimitive.Portal;
+export const DialogPortal: typeof DialogPrimitive.Portal =
+  DialogPrimitive.Portal;
 
-function DialogTrigger(props: DialogPrimitive.Trigger.Props) {
+export function DialogTrigger(
+  props: DialogPrimitive.Trigger.Props,
+): React.ReactElement {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
-function DialogClose(props: DialogPrimitive.Close.Props) {
+export function DialogClose(
+  props: DialogPrimitive.Close.Props,
+): React.ReactElement {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-function DialogBackdrop({
+export function DialogBackdrop({
   className,
   ...props
-}: DialogPrimitive.Backdrop.Props) {
+}: DialogPrimitive.Backdrop.Props): React.ReactElement {
   return (
     <DialogPrimitive.Backdrop
       className={cn(
@@ -36,10 +43,10 @@ function DialogBackdrop({
   );
 }
 
-function DialogViewport({
+export function DialogViewport({
   className,
   ...props
-}: DialogPrimitive.Viewport.Props) {
+}: DialogPrimitive.Viewport.Props): React.ReactElement {
   return (
     <DialogPrimitive.Viewport
       className={cn(
@@ -52,7 +59,7 @@ function DialogViewport({
   );
 }
 
-function DialogPopup({
+export function DialogPopup({
   className,
   children,
   showCloseButton = true,
@@ -63,7 +70,7 @@ function DialogPopup({
   showCloseButton?: boolean;
   bottomStickOnMobile?: boolean;
   closeProps?: DialogPrimitive.Close.Props;
-}) {
+}): React.ReactElement {
   return (
     <DialogPortal>
       <DialogBackdrop />
@@ -100,7 +107,10 @@ function DialogPopup({
   );
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+export function DialogHeader({
+  className,
+  ...props
+}: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn(
@@ -113,13 +123,13 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function DialogFooter({
+export function DialogFooter({
   className,
   variant = "default",
   ...props
 }: React.ComponentProps<"div"> & {
   variant?: "default" | "bare";
-}) {
+}): React.ReactElement {
   return (
     <div
       className={cn(
@@ -135,7 +145,10 @@ function DialogFooter({
   );
 }
 
-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+export function DialogTitle({
+  className,
+  ...props
+}: DialogPrimitive.Title.Props): React.ReactElement {
   return (
     <DialogPrimitive.Title
       className={cn(
@@ -148,10 +161,10 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   );
 }
 
-function DialogDescription({
+export function DialogDescription({
   className,
   ...props
-}: DialogPrimitive.Description.Props) {
+}: DialogPrimitive.Description.Props): React.ReactElement {
   return (
     <DialogPrimitive.Description
       className={cn("text-muted-foreground text-sm", className)}
@@ -161,11 +174,11 @@ function DialogDescription({
   );
 }
 
-function DialogPanel({
+export function DialogPanel({
   className,
   scrollFade = true,
   ...props
-}: React.ComponentProps<"div"> & { scrollFade?: boolean }) {
+}: React.ComponentProps<"div"> & { scrollFade?: boolean }): React.ReactElement {
   return (
     <ScrollArea scrollFade={scrollFade}>
       <div
@@ -181,20 +194,7 @@ function DialogPanel({
 }
 
 export {
-  DialogCreateHandle,
-  Dialog,
-  DialogTrigger,
-  DialogPortal,
-  DialogClose,
-  DialogBackdrop,
-  DialogBackdrop as DialogOverlay,
-  DialogPopup,
-  DialogPopup as DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-  DialogPanel,
-  DialogViewport,
   DialogPrimitive,
+  DialogBackdrop as DialogOverlay,
+  DialogPopup as DialogContent,
 };

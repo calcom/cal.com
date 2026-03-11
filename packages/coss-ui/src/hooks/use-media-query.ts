@@ -19,13 +19,6 @@ type BreakpointQuery =
   | `max-${Breakpoint}`
   | `${Breakpoint}:max-${Breakpoint}`;
 
-export type MediaQueryInput = {
-  min?: Breakpoint | number;
-  max?: Breakpoint | number;
-  /** Touch-like input (finger). Use "fine" for mouse/trackpad. */
-  pointer?: "coarse" | "fine";
-};
-
 function resolveMin(value: Breakpoint | number): string {
   const px = typeof value === "number" ? value : BREAKPOINTS[value];
   return `(min-width: ${px}px)`;
@@ -67,6 +60,13 @@ function parseQuery(
 function getServerSnapshot(): boolean {
   return false;
 }
+
+export type MediaQueryInput = {
+  min?: Breakpoint | number;
+  max?: Breakpoint | number;
+  /** Touch-like input (finger). Use "fine" for mouse/trackpad. */
+  pointer?: "coarse" | "fine";
+};
 
 export function useMediaQuery(
   query: BreakpointQuery | MediaQueryInput | (string & {}),

@@ -10,7 +10,9 @@
     "./icons": "./src/icons.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./shared/*": "./src/shared/*.tsx",
+    "./base-ui/*": "./src/base-ui/*.ts"
   },
   "typesVersions": {
     "*": {
@@ -25,6 +27,12 @@
       ],
       "hooks/*": [
         "./src/hooks/*.ts"
+      ],
+      "shared/*": [
+        "./src/shared/*.tsx"
+      ],
+      "base-ui/*": [
+        "./src/base-ui/*.ts"
       ]
     }
   },
@@ -36,7 +44,7 @@
     "registry:pull": "ts-node ../../scripts/pull-coss-ui-components.ts"
   },
   "dependencies": {
-    "@base-ui/react": "1.0.0",
+    "@base-ui/react": "1.2.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "0.555.0",

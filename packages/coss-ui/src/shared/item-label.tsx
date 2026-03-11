@@ -1,4 +1,5 @@
 import { cn } from "@coss/ui/lib/utils";
+import type * as React from "react";
 import type { CSSProperties } from "react";
 
 interface ItemLabelProps {
@@ -11,7 +12,7 @@ export function ItemLabel({
   colorLight,
   colorDark,
   className,
-}: ItemLabelProps) {
+}: ItemLabelProps): React.ReactElement | null {
   const hasColor = colorLight || colorDark;
   if (!hasColor) return null;
 

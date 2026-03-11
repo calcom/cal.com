@@ -1,10 +1,13 @@
 "use client";
 
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
-
 import { cn } from "@coss/ui/lib/utils";
+import type React from "react";
 
-function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
+export function Switch({
+  className,
+  ...props
+}: SwitchPrimitive.Root.Props): React.ReactElement {
   return (
     <SwitchPrimitive.Root
       className={cn(
@@ -24,4 +27,4 @@ function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
   );
 }
 
-export { Switch, SwitchPrimitive };
+export { SwitchPrimitive };

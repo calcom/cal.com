@@ -1580,10 +1580,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.26.10, @babel/runtime@npm:^7.28.4, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.26.10, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.28.4
   resolution: "@babel/runtime@npm:7.28.4"
   checksum: 10/6c9a70452322ea80b3c9b2a412bcf60771819213a67576c8cec41e88a95bb7bf01fc983754cda35dc19603eef52df22203ccbf7777b9d6316932f9fb77c25163
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.28.6":
+  version: 7.28.6
+  resolution: "@babel/runtime@npm:7.28.6"
+  checksum: 10/fbcd439cb74d4a681958eb064c509829e3f46d8a4bfaaf441baa81bb6733d1e680bccc676c813883d7741bcaada1d0d04b15aa320ef280b5734e2192b50decf9
   languageName: node
   linkType: hard
 
@@ -1623,16 +1630,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@base-ui/react@npm:1.0.0":
-  version: 1.0.0
-  resolution: "@base-ui/react@npm:1.0.0"
+"@base-ui/react@npm:1.2.0":
+  version: 1.2.0
+  resolution: "@base-ui/react@npm:1.2.0"
   dependencies:
-    "@babel/runtime": "npm:^7.28.4"
-    "@base-ui/utils": "npm:0.2.3"
+    "@babel/runtime": "npm:^7.28.6"
+    "@base-ui/utils": "npm:0.2.5"
     "@floating-ui/react-dom": "npm:^2.1.6"
     "@floating-ui/utils": "npm:^0.2.10"
-    reselect: "npm:^5.1.1"
-    tabbable: "npm:^6.3.0"
+    tabbable: "npm:^6.4.0"
     use-sync-external-store: "npm:^1.6.0"
   peerDependencies:
     "@types/react": ^17 || ^18 || ^19
@@ -1641,15 +1647,15 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10/bfed9c75ee952b58c6fa7a3e9e84afacbb85b13cfc943aaa167fae33c216d3ee6443ff9700557c305d245180c674d43dfc3d92136830dc32eafaec625b97a84e
+  checksum: 10/e19461d2a832eb6931c48afd9a5b314b9b5c80fe8e43c61596b3f963cc1ebbbcc23171ca17d555f48cbc0be33d632960133f9c4bf852c5feedded25a38099b77
   languageName: node
   linkType: hard
 
-"@base-ui/utils@npm:0.2.3":
-  version: 0.2.3
-  resolution: "@base-ui/utils@npm:0.2.3"
+"@base-ui/utils@npm:0.2.5":
+  version: 0.2.5
+  resolution: "@base-ui/utils@npm:0.2.5"
   dependencies:
-    "@babel/runtime": "npm:^7.28.4"
+    "@babel/runtime": "npm:^7.28.6"
     "@floating-ui/utils": "npm:^0.2.10"
     reselect: "npm:^5.1.1"
     use-sync-external-store: "npm:^1.6.0"
@@ -1660,7 +1666,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 10/706558e7d7e2177c4cabdd420af510d5df55ba2deae189946f2cb25f6333c0ceccdac931d07a0f2aede18401db4078d76bc010b93fa154524b9e0dcd22d157df
+  checksum: 10/99f69f3aefa9755741ca809e51f038135841f167e81eaf5ce97b0e74ea19d53c877592ae241f3d86e86c936333bb5930d7f41a7d309b89dfe085842734330708
   languageName: node
   linkType: hard
 
@@ -3900,7 +3906,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@coss/ui@workspace:packages/coss-ui"
   dependencies:
-    "@base-ui/react": "npm:1.0.0"
+    "@base-ui/react": "npm:1.2.0"
     "@biomejs/biome": "npm:2.3.10"
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
@@ -36447,10 +36453,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tabbable@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "tabbable@npm:6.3.0"
-  checksum: 10/3e54a0b770d26bc20c3de5837652be19f5efa8bfa869f580af24bcf60de934506e9401a577213186b5e86ebcf6b5290a5429d354cc3041471815f5095e44e51a
+"tabbable@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "tabbable@npm:6.4.0"
+  checksum: 10/0fe8fada2d97bd02058af2e0176bddca26b1100c069e0a096ac19ad8ef61bd0b4f0cf05e1dd68229b8f1cb6fe6bf4c34d50a5f4a3e26b150a92f89b7dc0a4916
   languageName: node
   linkType: hard
 

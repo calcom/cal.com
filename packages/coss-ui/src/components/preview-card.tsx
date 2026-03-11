@@ -1,18 +1,21 @@
 "use client";
 
 import { PreviewCard as PreviewCardPrimitive } from "@base-ui/react/preview-card";
-
 import { cn } from "@coss/ui/lib/utils";
+import type React from "react";
 
-const PreviewCard = PreviewCardPrimitive.Root;
+export const PreviewCard: typeof PreviewCardPrimitive.Root =
+  PreviewCardPrimitive.Root;
 
-function PreviewCardTrigger({ ...props }: PreviewCardPrimitive.Trigger.Props) {
+export function PreviewCardTrigger({
+  ...props
+}: PreviewCardPrimitive.Trigger.Props): React.ReactElement {
   return (
     <PreviewCardPrimitive.Trigger data-slot="preview-card-trigger" {...props} />
   );
 }
 
-function PreviewCardPopup({
+export function PreviewCardPopup({
   className,
   children,
   align = "center",
@@ -23,7 +26,7 @@ function PreviewCardPopup({
   align?: PreviewCardPrimitive.Positioner.Props["align"];
   sideOffset?: PreviewCardPrimitive.Positioner.Props["sideOffset"];
   anchor?: PreviewCardPrimitive.Positioner.Props["anchor"];
-}) {
+}): React.ReactElement {
   return (
     <PreviewCardPrimitive.Portal>
       <PreviewCardPrimitive.Positioner
@@ -49,11 +52,8 @@ function PreviewCardPopup({
 }
 
 export {
-  PreviewCard,
-  PreviewCard as HoverCard,
-  PreviewCardTrigger,
-  PreviewCardTrigger as HoverCardTrigger,
-  PreviewCardPopup,
-  PreviewCardPopup as HoverCardContent,
   PreviewCardPrimitive,
+  PreviewCard as HoverCard,
+  PreviewCardTrigger as HoverCardTrigger,
+  PreviewCardPopup as HoverCardContent,
 };

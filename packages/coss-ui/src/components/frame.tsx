@@ -1,8 +1,10 @@
+import { cn } from "@coss/ui/lib/utils";
 import type * as React from "react";
 
-import { cn } from "@coss/ui/lib/utils";
-
-function Frame({ className, ...props }: React.ComponentProps<"div">) {
+export function Frame({
+  className,
+  ...props
+}: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn(
@@ -16,7 +18,10 @@ function Frame({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FramePanel({ className, ...props }: React.ComponentProps<"div">) {
+export function FramePanel({
+  className,
+  ...props
+}: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn(
@@ -29,7 +34,10 @@ function FramePanel({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FrameHeader({ className, ...props }: React.ComponentProps<"header">) {
+export function FrameHeader({
+  className,
+  ...props
+}: React.ComponentProps<"header">): React.ReactElement {
   return (
     <header
       className={cn("flex flex-col px-5 py-4", className)}
@@ -39,7 +47,10 @@ function FrameHeader({ className, ...props }: React.ComponentProps<"header">) {
   );
 }
 
-function FrameTitle({ className, ...props }: React.ComponentProps<"div">) {
+export function FrameTitle({
+  className,
+  ...props
+}: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn("font-semibold text-sm", className)}
@@ -49,10 +60,10 @@ function FrameTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-function FrameDescription({
+export function FrameDescription({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn("text-muted-foreground text-sm", className)}
@@ -62,7 +73,10 @@ function FrameDescription({
   );
 }
 
-function FrameFooter({ className, ...props }: React.ComponentProps<"footer">) {
+export function FrameFooter({
+  className,
+  ...props
+}: React.ComponentProps<"footer">): React.ReactElement {
   return (
     <footer
       className={cn("px-5 py-4", className)}
@@ -71,12 +85,3 @@ function FrameFooter({ className, ...props }: React.ComponentProps<"footer">) {
     />
   );
 }
-
-export {
-  Frame,
-  FramePanel,
-  FrameHeader,
-  FrameTitle,
-  FrameDescription,
-  FrameFooter,
-};

@@ -212,6 +212,18 @@
     },
     {
       "includes": [
+        "packages/coss-ui/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "noTernary": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
         "packages/embeds/embed-core/**/*.{ts,tsx,js,jsx}"
       ],
       "linter": {

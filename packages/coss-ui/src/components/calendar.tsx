@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@coss/ui/lib/utils";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -8,19 +9,17 @@ import {
 import type * as React from "react";
 import { DayPicker } from "react-day-picker";
 
-import { cn } from "@coss/ui/lib/utils";
-
 const buttonClassNames =
   "relative flex size-(--cell-size) text-base sm:text-sm items-center justify-center rounded-lg text-foreground not-in-data-selected:hover:bg-accent disabled:pointer-events-none disabled:opacity-64 [&_svg:not([class*='opacity-'])]:opacity-80 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0";
 
-function Calendar({
+export function Calendar({
   className,
   classNames,
   showOutsideDays = true,
   components: userComponents,
   mode = "single",
   ...props
-}: React.ComponentProps<typeof DayPicker>) {
+}: React.ComponentProps<typeof DayPicker>): React.ReactElement {
   const defaultClassNames = {
     button_next: buttonClassNames,
     button_previous: buttonClassNames,
@@ -29,7 +28,7 @@ function Calendar({
     day: "size-(--cell-size) text-sm py-px",
     day_button: cn(
       buttonClassNames,
-      "in-[[data-selected]:not(.range-middle)]:transition-[color,background-color,border-radius,box-shadow] in-data-disabled:pointer-events-none focus-visible:z-1 in-data-selected:bg-primary in-data-selected:text-primary-foreground in-data-disabled:text-muted-foreground/70 in-data-disabled:line-through in-data-outside:text-muted-foreground/70 in-data-selected:in-data-outside:text-primary-foreground outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] in-[.range-start:not(.range-end)]:rounded-e-none in-[.range-end:not(.range-start)]:rounded-s-none in-[.range-middle]:rounded-none in-[.range-middle]:in-data-selected:bg-accent in-[.range-middle]:in-data-selected:text-foreground",
+      "in-data-disabled:pointer-events-none in-[.range-middle]:rounded-none in-[.range-end:not(.range-start)]:rounded-s-none in-[.range-start:not(.range-end)]:rounded-e-none in-[.range-middle]:in-data-selected:bg-accent in-data-selected:bg-primary in-[.range-middle]:in-data-selected:text-foreground in-data-disabled:text-muted-foreground/70 in-data-outside:text-muted-foreground/70 in-data-selected:in-data-outside:text-primary-foreground in-data-selected:text-primary-foreground in-data-disabled:line-through outline-none in-[[data-selected]:not(.range-middle)]:transition-[color,background-color,border-radius,box-shadow] focus-visible:z-1 focus-visible:ring-[3px] focus-visible:ring-ring/50",
     ),
     dropdown: "absolute bg-popover inset-0 opacity-0",
     dropdown_root:
@@ -79,7 +78,7 @@ function Calendar({
     }: {
       className?: string;
       orientation?: "left" | "right" | "up" | "down";
-    }) => {
+    }): React.ReactElement => {
       if (orientation === "left") {
         return (
           <ChevronLeftIcon
@@ -138,5 +137,3 @@ function Calendar({
     />
   );
 }
-
-export { Calendar };

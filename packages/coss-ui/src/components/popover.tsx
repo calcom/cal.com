@@ -1,18 +1,19 @@
 "use client";
 
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-
 import { cn } from "@coss/ui/lib/utils";
+import type React from "react";
 
-const PopoverCreateHandle = PopoverPrimitive.createHandle;
+export const PopoverCreateHandle: typeof PopoverPrimitive.createHandle =
+  PopoverPrimitive.createHandle;
 
-const Popover = PopoverPrimitive.Root;
+export const Popover: typeof PopoverPrimitive.Root = PopoverPrimitive.Root;
 
-function PopoverTrigger({
+export function PopoverTrigger({
   className,
   children,
   ...props
-}: PopoverPrimitive.Trigger.Props) {
+}: PopoverPrimitive.Trigger.Props): React.ReactElement {
   return (
     <PopoverPrimitive.Trigger
       className={className}
@@ -24,7 +25,7 @@ function PopoverTrigger({
   );
 }
 
-function PopoverPopup({
+export function PopoverPopup({
   children,
   className,
   side = "bottom",
@@ -41,7 +42,7 @@ function PopoverPopup({
   alignOffset?: PopoverPrimitive.Positioner.Props["alignOffset"];
   tooltipStyle?: boolean;
   anchor?: PopoverPrimitive.Positioner.Props["anchor"];
-}) {
+}): React.ReactElement {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
@@ -80,11 +81,16 @@ function PopoverPopup({
   );
 }
 
-function PopoverClose({ ...props }: PopoverPrimitive.Close.Props) {
+export function PopoverClose({
+  ...props
+}: PopoverPrimitive.Close.Props): React.ReactElement {
   return <PopoverPrimitive.Close data-slot="popover-close" {...props} />;
 }
 
-function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
+export function PopoverTitle({
+  className,
+  ...props
+}: PopoverPrimitive.Title.Props): React.ReactElement {
   return (
     <PopoverPrimitive.Title
       className={cn("font-semibold text-lg leading-none", className)}
@@ -94,10 +100,10 @@ function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   );
 }
 
-function PopoverDescription({
+export function PopoverDescription({
   className,
   ...props
-}: PopoverPrimitive.Description.Props) {
+}: PopoverPrimitive.Description.Props): React.ReactElement {
   return (
     <PopoverPrimitive.Description
       className={cn("text-muted-foreground text-sm", className)}
@@ -107,14 +113,4 @@ function PopoverDescription({
   );
 }
 
-export {
-  PopoverCreateHandle,
-  Popover,
-  PopoverTrigger,
-  PopoverPopup,
-  PopoverPopup as PopoverContent,
-  PopoverTitle,
-  PopoverDescription,
-  PopoverClose,
-  PopoverPrimitive,
-};
+export { PopoverPrimitive, PopoverPopup as PopoverContent };

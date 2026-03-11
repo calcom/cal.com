@@ -2,10 +2,13 @@
 
 import { Radio as RadioPrimitive } from "@base-ui/react/radio";
 import { RadioGroup as RadioGroupPrimitive } from "@base-ui/react/radio-group";
-
 import { cn } from "@coss/ui/lib/utils";
+import type React from "react";
 
-function RadioGroup({ className, ...props }: RadioGroupPrimitive.Props) {
+export function RadioGroup({
+  className,
+  ...props
+}: RadioGroupPrimitive.Props): React.ReactElement {
   return (
     <RadioGroupPrimitive
       className={cn("flex flex-col gap-3", className)}
@@ -15,7 +18,10 @@ function RadioGroup({ className, ...props }: RadioGroupPrimitive.Props) {
   );
 }
 
-function Radio({ className, ...props }: RadioPrimitive.Root.Props) {
+export function Radio({
+  className,
+  ...props
+}: RadioPrimitive.Root.Props): React.ReactElement {
   return (
     <RadioPrimitive.Root
       className={cn(
@@ -26,17 +32,11 @@ function Radio({ className, ...props }: RadioPrimitive.Root.Props) {
       {...props}
     >
       <RadioPrimitive.Indicator
-        className="-inset-px absolute flex size-4.5 items-center justify-center rounded-full before:size-2 before:rounded-full before:bg-primary-foreground data-unchecked:hidden data-checked:bg-primary sm:size-4 sm:before:size-1.5"
+        className="absolute -inset-px flex size-4.5 items-center justify-center rounded-full before:size-2 before:rounded-full before:bg-primary-foreground data-unchecked:hidden data-checked:bg-primary sm:size-4 sm:before:size-1.5"
         data-slot="radio-indicator"
       />
     </RadioPrimitive.Root>
   );
 }
 
-export {
-  RadioGroup,
-  Radio,
-  Radio as RadioGroupItem,
-  RadioGroupPrimitive,
-  RadioPrimitive,
-};
+export { RadioGroupPrimitive, RadioPrimitive, Radio as RadioGroupItem };
