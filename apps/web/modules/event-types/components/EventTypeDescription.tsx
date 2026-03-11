@@ -11,6 +11,7 @@ import type { baseEventTypeSelect } from "@calcom/prisma";
 import type { Prisma, EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
@@ -47,6 +48,14 @@ export const EventTypeDescription = ({
     ...eventType,
     metadata,
   });
+
+  const hiddenFeatures = [
+    eventType.requiresConfirmation &&
+      (metadata?.requiresConfirmationThreshold ? t("may_require_confirmation") : t("requires_confirmation")),
+    recurringEvent?.count && t("repeats_up_to", { count: recurringEvent.count }),
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <>
@@ -121,12 +130,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {/* TODO: Maybe add a tool tip to this? */}
-          {eventType.requiresConfirmation || (recurringEvent?.count) ? (
+          {eventType.requiresConfirmation || recurringEvent?.count ? (
             <li className="block xl:hidden">
-              <Badge variant="gray" startIcon="plus">
-                <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
-              </Badge>
+              <Tooltip content={hiddenFeatures} side="bottom">
+                <Badge variant="gray" startIcon="plus">
+                  <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
+                </Badge>
+              </Tooltip>
             </li>
           ) : (
             <></>
