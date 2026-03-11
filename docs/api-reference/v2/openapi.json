@@ -3096,6 +3096,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3508,6 +3524,22 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3598,7 +3630,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -3655,6 +3687,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3694,6 +3734,14 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3725,13 +3773,11 @@
             }
           },
           {
-            "name": "app",
+            "name": "orgId",
             "required": true,
             "in": "path",
-            "description": "Conferencing application type",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -3771,6 +3817,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3983,6 +4037,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4047,6 +4109,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4104,6 +4174,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4181,6 +4259,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4240,6 +4326,14 @@
           },
           {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4411,6 +4505,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -4478,6 +4580,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4555,6 +4665,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4624,6 +4742,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -6326,6 +6452,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6478,7 +6612,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -6525,6 +6659,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6565,6 +6707,14 @@
           },
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6795,6 +6945,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6948,6 +7106,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -7022,6 +7188,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7079,6 +7253,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7156,6 +7338,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7208,6 +7398,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7270,6 +7468,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7342,6 +7548,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7515,6 +7729,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8032,11 +8254,26 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8079,6 +8316,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8093,7 +8338,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8146,6 +8398,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8160,7 +8420,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8203,11 +8470,34 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8313,7 +8603,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8353,6 +8650,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8422,6 +8727,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8486,6 +8799,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8543,6 +8864,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8615,6 +8944,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8821,6 +9158,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8875,6 +9220,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8928,6 +9281,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -11781,6 +12142,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -11828,6 +12197,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11860,6 +12237,14 @@
           },
           {
             "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12597,6 +12982,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -12643,6 +13036,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -12678,6 +13079,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13070,6 +13479,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13175,6 +13592,14 @@
           },
           {
             "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13355,6 +13780,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13395,6 +13836,22 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13445,6 +13902,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13493,6 +13958,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13567,6 +14040,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13630,6 +14111,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13676,6 +14165,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13721,6 +14218,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15379,6 +15884,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -15422,6 +15935,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15498,6 +16019,14 @@
               "example": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15529,6 +16058,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15571,6 +16108,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15618,6 +16171,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15653,6 +16222,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16053,6 +16638,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -16093,6 +16686,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -24599,6 +25200,72 @@
           }
         }
       },
+      "UserOooOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "The ID of the user.",
+            "example": 2
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "id": {
+            "type": "number",
+            "description": "The ID of the ooo entry.",
+            "example": 2
+          },
+          "uuid": {
+            "type": "string",
+            "description": "The UUID of the ooo entry.",
+            "example": 2
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "reason": {
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"],
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation"
+          }
+        },
+        "required": ["userId", "id", "uuid", "start", "end"]
+      },
+      "UserOoosOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserOooOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CreateOutOfOfficeEntryDto": {
         "type": "object",
         "properties": {
@@ -24632,6 +25299,20 @@
           }
         },
         "required": ["start", "end"]
+      },
+      "UserOooOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserOooOutputDto"
+          }
+        },
+        "required": ["status", "data"]
       },
       "UpdateOutOfOfficeEntryDto": {
         "type": "object",
@@ -28863,7 +29544,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
           }
         },
         "required": ["status", "data"]
@@ -33182,129 +33866,27 @@
         },
         "required": ["email", "code"]
       },
-      "WorkingHours": {
-        "type": "object",
-        "properties": {
-          "days": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "startTime": {
-            "type": "number"
-          },
-          "endTime": {
-            "type": "number"
-          },
-          "userId": {
-            "type": "number",
-            "nullable": true
-          }
-        },
-        "required": ["days", "startTime", "endTime"]
-      },
-      "AvailabilityModel": {
+      "UserVerifiedEmailOutputData": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "number"
-          },
-          "userId": {
             "type": "number",
-            "nullable": true
+            "description": "The unique identifier for the verified email.",
+            "example": 789
           },
-          "eventTypeId": {
-            "type": "number",
-            "nullable": true
-          },
-          "days": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "startTime": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "endTime": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "date": {
-            "format": "date-time",
+          "email": {
             "type": "string",
-            "nullable": true
+            "description": "The verified email address.",
+            "example": "user@example.com",
+            "format": "email"
           },
-          "scheduleId": {
+          "userId": {
             "type": "number",
-            "nullable": true
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
           }
         },
-        "required": ["id", "days", "startTime", "endTime"]
-      },
-      "ScheduleOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isManaged": {
-            "type": "boolean"
-          },
-          "workingHours": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkingHours"
-            }
-          },
-          "schedule": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AvailabilityModel"
-            }
-          },
-          "availability": {
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "dateOverrides": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "isLastSchedule": {
-            "type": "boolean"
-          },
-          "readOnly": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "isManaged",
-          "workingHours",
-          "schedule",
-          "availability",
-          "timeZone",
-          "isDefault",
-          "isLastSchedule",
-          "readOnly"
-        ]
+        "required": ["id", "email", "userId"]
       },
       "UserVerifiedEmailOutput": {
         "type": "object",
@@ -33315,7 +33897,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
           }
         },
         "required": ["status", "data"]
@@ -33336,6 +33918,28 @@
         },
         "required": ["phone", "code"]
       },
+      "UserVerifiedPhoneOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The verified phone number.",
+            "example": "+37255556666",
+            "format": "phone"
+          },
+          "userId": {
+            "type": "number",
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          }
+        },
+        "required": ["id", "phoneNumber", "userId"]
+      },
       "UserVerifiedPhoneOutput": {
         "type": "object",
         "properties": {
@@ -33345,7 +33949,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
           }
         },
         "required": ["status", "data"]
@@ -33359,7 +33963,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
+            }
           }
         },
         "required": ["status", "data"]
@@ -33373,10 +33980,41 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
+            }
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamVerifiedEmailOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "email": {
+            "type": "string",
+            "description": "The verified email address.",
+            "example": "user@example.com",
+            "format": "email"
+          },
+          "teamId": {
+            "type": "number",
+            "description": "The ID of the associated team, if applicable.",
+            "example": 89
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          }
+        },
+        "required": ["id", "email", "teamId"]
       },
       "TeamVerifiedEmailOutput": {
         "type": "object",
@@ -33387,10 +34025,38 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamVerifiedPhoneOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The verified phone number.",
+            "example": "+37255556666",
+            "format": "phone"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          },
+          "teamId": {
+            "type": "number",
+            "description": "The ID of the associated team, if applicable.",
+            "example": 89
+          }
+        },
+        "required": ["id", "phoneNumber", "teamId"]
       },
       "TeamVerifiedPhoneOutput": {
         "type": "object",
@@ -33401,7 +34067,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
           }
         },
         "required": ["status", "data"]
@@ -33415,7 +34081,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
+            }
           }
         },
         "required": ["status", "data"]
@@ -33429,7 +34098,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
+            }
           }
         },
         "required": ["status", "data"]
