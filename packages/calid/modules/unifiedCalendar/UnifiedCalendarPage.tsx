@@ -238,16 +238,14 @@ const UnifiedCalendarPage = () => {
     ]);
   };
 
-  const deleteEvent = (id: string) => {
-    const isLocalDraft = localDraftEvents.some((event) => event.id === id);
+  const handleRescheduleAction = (event: UnifiedCalendarEventVM) => {
+    if (!event.canReschedule) return;
+    showToast("Reschedule flow is not wired yet. It will be added in the next phase.", "error");
+  };
 
-    if (!isLocalDraft) {
-      showToast("Editing and canceling saved events is not wired yet.", "error");
-      return;
-    }
-
-    setLocalDraftEvents((current) => current.filter((event) => event.id !== id));
-    setSelectedEvent(null);
+  const handleCancelAction = (event: UnifiedCalendarEventVM) => {
+    if (!event.canDelete) return;
+    showToast("Cancel booking flow is not wired yet. It will be added in the next phase.", "error");
   };
 
   const quickBookingCalendars = connectedCalendars.filter(
@@ -372,10 +370,8 @@ const UnifiedCalendarPage = () => {
             <div className="mt-4">
               <UnifiedCalendarEventDetailsPanel
                 event={selectedEvent}
-                onEdit={() => {
-                  showToast("Editing saved events will be wired in a later phase.", "error");
-                }}
-                onDelete={() => deleteEvent(selectedEvent.id)}
+                onReschedule={() => handleRescheduleAction(selectedEvent)}
+                onCancel={() => handleCancelAction(selectedEvent)}
                 conflicts={getConflicts(selectedEvent)}
               />
             </div>
@@ -391,10 +387,8 @@ const UnifiedCalendarPage = () => {
             </DialogHeader>
             <UnifiedCalendarEventDetailsPanel
               event={selectedEvent}
-              onEdit={() => {
-                showToast("Editing saved events will be wired in a later phase.", "error");
-              }}
-              onDelete={() => deleteEvent(selectedEvent.id)}
+              onReschedule={() => handleRescheduleAction(selectedEvent)}
+              onCancel={() => handleCancelAction(selectedEvent)}
               conflicts={getConflicts(selectedEvent)}
             />
           </DialogContent>

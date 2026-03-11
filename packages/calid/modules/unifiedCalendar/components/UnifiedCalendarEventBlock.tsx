@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/comp
 import { Separator } from "@calid/features/ui/components/separator";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { format } from "date-fns";
-import { AlertTriangle, Pencil, Video } from "lucide-react";
+import { AlertTriangle, Video } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { PROVIDER_LABELS } from "../lib/constants";
@@ -25,6 +25,7 @@ export const UnifiedCalendarEventBlock = ({
 }: UnifiedCalendarEventBlockProps) => {
   const providerLabel = event.provider ? PROVIDER_LABELS[event.provider] : event.source;
   const statusLabel = event.status === "CONFIRMED" ? "" : event.status.toLowerCase();
+  const hasCapabilityActions = event.canReschedule || event.canDelete;
 
   return (
     <Popover>
@@ -96,13 +97,13 @@ export const UnifiedCalendarEventBlock = ({
           <Separator className="bg-border/40" />
 
           <div className="flex items-center gap-1.5">
-            {event.canEdit && (
+            {hasCapabilityActions && (
               <Button
                 color="minimal"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
                 onClick={onClick}>
-                <Pencil className="h-3 w-3" /> Edit
+                Manage booking
               </Button>
             )}
 
@@ -116,6 +117,10 @@ export const UnifiedCalendarEventBlock = ({
                 rel="noreferrer">
                 <Video className="h-3 w-3" /> Join
               </Button>
+            )}
+
+            {!hasCapabilityActions && event.isReadOnly && !event.meetingUrl && (
+              <p className="text-muted-foreground/60 px-1 text-[11px]">Read-only event</p>
             )}
           </div>
         </div>

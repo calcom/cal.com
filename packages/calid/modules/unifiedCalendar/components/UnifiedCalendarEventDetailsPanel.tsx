@@ -8,7 +8,7 @@ import {
   Clock,
   ExternalLink,
   MapPin,
-  Pencil,
+  RefreshCcw,
   Trash2,
   Users,
   Video,
@@ -19,15 +19,15 @@ import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface UnifiedCalendarEventDetailsPanelProps {
   event: UnifiedCalendarEventVM;
-  onEdit: () => void;
-  onDelete: () => void;
+  onReschedule: () => void;
+  onCancel: () => void;
   conflicts: UnifiedCalendarEventVM[];
 }
 
 export const UnifiedCalendarEventDetailsPanel = ({
   event,
-  onEdit,
-  onDelete,
+  onReschedule,
+  onCancel,
   conflicts,
 }: UnifiedCalendarEventDetailsPanelProps) => {
   const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
@@ -105,23 +105,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         )}
 
-        {!!event.attendees?.length && (
-          <div className="flex items-start gap-3 text-sm">
-            <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <div className="flex flex-wrap gap-1">
-              {event.attendees.map((attendee, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="bg-muted/60 text-muted-foreground text-[11px] font-normal">
-                  {attendee}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {event.attendeeCount && event.attendeeCount > 0 && !event.attendees?.length && (
+        {event.attendeeCount && event.attendeeCount > 0 && (
           <div className="flex items-start gap-3 text-sm">
             <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="text-muted-foreground/80">{event.attendeeCount} attendees</span>
@@ -134,13 +118,13 @@ export const UnifiedCalendarEventDetailsPanel = ({
       <Separator className="bg-border/40" />
 
       <div className="flex items-center gap-2">
-        {event.canEdit && (
+        {event.canReschedule && (
           <Button
             color="secondary"
             size="sm"
             className="border-border/60 h-8 gap-1.5 text-xs"
-            onClick={onEdit}>
-            <Pencil className="h-3 w-3" /> Edit
+            onClick={onReschedule}>
+            <RefreshCcw className="h-3 w-3" /> Reschedule
           </Button>
         )}
 
@@ -149,8 +133,8 @@ export const UnifiedCalendarEventDetailsPanel = ({
             color="minimal"
             size="sm"
             className="text-destructive/70 hover:text-destructive border-border/60 h-8 gap-1.5 text-xs"
-            onClick={onDelete}>
-            <Trash2 className="h-3 w-3" /> Cancel
+            onClick={onCancel}>
+            <Trash2 className="h-3 w-3" /> Cancel Booking
           </Button>
         )}
 
