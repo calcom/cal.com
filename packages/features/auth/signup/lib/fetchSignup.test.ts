@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { SIGNUP_ERROR_CODES } from "../constants";
-import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession } from "./fetchSignup";
+import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession, isAccountUnderReview } from "./fetchSignup";
 
 function createJsonResponse(json: unknown, status = 200) {
   return new Response(JSON.stringify(json), {
@@ -99,5 +99,44 @@ describe("hasCheckoutSession", () => {
     };
 
     expect(hasCheckoutSession(result)).toBe(false);
+  });
+});
+
+describe("isAccountUnderReview", () => {
+  it("returns true when accountUnderReview is true in success response", () => {
+    const result = {
+      ok: true as const,
+      data: { message: "Created user", accountUnderReview: true },
+    };
+
+    expect(isAccountUnderReview(result)).toBe(true);
+  });
+
+  it("returns false when accountUnderReview is not set", () => {
+    const result = {
+      ok: true as const,
+      data: { message: "Created user" },
+    };
+
+    expect(isAccountUnderReview(result)).toBe(false);
+  });
+
+  it("returns false when accountUnderReview is false", () => {
+    const result = {
+      ok: true as const,
+      data: { message: "Created user", accountUnderReview: false },
+    };
+
+    expect(isAccountUnderReview(result)).toBe(false);
+  });
+
+  it("returns false for error responses", () => {
+    const result = {
+      ok: false as const,
+      status: 500,
+      error: { message: "Internal error" },
+    };
+
+    expect(isAccountUnderReview(result)).toBe(false);
   });
 });

@@ -1,16 +1,8 @@
 "use client";
 
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React, { useEffect, useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import {
   HAS_ORG_OPT_IN_FEATURES,
   HAS_TEAM_OPT_IN_FEATURES,
@@ -31,10 +23,17 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { Icon } from "@calcom/ui/components/icon";
+import { ArrowLeftIcon, ChevronDownIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
-
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { ComponentProps } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Shell from "~/shell/Shell";
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
@@ -153,9 +152,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "developer", page: "api_keys" },
         },
         {
-          name: "admin_api",
-          href: "/settings/organizations/admin-api",
-          trackingMetadata: { section: "developer", page: "admin_api" },
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
+          isExternalLink: true,
+          trackingMetadata: { section: "developer", page: "api_docs" },
         },
         // TODO: Add profile level for embeds
         // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -205,10 +205,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "organization", page: "directory_sync" },
         },
         {
-          name: "admin_api",
-          href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          name: "api_docs",
+          href: "https://cal.com/docs/api-reference/v2/introduction",
           isExternalLink: true,
-          trackingMetadata: { section: "organization", page: "admin_api" },
+          trackingMetadata: { section: "organization", page: "api_docs" },
         },
         ...(HAS_ORG_OPT_IN_FEATURES
           ? [
@@ -449,7 +449,7 @@ const useTabs = ({
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
+          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "api_docs"
         );
         return { ...tab, children: filtered };
       }
@@ -475,10 +475,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
       href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
-      <Icon
-        name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
-      />
+      <ArrowLeftIcon className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0" />
       <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
       </Skeleton>
@@ -510,18 +507,34 @@ const TeamRolesNavItem = ({
     feature: "pbac",
   });
 
-  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
-  if (!team.parentId || !isPbacEnabled) return null;
+  // For sub-teams with PBAC-enabled parent org: show functional roles page
+  if (team.parentId && isPbacEnabled) {
+    return (
+      <VerticalTabItem
+        name={t("roles_and_permissions")}
+        href={`/settings/teams/${team.id}/roles`}
+        trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
+        textClassNames="px-3 text-emphasis font-medium text-sm"
+        disableChevron
+      />
+    );
+  }
 
-  return (
-    <VerticalTabItem
-      name={t("roles_and_permissions")}
-      href={`/settings/teams/${team.id}/roles`}
-      trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
-      textClassNames="px-3 text-emphasis font-medium text-sm"
-      disableChevron
-    />
-  );
+  // For standalone teams (not in an org): show upgrade banner page
+  if (!team.parentId) {
+    return (
+      <VerticalTabItem
+        name={t("roles_and_permissions")}
+        href={`/settings/teams/${team.id}/roles`}
+        trackingMetadata={{ section: "team", page: "roles_and_permissions", teamId: team.id }}
+        textClassNames="px-3 text-emphasis font-medium text-sm"
+        className="px-2! me-5 h-7 w-auto"
+        disableChevron
+      />
+    );
+  }
+
+  return null;
 };
 
 const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
@@ -602,9 +615,9 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <Icon name="chevron-down" className="h-4 w-4" />
+                        <ChevronDownIcon className="h-4 w-4" />
                       ) : (
-                        <Icon name="chevron-right" className="h-4 w-4" />
+                        <ChevronRightIcon className="h-4 w-4" />
                       )}
                     </div>
                     {}
@@ -648,7 +661,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                   <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore this exists wtf?
+                    // @ts-expect-error this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
                     <>
                       {/* TODO */}
@@ -826,7 +839,7 @@ const SettingsSidebarContainer = ({
                           href={child.href || "/"}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`px-2! py-1! min-h-7 h-auto w-fit ${
+                          className={`px-2! py-1! min-h-7 h-auto w-full ${
                             tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
@@ -949,9 +962,9 @@ const SettingsSidebarContainer = ({
                                   }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
+                                      <ChevronDownIcon className="h-4 w-4" />
                                     ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
+                                      <ChevronRightIcon className="h-4 w-4" />
                                     )}
                                   </div>
                                   {}
@@ -1036,7 +1049,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
           <button
             className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
             onClick={() => router.back()}>
-            <Icon name="arrow-left" className="text-default h-4 w-4" />
+            <ArrowLeftIcon className="text-default h-4 w-4" />
             <p className="text-emphasis font-semibold">{t("settings")}</p>
           </button>
         </div>
@@ -1052,13 +1065,11 @@ type SettingsLayoutProps = {
   permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-function SettingsLayoutAppDirClient({
-  children,
-  teamFeatures,
-  permissions,
-  ...rest
-}: SettingsLayoutProps) {
+function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
+  const isFullWidthPage =
+    pathname?.includes("/settings/teams/") &&
+    (pathname?.includes("/attributes") || pathname?.includes("/roles"));
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
 
@@ -1098,7 +1109,11 @@ function SettingsLayoutAppDirClient({
       }>
       <div className="*:flex-1 flex flex-1">
         <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+          className={classNames(
+            "mx-auto justify-center",
+            !isFullWidthPage && "max-w-full lg:max-w-3xl",
+            rest.containerClassName
+          )}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>

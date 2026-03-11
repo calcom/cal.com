@@ -1,5 +1,8 @@
 import { createContainer } from "../di";
-import { type FeaturesRepository, moduleLoader as featuresRepositoryModuleLoader } from "../modules/FeaturesRepository";
+import {
+  type FeaturesRepository,
+  moduleLoader as featuresRepositoryModuleLoader,
+} from "../modules/FeaturesRepository";
 
 const featuresRepositoryContainer = createContainer();
 

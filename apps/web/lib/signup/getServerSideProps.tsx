@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_OUTLOOK_LOGIN_ENABLED } from "@calcom/features/auth/lib/outlook";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -26,9 +27,8 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "email-verification"
-  );
+  const emailVerificationEnabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
@@ -60,6 +60,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+    isOutlookLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
@@ -200,22 +201,25 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       ...props,
       token,
-      prepopulateFormValues: !isOrgInviteByLink && isValidEmail
-        ? {
-            email: verificationToken.identifier,
-            username: isOrganizationOrATeamInOrganization
-              ? getOrgUsernameFromEmail(
-                  verificationToken.identifier,
-                  (isOrganization
-                    ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
-                    : parentOrgSettings?.orgAutoAcceptEmail) || ""
-                )
-              : slugify(username),
-          }
-        : null,
+      prepopulateFormValues:
+        !isOrgInviteByLink && isValidEmail
+          ? {
+              email: verificationToken.identifier,
+              username: isOrganizationOrATeamInOrganization
+                ? getOrgUsernameFromEmail(
+                    verificationToken.identifier,
+                    (isOrganization
+                      ? tokenTeam.organizationSettings?.orgAutoAcceptEmail
+                      : parentOrgSettings?.orgAutoAcceptEmail) || ""
+                  )
+                : slugify(username),
+            }
+          : null,
       orgSlug,
       orgAutoAcceptEmail: isOrgInviteByLink
-        ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
+        ? (tokenTeam?.organizationSettings?.orgAutoAcceptEmail ??
+          parentOrgSettings?.orgAutoAcceptEmail ??
+          null)
         : null,
     },
   };

@@ -9,10 +9,17 @@ import { useOnboardingStore } from "../store/onboarding-store";
 type UseCreateTeamOptions = {
   redirectBasePath?: string;
   skipRedirectAfterInvite?: boolean;
+  isOnboarding?: boolean;
+  billingPeriod?: "MONTHLY" | "ANNUALLY";
 };
 
 export function useCreateTeam(options: UseCreateTeamOptions = {}) {
-  const { redirectBasePath = "/onboarding/teams", skipRedirectAfterInvite = false } = options;
+  const {
+    redirectBasePath = "/onboarding/teams",
+    skipRedirectAfterInvite = false,
+    isOnboarding = true,
+    billingPeriod,
+  } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const flags = useFlagMap();
@@ -42,7 +49,8 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
         slug: teamDetails.slug,
         bio: teamDetails.bio,
         logo: teamBrand.logo,
-        isOnboarding: true,
+        isOnboarding,
+        ...(billingPeriod && { billingPeriod }),
       });
 
       // If there's a checkout URL, redirect to Stripe payment

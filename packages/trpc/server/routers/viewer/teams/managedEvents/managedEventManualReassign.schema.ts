@@ -12,4 +12,3 @@ export const ZManagedEventManualReassignInputSchema: z.ZodType<TManagedEventManu
     teamMemberId: z.number().int(),
     reassignReason: z.string().optional(),
   });
-

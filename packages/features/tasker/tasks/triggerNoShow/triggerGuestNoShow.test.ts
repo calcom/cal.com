@@ -33,6 +33,12 @@ vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () 
   }),
 }));
 
+vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
+  getFeaturesRepository: vi.fn().mockReturnValue({
+    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+  }),
+}));
+
 const timeout = process.env.CI ? 5000 : 20000;
 
 const EMPTY_MEETING_SESSIONS = {
@@ -57,6 +63,7 @@ type ExpectNoShowAuditParams = {
       };
     }>;
   };
+  isBookingAuditEnabled: boolean;
 };
 
 function expectNoShowAuditToBeDone(expected: ExpectNoShowAuditParams): void {
@@ -236,10 +243,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -438,10 +444,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout
@@ -679,10 +684,9 @@ describe("Trigger Guest No Show:", () => {
         actor: { identifiedBy: "id", id: "00000000-0000-0000-0000-000000000000" },
         organizationId: null,
         auditData: {
-          attendeesNoShow: [
-            { attendeeEmail: "guest@example.com", noShow: { new: true, old: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "guest@example.com", noShow: { new: true, old: false } }],
         },
+        isBookingAuditEnabled: false,
       });
     },
     timeout

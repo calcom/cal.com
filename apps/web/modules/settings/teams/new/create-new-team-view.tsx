@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import React, { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -25,10 +25,17 @@ type CreateNewTeamViewProps = {
 
 export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
-  const { createTeam, isSubmitting } = useCreateTeam({ redirectBasePath: "/settings/teams/new" });
+  const bpParam = searchParams?.get("bp");
+  const billingPeriod = bpParam === "a" ? ("ANNUALLY" as const) : bpParam === "m" ? ("MONTHLY" as const) : undefined;
+  const { createTeam, isSubmitting } = useCreateTeam({
+    redirectBasePath: "/settings/teams/new",
+    isOnboarding: false,
+    billingPeriod,
+  });
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");
@@ -165,6 +172,7 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
               <div className="flex w-full flex-col gap-1.5">
                 <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("team_name")}</Label>
                 <TextField
+                  noLabel
                   name="name"
                   data-testid="team-name-input"
                   value={teamName}
