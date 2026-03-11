@@ -12,7 +12,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -329,7 +329,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           emailFrom: user.email,
           // We know email has been changed here so we can use input
 
-          emailTo: input.email!,
+          emailTo: input.email ?? "",
         },
       });
     }

@@ -1,22 +1,21 @@
-import type Stripe from "stripe";
-import { z } from "zod";
-
+import process from "node:process";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
-import stripe from "@calcom/features/ee/payments/server/stripe";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
+  ORG_TRIAL_DAYS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
-  ORG_TRIAL_DAYS,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { TrackingData } from "@calcom/lib/tracking";
+import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type Stripe from "stripe";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
@@ -26,6 +25,21 @@ const teamPaymentMetadataSchema = z.object({
   subscriptionItemId: z.string(),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
+
+export function getOrgPriceId(billingPeriod: "MONTHLY" | "ANNUALLY"): string {
+  const priceId =
+    billingPeriod === "ANNUALLY"
+      ? process.env.STRIPE_ORG_ANNUAL_PRICE_ID
+      : process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    const envVar =
+      billingPeriod === "ANNUALLY" ? "STRIPE_ORG_ANNUAL_PRICE_ID" : "STRIPE_ORG_MONTHLY_PRICE_ID";
+    throw new Error(`${envVar} is not set`);
+  }
+
+  return priceId;
+}
 
 /** Used to prevent double charges for the same team */
 export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
@@ -43,6 +57,21 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   return { url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id=${metadata.paymentId}` };
 };
 
+function getTeamPriceId(billingPeriod: BillingPeriod): string {
+  const priceId =
+    billingPeriod === "ANNUALLY"
+      ? process.env.STRIPE_TEAM_ANNUAL_PRICE_ID
+      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+
+  if (!priceId) {
+    throw new Error(
+      `Missing env var: ${billingPeriod === "ANNUALLY" ? "STRIPE_TEAM_ANNUAL_PRICE_ID" : "STRIPE_TEAM_MONTHLY_PRICE_ID"}`
+    );
+  }
+
+  return priceId;
+}
+
 /**
  * Used to generate a checkout session when trying to create a team
  */
@@ -51,39 +80,42 @@ export const generateTeamCheckoutSession = async ({
   teamSlug,
   userId,
   isOnboarding,
+  billingPeriod = BillingPeriod.MONTHLY,
   tracking,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
   isOnboarding?: boolean;
+  billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
     getDubCustomer(userId.toString()),
   ]);
+  const priceId = getTeamPriceId(billingPeriod);
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
     ...(dubCustomer?.discount?.couponId
       ? {
-        discounts: [
-          {
-            coupon:
-              process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                ? dubCustomer.discount.couponTestId
-                : dubCustomer.discount.couponId,
-          },
-        ],
-      }
+          discounts: [
+            {
+              coupon:
+                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                  ? dubCustomer.discount.couponTestId
+                  : dubCustomer.discount.couponId,
+            },
+          ],
+        }
       : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
-        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
+        price: priceId,
         /**Initially it will be just the team owner */
         quantity: 1,
       },
@@ -97,16 +129,26 @@ export const generateTeamCheckoutSession = async ({
     },
     subscription_data: {
       trial_period_days: 14, // Add a 14-day trial
+      metadata: {
+        ...(isOnboarding && { source: "onboarding" }),
+      },
     },
     metadata: {
       type: CHECKOUT_SESSION_TYPES.TEAM_CREATION,
       teamName,
       teamSlug,
       userId,
+      billingPeriod,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
       ...(isOnboarding !== undefined && { isOnboarding: isOnboarding.toString() }),
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds?.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds?.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
   });
   return session;
@@ -157,10 +199,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (
-      isOrg &&
-      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE
-    ) {
+    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
@@ -198,8 +237,14 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     },
     metadata: {
       teamId,
-      ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-      ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+      ...(tracking?.googleAds?.gclid && {
+        gclid: tracking.googleAds.gclid,
+        campaignId: tracking.googleAds.campaignId,
+      }),
+      ...(tracking?.linkedInAds?.liFatId && {
+        liFatId: tracking.linkedInAds.liFatId,
+        linkedInCampaignId: tracking.linkedInAds?.campaignId,
+      }),
     },
     subscription_data: {
       metadata: {
@@ -257,17 +302,20 @@ export const purchaseTeamOrOrgSubscription = async (input: {
    * If the organization has a custom price per seat, it will create a new price in stripe and return its ID.
    */
   async function getFixedPrice() {
-    const fixedPriceId = isOrg
-      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
-
-    if (!fixedPriceId) {
-      throw new Error(
-        "You need to have STRIPE_ORG_MONTHLY_PRICE_ID and STRIPE_TEAM_MONTHLY_PRICE_ID env variables set"
+    if (isOrg) {
+      const fixedPriceId = getOrgPriceId(billingPeriod);
+      log.debug(
+        "Getting price ID",
+        safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod })
       );
+      return fixedPriceId;
     }
 
-    log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat }));
+    const fixedPriceId = getTeamPriceId(billingPeriod);
+    log.debug(
+      "Getting price ID",
+      safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat, billingPeriod })
+    );
 
     return fixedPriceId;
   }

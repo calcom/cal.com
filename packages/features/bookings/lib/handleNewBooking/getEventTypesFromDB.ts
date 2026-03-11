@@ -48,6 +48,8 @@ const getEventTypesFromDBSelect = {
       includeManagedEventsInLimits: true,
       rrResetInterval: true,
       rrTimestampBasis: true,
+      hideBranding: true,
+      parent: { select: { hideBranding: true } },
     },
   },
   bookingFields: true,
@@ -108,7 +110,13 @@ const getEventTypesFromDBSelect = {
   useEventTypeDestinationCalendarEmail: true,
   owner: {
     select: {
+      id: true,
       hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
     },
   },
   workflows: {
@@ -127,6 +135,7 @@ const getEventTypesFromDBSelect = {
       timeZone: true,
     },
   },
+  enablePerHostLocations: true,
   hosts: {
     select: {
       isFixed: true,
@@ -134,6 +143,16 @@ const getEventTypesFromDBSelect = {
       weight: true,
       createdAt: true,
       groupId: true,
+      location: {
+        select: {
+          id: true,
+          type: true,
+          credentialId: true,
+          link: true,
+          address: true,
+          phoneNumber: true,
+        },
+      },
       user: {
         select: {
           credentials: {

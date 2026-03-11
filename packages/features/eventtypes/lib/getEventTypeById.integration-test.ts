@@ -1,8 +1,8 @@
-import { prisma } from "@calcom/prisma"
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-import i18nMock from "../../../../tests/libs/__mocks__/libServerI18n";
+import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 
-// import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+// import { mockNoTranslations } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 
@@ -18,7 +18,7 @@ export function mockNoTranslations() {
   });
 }
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: (key: string) => () => key,
 }));
 
@@ -52,14 +52,14 @@ describe("getRawEventType", () => {
         organizationId: overrides?.organizationId,
         ...(overrides?.withProfile &&
           overrides.organizationId && {
-          profiles: {
-            create: {
-              organizationId: overrides.organizationId,
-              uid: username,
-              username,
+            profiles: {
+              create: {
+                organizationId: overrides.organizationId,
+                uid: username,
+                username,
+              },
             },
-          },
-        }),
+          }),
       },
     });
     createdResources.users.push(user.id);
@@ -119,10 +119,7 @@ describe("getRawEventType", () => {
     return membership;
   };
 
-  const createTestEventType = async (
-    userId: number,
-    overrides?: { slug?: string; title?: string }
-  ) => {
+  const createTestEventType = async (userId: number, overrides?: { slug?: string; title?: string }) => {
     const timestamp = Date.now() + Math.random();
     const eventType = await prisma.eventType.create({
       data: {

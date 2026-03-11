@@ -34,12 +34,13 @@ jobs:
       - name: Cleanup HTML reports on PR close/merge
         env:
           BRANCH_REPORTS_DIR: reports/${{ github.event.pull_request.head.ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           if [ -d "$BRANCH_REPORTS_DIR" ]; then
             rm -rf "$BRANCH_REPORTS_DIR"
             git add .
-            git commit -m "workflow: remove all reports for branch ${{ github.event.pull_request.head.ref }} (PR closed/merged)"
+            git commit -m "workflow: remove all reports for branch $HEAD_REF (PR closed/merged)"
             git push
           else
-            echo "No reports found for branch ${{ github.event.pull_request.head.ref }}. Nothing to clean up."
+            echo "No reports found for branch $HEAD_REF. Nothing to clean up."
           fi

@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useRef } from "react";
-
+import {
+  CalendarStoreContext,
+  createCalendarStore,
+  useCalendarStore,
+} from "@calcom/features/calendars/weeklyview/state/store";
 import classNames from "@calcom/ui/classNames";
-
-import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "../state/store";
-import "../styles/styles.css";
-import type { CalendarComponentProps } from "../types/state";
-import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
-import { DateValues } from "./DateValues";
+import type React from "react";
+import { useEffect, useMemo, useRef } from "react";
+import "@calcom/features/calendars/weeklyview/styles/styles.css";
+import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
+import { getDaysBetweenDates, getHoursToDisplay } from "@calcom/features/calendars/weeklyview/utils";
 import { CurrentTime } from "./currentTime";
+import { DateValues } from "./DateValues";
 import { AvailableCellsForDay, EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerColumns } from "./grid";
@@ -35,6 +38,8 @@ function CalendarInner(props: CalendarComponentProps) {
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
   const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
   const scrollToCurrentTime = useCalendarStore((state) => state.scrollToCurrentTime ?? true);
+  const updateCurrentTimeOnFocus = useCalendarStore((state) => state.updateCurrentTimeOnFocus ?? false);
+  const renderOutOfOffice = useCalendarStore((state) => state.renderOutOfOffice);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -75,7 +80,11 @@ function CalendarInner(props: CalendarComponentProps) {
               borderColor={borderColor}
             />
             <div className="relative flex flex-auto">
-              <CurrentTime timezone={timezone} scrollToCurrentTime={scrollToCurrentTime} />
+              <CurrentTime
+                timezone={timezone}
+                scrollToCurrentTime={scrollToCurrentTime}
+                updateOnFocus={updateCurrentTimeOnFocus}
+              />
               <div
                 className={classNames(
                   "bg-default dark:bg-cal-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
@@ -140,6 +149,7 @@ function CalendarInner(props: CalendarComponentProps) {
                             day={days[i]}
                             startHour={startHour}
                             availableSlots={availableTimeslots}
+                            renderOutOfOffice={renderOutOfOffice}
                           />
                         ) : (
                           <>

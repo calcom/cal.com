@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
-
-import { APP_STORE_PATH, TEMPLATES_PATH, IS_WINDOWS_PLATFORM } from "./constants";
+import fs from "node:fs";
+import path from "node:path";
+import { APP_STORE_PATH, IS_WINDOWS_PLATFORM, TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
 
 const slugify = (str: string) => {
@@ -34,17 +33,22 @@ const updatePackageJson = ({
   appDescription: string;
   appDirPath: string;
 }) => {
-  const packageJsonConfig = JSON.parse(fs.readFileSync(`${appDirPath}/package.json`).toString());
+  const packageJsonPath = `${appDirPath}/package.json`;
+  // Skip if package.json doesn't exist (e.g., for simplified link-as-an-app template)
+  if (!fs.existsSync(packageJsonPath)) {
+    return;
+  }
+  const packageJsonConfig = JSON.parse(fs.readFileSync(packageJsonPath).toString());
   packageJsonConfig.name = `@calcom/${slug}`;
   packageJsonConfig.description = appDescription;
   // packageJsonConfig.description = `@calcom/${appName}`;
-  fs.writeFileSync(`${appDirPath}/package.json`, JSON.stringify(packageJsonConfig, null, 2));
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJsonConfig, null, 2));
 };
 
-const workspaceDir = path.resolve(__dirname, "..", "..", "..");
+const _workspaceDir = path.resolve(__dirname, "..", "..", "..");
 
 export const BaseAppFork = {
-  create: async function ({
+  create: async ({
     category,
     editMode = false,
     description,
@@ -55,6 +59,7 @@ export const BaseAppFork = {
     template,
     isTemplate,
     oldSlug,
+    externalLinkUrl,
   }: {
     category: string;
     editMode?: boolean;
@@ -66,7 +71,8 @@ export const BaseAppFork = {
     template: string;
     isTemplate: boolean;
     oldSlug?: string;
-  }) {
+    externalLinkUrl?: string;
+  }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     if (!editMode) {
       await execSync(IS_WINDOWS_PLATFORM ? `mkdir ${appDirPath}` : `mkdir -p ${appDirPath}`);
@@ -94,7 +100,7 @@ export const BaseAppFork = {
       video: "conferencing",
     };
 
-    let config = {
+    let config: Record<string, unknown> = {
       name: name,
       // Plan to remove it. DB already has it and name of dir is also the same.
       slug: slug,
@@ -116,6 +122,17 @@ export const BaseAppFork = {
       ...currentConfig,
       ...config,
     };
+
+    // For link-as-an-app template, update the externalLink URL
+    if (template === "link-as-an-app" && externalLinkUrl) {
+      config.externalLink = {
+        url: externalLinkUrl,
+        newTab: true,
+      };
+      // Also update the legacy url field for backwards compatibility
+      config.url = externalLinkUrl;
+    }
+
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
     fs.writeFileSync(
       `${appDirPath}/DESCRIPTION.md`,
@@ -129,7 +146,7 @@ export const BaseAppFork = {
     await execSync("yarn");
   },
 
-  delete: async function ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) {
+  delete: async ({ slug, isTemplate }: { slug: string; isTemplate: boolean }) => {
     const appDirPath = getAppDirPath(slug, isTemplate);
     await execSync(IS_WINDOWS_PLATFORM ? `rd /s /q ${appDirPath}` : `rm -rf ${appDirPath}`);
   },

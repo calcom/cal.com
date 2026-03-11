@@ -1,8 +1,3 @@
-import { LRUCache } from "lru-cache";
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
-import type { AuthOptions, Session } from "next-auth";
-import { getToken } from "next-auth/jwt";
-
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -10,6 +5,10 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import { LRUCache } from "lru-cache";
+import type { GetServerSidePropsContext, NextApiRequest } from "next";
+import type { AuthOptions, Session } from "next-auth";
+import { getToken } from "next-auth/jwt";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
@@ -54,14 +53,19 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
-  const email = token.email.toLowerCase();
+  const userId = token.sub ? Number(token.sub) : null;
+
+  if (!userId || userId <= 0) {
+    log.warn("Invalid or missing user ID in token", { sub: token.sub });
+    return null;
+  }
 
   const userFromDb = await prisma.user.findUnique({
-    where: { email },
+    where: { id: userId },
   });
 
   if (!userFromDb) {
-    log.debug("No user found");
+    log.warn("No user found for valid token", { userId });
     return null;
   }
 
@@ -91,6 +95,7 @@ export async function getServerSession(options: {
     expires: new Date(typeof token.exp === "number" ? token.exp * 1000 : Date.now()).toISOString(),
     user: {
       id: user.id,
+      uuid: user.uuid,
       name: user.name,
       username: user.username,
       email: user.email,
@@ -118,12 +123,14 @@ export async function getServerSession(options: {
       },
       select: {
         id: true,
+        uuid: true,
         role: true,
       },
     });
     if (impersonatedByUser) {
       session.user.impersonatedBy = {
         id: impersonatedByUser?.id,
+        uuid: impersonatedByUser.uuid,
         role: impersonatedByUser.role,
       };
     }
@@ -133,4 +140,8 @@ export async function getServerSession(options: {
 
   log.debug("Returned session", safeStringify(session));
   return session;
+}
+
+export function clearSessionCache() {
+  CACHE.clear();
 }

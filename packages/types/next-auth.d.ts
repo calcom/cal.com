@@ -13,16 +13,18 @@ declare module "next-auth" {
     hasValidLicense: boolean;
     profileId?: number | null;
     upId: string;
-    user: User;
+    user: User & { uuid: PrismaUser["uuid"] };
   }
 
   interface User extends Omit<DefaultUser, "id"> {
     id: PrismaUser["id"];
+    uuid?: PrismaUser["uuid"];
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
     completedOnboarding?: boolean;
     impersonatedBy?: {
       id: number;
+      uuid: string;
       role: PrismaUser["role"];
     };
     belongsToActiveTeam?: boolean;
@@ -39,8 +41,11 @@ declare module "next-auth" {
     orgAwareUsername?: PrismaUser["username"];
     avatarUrl?: PrismaUser["avatarUrl"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
+    /** Set when role is INACTIVE_ADMIN: why admin security requirements are not met */
+    inactiveAdminReason?: "both" | "password" | "2fa";
     locale?: string | null;
     profile?: UserProfile;
+    samlTenant?: string;
   }
 }
 
@@ -54,8 +59,10 @@ declare module "next-auth/jwt" {
     upId?: string;
     profileId?: number | null;
     role?: UserPermissionRole | "INACTIVE_ADMIN" | null;
+    inactiveAdminReason?: "both" | "password" | "2fa";
     impersonatedBy?: {
       id: number;
+      uuid: string;
       role: PrismaUser["role"];
     };
     belongsToActiveTeam?: boolean;

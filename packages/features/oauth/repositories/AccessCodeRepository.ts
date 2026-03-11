@@ -1,13 +1,39 @@
+import dayjs from "@calcom/dayjs";
 import type { PrismaClient } from "@calcom/prisma";
+import type { AccessScope } from "@calcom/prisma/enums";
 
+interface CreateAccessCodeInput {
+  code: string;
+  clientId: string;
+  userId?: number;
+  teamId?: number;
+  scopes: AccessScope[];
+  codeChallenge?: string;
+  codeChallengeMethod?: string;
+}
 export class AccessCodeRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  async create(input: CreateAccessCodeInput): Promise<void> {
+    await this.prisma.accessCode.create({
+      data: {
+        code: input.code,
+        clientId: input.clientId,
+        userId: input.userId,
+        teamId: input.teamId,
+        expiresAt: dayjs().add(10, "minutes").toDate(),
+        scopes: input.scopes,
+        codeChallenge: input.codeChallenge,
+        codeChallengeMethod: input.codeChallengeMethod,
+      },
+    });
+  }
+
   async findValidCode(code: string, clientId: string) {
-    return await this.prisma.accessCode.findFirst({
+    return this.prisma.accessCode.findFirst({
       where: {
-        code: code,
-        clientId: clientId,
+        code,
+        clientId,
         expiresAt: {
           gt: new Date(),
         },
@@ -32,8 +58,8 @@ export class AccessCodeRepository {
             },
           },
           {
-            code: code,
-            clientId: clientId,
+            code,
+            clientId,
           },
         ],
       },

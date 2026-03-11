@@ -1,17 +1,16 @@
 "use server";
 
-import { revalidateTag, unstable_cache } from "next/cache";
-
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 const CACHE_TAGS = {
-  HAS_TEAM_PLAN: "MembershipRepository.findFirstAcceptedMembershipByUserId",
+  HAS_TEAM_PLAN: "MembershipRepository.hasAnyAcceptedMembershipByUserId",
 } as const;
 
 export const getCachedHasTeamPlan = unstable_cache(
   async (userId: number) => {
-    const hasTeamPlan = await MembershipRepository.findFirstAcceptedMembershipByUserId(userId);
+    const hasTeamPlan = await MembershipRepository.hasAnyAcceptedMembershipByUserId(userId);
 
     return { hasTeamPlan: !!hasTeamPlan };
   },
@@ -23,5 +22,5 @@ export const getCachedHasTeamPlan = unstable_cache(
 );
 
 export const revalidateHasTeamPlan = async () => {
-  revalidateTag(CACHE_TAGS.HAS_TEAM_PLAN);
+  revalidateTag(CACHE_TAGS.HAS_TEAM_PLAN, "max");
 };

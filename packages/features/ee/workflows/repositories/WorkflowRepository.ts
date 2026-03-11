@@ -1,30 +1,44 @@
-import { z } from "zod";
-
-import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
 import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
+import type { WorkflowStep, WorkflowListType as WorkflowType } from "@calcom/ee/workflows/lib/types";
+import type { filterQuerySchemaStrict } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import {
   MembershipRole,
-  TimeUnit,
-  WorkflowTriggerEvents,
   WorkflowType as PrismaWorkflowType,
+  type TimeUnit,
+  WorkflowMethods,
+  type WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
-import { WorkflowMethods } from "@calcom/prisma/enums";
-import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
-import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
-import type { TGetVerifiedNumbersInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedNumbers.schema";
+import { z } from "zod";
 
 export const ZGetInputSchema = z.object({
   id: z.number(),
 });
+
+export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
+
+export type TFilteredListInputSchema =
+  | {
+      filters?: z.infer<typeof filterQuerySchemaStrict>;
+    }
+  | null
+  | undefined;
+
+export type TGetVerifiedEmailsInputSchema = {
+  teamId?: number;
+};
+
+export type TGetVerifiedNumbersInputSchema = {
+  teamId?: number;
+};
 
 const excludeFormTriggersWhereClause = {
   trigger: {
@@ -41,8 +55,6 @@ const getWorkflowType = (trigger: WorkflowTriggerEvents): PrismaWorkflowType => 
   return PrismaWorkflowType.EVENT_TYPE;
 };
 
-export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
-
 const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
 const includedFields = {
@@ -53,11 +65,6 @@ const includedFields = {
           id: true,
           title: true,
           parentId: true,
-          _count: {
-            select: {
-              children: true,
-            },
-          },
         },
       },
     },
@@ -242,6 +249,15 @@ export class WorkflowRepository {
 
     const filtered = filters && hasFilter(filters);
 
+    const permissionCheckService = new PermissionCheckService();
+    const teamIdsWithWorkflowUpdatePermission = userId
+      ? await permissionCheckService.getTeamIdsWithPermission({
+          userId,
+          permission: "workflow.update",
+          fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        })
+      : [];
+
     const allWorkflows = await prisma.workflow.findMany({
       where: {
         OR: [
@@ -273,9 +289,9 @@ export class WorkflowRepository {
 
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
-        );
+        const readOnly = workflow.teamId
+          ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
+          : false;
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
       });
@@ -325,9 +341,9 @@ export class WorkflowRepository {
       });
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
-        const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
-        );
+        const readOnly = workflow.teamId
+          ? !teamIdsWithWorkflowUpdatePermission.includes(workflow.teamId)
+          : false;
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
       });
@@ -476,7 +492,7 @@ export class WorkflowRepository {
 
     results.forEach((result, index) => {
       if (result.status !== "fulfilled") {
-        this.log.error(
+        WorkflowRepository.log.error(
           `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
           result.reason
         );
@@ -685,11 +701,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },
@@ -722,11 +733,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },
@@ -779,11 +785,6 @@ export class WorkflowRepository {
                 id: true,
                 title: true,
                 parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
               },
             },
           },

@@ -33,6 +33,8 @@ export const roundRobinManualReassignHandler = async ({ ctx, input }: RoundRobin
     orgId: ctx.user.organizationId,
     reassignReason,
     reassignedById: ctx.user.id,
+    actionSource: "WEBAPP",
+    reassignedByUuid: ctx.user.uuid,
   });
 
   return { success: true };

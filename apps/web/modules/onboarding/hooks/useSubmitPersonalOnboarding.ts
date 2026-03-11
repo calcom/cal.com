@@ -1,11 +1,12 @@
 import { useRouter } from "next/navigation";
 
-import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { setShowWelcomeToCalcomModalFlag } from "@calcom/web/modules/shell/hooks/useWelcomeToCalcomModal";
 
+const ONBOARDING_REDIRECT_KEY = "onBoardingRedirect";
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";
 
 const DEFAULT_EVENT_TYPES = [
@@ -56,10 +57,18 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
+
+      const redirectUrl = localStorage.getItem(ONBOARDING_REDIRECT_KEY);
+      if (redirectUrl) {
+        localStorage.removeItem(ONBOARDING_REDIRECT_KEY);
+        router.push(redirectUrl);
+        return;
+      }
+
       // Check if org modal flag is set - if so, don't show personal modal
       // Organization onboarding takes precedence
       const hasOrgModalFlag = sessionStorage.getItem(ORG_MODAL_STORAGE_KEY) === "true";
-      
+
       if (!hasOrgModalFlag) {
         // Only set personal modal flag if org modal flag is not set
         setShowWelcomeToCalcomModalFlag();

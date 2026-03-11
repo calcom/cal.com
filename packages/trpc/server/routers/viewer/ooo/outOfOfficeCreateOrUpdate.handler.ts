@@ -7,7 +7,7 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -45,7 +45,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserOrgId = ctx.user.organizationId;
   let oooUserFullName = ctx.user.name;
 
-  let isAdmin;
+  let isAdmin: boolean | undefined;
   if (input.forUserId) {
     isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
     if (!isAdmin) {
@@ -386,6 +386,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           appId: subscriber.appId,
           subscriberUrl: subscriber.subscriberUrl,
           payloadTemplate: subscriber.payloadTemplate,
+          version: subscriber.version,
         },
         payload
       );

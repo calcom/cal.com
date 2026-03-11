@@ -1,7 +1,7 @@
 "use client";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 import AppProviders from "@lib/app-providers-app-dir";
 
@@ -13,7 +13,6 @@ export type PageWrapperProps = Readonly<{
 }>;
 
 function PageWrapper(props: PageWrapperProps) {
-
   // On client side don't let nonce creep into DOM
   // It also avoids hydration warning that says that Client has the nonce value but server has "" because browser removes nonce attributes before DOM is built
   // See https://github.com/kentcdodds/nonce-hydration-issues

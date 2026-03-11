@@ -12,4 +12,3 @@ export function getBookingEventHandlerService() {
 
   return container.get<BookingEventHandlerService>(bookingEventHandlerServiceModule.token);
 }
-

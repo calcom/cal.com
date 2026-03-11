@@ -2,17 +2,23 @@ import { useSession } from "next-auth/react";
 import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
-import type { GetUserAvailabilityResult } from "@calcom/features/availability/lib/getUserAvailability";
+
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 type UseOnboardingCalendarEventsProps = {
   startDate: Date;
   endDate: Date;
 };
 
-const emptyAvailabilityData = {
+type UseOnboardingCalendarEventsResult = {
+  events: CalendarEvent[];
+  isLoading: boolean;
+};
+
+const emptyAvailabilityData: RouterOutputs["viewer"]["availability"]["user"] = {
   busy: [],
   timeZone: "",
   dateRanges: [],
@@ -21,9 +27,12 @@ const emptyAvailabilityData = {
   dateOverrides: [],
   currentSeats: null,
   datesOutOfOffice: {},
-} as GetUserAvailabilityResult;
+};
 
-export const useOnboardingCalendarEvents = ({ startDate, endDate }: UseOnboardingCalendarEventsProps) => {
+export const useOnboardingCalendarEvents = ({
+  startDate,
+  endDate,
+}: UseOnboardingCalendarEventsProps): UseOnboardingCalendarEventsResult => {
   const { data: session } = useSession();
   const utils = trpc.useUtils();
 
@@ -65,7 +74,6 @@ export const useOnboardingCalendarEvents = ({ startDate, endDate }: UseOnboardin
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
-          color: event.source ? undefined : undefined,
           status: BookingStatus.ACCEPTED,
         },
       };

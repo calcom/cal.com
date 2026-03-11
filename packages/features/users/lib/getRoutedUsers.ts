@@ -1,4 +1,3 @@
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -12,7 +11,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 const log = logger.getSubLogger({ prefix: ["[getRoutedUsers]"] });
 
 export const getRoutedUsersWithContactOwnerAndFixedUsers = <
-  T extends { id: number; isFixed?: boolean; email: string }
+  T extends { id: number; isFixed?: boolean; email: string },
 >({
   routedTeamMemberIds,
   users,
@@ -52,6 +51,11 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
     return null;
   }
 
+  // Dynamic import to avoid loading react-awesome-query-builder at module evaluation time
+  const { findTeamMembersMatchingAttributeLogic } = await import(
+    "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic"
+  );
+
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
     attributesQueryValue: eventType.rrSegmentQueryValue ?? null,
     teamId: eventType.team.id,
@@ -65,6 +69,7 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
 
 type BaseUser = {
   id: number;
+  uuid: string;
   email: string;
 };
 
@@ -129,7 +134,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
 type BaseUserWithCredentialPayload = BaseUser & { credentials: CredentialPayload[] };
 export async function getNormalizedHostsWithDelegationCredentials<
   User extends BaseUserWithCredentialPayload,
-  Host extends BaseHost<User>
+  Host extends BaseHost<User>,
 >({
   eventType,
 }: {

@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { BookerEventForAppData } from "@calcom/features/bookings/types.server";
 
 export type EventTypeApps = NonNullable<
   NonNullable<z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>>["apps"]
@@ -9,7 +9,7 @@ export type EventTypeApps = NonNullable<
 export type EventTypeAppsList = keyof EventTypeApps;
 
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
-  eventType: Pick<BookerEvent, "price" | "currency" | "metadata">,
+  eventType: BookerEventForAppData,
   appId: T,
   forcedGet?: boolean
 ): EventTypeApps[T] => {
@@ -25,6 +25,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
           currency: eventType.currency || appMetadata.currency || null,
           // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
           TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId || null,
+          TRACKING_EVENT: appMetadata.trackingEvent || "Lead",
         }
       : null;
   }

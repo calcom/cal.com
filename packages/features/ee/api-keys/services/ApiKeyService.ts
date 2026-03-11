@@ -4,16 +4,21 @@ type Deps = {
   apiKeyRepo: PrismaApiKeyRepository;
 };
 
-interface VerifyKeyResult {
-  valid: boolean;
-  error?: string;
-  userId?: number;
-  user?: {
-    role: string;
-    locked: boolean;
-    email: string;
-  };
-}
+type VerifyKeyResult =
+  | {
+      valid: true;
+      userId: number;
+      user: {
+        uuid: string;
+        role: string;
+        locked: boolean;
+        email: string;
+      };
+    }
+  | {
+      valid: false;
+      error: string;
+    };
 
 export class ApiKeyService {
   constructor(private readonly deps: Deps) {}

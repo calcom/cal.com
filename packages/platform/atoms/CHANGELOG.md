@@ -1,5 +1,11 @@
 ## 2.1.0
 
+## 2.2.0
+
+### Minor Changes
+
+- [#25819](https://github.com/calcom/cal.com/pull/25819) [`b4e773d`](https://github.com/calcom/cal.com/commit/b4e773da69ee2ad57d8fa22e780232af8e1c7637) Thanks [@supalarry](https://github.com/supalarry)! - feat: Booker accepts rrHostSubsetIds to specify round robin hosts
+
 ### Minor Changes
 
 - feat: Booker accepts rrHostSubsetIds to specify round robin hosts

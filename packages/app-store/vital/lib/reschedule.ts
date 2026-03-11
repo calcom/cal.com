@@ -6,7 +6,7 @@ import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Booking, BookingReference, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -146,7 +146,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(credentialsMap.get(bookingRef.type), "booking");
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);

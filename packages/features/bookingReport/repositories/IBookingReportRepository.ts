@@ -1,4 +1,4 @@
-import type { BookingReportReason, BookingReportStatus } from "@calcom/prisma/enums";
+import type { BookingReportReason, BookingReportStatus, SystemReportStatus } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingUid: string;
@@ -25,6 +25,10 @@ export interface ListBookingReportsFilters {
   status?: BookingReportStatus[];
 }
 
+export interface SystemBookingReportsFilters {
+  systemStatus?: SystemReportStatus[];
+}
+
 export interface BookingReportWithDetails {
   id: string;
   bookingUid: string;
@@ -35,7 +39,10 @@ export interface BookingReportWithDetails {
   cancelled: boolean;
   createdAt: Date;
   status: BookingReportStatus;
+  systemStatus: SystemReportStatus;
   watchlistId: string | null;
+  globalWatchlistId: string | null;
+  organizationId: number | null;
   reporter: {
     id: number;
     email: string;
@@ -55,11 +62,23 @@ export interface BookingReportWithDetails {
     action: string;
     description: string | null;
   } | null;
+  globalWatchlist: {
+    id: string;
+    type: string;
+    value: string;
+    action: string;
+    description: string | null;
+  } | null;
   organization: {
     id: number;
     name: string;
     slug: string | null;
   } | null;
+}
+
+export interface GroupedBookingReportWithDetails extends BookingReportWithDetails {
+  reportCount: number;
+  reports: BookingReportWithDetails[];
 }
 
 export interface IBookingReportRepository {
@@ -76,6 +95,18 @@ export interface IBookingReportRepository {
     meta: { totalRowCount: number };
   }>;
 
+  findGroupedReportedBookings(params: {
+    organizationId?: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
+  }): Promise<{
+    rows: GroupedBookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }>;
+
   findReportsByIds(params: {
     reportIds: string[];
     organizationId?: number;
@@ -89,16 +120,58 @@ export interface IBookingReportRepository {
     organizationId?: number;
   }): Promise<void>;
 
-  bulkUpdateReportStatus(params: {
-    reportIds: string[];
-    status: BookingReportStatus;
-    organizationId?: number;
-  }): Promise<{ updated: number }>;
-
   bulkLinkWatchlistWithStatus(params: {
     links: Array<{ reportId: string; watchlistId: string }>;
     status: BookingReportStatus;
   }): Promise<void>;
 
+  bulkLinkGlobalWatchlistWithSystemStatus(params: {
+    links: Array<{ reportId: string; globalWatchlistId: string }>;
+    systemStatus: SystemReportStatus;
+  }): Promise<void>;
+
   countPendingReports(params: { organizationId: number }): Promise<number>;
+
+  updateSystemReportStatus(params: {
+    reportId: string;
+    systemStatus: SystemReportStatus;
+    globalWatchlistId?: string | null;
+  }): Promise<void>;
+
+  bulkUpdateSystemReportStatus(params: {
+    reportIds: string[];
+    systemStatus: SystemReportStatus;
+    globalWatchlistId?: string | null;
+  }): Promise<{ updated: number }>;
+
+  countSystemPendingReports(): Promise<number>;
+
+  dismissReportsByEmail(params: {
+    email: string;
+    status: BookingReportStatus;
+    organizationId: number;
+  }): Promise<{ count: number }>;
+
+  dismissSystemReportsByEmail(params: {
+    email: string;
+    systemStatus: SystemReportStatus;
+  }): Promise<{ count: number }>;
+
+  findPendingReportsByEmail(params: {
+    email: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingReportsByDomain(params: {
+    domain: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingSystemReportsByEmail(params: {
+    email: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
+
+  findPendingSystemReportsByDomain(params: {
+    domain: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
 }

@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -37,6 +38,8 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
+  autoTranslateEnabled?: boolean;
+  sourceLocale?: string | null;
 };
 
 type SendEmailReminderParams = {
@@ -63,7 +66,7 @@ type SendEmailReminderParams = {
 const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
   const { mailData, sendTo, scheduledDate, uid, workflowStepId } = params;
 
-  let reminderUid = undefined;
+  let reminderUid;
   if (scheduledDate) {
     const reminder = await prisma.workflowReminder.create({
       data: {
@@ -114,6 +117,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    autoTranslateEnabled,
+    sourceLocale,
   } = args;
 
   const uid = evt.uid as string;
@@ -124,6 +129,18 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     timeUnit: timeSpan.timeUnit,
     evt,
   });
+
+  if (
+    scheduledDate &&
+    triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT &&
+    dayjs(scheduledDate).isBefore(dayjs())
+  ) {
+    log.debug(
+      `Skipping reminder for workflow step ${workflowStepId} - scheduled date ${scheduledDate} is in the past`
+    );
+    return;
+  }
+
   const workflowReminderRepository = new WorkflowReminderRepository(prisma);
   const bookingSeatRepository = new BookingSeatRepository(prisma);
   const emailWorkflowService = new EmailWorkflowService(workflowReminderRepository, bookingSeatRepository);
@@ -139,6 +156,9 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     template,
     includeCalendarEvent,
     triggerEvent,
+    workflowStepId,
+    autoTranslateEnabled,
+    sourceLocale,
   });
 
   await sendOrScheduleWorkflowEmailWithReminder({

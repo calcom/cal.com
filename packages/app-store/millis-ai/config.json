@@ -6,11 +6,17 @@
   "logo": "icon.png",
   "url": "https://docs.millis.ai/tutorials/create-voice-agent-for-appointment-scheduling",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Millis AI",
   "email": "thach@millis.ai",
   "description": "Build next-gen voice agents with 500ms latency\r",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "externalLink": {
+    "url": "https://www.millis.ai/integrations/cal-com",
+    "newTab": true
+  }
 }

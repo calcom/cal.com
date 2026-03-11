@@ -58,9 +58,15 @@ describe("reportBookingHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo);
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(() => mockReportRepo);
-    vi.mocked(BookingAccessService).mockImplementation(() => mockBookingAccessService);
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepo;
+    });
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
+      return mockReportRepo;
+    });
+    vi.mocked(BookingAccessService).mockImplementation(function () {
+      return mockBookingAccessService;
+    });
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
   });
 
@@ -75,6 +81,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
+          impersonatedByUserUuid: null,
         })
       ).rejects.toThrow(TRPCError);
 
@@ -85,6 +92,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
+          impersonatedByUserUuid: null,
         })
       ).rejects.toMatchObject({
         code: "FORBIDDEN",
@@ -103,6 +111,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
+          impersonatedByUserUuid: null,
         })
       ).rejects.toMatchObject({
         code: "NOT_FOUND",
@@ -126,6 +135,7 @@ describe("reportBookingHandler", () => {
             bookingUid: "test-booking-uid",
             reason: BookingReportReason.SPAM,
           },
+          impersonatedByUserUuid: null,
         })
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
@@ -155,6 +165,7 @@ describe("reportBookingHandler", () => {
           reason: BookingReportReason.SPAM,
           description: "This is spam",
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(result.success).toBe(true);
@@ -184,6 +195,7 @@ describe("reportBookingHandler", () => {
           bookingUid: "test-booking-uid",
           reason: BookingReportReason.DONT_KNOW_PERSON,
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(result.message).toBe("Booking reported successfully");
@@ -220,6 +232,7 @@ describe("reportBookingHandler", () => {
           reason: BookingReportReason.SPAM,
           description: "Spam booking",
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(result.message).toBe("Booking reported and cancelled successfully");
@@ -230,6 +243,7 @@ describe("reportBookingHandler", () => {
           skipCancellationReasonValidation: true,
         },
         userId: mockUser.id,
+        impersonatedByUserUuid: null,
       });
     });
 
@@ -246,6 +260,7 @@ describe("reportBookingHandler", () => {
           bookingUid: "test-booking-uid",
           reason: BookingReportReason.SPAM,
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(handleCancelBooking).not.toHaveBeenCalled();
@@ -266,6 +281,7 @@ describe("reportBookingHandler", () => {
           bookingUid: "test-booking-uid",
           reason: BookingReportReason.SPAM,
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(result.success).toBe(true);
@@ -298,6 +314,7 @@ describe("reportBookingHandler", () => {
           bookingUid: "test-booking-uid",
           reason: BookingReportReason.SPAM,
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(handleCancelBooking).toHaveBeenCalledWith({
@@ -305,6 +322,7 @@ describe("reportBookingHandler", () => {
           cancelSubsequentBookings: true,
         }),
         userId: mockUser.id,
+        impersonatedByUserUuid: null,
       });
     });
 
@@ -331,6 +349,7 @@ describe("reportBookingHandler", () => {
           bookingUid: "test-booking-uid",
           reason: BookingReportReason.SPAM,
         },
+        impersonatedByUserUuid: null,
       });
 
       expect(handleCancelBooking).toHaveBeenCalledWith({
@@ -338,6 +357,7 @@ describe("reportBookingHandler", () => {
           seatReferenceUid: "seat-123",
         }),
         userId: mockUser.id,
+        impersonatedByUserUuid: null,
       });
     });
   });

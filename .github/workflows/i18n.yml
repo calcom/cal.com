@@ -10,7 +10,7 @@ concurrency:
 jobs:
   i18n:
     name: Run i18n
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       actions: write
       contents: write
@@ -35,3 +35,4 @@ jobs:
         with:
           api-key: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
           pull-request: true
+          parallel: true
