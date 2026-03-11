@@ -8,11 +8,10 @@ import { AlertTriangle, Pencil, Video } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { PROVIDER_LABELS } from "../lib/constants";
-import type { CalendarEvent, CalendarSource } from "../lib/types";
+import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface UnifiedCalendarEventBlockProps {
-  event: CalendarEvent;
-  calendar: CalendarSource;
+  event: UnifiedCalendarEventVM;
   style: CSSProperties;
   onClick: () => void;
   isConflict: boolean;
@@ -20,12 +19,12 @@ interface UnifiedCalendarEventBlockProps {
 
 export const UnifiedCalendarEventBlock = ({
   event,
-  calendar,
   style,
   onClick,
   isConflict,
 }: UnifiedCalendarEventBlockProps) => {
-  const providerLabel = PROVIDER_LABELS[calendar.provider];
+  const providerLabel = event.provider ? PROVIDER_LABELS[event.provider] : event.source;
+  const statusLabel = event.status === "CONFIRMED" ? "" : event.status.toLowerCase();
 
   return (
     <Popover>
@@ -37,14 +36,19 @@ export const UnifiedCalendarEventBlock = ({
             "absolute cursor-pointer overflow-hidden rounded-[6px] px-2.5 py-1.5 text-left",
             "bg-background border-border/60 border shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
             "hover:border-border transition-all duration-150 hover:shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]",
-            "group border-l-[3px]"
+            "group border-l-[3px]",
+            event.status === "CANCELLED" && "opacity-65"
           )}
           style={{
             ...style,
-            borderLeftColor: isConflict ? "hsl(0, 65%, 55%)" : calendar.color,
+            borderLeftColor: isConflict ? "hsl(0, 65%, 55%)" : event.color,
           }}>
           <div className="flex items-center gap-1.5">
-            <span className="text-foreground truncate text-[11px] font-medium leading-tight">
+            <span
+              className={cn(
+                "text-foreground truncate text-[11px] font-medium leading-tight",
+                event.status === "CANCELLED" && "line-through"
+              )}>
               {event.title}
             </span>
             {isConflict && (
@@ -55,9 +59,12 @@ export const UnifiedCalendarEventBlock = ({
           </div>
 
           <p className="text-muted-foreground/70 mt-0.5 text-[10px] leading-tight">
-            {format(event.start, "h:mm")} – {format(event.end, "h:mm a")}
+            {event.isAllDay ? "All-day" : `${format(event.start, "h:mm")} – ${format(event.end, "h:mm a")}`}
           </p>
-          <p className="text-muted-foreground/50 mt-0.5 text-[9px] leading-tight">{providerLabel}</p>
+          <p className="text-muted-foreground/50 mt-0.5 text-[9px] leading-tight">
+            {providerLabel}
+            {statusLabel ? ` · ${statusLabel}` : ""}
+          </p>
         </button>
       </PopoverTrigger>
 
@@ -70,10 +77,12 @@ export const UnifiedCalendarEventBlock = ({
           <div>
             <p className="text-foreground text-sm font-medium">{event.title}</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              {format(event.start, "h:mm a")} – {format(event.end, "h:mm a")}
+              {event.isAllDay
+                ? "All-day"
+                : `${format(event.start, "h:mm a")} – ${format(event.end, "h:mm a")}`}
             </p>
             <p className="text-muted-foreground/60 mt-0.5 text-[11px]">
-              {calendar.name} · {providerLabel}
+              {event.calendarName || "Calendar"} · {providerLabel}
             </p>
           </div>
 
@@ -87,20 +96,22 @@ export const UnifiedCalendarEventBlock = ({
           <Separator className="bg-border/40" />
 
           <div className="flex items-center gap-1.5">
-            <Button
-              color="minimal"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
-              onClick={onClick}>
-              <Pencil className="h-3 w-3" /> Edit
-            </Button>
-
-            {event.meetingLink && (
+            {event.canEdit && (
               <Button
                 color="minimal"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
-                href={event.meetingLink}
+                onClick={onClick}>
+                <Pencil className="h-3 w-3" /> Edit
+              </Button>
+            )}
+
+            {event.meetingUrl && (
+              <Button
+                color="minimal"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
+                href={event.meetingUrl}
                 target="_blank"
                 rel="noreferrer">
                 <Video className="h-3 w-3" /> Join

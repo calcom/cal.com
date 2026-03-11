@@ -6,23 +6,23 @@ import { Label } from "@calid/features/ui/components/label";
 import { format, setHours, setMinutes } from "date-fns";
 import { type ChangeEvent, useMemo, useState } from "react";
 
-import type { CalendarEvent, CalendarSource, QuickBookSlot } from "../lib/types";
+import type { ConnectedCalendarVM, LocalDraftBookingInput, QuickBookSlot } from "../lib/types";
 
 interface QuickBookingDialogProps {
   open: boolean;
   slot: QuickBookSlot | null;
   isMobile: boolean;
-  calendars: CalendarSource[];
+  calendars: ConnectedCalendarVM[];
   onClose: () => void;
-  onSubmit: (event: Omit<CalendarEvent, "id">) => void;
+  onSubmit: (event: LocalDraftBookingInput) => void;
 }
 
 interface QuickBookingFormProps {
   initialDate: Date;
   initialHour: number;
-  calendars: CalendarSource[];
+  calendars: ConnectedCalendarVM[];
   onClose: () => void;
-  onSubmit: (event: Omit<CalendarEvent, "id">) => void;
+  onSubmit: (event: LocalDraftBookingInput) => void;
 }
 
 const DURATION_OPTIONS = ["15", "30", "45", "60", "90", "120"];
@@ -49,6 +49,7 @@ const QuickBookingForm = ({
     () => new Date(startTime.getTime() + Number.parseInt(duration, 10) * 60000),
     [duration, startTime]
   );
+  const hasCalendarChoices = calendars.length > 0;
 
   return (
     <div className="space-y-4">
@@ -93,7 +94,9 @@ const QuickBookingForm = ({
         <select
           value={calendarId}
           onChange={(event: ChangeEvent<HTMLSelectElement>) => setCalendarId(event.target.value)}
+          disabled={!hasCalendarChoices}
           className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
+          {!hasCalendarChoices && <option value="">No synced calendars available</option>}
           {calendars.map((calendar) => (
             <option key={calendar.id} value={calendar.id}>
               {calendar.name}
@@ -141,7 +144,7 @@ const QuickBookingForm = ({
         <Button
           size="sm"
           className="h-8 text-xs"
-          disabled={!title.trim()}
+          disabled={!title.trim() || !hasCalendarChoices || !calendarId}
           onClick={() => {
             onSubmit({
               title: title.trim(),
@@ -152,7 +155,7 @@ const QuickBookingForm = ({
                 .split(",")
                 .map((attendee) => attendee.trim())
                 .filter(Boolean),
-              meetingLink: meetingLink || undefined,
+              meetingUrl: meetingLink || undefined,
               description: notes || undefined,
             });
 

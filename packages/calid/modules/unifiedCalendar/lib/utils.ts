@@ -3,9 +3,15 @@ import {
   addMonths,
   addWeeks,
   eachDayOfInterval,
+  endOfDay,
   endOfMonth,
   endOfWeek,
   format,
+  isSameDay,
+  isWithinInterval,
+  max,
+  min,
+  startOfDay,
   startOfMonth,
   startOfWeek,
   subDays,
@@ -13,7 +19,7 @@ import {
   subWeeks,
 } from "date-fns";
 
-import type { CalendarEvent, CalendarSource, ViewMode } from "./types";
+import type { UnifiedCalendarEventVM, ViewMode } from "./types";
 
 export const navigateDate = (currentDate: Date, viewMode: ViewMode, direction: "prev" | "next") => {
   if (viewMode === "day") return direction === "next" ? addDays(currentDate, 1) : subDays(currentDate, 1);
@@ -50,26 +56,36 @@ export const getHeaderTitle = (currentDate: Date, viewMode: ViewMode) => {
 };
 
 export const filterEvents = (
-  events: CalendarEvent[],
+  events: UnifiedCalendarEventVM[],
   visibleCalendarIds: Set<string>,
   searchQuery: string
-): CalendarEvent[] => {
-  let filtered = events.filter((event) => visibleCalendarIds.has(event.calendarId));
+): UnifiedCalendarEventVM[] => {
+  const filtered = events.filter((event) => {
+    if (event.source === "INTERNAL") {
+      return true;
+    }
+
+    if (!event.calendarId) {
+      return true;
+    }
+
+    return visibleCalendarIds.has(event.calendarId);
+  });
 
   if (!searchQuery) return filtered;
 
   const query = searchQuery.toLowerCase();
 
-  filtered = filtered.filter(
-    (event) =>
+  return filtered.filter((event) => {
+    return (
       event.title.toLowerCase().includes(query) ||
-      event.attendees.some((attendee) => attendee.toLowerCase().includes(query))
-  );
-
-  return filtered;
+      event.description?.toLowerCase().includes(query) ||
+      event.location?.toLowerCase().includes(query)
+    );
+  });
 };
 
-export const getEventConflicts = (event: CalendarEvent, allEvents: CalendarEvent[]) => {
+export const getEventConflicts = (event: UnifiedCalendarEventVM, allEvents: UnifiedCalendarEventVM[]) => {
   return allEvents.filter(
     (current) => current.id !== event.id && current.start < event.end && current.end > event.start
   );
@@ -80,6 +96,34 @@ export const getCurrentTimeTop = () => {
   return ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100;
 };
 
-export const createCalendarMap = (calendars: CalendarSource[]) => {
-  return new Map(calendars.map((calendar) => [calendar.id, calendar]));
+export const isAllDayEventOnDay = (event: UnifiedCalendarEventVM, day: Date) => {
+  if (!event.isAllDay) return false;
+
+  const dayStart = startOfDay(day);
+  const dayEnd = endOfDay(day);
+
+  return event.start <= dayEnd && event.end > dayStart;
+};
+
+export const isTimedEventOnDay = (event: UnifiedCalendarEventVM, day: Date) => {
+  if (event.isAllDay) return false;
+  return isSameDay(event.start, day);
+};
+
+export const splitEventsForDay = (events: UnifiedCalendarEventVM[], day: Date) => {
+  const allDayEvents = events.filter((event) => isAllDayEventOnDay(event, day));
+  const timedEvents = events.filter((event) => isTimedEventOnDay(event, day));
+
+  return { allDayEvents, timedEvents };
+};
+
+export const eventStartsOrOverlapsDay = (event: UnifiedCalendarEventVM, day: Date) => {
+  if (event.isAllDay) return isAllDayEventOnDay(event, day);
+
+  const dayStart = startOfDay(day);
+  const dayEnd = endOfDay(day);
+  const eventStart = max([event.start, dayStart]);
+  const eventEnd = min([event.end, dayEnd]);
+
+  return isWithinInterval(eventStart, { start: dayStart, end: dayEnd }) && eventEnd >= eventStart;
 };

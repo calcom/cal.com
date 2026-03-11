@@ -1,4 +1,4 @@
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { NGROK_URL, WEBAPP_URL } from "@calcom/lib/constants";
 
 import { ProviderPermanentError } from "../../providers/types";
 import type { CalendarProvider } from "../../providers/types";
@@ -7,7 +7,8 @@ const normalizeBaseUrl = (baseUrl: string): string => baseUrl.replace(/\/+$/, ""
 
 export const buildProviderWebhookUrl = (provider: CalendarProvider): string => {
   /* eslint-disable turbo/no-undeclared-env-vars */
-  const baseUrl = WEBAPP_URL;
+  // const baseUrl = WEBAPP_URL;
+  const baseUrl = NGROK_URL ?? WEBAPP_URL;
   /* eslint-enable turbo/no-undeclared-env-vars */
 
   if (!baseUrl || baseUrl.trim().length === 0) {

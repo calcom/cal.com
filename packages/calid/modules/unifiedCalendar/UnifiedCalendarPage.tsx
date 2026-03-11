@@ -1,9 +1,13 @@
 "use client";
 
+import { Alert } from "@calid/features/ui/components/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calid/features/ui/components/sheet";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { useIsMobile } from "../../hooks/use-mobile";
 import { QuickBookingDialog } from "./components/QuickBookingDialog";
@@ -11,16 +15,11 @@ import { UnifiedCalendarEventDetailsPanel } from "./components/UnifiedCalendarEv
 import { UnifiedCalendarGrid } from "./components/UnifiedCalendarGrid";
 import { UnifiedCalendarSidebar } from "./components/UnifiedCalendarSidebar";
 import { UnifiedCalendarToolbar } from "./components/UnifiedCalendarToolbar";
-import { generateMockData } from "./lib/mockData";
-import type { CalendarEvent, CalendarSource, QuickBookSlot, ViewMode } from "./lib/types";
-import {
-  createCalendarMap,
-  filterEvents,
-  getEventConflicts,
-  getHeaderTitle,
-  getViewDays,
-  navigateDate,
-} from "./lib/utils";
+import { deriveUnifiedEventColor } from "./lib/eventColors";
+import { mapConnectedCalendarsToVM, mapUnifiedCalendarItemsToVM } from "./lib/mappers";
+import { getUnifiedCalendarQueryRange } from "./lib/queryRange";
+import type { LocalDraftBookingInput, QuickBookSlot, UnifiedCalendarEventVM, ViewMode } from "./lib/types";
+import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateDate } from "./lib/utils";
 
 const UnifiedCalendarPage = () => {
   const isMobile = useIsMobile();
@@ -30,16 +29,18 @@ const UnifiedCalendarPage = () => {
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [searchQuery, setSearchQuery] = useState("");
-  const [calendars, setCalendars] = useState<CalendarSource[]>([]);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [localDraftEvents, setLocalDraftEvents] = useState<UnifiedCalendarEventVM[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<UnifiedCalendarEventVM | null>(null);
   const [quickBookSlot, setQuickBookSlot] = useState<QuickBookSlot | null>(null);
+  const [localCalendarColors, setLocalCalendarColors] = useState<Record<string, string>>({});
+  const [optimisticSyncById, setOptimisticSyncById] = useState<Record<string, boolean>>({});
+  const [pendingSyncById, setPendingSyncById] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const mockData = generateMockData();
-    setCalendars(mockData.calendars);
-    setEvents(mockData.events);
-  }, []);
+  const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+
+  const toggleCalendarSyncMutation = trpc.viewer.unifiedCalendar.toggleCalendarSync.useMutation();
 
   useEffect(() => {
     if (isMobile) {
@@ -48,6 +49,21 @@ const UnifiedCalendarPage = () => {
     }
   }, [isMobile]);
 
+  const connectedCalendars = useMemo(() => {
+    const mapped = mapConnectedCalendarsToVM(connectedCalendarsQuery.data?.connectedCalendars ?? []);
+
+    return mapped.map((calendar) => ({
+      ...calendar,
+      color: localCalendarColors[calendar.id] ?? calendar.color,
+      syncEnabled:
+        optimisticSyncById[calendar.id] !== undefined
+          ? optimisticSyncById[calendar.id]
+          : calendar.syncEnabled,
+    }));
+  }, [connectedCalendarsQuery.data?.connectedCalendars, localCalendarColors, optimisticSyncById]);
+
+  const sidebarCalendars = connectedCalendars;
+
   const handleNavigate = useCallback(
     (direction: "prev" | "next") => {
       setCurrentDate((value) => navigateDate(value, viewMode, direction));
@@ -55,51 +71,194 @@ const UnifiedCalendarPage = () => {
     [viewMode]
   );
 
-  const visibleCalendarIds = useMemo(
-    () => new Set(calendars.filter((calendar) => calendar.visible).map((calendar) => calendar.id)),
-    [calendars]
+  const queryRange = useMemo(
+    () => getUnifiedCalendarQueryRange(viewMode, currentDate),
+    [viewMode, currentDate]
   );
 
+  const visibleSyncedExternalCalendarIds = useMemo(() => {
+    return Array.from(
+      new Set(
+        connectedCalendars
+          .filter((calendar) => calendar.syncEnabled && calendar.isVisible)
+          .map((calendar) => calendar.externalCalendarId)
+          .filter(
+            (calendarId): calendarId is number =>
+              typeof calendarId === "number" && Number.isFinite(calendarId)
+          )
+      )
+    );
+  }, [connectedCalendars]);
+
+  const unifiedCalendarListQuery = trpc.viewer.unifiedCalendar.list.useQuery(
+    {
+      from: queryRange.from,
+      to: queryRange.to,
+      cursor: null,
+      limit: 300,
+      clampEnabled: true,
+      includeExternalEvents: true,
+      includeCancelledExternal: false,
+      includeCancelledInternal: false,
+      showAsBusyOnly: false,
+      includeExternalCalendarIds:
+        visibleSyncedExternalCalendarIds.length > 0 ? visibleSyncedExternalCalendarIds : undefined,
+    },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const calendarNameById = useMemo(() => {
+    return connectedCalendars.reduce<Record<string, string>>((accumulator, calendar) => {
+      if (typeof calendar.externalCalendarId === "number" && Number.isFinite(calendar.externalCalendarId)) {
+        accumulator[String(calendar.externalCalendarId)] = calendar.name;
+      }
+      return accumulator;
+    }, {});
+  }, [connectedCalendars]);
+
+  const unifiedEvents = useMemo(() => {
+    const mappedItems = mapUnifiedCalendarItemsToVM(unifiedCalendarListQuery.data?.items ?? [], {
+      calendarNameById,
+    });
+
+    return [...mappedItems, ...localDraftEvents];
+  }, [calendarNameById, localDraftEvents, unifiedCalendarListQuery.data?.items]);
+
+  const visibleCalendarIds = useMemo(() => {
+    if (visibleSyncedExternalCalendarIds.length > 0) {
+      return new Set(visibleSyncedExternalCalendarIds.map((calendarId) => String(calendarId)));
+    }
+
+    return new Set(
+      unifiedEvents
+        .map((event) => event.calendarId)
+        .filter((calendarId): calendarId is string => typeof calendarId === "string" && calendarId.length > 0)
+    );
+  }, [unifiedEvents, visibleSyncedExternalCalendarIds]);
+
   const filteredEvents = useMemo(
-    () => filterEvents(events, visibleCalendarIds, searchQuery),
-    [events, visibleCalendarIds, searchQuery]
+    () => filterEvents(unifiedEvents, visibleCalendarIds, searchQuery),
+    [searchQuery, unifiedEvents, visibleCalendarIds]
   );
 
   const getConflicts = useCallback(
-    (event: CalendarEvent) => getEventConflicts(event, filteredEvents),
+    (event: UnifiedCalendarEventVM) => getEventConflicts(event, filteredEvents),
     [filteredEvents]
   );
 
   const viewDays = useMemo(() => getViewDays(currentDate, viewMode), [currentDate, viewMode]);
   const headerTitle = useMemo(() => getHeaderTitle(currentDate, viewMode), [currentDate, viewMode]);
 
-  const toggleCalendar = (id: string) => {
-    setCalendars((current) =>
-      current.map((calendar) => (calendar.id === id ? { ...calendar, visible: !calendar.visible } : calendar))
-    );
+  const handleSyncToggle = async (id: string, enabled: boolean) => {
+    const calendar = sidebarCalendars.find((value) => value.id === id);
+
+    if (!calendar || typeof calendar.credentialId !== "number" || pendingSyncById[id]) {
+      return;
+    }
+
+    const previousValue = calendar.syncEnabled;
+
+    setOptimisticSyncById((current) => ({ ...current, [id]: enabled }));
+    setPendingSyncById((current) => ({ ...current, [id]: true }));
+
+    try {
+      await toggleCalendarSyncMutation.mutateAsync({
+        provider: calendar.syncProvider,
+        credentialId: calendar.credentialId,
+        providerCalendarId: calendar.providerCalendarId,
+        enabled,
+      });
+
+      showToast(
+        enabled
+          ? "Calendar sync enabled. Events can take a moment to appear."
+          : "Calendar sync disabled. Existing merged items may persist briefly.",
+        "success"
+      );
+
+      await connectedCalendarsQuery.refetch();
+      setOptimisticSyncById((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+    } catch (_error) {
+      setOptimisticSyncById((current) => ({ ...current, [id]: previousValue }));
+      showToast("Failed to update calendar sync. Please try again.", "error");
+    } finally {
+      setPendingSyncById((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   const changeCalendarColor = (id: string, color: string) => {
-    setCalendars((current) =>
-      current.map((calendar) => (calendar.id === id ? { ...calendar, color } : calendar))
-    );
+    setLocalCalendarColors((current) => ({ ...current, [id]: color }));
   };
 
-  const addEvent = (event: Omit<CalendarEvent, "id">) => {
-    setEvents((current) => [...current, { ...event, id: `e-${Date.now()}` }]);
+  const addEvent = (draft: LocalDraftBookingInput) => {
+    const selectedCalendar =
+      connectedCalendars.find((calendar) => calendar.id === draft.calendarId) ??
+      connectedCalendars.find((calendar) => calendar.providerCalendarId === draft.calendarId);
+
+    const eventId = `draft-${Date.now()}`;
+
+    setLocalDraftEvents((current) => [
+      ...current,
+      {
+        id: eventId,
+        source: "INTERNAL",
+        status: "CONFIRMED",
+        start: draft.start,
+        end: draft.end,
+        isAllDay: false,
+        timeZone: timezone,
+        title: draft.title,
+        description: draft.description ?? null,
+        location: null,
+        meetingUrl: draft.meetingUrl ?? null,
+        showAsBusy: true,
+        color:
+          selectedCalendar?.color ??
+          deriveUnifiedEventColor({ source: "INTERNAL", provider: selectedCalendar?.provider ?? "google" }),
+        provider: selectedCalendar?.provider ?? null,
+        calendarId: selectedCalendar?.id ?? draft.calendarId,
+        calendarName: selectedCalendar?.name ?? null,
+        attendeeCount: draft.attendees.length,
+        attendees: draft.attendees,
+        canEdit: true,
+        canDelete: true,
+        canReschedule: true,
+        isReadOnly: false,
+      },
+    ]);
   };
 
   const deleteEvent = (id: string) => {
-    setEvents((current) => current.filter((event) => event.id !== id));
+    const isLocalDraft = localDraftEvents.some((event) => event.id === id);
+
+    if (!isLocalDraft) {
+      showToast("Editing and canceling saved events is not wired yet.", "error");
+      return;
+    }
+
+    setLocalDraftEvents((current) => current.filter((event) => event.id !== id));
     setSelectedEvent(null);
   };
 
-  const calendarMap = useMemo(() => createCalendarMap(calendars), [calendars]);
-
-  const selectedEventCalendar = selectedEvent ? calendarMap.get(selectedEvent.calendarId) ?? null : null;
+  const quickBookingCalendars = connectedCalendars.filter(
+    (calendar) => calendar.syncEnabled && calendar.isVisible
+  );
 
   return (
-    <div className="bg-background min-h-screen">
+    <div
+      className="bg-background min-h-screen"
+      data-query-from={queryRange.from}
+      data-query-to={queryRange.to}>
       <UnifiedCalendarToolbar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((value) => !value)}
@@ -118,11 +277,14 @@ const UnifiedCalendarPage = () => {
         {!isMobile && sidebarOpen && (
           <div className="border-border/20 bg-muted/[0.03] sticky top-[105px] h-[calc(100vh-105px)] w-52 shrink-0 border-r">
             <UnifiedCalendarSidebar
-              calendars={calendars}
-              onToggle={toggleCalendar}
+              calendars={sidebarCalendars}
+              onToggleSync={handleSyncToggle}
               onColorChange={changeCalendarColor}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              isLoading={connectedCalendarsQuery.isPending}
+              errorMessage={connectedCalendarsQuery.error?.message ?? null}
+              pendingSyncCalendarIds={new Set(Object.keys(pendingSyncById))}
             />
           </div>
         )}
@@ -134,11 +296,14 @@ const UnifiedCalendarPage = () => {
                 <SheetTitle className="text-sm">Calendars</SheetTitle>
               </SheetHeader>
               <UnifiedCalendarSidebar
-                calendars={calendars}
-                onToggle={toggleCalendar}
+                calendars={sidebarCalendars}
+                onToggleSync={handleSyncToggle}
                 onColorChange={changeCalendarColor}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
+                isLoading={connectedCalendarsQuery.isPending}
+                errorMessage={connectedCalendarsQuery.error?.message ?? null}
+                pendingSyncCalendarIds={new Set(Object.keys(pendingSyncById))}
               />
             </SheetContent>
           </Sheet>
@@ -146,25 +311,59 @@ const UnifiedCalendarPage = () => {
 
         <ScrollArea className="h-[calc(100vh-105px)] flex-1">
           <div className="min-w-0">
-            <UnifiedCalendarGrid
-              viewMode={viewMode}
-              currentDate={currentDate}
-              viewDays={viewDays}
-              filteredEvents={filteredEvents}
-              calendarMap={calendarMap}
-              getConflicts={getConflicts}
-              onSelectEvent={setSelectedEvent}
-              onQuickBookSlot={setQuickBookSlot}
-              onSelectDay={(day) => {
-                setCurrentDate(day);
-                setViewMode("day");
-              }}
-            />
+            {unifiedCalendarListQuery.isPending && (
+              <div className="space-y-3 p-4">
+                <div className="bg-muted h-12 animate-pulse rounded-md" />
+                <div className="bg-muted h-32 animate-pulse rounded-md" />
+                <div className="bg-muted h-32 animate-pulse rounded-md" />
+              </div>
+            )}
+
+            {!unifiedCalendarListQuery.isPending && unifiedCalendarListQuery.error && (
+              <div className="p-4">
+                <Alert
+                  severity="error"
+                  title="Failed to load unified events"
+                  message={unifiedCalendarListQuery.error.message}
+                />
+              </div>
+            )}
+
+            {!unifiedCalendarListQuery.isPending &&
+              !unifiedCalendarListQuery.error &&
+              filteredEvents.length === 0 && (
+                <div className="flex min-h-[300px] items-center justify-center p-4">
+                  <div className="text-center">
+                    <p className="text-foreground/70 text-sm">No events in this range.</p>
+                    <p className="text-muted-foreground/60 mt-1 text-xs">
+                      Try a different date range or enable synced calendars in the sidebar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+            {!unifiedCalendarListQuery.isPending &&
+              !unifiedCalendarListQuery.error &&
+              filteredEvents.length > 0 && (
+                <UnifiedCalendarGrid
+                  viewMode={viewMode}
+                  currentDate={currentDate}
+                  viewDays={viewDays}
+                  filteredEvents={filteredEvents}
+                  getConflicts={getConflicts}
+                  onSelectEvent={setSelectedEvent}
+                  onQuickBookSlot={setQuickBookSlot}
+                  onSelectDay={(day) => {
+                    setCurrentDate(day);
+                    setViewMode("day");
+                  }}
+                />
+              )}
           </div>
         </ScrollArea>
       </div>
 
-      {selectedEvent && selectedEventCalendar && !isMobile && (
+      {selectedEvent && !isMobile && (
         <Sheet open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
           <SheetContent className="sm:max-w-sm">
             <SheetHeader>
@@ -173,9 +372,8 @@ const UnifiedCalendarPage = () => {
             <div className="mt-4">
               <UnifiedCalendarEventDetailsPanel
                 event={selectedEvent}
-                calendar={selectedEventCalendar}
                 onEdit={() => {
-                  //intentionally empty for now
+                  showToast("Editing saved events will be wired in a later phase.", "error");
                 }}
                 onDelete={() => deleteEvent(selectedEvent.id)}
                 conflicts={getConflicts(selectedEvent)}
@@ -185,7 +383,7 @@ const UnifiedCalendarPage = () => {
         </Sheet>
       )}
 
-      {selectedEvent && selectedEventCalendar && isMobile && (
+      {selectedEvent && isMobile && (
         <Dialog open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
           <DialogContent className="max-w-[95vw]">
             <DialogHeader>
@@ -193,9 +391,8 @@ const UnifiedCalendarPage = () => {
             </DialogHeader>
             <UnifiedCalendarEventDetailsPanel
               event={selectedEvent}
-              calendar={selectedEventCalendar}
               onEdit={() => {
-                //intentionally empty for now
+                showToast("Editing saved events will be wired in a later phase.", "error");
               }}
               onDelete={() => deleteEvent(selectedEvent.id)}
               conflicts={getConflicts(selectedEvent)}
@@ -208,7 +405,7 @@ const UnifiedCalendarPage = () => {
         open={Boolean(quickBookSlot)}
         slot={quickBookSlot}
         isMobile={isMobile}
-        calendars={calendars.filter((calendar) => calendar.visible)}
+        calendars={quickBookingCalendars}
         onClose={() => setQuickBookSlot(null)}
         onSubmit={addEvent}
       />

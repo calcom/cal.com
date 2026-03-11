@@ -1,4 +1,4 @@
-import type { CalendarEvent, CalendarSource, ViewMode } from "../lib/types";
+import type { UnifiedCalendarEventVM, ViewMode } from "../lib/types";
 import { UnifiedCalendarDayView } from "../views/UnifiedCalendarDayView";
 import { UnifiedCalendarMonthView } from "../views/UnifiedCalendarMonthView";
 import { UnifiedCalendarWeekView } from "../views/UnifiedCalendarWeekView";
@@ -7,10 +7,9 @@ interface UnifiedCalendarGridProps {
   viewMode: ViewMode;
   currentDate: Date;
   viewDays: Date[];
-  filteredEvents: CalendarEvent[];
-  calendarMap: Map<string, CalendarSource>;
-  getConflicts: (event: CalendarEvent) => CalendarEvent[];
-  onSelectEvent: (event: CalendarEvent) => void;
+  filteredEvents: UnifiedCalendarEventVM[];
+  getConflicts: (event: UnifiedCalendarEventVM) => UnifiedCalendarEventVM[];
+  onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
   onSelectDay: (day: Date) => void;
 }
@@ -20,7 +19,6 @@ export const UnifiedCalendarGrid = ({
   currentDate,
   viewDays,
   filteredEvents,
-  calendarMap,
   getConflicts,
   onSelectEvent,
   onQuickBookSlot,
@@ -31,7 +29,6 @@ export const UnifiedCalendarGrid = ({
       <UnifiedCalendarDayView
         currentDate={currentDate}
         filteredEvents={filteredEvents}
-        calendarMap={calendarMap}
         getConflicts={getConflicts}
         onSelectEvent={onSelectEvent}
         onQuickBookSlot={onQuickBookSlot}
@@ -44,7 +41,6 @@ export const UnifiedCalendarGrid = ({
       <UnifiedCalendarWeekView
         viewDays={viewDays}
         filteredEvents={filteredEvents}
-        calendarMap={calendarMap}
         getConflicts={getConflicts}
         onSelectEvent={onSelectEvent}
         onQuickBookSlot={onQuickBookSlot}
@@ -58,7 +54,6 @@ export const UnifiedCalendarGrid = ({
       currentDate={currentDate}
       viewDays={viewDays}
       filteredEvents={filteredEvents}
-      calendarMap={calendarMap}
       onSelectDay={onSelectDay}
       onSelectEvent={onSelectEvent}
     />

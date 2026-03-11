@@ -1,31 +1,29 @@
 import { cn } from "@calid/features/lib/cn";
-import { differenceInMinutes, format, isSameDay, isToday, setHours } from "date-fns";
+import { differenceInMinutes, format, isToday, setHours } from "date-fns";
 
 import { UnifiedCalendarEventBlock } from "../components/UnifiedCalendarEventBlock";
 import { HOURS } from "../lib/constants";
-import type { CalendarEvent, CalendarSource } from "../lib/types";
-import { getCurrentTimeTop } from "../lib/utils";
+import type { UnifiedCalendarEventVM } from "../lib/types";
+import { getCurrentTimeTop, splitEventsForDay } from "../lib/utils";
 
 interface UnifiedCalendarDayColumnProps {
   day: Date;
-  filteredEvents: CalendarEvent[];
-  calendarMap: Map<string, CalendarSource>;
-  getConflicts: (event: CalendarEvent) => CalendarEvent[];
-  onSelectEvent: (event: CalendarEvent) => void;
+  filteredEvents: UnifiedCalendarEventVM[];
+  getConflicts: (event: UnifiedCalendarEventVM) => UnifiedCalendarEventVM[];
+  onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
 }
 
 export const UnifiedCalendarDayColumn = ({
   day,
   filteredEvents,
-  calendarMap,
   getConflicts,
   onSelectEvent,
   onQuickBookSlot,
 }: UnifiedCalendarDayColumnProps) => {
-  const dayEvents = filteredEvents.filter((event) => isSameDay(event.start, day));
-  const sortedEvents = [...dayEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
-  const eventColumns: CalendarEvent[][] = [];
+  const { timedEvents } = splitEventsForDay(filteredEvents, day);
+  const sortedEvents = [...timedEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const eventColumns: UnifiedCalendarEventVM[][] = [];
 
   sortedEvents.forEach((event) => {
     let placed = false;
@@ -77,10 +75,7 @@ export const UnifiedCalendarDayColumn = ({
         </div>
       )}
 
-      {dayEvents.map((event) => {
-        const calendar = calendarMap.get(event.calendarId);
-        if (!calendar) return null;
-
+      {timedEvents.map((event) => {
         const startMinutes = event.start.getHours() * 60 + event.start.getMinutes();
         const durationMinutes = differenceInMinutes(event.end, event.start);
         const topPercent = (startMinutes / 1440) * 100;
@@ -93,7 +88,6 @@ export const UnifiedCalendarDayColumn = ({
           <UnifiedCalendarEventBlock
             key={event.id}
             event={event}
-            calendar={calendar}
             isConflict={getConflicts(event).length > 0}
             onClick={() => onSelectEvent(event)}
             style={{
@@ -106,6 +100,50 @@ export const UnifiedCalendarDayColumn = ({
           />
         );
       })}
+    </div>
+  );
+};
+
+interface UnifiedCalendarAllDayRowProps {
+  day: Date;
+  filteredEvents: UnifiedCalendarEventVM[];
+  onSelectEvent: (event: UnifiedCalendarEventVM) => void;
+}
+
+export const UnifiedCalendarAllDayRow = ({
+  day,
+  filteredEvents,
+  onSelectEvent,
+}: UnifiedCalendarAllDayRowProps) => {
+  const { allDayEvents } = splitEventsForDay(filteredEvents, day);
+
+  return (
+    <div className="border-border/20 border-b">
+      <div className="flex min-h-11 items-start gap-2 p-2">
+        <span className="text-muted-foreground/60 mt-1 shrink-0 text-[10px] uppercase tracking-wide">
+          All-day
+        </span>
+        <div className="flex flex-1 flex-wrap gap-1.5">
+          {allDayEvents.length === 0 && (
+            <span className="text-muted-foreground/35 mt-1 text-[11px]">No events</span>
+          )}
+          {allDayEvents.map((event) => (
+            <button
+              key={event.id}
+              type="button"
+              className={cn(
+                "min-w-0 rounded border-l-2 px-2 py-1 text-left text-[11px]",
+                "bg-muted/35 text-foreground/70 hover:bg-muted/50 transition-colors",
+                event.status === "CANCELLED" && "text-muted-foreground/50 line-through",
+                event.status === "TENTATIVE" && "border-dashed"
+              )}
+              style={{ borderLeftColor: event.color }}
+              onClick={() => onSelectEvent(event)}>
+              <span className="truncate">{event.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -127,33 +165,37 @@ export const UnifiedCalendarTimeLabels = () => {
 
 interface UnifiedCalendarDayViewProps {
   currentDate: Date;
-  filteredEvents: CalendarEvent[];
-  calendarMap: Map<string, CalendarSource>;
-  getConflicts: (event: CalendarEvent) => CalendarEvent[];
-  onSelectEvent: (event: CalendarEvent) => void;
+  filteredEvents: UnifiedCalendarEventVM[];
+  getConflicts: (event: UnifiedCalendarEventVM) => UnifiedCalendarEventVM[];
+  onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
 }
 
 export const UnifiedCalendarDayView = ({
   currentDate,
   filteredEvents,
-  calendarMap,
   getConflicts,
   onSelectEvent,
   onQuickBookSlot,
 }: UnifiedCalendarDayViewProps) => {
   return (
-    <div className="flex">
-      <UnifiedCalendarTimeLabels />
-      <div className={cn("border-border/20 flex-1 border-l")}>
-        <UnifiedCalendarDayColumn
-          day={currentDate}
-          filteredEvents={filteredEvents}
-          calendarMap={calendarMap}
-          getConflicts={getConflicts}
-          onSelectEvent={onSelectEvent}
-          onQuickBookSlot={onQuickBookSlot}
-        />
+    <div>
+      <UnifiedCalendarAllDayRow
+        day={currentDate}
+        filteredEvents={filteredEvents}
+        onSelectEvent={onSelectEvent}
+      />
+      <div className="flex">
+        <UnifiedCalendarTimeLabels />
+        <div className={cn("border-border/20 flex-1 border-l")}>
+          <UnifiedCalendarDayColumn
+            day={currentDate}
+            filteredEvents={filteredEvents}
+            getConflicts={getConflicts}
+            onSelectEvent={onSelectEvent}
+            onQuickBookSlot={onQuickBookSlot}
+          />
+        </div>
       </div>
     </div>
   );

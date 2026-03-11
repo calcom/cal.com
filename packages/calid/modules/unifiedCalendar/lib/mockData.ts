@@ -1,12 +1,12 @@
 import { addDays, setHours, setMinutes } from "date-fns";
 
 import { PALETTE } from "./constants";
-import type { CalendarEvent, CalendarSource } from "./types";
+import type { LegacyMockCalendar, LegacyMockEvent } from "./types";
 
 export const generateMockData = () => {
   const today = new Date();
 
-  const calendars: CalendarSource[] = [
+  const calendars: LegacyMockCalendar[] = [
     {
       id: "cal-1",
       name: "Work",
@@ -41,7 +41,7 @@ export const generateMockData = () => {
     },
   ];
 
-  const events: CalendarEvent[] = [
+  const events: LegacyMockEvent[] = [
     {
       id: "e1",
       title: "Team Standup",

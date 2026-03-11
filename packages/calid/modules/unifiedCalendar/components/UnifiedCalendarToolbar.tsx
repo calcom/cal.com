@@ -1,7 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
 import { Button } from "@calid/features/ui/components/button";
 import { Separator } from "@calid/features/ui/components/separator";
-import { ChevronLeft, ChevronRight, Globe, PanelLeft, PanelLeftClose, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, PanelLeft, PanelLeftClose } from "lucide-react";
 
 import { TIMEZONES } from "../lib/constants";
 import type { ViewMode } from "../lib/types";
@@ -109,13 +109,6 @@ export const UnifiedCalendarToolbar = ({
               </select>
             </div>
           )}
-
-          <Button
-            color="minimal"
-            size="sm"
-            className="text-muted-foreground/70 hover:text-foreground border-border/30 h-7 gap-1 rounded-md border px-2.5 text-[11px]">
-            <Plus className="h-3 w-3" /> Add Calendar
-          </Button>
         </div>
       </div>
     </div>

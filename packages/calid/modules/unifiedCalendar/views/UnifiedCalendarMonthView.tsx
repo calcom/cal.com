@@ -1,23 +1,22 @@
 import { cn } from "@calid/features/lib/cn";
-import { format, isSameDay, isSameMonth, isToday } from "date-fns";
+import { format, isSameMonth, isToday } from "date-fns";
 
 import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
-import type { CalendarEvent, CalendarSource } from "../lib/types";
+import type { UnifiedCalendarEventVM } from "../lib/types";
+import { splitEventsForDay } from "../lib/utils";
 
 interface UnifiedCalendarMonthViewProps {
   currentDate: Date;
   viewDays: Date[];
-  filteredEvents: CalendarEvent[];
-  calendarMap: Map<string, CalendarSource>;
+  filteredEvents: UnifiedCalendarEventVM[];
   onSelectDay: (day: Date) => void;
-  onSelectEvent: (event: CalendarEvent) => void;
+  onSelectEvent: (event: UnifiedCalendarEventVM) => void;
 }
 
 export const UnifiedCalendarMonthView = ({
   currentDate,
   viewDays,
   filteredEvents,
-  calendarMap,
   onSelectDay,
   onSelectEvent,
 }: UnifiedCalendarMonthViewProps) => {
@@ -35,7 +34,8 @@ export const UnifiedCalendarMonthView = ({
 
       <div className="grid grid-cols-7">
         {viewDays.map((day) => {
-          const dayEvents = filteredEvents.filter((event) => isSameDay(event.start, day));
+          const { allDayEvents, timedEvents } = splitEventsForDay(filteredEvents, day);
+          const dayEvents = [...allDayEvents, ...timedEvents];
           const isCurrentMonth = isSameMonth(day, currentDate);
 
           return (
@@ -60,19 +60,21 @@ export const UnifiedCalendarMonthView = ({
 
               <div className="space-y-0.5">
                 {dayEvents.slice(0, 3).map((event) => {
-                  const calendar = calendarMap.get(event.calendarId);
-
                   return (
                     <button
                       key={event.id}
                       type="button"
-                      className="bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1.5 py-0.5 text-left text-[10px] transition-colors"
-                      style={{ borderLeftColor: calendar?.color || PALETTE.neutralGray }}
+                      className={cn(
+                        "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1.5 py-0.5 text-left text-[10px] transition-colors",
+                        event.status === "CANCELLED" && "text-muted-foreground/50 line-through",
+                        event.status === "TENTATIVE" && "border-dashed"
+                      )}
+                      style={{ borderLeftColor: event.color || PALETTE.neutralGray }}
                       onClick={(mouseEvent) => {
                         mouseEvent.stopPropagation();
                         onSelectEvent(event);
                       }}>
-                      {format(event.start, "h:mm")} {event.title}
+                      {event.isAllDay ? event.title : `${format(event.start, "h:mm")} ${event.title}`}
                     </button>
                   );
                 })}

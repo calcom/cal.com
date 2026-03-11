@@ -15,35 +15,46 @@ import {
 } from "lucide-react";
 
 import { PROVIDER_LABELS } from "../lib/constants";
-import type { CalendarEvent, CalendarSource } from "../lib/types";
+import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface UnifiedCalendarEventDetailsPanelProps {
-  event: CalendarEvent;
-  calendar: CalendarSource;
+  event: UnifiedCalendarEventVM;
   onEdit: () => void;
   onDelete: () => void;
-  conflicts: CalendarEvent[];
+  conflicts: UnifiedCalendarEventVM[];
 }
 
 export const UnifiedCalendarEventDetailsPanel = ({
   event,
-  calendar,
   onEdit,
   onDelete,
   conflicts,
 }: UnifiedCalendarEventDetailsPanelProps) => {
+  const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
+
   return (
     <div className="space-y-5">
       <div className="flex items-start gap-3">
         <div
           className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full opacity-70"
-          style={{ backgroundColor: calendar.color }}
+          style={{ backgroundColor: event.color }}
         />
         <div className="min-w-0 flex-1">
           <h3 className="text-foreground text-base font-semibold">{event.title}</h3>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            {calendar.name} · {PROVIDER_LABELS[calendar.provider]}
+            {event.calendarName || "Calendar"} ·{" "}
+            {event.provider ? PROVIDER_LABELS[event.provider] : event.source}
           </p>
+          <div className="mt-2 flex items-center gap-2">
+            <Badge variant="secondary" className="text-[10px] font-medium uppercase">
+              {statusLabel}
+            </Badge>
+            {event.isReadOnly && (
+              <Badge variant="secondary" className="text-[10px] font-medium uppercase">
+                Read-only
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
@@ -65,8 +76,12 @@ export const UnifiedCalendarEventDetailsPanel = ({
         <div className="text-foreground/80 flex items-center gap-3 text-sm">
           <Clock className="text-muted-foreground/60 h-3.5 w-3.5 shrink-0" />
           <span>
-            {format(event.start, "h:mm a")} – {format(event.end, "h:mm a")} ·{" "}
-            {differenceInMinutes(event.end, event.start)} min
+            {event.isAllDay
+              ? "All-day"
+              : `${format(event.start, "h:mm a")} – ${format(event.end, "h:mm a")} · ${differenceInMinutes(
+                  event.end,
+                  event.start
+                )} min`}
           </span>
         </div>
 
@@ -77,11 +92,11 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         )}
 
-        {event.meetingLink && (
+        {event.meetingUrl && (
           <div className="flex items-center gap-3 text-sm">
             <Video className="text-muted-foreground/60 h-3.5 w-3.5 shrink-0" />
             <a
-              href={event.meetingLink}
+              href={event.meetingUrl}
               target="_blank"
               rel="noreferrer"
               className="text-primary flex items-center gap-1 text-sm hover:underline">
@@ -90,7 +105,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         )}
 
-        {event.attendees.length > 0 && (
+        {!!event.attendees?.length && (
           <div className="flex items-start gap-3 text-sm">
             <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
             <div className="flex flex-wrap gap-1">
@@ -106,28 +121,47 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         )}
 
+        {event.attendeeCount && event.attendeeCount > 0 && !event.attendees?.length && (
+          <div className="flex items-start gap-3 text-sm">
+            <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="text-muted-foreground/80">{event.attendeeCount} attendees</span>
+          </div>
+        )}
+
         {event.description && <p className="text-muted-foreground/80 pl-7 text-sm">{event.description}</p>}
       </div>
 
       <Separator className="bg-border/40" />
 
       <div className="flex items-center gap-2">
-        <Button color="secondary" size="sm" className="border-border/60 h-8 gap-1.5 text-xs" onClick={onEdit}>
-          <Pencil className="h-3 w-3" /> Edit
-        </Button>
+        {event.canEdit && (
+          <Button
+            color="secondary"
+            size="sm"
+            className="border-border/60 h-8 gap-1.5 text-xs"
+            onClick={onEdit}>
+            <Pencil className="h-3 w-3" /> Edit
+          </Button>
+        )}
 
-        <Button
-          color="minimal"
-          size="sm"
-          className="text-destructive/70 hover:text-destructive border-border/60 h-8 gap-1.5 text-xs"
-          onClick={onDelete}>
-          <Trash2 className="h-3 w-3" /> Cancel
-        </Button>
+        {event.canDelete && (
+          <Button
+            color="minimal"
+            size="sm"
+            className="text-destructive/70 hover:text-destructive border-border/60 h-8 gap-1.5 text-xs"
+            onClick={onDelete}>
+            <Trash2 className="h-3 w-3" /> Cancel
+          </Button>
+        )}
 
-        {event.meetingLink && (
+        {event.isReadOnly && (
+          <p className="text-muted-foreground/70 text-xs">This event is managed in the external calendar.</p>
+        )}
+
+        {event.meetingUrl && (
           <Button
             className="ml-auto h-8 gap-1.5 text-xs"
-            href={event.meetingLink}
+            href={event.meetingUrl}
             target="_blank"
             rel="noreferrer">
             <Video className="h-3 w-3" /> Join
