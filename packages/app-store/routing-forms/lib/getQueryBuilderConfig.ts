@@ -1,6 +1,7 @@
 import { AttributeType } from "@calcom/prisma/enums";
 
 import type { RoutingForm, Attribute } from "../types/types";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { FieldTypes, RoutingFormFieldType } from "./FieldTypes";
 import { AttributesInitialConfig, FormFieldsInitialConfig } from "./InitialConfig";
 import { getUIOptionsForSelect } from "./selectOptions";
@@ -44,19 +45,32 @@ export type AttributesQueryBuilderConfigWithRaqbFields = ReturnType<
   typeof getQueryBuilderConfigForAttributes
 >;
 
+/**
+ * Get all supported field types for routing forms from fieldTypesConfigMap
+ * Excludes systemOnly types that are internal
+ */
+function getSupportedFieldTypes() {
+  return Object.values(fieldTypesConfigMap)
+    .filter((f) => !f.systemOnly)
+    .map((f) => f.value);
+}
+
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: RaqbConfigFields = {};
+  const supportedFieldTypes = getSupportedFieldTypes();
+  
   form.fields?.forEach((field) => {
     if ("routerField" in field) {
       field = field.routerField;
     }
-    // We can assert the type because otherwise we throw 'Unsupported field type' error
-    const fieldType = field.type as (typeof FieldTypes)[number]["value"];
-    if (FieldTypes.map((f) => f.value).includes(fieldType)) {
+    // Check if the field type is supported (from fieldTypesConfigMap)
+    const fieldType = field.type;
+    if (supportedFieldTypes.includes(fieldType)) {
       const options = getUIOptionsForSelect(field);
 
+      // Get the widget type from FormFieldsInitialConfig or use a default based on the field type
       const widget = FormFieldsInitialConfig.widgets[fieldType];
-      const widgetType = widget.type;
+      const widgetType = widget?.type || "text";
 
       fields[field.id] = {
         label: field.label,
@@ -68,7 +82,16 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
         },
       };
     } else {
-      throw new Error(`Unsupported field type:${field.type}`);
+      // For unsupported types, still add as text field to avoid breaking
+      console.warn(`Unsupported field type in routing form: ${field.type}`);
+      fields[field.id] = {
+        label: field.label,
+        type: "text",
+        valueSources: ["value"],
+        fieldSettings: {
+          listValues: undefined,
+        },
+      };
     }
   });
 
