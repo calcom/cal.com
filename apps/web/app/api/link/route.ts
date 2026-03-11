@@ -94,6 +94,7 @@ async function handler(request: NextRequest) {
           : undefined,
         actionSource: "MAGIC_LINK",
         actor: makeUserActor(user.uuid),
+        impersonatedByUserUuid: null,
       },
     });
   } catch (e) {

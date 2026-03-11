@@ -1,9 +1,7 @@
-import { expect } from "@playwright/test";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test, todo } from "./lib/fixtures";
 import {
   bookTimeSlot,
@@ -18,7 +16,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Teams tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
-    const user = await users.create();
+    const user = await users.create(undefined, { hasTeam: true });
 
     await user.apiLogin();
 
@@ -175,7 +173,6 @@ test.describe("Teams - NonOrg", () => {
     await page.goto("/teams");
 
     await test.step("Can create team with same name", async () => {
-      // Click the new team button
       await page.locator("[data-testid=new-team-btn]").click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
