@@ -84,21 +84,40 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     },
   });
 
-  const toggleMutationOptions = {
-    onSuccess: async () => {
-      await utils.viewer.me.invalidate();
-      revalidateSettingsGeneral();
-      showToast(t("settings_updated_successfully"), "success");
-    },
-    onError: () => {
-      showToast(t("error_updating_settings"), "error");
-    },
+  const toggleMutationOnSuccess = async () => {
+    await utils.viewer.me.invalidate();
+    revalidateSettingsGeneral();
+    showToast(t("settings_updated_successfully"), "success");
   };
 
-  const dynamicBookingMutation = trpc.viewer.me.updateProfile.useMutation(toggleMutationOptions);
-  const seoIndexingMutation = trpc.viewer.me.updateProfile.useMutation(toggleMutationOptions);
-  const monthlyDigestMutation = trpc.viewer.me.updateProfile.useMutation(toggleMutationOptions);
-  const emailVerificationMutation = trpc.viewer.me.updateProfile.useMutation(toggleMutationOptions);
+  const dynamicBookingMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: toggleMutationOnSuccess,
+    onError: () => {
+      setIsAllowDynamicBookingChecked((prev) => !prev);
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+  const seoIndexingMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: toggleMutationOnSuccess,
+    onError: () => {
+      setIsAllowSEOIndexingChecked((prev) => !prev);
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+  const monthlyDigestMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: toggleMutationOnSuccess,
+    onError: () => {
+      setIsReceiveMonthlyDigestEmailChecked((prev) => !prev);
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
+  const emailVerificationMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: toggleMutationOnSuccess,
+    onError: () => {
+      setIsRequireBookerEmailVerificationChecked((prev) => !prev);
+      showToast(t("error_updating_settings"), "error");
+    },
+  });
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
