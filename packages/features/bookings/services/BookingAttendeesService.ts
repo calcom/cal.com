@@ -13,7 +13,10 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
-import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+import type {
+  Booking,
+  TUser,
+} from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
   buildCalendarEvent,
   getBooking,
@@ -67,9 +70,10 @@ export type RemovedAttendee = {
 export class BookingAttendeesService {
   async getBookingAttendees(bookingUid: string) {
     const bookingRepository = new BookingRepository(prisma);
-    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
-      bookingUid,
-    });
+    const booking =
+      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid,
+      });
 
     if (!booking) {
       throw new Error(`Booking with uid ${bookingUid} not found`);
@@ -80,9 +84,10 @@ export class BookingAttendeesService {
 
   async getBookingAttendee(bookingUid: string, attendeeId: number) {
     const bookingRepository = new BookingRepository(prisma);
-    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
-      bookingUid,
-    });
+    const booking =
+      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid,
+      });
 
     if (!booking) {
       throw new Error(`Booking with uid ${bookingUid} not found`);
@@ -114,7 +119,10 @@ export class BookingAttendeesService {
 
     const organizer = await getOrganizerData(booking.userId);
 
-    const validatedAttendees = await sanitizeAndFilterGuests([attendee], booking);
+    const validatedAttendees = await sanitizeAndFilterGuests(
+      [attendee],
+      booking
+    );
 
     const newAttendeeDetails = validatedAttendees.map((a) => ({
       name: a.name || "",
@@ -147,7 +155,10 @@ export class BookingAttendeesService {
     const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await featuresRepository.checkIfTeamHasFeature(
+          organizationId,
+          "booking-audit"
+        )
       : false;
 
     await bookingEventHandlerService.onAttendeeAdded({
@@ -191,7 +202,9 @@ export class BookingAttendeesService {
 
     await validateUserPermissions(booking, user);
 
-    const attendeeToRemove = booking.attendees.find((attendee) => attendee.id === attendeeId);
+    const attendeeToRemove = booking.attendees.find(
+      (attendee) => attendee.id === attendeeId
+    );
 
     if (!attendeeToRemove) {
       throw ErrorWithCode.Factory.NotFound("attendee_not_found");
@@ -206,14 +219,20 @@ export class BookingAttendeesService {
 
     const organizer = await getOrganizerData(booking.userId);
 
-    const oldAttendeeEmails = booking.attendees.map((a) => a.email);
-    const newAttendeeEmails = booking.attendees.filter((a) => a.id !== attendeeId).map((a) => a.email);
-
-    const attendeesList = await prepareAttendeesList(booking.attendees.filter((a) => a.id !== attendeeId));
+    const attendeesList = await prepareAttendeesList(
+      booking.attendees.filter((a) => a.id !== attendeeId)
+    );
     const evt = await buildCalendarEvent(booking, organizer, attendeesList);
-    const removedAttendeePerson = await this.prepareAttendeePerson(attendeeToRemove);
+    const removedAttendeePerson = await this.prepareAttendeePerson(
+      attendeeToRemove
+    );
 
-    await this.removeAttendeeFromBooking(bookingId, attendeeId, attendeeToRemove.email, booking);
+    await this.removeAttendeeFromBooking(
+      bookingId,
+      attendeeId,
+      attendeeToRemove.email,
+      booking
+    );
 
     await updateCalendarEvent(booking, evt);
 
@@ -225,8 +244,16 @@ export class BookingAttendeesService {
     const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await featuresRepository.checkIfTeamHasFeature(
+          organizationId,
+          "booking-audit"
+        )
       : false;
+
+    const oldAttendeeEmails = booking.attendees.map((a) => a.email);
+    const newAttendeeEmails = booking.attendees
+      .filter((a) => a.id !== attendeeId)
+      .map((a) => a.email);
 
     await bookingEventHandlerService.onAttendeeRemoved({
       bookingUid: booking.uid,
@@ -263,7 +290,9 @@ export class BookingAttendeesService {
     await emailsAndSmsHandler.handleAddAttendee({
       evt,
       eventType: {
-        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(
+          booking?.eventType?.metadata
+        ),
         schedulingType: booking.eventType?.schedulingType || null,
       },
       newGuests: [attendeeEmail],
@@ -279,9 +308,11 @@ export class BookingAttendeesService {
     const bookingResponses = booking.responses as BookingResponses;
     const baseEmailToRemove = extractBaseEmail(attendeeEmail).toLowerCase();
 
-    const updatedGuests = (bookingResponses?.guests || []).filter((guestEmail: string) => {
-      return extractBaseEmail(guestEmail).toLowerCase() !== baseEmailToRemove;
-    });
+    const updatedGuests = (bookingResponses?.guests || []).filter(
+      (guestEmail: string) => {
+        return extractBaseEmail(guestEmail).toLowerCase() !== baseEmailToRemove;
+      }
+    );
 
     await prisma.$transaction([
       prisma.attendee.delete({
@@ -299,7 +330,9 @@ export class BookingAttendeesService {
     ]);
   }
 
-  private async prepareAttendeePerson(attendee: Booking["attendees"][number]): Promise<Person> {
+  private async prepareAttendeePerson(
+    attendee: Booking["attendees"][number]
+  ): Promise<Person> {
     return {
       name: attendee.name,
       email: attendee.email,
@@ -311,12 +344,17 @@ export class BookingAttendeesService {
     };
   }
 
-  private async sendCancelledEmailToAttendee(evt: CalendarEvent, attendee: Person): Promise<void> {
+  private async sendCancelledEmailToAttendee(
+    evt: CalendarEvent,
+    attendee: Person
+  ): Promise<void> {
     try {
       const email = new AttendeeCancelledEmail(evt, attendee);
       await email.sendEmail();
     } catch (error) {
-      logger.error("Failed to send cancellation email to removed attendee", { error });
+      logger.error("Failed to send cancellation email to removed attendee", {
+        error,
+      });
     }
   }
 }
