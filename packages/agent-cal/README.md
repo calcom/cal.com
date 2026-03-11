@@ -149,8 +149,9 @@ After installing globally (`npm i -g @calcom/agent-cal`) or via `npx`, you can u
 
 ```bash
 npx @calcom/agent-cal auth          # Authenticate and save credentials to ~/.agentcal/
+npx @calcom/agent-cal connect       # Open Cal.com to connect a calendar (Google, Outlook, Apple)
 npx @calcom/agent-cal status        # Show connected calendars
-npx @calcom/agent-cal events list   # List upcoming events (default: google, next 7 days)
+npx @calcom/agent-cal events list   # List upcoming events (default: first connection, next 7 days)
 npx @calcom/agent-cal token-info    # Show token status (masked) and expiry
 npx @calcom/agent-cal disconnect    # Remove stored credentials
 npx @calcom/agent-cal mcp           # Run MCP server (stdio) with calendar tools

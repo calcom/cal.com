@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Agent Cal CLI — auth, status, events list, token, disconnect, mcp.
+ * Agent Cal CLI — auth, connect, status, events list, token-info, disconnect, mcp.
  */
 
 import { createServer } from "node:http";
@@ -179,11 +179,28 @@ async function getClient(): Promise<AgentCal> {
   });
 }
 
+async function cmdConnect(): Promise<void> {
+  const webAppUrl = process.env.NEXT_PUBLIC_WEBAPP_URL ?? process.env.CAL_OAUTH_AUTHORIZE_URL?.replace(/\/auth\/oauth2\/authorize$/, "") ?? "https://app.cal.com";
+  const connectUrl = `${webAppUrl}/settings/calendars`;
+  log("");
+  log("  Agent Cal — Connect a calendar");
+  log("");
+  log("Opening Cal.com calendar settings...");
+  log(`  -> ${connectUrl}`);
+  log("");
+  log("Add Google, Outlook, or Apple Calendar, then return here and run:");
+  log("  npx @calcom/agent-cal status");
+  log("");
+  await open(connectUrl).catch(() => {
+    log("Could not open browser. Visit the URL above manually.");
+  });
+}
+
 async function cmdStatus(): Promise<void> {
   const cal = await getClient();
   const connections = await cal.getConnections();
   if (connections.length === 0) {
-    log("No calendars connected. Connect at https://app.cal.com/settings/calendars");
+    log("No calendars connected. Run: npx @calcom/agent-cal connect");
     return;
   }
   log("Connected calendars (use connectionId in events list):");
@@ -280,6 +297,18 @@ async function main(): Promise<void> {
         log('  const cal = new AgentCal(); // auto-load credentials via loadStoredCredentials()');
         log("");
         log("Or run: agent-cal status");
+      } catch (err) {
+        console.error(err);
+        process.exit(1);
+      }
+    });
+
+  program
+    .command("connect")
+    .description("Open Cal.com to connect a calendar (Google, Outlook, Apple)")
+    .action(async () => {
+      try {
+        await cmdConnect();
       } catch (err) {
         console.error(err);
         process.exit(1);
