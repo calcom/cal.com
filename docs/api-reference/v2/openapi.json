@@ -22973,7 +22973,90 @@
       },
       "UpdateOrganizationUserInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "example": "user123"
+          },
+          "weekday": {
+            "type": "string",
+            "description": "Preferred weekday",
+            "example": "Monday"
+          },
+          "brandColor": {
+            "type": "string",
+            "description": "Brand color in HEX format",
+            "example": "#FFFFFF"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Bio",
+            "example": "I am a bio"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and values up to 500 characters.",
+            "example": {
+              "key": "value"
+            }
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "description": "Dark brand color in HEX format",
+            "example": "#000000"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "description": "Hide branding",
+            "example": false
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "Time zone",
+            "example": "America/New_York"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true,
+            "description": "Theme",
+            "example": "dark"
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true,
+            "description": "Application theme",
+            "example": "light"
+          },
+          "timeFormat": {
+            "type": "number",
+            "description": "Time format",
+            "example": 24
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Default schedule ID",
+            "example": 1
+          },
+          "locale": {
+            "type": "string",
+            "nullable": true,
+            "default": "en",
+            "description": "Locale",
+            "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "Avatar URL",
+            "example": "https://example.com/avatar.jpg"
+          }
+        }
       },
       "BaseAttribute": {
         "type": "object",
