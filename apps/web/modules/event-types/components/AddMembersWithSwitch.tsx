@@ -91,6 +91,7 @@ const CheckedHostField = ({
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
+                  isOptional: option.isOptional ?? false,
                 }))
               );
           }}
@@ -106,6 +107,7 @@ const CheckedHostField = ({
                 isFixed,
                 weight: host.weight ?? 100,
                 groupId: host.groupId,
+                isOptional: host.isOptional ?? false,
               });
 
               return acc;

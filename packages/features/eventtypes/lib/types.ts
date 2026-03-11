@@ -51,6 +51,7 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
+  isOptional?: boolean;
 };
 
 export type TeamMember = {
@@ -276,6 +277,7 @@ export type HostInput = {
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;
+  isOptional?: boolean;
 };
 
 export type HostGroupInput = {

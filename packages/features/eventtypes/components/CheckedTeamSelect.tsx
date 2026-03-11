@@ -31,6 +31,7 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
+  isOptional?: boolean;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -133,9 +134,30 @@ export const CheckedTeamSelect = ({
                 )}>
                 {option.label}
               </p>
-              <div className="ml-auto flex items-center">
+              <div className="ml-auto flex items-center gap-2">
                 {option && !option.isFixed ? (
                   <>
+                    <Tooltip content={t("optional_host")}>
+                      <Button
+                        color="minimal"
+                        size="sm"
+                        variant={option.isOptional ? "secondary" : "ghost"}
+                        onClick={() => {
+                          const updatedOptions = value.map((item) =>
+                            item.value === option.value ? { ...item, isOptional: !item.isOptional } : item
+                          );
+                          props.onChange(updatedOptions);
+                        }}
+                        className={classNames(
+                          "h-8 px-2 text-sm",
+                          option.isOptional
+                            ? "bg-subtle text-emphasis border-default border"
+                            : "text-muted hover:bg-subtle hover:text-emphasis"
+                        )}>
+                        <Icon name="user-check" className="h-4 w-4 mr-1" />
+                        {t("optional")}
+                      </Button>
+                    </Tooltip>
                     <Tooltip content={t("change_priority")}>
                       <Button
                         color="minimal"

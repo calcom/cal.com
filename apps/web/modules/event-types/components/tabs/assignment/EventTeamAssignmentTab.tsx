@@ -177,6 +177,8 @@ const FixedHosts = ({
           // if host was already added, retain scheduleId and groupId
           scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
           groupId: host?.groupId || null,
+          // preserve isOptional if already set
+          isOptional: host?.isOptional ?? false,
         };
       }),
       { shouldDirty: true }
@@ -403,6 +405,8 @@ const RoundRobinHosts = ({
             // if host was already added, retain scheduleId and groupId
             scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
             groupId: host?.groupId || groupId,
+            // preserve isOptional if already set
+            isOptional: host?.isOptional ?? false,
           };
         }),
         { shouldDirty: true }
