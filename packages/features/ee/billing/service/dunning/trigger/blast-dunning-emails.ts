@@ -5,6 +5,7 @@ import { sendDunningEmailForStatus } from "./send-dunning-email-for-status";
 
 const blastDunningEmailsSchema = z.object({
   dryRun: z.boolean().default(false),
+  excludedTeamIds: z.array(z.number()).default([]),
 });
 
 export const BLAST_DUNNING_EMAILS_JOB_ID = "billing.blast-dunning-emails";
@@ -78,19 +79,22 @@ export const blastDunningEmails: TaskWithSchema<
       if (page.length < PAGE_SIZE) break;
     }
 
-    if (allRows.length === 0 || payload.dryRun) {
+    const excludedSet = new Set(payload.excludedTeamIds);
+    const filteredRows = excludedSet.size > 0 ? allRows.filter((r) => !excludedSet.has(r.teamId)) : allRows;
+
+    if (filteredRows.length === 0 || payload.dryRun) {
       const statusCounts: Record<string, number> = {};
-      for (const row of allRows) {
+      for (const row of filteredRows) {
         statusCounts[row.status] = (statusCounts[row.status] || 0) + 1;
       }
-      return { total: allRows.length, dryRun: payload.dryRun, statusCounts, sent: 0, failed: 0 };
+      return { total: filteredRows.length, excluded: excludedSet.size, dryRun: payload.dryRun, statusCounts, sent: 0, failed: 0 };
     }
 
     let totalSucceeded = 0;
     let totalFailed = 0;
 
-    for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
-      const batch = allRows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < filteredRows.length; i += BATCH_SIZE) {
+      const batch = filteredRows.slice(i, i + BATCH_SIZE);
       const results = await sendDunningEmailForStatus.batchTriggerAndWait(
         batch.map(({ teamId, status }) => ({
           payload: {
@@ -105,7 +109,8 @@ export const blastDunningEmails: TaskWithSchema<
     }
 
     return {
-      total: allRows.length,
+      total: filteredRows.length,
+      excluded: excludedSet.size,
       sent: totalSucceeded,
       failed: totalFailed,
       dryRun: false,
