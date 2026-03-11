@@ -2,8 +2,8 @@
 
 import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
-import type { AccessScope } from "@calcom/prisma/enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AccessScope } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
@@ -120,7 +120,14 @@ export const OAuthClientFormFields = ({
       />
 
       <div>
-        <Label className="text-emphasis mb-2 block text-sm font-medium">{t("authentication_mode")}</Label>
+        <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
+          {t("authentication_mode")}
+          <Tooltip content={t("pkce_cannot_be_changed_after_creation")}>
+            <span>
+              <InfoIcon className="text-subtle h-4 w-4" />
+            </span>
+          </Tooltip>
+        </Label>
         <div className="flex items-center space-x-3">
           <Switch
             data-testid="oauth-client-pkce-toggle"
