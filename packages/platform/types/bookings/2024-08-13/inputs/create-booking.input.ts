@@ -215,8 +215,7 @@ class Routing {
   BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
-  BookingInputOrganizersDefaultAppLocation_2024_08_13,
-  ValidateBookingLocation_2024_08_13
+  BookingInputOrganizersDefaultAppLocation_2024_08_13
 )
 @RequireEventTypeIdentification()
 export class CreateBookingInput_2024_08_13 {

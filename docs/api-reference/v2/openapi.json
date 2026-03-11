@@ -10300,7 +10300,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -13732,7 +13732,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -13807,7 +13807,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -13847,7 +13847,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -13893,7 +13893,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -16231,7 +16231,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -16322,7 +16322,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -16378,7 +16378,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -16440,7 +16440,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -29972,10 +29972,6 @@
           }
         },
         "required": ["type"]
-      },
-      "ValidateBookingLocation_2024_08_13": {
-        "type": "object",
-        "properties": {}
       },
       "CreateBookingAttendee": {
         "type": "object",
