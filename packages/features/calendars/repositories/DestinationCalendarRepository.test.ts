@@ -16,17 +16,6 @@ vi.mock("@calcom/prisma", () => ({
   prisma: mockPrisma,
 }));
 
-vi.mock("@calcom/lib/logger", () => ({
-  default: {
-    getSubLogger: () => ({
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    }),
-  },
-}));
-
 vi.mock("@calcom/lib/server/buildCredentialPayloadForCalendar", () => ({
   buildCredentialPayloadForPrisma: mockBuildCredentialPayload,
 }));
@@ -111,6 +100,70 @@ describe("DestinationCalendarRepository", () => {
             data: { customCalendarReminder: null },
           })
         );
+      });
+    });
+
+    describe("fn: upsert", () => {
+      it("should upsert with credential payload for both create and update", async () => {
+        mockBuildCredentialPayload
+          .mockReturnValueOnce({ credentialId: 5 })
+          .mockReturnValueOnce({ credentialId: 5 });
+        mockPrisma.destinationCalendar.upsert.mockResolvedValue({ id: 1 });
+
+        const repo = new DestinationCalendarRepository(mockPrisma as never);
+        await repo.upsert({
+          where: { id: 1 },
+          update: {
+            integration: "google_calendar",
+            externalId: "updated-cal",
+            credentialId: 5,
+          },
+          create: {
+            integration: "google_calendar",
+            externalId: "new-cal",
+            credentialId: 5,
+          },
+        });
+
+        expect(mockBuildCredentialPayload).toHaveBeenCalledTimes(2);
+        expect(mockPrisma.destinationCalendar.upsert).toHaveBeenCalledWith({
+          where: { id: 1 },
+          update: expect.objectContaining({ integration: "google_calendar", externalId: "updated-cal" }),
+          create: expect.objectContaining({ integration: "google_calendar", externalId: "new-cal" }),
+        });
+      });
+
+      it("should handle delegation credential in upsert", async () => {
+        mockBuildCredentialPayload
+          .mockReturnValueOnce({ delegationCredentialId: "del-123" })
+          .mockReturnValueOnce({ delegationCredentialId: "del-123" });
+        mockPrisma.destinationCalendar.upsert.mockResolvedValue({ id: 2 });
+
+        const repo = new DestinationCalendarRepository(mockPrisma as never);
+        await repo.upsert({
+          where: { id: 2 },
+          update: {
+            integration: "google_calendar",
+            externalId: "cal-1",
+            credentialId: null,
+            delegationCredentialId: "del-123",
+          },
+          create: {
+            integration: "google_calendar",
+            externalId: "cal-1",
+            credentialId: null,
+            delegationCredentialId: "del-123",
+          },
+        });
+
+        expect(mockBuildCredentialPayload).toHaveBeenNthCalledWith(1, {
+          credentialId: null,
+          delegationCredentialId: "del-123",
+        });
+        expect(mockBuildCredentialPayload).toHaveBeenNthCalledWith(2, {
+          credentialId: null,
+          delegationCredentialId: "del-123",
+        });
       });
     });
   });
@@ -226,66 +279,5 @@ describe("DestinationCalendarRepository", () => {
       });
     });
 
-    describe("fn: upsert", () => {
-      it("should upsert with credential payload for both create and update", async () => {
-        mockBuildCredentialPayload
-          .mockReturnValueOnce({ credentialId: 5 })
-          .mockReturnValueOnce({ credentialId: 5 });
-        mockPrisma.destinationCalendar.upsert.mockResolvedValue({ id: 1 });
-
-        await DestinationCalendarRepository.upsert({
-          where: { id: 1 },
-          update: {
-            integration: "google_calendar",
-            externalId: "updated-cal",
-            credentialId: 5,
-          },
-          create: {
-            integration: "google_calendar",
-            externalId: "new-cal",
-            credentialId: 5,
-          },
-        });
-
-        expect(mockBuildCredentialPayload).toHaveBeenCalledTimes(2);
-        expect(mockPrisma.destinationCalendar.upsert).toHaveBeenCalledWith({
-          where: { id: 1 },
-          update: expect.objectContaining({ integration: "google_calendar", externalId: "updated-cal" }),
-          create: expect.objectContaining({ integration: "google_calendar", externalId: "new-cal" }),
-        });
-      });
-
-      it("should handle delegation credential in upsert", async () => {
-        mockBuildCredentialPayload
-          .mockReturnValueOnce({ delegationCredentialId: "del-123" })
-          .mockReturnValueOnce({ delegationCredentialId: "del-123" });
-        mockPrisma.destinationCalendar.upsert.mockResolvedValue({ id: 2 });
-
-        await DestinationCalendarRepository.upsert({
-          where: { id: 2 },
-          update: {
-            integration: "google_calendar",
-            externalId: "cal-1",
-            credentialId: null,
-            delegationCredentialId: "del-123",
-          },
-          create: {
-            integration: "google_calendar",
-            externalId: "cal-1",
-            credentialId: null,
-            delegationCredentialId: "del-123",
-          },
-        });
-
-        expect(mockBuildCredentialPayload).toHaveBeenNthCalledWith(1, {
-          credentialId: null,
-          delegationCredentialId: "del-123",
-        });
-        expect(mockBuildCredentialPayload).toHaveBeenNthCalledWith(2, {
-          credentialId: null,
-          delegationCredentialId: "del-123",
-        });
-      });
-    });
   });
 });

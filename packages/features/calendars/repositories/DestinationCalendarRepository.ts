@@ -1,10 +1,7 @@
-import logger from "@calcom/lib/logger";
 import { buildCredentialPayloadForPrisma } from "@calcom/lib/server/buildCredentialPayloadForCalendar";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
-const log = logger.getSubLogger({ prefix: ["DestinationCalendarRepository"] });
 
 export class DestinationCalendarRepository {
   private prismaClient: PrismaClient;
@@ -13,11 +10,14 @@ export class DestinationCalendarRepository {
     this.prismaClient = prismaClient ?? prisma;
   }
 
-  async getCustomReminderByCredentialId(credentialId: number): Promise<number | null> {
-    const destinationCalendar = await this.prismaClient.destinationCalendar.findFirst({
-      where: { credentialId },
-      select: { customCalendarReminder: true },
-    });
+  async getCustomReminderByCredentialId(
+    credentialId: number
+  ): Promise<number | null> {
+    const destinationCalendar =
+      await this.prismaClient.destinationCalendar.findFirst({
+        where: { credentialId },
+        select: { customCalendarReminder: true },
+      });
     return destinationCalendar?.customCalendarReminder ?? null;
   }
 
@@ -53,7 +53,8 @@ export class DestinationCalendarRepository {
   static async createIfNotExistsForUser(
     data: { userId: number } & Prisma.DestinationCalendarUncheckedCreateInput
   ) {
-    const conflictingCalendar = await DestinationCalendarRepository.findConflictingForUser(data);
+    const conflictingCalendar =
+      await DestinationCalendarRepository.findConflictingForUser(data);
     if (conflictingCalendar) {
       return conflictingCalendar;
     }
@@ -78,7 +79,11 @@ export class DestinationCalendarRepository {
     });
   }
 
-  static async find({ where }: { where: Prisma.DestinationCalendarWhereInput }) {
+  static async find({
+    where,
+  }: {
+    where: Prisma.DestinationCalendarWhereInput;
+  }) {
     return await prisma.destinationCalendar.findFirst({
       where,
     });
@@ -99,7 +104,7 @@ export class DestinationCalendarRepository {
     });
   }
 
-  static async upsert({
+  async upsert({
     where,
     update,
     create,
@@ -120,7 +125,6 @@ export class DestinationCalendarRepository {
       delegationCredentialId?: string | null;
     };
   }) {
-    log.debug("upsert", { where, update, create });
     const credentialPayloadForUpdate = buildCredentialPayloadForPrisma({
       credentialId: update.credentialId,
       delegationCredentialId: update.delegationCredentialId,
@@ -131,7 +135,7 @@ export class DestinationCalendarRepository {
       delegationCredentialId: create.delegationCredentialId,
     });
 
-    return await prisma.destinationCalendar.upsert({
+    return await this.prismaClient.destinationCalendar.upsert({
       where,
       update: {
         ...update,
@@ -143,4 +147,5 @@ export class DestinationCalendarRepository {
       },
     });
   }
+
 }

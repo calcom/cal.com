@@ -1,12 +1,16 @@
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
-import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
-
-import { TRPCError } from "@trpc/server";
+import { ErrorWithCode } from "@calcom/lib/errors";
 
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
+
+const mockSetDestinationCalendar = vi.fn();
+
+vi.mock("@calcom/features/calendars/di/DestinationCalendarService.container", () => ({
+  getDestinationCalendarService: () => ({
+    setDestinationCalendar: mockSetDestinationCalendar,
+  }),
+}));
 
 type MockUser = {
   id: number;
@@ -19,22 +23,6 @@ type MockUser = {
   }>;
 };
 
-vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
-  getConnectedCalendars: vi.fn(),
-  getCalendarCredentials: vi.fn().mockImplementation((creds) => creds),
-}));
-
-vi.mock("@calcom/app-store/delegationCredential", () => ({
-  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
-}));
-
-vi.mock("@calcom/features/calendars/repositories/DestinationCalendarRepository", () => ({
-  DestinationCalendarRepository: {
-    upsert: vi.fn(),
-  },
-}));
-
-// Mock data helpers
 function createMockUser({
   id,
   email,
@@ -42,55 +30,9 @@ function createMockUser({
 }: {
   id: number;
   email: string;
-  userLevelSelectedCalendars?: Array<{
-    integration: string;
-    externalId: string;
-    credentialId: number | null;
-    delegationCredentialId?: number | null;
-  }>;
+  userLevelSelectedCalendars?: MockUser["userLevelSelectedCalendars"];
 }): MockUser {
-  return {
-    id,
-    email,
-    userLevelSelectedCalendars,
-  };
-}
-
-function createMockCredential({
-  id,
-  delegationCredentialId,
-}: {
-  id: number;
-  delegationCredentialId?: number;
-}) {
-  return {
-    id,
-    delegationCredentialId,
-    type: "google_calendar",
-    key: {},
-  };
-}
-
-function createMockConnectedCalendars({
-  calendars,
-}: {
-  calendars: Array<{
-    externalId: string;
-    integration: string;
-    readOnly: boolean;
-    primary?: boolean | null;
-    email: string;
-    credentialId?: number | null;
-    delegationCredentialId?: number | null;
-  }>;
-}) {
-  return {
-    connectedCalendars: [
-      {
-        calendars,
-      },
-    ],
-  };
+  return { id, email, userLevelSelectedCalendars };
 }
 
 describe("setDestinationCalendarHandler", () => {
@@ -102,125 +44,56 @@ describe("setDestinationCalendarHandler", () => {
     vi.resetAllMocks();
   });
 
-  it("should successfully set destination calendar with DelegationCredential credentials", async () => {
-    const delegationCredentialId = 123;
-    const testExternalId = "TEST@group.calendar.google.com";
-    const organizerEmail = "organizer@example.com";
-    const organizerId = 101;
-
-    // Create mock user
+  it("should delegate to DestinationCalendarService", async () => {
     const mockUser = createMockUser({
-      id: organizerId,
-      email: organizerEmail,
+      id: 101,
+      email: "organizer@example.com",
       userLevelSelectedCalendars: [
-        {
-          integration: "google_calendar",
-          externalId: testExternalId,
-          credentialId: null,
-          delegationCredentialId: delegationCredentialId,
-        },
+        { integration: "google_calendar", externalId: "cal-1", credentialId: null },
       ],
     });
 
-    // Mock credentials
-    const mockCredentials = [
-      createMockCredential({
-        id: -1,
-        delegationCredentialId,
-      }),
-    ];
-
-    // Mock connected calendars response
-    const mockConnectedCalendars = createMockConnectedCalendars({
-      calendars: [
-        {
-          externalId: organizerEmail,
-          integration: "google_calendar",
-          readOnly: false,
-          primary: true,
-          email: organizerEmail,
-          credentialId: -1,
-          delegationCredentialId: delegationCredentialId,
-        },
-        {
-          externalId: testExternalId,
-          integration: "google_calendar",
-          readOnly: false,
-          primary: null,
-          email: organizerEmail,
-          credentialId: -1,
-          delegationCredentialId: delegationCredentialId,
-        },
-      ],
-    });
-
-    // Setup mocks
-    vi.mocked(getUsersCredentialsIncludeServiceAccountKey).mockResolvedValue(mockCredentials);
-    vi.mocked(getConnectedCalendars).mockResolvedValue(mockConnectedCalendars);
-    vi.mocked(DestinationCalendarRepository.upsert).mockResolvedValue({});
-
-    const ctx = {
-      user: mockUser,
-    };
+    mockSetDestinationCalendar.mockResolvedValue(undefined);
 
     await setDestinationCalendarHandler({
-      ctx,
-      input: {
-        integration: "google_calendar",
-        externalId: testExternalId,
-      },
+      ctx: { user: mockUser },
+      input: { integration: "google_calendar", externalId: "cal-1" },
     });
 
-    // Verify the destination calendar repository was called correctly
-    expect(DestinationCalendarRepository.upsert).toHaveBeenCalledWith({
-      where: { userId: organizerId },
-      update: {
-        integration: "google_calendar",
-        externalId: testExternalId,
-        primaryEmail: organizerEmail,
-        credentialId: -1,
-        delegationCredentialId: delegationCredentialId,
-      },
-      create: {
-        userId: organizerId,
-        integration: "google_calendar",
-        externalId: testExternalId,
-        primaryEmail: organizerEmail,
-        credentialId: -1,
-        delegationCredentialId: delegationCredentialId,
-      },
+    expect(mockSetDestinationCalendar).toHaveBeenCalledWith({
+      userId: 101,
+      userEmail: "organizer@example.com",
+      userLevelSelectedCalendars: mockUser.userLevelSelectedCalendars,
+      integration: "google_calendar",
+      externalId: "cal-1",
     });
   });
 
-  it("should throw error when calendar is not found", async () => {
-    const organizerEmail = "organizer@example.com";
-    const organizerId = 101;
-
-    // Create mock user
-    const mockUser = createMockUser({
-      id: organizerId,
-      email: organizerEmail,
-      userLevelSelectedCalendars: [],
-    });
-
-    // Mock empty credentials and calendars
-    vi.mocked(getUsersCredentialsIncludeServiceAccountKey).mockResolvedValue([]);
-    vi.mocked(getConnectedCalendars).mockResolvedValue({ connectedCalendars: [] });
-
-    const ctx = {
-      user: mockUser,
-    };
+  it("should propagate errors from the service", async () => {
+    const mockUser = createMockUser({ id: 101, email: "organizer@example.com" });
+    mockSetDestinationCalendar.mockRejectedValue(
+      ErrorWithCode.Factory.Forbidden("You don't have access to event type 999")
+    );
 
     await expect(
       setDestinationCalendarHandler({
-        ctx,
-        input: {
-          integration: "google_calendar",
-          externalId: "non-existent-calendar",
-        },
+        ctx: { user: mockUser },
+        input: { integration: "google_calendar", externalId: "cal-1", eventTypeId: 999 },
       })
-    ).rejects.toThrow(
-      new TRPCError({ code: "BAD_REQUEST", message: "Could not find calendar non-existent-calendar" })
+    ).rejects.toThrow(ErrorWithCode);
+  });
+
+  it("should pass eventTypeId to service", async () => {
+    const mockUser = createMockUser({ id: 101, email: "organizer@example.com" });
+    mockSetDestinationCalendar.mockResolvedValue(undefined);
+
+    await setDestinationCalendarHandler({
+      ctx: { user: mockUser },
+      input: { integration: "google_calendar", externalId: "cal-1", eventTypeId: 42 },
+    });
+
+    expect(mockSetDestinationCalendar).toHaveBeenCalledWith(
+      expect.objectContaining({ eventTypeId: 42 })
     );
   });
 });
