@@ -96,13 +96,14 @@ export interface UnifiedCalendarEventVM {
   isReadOnly: boolean;
 }
 
-export interface LocalDraftBookingInput {
+export interface UnifiedCalendarBookingFormInput {
   title: string;
   start: Date;
   end: Date;
   calendarId: string;
   attendees: string[];
-  meetingUrl?: string;
+  location: string | null;
+  locationCredentialId?: number | null;
   description?: string;
 }
 

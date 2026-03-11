@@ -11,14 +11,19 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { useIsMobile } from "../../hooks/use-mobile";
 import { QuickBookingDialog } from "./components/QuickBookingDialog";
+import { RescheduleBookingDialog } from "./components/RescheduleBookingDialog";
 import { UnifiedCalendarEventDetailsPanel } from "./components/UnifiedCalendarEventDetailsPanel";
 import { UnifiedCalendarGrid } from "./components/UnifiedCalendarGrid";
 import { UnifiedCalendarSidebar } from "./components/UnifiedCalendarSidebar";
 import { UnifiedCalendarToolbar } from "./components/UnifiedCalendarToolbar";
-import { deriveUnifiedEventColor } from "./lib/eventColors";
 import { mapConnectedCalendarsToVM, mapUnifiedCalendarItemsToVM } from "./lib/mappers";
 import { getUnifiedCalendarQueryRange } from "./lib/queryRange";
-import type { LocalDraftBookingInput, QuickBookSlot, UnifiedCalendarEventVM, ViewMode } from "./lib/types";
+import type {
+  QuickBookSlot,
+  UnifiedCalendarBookingFormInput,
+  UnifiedCalendarEventVM,
+  ViewMode,
+} from "./lib/types";
 import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateDate } from "./lib/utils";
 
 const UnifiedCalendarPage = () => {
@@ -29,18 +34,25 @@ const UnifiedCalendarPage = () => {
   const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [searchQuery, setSearchQuery] = useState("");
-  const [localDraftEvents, setLocalDraftEvents] = useState<UnifiedCalendarEventVM[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<UnifiedCalendarEventVM | null>(null);
+  const [rescheduleEvent, setRescheduleEvent] = useState<UnifiedCalendarEventVM | null>(null);
   const [quickBookSlot, setQuickBookSlot] = useState<QuickBookSlot | null>(null);
+  const [quickBookingError, setQuickBookingError] = useState<string | null>(null);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [localCalendarColors, setLocalCalendarColors] = useState<Record<string, string>>({});
   const [optimisticSyncById, setOptimisticSyncById] = useState<Record<string, boolean>>({});
   const [pendingSyncById, setPendingSyncById] = useState<Record<string, boolean>>({});
+  const trpcUtils = trpc.useUtils();
 
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
 
   const toggleCalendarSyncMutation = trpc.viewer.unifiedCalendar.toggleCalendarSync.useMutation();
+  const createBookingMutation = trpc.viewer.unifiedCalendar.createBooking.useMutation();
+  const rescheduleBookingMutation = trpc.viewer.unifiedCalendar.rescheduleBooking.useMutation();
+  const cancelBookingMutation = trpc.viewer.unifiedCalendar.cancelBooking.useMutation();
 
   useEffect(() => {
     if (isMobile) {
@@ -119,12 +131,10 @@ const UnifiedCalendarPage = () => {
   }, [connectedCalendars]);
 
   const unifiedEvents = useMemo(() => {
-    const mappedItems = mapUnifiedCalendarItemsToVM(unifiedCalendarListQuery.data?.items ?? [], {
+    return mapUnifiedCalendarItemsToVM(unifiedCalendarListQuery.data?.items ?? [], {
       calendarNameById,
     });
-
-    return [...mappedItems, ...localDraftEvents];
-  }, [calendarNameById, localDraftEvents, unifiedCalendarListQuery.data?.items]);
+  }, [calendarNameById, unifiedCalendarListQuery.data?.items]);
 
   const visibleCalendarIds = useMemo(() => {
     if (visibleSyncedExternalCalendarIds.length > 0) {
@@ -200,56 +210,116 @@ const UnifiedCalendarPage = () => {
     setLocalCalendarColors((current) => ({ ...current, [id]: color }));
   };
 
-  const addEvent = (draft: LocalDraftBookingInput) => {
-    const selectedCalendar =
-      connectedCalendars.find((calendar) => calendar.id === draft.calendarId) ??
-      connectedCalendars.find((calendar) => calendar.providerCalendarId === draft.calendarId);
+  const clearActionErrors = () => {
+    setQuickBookingError(null);
+    setRescheduleError(null);
+    setCancelError(null);
+  };
 
-    const eventId = `draft-${Date.now()}`;
+  useEffect(() => {
+    if (quickBookSlot) {
+      setQuickBookingError(null);
+    }
+  }, [quickBookSlot]);
 
-    setLocalDraftEvents((current) => [
-      ...current,
-      {
-        id: eventId,
-        source: "INTERNAL",
-        status: "CONFIRMED",
-        start: draft.start,
-        end: draft.end,
-        isAllDay: false,
-        timeZone: timezone,
+  useEffect(() => {
+    if (rescheduleEvent) {
+      setRescheduleError(null);
+    }
+  }, [rescheduleEvent]);
+
+  const getCalendarByUiId = (calendarId: string) => {
+    return (
+      connectedCalendars.find((calendar) => calendar.id === calendarId) ??
+      connectedCalendars.find((calendar) => calendar.providerCalendarId === calendarId)
+    );
+  };
+
+  const handleCreateBooking = async (draft: UnifiedCalendarBookingFormInput) => {
+    setQuickBookingError(null);
+
+    const targetCalendar = getCalendarByUiId(draft.calendarId);
+    if (!targetCalendar || typeof targetCalendar.credentialId !== "number") {
+      const message = "Selected calendar is no longer available for booking creation.";
+      setQuickBookingError(message);
+      return;
+    }
+
+    try {
+      await createBookingMutation.mutateAsync({
         title: draft.title,
-        description: draft.description ?? null,
-        location: null,
-        meetingUrl: draft.meetingUrl ?? null,
-        showAsBusy: true,
-        color:
-          selectedCalendar?.color ??
-          deriveUnifiedEventColor({ source: "INTERNAL", provider: selectedCalendar?.provider ?? "google" }),
-        provider: selectedCalendar?.provider ?? null,
-        calendarId: selectedCalendar?.id ?? draft.calendarId,
-        calendarName: selectedCalendar?.name ?? null,
-        attendeeCount: draft.attendees.length,
-        attendees: draft.attendees,
-        canEdit: true,
-        canDelete: true,
-        canReschedule: true,
-        isReadOnly: false,
-      },
-    ]);
+        attendeeEmails: draft.attendees,
+        startTime: draft.start.toISOString(),
+        endTime: draft.end.toISOString(),
+        targetCalendar: {
+          credentialId: targetCalendar.credentialId,
+          providerCalendarId: targetCalendar.providerCalendarId,
+        },
+        location: draft.location,
+        locationCredentialId: draft.locationCredentialId,
+        note: draft.description ?? null,
+      });
+
+      await trpcUtils.viewer.unifiedCalendar.list.invalidate();
+      showToast("Booking created. It may take a moment to reflect across all calendars.", "success");
+      setQuickBookSlot(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to create booking.";
+      setQuickBookingError(message);
+    }
   };
 
   const handleRescheduleAction = (event: UnifiedCalendarEventVM) => {
-    if (!event.canReschedule) return;
-    showToast("Reschedule flow is not wired yet. It will be added in the next phase.", "error");
+    if (!event.canReschedule || !event.internal?.bookingId) return;
+    clearActionErrors();
+    setRescheduleEvent(event);
   };
 
-  const handleCancelAction = (event: UnifiedCalendarEventVM) => {
-    if (!event.canDelete) return;
-    showToast("Cancel booking flow is not wired yet. It will be added in the next phase.", "error");
+  const handleRescheduleBooking = async (payload: { start: Date; end: Date }) => {
+    if (!rescheduleEvent?.internal?.bookingId) {
+      return;
+    }
+
+    setRescheduleError(null);
+
+    try {
+      await rescheduleBookingMutation.mutateAsync({
+        bookingId: rescheduleEvent.internal.bookingId,
+        startTime: payload.start.toISOString(),
+        endTime: payload.end.toISOString(),
+      });
+
+      await trpcUtils.viewer.unifiedCalendar.list.invalidate();
+      showToast("Booking rescheduled.", "success");
+      setRescheduleEvent(null);
+      setSelectedEvent(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+      setRescheduleError(message);
+    }
+  };
+
+  const handleCancelAction = async (event: UnifiedCalendarEventVM) => {
+    if (!event.canDelete || !event.internal?.bookingId) return;
+    setCancelError(null);
+
+    try {
+      await cancelBookingMutation.mutateAsync({
+        bookingId: event.internal.bookingId,
+      });
+
+      await trpcUtils.viewer.unifiedCalendar.list.invalidate();
+      showToast("Booking cancelled.", "success");
+      setSelectedEvent((current) => (current?.id === event.id ? null : current));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to cancel booking.";
+      setCancelError(message);
+      showToast(message, "error");
+    }
   };
 
   const quickBookingCalendars = connectedCalendars.filter(
-    (calendar) => calendar.syncEnabled && calendar.isVisible
+    (calendar) => typeof calendar.credentialId === "number" && !calendar.readOnly
   );
 
   return (
@@ -368,11 +438,14 @@ const UnifiedCalendarPage = () => {
               <SheetTitle className="text-sm">Event Details</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
+              {cancelError && <Alert severity="error" message={cancelError} className="mb-3" />}
               <UnifiedCalendarEventDetailsPanel
                 event={selectedEvent}
                 onReschedule={() => handleRescheduleAction(selectedEvent)}
                 onCancel={() => handleCancelAction(selectedEvent)}
                 conflicts={getConflicts(selectedEvent)}
+                isReschedulePending={rescheduleBookingMutation.isPending}
+                isCancelPending={cancelBookingMutation.isPending}
               />
             </div>
           </SheetContent>
@@ -385,11 +458,14 @@ const UnifiedCalendarPage = () => {
             <DialogHeader>
               <DialogTitle className="text-sm">Event Details</DialogTitle>
             </DialogHeader>
+            {cancelError && <Alert severity="error" message={cancelError} className="mb-2" />}
             <UnifiedCalendarEventDetailsPanel
               event={selectedEvent}
               onReschedule={() => handleRescheduleAction(selectedEvent)}
               onCancel={() => handleCancelAction(selectedEvent)}
               conflicts={getConflicts(selectedEvent)}
+              isReschedulePending={rescheduleBookingMutation.isPending}
+              isCancelPending={cancelBookingMutation.isPending}
             />
           </DialogContent>
         </Dialog>
@@ -400,8 +476,20 @@ const UnifiedCalendarPage = () => {
         slot={quickBookSlot}
         isMobile={isMobile}
         calendars={quickBookingCalendars}
+        isSubmitting={createBookingMutation.isPending}
+        submitError={quickBookingError ?? createBookingMutation.error?.message ?? null}
         onClose={() => setQuickBookSlot(null)}
-        onSubmit={addEvent}
+        onSubmit={handleCreateBooking}
+      />
+
+      <RescheduleBookingDialog
+        open={Boolean(rescheduleEvent)}
+        event={rescheduleEvent}
+        isMobile={isMobile}
+        isSubmitting={rescheduleBookingMutation.isPending}
+        submitError={rescheduleError ?? rescheduleBookingMutation.error?.message ?? null}
+        onClose={() => setRescheduleEvent(null)}
+        onSubmit={handleRescheduleBooking}
       />
     </div>
   );

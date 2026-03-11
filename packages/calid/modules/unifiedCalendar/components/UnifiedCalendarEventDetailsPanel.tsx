@@ -22,6 +22,8 @@ interface UnifiedCalendarEventDetailsPanelProps {
   onReschedule: () => void;
   onCancel: () => void;
   conflicts: UnifiedCalendarEventVM[];
+  isReschedulePending?: boolean;
+  isCancelPending?: boolean;
 }
 
 export const UnifiedCalendarEventDetailsPanel = ({
@@ -29,6 +31,8 @@ export const UnifiedCalendarEventDetailsPanel = ({
   onReschedule,
   onCancel,
   conflicts,
+  isReschedulePending,
+  isCancelPending,
 }: UnifiedCalendarEventDetailsPanelProps) => {
   const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
 
@@ -123,8 +127,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
             color="secondary"
             size="sm"
             className="border-border/60 h-8 gap-1.5 text-xs"
-            onClick={onReschedule}>
-            <RefreshCcw className="h-3 w-3" /> Reschedule
+            onClick={onReschedule}
+            disabled={isReschedulePending || isCancelPending}>
+            <RefreshCcw className="h-3 w-3" /> {isReschedulePending ? "Saving..." : "Reschedule"}
           </Button>
         )}
 
@@ -133,8 +138,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
             color="minimal"
             size="sm"
             className="text-destructive/70 hover:text-destructive border-border/60 h-8 gap-1.5 text-xs"
-            onClick={onCancel}>
-            <Trash2 className="h-3 w-3" /> Cancel Booking
+            onClick={onCancel}
+            disabled={isCancelPending || isReschedulePending}>
+            <Trash2 className="h-3 w-3" /> {isCancelPending ? "Cancelling..." : "Cancel Booking"}
           </Button>
         )}
 
