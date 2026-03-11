@@ -41,6 +41,8 @@ declare module "next-auth" {
     orgAwareUsername?: PrismaUser["username"];
     avatarUrl?: PrismaUser["avatarUrl"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
+    /** Set when role is INACTIVE_ADMIN: why admin security requirements are not met */
+    inactiveAdminReason?: "both" | "password" | "2fa";
     locale?: string | null;
     profile?: UserProfile;
     samlTenant?: string;
@@ -57,6 +59,7 @@ declare module "next-auth/jwt" {
     upId?: string;
     profileId?: number | null;
     role?: UserPermissionRole | "INACTIVE_ADMIN" | null;
+    inactiveAdminReason?: "both" | "password" | "2fa";
     impersonatedBy?: {
       id: number;
       uuid: string;

@@ -60,7 +60,7 @@ import { OrganizationTeamWorkflowsController } from "@/modules/organizations/tea
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
-import { OrganizationsUsersOOOController } from "@/modules/organizations/users/ooo/controllers/organizations-users-ooo-controller";
+import { OrganizationsUsersOOOController } from "@/modules/organizations/users/ooo/controllers/organizations-users-ooo.controller";
 import { OrgUsersOOORepository } from "@/modules/organizations/users/ooo/organizations-users-ooo.repository";
 import { OrgUsersOOOService } from "@/modules/organizations/users/ooo/services/organization-users-ooo.service";
 import { OrganizationsWebhooksController } from "@/modules/organizations/webhooks/controllers/organizations-webhooks.controller";
