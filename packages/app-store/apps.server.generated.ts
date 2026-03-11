@@ -52,6 +52,7 @@ export const apiHandlers = {
   ping: import("./ping/api"),
   "pipedrive-crm": import("./pipedrive-crm/api"),
   plausible: import("./plausible/api"),
+  protoncalendar: import("./protoncalendar/api"),
   posthog: import("./posthog/api"),
   qr_code: import("./qr_code/api"),
   riverside: import("./riverside/api"),

@@ -1,0 +1,16 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Import events from your Proton Calendar into Cal.com for availability checking via a secure ICS feed URL. No OAuth or API keys required.",
+  "url": "https://proton.me/calendar",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}

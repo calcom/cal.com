@@ -27,6 +27,7 @@ import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
+import protoncalendar_config_json from "./protoncalendar/config.json";
 import posthog_config_json from "./posthog/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
@@ -72,6 +73,7 @@ export const appStoreMetadata = {
   office365video: office365video_config_json,
   ping: ping_config_json,
   plausible: plausible_config_json,
+  protoncalendar: protoncalendar_config_json,
   posthog: posthog_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,

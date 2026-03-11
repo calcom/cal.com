@@ -1,0 +1,26 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with Proton purple -->
+  <circle cx="128" cy="128" r="128" fill="#6D4AFF"/>
+  <!-- Calendar card -->
+  <rect x="48" y="56" width="160" height="152" rx="16" fill="white"/>
+  <!-- Calendar header bar -->
+  <rect x="48" y="56" width="160" height="48" rx="16" fill="#6D4AFF"/>
+  <rect x="48" y="80" width="160" height="24" fill="#6D4AFF"/>
+  <!-- Binding rings -->
+  <rect x="88" y="44" width="12" height="28" rx="6" fill="#4A35CC"/>
+  <rect x="156" y="44" width="12" height="28" rx="6" fill="#4A35CC"/>
+  <!-- Month label dots -->
+  <circle cx="90" cy="130" r="8" fill="#6D4AFF" opacity="0.8"/>
+  <circle cx="128" cy="130" r="8" fill="#6D4AFF" opacity="0.8"/>
+  <circle cx="166" cy="130" r="8" fill="#6D4AFF" opacity="0.8"/>
+  <circle cx="90" cy="160" r="8" fill="#6D4AFF" opacity="0.5"/>
+  <circle cx="128" cy="160" r="8" fill="#6D4AFF"/>
+  <circle cx="166" cy="160" r="8" fill="#6D4AFF" opacity="0.5"/>
+  <circle cx="90" cy="190" r="8" fill="#6D4AFF" opacity="0.3"/>
+  <circle cx="128" cy="190" r="8" fill="#6D4AFF" opacity="0.3"/>
+  <circle cx="166" cy="190" r="8" fill="#6D4AFF" opacity="0.3"/>
+  <!-- Lock icon in header to indicate encryption -->
+  <rect x="113" y="66" width="30" height="22" rx="4" fill="white" opacity="0.9"/>
+  <path d="M120 66 C120 59 136 59 136 66" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <circle cx="128" cy="77" r="3" fill="#6D4AFF"/>
+</svg>
