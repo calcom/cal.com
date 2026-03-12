@@ -26,6 +26,9 @@ import type {
 } from "./lib/types";
 import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateDate } from "./lib/utils";
 
+const UNIFIED_CALENDAR_REFRESH_INTERVAL_MS = 15_000;
+const CONNECTED_CALENDARS_REFRESH_INTERVAL_MS = 30_000;
+
 const UnifiedCalendarPage = () => {
   const isMobile = useIsMobile();
 
@@ -47,6 +50,8 @@ const UnifiedCalendarPage = () => {
 
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
     refetchOnWindowFocus: false,
+    refetchInterval: CONNECTED_CALENDARS_REFRESH_INTERVAL_MS,
+    refetchOnReconnect: true,
   });
 
   const toggleCalendarSyncMutation = trpc.viewer.unifiedCalendar.toggleCalendarSync.useMutation();
@@ -119,6 +124,8 @@ const UnifiedCalendarPage = () => {
     },
     {
       refetchOnWindowFocus: false,
+      refetchInterval: UNIFIED_CALENDAR_REFRESH_INTERVAL_MS,
+      refetchOnReconnect: true,
     }
   );
 
