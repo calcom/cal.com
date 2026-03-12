@@ -2,6 +2,25 @@
 
 Translations are split into **namespaces** so that only the keys needed for a given set of pages are loaded. The default namespace is `common`; additional namespaces (e.g. `pbac`) are loaded on demand via `I18nExtend` in a route layout.
 
+## Naming Convention
+
+Namespace file names are based on the **App Router route group** they serve, using underscores as separators:
+
+```
+/settings/platform/*          → settings_platform.json
+/settings/developer/oauth      → settings_developer_oauth.json
+/settings/admin/oauth          → settings_admin_oauth.json
+/insights/*                    → insights.json
+/settings/organizations/roles  → settings_organizations_roles.json
+```
+
+**Rules:**
+
+1. **Mirror the route path.** Convert `/` segments to `_` — e.g. `/settings/developer/oauth` → `settings_developer_oauth`.
+2. **Top-level route groups use a single name.** If the feature owns an entire top-level route (e.g. `/insights`), just use that name: `insights.json`.
+3. **Keep it per-route, not per-package.** Even if the feature code lives in `packages/features/{feature}`, the namespace file name should reflect the route where it is consumed, not the package path.
+4. **Use lowercase with underscores only.** No hyphens, no camelCase — e.g. `settings_admin_oauth.json`, not `settings-admin-oauth.json`.
+
 ## Files to update when adding a namespace
 
 All steps reference a new namespace called `example`.
@@ -94,6 +113,17 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
 | 2 | `packages/i18n/englishTranslations.ts` | Register English fallback |
 | 3 | `app/**/layout.tsx` | Add `I18nExtend` layout for routes that use the namespace |
 | 4 | `i18n.json` | Add to Lingo.dev automated translations |
+
+## Current namespaces
+
+| Namespace | File | Route(s) | Keys |
+|-----------|------|----------|------|
+| `common` | `common.json` | All pages (default) | ~2000+ |
+| `pbac` | `pbac.json` | `/settings/organizations/roles` | 124 |
+| `settings_platform` | `settings_platform.json` | `/settings/platform/*` | 5 |
+| `settings_developer_oauth` | `settings_developer_oauth.json` | `/settings/developer/oauth` | 9 |
+| `settings_admin_oauth` | `settings_admin_oauth.json` | `/settings/admin/oauth`, `/settings/admin/workspace-platforms` | 18 |
+| `insights` | `insights.json` | `/insights/*` | 21 |
 
 ## How it works at runtime
 
