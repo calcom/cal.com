@@ -41,7 +41,7 @@ import {
   Query,
   Logger,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -66,6 +66,7 @@ export type EventTypeHandlerResponse = {
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsEventTypesController {
   private readonly logger = new Logger("OrganizationsEventTypesController");
 
@@ -136,6 +137,7 @@ export class OrganizationsEventTypesController {
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
   @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
   @ApiOperation({ summary: "Create a phone call" })
+  @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
     @Param("orgId", ParseIntPipe) orgId: number,
