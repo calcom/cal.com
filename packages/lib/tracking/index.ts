@@ -1,6 +1,1 @@
-export {
-  getTrackingFromCookies,
-  type TrackingData,
-  type GoogleAdsTrackingData,
-  type LinkedInAdsTrackingData,
-} from "./server";
+export { getTrackingFromCookies, type TrackingData } from "./server";

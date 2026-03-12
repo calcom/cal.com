@@ -138,14 +138,7 @@ const handler = async (
     metadata: {
       email /* Stripe customer email can be changed, so we add this to keep track of which email was used to signup */,
       username,
-      ...(tracking.googleAds?.gclid && {
-        gclid: tracking.googleAds.gclid,
-        campaignId: tracking.googleAds.campaignId,
-      }),
-      ...(tracking.linkedInAds?.liFatId && {
-        liFatId: tracking.linkedInAds.liFatId,
-        linkedInCampaignId: tracking.linkedInAds.campaignId,
-      }),
+      ...tracking,
     },
   });
 

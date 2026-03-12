@@ -12,23 +12,7 @@ const utmTrackingDataSchema = z.object({
   landing_page: z.string().optional(),
 });
 
-export type GoogleAdsTrackingData = {
-  gclid: string;
-  campaignId?: string;
-};
-
-export type LinkedInAdsTrackingData = {
-  liFatId: string;
-  campaignId?: string;
-};
-
-export type UtmTrackingData = z.infer<typeof utmTrackingDataSchema>;
-
-export type TrackingData = {
-  googleAds?: GoogleAdsTrackingData;
-  linkedInAds?: LinkedInAdsTrackingData;
-  utmData?: UtmTrackingData;
-};
+export type TrackingData = Record<string, string | undefined>;
 
 export function getTrackingFromCookies(
   cookies?: NextApiRequest["cookies"],
@@ -37,29 +21,32 @@ export function getTrackingFromCookies(
   const tracking: TrackingData = {};
 
   if (process.env.GOOGLE_ADS_ENABLED === "1" && cookies?.gclid) {
-    tracking.googleAds = {
-      gclid: cookies.gclid,
-      ...(cookies.gad_campaignId && { campaignId: cookies.gad_campaignId }),
-    };
+    tracking.gclid = cookies.gclid;
+    if (cookies?.gad_campaignId) {
+      tracking.campaignId = cookies.gad_campaignId;
+    }
   }
 
   if (process.env.LINKEDIN_ADS_ENABLED === "1" && cookies?.li_fat_id) {
-    tracking.linkedInAds = {
-      liFatId: cookies.li_fat_id,
-      ...(cookies.li_campaignId && { campaignId: cookies.li_campaignId }),
-    };
+    tracking.liFatId = cookies.li_fat_id;
+    if (cookies?.li_campaignId) {
+      tracking.linkedInCampaignId = cookies.li_campaignId;
+    }
   }
 
-  const parseUtm = (input: unknown): UtmTrackingData | null => {
+  const parseUtm = (input: unknown): Record<string, string> | null => {
     const parsed = utmTrackingDataSchema.safeParse(input);
     if (!parsed.success) return null;
 
-    return Object.fromEntries(
-      Object.entries(parsed.data).filter(([_, value]) => value !== undefined)
-    ) as UtmTrackingData;
+    const entries = Object.entries(parsed.data).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined
+    );
+    if (entries.length === 0) return null;
+
+    return Object.fromEntries(entries);
   };
 
-  let utmData: UtmTrackingData | null = null;
+  let utmData: Record<string, string> | null = null;
 
   if (query && Object.keys(query).length > 0) {
     utmData = parseUtm(query);
@@ -74,7 +61,7 @@ export function getTrackingFromCookies(
   }
 
   if (utmData) {
-    tracking.utmData = utmData;
+    Object.assign(tracking, utmData);
   }
 
   return tracking;

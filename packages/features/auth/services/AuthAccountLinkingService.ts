@@ -418,15 +418,7 @@ export class AuthAccountLinkingService {
               metadata: {
                 email: newUser.email,
                 username: newUser.username ?? newUsername,
-                ...(tracking?.googleAds?.gclid && {
-                  gclid: tracking.googleAds.gclid,
-                  campaignId: tracking.googleAds.campaignId,
-                }),
-                ...(tracking?.linkedInAds?.liFatId && {
-                  liFatId: tracking.linkedInAds.liFatId,
-                  linkedInCampaignId: tracking.linkedInAds.campaignId,
-                }),
-                ...(tracking?.utmData && tracking.utmData),
+                ...tracking,
               },
             });
             await this.deps.prisma.user.update({

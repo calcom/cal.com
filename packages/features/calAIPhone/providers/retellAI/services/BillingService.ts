@@ -83,14 +83,7 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
-        ...(tracking?.googleAds?.gclid && {
-          gclid: tracking.googleAds.gclid,
-          campaignId: tracking.googleAds.campaignId,
-        }),
-        ...(tracking?.linkedInAds?.liFatId && {
-          liFatId: tracking.linkedInAds.liFatId,
-          linkedInCampaignId: tracking.linkedInAds?.campaignId,
-        }),
+        ...tracking,
       },
       subscription_data: {
         metadata: {
