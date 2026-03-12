@@ -7,6 +7,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  IsTimeZone,
   ValidateNested,
 } from "class-validator";
 
@@ -19,7 +20,7 @@ export class CreateEventDateTimeWithZone {
   })
   time!: string;
 
-  @IsString()
+  @IsTimeZone()
   @ApiProperty({
     type: String,
     description: "IANA time zone (e.g. America/New_York)",
