@@ -445,3 +445,14 @@ export class GetUnifiedCalendarEventOutput {
   @ApiProperty({ type: UnifiedCalendarEventOutput })
   data!: UnifiedCalendarEventOutput;
 }
+
+export class ListUnifiedCalendarEventsOutput {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @ValidateNested({ each: true })
+  @Type(() => UnifiedCalendarEventOutput)
+  @ApiProperty({ type: [UnifiedCalendarEventOutput] })
+  data!: UnifiedCalendarEventOutput[];
+}
