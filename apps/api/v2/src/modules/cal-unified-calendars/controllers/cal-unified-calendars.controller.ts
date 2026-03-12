@@ -1,12 +1,4 @@
-import {
-  APPLE_CALENDAR,
-  APPLE_CALENDAR_TYPE,
-  GOOGLE_CALENDAR,
-  GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR,
-  OFFICE_365_CALENDAR_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
+import { GOOGLE_CALENDAR, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   BadRequestException,
   Body,
@@ -23,7 +15,6 @@ import {
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -37,28 +28,12 @@ import {
   GetUnifiedCalendarEventOutput,
   ListUnifiedCalendarEventsOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
-import {
-  CalendarConnectionItem,
-  ListConnectionsOutput,
-} from "@/modules/cal-unified-calendars/outputs/list-connections.output";
+import { ListConnectionsOutput } from "@/modules/cal-unified-calendars/outputs/list-connections.output";
 import { GoogleCalendarEventOutputPipe } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
+import { UnifiedCalendarsFreebusyService } from "@/modules/cal-unified-calendars/services/unified-calendars-freebusy.service";
 
-const UNIFIED_CALENDAR_PARAM = [GOOGLE_CALENDAR, OFFICE_365_CALENDAR, APPLE_CALENDAR] as const;
-
-const INTEGRATION_TYPE_TO_API: Record<string, "google" | "office365" | "apple"> = {
-  [GOOGLE_CALENDAR_TYPE]: GOOGLE_CALENDAR,
-  [OFFICE_365_CALENDAR_TYPE]: OFFICE_365_CALENDAR,
-  [APPLE_CALENDAR_TYPE]: APPLE_CALENDAR,
-};
-
-/** Shape returned by CalendarsService.getCalendars().connectedCalendars */
-interface ConnectedCalendarEntry {
-  credentialId: number;
-  integration: { type: string };
-  primary?: { externalId?: string; email?: string };
-  calendars?: Array<{ credentialId: number; externalId: string; isSelected: boolean }>;
-}
+const UNIFIED_CALENDAR_PARAM = ["google", "office365", "apple"] as const;
 
 @Controller({
   path: "/v2/calendars",
@@ -68,7 +43,7 @@ interface ConnectedCalendarEntry {
 export class CalUnifiedCalendarsController {
   constructor(
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly calendarsService: CalendarsService
+    private readonly freebusyService: UnifiedCalendarsFreebusyService
   ) {}
 
   @Get("connections")
@@ -81,23 +56,7 @@ export class CalUnifiedCalendarsController {
       "Returns all calendar connections for the authenticated user. Use connectionId in connection-scoped endpoints.",
   })
   async listConnections(@GetUser("id") userId: number): Promise<ListConnectionsOutput> {
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const connections: CalendarConnectionItem[] = (connectedCalendars as ConnectedCalendarEntry[])
-      .filter(
-        (c) =>
-          c.integration.type === GOOGLE_CALENDAR_TYPE ||
-          c.integration.type === OFFICE_365_CALENDAR_TYPE ||
-          c.integration.type === APPLE_CALENDAR_TYPE
-      )
-      .map((c) => {
-        const apiType = INTEGRATION_TYPE_TO_API[c.integration.type];
-        const email = c.primary?.externalId ?? c.primary?.email ?? null;
-        return {
-          connectionId: String(c.credentialId),
-          type: apiType ?? GOOGLE_CALENDAR,
-          email: email || null,
-        };
-      });
+    const connections = await this.freebusyService.getConnections(userId);
     return {
       status: SUCCESS_STATUS,
       data: { connections },
@@ -284,28 +243,9 @@ export class CalUnifiedCalendarsController {
       throw new BadRequestException("Invalid connectionId");
     }
     const timezone = query.timeZone ?? "UTC";
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const conn = (connectedCalendars as ConnectedCalendarEntry[]).find(
-      (c) => c.credentialId === credentialId
-    );
-    if (!conn) {
-      throw new BadRequestException("Calendar connection not found");
-    }
-    let calendarsToLoad = (conn.calendars ?? [])
-      .filter((cal) => cal.isSelected)
-      .map((cal) => ({
-        credentialId: cal.credentialId,
-        externalId: cal.externalId,
-      }));
-    if (calendarsToLoad.length === 0 && conn.primary?.externalId) {
-      calendarsToLoad = [{ credentialId: conn.credentialId, externalId: conn.primary.externalId ?? "" }];
-    }
-    if (calendarsToLoad.length === 0) {
-      return { status: SUCCESS_STATUS, data: [] };
-    }
-    const busyTimes = await this.calendarsService.getBusyTimes(
-      calendarsToLoad,
+    const busyTimes = await this.freebusyService.getBusyTimesForConnection(
       userId,
+      credentialId,
       query.from,
       query.to,
       timezone
@@ -506,20 +446,7 @@ export class CalUnifiedCalendarsController {
       );
     }
     const timezone = query.timeZone ?? "UTC";
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const googleCalendars = (connectedCalendars as ConnectedCalendarEntry[]).filter(
-      (c) => c.integration.type === GOOGLE_CALENDAR_TYPE
-    );
-    const calendarsToLoad = googleCalendars.flatMap((conn) =>
-      (conn.calendars ?? [])
-        .filter((cal) => cal.isSelected)
-        .map((cal) => ({ credentialId: cal.credentialId, externalId: cal.externalId }))
-    );
-    if (calendarsToLoad.length === 0) {
-      return { status: SUCCESS_STATUS, data: [] };
-    }
-    const busyTimes = await this.calendarsService.getBusyTimes(
-      calendarsToLoad,
+    const busyTimes = await this.freebusyService.getBusyTimesForGoogleCalendars(
       userId,
       query.from,
       query.to,

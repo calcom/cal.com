@@ -163,26 +163,29 @@ export class GoogleCalendarService {
 
   /**
    * Gets an authorized Google Calendar instance for the given user (for user-scoped list/create/delete).
+   * Tries delegated auth first (if available), then falls back to direct OAuth.
    */
   async getCalendarClientForUser(userId: number): Promise<calendar_v3.Calendar> {
-    const credential = await this.credentialsRepository.findCredentialByTypeAndUserId(
+    const credential = await this.credentialsRepository.findCredentialWithDelegationByTypeAndUserId(
       GOOGLE_CALENDAR_TYPE,
       userId
     );
-    if (!credential?.key) {
+    if (!credential) {
       throw new UnauthorizedException("Google Calendar is not connected for this user");
     }
     if (credential.invalid) {
       throw new UnauthorizedException("Google Calendar credentials are invalid. Please reconnect.");
     }
-    const parsed = OAuth2UniversalSchema.parse(credential.key);
-    const oAuth2Client = await this.gCalService.getOAuthClient(this.gCalService.redirectUri);
-    oAuth2Client.setCredentials(parsed);
-    return new calendar_v3.Calendar({ auth: oAuth2Client });
+    return this.getAuthorizedCalendarInstance(
+      credential.user?.email ?? undefined,
+      credential.key,
+      credential.delegationCredentialId ? { id: credential.delegationCredentialId } : null
+    );
   }
 
   /**
    * Gets an authorized Google Calendar instance for a specific credential (connection).
+   * Tries delegated auth first (if available), then falls back to direct OAuth.
    */
   async getCalendarClientByCredentialId(userId: number, credentialId: number): Promise<calendar_v3.Calendar> {
     const credential = await this.credentialsRepository.findCredentialByIdAndUserId(credentialId, userId);
@@ -194,16 +197,14 @@ export class GoogleCalendarService {
         "Event operations for this connection are currently only available for Google Calendar"
       );
     }
-    if (!credential.key) {
-      throw new UnauthorizedException("Calendar credentials are not available for this connection");
-    }
     if (credential.invalid) {
       throw new UnauthorizedException("Calendar credentials are invalid. Please reconnect.");
     }
-    const parsed = OAuth2UniversalSchema.parse(credential.key);
-    const oAuth2Client = await this.gCalService.getOAuthClient(this.gCalService.redirectUri);
-    oAuth2Client.setCredentials(parsed);
-    return new calendar_v3.Calendar({ auth: oAuth2Client });
+    return this.getAuthorizedCalendarInstance(
+      credential.user?.email ?? undefined,
+      credential.key,
+      credential.delegationCredentialId ? { id: credential.delegationCredentialId } : null
+    );
   }
 
   // ─── Shared private helpers (DRY calendar CRUD) ──────────────────────

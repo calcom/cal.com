@@ -62,6 +62,21 @@ export class CredentialsRepository {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
 
+  /** Find a user's credential by type with delegation info (for unified calendar API). */
+  findCredentialWithDelegationByTypeAndUserId(type: string, userId: number) {
+    return this.dbWrite.prisma.credential.findFirst({
+      where: { type, userId },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        invalid: true,
+        delegationCredentialId: true,
+        user: { select: { email: true } },
+      },
+    });
+  }
+
   findAllCredentialsByTypeAndUserId(type: string, userId: number) {
     return this.dbWrite.prisma.credential.findMany({ where: { type, userId } });
   }
@@ -149,6 +164,7 @@ export class CredentialsRepository {
         type: true,
         key: true,
         invalid: true,
+        delegationCredentialId: true,
         user: { select: { email: true } },
       },
     });

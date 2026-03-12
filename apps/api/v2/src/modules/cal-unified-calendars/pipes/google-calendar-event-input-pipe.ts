@@ -1,14 +1,13 @@
-import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { Injectable } from "@nestjs/common";
-
 import {
-  UpdateUnifiedCalendarEventInput,
   UpdateDateTimeWithZone,
+  UpdateUnifiedCalendarEventInput,
 } from "../inputs/update-unified-calendar-event.input";
 import {
   CalendarEventResponseStatus,
   CalendarEventStatus,
 } from "../outputs/get-unified-calendar-event.output";
+import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 
 // Common interfaces for Google Calendar types
 interface GoogleCalendarDateTime {

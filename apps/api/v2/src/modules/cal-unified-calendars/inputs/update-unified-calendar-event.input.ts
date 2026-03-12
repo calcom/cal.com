@@ -1,10 +1,9 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
-
+import { IsArray, IsEnum, IsISO8601, IsOptional, IsString, ValidateNested } from "class-validator";
 import {
-  CalendarEventStatus,
   CalendarEventResponseStatus,
+  CalendarEventStatus,
 } from "../outputs/get-unified-calendar-event.output";
 
 export class UpdateCalendarEventAttendee {
