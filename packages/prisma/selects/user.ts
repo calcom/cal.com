@@ -19,6 +19,7 @@ export const availabilityUserSelect = {
           startTime: true,
           endTime: true,
           days: true,
+          targetTimeZones: true,
         },
       },
       timeZone: true,

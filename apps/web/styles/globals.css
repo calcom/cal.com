@@ -801,3 +801,17 @@ select:focus {
 .dark .offer-moving-bg .icon {
   color: #000000 !important;
 }
+
+.yourname-progress-fill {
+  background-color: var(--cal-brand, var(--cal-bg-active));
+  animation: yourname-progress-fill 5s linear forwards;
+}
+
+@keyframes yourname-progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}

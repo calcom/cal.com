@@ -147,13 +147,28 @@ const OnboardingPage = (props: PageProps) => {
 
     if (data) {
       window.dataLayer = window.dataLayer || [];
+
       const gtmEvent = {
-        event: data.identityProvider === "GOOGLE" ? "gmail_onboarding_success" : "email_onboarding_success",
-        signup_method: data.identityProvider === "GOOGLE" ? "google" : "email",
+        event:
+          data.metadata.signupSource === "google-one-tap"
+            ? "google_one_tap_onboarding_success"
+            : data.identityProvider === "GOOGLE"
+            ? "gmail_onboarding_success"
+            : "email_onboarding_success",
+        signup_method:
+          data.metadata.signupSource === "google-one-tap"
+            ? "onetap"
+            : data.identityProvider === "GOOGLE"
+            ? "google"
+            : "email",
         user_name: data.username,
         full_name: data.name,
         email_address: data.email,
       };
+
+      if (!data.completedOnboarding) {
+        window.dataLayer.push(gtmEvent);
+      }
 
       if (
         typeof window !== "undefined" &&
@@ -169,10 +184,6 @@ const OnboardingPage = (props: PageProps) => {
         } catch (error) {
           console.error("Error identifying user with CIO Analytics:", error);
         }
-      }
-
-      if (!data.completedOnboarding) {
-        window.dataLayer.push(gtmEvent);
       }
     }
     // After creating the default schedule, complete the onboarding with a generic bio
@@ -257,7 +268,11 @@ const OnboardingPage = (props: PageProps) => {
               )}
 
               {currentStep === "connected-video" && (
-                <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                <ConnectedVideoStep
+                  nextStep={goToNextStep}
+                  isPageLoading={isNextStepLoading}
+                  userId={user?.id}
+                />
               )}
             </Suspense>
           </StepCard>

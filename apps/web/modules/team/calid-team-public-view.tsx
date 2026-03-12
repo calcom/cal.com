@@ -1,4 +1,5 @@
 "use client";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 
 import { getDefaultAvatar } from "@calid/features/lib/defaultAvatar";
 import { Branding } from "@calid/features/ui/Branding";
@@ -202,6 +203,12 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
+      <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: generateBrandColorStyles(team?.brandColor, team?.darkBrandColor),
+        }}
+      />
       <main className="bg-default h-full w-full">
         <div
           className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"

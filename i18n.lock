@@ -15,7 +15,8 @@ checksums:
     configure_your_webhook: 06d812c96c4044447ef7f5daccfaff0c
     select_whatsapp_template: fe2229611d56bcd4e4c368bc9a6a5ddd
     workflow_status: 397e1a0d0cc711f24a5890192399c29e
-    workflow_reminders: afd5d3684ba7c3aa74712e4dfb439281
+    select_attendee_for_their_workflow_status: 53b11c18795b55ef3410705328b61924
+    workflow_status_description: 1a6d08787724e6195c036354f0acedc3
     pw_check_least_char: 142d03d1e2ad95e34ca82bb7f4b3f0ef
     pw_check_mix_case: b66a6c17ec847027bcd25b861f97ddf4
     pw_check_number: 4394176451bc12fb0caafc71c63de0b7
@@ -94,7 +95,7 @@ checksums:
     view: 36a9b5e3dc153c036d320460d72a03c3
     calendly_import: 7b8033e9fa1391119622e24e3622b5e9
     calendly_authorized: 33b06154fbb28483aa9bac05236d7809
-    notify_calendly_import: b2cf371e257b9d2e666de12391c75d4b
+    notify_calendly_import: 1c0acf89aa91c350afcf62b06b335b9d
     schedule: a75428cb811bc50150cecde090a3a0d5
     choose_a_meeting_type: 6081a8e3db8b82f632d8434c186095b4
     choose_a_team_member: a8910554dcd2ca1e579ddbb397ae4193
@@ -3752,9 +3753,19 @@ checksums:
     claim_username_no_card_required: cb30ec684f1dddfb921524b81510ce1d
     claim_username_instant_setup_title: 26d07881262f7b62e6fc52eb11b2f84b
     claim_username_instant_setup_description: 80b9dea06c365e0778c838f187d9f605
-    claim_username_trusted_by_professionals_title: e5c2fd33438875d603f791c1350ae7d7
-    claim_username_trusted_by_professionals_description: 531b5b61ec2b2b2899fc5a86531a8b2a
+    claim_username_trusted_by_professionals_title: fe42f97809c24d700d3912c8d02ed452
+    claim_username_trusted_by_professionals_description: 51e7ee442baf3e5ee36ec0e061bcd25d
     claim_username_yours_forever_title: ac852df940b86b0ce4a00d8e653fda02
     claim_username_yours_forever_description: 951b747e0f49e8c51c5568298c818382
     workflow_trigger: 9491a3c411c62187e75a887b6ee0c829
     worflow_trigger_channel: f17d1e60675ab8ccd347f195e59557be
+    yourname_title_page: 4bd7f31f82215d662722802b501b0901
+    yourname_description_page: caf2f2d0cde22145c6ef59e7401dc34c
+    yourname_title: 6567a23a27526071a951f05f96cb86d3
+    yourname_description: 6f948b6f9eb5164f2c3a8cda6b1d1828
+    smart_suggestions: 28b36048fd93a771131a2618a937f7ca
+    loading_suggestions: d930147165bb4b773de2343b41395b6a
+    shuffle: 4a972b43fe5a0b4b8ebda2dc165f3a1c
+    congratulations: adc7ca44f1d54c317491f1ba16750149
+    redirecting_in: e07f24ab81da60172cf248389e0fc14d
+    yourname_reserved: 4d7d8e992774e39a3ffb56088ca95b36

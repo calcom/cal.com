@@ -1,0 +1,17 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2015",
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "declaration": true,
+    "jsx": "preserve",
+    "outDir": "dist",
+    "paths": {
+      "@calid/embed-runtime": ["../embed-runtime/src"],
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "env.d.ts", "*.tsx", "*.ts"],
+  "exclude": ["**/node_modules/**", "test"]
+}

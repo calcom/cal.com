@@ -3,6 +3,7 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import { filterAvailabilityByBookerTimezone } from "@calcom/lib/availability";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
@@ -138,6 +139,7 @@ const _ensureAvailableUsers = async (
               startTime: true,
               endTime: true,
               date: true,
+              targetTimeZones: true,
             },
           },
           user: {
@@ -173,12 +175,16 @@ const _ensureAvailableUsers = async (
         throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
       }
 
-      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
-        days: rule.days,
-        startTime: rule.startTime,
-        endTime: rule.endTime,
-        date: rule.date,
-      }));
+      const restrictionAvailability = filterAvailabilityByBookerTimezone(
+        restrictionSchedule.availability.map((rule) => ({
+          days: rule.days,
+          startTime: rule.startTime,
+          endTime: rule.endTime,
+          date: rule.date,
+          targetTimeZones: rule.targetTimeZones,
+        })),
+        input.timeZone
+      );
 
       const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
       const travelSchedules =

@@ -14,5 +14,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "dirName": "pipedrive-crm"
+  "dirName": "pipedrive-crm",
+  "owner_scoped_installation": true
 }

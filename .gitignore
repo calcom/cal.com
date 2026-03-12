@@ -99,3 +99,7 @@ apps/auth
 i18n.cache
 
 /.secrets
+
+# yalc
+.yalc/
+.yalc.lock

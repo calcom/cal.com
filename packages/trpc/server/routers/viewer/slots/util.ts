@@ -9,6 +9,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { filterAvailabilityByBookerTimezone } from "@calcom/lib/availability";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -856,6 +857,7 @@ export class AvailableSlotsService {
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
         shouldServeCache,
+        timeZone: input.timeZone,
       },
       initialData: {
         eventType,
@@ -1131,12 +1133,16 @@ export class AvailableSlotsService {
           : restrictionSchedule.timeZone!;
         const eventLength = input.duration || eventType.length;
 
-        const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
-          days: rule.days,
-          startTime: rule.startTime,
-          endTime: rule.endTime,
-          date: rule.date,
-        }));
+        const restrictionAvailability = filterAvailabilityByBookerTimezone(
+          restrictionSchedule.availability.map((rule) => ({
+            days: rule.days,
+            startTime: rule.startTime,
+            endTime: rule.endTime,
+            date: rule.date,
+            targetTimeZones: rule.targetTimeZones,
+          })),
+          input.timeZone
+        );
 
         // Include travel schedules if restriction schedule is the user's default schedule
         const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
