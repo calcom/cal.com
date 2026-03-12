@@ -400,7 +400,11 @@ const cleanMetadataAllowedUpdateKeys = (metadata: TCalIdUpdateProfileInputSchema
 };
 
 const handleUserMetadata = async ({ ctx, input }: CalIdUpdateProfileOptions) => {
-  const { user } = ctx;
+  const user = await prisma.user.findUnique({
+    where: { id: ctx.user.id },
+    select: { metadata: true },
+  });
+
   const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
   const userMetadata = userMetadataSchema.parse(user.metadata);
 
@@ -414,7 +418,7 @@ const handleUserMetadata = async ({ ctx, input }: CalIdUpdateProfileOptions) => 
       const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
       cleanMetadata.headerUrl = await uploadHeader({
         banner: headerUrl,
-        userId: user.id,
+        userId: ctx.user.id,
       });
     } else if (cleanMetadata.headerUrl === null) {
       // Explicit clear

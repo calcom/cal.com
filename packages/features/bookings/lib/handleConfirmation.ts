@@ -42,6 +42,7 @@ export async function handleConfirmation(args: {
   bookingId: number;
   booking: {
     startTime: Date;
+    endTime: Date;
     id: number;
     eventType: {
       currency: string;
@@ -105,9 +106,56 @@ export async function handleConfirmation(args: {
     evt.recurringEvent = bookingRecurringEvent;
   }
 
-  const eventManager = new EventManager(user, apps);
-  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  // Check for conflicts and update booking status atomically before any side effects
+  await prisma.$transaction(async (tx) => {
+    // Lock the USER row - always exists, serializes ALL confirmations for this user
+    await tx.$queryRaw`
+    SELECT id FROM "users"
+    WHERE id = ${booking.userId}
+    FOR UPDATE
+    `;
+    const conflictingBooking = await tx.booking.findFirst({
+      where: {
+        userId: booking.userId,
+        status: BookingStatus.ACCEPTED,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        id: { not: bookingId },
+      },
+      select: { id: true },
+    });
+
+    if (conflictingBooking) {
+      throw new Error("This time slot is already occupied");
+    }
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.ACCEPTED },
+    });
+  });
+
+  let scheduleResult: any;
+
+  try {
+    // External API calls happen after lock is released
+    const eventManager = new EventManager(user, apps);
+    const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+    scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+
+    if (!scheduleResult) {
+      throw new Error("Booking couldn't be scheduled");
+    }
+  } catch (e) {
+    // If event manager couldnt create event (e.g. due to calendar API failure), revert booking status to PENDING so it can be retried later
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.PENDING },
+    });
+
+    throw e;
+  }
+
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllCalIdWorkflowsFromEventType(eventType, booking.userId);
@@ -206,7 +254,6 @@ export async function handleConfirmation(args: {
       id: bookingId,
     },
     data: {
-      status: BookingStatus.ACCEPTED,
       references: {
         create: scheduleResult.referencesToCreate,
       },

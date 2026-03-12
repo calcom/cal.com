@@ -207,12 +207,14 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             notification.booking.eventType?.team?.parentId ?? organizerOrgId ?? null
           );
 
+          // TODO: Use `constructVariablesForTemplate` function to construct variables for custom template rendering to avoid duplication of logic
           const templateVariables: VariablesType = {
             eventName: notification.booking.eventType?.title || "",
             organizerName: notification.booking.user?.name || "",
             attendeeName: notification.booking.attendees[0].name,
             attendeeEmail: notification.booking.attendees[0].email,
             eventDate: dayjs(notification.booking.startTime).tz(userTimeZone),
+            eventStartTime: dayjs(notification.booking.startTime).tz(userTimeZone),
             eventEndTime: dayjs(notification.booking?.endTime).tz(userTimeZone),
             timezone: userTimeZone,
             location: notification.booking.location || "",
