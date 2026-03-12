@@ -205,6 +205,32 @@ describe("CalUnifiedCalendarsController", () => {
         BadRequestException
       );
     });
+
+    it("should use custom calendarId when provided", async () => {
+      const mockEvent = {
+        id: "new-event-id",
+        status: "confirmed",
+        summary: "New Event",
+        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
+        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
+        organizer: { email: "user@gmail.com" },
+      };
+      mockGoogleCalendarService.createEventForUserByConnectionId.mockResolvedValue(mockEvent);
+
+      await controller.createConnectionEvent(
+        "10",
+        userId,
+        body,
+        "custom@group.calendar.google.com"
+      );
+
+      expect(mockGoogleCalendarService.createEventForUserByConnectionId).toHaveBeenCalledWith(
+        userId,
+        10,
+        "custom@group.calendar.google.com",
+        body
+      );
+    });
   });
 
   describe("getConnectionEvent", () => {

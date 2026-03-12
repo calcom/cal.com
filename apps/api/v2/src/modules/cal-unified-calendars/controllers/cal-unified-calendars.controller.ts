@@ -112,10 +112,12 @@ export class CalUnifiedCalendarsController {
     summary: "Create event on a connection",
     description: "Create a new event on the specified calendar connection.",
   })
+  @ApiQuery({ name: "calendarId", required: false, type: String })
   async createConnectionEvent(
     @Param("connectionId") connectionId: string,
     @GetUser("id") userId: number,
-    @Body() body: CreateUnifiedCalendarEventInput
+    @Body() body: CreateUnifiedCalendarEventInput,
+    @Query("calendarId") calendarId?: string
   ): Promise<GetUnifiedCalendarEventOutput> {
     const credentialId = parseInt(connectionId, 10);
     if (Number.isNaN(credentialId)) {
@@ -124,7 +126,7 @@ export class CalUnifiedCalendarsController {
     const event = await this.googleCalendarService.createEventForUserByConnectionId(
       userId,
       credentialId,
-      "primary",
+      calendarId ?? "primary",
       body
     );
     const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
