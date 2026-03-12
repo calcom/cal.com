@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: 'main'
+          ref: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Configure git
@@ -33,4 +33,4 @@ jobs:
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
 
-      - run: git push origin +main:production
+      - run: git push origin +HEAD:production
