@@ -6,24 +6,31 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Checkbox, TextField } from "@calcom/ui/components/form";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@coss/ui/components/avatar";
+import { Button } from "@coss/ui/components/button";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
 import {
   Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetBody,
+  SheetClose,
   SheetFooter,
-} from "@calcom/ui/components/sheet";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
+  SheetHeader,
+  SheetPanel,
+  SheetPopup,
+  SheetTitle,
+} from "@coss/ui/components/sheet";
+import { Checkbox } from "@coss/ui/components/checkbox";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { toastManager } from "@coss/ui/components/toast";
 
 type Flag = RouterOutputs["viewer"]["features"]["list"][number];
 
 interface AssignFeatureSheetProps {
-  flag: Flag;
+  flag: Flag | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -37,12 +44,12 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
     trpc.viewer.admin.getTeamsForFeature.useInfiniteQuery(
       {
-        featureId: flag.slug,
+        featureId: flag?.slug ?? "",
         limit: 20,
         searchTerm: debouncedSearchTerm || undefined,
       },
       {
-        enabled: open,
+        enabled: open && !!flag,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
@@ -57,25 +64,26 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
 
   const assignMutation = trpc.viewer.admin.assignFeatureToTeam.useMutation({
     onSuccess: () => {
-      utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
-      showToast(t("feature_assigned_successfully"), "success");
+      if (flag) utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
+      toastManager.add({ title: t("feature_assigned_successfully"), type: "success" });
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      toastManager.add({ title: err.message, type: "error" });
     },
   });
 
   const unassignMutation = trpc.viewer.admin.unassignFeatureFromTeam.useMutation({
     onSuccess: () => {
-      utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
-      showToast(t("feature_unassigned_successfully"), "success");
+      if (flag) utils.viewer.admin.getTeamsForFeature.invalidate({ featureId: flag.slug });
+      toastManager.add({ title: t("feature_unassigned_successfully"), type: "success" });
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      toastManager.add({ title: err.message, type: "error" });
     },
   });
 
   const handleToggleTeam = (teamId: number, currentlyHasFeature: boolean) => {
+    if (!flag) return;
     if (currentlyHasFeature) {
       unassignMutation.mutate({
         teamId,
@@ -89,116 +97,82 @@ export function AssignFeatureSheet({ flag, open, onOpenChange }: AssignFeatureSh
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
-  };
-
   const isLoading = assignMutation.isPending || unassignMutation.isPending;
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="bg-cal-muted">
-        <SheetHeader>
-          <SheetTitle>Assign: {flag.slug}</SheetTitle>
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetPopup variant="inset" showCloseButton={false}>
+        <SheetHeader className="gap-3">
+          <SheetTitle>Assign: {flag?.slug}</SheetTitle>
+          <Input
+            onChange={(e) => setSearchTerm(e.currentTarget.value)}
+            placeholder={t("search")}
+            value={searchTerm}
+          />
         </SheetHeader>
-        <SheetBody>
-          <div className="mb-4">
-            <TextField
-              type="text"
-              placeholder={t("search")}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          {isPending ? (
-            <SkeletonContainer>
-              <div className="stack-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <SkeletonText key={i} className="h-16 w-full" />
-                ))}
-              </div>
-            </SkeletonContainer>
-          ) : teams && teams.length > 0 ? (
-            <>
-              <div className="stack-y-2">
-                {teams.map((team) => (
-                  <button
-                    key={team.id}
-                    type="button"
-                    onClick={() => handleToggleTeam(team.id, team.hasFeature)}
-                    disabled={isLoading}
-                    className="bg-default border-subtle hover:bg-cal-muted flex w-full items-center justify-between rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        {team.isOrganization ? (
-                          <div className="h-8 w-8 overflow-hidden rounded">
-                            {team.logoUrl ? (
-                              <img
-                                src={team.logoUrl}
-                                alt={team.name || ""}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-xs font-semibold">
-                                {team.name?.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Avatar size="sm" alt={team.name || ""} imageSrc={team.logoUrl} />
-                        )}
-                        {team.parent && team.parentId && (
-                          <div className="border-emphasis absolute -bottom-1 -right-1 h-4 w-4 overflow-hidden rounded border">
-                            {team.parent.logoUrl ? (
-                              <img
-                                src={team.parent.logoUrl}
-                                alt={team.parent.name || ""}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="bg-emphasis text-default flex h-full w-full items-center justify-center text-[8px] font-semibold">
-                                {team.parent.name?.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-emphasis text-sm font-medium">{team.name}</p>
-                        {team.slug && <p className="text-subtle text-xs">{team.slug}</p>}
-                        {team.parent && (
-                          <p className="text-subtle text-xs">
-                            {t("organization")}: {team.parent.name}
+        <SheetPanel className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            {isPending && !debouncedSearchTerm ? (
+              [...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))
+            ) : teams && teams.length > 0 ? (
+              <>
+                {teams.map((team) => {
+                  const checkboxId = `assign-flag-team-${team.id}`;
+
+                  return (
+                    <Label
+                      className="flex items-center justify-between gap-6 rounded-lg border p-3 hover:bg-accent/50 has-data-checked:border-primary/48 has-data-checked:bg-accent/50"
+                      htmlFor={checkboxId}
+                      key={team.id}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar className="size-8">
+                          {team.logoUrl && (
+                            <AvatarImage alt={team.name || ""} src={team.logoUrl} />
+                          )}
+                          <AvatarFallback>
+                            {team.name?.charAt(0).toUpperCase() ?? ""}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="truncate font-medium text-sm">{team.name}</p>
+                          <p className="truncate text-muted-foreground text-xs">
+                            {team.slug ?? (team.parent ? `${t("organization")}: ${team.parent.name}` : "")}
                           </p>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                    <Checkbox checked={team.hasFeature} disabled={isLoading} onCheckedChange={() => {}} />
-                  </button>
-                ))}
-              </div>
-              {hasNextPage && (
-                <div className="mt-4 flex justify-center">
+                      <Checkbox
+                        checked={team.hasFeature}
+                        disabled={isLoading}
+                        id={checkboxId}
+                        onCheckedChange={(checked) =>
+                          handleToggleTeam(team.id, checked !== true)
+                        }
+                      />
+                    </Label>
+                  );
+                })}
+                {hasNextPage && (
                   <Button
-                    color="secondary"
+                    className="w-full"
+                    disabled={isFetchingNextPage}
                     onClick={() => fetchNextPage()}
-                    loading={isFetchingNextPage}
-                    disabled={isFetchingNextPage}>
-                    {t("load_more")}
+                    variant="outline">
+                    {isFetchingNextPage ? t("loading") : t("load_more_results")}
                   </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-subtle text-center text-sm">{t("no_teams_found")}</p>
-          )}
-        </SheetBody>
+                )}
+              </>
+            ) : (
+              <p className="text-muted-foreground text-center text-sm py-6">{t("no_teams_found", "No teams found")}</p>
+            )}
+          </div>
+        </SheetPanel>
         <SheetFooter>
-          <Button color="secondary" onClick={handleClose}>
-            {t("close")}
-          </Button>
+          <SheetClose render={<Button variant="ghost" />}>{t("close")}</SheetClose>
         </SheetFooter>
-      </SheetContent>
+      </SheetPopup>
     </Sheet>
   );
 }

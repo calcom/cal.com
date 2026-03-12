@@ -2,13 +2,29 @@ import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { PanelCard } from "@calcom/ui/components/card";
-import { Switch } from "@calcom/ui/components/form";
-import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/components/list";
-import { List } from "@calcom/ui/components/list";
-import { showToast } from "@calcom/ui/components/toast";
+import { ChevronDownIcon, UsersIcon } from "@coss/ui/icons";
+import { Button } from "@coss/ui/components/button";
+import { Frame, FrameHeader, FramePanel } from "@coss/ui/components/frame";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@coss/ui/components/collapsible";
+import {
+  ListItem,
+  ListItemActions,
+  ListItemContent,
+  ListItemDescription,
+  ListItemHeader,
+  ListItemTitle,
+} from "@coss/ui/shared/list-item";
+import { Switch } from "@coss/ui/components/switch";
+import {
+  Tooltip,
+  TooltipPopup,
+  TooltipTrigger,
+} from "@coss/ui/components/tooltip";
+import { toastManager } from "@coss/ui/components/toast";
 
 import { AssignFeatureSheet } from "./AssignFeatureSheet";
 
@@ -31,65 +47,111 @@ export const FlagAdminList = () => {
 
   const sortedTypes = Object.keys(groupedFlags).sort();
 
-  const handleAssignClick = (flag: Flag) => {
+  const handleAssignUsers = (flag: Flag) => {
     setSelectedFlag(flag);
     setSheetOpen(true);
   };
 
+  const utils = trpc.useUtils();
+  const toggleMutation = trpc.viewer.admin.toggleFeatureFlag.useMutation({
+    onSuccess: () => {
+      toastManager.add({ title: "Flags successfully updated", type: "success" });
+      utils.viewer.features.list.invalidate();
+      utils.viewer.features.map.invalidate();
+    },
+  });
+
+  const handleToggle = (flag: Flag, checked: boolean) => {
+    toggleMutation.mutate({ slug: flag.slug, enabled: checked });
+  };
+
   return (
     <>
-      <div className="stack-y-4">
+      <div className="flex flex-col gap-4">
         {sortedTypes.map((type) => (
-          <PanelCard key={type} title={type.replace(/_/g, " ")} collapsible defaultCollapsed={false}>
-            <List roundContainer noBorderTreatment>
-              {groupedFlags[type].map((flag: Flag, index: number) => (
-                <ListItem key={flag.slug} rounded={index === 0 || index === groupedFlags[type].length - 1}>
-                  <div className="flex flex-1 flex-col">
-                    <ListItemTitle component="h3">{flag.slug}</ListItemTitle>
-                    <ListItemText component="p">{flag.description}</ListItemText>
-                  </div>
-                  <div className="flex items-center gap-2 py-2">
-                    <FlagToggle flag={flag} />
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      variant="icon"
-                      onClick={() => handleAssignClick(flag)}
-                      StartIcon="users"></Button>
-                  </div>
-                </ListItem>
-              ))}
-            </List>
-          </PanelCard>
+          <FlagGroup
+            key={type}
+            flags={groupedFlags[type]}
+            type={type.replace(/_/g, " ")}
+            onAssignUsers={handleAssignUsers}
+            onToggle={handleToggle}
+          />
         ))}
       </div>
-      {selectedFlag && (
-        <AssignFeatureSheet flag={selectedFlag} open={sheetOpen} onOpenChange={setSheetOpen} />
-      )}
+      <AssignFeatureSheet flag={selectedFlag} open={sheetOpen} onOpenChange={setSheetOpen} />
     </>
   );
 };
 
 type Flag = RouterOutputs["viewer"]["features"]["list"][number];
 
-const FlagToggle = (props: { flag: Flag }) => {
-  const {
-    flag: { slug, enabled },
-  } = props;
-  const utils = trpc.useUtils();
-  const mutation = trpc.viewer.admin.toggleFeatureFlag.useMutation({
-    onSuccess: () => {
-      showToast("Flags successfully updated", "success");
-      utils.viewer.features.list.invalidate();
-      utils.viewer.features.map.invalidate();
-    },
-  });
+interface FlagGroupProps {
+  type: string;
+  flags: Flag[];
+  onAssignUsers: (flag: Flag) => void;
+  onToggle: (flag: Flag, checked: boolean) => void;
+}
+
+function FlagGroup({ type, flags, onAssignUsers, onToggle }: FlagGroupProps) {
   return (
-    <Switch
-      defaultChecked={enabled}
-      onCheckedChange={(checked) => {
-        mutation.mutate({ slug, enabled: checked });
-      }}
-    />
+    <Frame>
+      <Collapsible defaultOpen>
+        <FrameHeader className="flex flex-row items-center justify-between px-2 py-2">
+          <CollapsibleTrigger
+            className="data-panel-open:[&_svg]:rotate-180"
+            render={<Button variant="ghost" />}
+          >
+            <ChevronDownIcon aria-hidden="true" />
+            <span className="lowercase first-line:capitalize">{type}</span>
+          </CollapsibleTrigger>
+        </FrameHeader>
+        <CollapsiblePanel>
+          <FramePanel className="p-0">
+            {flags.map((flag) => (
+              <ListItem key={flag.slug}>
+                <ListItemContent>
+                  <ListItemHeader>
+                    <ListItemTitle>{flag.slug}</ListItemTitle>
+                    <ListItemDescription>{flag.description}</ListItemDescription>
+                  </ListItemHeader>
+                </ListItemContent>
+                <ListItemActions>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Switch
+                          aria-label={`Toggle ${flag.slug} feature flag`}
+                          defaultChecked={flag.enabled}
+                          onCheckedChange={(checked) => onToggle(flag, checked)}
+                        />
+                      }
+                    />
+                    <TooltipPopup sideOffset={11}>
+                      {flag.enabled ? "Disable flag" : "Enable flag"}
+                    </TooltipPopup>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          aria-label={`Assign users to ${flag.slug} feature flag`}
+                          size="icon"
+                          variant="outline"
+                          onClick={() => onAssignUsers(flag)}
+                        >
+                          <UsersIcon aria-hidden="true" />
+                        </Button>
+                      }
+                    />
+                    <TooltipPopup sideOffset={11}>Assign to users</TooltipPopup>
+                  </Tooltip>
+                </ListItemActions>
+              </ListItem>
+            ))}
+          </FramePanel>
+        </CollapsiblePanel>
+      </Collapsible>
+    </Frame>
   );
-};
+}
+

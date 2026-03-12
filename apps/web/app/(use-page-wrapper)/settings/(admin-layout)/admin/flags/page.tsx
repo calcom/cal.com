@@ -1,7 +1,11 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 import { FlagListingView } from "@calcom/web/modules/feature-flags/views/flag-listing-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -15,9 +19,16 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("feature_flags")} description={t("admin_flags_description")}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("feature_flags")}>
+          <AppHeaderDescription>
+            {t("admin_flags_description")}
+          </AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <FlagListingView />
-    </SettingsHeader>
+    </div>
   );
 };
 

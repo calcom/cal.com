@@ -173,7 +173,7 @@ function AnchoredToasts(): React.ReactElement {
 
           return (
             <Toast.Positioner
-              className="z-50 max-w-[min(--spacing(64),var(--available-width))]"
+              className="z-60 max-w-[min(--spacing(64),var(--available-width))]"
               data-slot="toast-positioner"
               key={toast.id}
               sideOffset={positionerProps.sideOffset ?? 4}
