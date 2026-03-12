@@ -1,3 +1,28 @@
+import {
+  APPLE_CALENDAR,
+  APPLE_CALENDAR_TYPE,
+  GOOGLE_CALENDAR,
+  GOOGLE_CALENDAR_TYPE,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
@@ -13,38 +38,11 @@ import {
   ListUnifiedCalendarEventsOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 import {
-  ListConnectionsOutput,
   CalendarConnectionItem,
+  ListConnectionsOutput,
 } from "@/modules/cal-unified-calendars/outputs/list-connections.output";
 import { GoogleCalendarEventOutputPipe } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-  BadRequestException,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import {
-  GOOGLE_CALENDAR,
-  SUCCESS_STATUS,
-  APPLE_CALENDAR,
-  OFFICE_365_CALENDAR,
-  GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR_TYPE,
-  APPLE_CALENDAR_TYPE,
-} from "@calcom/platform-constants";
-
-import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 
 const UNIFIED_CALENDAR_PARAM = [GOOGLE_CALENDAR, OFFICE_365_CALENDAR, APPLE_CALENDAR] as const;
 
@@ -106,7 +104,11 @@ export class CalUnifiedCalendarsController {
     };
   }
 
-  @ApiParam({ name: "connectionId", description: "Calendar connection ID from GET /connections", type: String })
+  @ApiParam({
+    name: "connectionId",
+    description: "Calendar connection ID from GET /connections",
+    type: String,
+  })
   @Get("connections/:connectionId/events")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
@@ -397,7 +399,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "List calendar events",
-    description: "List events in a date range for the authenticated user's calendar. Currently only Google Calendar is supported.",
+    description:
+      "List events in a date range for the authenticated user's calendar. Currently only Google Calendar is supported.",
   })
   @ApiQuery({ name: "from", required: true, type: String })
   @ApiQuery({ name: "to", required: true, type: String })
@@ -433,7 +436,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Create a calendar event",
-    description: "Create a new event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+    description:
+      "Create a new event on the authenticated user's calendar. Currently only Google Calendar is supported.",
   })
   async createCalendarEvent(
     @Param("calendar") calendar: string,
@@ -445,24 +449,25 @@ export class CalUnifiedCalendarsController {
         "Create event is currently only available for Google Calendar. Office 365 and Apple support is coming soon."
       );
     }
-    const event = await this.googleCalendarService.createEventForUser(
-      userId,
-      "primary",
-      body
-    );
+    const event = await this.googleCalendarService.createEventForUser(userId, "primary", body);
     const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
     return { status: SUCCESS_STATUS, data: transformedEvent };
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
-  @ApiParam({ name: "eventUid", description: "The calendar provider's event ID (e.g. Google Calendar event ID)", type: String })
+  @ApiParam({
+    name: "eventUid",
+    description: "The calendar provider's event ID (e.g. Google Calendar event ID)",
+    type: String,
+  })
   @Delete("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Delete a calendar event",
-    description: "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+    description:
+      "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
   })
   async deleteCalendarEvent(
     @Param("calendar") calendar: string,
@@ -506,7 +511,9 @@ export class CalUnifiedCalendarsController {
       (c) => c.integration.type === GOOGLE_CALENDAR_TYPE
     );
     const calendarsToLoad = googleCalendars.flatMap((conn) =>
-      (conn.calendars ?? []).filter((cal) => cal.isSelected).map((cal) => ({ credentialId: cal.credentialId, externalId: cal.externalId }))
+      (conn.calendars ?? [])
+        .filter((cal) => cal.isSelected)
+        .map((cal) => ({ credentialId: cal.credentialId, externalId: cal.externalId }))
     );
     if (calendarsToLoad.length === 0) {
       return { status: SUCCESS_STATUS, data: [] };

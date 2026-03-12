@@ -1,6 +1,14 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsISO8601, IsOptional, IsTimeZone, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from "class-validator";
+import {
+  IsISO8601,
+  IsOptional,
+  IsTimeZone,
+  Validate,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from "class-validator";
 
 @ValidatorConstraint({ name: "isAfterFrom", async: false })
 class IsAfterFrom implements ValidatorConstraintInterface {

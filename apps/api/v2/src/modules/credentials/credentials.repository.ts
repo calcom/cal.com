@@ -1,14 +1,16 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
 import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class CredentialsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async upsertUserAppCredential(
     type: keyof typeof APPS_TYPE_ID_MAPPING,

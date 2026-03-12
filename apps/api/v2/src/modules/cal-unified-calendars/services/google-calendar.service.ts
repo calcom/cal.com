@@ -1,19 +1,22 @@
+import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
+import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
+import type { Prisma } from "@calcom/prisma/client";
+import { calendar_v3 } from "@googleapis/calendar";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { JWT } from "googleapis-common";
+import type { CreateUnifiedCalendarEventInput } from "../inputs/create-unified-calendar-event.input";
+import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
+import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { calendar_v3 } from "@googleapis/calendar";
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
-import { Logger, NotFoundException } from "@nestjs/common";
-import { JWT } from "googleapis-common";
-
-import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
-import type { Prisma } from "@calcom/prisma/client";
-
-import type { CreateUnifiedCalendarEventInput } from "../inputs/create-unified-calendar-event.input";
-import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
-import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
 
 @Injectable()
 export class GoogleCalendarService {
@@ -181,14 +184,8 @@ export class GoogleCalendarService {
   /**
    * Gets an authorized Google Calendar instance for a specific credential (connection).
    */
-  async getCalendarClientByCredentialId(
-    userId: number,
-    credentialId: number
-  ): Promise<calendar_v3.Calendar> {
-    const credential = await this.credentialsRepository.findCredentialByIdAndUserId(
-      credentialId,
-      userId
-    );
+  async getCalendarClientByCredentialId(userId: number, credentialId: number): Promise<calendar_v3.Calendar> {
+    const credential = await this.credentialsRepository.findCredentialByIdAndUserId(credentialId, userId);
     if (!credential) {
       throw new NotFoundException("Calendar connection not found");
     }
@@ -227,7 +224,9 @@ export class GoogleCalendarService {
     });
     const items = (response.data.items || []) as GoogleCalendarEventResponse[];
     // Include both timed events (start.dateTime) and all-day events (start.date)
-    return items.filter((e) => e.start?.dateTime != null || e.start?.date != null) as GoogleCalendarEventResponse[];
+    return items.filter(
+      (e) => e.start?.dateTime != null || e.start?.date != null
+    ) as GoogleCalendarEventResponse[];
   }
 
   private async createEventWithClient(
@@ -342,11 +341,7 @@ export class GoogleCalendarService {
   /**
    * Deletes/cancels an event on the user's Google Calendar by provider event ID.
    */
-  async deleteEventForUser(
-    userId: number,
-    calendarId: string,
-    eventId: string
-  ): Promise<void> {
+  async deleteEventForUser(userId: number, calendarId: string, eventId: string): Promise<void> {
     const calendar = await this.getCalendarClientForUser(userId);
     return this.deleteEventWithClient(calendar, calendarId, eventId);
   }

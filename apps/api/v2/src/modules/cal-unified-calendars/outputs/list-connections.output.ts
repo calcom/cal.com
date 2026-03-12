@@ -1,8 +1,7 @@
+import { CALENDARS, ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-
-import { CALENDARS, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { IsArray, IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class CalendarConnectionItem {
   @IsString()
