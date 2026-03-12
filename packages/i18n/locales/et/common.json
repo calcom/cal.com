@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Halda oma meeskonna broneeringu välimuse seadeid",
   "appearance_org_description": "Oma organisatsiooni broneeringu välimuse seadete haldamine",
   "only_owner_change": "Ainult selle meeskonna omanik saab meeskonna broneeringus muudatusi teha",
-  "team_disable_cal_branding_description": "Eemaldab kõik rakendusega {{appName}} seotud kaubamärgid, st 'Toidab {{appName}}'",
   "invited_by_team": "{{teamName}} kutsus teid liituma oma meeskonnaga kui {{role}}",
   "token_invalid_expired": "Token on kas kehtetu või aegunud.",
   "view_booking": "Vaata broneeringut",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Funktsiooni lubamisel tekkis viga. Palun proovi uuesti.",
   "set_organizer_as_contact_owner": "Määra broneeringu korraldaja kontaktide omanikuks",
   "overwrite_existing_contact_owner": "Kirjuta olemasolev kontaktide omanik üle",
+  "busy_time": {
+    "busy": "Hõivatud",
+    "event_booking_limit": "Sündmuse broneeringu limiit",
+    "event_duration_limit": "Sündmuse kestuse limiit",
+    "team_booking_limit": "Meeskonna broneeringu limiit",
+    "buffer_time": "Puhveraeg",
+    "calendar": "Kalender"
+  },
   "invoice_number": "Arve nr",
   "payment_method": "Makseviis",
   "download_pdf": "Laadi PDF alla",

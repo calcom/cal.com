@@ -2155,7 +2155,6 @@
   "appearance_team_description": "គ្រប់គ្រងការកំណត់សម្រាប់រូបរាងការកក់របស់ក្រុមរបស់អ្នក",
   "appearance_org_description": "គ្រប់គ្រងការកំណត់សម្រាប់រូបរាងការកក់របស់អង្គការ",
   "only_owner_change": "មានតែម្ចាស់ក្រុមនេះប៉ុណ្ណោះដែលអាចធ្វើការផ្លាស់ប្តូរទៅការកក់របស់ក្រុម",
-  "team_disable_cal_branding_description": "យកចេញនូវការតុបតែងទាក់ទងនឹង {{appName}} គឺ 'ដំណើរការដោយ {{appName}}'",
   "invited_by_team": "{{teamName}} បានអញ្ជើញអ្នកឱ្យចូលរួមជាមួយក្រុមរបស់ពួកគេជាអ្នក {{role}}",
   "token_invalid_expired": "Token មិនត្រឹមត្រូវ ឬផុតកំណត់។",
   "view_booking": "មើលការកក់",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "មានបញ្ហាក្នុងការបើកមុខងារ។ សូមព្យាយាមម្តងទៀត។",
   "set_organizer_as_contact_owner": "កំណត់អ្នករៀបចំជាម្ចាស់ទំនាក់ទំនង",
   "overwrite_existing_contact_owner": "សរសេរជាន់លើម្ចាស់ទំនាក់ទំនងដែលមានស្រាប់",
+  "busy_time": {
+    "busy": "រវល់",
+    "event_booking_limit": "ដែនកំណត់ការកក់ព្រឹត្តិការណ៍",
+    "event_duration_limit": "ដែនកំណត់រយៈពេលព្រឹត្តិការណ៍",
+    "team_booking_limit": "ដែនកំណត់ការកក់របស់ក្រុម",
+    "buffer_time": "ពេលវេលាបណ្តោះអាសន្ន",
+    "calendar": "ប្រតិទិន"
+  },
   "invoice_number": "វិក្កយបត្រលេខ #",
   "payment_method": "វិធីសាស្ត្រទូទាត់",
   "download_pdf": "ទាញយក PDF",

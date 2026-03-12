@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Hantera inställningar för ditt teams bokningsutseende",
   "appearance_org_description": "Hantera inställningar för din organisations bokningsutseende",
   "only_owner_change": "Endast ägaren av detta team kan göra ändringar i teamets bokning ",
-  "team_disable_cal_branding_description": "Tar bort alla {{appName}}-relaterade varumärken, t.ex. \"Drivs av {{appName}}\"",
   "invited_by_team": "{{teamName}} har bjudit in dig att gå med i deras team som {{role}}",
   "token_invalid_expired": "Token är antingen ogiltig eller utgången.",
   "view_booking": "Visa bokning",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Fel vid aktivering av funktionen. Försök igen.",
   "set_organizer_as_contact_owner": "Ange bokningsorganisatör som kontaktägare",
   "overwrite_existing_contact_owner": "Skriv över befintlig kontaktägare",
+  "busy_time": {
+    "busy": "Upptagen",
+    "event_booking_limit": "Bokningsgräns för händelse",
+    "event_duration_limit": "Varaktighetsgräns för händelse",
+    "team_booking_limit": "Bokningsgräns för team",
+    "buffer_time": "Bufferttid",
+    "calendar": "Kalender"
+  },
   "invoice_number": "Faktura #",
   "payment_method": "Betalningsmetod",
   "download_pdf": "Ladda ner PDF",

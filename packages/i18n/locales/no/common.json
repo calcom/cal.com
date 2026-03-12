@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Administrer innstillinger for teamets booking-utseende",
   "appearance_org_description": "Administrer innstillinger for organisasjonens bookingutseende",
   "only_owner_change": "Kun eieren av dette teamet kan gjøre endringer i teamets booking ",
-  "team_disable_cal_branding_description": "Fjerner alle {{appName}} relaterte varemerker, f.eks. \"Powered by {{appName}}\"",
   "invited_by_team": "{{teamName}} har invitert deg til å bli med i teamet deres som en {{role}}",
   "token_invalid_expired": "Token er enten ugyldig eller utløpt.",
   "view_booking": "Vis booking",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Feil ved aktivering av funksjon. Vennligst prøv igjen.",
   "set_organizer_as_contact_owner": "Angi arrangør som kontakteier",
   "overwrite_existing_contact_owner": "Overskriv eksisterende kontakteier",
+  "busy_time": {
+    "busy": "Opptatt",
+    "event_booking_limit": "Grense for antall bookinger",
+    "event_duration_limit": "Grense for hendelsesvarighet",
+    "team_booking_limit": "Grense for teambookinger",
+    "buffer_time": "Buffertid",
+    "calendar": "Kalender"
+  },
   "invoice_number": "Faktura #",
   "payment_method": "Betalingsmetode",
   "download_pdf": "Last ned PDF",

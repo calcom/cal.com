@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Beheer de instellingen voor de boekingsweergave van uw team",
   "appearance_org_description": "Beheer instellingen voor de boekingsweergave van uw organisatie",
   "only_owner_change": "Alleen de eigenaar van dit team kan wijzigingen aanbrengen in de boeking van het team ",
-  "team_disable_cal_branding_description": "Verwijdert alle {{appName}}-gerelateerde merken, zoals \"Mogelijk gemaakt door {{appName}}\"",
   "invited_by_team": "{{teamName}} heeft u uitgenodigd om deel te nemen aan hun team als {{role}}",
   "token_invalid_expired": "Token is ongeldig of verlopen.",
   "view_booking": "Boeking bekijken",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Fout bij het inschakelen van de functie. Probeer het opnieuw.",
   "set_organizer_as_contact_owner": "Boekingsorganisator instellen als contacteigenaar",
   "overwrite_existing_contact_owner": "Bestaande contacteigenaar overschrijven",
+  "busy_time": {
+    "busy": "Bezet",
+    "event_booking_limit": "Limiet voor evenementboekingen",
+    "event_duration_limit": "Limiet voor evenementduur",
+    "team_booking_limit": "Limiet voor teamboekingen",
+    "buffer_time": "Buffertijd",
+    "calendar": "Agenda"
+  },
   "invoice_number": "Factuur #",
   "payment_method": "Betaalmethode",
   "download_pdf": "PDF downloaden",

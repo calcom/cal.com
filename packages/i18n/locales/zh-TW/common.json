@@ -2155,7 +2155,6 @@
   "appearance_team_description": "管理團隊的預約畫面的外觀設定",
   "appearance_org_description": "管理您的組織預訂外觀設置",
   "only_owner_change": "只有此團隊的擁有者才能變更團隊的預約 ",
-  "team_disable_cal_branding_description": "移除任何 {{appName}} 相關品牌，即由「{{appName}} 技術提供」的品牌",
   "invited_by_team": "「{{teamName}}」已邀請您以{{role}}的身分加入他們的團隊",
   "token_invalid_expired": "代幣無效或過期。",
   "view_booking": "查看預約",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "啟用功能時發生錯誤，請再試一次。",
   "set_organizer_as_contact_owner": "將預約主辦人設為聯絡人擁有者",
   "overwrite_existing_contact_owner": "覆蓋現有聯絡人擁有者",
+  "busy_time": {
+    "busy": "忙碌",
+    "event_booking_limit": "活動預訂限制",
+    "event_duration_limit": "活動時長限制",
+    "team_booking_limit": "團隊預訂限制",
+    "buffer_time": "緩衝時間",
+    "calendar": "行事曆"
+  },
   "invoice_number": "發票號碼 #",
   "payment_method": "付款方式",
   "download_pdf": "下載 PDF",

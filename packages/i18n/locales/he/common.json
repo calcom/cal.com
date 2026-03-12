@@ -2155,7 +2155,6 @@
   "appearance_team_description": "ניהול ההגדרות של מראה הזמנות הצוות שלך",
   "appearance_org_description": "ניהול ההגדרות למראה ההזמנות של הארגון שלך",
   "only_owner_change": "רק הבעלים של הצוות יכולים לבצע שינויים בהזמנת הצוות ",
-  "team_disable_cal_branding_description": "הסרת מיתוגים הקשורים ל-{{appName}}, כגון 'מופעל על ידי {{appName}}'",
   "invited_by_team": "הוזמנת על ידי {{teamName}} להצטרף לצוות בתפקיד {{role}}",
   "token_invalid_expired": "הטוקן לא חוקי או שתוקפו פג.",
   "view_booking": "צפה בהזמנה",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "שגיאה בהפעלת התכונה. אנא נסה שוב.",
   "set_organizer_as_contact_owner": "הגדר את מארגן ההזמנה כבעלים של איש הקשר",
   "overwrite_existing_contact_owner": "החלף בעלים קיים של איש הקשר",
+  "busy_time": {
+    "busy": "עסוק",
+    "event_booking_limit": "מגבלת הזמנת אירוע",
+    "event_duration_limit": "מגבלת משך אירוע",
+    "team_booking_limit": "מגבלת הזמנת צוות",
+    "buffer_time": "זמן חיץ",
+    "calendar": "לוח שנה"
+  },
   "invoice_number": "חשבונית מס׳",
   "payment_method": "אמצעי תשלום",
   "download_pdf": "הורד PDF",

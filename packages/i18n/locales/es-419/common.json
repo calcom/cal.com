@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Administra la configuración de la apariencia de las reservas de tu equipo",
   "appearance_org_description": "Administra la configuración de la apariencia de las reservas de tu organización",
   "only_owner_change": "Solo el propietario de este equipo puede hacer cambios en la reserva del equipo",
-  "team_disable_cal_branding_description": "Elimina cualquier marca relacionada con {{appName}}, es decir, 'Desarrollado por {{appName}}'",
   "invited_by_team": "{{teamName}} te ha invitado a unirte a su equipo como {{role}}",
   "token_invalid_expired": "El token es inválido o ha expirado.",
   "view_booking": "Ver reserva",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Error al activar la función. Por favor, intenta de nuevo.",
   "set_organizer_as_contact_owner": "Establecer al organizador de la reserva como propietario del contacto",
   "overwrite_existing_contact_owner": "Sobrescribir el propietario del contacto existente",
+  "busy_time": {
+    "busy": "Ocupado",
+    "event_booking_limit": "Límite de reservas del evento",
+    "event_duration_limit": "Límite de duración del evento",
+    "team_booking_limit": "Límite de reservas del equipo",
+    "buffer_time": "Tiempo de espera",
+    "calendar": "Calendario"
+  },
   "invoice_number": "Factura #",
   "payment_method": "Método de pago",
   "download_pdf": "Descargar PDF",

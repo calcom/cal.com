@@ -2155,7 +2155,6 @@
   "appearance_team_description": "팀의 예약 모양 설정 관리",
   "appearance_org_description": "조직의 예약 외관 설정 관리",
   "only_owner_change": "이 팀의 소유자만 팀의 예약을 변경할 수 있습니다.",
-  "team_disable_cal_branding_description": "모든 {{appName}} 관련 브랜드(예: 'Powered by {{appName}}')를 제거합니다.",
   "invited_by_team": "{{teamName}} 님이 귀하를 {{role}} 자격으로 팀에 초대했습니다.",
   "token_invalid_expired": "토큰이 유효하지 않거나 만료되었습니다.",
   "view_booking": "예약 보기",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "기능 활성화 중 오류가 발생했습니다. 다시 시도해 주세요.",
   "set_organizer_as_contact_owner": "예약 주최자를 연락처 소유자로 설정",
   "overwrite_existing_contact_owner": "기존 연락처 소유자 덮어쓰기",
+  "busy_time": {
+    "busy": "바쁨",
+    "event_booking_limit": "이벤트 예약 제한",
+    "event_duration_limit": "이벤트 진행 시간 제한",
+    "team_booking_limit": "팀 예약 제한",
+    "buffer_time": "여유 시간",
+    "calendar": "캘린더"
+  },
   "invoice_number": "청구서 #",
   "payment_method": "결제 방법",
   "download_pdf": "PDF 다운로드",

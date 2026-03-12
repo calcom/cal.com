@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Kezelje csapata foglalási megjelenésének beállításait",
   "appearance_org_description": "Kezelje szervezete foglalási megjelenésének beállításait",
   "only_owner_change": "Csak ennek a csapatnak a tulajdonosa módosíthat a csapat foglalásán ",
-  "team_disable_cal_branding_description": "Eltávolít minden, a(z) {{appName}}-hoz kapcsolódó márkajelzést, azaz a „Powered by {{appName}}”",
   "invited_by_team": "{{teamName}} meghívott téged, hogy csatlakozz a csapatához, mint {{role}}",
   "token_invalid_expired": "A token érvénytelen vagy lejárt.",
   "view_booking": "Foglalás megtekintése",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Hiba a funkció engedélyezése során. Kérjük, próbáld újra.",
   "set_organizer_as_contact_owner": "Foglalás szervezőjének beállítása kapcsolattulajdonosként",
   "overwrite_existing_contact_owner": "Meglévő kapcsolattulajdonos felülírása",
+  "busy_time": {
+    "busy": "Foglalt",
+    "event_booking_limit": "Eseményfoglalási limit",
+    "event_duration_limit": "Eseményhossz-limit",
+    "team_booking_limit": "Csapatfoglalási limit",
+    "buffer_time": "Pufferidő",
+    "calendar": "Naptár"
+  },
   "invoice_number": "Számla #",
   "payment_method": "Fizetési mód",
   "download_pdf": "PDF letöltése",

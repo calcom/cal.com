@@ -6813,7 +6813,6 @@ checksums:
     appearance_team_description: c0bdc572130cace267631a4583cf434c
     appearance_org_description: 892e1cef53ef0212348ff06d6a330b39
     only_owner_change: fb2decd5123faf5856c50f4d404717f4
-    team_disable_cal_branding_description: 7cd8a15bd27dcdac17ccfbb4523fb739
     invited_by_team: 3423e3d8db47a0d68d5c82faccc2db4f
     token_invalid_expired: 08c33b2288a77b5cf72c32cd2be89d8a
     view_booking: 32ea42af27a498f6a020d390c616e2ee
@@ -8707,11 +8706,6 @@ checksums:
     roles_and_permissions: d9e5ba4651b21be34286a6dfbf8331cd
     roles_and_permissions_description: b61be30059f6de6034d6acb588d3a495
     learn_more_permissions: 74014e0ba64a1cd362bad5d6f6de66fe
-    role_name: 6166d263954a8c5e41e988801c2cfb20
-    role_name_required: 5650dd108c357a78fec90aa755d78367
-    role_name_placeholder: b138f0b244a5680d2986db2c99b11548
-    role_description: 1eccd63fc1cb4d162ff7e5353fd72660
-    role_description_placeholder: d732e6a22a3e3ae60c21ac390e5248f5
     default_role: 208ab328e49c96eb5b5b53aaf68ef867
     custom_role: 7d0e400dffffd8fccf359975c35b424a
     advanced: 16e9b03eda6f6c1324cce54b96bbccd6
@@ -8719,38 +8713,6 @@ checksums:
     all_permissions: 04504f13ebb6b22d4041d31895a31801
     none: d163ad01ba50118a86047c8b73fbe922
     read_only: ed9df6b7e1b86f2ddfe41c94403223b8
-    pbac_desc_all_actions_all_resources: d3a461afa8845b4bbe55839fe6b80a3a
-    pbac_resource_all: 94da4fbd879aa52764a81d83ac68a4ce
-    pbac_resource_event_type: 43e0a8a05a42aecf5132dd6ee1ae3f71
-    pbac_resource_team: b63448c05270497973ac4407047dae02
-    pbac_resource_organization: 3dc8489af7e74121f65ce6d9677bc94d
-    pbac_resource_booking: b6c73c2c1406f1f5fc13ef027ddb9352
-    pbac_resource_insights: 1e88b2537ba6966f2a90b0def1ce1ddc
-    pbac_resource_role: 21834ee85d5936bc0b262d5d5ddd58e3
-    pbac_resource_routing_form: ad8a96b77233036b25098c9f34d4cd67
-    pbac_resource_workflow: b0c9c8615a9ba7d9cb73e767290a7f72
-    pbac_action_all: 83360b2bf5e2677126fa032b7a4b584f
-    pbac_action_create: 757ccd28dd533ff3a933355273c1e32a
-    pbac_action_read: 36a9b5e3dc153c036d320460d72a03c3
-    pbac_action_update: eee7f39ff90b18852afc1671f21fbaa9
-    pbac_action_delete: 8bcf303dd10a645b5baacb02b47d72c9
-    pbac_action_manage: a3d40c0267b81ae53c9598eaeb05087d
-    pbac_action_invite: 181884cea804cbde665f160811ee7ad0
-    pbac_action_remove: dba2fe5fe9f83f8078c687f28cba4b52
-    pbac_action_change_member_role: 17407adb3641de28148088a765acb108
-    pbac_action_list_members: 0e8679b369d92a9a65e3ae35ea0515c4
-    pbac_action_manage_billing: 95d7c3339a608bdb9f0ff73be0107202
-    pbac_action_read_team_bookings: 2669814b8a133a06828f1ea000b2f94c
-    pbac_action_read_org_bookings: bbb900c8cc7315f47bb2ac60572f2bad
-    pbac_action_read_recordings: 716715559c58d480fb2195c8c893d415
-    pbac_action_read_team_booking_audit_logs: c14d0a3cb1ee8c5368589f75bec0b16f
-    pbac_action_read_org_booking_audit_logs: 67b1327ed61d2d8a83b4828bd9b0f74b
-    pbac_action_read_team_audit_logs: a2994e93427fa8de5989cf4fdaaba430
-    pbac_action_read_org_audit_logs: 9c0de67e4ad9f4353e95b379bf20ceef
-    pbac_action_impersonate: 253edc7ba708783ff03d3b9c009472e9
-    pbac_action_edit_users: 323cceed5f8d5303cdaec212f0d3d8c8
-    pbac_action_password_reset: c21b33e73f096fd7b02171d399b36adf
-    pbac_desc_reset_password_organization_members: d2d0207f7d1aa041b974f07f4a8bc2e1
     role_created_successfully: 0c5e659653544f4e549c49deee5da514
     role_updated_successfully: 70f6225b70f4bcd15af464da4c838096
     delete_role: 877641ea72960f194766086aceb53346
@@ -8758,92 +8720,8 @@ checksums:
     role_deleted_successfully: 3e82866aca1a2461c2cfccbad71b2610
     error_creating_role: 4d3c36c243381aa68d671ae9c58265cd
     error_updating_role: bb0758044b466e260c9bb3704b4d115f
-    pbac_desc_create_roles: 1c90a3924c51b4ebf20c9512abe8b0d2
-    pbac_resource_attributes: 86d0ae6fea0fbb119722ed3841f8385a
-    pbac_desc_view_organization_attributes: 02e8205586f5f2cf78f1b47a701b4cb8
-    pbac_desc_update_organization_attributes: 9b57dbaf7d65e9e10715abb55b5f29d5
-    pbac_desc_delete_organization_attributes: 9ba51430aabc555dbec71f9a147025da
-    pbac_desc_create_organization_attributes: f632e6d5ce49a78f164c34ecf91fc244
-    pbac_desc_edit_user_attributes: 55b2fba0ae2e36ce7831fb349b49ab95
-    pbac_desc_view_roles: b6a40cea14b8cf3ff14b5623035c4d0a
-    pbac_desc_update_roles: beadef54fb8663867bd85ff4e148c518
-    pbac_desc_delete_roles: 8d00c0ab49a7fa27af90b81b2baad8c6
-    pbac_desc_create_workflows: a38ab5f1cdd6f3bd9a1128dfa9d445ce
     set_up_required: 7218c5513b7c68d43cdca3dc1a6de32f
-    pbac_desc_view_workflows: 4e1394ded2ee6fe6d87601a4915b08d4
-    pbac_desc_update_workflows: aecf636063ef3b8a5ece8d6381e053f0
-    pbac_desc_delete_workflows: fabfe2406f079e08cf4b017afca797bd
-    pbac_resource_webhook: 70f95b2c27f2c3840b500fcaf79ee83c
-    pbac_resource_availability: f141aa3e9adb2179806cc1c909b5516a
-    pbac_resource_out_of_office: 45d3cabaf72539864d1ec294b8ec1c8f
-    pbac_resource_blocklist: 17845897553ffa9b8d09b57e295ed5c7
-    pbac_desc_create_webhooks: 3df3e99c62fd661d12ae4d1817deec6c
-    pbac_desc_view_webhooks: c3c1a5113700fc39aff9596d29371ce5
-    pbac_desc_update_webhooks: efe117c23053d397589dd9bc7e18d6dd
-    pbac_desc_delete_webhooks: 7877bc06e4a68ba21abf5ff702416b79
-    pbac_desc_create_availability: d62c426d46c5c004e1dbf8213ab19434
-    pbac_desc_view_availability: 3f1f2fe1200dd419d6a40cce45ad1d0d
-    pbac_desc_update_availability: 9a50a74361d3e4743932913e2d469f7b
     add_people_to_blocklist: 51b8059b7d962d04d93c549392a70138
-    pbac_desc_delete_availability: abf16f0da6e59c7322dc0d2348fa9b2c
-    pbac_desc_create_out_of_office: 2c59dbea23e478b2589bc78e8d5c8182
-    pbac_desc_view_out_of_office: 8e3ded73b455934c2f911296593985f3
-    pbac_desc_update_out_of_office: 2c080504ede7215d690888f900c75610
-    pbac_desc_delete_out_of_office: c28cb6f5884ab1db9fa890cea0266b16
-    pbac_desc_manage_workflows: 9ff3998b178daad7fa575d1277345d31
-    pbac_desc_create_event_types: 0a58f83b33aa6ba7784de540b3107bbe
-    pbac_desc_view_event_types: 390e116e8ff1ec3db6dc5079aaa80b7b
-    pbac_desc_update_event_types: 6be520e46fac127d0286624dba27b0f7
-    pbac_desc_delete_event_types: 210e2b839a59c0acccbf2cdc600712b8
-    pbac_desc_manage_event_types: 31e79588e853d0cfd40fe0928ba012b3
-    pbac_desc_create_teams: dbace7c058be973c11a0ad6a35dfbda4
-    pbac_desc_view_team_details: b59a65b40b511a0b187c24e85fa01eb1
-    pbac_desc_update_team_settings: be6c85f8cb84a78c9c43d425ab8e5739
-    pbac_desc_delete_team: 23e9200d46d42c7b89d42ae25c987ab6
-    pbac_desc_invite_team_members: 032c785f17699bd685a776ec57bb9f0d
-    pbac_desc_remove_team_members: 7acb46ff26feac93b3decaef76a89391
-    pbac_desc_change_team_member_role: 325c6d3432c2a9f9c118213588d0c5df
-    pbac_desc_impersonate_team_members: 3559772431424e2fed0f9c8ddbf38a44
-    pbac_desc_manage_teams: 05cd237a88500d30fb30d5e4806ef84f
-    pbac_desc_create_organization: e79a6de15033cc09a320a6f9c294d696
-    pbac_desc_view_organization_details: 680817cbea2613166e84e760e7644faf
-    pbac_desc_list_organization_members: 8b1854a6e3af5593b936ace254c07dbb
-    pbac_desc_invite_organization_members: c787c68ea9c1ba60be2cfab2ffba6196
-    pbac_desc_remove_organization_members: bee90ad9973abe69a9d63a2bcffece9b
-    pbac_desc_manage_organization_billing: ffa0d32dc4ff6602b0f9ef3bd3c3a716
-    pbac_desc_change_organization_member_role: a96be3ceaa6fcac3c55b8e90449903fb
-    pbac_desc_impersonate_organization_members: 652c03f21b1c1b58334caceac04214c1
-    pbac_desc_edit_organization_settings: 65f8d7b4b56fdc1b30e8a8aadcb5125d
-    pbac_desc_manage_organizations: 129b7e6ababddc4c740a20a2ca1ff83e
-    pbac_desc_view_bookings: 8f4006a4c416eb013bdcbae28badf34c
-    pbac_desc_view_team_bookings: 2669814b8a133a06828f1ea000b2f94c
-    pbac_desc_view_organization_bookings: bbb900c8cc7315f47bb2ac60572f2bad
-    pbac_desc_view_booking_recordings: d6023d3999f6b38ea574a9e2bf6ac5d5
-    pbac_desc_read_team_booking_audit_logs: 00015cb7909d34ec25c591fc981c2c7e
-    pbac_desc_read_org_booking_audit_logs: eea130580adae6c509046b14b58acd87
-    pbac_desc_view_team_booking_audit_logs: c14d0a3cb1ee8c5368589f75bec0b16f
-    pbac_desc_view_organization_booking_audit_logs: 67b1327ed61d2d8a83b4828bd9b0f74b
-    pbac_desc_update_bookings: aa9b74e333133d5e7b6256e2b8fa2c1c
-    pbac_desc_manage_bookings: 5f7404cdf3a463bb1764e53079b74ff0
-    pbac_desc_view_team_insights: 8a476dd09b83714320ddbc69a2ec7088
-    pbac_desc_manage_team_insights: d3eab216d5f3e34358e68b287adcc102
-    pbac_desc_create_routing_forms: 2317c8e6bfdc397c9068e5a3055bf4a7
-    pbac_desc_view_routing_forms: 1c7a2290049b782702f46e28d19f2ed5
-    pbac_desc_update_routing_forms: 09cfc7887518428c1bd6890beee18f5a
-    pbac_desc_delete_routing_forms: 4e841cd1d89980f764bf6027aad6eef6
-    pbac_opt_in_title: 7a7d45b6e3a65a43021a6b7d9bde4142
-    pbac_opt_in_description: f1b7f51a000b9ccaeffa9c75ca7484ef
-    pbac_opt_in_custom_roles_title: f7b38d3e6c1795a5b383e239824bf77d
-    pbac_opt_in_custom_roles_desc: c29ea8ec82507ee2501e3328bb6bcd1d
-    pbac_opt_in_granular_permissions_title: 5290d25a32d1e81c918989fa8e61f8b9
-    pbac_opt_in_granular_permissions_desc: 8ebd0af0d248f9a8154301146a16bb12
-    pbac_opt_in_team_assignment_title: 1f2afc400175db9fe2efb36ff680a3e5
-    pbac_opt_in_team_assignment_desc: 121e147c5f8c3d846f18af3e70ce84d7
-    pbac_opt_in_enhanced_security_title: 4508ba0aa5ce5ceb91b34237f33d3ce6
-    pbac_opt_in_enhanced_security_desc: 9fa882dc74619bef589cf1b26b780e3e
-    pbac_opt_in_enable_button: 4bbc00211ac08e09beb6c616fba8da19
-    pbac_enabled_success: b61087e76cbc66b8a4958cab981c4f28
-    pbac_enabled_error: 73c8c7c45976db8035a23319ffc75084
     read_permission_auto_enabled_tooltip: e6a994bc46d1208f07a303cd638efca2
     choose_restriction_schedule: ddc5f4cb03d3502a37e84fc5e3224c4f
     restriction_schedule_description: d861bc8515d77f509eefc8ff160e7593
@@ -9402,9 +9280,6 @@ checksums:
     connect_your_first_calendar: e071f7c4dc1b7b243312881bb0554bcd
     routing_that_grows_with_you: 37e18ac42d869f15ac9c4164f337bdcd
     routing_forms_upgrade_description: c6600aa6772e2188f797b0254b25aa90
-    pbac_resource_feature_opt_in: bdbae2a41cddee1029d506112b0a729f
-    pbac_desc_view_feature_opt_in: d0e59210de8fe2919499710c00f85525
-    pbac_desc_update_feature_opt_in: ac77122dcb59a845bed91b7c3c0cd07e
     try_it: bad6f95a433225afd0174474e162410e
     enable_for: 540dc0f354821599c3a8f009eaf3610f
     entire_organization: 41daa322c09a4e9199e56b5d9b26a010
@@ -9420,6 +9295,12 @@ checksums:
     error_enabling_feature: a78f7009bf024d45fec016a2eb2a5b59
     set_organizer_as_contact_owner: c86b8ef323ecde79916e59880a2468ac
     overwrite_existing_contact_owner: f4b5d7b513bc3ed9464c2dc343cfd38b
+    busy_time/busy: 6131a9d02285420b55c7a0c69c5713de
+    busy_time/event_booking_limit: 2b4e588db242f79980e4a2a4d20c1216
+    busy_time/event_duration_limit: 3a0d2a9b645e1154bcf9894a725b48c9
+    busy_time/team_booking_limit: aa02389be826a3d93cc320c12a21ee77
+    busy_time/buffer_time: af6fc372e403cc39cfabd9f1668aa9a8
+    busy_time/calendar: f113fede755b1502d0a17ad5068ba005
     invoice_number: 8cbeb08264ec80fd0893ca23165881b8
     payment_method: 959f16432a02ba1b50f53d0822be2aac
     download_pdf: dfbcc86cfac971ae88ba5d033c04fcbf

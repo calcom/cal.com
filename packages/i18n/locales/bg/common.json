@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Управлявайте настройките за външния вид на резервациите на вашия екип",
   "appearance_org_description": "Управлявайте настройките за външния вид на резервациите на вашата организация",
   "only_owner_change": "Само собственикът на този екип може да прави промени в настройките за резервации",
-  "team_disable_cal_branding_description": "Премахва всички брандинг елементи на {{appName}}, напр. 'Осъществено чрез {{appName}}'",
   "invited_by_team": "{{teamName}} ви кани да се присъедините към техния екип като {{role}}",
   "token_invalid_expired": "Токенът е невалиден или е изтекъл.",
   "view_booking": "Преглед на резервация",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Грешка при активиране на функцията. Моля, опитайте отново.",
   "set_organizer_as_contact_owner": "Задаване на организатора като собственик на контакта",
   "overwrite_existing_contact_owner": "Презаписване на съществуващия собственик на контакта",
+  "busy_time": {
+    "busy": "Зает",
+    "event_booking_limit": "Лимит за резервации на събитие",
+    "event_duration_limit": "Лимит на продължителност на събитие",
+    "team_booking_limit": "Лимит за резервации на екип",
+    "buffer_time": "Буферно време",
+    "calendar": "Календар"
+  },
   "invoice_number": "Фактура #",
   "payment_method": "Метод на плащане",
   "download_pdf": "Изтегляне на PDF",

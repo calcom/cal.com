@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Einstellungen für die Buchungsdarstellung Ihres Teams verwalten",
   "appearance_org_description": "Einstellungen für die Buchungsdarstellung Ihrer Organisation verwalten",
   "only_owner_change": "Nur der Besitzer dieses Teams kann Änderungen an den Buchungen des Teams vornehmen ",
-  "team_disable_cal_branding_description": "Entfernt alle {{appName}}-bezogenen Markenzeichen, z. B. „Powered by {{appName}}“",
   "invited_by_team": "{{teamName}} hat Sie eingeladen, dem Team als {{role}} beizutreten",
   "token_invalid_expired": "Token ist entweder ungültig oder abgelaufen.",
   "view_booking": "Buchung anzeigen",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Fehler beim Aktivieren der Funktion. Bitte versuchen Sie es erneut.",
   "set_organizer_as_contact_owner": "Buchungsorganisator als Kontaktinhaber festlegen",
   "overwrite_existing_contact_owner": "Bestehenden Kontaktinhaber überschreiben",
+  "busy_time": {
+    "busy": "Belegt",
+    "event_booking_limit": "Buchungslimit für Termine",
+    "event_duration_limit": "Dauerlimit für Termine",
+    "team_booking_limit": "Team-Buchungslimit",
+    "buffer_time": "Pufferzeit",
+    "calendar": "Kalender"
+  },
   "invoice_number": "Rechnung Nr.",
   "payment_method": "Zahlungsmethode",
   "download_pdf": "PDF herunterladen",

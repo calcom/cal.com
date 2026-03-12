@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Kudeatu zure taldearen erreserben itxuraren ezarpenak",
   "appearance_org_description": "Kudeatu zure erakundearen erreserben itxuraren ezarpenak",
   "only_owner_change": "Taldeko jabeak soilik egin ditzake aldaketak taldearen erreserben ezarpenetan",
-  "team_disable_cal_branding_description": "{{appName}}-ekin lotutako marka guztiak kentzen ditu, adibidez 'Powered by {{appName}}'",
   "invited_by_team": "{{teamName}} taldeak gonbidatu zaitu {{role}} gisa parte hartzera",
   "token_invalid_expired": "Tokena baliogabea da edo iraungi da.",
   "view_booking": "Ikusi erreserba",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Errorea eginbidea gaitzean. Saiatu berriro mesedez.",
   "set_organizer_as_contact_owner": "Ezarri antolatzailea kontaktuaren jabetzat",
   "overwrite_existing_contact_owner": "Gainidatzi lehendik dagoen kontaktuaren jabea",
+  "busy_time": {
+    "busy": "Okupatuta",
+    "event_booking_limit": "Ekitaldi Erreserba Muga",
+    "event_duration_limit": "Ekitaldi Iraupen Muga",
+    "team_booking_limit": "Talde Erreserba Muga",
+    "buffer_time": "Buffer Denbora",
+    "calendar": "Egutegia"
+  },
   "invoice_number": "Faktura #",
   "payment_method": "Ordainketa metodoa",
   "download_pdf": "Deskargatu PDF",

@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Gestionați setările pentru aspectul rezervărilor echipei dvs.",
   "appearance_org_description": "Gestionează setările pentru aspectul rezervărilor organizației tale",
   "only_owner_change": "Doar proprietarul acestei echipe poate schimba rezervarea echipei ",
-  "team_disable_cal_branding_description": "Elimină toate mărcile asociate denumirii {{appName}}, și anume „Powered by {{appName}}”",
   "invited_by_team": "{{teamName}} v-a invitat să faceți parte din echipa sa în calitate de {{role}}",
   "token_invalid_expired": "Tokenul este nevalid sau expirat.",
   "view_booking": "Vizualizează rezervarea",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Eroare la activarea funcționalității. Te rugăm să încerci din nou.",
   "set_organizer_as_contact_owner": "Setează organizatorul rezervării ca proprietar al contactului",
   "overwrite_existing_contact_owner": "Suprascrie proprietarul de contact existent",
+  "busy_time": {
+    "busy": "Ocupat",
+    "event_booking_limit": "Limită de rezervări pentru eveniment",
+    "event_duration_limit": "Limită de durată a evenimentului",
+    "team_booking_limit": "Limită de rezervări pentru echipă",
+    "buffer_time": "Timp de amortizare",
+    "calendar": "Calendar"
+  },
   "invoice_number": "Factura nr.",
   "payment_method": "Metodă de plată",
   "download_pdf": "Descarcă PDF",

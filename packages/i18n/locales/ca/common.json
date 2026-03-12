@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Gestiona la configuració de l'aparença de les reserves del teu equip",
   "appearance_org_description": "Gestiona la configuració de l'aparença de les reserves de la teva organització",
   "only_owner_change": "Només el propietari d'aquest equip pot fer canvis a la configuració de l'equip",
-  "team_disable_cal_branding_description": "Elimina qualsevol marca relacionada amb {{appName}}, és a dir, 'Impulsat per {{appName}}'",
   "invited_by_team": "{{teamName}} t'ha convidat a unir-te al seu equip com a {{role}}",
   "token_invalid_expired": "El token no és vàlid o ha caducat.",
   "view_booking": "Veure reserva",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Error en activar la funcionalitat. Torneu-ho a provar.",
   "set_organizer_as_contact_owner": "Estableix l'organitzador de la reserva com a propietari del contacte",
   "overwrite_existing_contact_owner": "Sobreescriu el propietari del contacte existent",
+  "busy_time": {
+    "busy": "Ocupat",
+    "event_booking_limit": "Límit de reserves per esdeveniment",
+    "event_duration_limit": "Límit de durada de l'esdeveniment",
+    "team_booking_limit": "Límit de reserves per equip",
+    "buffer_time": "Temps de marge",
+    "calendar": "Calendari"
+  },
   "invoice_number": "Factura núm.",
   "payment_method": "Mètode de pagament",
   "download_pdf": "Descarrega el PDF",

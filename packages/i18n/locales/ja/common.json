@@ -2155,7 +2155,6 @@
   "appearance_team_description": "チームの予約画面の外観設定を管理します",
   "appearance_org_description": "組織の予約外観の設定を管理",
   "only_owner_change": "このチームの所有者のみがチームの予約に変更を加えることができます",
-  "team_disable_cal_branding_description": "{{appName}} に関連するブランディング要素、つまり「Powered by {{appName}}」という文言をすべて削除します",
   "invited_by_team": "{{teamName}} から {{role}} としてチームに参加するよう招待されました",
   "token_invalid_expired": "トークンが無効または期限切れです。",
   "view_booking": "予約を表示",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "機能の有効化中にエラーが発生しました。もう一度お試しください。",
   "set_organizer_as_contact_owner": "予約の主催者を連絡先の所有者として設定",
   "overwrite_existing_contact_owner": "既存の連絡先所有者を上書き",
+  "busy_time": {
+    "busy": "予定あり",
+    "event_booking_limit": "イベント予約上限",
+    "event_duration_limit": "イベント時間上限",
+    "team_booking_limit": "チーム予約上限",
+    "buffer_time": "バッファー時間",
+    "calendar": "カレンダー"
+  },
   "invoice_number": "請求書 #",
   "payment_method": "支払い方法",
   "download_pdf": "PDFをダウンロード",

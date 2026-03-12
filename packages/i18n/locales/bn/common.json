@@ -2155,7 +2155,6 @@
   "appearance_team_description": "আপনার দলের বুকিংয়ের উপস্থিতির জন্য সেটিংস পরিচালনা করুন",
   "appearance_org_description": "আপনার সংস্থার বুকিংয়ের উপস্থিতির জন্য সেটিংস পরিচালনা করুন",
   "only_owner_change": "কেবল এই দলের মালিকই দলের বুকিংয়ে পরিবর্তন করতে পারেন ",
-  "team_disable_cal_branding_description": "যে কোনও অপসারণ {{appName}} সম্পর্কিত ব্র্যান্ডিং, অর্থাত্ 'দ্বারা চালিত {{appName}}'",
   "invited_by_team": "{{teamName}} আপনাকে তাদের দলে যোগদানের জন্য আমন্ত্রণ জানিয়েছে {{role}}",
   "token_invalid_expired": "টোকেন হয় অবৈধ বা মেয়াদোত্তীর্ণ।",
   "view_booking": "বুকিং দেখুন",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "ফিচার সক্রিয় করতে ত্রুটি। অনুগ্রহ করে আবার চেষ্টা করুন।",
   "set_organizer_as_contact_owner": "বুকিং আয়োজককে কন্টাক্ট মালিক হিসেবে সেট করুন",
   "overwrite_existing_contact_owner": "বিদ্যমান কন্টাক্ট মালিক ওভাররাইট করুন",
+  "busy_time": {
+    "busy": "ব্যস্ত",
+    "event_booking_limit": "ইভেন্ট বুকিং সীমা",
+    "event_duration_limit": "ইভেন্ট সময়কাল সীমা",
+    "team_booking_limit": "টিম বুকিং সীমা",
+    "buffer_time": "বাফার সময়",
+    "calendar": "ক্যালেন্ডার"
+  },
   "invoice_number": "ইনভয়েস #",
   "payment_method": "পেমেন্ট মেথড",
   "download_pdf": "PDF ডাউনলোড করুন",

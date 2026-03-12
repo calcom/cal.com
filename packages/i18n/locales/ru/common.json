@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Настройка внешнего вида страниц бронирования для вашей команды",
   "appearance_org_description": "Управляйте настройками внешнего вида бронирования вашей организации",
   "only_owner_change": "Вносить изменения в забронированные события команды может только ее владелец ",
-  "team_disable_cal_branding_description": "Скрыть брендинг, связанный с {{appName}}, например «Powered by {{appName}}»",
   "invited_by_team": "{{teamName}} приглашает вас присоединиться к команде с ролью «{{role}}»",
   "token_invalid_expired": "Токен недействителен или просрочен.",
   "view_booking": "Просмотреть бронирование",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Ошибка при включении функции. Пожалуйста, попробуйте ещё раз.",
   "set_organizer_as_contact_owner": "Назначить организатора бронирования владельцем контакта",
   "overwrite_existing_contact_owner": "Заменить текущего владельца контакта",
+  "busy_time": {
+    "busy": "Занято",
+    "event_booking_limit": "Лимит бронирований события",
+    "event_duration_limit": "Лимит длительности события",
+    "team_booking_limit": "Лимит бронирований команды",
+    "buffer_time": "Буферное время",
+    "calendar": "Календарь"
+  },
   "invoice_number": "Счёт №",
   "payment_method": "Способ оплаты",
   "download_pdf": "Скачать PDF",

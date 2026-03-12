@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Ekibinizin rezervasyon görünümü için ayarları yönetin",
   "appearance_org_description": "Organizasyonunuzun rezervasyon görünüm ayarlarını yönetin",
   "only_owner_change": "Sadece bu ekibin sahibi ekip rezervasyonunda değişiklik yapabilir ",
-  "team_disable_cal_branding_description": "{{appName}} ile ilgili tüm marka bilgilerini kaldırır, yani, \"{{appName}} tarafından desteklenmektedir\"",
   "invited_by_team": "{{teamName}} sizi {{role}} olarak ekibe katılmaya davet ediyor",
   "token_invalid_expired": "Token geçersiz veya süresi dolmuş.",
   "view_booking": "Rezervasyonu görüntüle",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Özellik etkinleştirilirken hata oluştu. Lütfen tekrar deneyin.",
   "set_organizer_as_contact_owner": "Rezervasyon organizatörünü iletişim sahibi olarak ayarla",
   "overwrite_existing_contact_owner": "Mevcut iletişim sahibinin üzerine yaz",
+  "busy_time": {
+    "busy": "Meşgul",
+    "event_booking_limit": "Etkinlik Rezervasyon Limiti",
+    "event_duration_limit": "Etkinlik Süre Limiti",
+    "team_booking_limit": "Takım Rezervasyon Limiti",
+    "buffer_time": "Ara Süre",
+    "calendar": "Takvim"
+  },
   "invoice_number": "Fatura #",
   "payment_method": "Ödeme yöntemi",
   "download_pdf": "PDF indir",

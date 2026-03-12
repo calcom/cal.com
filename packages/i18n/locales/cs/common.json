@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Správa nastavení vzhledu rezervace vašeho týmu",
   "appearance_org_description": "Spravujte nastavení vzhledu rezervací vaší organizace",
   "only_owner_change": "Změny v rezervaci týmu může provádět pouze jeho vlastník ",
-  "team_disable_cal_branding_description": "Odstraní všechny značky související s {{appName}}, tj. „Běží na platformě {{appName}}.“",
   "invited_by_team": "Tým {{teamName}} vás pozval do svého týmu na pozici {{role}}",
   "token_invalid_expired": "Token je buď neplatný, nebo vypršela jeho platnost.",
   "view_booking": "Zobrazit rezervaci",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Chyba při aktivaci funkce. Zkuste to prosím znovu.",
   "set_organizer_as_contact_owner": "Nastavit organizátora rezervace jako vlastníka kontaktu",
   "overwrite_existing_contact_owner": "Přepsat stávajícího vlastníka kontaktu",
+  "busy_time": {
+    "busy": "Zaneprázdněn",
+    "event_booking_limit": "Limit rezervací události",
+    "event_duration_limit": "Limit trvání události",
+    "team_booking_limit": "Limit rezervací týmu",
+    "buffer_time": "Časový odstup",
+    "calendar": "Kalendář"
+  },
   "invoice_number": "Faktura č.",
   "payment_method": "Způsob platby",
   "download_pdf": "Stáhnout PDF",

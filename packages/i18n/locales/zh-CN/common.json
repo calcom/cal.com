@@ -2155,7 +2155,6 @@
   "appearance_team_description": "管理团队预约页面外观的设置",
   "appearance_org_description": "管理组织预约页面外观的设置",
   "only_owner_change": "只有该团队的所有者才能更改该团队的预约",
-  "team_disable_cal_branding_description": "删除任何与 {{appName}} 相关的品牌，即“由 {{appName}} 提供支持”的品牌",
   "invited_by_team": "{{teamName}} 已邀请您以 {{role}} 的身份加入他们的团队",
   "token_invalid_expired": "代币无效或过期。",
   "view_booking": "查看预约",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "启用该功能时出错，请重试。",
   "set_organizer_as_contact_owner": "将预订组织者设为联系人所有者",
   "overwrite_existing_contact_owner": "覆盖现有联系人所有者",
+  "busy_time": {
+    "busy": "忙碌",
+    "event_booking_limit": "活动预约限制",
+    "event_duration_limit": "活动时长限制",
+    "team_booking_limit": "团队预约限制",
+    "buffer_time": "缓冲时间",
+    "calendar": "日历"
+  },
   "invoice_number": "发票编号",
   "payment_method": "支付方式",
   "download_pdf": "下载 PDF",

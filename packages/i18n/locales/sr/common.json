@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Upravljajte podešavanjima za izgled rezervacije vašeg tima",
   "appearance_org_description": "Upravljajte podešavanjima izgleda za rezervacije vaše organizacije",
   "only_owner_change": "Samo vlasnik ovog tima može da vrši promene rezervacije tima ",
-  "team_disable_cal_branding_description": "Ukloni sva {{appName}} brendiranja, npr. „Obezbeđuje {{appName}}“",
   "invited_by_team": "{{teamName}} vas je pozvao da se pridružite timu kao {{role}}",
   "token_invalid_expired": "Token je ili nevažeći, ili je istekao.",
   "view_booking": "Pogledaj rezervaciju",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Greška pri omogućavanju funkcije. Pokušajte ponovo.",
   "set_organizer_as_contact_owner": "Postavi organizatora kao vlasnika kontakta",
   "overwrite_existing_contact_owner": "Prepiši postojećeg vlasnika kontakta",
+  "busy_time": {
+    "busy": "Zauzet",
+    "event_booking_limit": "Ograničenje rezervacija događaja",
+    "event_duration_limit": "Ograničenje trajanja događaja",
+    "team_booking_limit": "Ograničenje timskih rezervacija",
+    "buffer_time": "Vreme za pripremu",
+    "calendar": "Kalendar"
+  },
   "invoice_number": "Faktura #",
   "payment_method": "Način plaćanja",
   "download_pdf": "Preuzmi PDF",

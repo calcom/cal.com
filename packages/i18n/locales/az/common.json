@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Komandanızın sifariş görünüşü parametrlərini idarə edin",
   "appearance_org_description": "Təşkilatınızın sifariş görünüşü parametrlərini idarə edin",
   "only_owner_change": "Yalnız bu komandanın sahibi komandanın sifarişində dəyişiklik edə bilər",
-  "team_disable_cal_branding_description": "{{appName}} ilə əlaqəli bütün brendləri, yəni 'Powered by {{appName}}' ifadəsini silir",
   "invited_by_team": "{{teamName}} sizi {{role}} kimi komandalarına qoşulmağa dəvət edib",
   "token_invalid_expired": "Token ya etibarsızdır, ya da müddəti bitib.",
   "view_booking": "Rezervasiyaya bax",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Funksiyanı aktivləşdirərkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.",
   "set_organizer_as_contact_owner": "Rezervasiya təşkilatçısını kontakt sahibi kimi təyin et",
   "overwrite_existing_contact_owner": "Mövcud kontakt sahibini əvəz et",
+  "busy_time": {
+    "busy": "Məşğul",
+    "event_booking_limit": "Tədbir Rezervasiya Limiti",
+    "event_duration_limit": "Tədbir Müddət Limiti",
+    "team_booking_limit": "Komanda Rezervasiya Limiti",
+    "buffer_time": "Bufer Vaxtı",
+    "calendar": "Təqvim"
+  },
   "invoice_number": "Qaimə-faktura №",
   "payment_method": "Ödəniş üsulu",
   "download_pdf": "PDF yüklə",

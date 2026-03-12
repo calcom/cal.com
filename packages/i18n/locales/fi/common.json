@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Hallinnoi tiimisi varausnäkymän asetuksia",
   "appearance_org_description": "Hallinnoi organisaatiosi varausnäkymän asetuksia",
   "only_owner_change": "Vain tiimin omistaja voi tehdä muutoksia tiimin varauksiin",
-  "team_disable_cal_branding_description": "Poistaa kaikki {{appName}}-brändäykset, esim. 'Powered by {{appName}}'",
   "invited_by_team": "{{teamName}} on kutsunut sinut liittymään tiimiinsä roolissa {{role}}",
   "token_invalid_expired": "Tunnus on virheellinen tai vanhentunut.",
   "view_booking": "Näytä varaus",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Virhe ominaisuuden käyttöönotossa. Yritä uudelleen.",
   "set_organizer_as_contact_owner": "Aseta varauksen järjestäjä yhteyshenkilön omistajaksi",
   "overwrite_existing_contact_owner": "Korvaa olemassa oleva yhteyshenkilön omistaja",
+  "busy_time": {
+    "busy": "Varattu",
+    "event_booking_limit": "Tapahtuman varausraja",
+    "event_duration_limit": "Tapahtuman kestorajoitus",
+    "team_booking_limit": "Tiimin varausraja",
+    "buffer_time": "Puskuriaika",
+    "calendar": "Kalenteri"
+  },
   "invoice_number": "Lasku #",
   "payment_method": "Maksutapa",
   "download_pdf": "Lataa PDF",

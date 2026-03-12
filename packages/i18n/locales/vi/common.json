@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Quản lí cài đặt cho sự xuất hiện lịch hẹn của nhóm bạn",
   "appearance_org_description": "Quản lý cài đặt cho giao diện đặt chỗ của tổ chức bạn",
   "only_owner_change": "Chỉ chủ của nhóm này mới thay đổi được lịch hẹn của nhóm ",
-  "team_disable_cal_branding_description": "Xoá bỏ mọi thương hiệu liên quan đến {{appName}}, chẳng hạn 'Được cung cấp bởi {{appName}}'",
   "invited_by_team": "{{teamName}} đã mời bạn gia nhập nhóm của họ ở vai trò {{role}}",
   "token_invalid_expired": "Token không hợp lệ hoặc đã hết hiệu lực.",
   "view_booking": "Xem lịch hẹn",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Lỗi khi bật tính năng. Vui lòng thử lại.",
   "set_organizer_as_contact_owner": "Đặt người tổ chức đặt lịch làm chủ sở hữu liên hệ",
   "overwrite_existing_contact_owner": "Ghi đè chủ sở hữu liên hệ hiện tại",
+  "busy_time": {
+    "busy": "Bận",
+    "event_booking_limit": "Giới hạn đặt lịch sự kiện",
+    "event_duration_limit": "Giới hạn thời lượng sự kiện",
+    "team_booking_limit": "Giới hạn đặt lịch nhóm",
+    "buffer_time": "Thời gian đệm",
+    "calendar": "Lịch"
+  },
   "invoice_number": "Hóa đơn #",
   "payment_method": "Phương thức thanh toán",
   "download_pdf": "Tải xuống PDF",

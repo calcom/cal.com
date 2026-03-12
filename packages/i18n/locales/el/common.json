@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Διαχείριση ρυθμίσεων για την εμφάνιση κρατήσεων της ομάδας σας",
   "appearance_org_description": "Διαχείριση ρυθμίσεων για την εμφάνιση κρατήσεων του οργανισμού σας",
   "only_owner_change": "Μόνο ο ιδιοκτήτης αυτής της ομάδας μπορεί να κάνει αλλαγές στις κρατήσεις της ομάδας",
-  "team_disable_cal_branding_description": "Αφαιρεί οποιαδήποτε επωνυμία σχετική με το {{appName}}, π.χ. 'Powered by {{appName}}'",
   "invited_by_team": "Η ομάδα {{teamName}} σας προσκάλεσε να συμμετάσχετε ως {{role}}",
   "token_invalid_expired": "Το token είναι άκυρο ή έχει λήξει",
   "view_booking": "Προβολή κράτησης",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Σφάλμα κατά την ενεργοποίηση της λειτουργίας. Παρακαλώ δοκιμάστε ξανά.",
   "set_organizer_as_contact_owner": "Ορισμός διοργανωτή ως υπεύθυνου επαφής",
   "overwrite_existing_contact_owner": "Αντικατάσταση υπάρχοντος υπεύθυνου επαφής",
+  "busy_time": {
+    "busy": "Απασχολημένος",
+    "event_booking_limit": "Όριο Κρατήσεων Συνάντησης",
+    "event_duration_limit": "Όριο Διάρκειας Συνάντησης",
+    "team_booking_limit": "Όριο Κρατήσεων Ομάδας",
+    "buffer_time": "Χρόνος Περιθωρίου",
+    "calendar": "Ημερολόγιο"
+  },
   "invoice_number": "Τιμολόγιο #",
   "payment_method": "Μέθοδος πληρωμής",
   "download_pdf": "Λήψη PDF",

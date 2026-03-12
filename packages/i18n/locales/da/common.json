@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Administrér indstillinger for dit teams booking visning",
   "appearance_org_description": "Administrer indstillinger for din organisations bookingudseende",
   "only_owner_change": "Kun ejeren af dette team kan foretage ændringer i teamets booking ",
-  "team_disable_cal_branding_description": "Fjerner alle {{appName}} relaterede brandings, dvs. 'Drevet af {{appName}}'",
   "invited_by_team": "{{teamName}} har inviteret dig til at deltage i deres team som {{role}}",
   "token_invalid_expired": "Token er enten ugyldig eller udløbet.",
   "view_booking": "Se booking",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Fejl ved aktivering af funktionen. Prøv igen.",
   "set_organizer_as_contact_owner": "Sæt bookingarrangør som kontaktansvarlig",
   "overwrite_existing_contact_owner": "Overskriv eksisterende kontaktansvarlig",
+  "busy_time": {
+    "busy": "Optaget",
+    "event_booking_limit": "Grænse for eventbookinger",
+    "event_duration_limit": "Grænse for eventvarighed",
+    "team_booking_limit": "Grænse for teambookinger",
+    "buffer_time": "Buffertid",
+    "calendar": "Kalender"
+  },
   "invoice_number": "Faktura nr.",
   "payment_method": "Betalingsmetode",
   "download_pdf": "Download PDF",

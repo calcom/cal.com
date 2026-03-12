@@ -2155,7 +2155,6 @@
   "appearance_team_description": "إدارة إعدادات مظهر حجز فريقك",
   "appearance_org_description": "إدارة إعدادات مظهر الحجز لمنظمتك",
   "only_owner_change": "يمكن فقط لمالك هذا الفريق إجراء تغييرات على حجز الفريق ",
-  "team_disable_cal_branding_description": "إزالة أي علامات تجارية ذات صلة بـ{{appName}}، أي 'مقدمة بواسطة {{appName}}'",
   "invited_by_team": "دعاك {{teamName}} للانضمام إلى فريقهم كـ{{role}}",
   "token_invalid_expired": "الرمز المميز إما غير صالح أو انتهت صلاحيته.",
   "view_booking": "عرض الحجز",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "خطأ في تفعيل الميزة. يرجى المحاولة مرة أخرى.",
   "set_organizer_as_contact_owner": "تعيين منظم الحجز كمالك جهة الاتصال",
   "overwrite_existing_contact_owner": "استبدال مالك جهة الاتصال الحالي",
+  "busy_time": {
+    "busy": "مشغول",
+    "event_booking_limit": "حد حجز الفعالية",
+    "event_duration_limit": "حد مدة الفعالية",
+    "team_booking_limit": "حد حجز الفريق",
+    "buffer_time": "وقت الانتظار",
+    "calendar": "التقويم"
+  },
   "invoice_number": "الفاتورة رقم",
   "payment_method": "طريقة الدفع",
   "download_pdf": "تنزيل PDF",

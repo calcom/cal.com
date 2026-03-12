@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Налаштуйте варіанти оформлення бронювання для своєї команди",
   "appearance_org_description": "Керуйте налаштуваннями зовнішнього вигляду бронювання вашої організації",
   "only_owner_change": "Змінити бронювання команди може лише її власник ",
-  "team_disable_cal_branding_description": "Вилучення будь-яких елементів фірмового оформлення {{appName}}, як-от надпису «На платформі {{appName}}»",
   "invited_by_team": "{{teamName}} запрошує вас приєднатися до його або її команди в такій ролі: {{role}}",
   "token_invalid_expired": "Токен недійсний або застарілий.",
   "view_booking": "Переглянути бронювання",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Помилка активації функції. Будь ласка, спробуйте ще раз.",
   "set_organizer_as_contact_owner": "Призначити організатора бронювання власником контакту",
   "overwrite_existing_contact_owner": "Перезаписати поточного власника контакту",
+  "busy_time": {
+    "busy": "Зайнято",
+    "event_booking_limit": "Ліміт бронювань події",
+    "event_duration_limit": "Ліміт тривалості події",
+    "team_booking_limit": "Ліміт бронювань команди",
+    "buffer_time": "Буферний час",
+    "calendar": "Календар"
+  },
   "invoice_number": "Рахунок №",
   "payment_method": "Спосіб оплати",
   "download_pdf": "Завантажити PDF",

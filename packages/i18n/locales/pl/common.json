@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Zarządzaj ustawieniami wyglądu rezerwacji zespołu",
   "appearance_org_description": "Zarządzaj ustawieniami wyglądu rezerwacji swojej organizacji",
   "only_owner_change": "Tylko właściciel tego zespołu może dokonywać zmian w rezerwacji zespołu ",
-  "team_disable_cal_branding_description": "Usuwa wszelkie znaki marki związane z {{appName}}, np. „Powered by {{appName}}”",
   "invited_by_team": "{{teamName}} zaprasza Cię do dołączenia do zespołu jako {{role}}.",
   "token_invalid_expired": "Token jest nieprawidłowy lub wygasł.",
   "view_booking": "Zobacz rezerwację",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Błąd podczas włączania funkcji. Spróbuj ponownie.",
   "set_organizer_as_contact_owner": "Ustaw organizatora rezerwacji jako właściciela kontaktu",
   "overwrite_existing_contact_owner": "Nadpisz obecnego właściciela kontaktu",
+  "busy_time": {
+    "busy": "Zajęty",
+    "event_booking_limit": "Limit rezerwacji wydarzeń",
+    "event_duration_limit": "Limit czasu trwania wydarzeń",
+    "team_booking_limit": "Limit rezerwacji zespołowych",
+    "buffer_time": "Czas buforowy",
+    "calendar": "Kalendarz"
+  },
   "invoice_number": "Faktura nr",
   "payment_method": "Metoda płatności",
   "download_pdf": "Pobierz PDF",

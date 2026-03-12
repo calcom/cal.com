@@ -2155,7 +2155,6 @@
   "appearance_team_description": "Gestisci le impostazioni di aspetto delle prenotazioni del tuo team",
   "appearance_org_description": "Imposta l'aspetto delle prenotazioni per la tua organizzazione",
   "only_owner_change": "Solo il proprietario del team può apportare modifiche alla prenotazione del team ",
-  "team_disable_cal_branding_description": "Rimuove tutte le scritte con il marchio {{appName}}, ad es., 'Powered by {{appName}}'",
   "invited_by_team": "{{teamName}} ti ha invitato a unirti al team come {{role}}",
   "token_invalid_expired": "Il token non è valido o è scaduto.",
   "view_booking": "Visualizza prenotazione",
@@ -4644,6 +4643,14 @@
   "error_enabling_feature": "Errore durante l'attivazione della funzionalità. Riprova.",
   "set_organizer_as_contact_owner": "Imposta l'organizzatore della prenotazione come proprietario del contatto",
   "overwrite_existing_contact_owner": "Sovrascrivi il proprietario del contatto esistente",
+  "busy_time": {
+    "busy": "Occupato",
+    "event_booking_limit": "Limite prenotazioni evento",
+    "event_duration_limit": "Limite durata evento",
+    "team_booking_limit": "Limite prenotazioni team",
+    "buffer_time": "Tempo cuscinetto",
+    "calendar": "Calendario"
+  },
   "invoice_number": "Fattura n.",
   "payment_method": "Metodo di pagamento",
   "download_pdf": "Scarica PDF",
