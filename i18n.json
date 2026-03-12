@@ -43,7 +43,10 @@
   },
   "buckets": {
     "json": {
-      "include": ["packages/i18n/locales/[locale]/common.json"]
+      "include": [
+        "packages/i18n/locales/[locale]/common.json",
+        "packages/i18n/locales/[locale]/pbac.json"
+      ]
     }
   },
   "$schema": "https://lingo.dev/schema/i18n.json"
