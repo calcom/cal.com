@@ -315,7 +315,7 @@ export class GoogleCalendarService {
 
   /**
    * Lists events in a date range for the user's Google Calendar.
-   * Only returns events with dateTime (skips all-day events for consistent response shape).
+   * Returns both timed events and all-day events.
    */
   async listEventsForUser(
     userId: number,
