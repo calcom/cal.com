@@ -61,13 +61,17 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
+import type {
+  IWebhookProducerService,
+  QueueBookingTriggerEvent,
+} from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 import {
   cancelNoShowTasksForBooking,
   deleteWebhookScheduledTriggers,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/i18n/server";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -82,7 +86,6 @@ import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -581,6 +584,22 @@ async function getEventOrganizationId({
   return eventOrganizationId;
 }
 
+function getWebhookTriggerEvent({
+  bookingStatus,
+  isReschedule,
+}: {
+  bookingStatus: BookingStatus;
+  isReschedule: boolean;
+}): QueueBookingTriggerEvent {
+  if (bookingStatus === BookingStatus.PENDING) {
+    return WebhookTriggerEvents.BOOKING_REQUESTED;
+  }
+  if (isReschedule) {
+    return WebhookTriggerEvents.BOOKING_RESCHEDULED;
+  }
+  return WebhookTriggerEvents.BOOKING_CREATED;
+}
+
 async function handler(
   this: RegularBookingService,
   input: BookingHandlerInput,
@@ -605,6 +624,7 @@ async function handler(
     traceContext: passedTraceContext,
   } = input;
   let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
+  let webhookTriggerEvent: QueueBookingTriggerEvent | null = null;
 
   const traceContext = passedTraceContext
     ? passedTraceContext
@@ -2767,14 +2787,6 @@ async function handler(
       );
     }
 
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-      traceContext,
-    });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
@@ -2800,25 +2812,11 @@ async function handler(
     tracingLogger.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  // Queue BOOKING_REQUESTED webhook after booking update so consumer fetches booking with location, metadata, references
-  if (booking && booking.status === BookingStatus.PENDING && !isDryRun) {
-    try {
-      await deps.webhookProducer.queueBookingRequestedWebhook({
-        bookingUid: booking.uid,
-        userId: subscriberOptions.userId ?? undefined,
-        eventTypeId: subscriberOptions.eventTypeId ?? undefined,
-        teamId: Array.isArray(subscriberOptions.teamId)
-          ? subscriberOptions.teamId[0]
-          : (subscriberOptions.teamId ?? undefined),
-        orgId: subscriberOptions.orgId ?? undefined,
-        oAuthClientId: platformClientId ?? undefined,
-      });
-    } catch (webhookError) {
-      tracingLogger.error(
-        `Error queueing BOOKING_REQUESTED webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
-        safeStringify(webhookError)
-      );
-    }
+  if (booking && !isDryRun) {
+    webhookTriggerEvent = getWebhookTriggerEvent({
+      bookingStatus: booking.status,
+      isReschedule: !!rescheduleUid,
+    });
   }
 
   const evtWithMetadata = {
@@ -2914,6 +2912,30 @@ async function handler(
         });
       } catch (err) {
         tracingLogger.error("bookingEmailAndSmsTasker error:", err);
+      }
+    }
+
+    if (webhookTriggerEvent && booking) {
+      try {
+        await deps.webhookProducer.queueBookingWebhook(webhookTriggerEvent, {
+          bookingUid: booking.uid,
+          userId: subscriberOptions.userId ?? undefined,
+          eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+          teamId: Array.isArray(subscriberOptions.teamId)
+            ? subscriberOptions.teamId[0]
+            : (subscriberOptions.teamId ?? undefined),
+          orgId: subscriberOptions.orgId ?? undefined,
+          oAuthClientId: platformClientId ?? undefined,
+          platformClientId: platformClientId ?? undefined,
+          platformRescheduleUrl: platformRescheduleUrl ?? undefined,
+          platformCancelUrl: platformCancelUrl ?? undefined,
+          platformBookingUrl: platformBookingUrl ?? undefined,
+        });
+      } catch (webhookError) {
+        tracingLogger.error(
+          `Error queueing ${webhookTriggerEvent} webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
+          safeStringify(webhookError)
+        );
       }
     }
   }

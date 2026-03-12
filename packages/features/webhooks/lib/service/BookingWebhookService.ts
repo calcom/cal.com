@@ -90,7 +90,7 @@ export class BookingWebhookService implements IBookingWebhookService {
         ...params.booking,
         startTime: params.booking.startTime ?? new Date(params.evt.startTime),
       },
-      status: params.status || "ACCEPTED",
+      status: "ACCEPTED",
       metadata: params.metadata,
       platformParams: params.platformParams,
     };

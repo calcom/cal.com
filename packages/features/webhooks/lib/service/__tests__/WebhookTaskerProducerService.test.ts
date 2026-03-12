@@ -48,10 +48,9 @@ describe("WebhookTaskerProducerService", () => {
     });
   });
 
-  describe("queueBookingCreatedWebhook", () => {
+  describe("queueBookingWebhook", () => {
     it("should queue a BOOKING_CREATED webhook task", async () => {
-      await producer.queueBookingCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "booking-123",
         eventTypeId: 456,
         userId: 789,
@@ -70,8 +69,7 @@ describe("WebhookTaskerProducerService", () => {
     });
 
     it("should generate operationId if not provided", async () => {
-      await producer.queueBookingCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "booking-123",
       });
 
@@ -83,8 +81,7 @@ describe("WebhookTaskerProducerService", () => {
     });
 
     it("should use provided operationId", async () => {
-      await producer.queueBookingCreatedWebhook({
-        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "booking-123",
         operationId: "custom-op-id",
       });
@@ -96,7 +93,7 @@ describe("WebhookTaskerProducerService", () => {
     });
 
     it("should log debug messages", async () => {
-      await producer.queueBookingCreatedWebhook({
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "booking-123",
       });
 
@@ -136,7 +133,7 @@ describe("WebhookTaskerProducerService", () => {
 
   describe("Metadata Support", () => {
     it("should include metadata if provided", async () => {
-      await producer.queueBookingCreatedWebhook({
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "booking-123",
         metadata: { customField: "value" },
       });
@@ -154,7 +151,7 @@ describe("WebhookTaskerProducerService", () => {
       vi.mocked(mockWebhookTasker.deliverWebhook).mockRejectedValueOnce(error);
 
       await expect(
-        producer.queueBookingCreatedWebhook({
+        producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
           bookingUid: "booking-123",
         })
       ).rejects.toThrow("WebhookTasker failed");
@@ -169,8 +166,8 @@ describe("WebhookTaskerProducerService", () => {
   });
 
   describe("All Event-Specific Methods", () => {
-    it("should have queueBookingCreatedWebhook", async () => {
-      await producer.queueBookingCreatedWebhook({
+    it("should queue BOOKING_CREATED via queueBookingWebhook", async () => {
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
@@ -187,8 +184,8 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
-    it("should have queueBookingRescheduledWebhook", async () => {
-      await producer.queueBookingRescheduledWebhook({
+    it("should queue BOOKING_RESCHEDULED via queueBookingWebhook", async () => {
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
@@ -196,8 +193,8 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
-    it("should have queueBookingRequestedWebhook", async () => {
-      await producer.queueBookingRequestedWebhook({
+    it("should queue BOOKING_REQUESTED via queueBookingWebhook", async () => {
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(

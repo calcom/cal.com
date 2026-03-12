@@ -28,7 +28,7 @@ export interface BookingCreatedDTO extends BaseEventDTO {
     startTime: Date;
     smsReminderNumber?: string | null;
   };
-  status: "ACCEPTED" | "PENDING";
+  status: "ACCEPTED";
   metadata?: Record<string, unknown>;
   platformParams?: {
     platformClientId?: string;
@@ -102,6 +102,7 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
   rescheduleStartTime?: string;
   rescheduleEndTime?: string;
   rescheduledBy?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingPaidDTO extends BaseEventDTO {

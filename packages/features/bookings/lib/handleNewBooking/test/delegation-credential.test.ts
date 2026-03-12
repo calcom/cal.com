@@ -25,7 +25,6 @@ import {
   expectWorkflowToBeTriggered,
   expectSuccessfulBookingCreationEmails,
   expectBookingToBeInDatabase,
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectSuccessfulCalendarEventCreationInCalendar,
   expectICalUIDAsString,
   expectBookingToNotHaveReference,
@@ -323,13 +322,6 @@ describe("handleNewBooking", () => {
           iCalUID,
         });
 
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer,
-          location: BookingLocations.GoogleMeet,
-          subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-        });
       },
       timeout
     );
@@ -501,13 +493,6 @@ describe("handleNewBooking", () => {
           iCalUID,
         });
 
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer,
-          location: BookingLocations.GoogleMeet,
-          subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-        });
       },
       timeout
     );
@@ -697,13 +682,6 @@ describe("handleNewBooking", () => {
           calendarType: "office365_calendar",
         });
 
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer,
-          location: BookingLocations.CalVideo,
-          subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: `http://app.cal.local:3000/video/${createdBooking.uid}`,
-        });
       },
       timeout
     );

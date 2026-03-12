@@ -100,7 +100,7 @@ describe("Webhook Producer Integration", () => {
       const producer = getWebhookProducer();
       const bookingUid = "test-booking-uid-requested";
 
-      await producer.queueBookingRequestedWebhook({
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, {
         bookingUid,
         eventTypeId: testEventType.id,
         userId: testUser.id,
@@ -111,6 +111,86 @@ describe("Webhook Producer Integration", () => {
       const payload = deliveredWebhooks[0];
       expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_REQUESTED);
       if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_REQUESTED) {
+        expect(payload.bookingUid).toBe(bookingUid);
+      }
+    });
+  });
+
+  describe("BOOKING_CREATED", () => {
+    test("calls deliverWebhook with correct payload", async () => {
+      const producer = getWebhookProducer();
+      const bookingUid = "test-booking-uid-created";
+
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
+        bookingUid,
+        eventTypeId: testEventType.id,
+        userId: testUser.id,
+      });
+
+      expect(deliveredWebhooks.length).toBe(1);
+
+      const payload = deliveredWebhooks[0];
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CREATED);
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_CREATED) {
+        expect(payload.bookingUid).toBe(bookingUid);
+      }
+    });
+
+    test("includes teamId when provided", async () => {
+      const producer = getWebhookProducer();
+      const bookingUid = "test-booking-uid-created-team";
+
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
+        bookingUid,
+        eventTypeId: testEventType.id,
+        teamId: 999,
+      });
+
+      expect(deliveredWebhooks.length).toBe(1);
+
+      const payload = deliveredWebhooks[0];
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CREATED);
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_CREATED) {
+        expect(payload.bookingUid).toBe(bookingUid);
+      }
+    });
+  });
+
+  describe("BOOKING_RESCHEDULED", () => {
+    test("calls deliverWebhook with correct payload", async () => {
+      const producer = getWebhookProducer();
+      const bookingUid = "test-booking-uid-rescheduled";
+
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, {
+        bookingUid,
+        eventTypeId: testEventType.id,
+        userId: testUser.id,
+      });
+
+      expect(deliveredWebhooks.length).toBe(1);
+
+      const payload = deliveredWebhooks[0];
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_RESCHEDULED);
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
+        expect(payload.bookingUid).toBe(bookingUid);
+      }
+    });
+
+    test("includes teamId when provided", async () => {
+      const producer = getWebhookProducer();
+      const bookingUid = "test-booking-uid-rescheduled-team";
+
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, {
+        bookingUid,
+        eventTypeId: testEventType.id,
+        teamId: 999,
+      });
+
+      expect(deliveredWebhooks.length).toBe(1);
+
+      const payload = deliveredWebhooks[0];
+      expect(payload.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_RESCHEDULED);
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED) {
         expect(payload.bookingUid).toBe(bookingUid);
       }
     });

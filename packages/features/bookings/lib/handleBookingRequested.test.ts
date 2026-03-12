@@ -7,7 +7,7 @@ vi.mock("@calcom/emails/email-manager", () => ({
 
 vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
   getWebhookProducer: vi.fn().mockReturnValue({
-    queueBookingRequestedWebhook: vi.fn().mockResolvedValue(undefined),
+    queueBookingWebhook: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -97,7 +97,8 @@ describe("handleBookingRequested", () => {
     });
 
     const producer = getWebhookProducer();
-    expect(producer.queueBookingRequestedWebhook).toHaveBeenCalledWith(
+    expect(producer.queueBookingWebhook).toHaveBeenCalledWith(
+      "BOOKING_REQUESTED",
       expect.objectContaining({ bookingUid: "test-uid-123" })
     );
   });
@@ -105,7 +106,7 @@ describe("handleBookingRequested", () => {
   it("does not throw when webhook queueing fails", async () => {
     const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
     vi.mocked(getWebhookProducer).mockReturnValue({
-      queueBookingRequestedWebhook: vi.fn().mockRejectedValue(new Error("webhook error")),
+      queueBookingWebhook: vi.fn().mockRejectedValue(new Error("webhook error")),
     } as never);
 
     await expect(

@@ -43,7 +43,6 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus, CreationSource, SchedulingType, WatchlistType } from "@calcom/prisma/enums";
 import {
   expectAwaitingPaymentEmails,
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingPaymentIntiatedWebhookToHaveBeenFired,
   expectBookingRequestedEmails,
   expectBookingRequestedWebhookToHaveBeenFired,
@@ -284,16 +283,6 @@ describe("handleNewBooking", () => {
           destinationEmail: organizerDestinationCalendarEmailOnEventType,
         });
 
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer: {
-            ...organizer,
-            ...(orgProfile?.username ? { usernameInOrg: orgProfile?.username } : null),
-          },
-          location: BookingLocations.CalVideo,
-          subscriberUrl: "http://my-webhook.example.com",
-          videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-        });
       },
       timeout
     );
@@ -449,13 +438,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -610,13 +592,6 @@ describe("handleNewBooking", () => {
             iCalUID,
           });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -733,12 +708,6 @@ describe("handleNewBooking", () => {
           // FIXME: We should send Broken Integration emails on calendar event creation failure
           // expectCalendarEventCreationFailureEmails({ booker, organizer, emails });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: "New York",
-            subscriberUrl: "http://my-webhook.example.com",
-          });
         },
         timeout
       );
@@ -899,13 +868,6 @@ describe("handleNewBooking", () => {
             iCalUID,
           });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -1055,13 +1017,6 @@ describe("handleNewBooking", () => {
             iCalUID: "MOCKED_APPLE_CALENDAR_ICS_ID",
           });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -1150,13 +1105,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.ZoomVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: "http://mock-zoomvideo.example.com",
-          });
         },
         timeout
       );
@@ -1236,12 +1184,6 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
             iCalUID,
-          });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: "Seoul",
-            subscriberUrl: "http://my-webhook.example.com",
           });
         },
         timeout
@@ -1327,13 +1269,6 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
             iCalUID,
-          });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.ZoomVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: "http://mock-zoomvideo.example.com",
           });
         },
         timeout
@@ -1612,13 +1547,6 @@ describe("handleNewBooking", () => {
             iCalUID,
           });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.ZoomVideo,
-            subscriberUrl,
-            videoCallUrl: "http://mock-zoomvideo.example.com",
-          });
         },
         timeout
       );
@@ -1705,13 +1633,6 @@ describe("handleNewBooking", () => {
             })
           );
           expectBrokenIntegrationEmails({ organizer, emails });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl,
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -2484,13 +2405,6 @@ describe("handleNewBooking", () => {
             iCalUID,
           });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl,
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -2673,12 +2587,6 @@ describe("handleNewBooking", () => {
           emails,
           iCalUID,
         });
-        expectBookingCreatedWebhookToHaveBeenFired({
-          booker,
-          organizer,
-          location: "New York",
-          subscriberUrl: "http://my-webhook.example.com",
-        });
       },
       timeout
     );
@@ -2854,14 +2762,6 @@ describe("handleNewBooking", () => {
 
           expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            paidEvent: true,
-          });
           expectWorkflowToBeTriggered({ emailsToReceive: [bookingPaidEmail], emails });
         },
         timeout

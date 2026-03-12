@@ -48,7 +48,7 @@ describe("WebhookTaskerProducerService", () => {
     });
   });
 
-  describe("queueBookingRequestedWebhook", () => {
+  describe("queueBookingWebhook", () => {
     it("should queue a BOOKING_REQUESTED webhook task with required params", async () => {
       const params = {
         bookingUid: "booking-123",
@@ -56,7 +56,7 @@ describe("WebhookTaskerProducerService", () => {
         userId: 789,
       };
 
-      await producer.queueBookingRequestedWebhook(params);
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
 
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -80,7 +80,7 @@ describe("WebhookTaskerProducerService", () => {
         metadata: { customKey: "customValue" },
       };
 
-      await producer.queueBookingRequestedWebhook(params);
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
 
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -102,7 +102,7 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "booking-123",
       };
 
-      await producer.queueBookingRequestedWebhook(params);
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
 
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -120,7 +120,7 @@ describe("WebhookTaskerProducerService", () => {
         eventTypeId: 456,
       };
 
-      await producer.queueBookingRequestedWebhook(params);
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
 
       expect(mockLogger.debug).toHaveBeenCalledWith(
         "Queueing booking webhook task",
@@ -140,7 +140,7 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "booking-123",
       };
 
-      await expect(producer.queueBookingRequestedWebhook(params)).rejects.toThrow("Tasker error");
+      await expect(producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params)).rejects.toThrow("Tasker error");
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         "Failed to queue webhook delivery task",
@@ -149,11 +149,9 @@ describe("WebhookTaskerProducerService", () => {
         })
       );
     });
-  });
 
-  describe("Other booking webhook methods", () => {
     it("should queue BOOKING_CREATED webhook", async () => {
-      await producer.queueBookingCreatedWebhook({ bookingUid: "booking-123" });
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, { bookingUid: "booking-123" });
 
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -163,23 +161,25 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
+    it("should queue BOOKING_RESCHEDULED webhook", async () => {
+      await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, { bookingUid: "booking-123" });
+
+      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
+          bookingUid: "booking-123",
+        })
+      );
+    });
+  });
+
+  describe("Other booking webhook methods", () => {
     it("should queue BOOKING_CANCELLED webhook", async () => {
       await producer.queueBookingCancelledWebhook({ bookingUid: "booking-123" });
 
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
-          bookingUid: "booking-123",
-        })
-      );
-    });
-
-    it("should queue BOOKING_RESCHEDULED webhook", async () => {
-      await producer.queueBookingRescheduledWebhook({ bookingUid: "booking-123" });
-
-      expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({
-          triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
           bookingUid: "booking-123",
         })
       );

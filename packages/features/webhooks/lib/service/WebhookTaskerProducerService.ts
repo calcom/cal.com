@@ -1,9 +1,10 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
-import type { BookingTriggerEvents, PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
+import type { PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
+  QueueBookingTriggerEvent,
   QueueBookingWebhookParams,
   QueueFormWebhookParams,
   QueueOOOWebhookParams,
@@ -36,25 +37,8 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     this.log = deps.logger.getSubLogger({ prefix: ["[WebhookTaskerProducerService]"] });
   }
 
-  async queueBookingCreatedWebhook(params: QueueBookingWebhookParams): Promise<void> {
-    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, params);
-  }
-
   async queueBookingCancelledWebhook(params: QueueBookingWebhookParams): Promise<void> {
     await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CANCELLED, params);
-  }
-
-  async queueBookingRescheduledWebhook(params: QueueBookingWebhookParams): Promise<void> {
-    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, params);
-  }
-
-  /**
-   * Queue a webhook for requested bookings.
-   *
-   * This fires when bookings require confirmation (status = PENDING).
-   */
-  async queueBookingRequestedWebhook(params: QueueBookingWebhookParams): Promise<void> {
-    await this.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, params);
   }
 
   async queueBookingRejectedWebhook(params: QueueBookingWebhookParams): Promise<void> {
@@ -146,14 +130,8 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
-  /**
-   * Internal helper to queue booking-related webhooks
-   */
-  private async queueBookingWebhook(
-    triggerEvent: Exclude<
-      BookingTriggerEvents,
-      typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED | typeof WebhookTriggerEvents.BOOKING_PAID
-    >,
+  async queueBookingWebhook(
+    triggerEvent: QueueBookingTriggerEvent,
     params: QueueBookingWebhookParams
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();
@@ -175,6 +153,10 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
       metadata: params.metadata,
+      platformClientId: params.platformClientId,
+      platformRescheduleUrl: params.platformRescheduleUrl,
+      platformCancelUrl: params.platformCancelUrl,
+      platformBookingUrl: params.platformBookingUrl,
       timestamp: new Date().toISOString(),
     };
 

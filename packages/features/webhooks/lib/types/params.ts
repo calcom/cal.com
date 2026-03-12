@@ -23,7 +23,7 @@ export interface BookingCreatedParams {
     length: number;
     teamId?: number | null;
   };
-  status?: "ACCEPTED" | "PENDING";
+  status?: "ACCEPTED";
   metadata?: Record<string, unknown>;
   platformParams?: {
     platformClientId?: string;

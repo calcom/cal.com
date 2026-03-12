@@ -1,7 +1,13 @@
 import type { BookingForCalEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { WebhookEventDTO, WebhookSubscriber } from "../dto/types";
+import type {
+  BookingCreatedDTO,
+  BookingRequestedDTO,
+  BookingRescheduledDTO,
+  WebhookEventDTO,
+  WebhookSubscriber,
+} from "../dto/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
@@ -10,7 +16,6 @@ import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type {
   BookingWebhookTaskPayload,
-  PaymentWebhookTaskPayload,
   WebhookTaskPayload,
 } from "../types/webhookTask";
 
@@ -194,6 +199,42 @@ export class WebhookTaskConsumer {
     };
 
     switch (triggerEvent) {
+      case WebhookTriggerEvents.BOOKING_CREATED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          status: "ACCEPTED",
+          metadata: {
+            ...(typeof booking.metadata === "object" &&
+            booking.metadata !== null &&
+            !Array.isArray(booking.metadata)
+              ? booking.metadata
+              : {}),
+            ...(bookingPayload.metadata ?? {}),
+          },
+        } satisfies BookingCreatedDTO;
+      case WebhookTriggerEvents.BOOKING_RESCHEDULED: {
+        const previousBooking = eventData.previousBooking as
+          | { id: number; uid: string; startTime: Date; endTime: Date; rescheduledBy: string | null }
+          | undefined;
+        return {
+          ...baseDTO,
+          triggerEvent,
+          rescheduleId: previousBooking?.id,
+          rescheduleUid: previousBooking?.uid,
+          rescheduleStartTime: previousBooking?.startTime?.toISOString(),
+          rescheduleEndTime: previousBooking?.endTime?.toISOString(),
+          rescheduledBy: previousBooking?.rescheduledBy ?? undefined,
+          metadata: {
+            ...(typeof booking.metadata === "object" &&
+            booking.metadata !== null &&
+            !Array.isArray(booking.metadata)
+              ? booking.metadata
+              : {}),
+            ...(bookingPayload.metadata ?? {}),
+          },
+        } satisfies BookingRescheduledDTO;
+      }
       case WebhookTriggerEvents.BOOKING_REQUESTED:
         return {
           ...baseDTO,
@@ -206,7 +247,7 @@ export class WebhookTaskConsumer {
               : {}),
             ...(bookingPayload.metadata ?? {}),
           },
-        } as WebhookEventDTO;
+        } satisfies BookingRequestedDTO;
       default:
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
         return null;

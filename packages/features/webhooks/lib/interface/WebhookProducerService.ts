@@ -1,3 +1,5 @@
+import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+
 /**
  * Base parameters common to all webhook queue operations
  */
@@ -20,6 +22,14 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   userId?: number;
   orgId?: number;
   oAuthClientId?: string | null;
+  /** Platform client ID (for platform webhook subscribers) */
+  platformClientId?: string | null;
+  /** Platform reschedule URL */
+  platformRescheduleUrl?: string | null;
+  /** Platform cancel URL */
+  platformCancelUrl?: string | null;
+  /** Platform booking URL */
+  platformBookingUrl?: string | null;
 }
 
 /**
@@ -107,36 +117,25 @@ export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
 }
 
 /**
- * Lightweight Producer Service for queueing webhook delivery tasks.
- *
- * This service has NO heavy dependencies (no Prisma, no repositories).
- * It only queues tasks via Tasker, which will be processed by WebhookTaskConsumer.
- *
- * This allows the producer to stay in the main app while the consumer
- * can be deployed to trigger.dev for scalability.
+ * Trigger events that can be queued via queueBookingWebhook.
  */
-export interface IWebhookProducerService {
-  /**
-   * Queue a webhook delivery task for BOOKING_CREATED event
-   */
-  queueBookingCreatedWebhook(params: QueueBookingWebhookParams): Promise<void>;
+export type QueueBookingTriggerEvent =
+  | typeof WebhookTriggerEvents.BOOKING_CREATED
+  | typeof WebhookTriggerEvents.BOOKING_RESCHEDULED
+  | typeof WebhookTriggerEvents.BOOKING_CANCELLED
+  | typeof WebhookTriggerEvents.BOOKING_REJECTED
+  | typeof WebhookTriggerEvents.BOOKING_REQUESTED
+  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
 
+export interface IWebhookProducerService {
+  queueBookingWebhook(
+    triggerEvent: QueueBookingTriggerEvent,
+    params: QueueBookingWebhookParams
+  ): Promise<void>;
   /**
    * Queue a webhook delivery task for BOOKING_CANCELLED event
    */
   queueBookingCancelledWebhook(params: QueueBookingWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_RESCHEDULED event
-   */
-  queueBookingRescheduledWebhook(params: QueueBookingWebhookParams): Promise<void>;
-
-  /**
-   * Queue a webhook delivery task for BOOKING_REQUESTED event
-   *
-   * Note: This fires when bookings require confirmation (status = PENDING)
-   */
-  queueBookingRequestedWebhook(params: QueueBookingWebhookParams): Promise<void>;
 
   /**
    * Queue a webhook delivery task for BOOKING_REJECTED event

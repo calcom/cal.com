@@ -28,7 +28,6 @@ import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import {
   expectBookingInDBToBeRescheduledFromTo,
   expectBookingRequestedEmails,
-  expectBookingRescheduledWebhookToHaveBeenFired,
   expectBookingToBeInDatabase,
   expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventDeletionInCalendar,
@@ -281,16 +280,6 @@ describe("handleNewBooking", () => {
             ],
           });
 
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            payload: {
-              rescheduledBy: organizer.email,
-            },
-          });
         },
         timeout
       );
@@ -495,13 +484,6 @@ describe("handleNewBooking", () => {
             emails,
             iCalUID,
           });
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
         },
         timeout
       );
@@ -666,22 +648,6 @@ describe("handleNewBooking", () => {
             emails,
           });
 
-          expectBookingRescheduledWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: "integrations:daily",
-            subscriberUrl: "http://my-webhook.example.com",
-            payload: {
-              uid: createdBooking.uid,
-              appsStatus: [
-                expect.objectContaining(getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug })),
-                expect.objectContaining(
-                  getMockFailingAppStatus({ slug: appStoreMetadata.googlecalendar.slug })
-                ),
-              ],
-            },
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking?.uid}`,
-          });
         },
         timeout
       );
@@ -924,13 +890,6 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            });
           },
           timeout
         );
@@ -1163,13 +1122,6 @@ describe("handleNewBooking", () => {
                   overrideName: "Google Meet",
                 }),
               ],
-            });
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.GoogleMeet,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: "https://UNUSED_URL",
             });
           },
           timeout
@@ -1423,13 +1375,6 @@ describe("handleNewBooking", () => {
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
 
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-            });
           },
           timeout
         );
@@ -1611,13 +1556,6 @@ describe("handleNewBooking", () => {
               organizer,
               emails,
               iCalUID,
-            });
-            expectBookingRescheduledWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: BookingLocations.CalVideo,
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
             expectSuccessfulCalendarEventUpdationInCalendar(calendarMock, {
               externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",

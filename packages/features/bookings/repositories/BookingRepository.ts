@@ -221,6 +221,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
   cancellationReason: true,
   rejectionReason: true,
   rescheduledBy: true,
+  fromReschedule: true,
   attendees: {
     select: {
       name: true,
@@ -710,9 +711,11 @@ export class BookingRepository implements IBookingRepository {
         uid: fromReschedule,
       },
       select: {
+        id: true,
         uid: true,
         startTime: true,
         endTime: true,
+        rescheduledBy: true,
       },
     });
   }

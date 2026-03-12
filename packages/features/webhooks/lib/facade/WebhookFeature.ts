@@ -30,8 +30,7 @@ import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
  * const webhooks = getWebhookFeature();
  *
  * // Queue a webhook (lightweight, fast)
- * await webhooks.producer.queueBookingCreatedWebhook({
- *   triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+ * await webhooks.producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
  *   bookingUid: booking.uid,
  *   eventTypeId: eventType.id,
  * });

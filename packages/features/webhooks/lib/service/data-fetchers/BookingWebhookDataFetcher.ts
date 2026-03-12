@@ -57,11 +57,23 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
         return null;
       }
 
+      // For BOOKING_RESCHEDULED, fetch the original booking's details
+      let previousBooking: { id: number; uid: string; startTime: Date; endTime: Date; rescheduledBy: string | null } | null = null;
+      if (
+        payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
+        (booking as Record<string, unknown>).fromReschedule
+      ) {
+        previousBooking = await this.bookingRepository.findPreviousBooking({
+          fromReschedule: (booking as Record<string, unknown>).fromReschedule as string,
+        });
+      }
+
       // Return complete data needed for webhook payload building
       return {
         calendarEvent,
         booking,
         eventType: booking.eventType,
+        ...(previousBooking ? { previousBooking } : {}),
       };
     } catch (error) {
       this.logger.error("Error fetching booking data for webhook", {

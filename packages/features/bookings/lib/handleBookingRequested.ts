@@ -8,7 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -80,7 +80,7 @@ export async function handleBookingRequested(args: {
         // Keep params in sync with RegularBookingService (non-payment path) so
         // subscriber filtering (userId, eventTypeId, teamId, orgId, oAuthClientId) is consistent.
         const webhookProducer = getWebhookProducer();
-        await webhookProducer.queueBookingRequestedWebhook({
+        await webhookProducer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_REQUESTED, {
           bookingUid: evt.uid,
           userId: booking.userId ?? undefined,
           eventTypeId: booking.eventTypeId ?? undefined,

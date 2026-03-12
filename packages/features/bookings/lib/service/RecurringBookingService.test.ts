@@ -10,7 +10,6 @@ import {
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
-  expectBookingCreatedWebhookToHaveBeenFired,
   expectBookingToBeInDatabase,
   expectSuccessfulBookingCreationEmails,
   expectSuccessfulCalendarEventCreationInCalendar,
@@ -201,13 +200,6 @@ describe("handleNewRecurringBooking", () => {
               ],
             });
 
-            expectBookingCreatedWebhookToHaveBeenFired({
-              booker,
-              organizer,
-              location: "integrations:daily",
-              subscriberUrl: "http://my-webhook.example.com",
-              videoCallUrl: `${WEBAPP_URL}/video/${createdBookings[0].uid}`,
-            });
           }
 
           expectSuccessfulBookingCreationEmails({

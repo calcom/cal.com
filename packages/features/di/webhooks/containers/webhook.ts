@@ -84,7 +84,7 @@ export function getWebhookTaskConsumer(): WebhookTaskConsumer {
  * const webhooks = getWebhookFeature();
  *
  * // Queue a webhook (lightweight - Producer pattern)
- * await webhooks.producer.queueBookingCreatedWebhook({ ... });
+ * await webhooks.producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, { ... });
  *
  * // Or use event-specific services (legacy - will be deprecated in Phase 6)
  * await webhooks.booking.emitBookingCreated({ ... });
@@ -120,7 +120,7 @@ export function getWebhookFeature(): WebhookFeature {
  * import { getWebhookProducer } from "@calcom/features/di/webhooks";
  *
  * const producer = getWebhookProducer();
- * await producer.queueBookingCreatedWebhook({
+ * await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
  *   bookingUid: booking.uid,
  *   eventTypeId: eventType.id,
  *   userId: user.id,

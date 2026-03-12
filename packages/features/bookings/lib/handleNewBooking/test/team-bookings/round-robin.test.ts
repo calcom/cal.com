@@ -12,7 +12,6 @@ import {
   getGoogleCalendarCredential,
   mockCalendarToHaveNoBusySlots,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 
@@ -1074,17 +1073,6 @@ describe("Round Robin handleNewBooking", () => {
 
       // Verify webhook includes usernameInOrg for organization team events
       // This test will initially fail due to the bug
-      expectBookingCreatedWebhookToHaveBeenFired({
-        booker,
-        organizer: {
-          email: organizerTeamMember?.email || "unknown@example.com",
-          name: organizerTeamMember?.name || "Unknown",
-          username: organizerTeamMember?.username,
-          usernameInOrg: organizerProfile?.username, // This should be present but will be undefined due to the bug
-        },
-        location: BookingLocations.CalVideo,
-        subscriberUrl,
-      });
     });
   });
 
