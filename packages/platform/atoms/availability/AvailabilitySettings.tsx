@@ -1,23 +1,8 @@
 "use client";
 
-import type { SetStateAction, Dispatch } from "react";
-import React from "react";
-import {
-  useMemo,
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useCallback,
-} from "react";
-import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -25,34 +10,26 @@ import type {
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import {
-  ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/ScheduleComponent";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
+import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, Label, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
+import { SelectSkeletonLoader, Skeleton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import WebShell from "@calcom/web/modules/shell/Shell";
-
-import { Shell as PlatformShell } from "../src/components/ui/shell";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import { cn } from "../src/lib/utils";
-import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues, scheduleClassNames, AvailabilitySettingsFormRef } from "./types";
+import type { AvailabilityFormValues, AvailabilitySettingsFormRef, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -101,6 +78,12 @@ export type AvailabilitySettingsScheduleType = {
   schedule: Availability[];
 };
 
+export type AvailabilitySettingsComponents = {
+  Shell: React.ElementType;
+  Schedule: React.ElementType;
+  TimezoneSelect: React.ElementType;
+};
+
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: AvailabilitySettingsScheduleType;
@@ -131,6 +114,7 @@ type AvailabilitySettingsProps = {
   };
   callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
   isDryRun?: boolean;
+  components: AvailabilitySettingsComponents;
 };
 
 const DeleteDialogButton = ({
@@ -325,7 +309,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       allowDelete = true,
       callbacksRef,
       isDryRun,
+      components,
     } = props;
+    const { Shell, Schedule, TimezoneSelect } = components;
     const [openSidebar, setOpenSidebar] = useState(false);
     const { t, i18n } = useLocale();
 
@@ -351,7 +337,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const formHasChanges = useMemo(() => {
       if (!initialValuesRef.current) return false;
       try {
-        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
+        return (
+          JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) ||
+          JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current)
+        );
       } catch {
         return form.formState.isDirty;
       }
@@ -363,12 +352,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         onFormStateChange(watchedValues as AvailabilityFormValues);
       }
     }, [watchedValues, onFormStateChange]);
-
-    const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
-      return isPlatform
-        ? [PlatformShell, PlatformSchedule, PlatformTimzoneSelect]
-        : [WebShell, WebSchedule, WebTimezoneSelect];
-    }, [isPlatform]);
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -612,7 +595,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                     "focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm",
                                     customClassNames?.timezoneSelectClassName
                                   )}
-                                  onChange={(timezone) => onChange(timezone.value)}
+                                  onChange={(timezone: { value: string }) => onChange(timezone.value)}
                                 />
                               ) : (
                                 <SelectSkeletonLoader className="mt-1 w-72" />
@@ -655,8 +638,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               type="submit"
               form="availability-form"
               loading={isSaving}
-              disabled={isLoading || !formHasChanges}
-            >
+              disabled={isLoading || !formHasChanges}>
               {t("save")}
             </Button>
             <Button
@@ -757,7 +739,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           inputId="timeZone-lg-viewport"
                           value={value}
                           className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
-                          onChange={(timezone) => onChange(timezone.value)}
+                          onChange={(timezone: { value: string }) => onChange(timezone.value)}
                         />
                       ) : (
                         <SelectSkeletonLoader className="mt-1 w-72" />
