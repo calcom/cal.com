@@ -27,7 +27,7 @@ import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-import { UpgradeTeamsBadgeWebWrapper } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { WideUpgradeBannerForBranding } from "~/billing/upgrade-banners/WideUpgradeBannerForBranding";
 
 const useBrandColors = (
   currentTheme: string | null,
@@ -388,19 +388,24 @@ const AppearanceView = ({
         Preview
       </Button> */}
 
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            title={t("disable_cal_branding", { appName: APP_NAME })}
-            disabled={!hasPaidPlan || mutation?.isPending}
-            description={t("removes_cal_branding", { appName: APP_NAME })}
-            checked={hasPaidPlan ? hideBrandingValue : false}
-            Badge={<UpgradeTeamsBadgeWebWrapper />}
-            onCheckedChange={(checked) => {
-              setHideBrandingValue(checked);
-              mutation.mutate({ hideBranding: checked });
-            }}
-            switchContainerClassName="mt-6"
-          />
+          {hasPaidPlan ? (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("disable_cal_branding", { appName: APP_NAME })}
+              disabled={mutation?.isPending}
+              description={t("removes_cal_branding", { appName: APP_NAME })}
+              checked={hideBrandingValue}
+              onCheckedChange={(checked) => {
+                setHideBrandingValue(checked);
+                mutation.mutate({ hideBranding: checked });
+              }}
+              switchContainerClassName="mt-6"
+            />
+          ) : (
+            <div className="mt-6">
+              <WideUpgradeBannerForBranding />
+            </div>
+          )}
         </>
       )}
     </SettingsHeader>

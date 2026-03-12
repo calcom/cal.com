@@ -106,10 +106,12 @@ export type UpgradePlanDialogProps = {
     title: string;
     description: string;
   };
-  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
 };
 
-export function UpgradePlanDialog({ tracking, target, info, children }: UpgradePlanDialogProps): JSX.Element {
+export function UpgradePlanDialog({ tracking, target, info, open, onOpenChange, children }: UpgradePlanDialogProps): JSX.Element {
   const { t } = useLocale();
   const [billingPeriod, setBillingPeriod] = useState<"annual" | "monthly">("annual");
 
@@ -157,8 +159,8 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
   ];
 
   return (
-    <Dialog>
-      <DialogTrigger render={children as React.ReactElement} />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger render={children as React.ReactElement} />}
       <DialogPopup className="max-w-3xl" showCloseButton={false} bottomStickOnMobile={false}>
         <DialogHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">

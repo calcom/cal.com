@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
+import { PlusIcon } from "@coss/ui/icons";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { MailIcon } from "./MailIcon";
@@ -25,7 +26,7 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
   };
 
   return (
-    <div className="border-subtle from-muted relative mb-6 overflow-hidden rounded-lg border bg-gradient-to-r to-transparent p-4">
+    <div className="border-subtle from-subtle relative mb-6 overflow-hidden rounded-lg border bg-muted p-5">
       {/* Dot grid background with fade */}
       <svg className="pointer-events-none absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -34,9 +35,9 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <circle cx="1" cy="1" r="0.8" fill="currentColor" className="text-subtle" opacity="0.3" />
           </pattern>
           {/* Fade mask from left to right */}
-          <linearGradient id="banner-fade-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="banner-fade-gradient" x1="100%" y1="0%" x2="0%" y2="0%">
             <stop offset="0%" stopColor="white" stopOpacity="1" />
-            <stop offset="10%" stopColor="white" stopOpacity="0.4" />
+            <stop offset="40%" stopColor="white" stopOpacity="0.4" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
           <mask id="banner-fade-mask">
@@ -55,9 +56,6 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
       </svg>
 
       <div className="relative z-10 flex gap-4">
-        <div>
-          <MailIcon />
-        </div>
         <div className="flex flex-1 flex-col gap-2">
           <div className="flex flex-col">
             <h3 className="text-default text-sm font-semibold">
@@ -66,13 +64,16 @@ export const CompanyEmailOrganizationBanner = ({ onDismissAction }: CompanyEmail
             <p className="text-default text-sm">{t("explore_organizational_plan_description")}</p>
           </div>
           <div className="mt-2 flex gap-2">
-            <Button color="secondary" onClick={handleDismiss}>
+            <Button onClick={handleLearnMore}>
+              <PlusIcon /> {t("upgrade")}
+            </Button>
+            <Button variant="outline" onClick={handleDismiss}>
               {t("dismiss")}
             </Button>
-            <Button color="primary" EndIcon="external-link" onClick={handleLearnMore}>
-              {t("upgrade")}
-            </Button>
           </div>
+        </div>
+        <div>
+          <MailIcon />
         </div>
       </div>
     </div>

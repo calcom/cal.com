@@ -48,7 +48,8 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { WideUpgradeBannerForRedirectUrl } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForRedirectUrl";
+import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import {
   SelectedCalendarSettingsScope,
@@ -1051,6 +1052,9 @@ export const EventAdvancedTab = ({
         name="successRedirectUrl"
         render={({ field: { value, onChange } }) => (
           <>
+            {isRedirectUrlDisabled ? (
+              <WideUpgradeBannerForRedirectUrl />
+            ) : (
             <SettingsToggle
               labelClassName={classNames(
                 "text-sm",
@@ -1069,11 +1073,10 @@ export const EventAdvancedTab = ({
               descriptionClassName={
                 customClassNames?.bookingRedirect?.description
               }
-              Badge={!isPlatform && !isRedirectUrlGrandfathered ? <UpgradeTeamsBadge checkForActiveStatus /> : undefined}
               title={t("redirect_success_booking")}
               data-testid="redirect-success-booking"
               {...successRedirectUrlLocked}
-              disabled={isRedirectUrlDisabled || successRedirectUrlLocked.disabled}
+              disabled={successRedirectUrlLocked.disabled}
               description={t("redirect_url_description")}
               checked={redirectUrlVisible}
               onCheckedChange={(e) => {
@@ -1146,6 +1149,7 @@ export const EventAdvancedTab = ({
                 </div>
               </div>
             </SettingsToggle>
+            )}
           </>
         )}
       />

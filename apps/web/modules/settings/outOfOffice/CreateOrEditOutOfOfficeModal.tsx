@@ -19,7 +19,7 @@ import { Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { WideUpgradeBannerForOOORedirect } from "~/billing/upgrade-banners/WideUpgradeBannerForOOORedirect";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
@@ -31,10 +31,12 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
+  onUpgradeClick,
 }: {
   openModal: boolean;
   closeModal: () => void;
   currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
+  onUpgradeClick?: () => void;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -368,64 +370,64 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               />
             </div>
 
-            <div className="bg-cal-muted my-4 rounded-xl p-5">
-              <div className="flex flex-row">
-                <Switch
-                  disabled={!hasTeamPlan}
-                  data-testid="profile-redirect-switch"
-                  checked={profileRedirect}
-                  id="profile-redirect-switch"
-                  onCheckedChange={(state) => {
-                    setProfileRedirect(state);
-                    if (!state) {
-                      setValue("toTeamUserId", null);
-                    }
-                  }}
-                  label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
-                />
-                {!hasTeamPlan && (
-                  <div className="mx-2" data-testid="upgrade-team-badge">
-                    <UpgradeTeamsBadge />
+            {hasTeamPlan ? (
+              <div className="bg-cal-muted my-4 rounded-xl p-5">
+                <div className="flex flex-row">
+                  <Switch
+                    data-testid="profile-redirect-switch"
+                    checked={profileRedirect}
+                    id="profile-redirect-switch"
+                    onCheckedChange={(state) => {
+                      setProfileRedirect(state);
+                      if (!state) {
+                        setValue("toTeamUserId", null);
+                      }
+                    }}
+                    label={t("redirect_team_enabled")}
+                  />
+                </div>
+
+                {profileRedirect && (
+                  <div className="mb-2">
+                    <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
+                    <Controller
+                      control={control}
+                      name="toTeamUserId"
+                      render={({ field: { onChange, value } }) => (
+                        <Select
+                          className="mt-2"
+                          data-testid="team_username_select"
+                          isSearchable={true}
+                          value={redirectToMemberListOptions
+                            .filter((member) => member.value !== getValues("forUserId"))
+                            .find((member) => member.value === value)}
+                          placeholder={t("search")}
+                          options={redirectToMemberListOptions.filter(
+                            (member) => member.value !== getValues("forUserId")
+                          )}
+                          onInputChange={(newValue) => setSearchRedirectMember(newValue)}
+                          onChange={(selectedOption) => {
+                            if (selectedOption?.value) {
+                              onChange(selectedOption.value);
+                            }
+                          }}
+                          onMenuScrollToBottom={() => {
+                            if (redirectMembers.hasNextPage && !redirectMembers.isFetchingNextPage) {
+                              redirectMembers.fetchNextPage();
+                            }
+                          }}
+                          isLoading={redirectMembers.isFetchingNextPage}
+                        />
+                      )}
+                    />
                   </div>
                 )}
               </div>
-
-              {profileRedirect && (
-                <div className="mb-2">
-                  <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
-                  <Controller
-                    control={control}
-                    name="toTeamUserId"
-                    render={({ field: { onChange, value } }) => (
-                      <Select
-                        className="mt-2"
-                        data-testid="team_username_select"
-                        isSearchable={true}
-                        value={redirectToMemberListOptions
-                          .filter((member) => member.value !== getValues("forUserId"))
-                          .find((member) => member.value === value)}
-                        placeholder={t("search")}
-                        options={redirectToMemberListOptions.filter(
-                          (member) => member.value !== getValues("forUserId")
-                        )}
-                        onInputChange={(newValue) => setSearchRedirectMember(newValue)}
-                        onChange={(selectedOption) => {
-                          if (selectedOption?.value) {
-                            onChange(selectedOption.value);
-                          }
-                        }}
-                        onMenuScrollToBottom={() => {
-                          if (redirectMembers.hasNextPage && !redirectMembers.isFetchingNextPage) {
-                            redirectMembers.fetchNextPage();
-                          }
-                        }}
-                        isLoading={redirectMembers.isFetchingNextPage}
-                      />
-                    )}
-                  />
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="my-4">
+                <WideUpgradeBannerForOOORedirect onUpgradeClick={onUpgradeClick} />
+              </div>
+            )}
           </div>
           <DialogFooter showDivider noSticky>
             <div className="flex">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 
 import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 
@@ -14,6 +15,7 @@ import { HolidaysView } from "./holidays-view";
 
 export default function OutOfOfficeView() {
   const [openModal, setOpenModal] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
 
@@ -58,8 +60,18 @@ export default function OutOfOfficeView() {
           openModal={openModal}
           closeModal={handleCloseModal}
           currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+          onUpgradeClick={() => {
+            handleCloseModal();
+            setShowUpgradeDialog(true);
+          }}
         />
       )}
+      <UpgradePlanDialog
+        tracking="settings.ooo-redirect"
+        target="team"
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+      />
     </>
   );
 }
