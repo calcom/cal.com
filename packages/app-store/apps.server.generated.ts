@@ -37,6 +37,7 @@ export const apiHandlers = {
   insihts: import("./insihts/api"),
   intercom: import("./intercom/api"),
   jelly: import("./jelly/api"),
+  bigbluebuttonvideo: import("./bigbluebuttonvideo/api"),
   jitsivideo: import("./jitsivideo/api"),
   larkcalendar: import("./larkcalendar/api"),
   linear: import("./linear/api"),
