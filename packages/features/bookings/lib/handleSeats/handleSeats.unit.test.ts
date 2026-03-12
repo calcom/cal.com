@@ -349,6 +349,47 @@ describe("handleSeats unit tests", () => {
       );
     });
 
+    it("does not include uid condition when both rescheduleUid and reqBookingUid are undefined", async () => {
+      const bookingObject = createMinimalBookingObject({
+        rescheduleUid: undefined,
+        reqBookingUid: undefined,
+      });
+      const featuresRepo = createMockFeaturesRepository();
+
+      mockPrisma.booking.findFirst.mockResolvedValue(null);
+
+      await handleSeats(bookingObject, featuresRepo);
+
+      const call = mockPrisma.booking.findFirst.mock.calls[0]?.[0];
+      const orConditions = call?.where?.OR as Record<string, unknown>[];
+
+      // The OR should only contain the eventTypeId+startTime condition, not a uid condition
+      expect(orConditions).toHaveLength(1);
+      expect(orConditions[0]).toHaveProperty("eventTypeId");
+      expect(orConditions[0]).toHaveProperty("startTime");
+      expect(orConditions[0]).not.toHaveProperty("uid");
+    });
+
+    it("includes uid condition when reqBookingUid is provided", async () => {
+      const bookingObject = createMinimalBookingObject({
+        rescheduleUid: undefined,
+        reqBookingUid: "booking-uid-123",
+      });
+      const featuresRepo = createMockFeaturesRepository();
+
+      mockPrisma.booking.findFirst.mockResolvedValue(null);
+
+      await handleSeats(bookingObject, featuresRepo);
+
+      const call = mockPrisma.booking.findFirst.mock.calls[0]?.[0];
+      const orConditions = call?.where?.OR as Record<string, unknown>[];
+
+      // Should have both uid and eventTypeId+startTime conditions
+      expect(orConditions).toHaveLength(2);
+      expect(orConditions[0]).toEqual({ uid: "booking-uid-123" });
+      expect(orConditions[1]).toHaveProperty("eventTypeId");
+    });
+
     it("queries by eventTypeId and startTime in OR clause", async () => {
       const bookingObject = createMinimalBookingObject();
       const featuresRepo = createMockFeaturesRepository();

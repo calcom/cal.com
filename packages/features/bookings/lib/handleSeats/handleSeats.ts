@@ -180,18 +180,21 @@ const handleSeats = async (
 
   let resultBooking: HandleSeatsResultBooking = null;
 
+  // Build OR conditions dynamically to avoid passing undefined uid to Prisma.
+  // causing handleSeats to find an unrelated booking and incorrectly throw "seats are full".
+  const bookingUid = rescheduleUid || reqBookingUid;
+  const seatedBookingWhereConditions = [];
+  if (bookingUid) {
+    seatedBookingWhereConditions.push({ uid: bookingUid });
+  }
+  seatedBookingWhereConditions.push({
+    eventTypeId: eventType.id,
+    startTime: new Date(evt.startTime),
+  });
+
   const seatedBooking: SeatedBooking | null = await prisma.booking.findFirst({
     where: {
-      OR: [
-        {
-          uid: rescheduleUid || reqBookingUid,
-        },
-
-        {
-          eventTypeId: eventType.id,
-          startTime: new Date(evt.startTime),
-        },
-      ],
+      OR: seatedBookingWhereConditions,
       status: BookingStatus.ACCEPTED,
     },
     select: {
