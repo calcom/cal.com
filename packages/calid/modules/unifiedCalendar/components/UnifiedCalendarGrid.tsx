@@ -12,6 +12,11 @@ interface UnifiedCalendarGridProps {
   onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
   onSelectDay: (day: Date) => void;
+  draggingEvent: UnifiedCalendarEventVM | null;
+  pendingRescheduleEventIds: Set<string>;
+  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
+  onEndDragEvent: () => void;
+  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
 }
 
 export const UnifiedCalendarGrid = ({
@@ -23,6 +28,11 @@ export const UnifiedCalendarGrid = ({
   onSelectEvent,
   onQuickBookSlot,
   onSelectDay,
+  draggingEvent,
+  pendingRescheduleEventIds,
+  onStartDragEvent,
+  onEndDragEvent,
+  onDropReschedule,
 }: UnifiedCalendarGridProps) => {
   if (viewMode === "day") {
     return (
@@ -32,6 +42,11 @@ export const UnifiedCalendarGrid = ({
         getConflicts={getConflicts}
         onSelectEvent={onSelectEvent}
         onQuickBookSlot={onQuickBookSlot}
+        draggingEvent={draggingEvent}
+        pendingRescheduleEventIds={pendingRescheduleEventIds}
+        onStartDragEvent={onStartDragEvent}
+        onEndDragEvent={onEndDragEvent}
+        onDropReschedule={onDropReschedule}
       />
     );
   }
@@ -45,6 +60,11 @@ export const UnifiedCalendarGrid = ({
         onSelectEvent={onSelectEvent}
         onQuickBookSlot={onQuickBookSlot}
         onSelectDay={onSelectDay}
+        draggingEvent={draggingEvent}
+        pendingRescheduleEventIds={pendingRescheduleEventIds}
+        onStartDragEvent={onStartDragEvent}
+        onEndDragEvent={onEndDragEvent}
+        onDropReschedule={onDropReschedule}
       />
     );
   }
@@ -56,6 +76,11 @@ export const UnifiedCalendarGrid = ({
       filteredEvents={filteredEvents}
       onSelectDay={onSelectDay}
       onSelectEvent={onSelectEvent}
+      draggingEvent={draggingEvent}
+      pendingRescheduleEventIds={pendingRescheduleEventIds}
+      onStartDragEvent={onStartDragEvent}
+      onEndDragEvent={onEndDragEvent}
+      onDropReschedule={onDropReschedule}
     />
   );
 };

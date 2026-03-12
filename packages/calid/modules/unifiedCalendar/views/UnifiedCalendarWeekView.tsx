@@ -12,6 +12,11 @@ interface UnifiedCalendarWeekViewProps {
   onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
   onSelectDay: (day: Date) => void;
+  draggingEvent: UnifiedCalendarEventVM | null;
+  pendingRescheduleEventIds: Set<string>;
+  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
+  onEndDragEvent: () => void;
+  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
 }
 
 export const UnifiedCalendarWeekView = ({
@@ -21,6 +26,11 @@ export const UnifiedCalendarWeekView = ({
   onSelectEvent,
   onQuickBookSlot,
   onSelectDay,
+  draggingEvent,
+  pendingRescheduleEventIds,
+  onStartDragEvent,
+  onEndDragEvent,
+  onDropReschedule,
 }: UnifiedCalendarWeekViewProps) => {
   return (
     <div>
@@ -104,6 +114,11 @@ export const UnifiedCalendarWeekView = ({
                 getConflicts={getConflicts}
                 onSelectEvent={onSelectEvent}
                 onQuickBookSlot={onQuickBookSlot}
+                draggingEvent={draggingEvent}
+                pendingRescheduleEventIds={pendingRescheduleEventIds}
+                onStartDragEvent={onStartDragEvent}
+                onEndDragEvent={onEndDragEvent}
+                onDropReschedule={onDropReschedule}
               />
             </div>
           ))}
