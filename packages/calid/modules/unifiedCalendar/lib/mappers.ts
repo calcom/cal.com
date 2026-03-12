@@ -163,7 +163,8 @@ export const mapUnifiedCalendarItemToVM = (
     calendarName: calendarId && options?.calendarNameById ? options.calendarNameById[calendarId] : null,
     external: item.external,
     internal: item.internal,
-    attendeeCount: item.internal?.attendeeCount ?? null,
+    attendeeCount: item.attendees?.length ?? item.internal?.attendeeCount ?? null,
+    attendees: item.attendees ?? [],
     ...mapCapabilities(item.source),
   };
 };

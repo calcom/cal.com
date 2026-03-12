@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { CALENDAR_EVENT_ORIGIN_MARKER, OUTLOOK_EVENT_ORIGIN_PROPERTY_ID } from "@calcom/lib/calendarOrigin";
 
 import type { CalendarProviderAdapter } from "../adapter";
@@ -69,7 +70,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       startDateTime: params.windowStart.toISOString(),
       endDateTime: params.windowEnd.toISOString(),
       $select:
-        "id,iCalUId,seriesMasterId,originalStart,start,end,isAllDay,subject,body,location,onlineMeeting,showAs,lastModifiedDateTime,createdDateTime,singleValueExtendedProperties",
+        "id,iCalUId,seriesMasterId,originalStart,start,end,isAllDay,subject,body,location,onlineMeeting,attendees,showAs,lastModifiedDateTime,createdDateTime,singleValueExtendedProperties,originalStartTimeZone,originalEndTimeZone",
       $expand: `singleValueExtendedProperties($filter=id eq '${OUTLOOK_EVENT_ORIGIN_PROPERTY_ID}')`,
     });
     let requestUrl: string | null = `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(
@@ -468,6 +469,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       return null;
     }
 
+    console.log("in_here_start", event.start, event.originalStartTimeZone, event.originalEndTimeZone);
     const start = this.extractOutlookDateTime(event.start);
     const end = this.extractOutlookDateTime(event.end);
     if (!start || !end) {
@@ -505,7 +507,10 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       origin: this.extractOutlookOriginMarker(event.singleValueExtendedProperties),
       calendarId: providerCalendarId,
       recurringEventId: typeof event.seriesMasterId === "string" ? event.seriesMasterId : null,
-      originalStartTime: typeof event.originalStart === "string" ? event.originalStart : null,
+      originalStartTime: this.normalizeOutlookDateTime(
+        typeof event.originalStart === "string" ? event.originalStart : null,
+        start.timeZone
+      ),
       startTime: start.dateTime,
       endTime: end.dateTime,
       isAllDay: Boolean(event.isAllDay),
@@ -565,15 +570,39 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       return null;
     }
 
-    const dateTime = typeof node.dateTime === "string" ? node.dateTime : null;
+    const dateTimeRaw = typeof node.dateTime === "string" ? node.dateTime : null;
+    const timeZone = typeof node.timeZone === "string" ? node.timeZone : null;
+    const dateTime = this.normalizeOutlookDateTime(dateTimeRaw, timeZone);
     if (!dateTime) {
       return null;
     }
 
     return {
       dateTime,
-      timeZone: typeof node.timeZone === "string" ? node.timeZone : null,
+      timeZone,
     };
+  }
+
+  private normalizeOutlookDateTime(dateTime: string | null, timeZone: string | null): string | null {
+    if (!dateTime) {
+      return null;
+    }
+
+    // Graph commonly returns local datetime without offset plus a separate timezone.
+    const hasOffset = /([zZ]|[+-]\d{2}:\d{2})$/.test(dateTime);
+    if (hasOffset) {
+      const asDate = new Date(dateTime);
+      return Number.isNaN(asDate.getTime()) ? null : asDate.toISOString();
+    }
+
+    if (timeZone) {
+      const zoned = dayjs.tz(dateTime, timeZone);
+      return zoned.isValid() ? zoned.toISOString() : null;
+    }
+
+    // Fall back to UTC interpretation when timezone is absent.
+    const utc = dayjs.utc(dateTime);
+    return utc.isValid() ? utc.toISOString() : null;
   }
 
   private extractOutlookBodyContent(value: unknown): string | undefined {

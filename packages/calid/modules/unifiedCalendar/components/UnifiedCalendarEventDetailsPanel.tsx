@@ -35,6 +35,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
   isCancelPending,
 }: UnifiedCalendarEventDetailsPanelProps) => {
   const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
+  const attendeeEmails = event.attendees ?? [];
 
   return (
     <div className="space-y-5">
@@ -109,12 +110,25 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         )}
 
-        {event.attendeeCount && event.attendeeCount > 0 && (
+        {(event.attendeeCount && event.attendeeCount > 0) || attendeeEmails.length > 0 ? (
           <div className="flex items-start gap-3 text-sm">
             <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span className="text-muted-foreground/80">{event.attendeeCount} attendees</span>
+            <div className="space-y-2">
+              <span className="text-muted-foreground/80">
+                {attendeeEmails.length > 0 ? attendeeEmails.length : event.attendeeCount} attendees
+              </span>
+              {attendeeEmails.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {attendeeEmails.map((email) => (
+                    <Badge key={email} variant="secondary" className="text-[10px] font-medium">
+                      {email}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        ) : null}
 
         {event.description && <p className="text-muted-foreground/80 pl-7 text-sm">{event.description}</p>}
       </div>

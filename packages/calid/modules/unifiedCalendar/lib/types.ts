@@ -56,6 +56,7 @@ export type UnifiedCalendarItem = {
   color?: string | null;
   showAsBusy: boolean;
   status: UnifiedEventStatus;
+  attendees?: string[];
   external?: {
     calendarId: number;
     provider: string;

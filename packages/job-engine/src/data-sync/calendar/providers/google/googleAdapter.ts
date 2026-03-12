@@ -422,6 +422,7 @@ export class GoogleCalendarProviderAdapter implements CalendarProviderAdapter {
         ? ExternalEventStatus.TENTATIVE
         : ExternalEventStatus.CONFIRMED;
 
+    console.log("in_here_g", event.start);
     const start = this.extractGoogleStart(event.start);
     const end = this.extractGoogleEnd(event.end);
     if (!start || !end) {

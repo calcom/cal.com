@@ -33,6 +33,7 @@ export const ZUnifiedCalendarItemSchema = z.object({
   color: z.string().nullable().optional(),
   showAsBusy: z.boolean(),
   status: z.enum(["CONFIRMED", "CANCELLED", "TENTATIVE"]),
+  attendees: z.array(z.string()).optional(),
   external: z
     .object({
       calendarId: z.number().int(),

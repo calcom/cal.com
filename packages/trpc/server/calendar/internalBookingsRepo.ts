@@ -19,6 +19,20 @@ export interface InternalBookingsQueryInput {
 
 const CANCELLED_INTERNAL_STATUSES: BookingStatus[] = ["CANCELLED", "REJECTED"];
 
+const normalizeAttendeeEmails = (attendees: { email: string }[]): string[] => {
+  const uniqueEmails = new Set<string>();
+
+  for (const attendee of attendees) {
+    const email = attendee.email.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      continue;
+    }
+    uniqueEmails.add(email);
+  }
+
+  return Array.from(uniqueEmails);
+};
+
 const getMeetingUrlFromReferences = (
   references: { type: string; meetingUrl: string | null; deleted: boolean | null }[]
 ) => {
@@ -86,6 +100,11 @@ export const getInternalBookingsInRange = async (
           attendees: true,
         },
       },
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
       references: {
         select: {
           type: true,
@@ -107,5 +126,6 @@ export const getInternalBookingsInRange = async (
     status: row.status,
     eventTypeId: row.eventTypeId,
     attendeeCount: row._count.attendees,
+    attendeeEmails: normalizeAttendeeEmails(row.attendees),
   }));
 };

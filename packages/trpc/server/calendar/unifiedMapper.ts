@@ -16,6 +16,7 @@ export type UnifiedCalendarItem = {
   color?: string | null;
   showAsBusy: boolean;
   status: UnifiedCalendarStatus;
+  attendees?: string[];
   external?: {
     calendarId: number;
     provider: "GOOGLE" | "OUTLOOK" | string;
@@ -40,6 +41,7 @@ export interface InternalBookingForUnifiedCalendar {
   status: BookingStatus;
   eventTypeId: number | null;
   attendeeCount: number;
+  attendeeEmails: string[];
 }
 
 export interface ExternalEventForUnifiedCalendar {
@@ -67,6 +69,7 @@ type RawPayloadLike = {
   colorId?: unknown;
   color?: unknown;
   start?: { timeZone?: unknown };
+  attendees?: unknown;
 };
 
 const asObject = (value: unknown): Record<string, unknown> | null => {
@@ -78,6 +81,54 @@ const asObject = (value: unknown): Record<string, unknown> | null => {
 
 const toStringOrNull = (value: unknown): string | null => {
   return typeof value === "string" ? value : null;
+};
+
+const toEmailOrNull = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) {
+    return null;
+  }
+
+  return normalized;
+};
+
+const extractAttendeeEmailsFromExternalPayload = (payload: RawPayloadLike): string[] => {
+  if (!Array.isArray(payload.attendees)) {
+    return [];
+  }
+
+  const uniqueEmails = new Set<string>();
+
+  for (const attendee of payload.attendees) {
+    const attendeeObj = asObject(attendee);
+    if (!attendeeObj) {
+      const directEmail = toEmailOrNull(attendee);
+      if (directEmail) {
+        uniqueEmails.add(directEmail);
+      }
+      continue;
+    }
+
+    // Google shape: { email: string }
+    const googleEmail = toEmailOrNull(attendeeObj.email);
+    if (googleEmail) {
+      uniqueEmails.add(googleEmail);
+      continue;
+    }
+
+    // Outlook shape: { emailAddress: { address: string } }
+    const emailAddressObj = asObject(attendeeObj.emailAddress);
+    const outlookEmail = toEmailOrNull(emailAddressObj?.address);
+    if (outlookEmail) {
+      uniqueEmails.add(outlookEmail);
+    }
+  }
+
+  return Array.from(uniqueEmails);
 };
 
 const mapInternalStatus = (status: BookingStatus): UnifiedCalendarStatus => {
@@ -118,6 +169,7 @@ export const mapInternalBookingToUnifiedItem = (
     color: null,
     showAsBusy: true,
     status: mapInternalStatus(booking.status),
+    attendees: booking.attendeeEmails,
     internal: {
       bookingId: booking.id,
       eventTypeId: booking.eventTypeId,
@@ -134,6 +186,7 @@ export const mapExternalEventToUnifiedItem = (
   const locationObj = asObject(payload.location);
   const startObj = asObject(payload.start);
   const onlineMeeting = asObject(payload.onlineMeeting);
+  const attendees = extractAttendeeEmailsFromExternalPayload(payload);
 
   return {
     source: "EXTERNAL",
@@ -149,6 +202,7 @@ export const mapExternalEventToUnifiedItem = (
     color: toStringOrNull(payload.colorId) ?? toStringOrNull(payload.color),
     showAsBusy: event.showAsBusy,
     status: mapExternalStatus(event.status),
+    attendees,
     external: {
       calendarId: event.calendarId,
       provider: event.provider,
