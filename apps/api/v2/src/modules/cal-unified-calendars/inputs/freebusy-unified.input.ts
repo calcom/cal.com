@@ -1,3 +1,4 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   IsISO8601,
@@ -15,7 +16,7 @@ class IsAfterFrom implements ValidatorConstraintInterface {
     const obj = args.object as { from?: string };
     if (!obj.from || !to) return true;
     if (new Date(to).getTime() < new Date(obj.from).getTime()) {
-      return false;
+      throw new BadRequestException("'to' must not be before 'from'");
     }
     return true;
   }
