@@ -11,6 +11,7 @@ jobs:
       matrix:
         deploy-hook-secret:
           - VERCEL_DEPLOY_HOOK_CANARY
+          - VERCEL_DEPLOY_HOOK_API_V1
           # Add more secrets here to trigger additional Vercel project deployments, e.g.:
           # - VERCEL_DEPLOY_HOOK_DOCS
           # - VERCEL_DEPLOY_HOOK_STAGING
