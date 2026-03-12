@@ -1,20 +1,10 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-// eslint-disable-next-line no-restricted-imports
-import { get, pick } from "lodash";
-import { signOut, useSession } from "next-auth/react";
-import type { BaseSyntheticEvent } from "react";
-import React, { useRef, useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -28,25 +18,29 @@ import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogTrigger } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, Label, PasswordField, TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { InfoIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { DisplayInfo } from "@calcom/web/modules/users/components/UserTable/EditSheet/DisplayInfo";
-
 import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
+import { InfoIcon } from "@coss/ui/icons";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { TRPCClientErrorLike } from "@trpc/client";
-
+import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
+// eslint-disable-next-line no-restricted-imports
+import { get, pick } from "lodash";
+import { signOut, useSession } from "next-auth/react";
+import type React from "react";
+import type { BaseSyntheticEvent } from "react";
+import { useRef, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 import { CompanyEmailOrganizationBanner } from "./components/CompanyEmailOrganizationBanner";
 
 interface DeleteAccountValues {
@@ -77,6 +71,7 @@ const ProfileView = ({ user }: Props) => {
   const utils = trpc.useUtils();
   const session = useSession();
   const { update } = session;
+  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
@@ -135,7 +130,6 @@ const ProfileView = ({ user }: Props) => {
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [showCreateAccountPasswordDialog, setShowCreateAccountPasswordDialog] = useState(false);
   const [showAccountDisconnectWarning, setShowAccountDisconnectWarning] = useState(false);
-  const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
 

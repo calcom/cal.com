@@ -49,9 +49,10 @@ type RequestRescheduleOptions = {
   };
   input: TRequestRescheduleInputSchema;
   source: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({ ctx, input, source, impersonatedByUserUuid }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));
@@ -341,6 +342,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   await Promise.all(promises);
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   const featuresRepository = getFeaturesRepository();
   const isBookingAuditEnabled = orgId
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
@@ -355,6 +357,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
       rescheduleReason: cancellationReason ?? null,
       rescheduledRequestedBy: user.email,
     },
+    context,
     isBookingAuditEnabled,
   });
 };
