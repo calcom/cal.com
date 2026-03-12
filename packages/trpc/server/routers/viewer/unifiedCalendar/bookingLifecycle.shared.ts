@@ -7,9 +7,10 @@ import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/l
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Booking, DestinationCalendar } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-import type { PartialReference } from "@calcom/types/EventManager";
+import type { CreateUpdateResult, EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import { TRPCError } from "@trpc/server";
 
@@ -197,6 +198,110 @@ export const replaceBookingReferences = async (params: {
         createMany: {
           data: mappedReferences,
         },
+      },
+    },
+  });
+};
+
+const getMeetingUrlFromEventResult = (result: EventResult | undefined): string | null => {
+  if (!result) {
+    return null;
+  }
+
+  const normalizeEventPayload = (payload: unknown): Record<string, unknown> | null => {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return null;
+    }
+    return payload as Record<string, unknown>;
+  };
+
+  const fromPayload = (payload: unknown): string | null => {
+    const eventPayload = normalizeEventPayload(payload);
+    if (!eventPayload) {
+      return null;
+    }
+
+    const url = eventPayload.url;
+    if (typeof url === "string" && url.length > 0) {
+      return url;
+    }
+
+    const hangoutLink = eventPayload.hangoutLink;
+    if (typeof hangoutLink === "string" && hangoutLink.length > 0) {
+      return hangoutLink;
+    }
+
+    return null;
+  };
+
+  if (Array.isArray(result.updatedEvent)) {
+    for (const updatedEvent of result.updatedEvent) {
+      const url = fromPayload(updatedEvent);
+      if (url) {
+        return url;
+      }
+    }
+  }
+
+  return fromPayload(result.updatedEvent) ?? fromPayload(result.createdEvent);
+};
+
+export const getMeetingUrlFromCreateOrRescheduleResult = (result: CreateUpdateResult): string | null => {
+  const fromReference = result.referencesToCreate.find(
+    (reference) =>
+      Boolean(reference.meetingUrl) &&
+      (reference.type.includes("_video") || reference.type.includes("_calendar"))
+  )?.meetingUrl;
+  if (fromReference) {
+    return fromReference;
+  }
+
+  const calendarResult = result.results.find((entry) => entry.type.includes("_calendar"));
+  const calendarUrl = getMeetingUrlFromEventResult(calendarResult);
+  if (calendarUrl) {
+    return calendarUrl;
+  }
+
+  const videoResult = result.results.find((entry) => entry.type.includes("_video"));
+  return getMeetingUrlFromEventResult(videoResult);
+};
+
+export const attachMeetingUrlToCalEvent = (
+  calEvent: CalendarEvent,
+  createOrRescheduleResult: CreateUpdateResult
+) => {
+  const meetingUrl = getMeetingUrlFromCreateOrRescheduleResult(createOrRescheduleResult);
+  if (!meetingUrl) {
+    return;
+  }
+
+  calEvent.additionalInformation = {
+    ...(calEvent.additionalInformation ?? {}),
+    hangoutLink: meetingUrl,
+  };
+};
+
+export const updateBookingMetadataVideoCallUrl = async (params: {
+  bookingId: number;
+  currentMetadata: unknown;
+  createOrRescheduleResult: CreateUpdateResult;
+}) => {
+  const meetingUrl = getMeetingUrlFromCreateOrRescheduleResult(params.createOrRescheduleResult);
+  if (!meetingUrl) {
+    return;
+  }
+
+  const parsedMetadata = bookingMetadataSchema.safeParse(params.currentMetadata ?? null);
+  const metadata = parsedMetadata.success && parsedMetadata.data ? parsedMetadata.data : {};
+
+  await prisma.booking.update({
+    where: {
+      id: params.bookingId,
+    },
+    data: {
+      metadata: {
+        ...metadata,
+        videoCallUrl: meetingUrl,
       },
     },
   });

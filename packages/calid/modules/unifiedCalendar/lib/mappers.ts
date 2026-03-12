@@ -60,6 +60,10 @@ const withSafeTitle = (title: string | null | undefined): string => {
   return normalized && normalized.length > 0 ? normalized : UNIFIED_EVENT_FALLBACK_TITLE;
 };
 
+function isGoogleHolidayCalendar(calendarId: string): boolean {
+  return calendarId.includes("#holiday@group.v.calendar.google.com");
+}
+
 export const mapConnectedCalendarToVM = (input: {
   connection: Pick<ConnectedCalendarIntegrationRaw, "credentialId" | "integration" | "primary">;
   calendar: ConnectedCalendarRaw;
@@ -69,6 +73,7 @@ export const mapConnectedCalendarToVM = (input: {
   const provider = normalizeProvider(providerSource);
   const syncProvider = normalizeSyncProvider(providerSource);
   if (!provider || !syncProvider) return null;
+  if (provider === "google" && isGoogleHolidayCalendar(input.calendar.externalId)) return null;
 
   return {
     id: `${input.connection.credentialId ?? "na"}:${input.calendar.externalId}`,

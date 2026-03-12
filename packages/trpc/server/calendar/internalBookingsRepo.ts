@@ -1,5 +1,6 @@
 import prisma from "@calcom/prisma";
-import type { BookingStatus } from "@calcom/prisma/client";
+import type { BookingStatus, Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { InternalBookingForUnifiedCalendar } from "./unifiedMapper";
 
@@ -18,10 +19,35 @@ export interface InternalBookingsQueryInput {
 
 const CANCELLED_INTERNAL_STATUSES: BookingStatus[] = ["CANCELLED", "REJECTED"];
 
+const getMeetingUrlFromReferences = (
+  references: { type: string; meetingUrl: string | null; deleted: boolean | null }[]
+) => {
+  const activeReferences = references.filter((reference) => reference.deleted !== true);
+  const preferredReference = activeReferences.find(
+    (reference) =>
+      Boolean(reference.meetingUrl) &&
+      (reference.type.includes("_video") || reference.type.includes("_calendar"))
+  );
+
+  if (preferredReference?.meetingUrl) {
+    return preferredReference.meetingUrl;
+  }
+
+  return activeReferences.find((reference) => Boolean(reference.meetingUrl))?.meetingUrl ?? null;
+};
+
+const getMeetingUrlFromMetadata = (metadata: unknown): string | null => {
+  const parsed = bookingMetadataSchema.safeParse(metadata ?? null);
+  if (!parsed.success || !parsed.data?.videoCallUrl) {
+    return null;
+  }
+  return parsed.data.videoCallUrl;
+};
+
 export const getInternalBookingsInRange = async (
   input: InternalBookingsQueryInput
 ): Promise<InternalBookingForUnifiedCalendar[]> => {
-  const scope: any = [{ userId: input.userId }];
+  const scope: Prisma.BookingWhereInput[] = [{ userId: input.userId }];
 
   if (input.teamIds.length > 0) {
     scope.push({ eventType: { teamId: { in: input.teamIds } } });
@@ -52,11 +78,19 @@ export const getInternalBookingsInRange = async (
       title: true,
       description: true,
       location: true,
+      metadata: true,
       status: true,
       eventTypeId: true,
       _count: {
         select: {
           attendees: true,
+        },
+      },
+      references: {
+        select: {
+          type: true,
+          meetingUrl: true,
+          deleted: true,
         },
       },
     },
@@ -69,6 +103,7 @@ export const getInternalBookingsInRange = async (
     title: row.title,
     description: row.description,
     location: row.location,
+    meetingUrl: getMeetingUrlFromMetadata(row.metadata) ?? getMeetingUrlFromReferences(row.references),
     status: row.status,
     eventTypeId: row.eventTypeId,
     attendeeCount: row._count.attendees,

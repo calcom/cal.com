@@ -31,7 +31,6 @@ const UnifiedCalendarPage = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>(isMobile ? "day" : "week");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [timezone, setTimezone] = useState("Asia/Kolkata");
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<UnifiedCalendarEventVM | null>(null);
@@ -339,14 +338,12 @@ const UnifiedCalendarPage = () => {
         headerTitle={headerTitle}
         viewMode={viewMode}
         onChangeViewMode={setViewMode}
-        timezone={timezone}
-        onChangeTimezone={setTimezone}
         isMobile={isMobile}
       />
 
       <div className="flex">
         {!isMobile && sidebarOpen && (
-          <div className="border-border/20 bg-muted/[0.03] sticky top-[105px] h-[calc(100vh-105px)] w-52 shrink-0 border-r">
+          <div className="border-border/20 bg-muted/[0.03] w-54 sticky top-[105px] h-[calc(100vh-105px)] shrink-0 border-r">
             <UnifiedCalendarSidebar
               calendars={sidebarCalendars}
               onToggleSync={handleSyncToggle}
@@ -403,33 +400,26 @@ const UnifiedCalendarPage = () => {
             {!unifiedCalendarListQuery.isPending &&
               !unifiedCalendarListQuery.error &&
               filteredEvents.length === 0 && (
-                <div className="flex min-h-[300px] items-center justify-center p-4">
-                  <div className="text-center">
-                    <p className="text-foreground/70 text-sm">No events in this range.</p>
-                    <p className="text-muted-foreground/60 mt-1 text-xs">
-                      Try a different date range or enable synced calendars in the sidebar.
-                    </p>
-                  </div>
+                <div className="px-4 pt-3">
+                  <p className="text-muted-foreground/70 text-xs">No events in this range.</p>
                 </div>
               )}
 
-            {!unifiedCalendarListQuery.isPending &&
-              !unifiedCalendarListQuery.error &&
-              filteredEvents.length > 0 && (
-                <UnifiedCalendarGrid
-                  viewMode={viewMode}
-                  currentDate={currentDate}
-                  viewDays={viewDays}
-                  filteredEvents={filteredEvents}
-                  getConflicts={getConflicts}
-                  onSelectEvent={setSelectedEvent}
-                  onQuickBookSlot={setQuickBookSlot}
-                  onSelectDay={(day) => {
-                    setCurrentDate(day);
-                    setViewMode("day");
-                  }}
-                />
-              )}
+            {!unifiedCalendarListQuery.isPending && !unifiedCalendarListQuery.error && (
+              <UnifiedCalendarGrid
+                viewMode={viewMode}
+                currentDate={currentDate}
+                viewDays={viewDays}
+                filteredEvents={filteredEvents}
+                getConflicts={getConflicts}
+                onSelectEvent={setSelectedEvent}
+                onQuickBookSlot={setQuickBookSlot}
+                onSelectDay={(day) => {
+                  setCurrentDate(day);
+                  setViewMode("day");
+                }}
+              />
+            )}
           </div>
         </ScrollArea>
       </div>

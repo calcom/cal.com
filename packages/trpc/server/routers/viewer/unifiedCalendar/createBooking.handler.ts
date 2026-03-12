@@ -8,6 +8,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import {
+  attachMeetingUrlToCalEvent,
   assertValidTimeRange,
   buildAttendeeRows,
   buildUnifiedCalendarEvent,
@@ -16,6 +17,7 @@ import {
   replaceBookingReferences,
   resolveUnifiedTargetDestinationCalendar,
   toDateOrThrow,
+  updateBookingMetadataVideoCallUrl,
 } from "./bookingLifecycle.shared";
 import type {
   TUnifiedCalendarCreateBookingInput,
@@ -100,6 +102,7 @@ export const createUnifiedCalendarBookingHandler = async ({
       endTime: true,
       location: true,
       iCalUID: true,
+      metadata: true,
       destinationCalendar: true,
       attendees: {
         select: {
@@ -143,6 +146,12 @@ export const createUnifiedCalendarBookingHandler = async ({
     await replaceBookingReferences({
       bookingId: booking.id,
       references: eventManagerResult.referencesToCreate,
+    });
+    attachMeetingUrlToCalEvent(calEvent, eventManagerResult);
+    await updateBookingMetadataVideoCallUrl({
+      bookingId: booking.id,
+      currentMetadata: booking.metadata,
+      createOrRescheduleResult: eventManagerResult,
     });
   } catch (error) {
     await prisma.booking.delete({

@@ -48,22 +48,22 @@ export const UnifiedCalendarSidebar = ({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-4 pb-3 pt-4">
+      <div className="w-full pb-3 pr-2 pt-4">
         <div className="relative">
           <Search className="text-muted-foreground/60 absolute left-2.5 top-2.5 h-3.5 w-3.5" />
           <Input
             placeholder="Search events..."
             value={searchQuery}
             onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
-            className="bg-muted/40 h-8 border-0 pl-8 text-xs focus-visible:ring-1"
+            className="bg-muted h-8 border-0 pl-8 text-xs focus-visible:ring-1"
           />
         </div>
       </div>
 
-      <ScrollArea className="flex-1 px-4">
+      <ScrollArea className="flex-1">
         <div className="space-y-5 pb-4">
           {isLoading && (
-            <div className="space-y-2 py-2">
+            <div className="space-y-2 py-2 pr-2">
               <div className="bg-muted h-7 animate-pulse rounded-md" />
               <div className="bg-muted h-7 animate-pulse rounded-md" />
               <div className="bg-muted h-7 animate-pulse rounded-md" />
@@ -93,52 +93,59 @@ export const UnifiedCalendarSidebar = ({
                   {providerCalendars.map((calendar) => (
                     <div
                       key={calendar.id}
-                      className="hover:bg-muted/50 group flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="shrink-0 focus:outline-none" type="button">
-                            <div
-                              className="h-2 w-2 rounded-full opacity-70 transition-opacity hover:opacity-100"
-                              style={{ backgroundColor: calendar.color }}
-                            />
-                          </button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="start" className="w-auto p-2.5">
-                          <p className="text-muted-foreground mb-2 text-[10px] font-medium">Calendar color</p>
-                          <div className="flex gap-2">
-                            {CALENDAR_COLORS.map((color) => (
-                              <button
-                                key={color}
-                                type="button"
-                                className={cn(
-                                  "h-5 w-5 rounded-full transition-all hover:scale-110",
-                                  calendar.color === color &&
-                                    "ring-foreground/20 ring-offset-background ring-2 ring-offset-2"
-                                )}
-                                style={{ backgroundColor: color }}
-                                onClick={() => onColorChange(calendar.id, color)}
+                      className="bg-background/30 hover:bg-muted/50 border-border/20 group flex min-w-0 items-center gap-2.5 rounded-md  py-2 pr-2 transition-colors">
+                      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="shrink-0 focus:outline-none" type="button">
+                              <div
+                                className="h-2 w-2 rounded-full opacity-70 transition-opacity hover:opacity-100"
+                                style={{ backgroundColor: calendar.color }}
                               />
-                            ))}
-                          </div>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            </button>
+                          </DropdownMenuTrigger>
 
-                      <span
-                        className={cn(
-                          "flex-1 truncate text-[13px] transition-colors",
-                          calendar.syncEnabled ? "text-foreground" : "text-muted-foreground/50"
-                        )}>
-                        {calendar.name}
-                      </span>
+                          <DropdownMenuContent align="start" className="w-auto p-2.5">
+                            <p className="text-muted-foreground mb-2 text-[10px] font-medium">
+                              Calendar color
+                            </p>
+                            <div className="flex gap-2">
+                              {CALENDAR_COLORS.map((color) => (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  className={cn(
+                                    "h-5 w-5 rounded-full transition-all hover:scale-110",
+                                    calendar.color === color &&
+                                      "ring-foreground/20 ring-offset-background ring-2 ring-offset-2"
+                                  )}
+                                  style={{ backgroundColor: color }}
+                                  onClick={() => onColorChange(calendar.id, color)}
+                                />
+                              ))}
+                            </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
 
-                      <Switch
-                        checked={calendar.syncEnabled}
-                        onCheckedChange={(enabled) => onToggleSync(calendar.id, enabled)}
-                        disabled={Boolean(pendingSyncCalendarIds?.has(calendar.id))}
-                        className="origin-right scale-[0.65]"
-                        aria-label={`Toggle sync for ${calendar.name}`}
-                      />
+                        <span
+                          className={cn(
+                            "min-w-0 flex-1 truncate text-[13px] transition-colors",
+                            calendar.syncEnabled ? "text-foreground" : "text-muted-foreground/50"
+                          )}>
+                          {calendar.name}
+                        </span>
+                      </div>
+
+                      <div className="shrink-0">
+                        <Switch
+                          size="sm"
+                          checked={calendar.syncEnabled}
+                          onCheckedChange={(enabled) => onToggleSync(calendar.id, enabled)}
+                          disabled={Boolean(pendingSyncCalendarIds?.has(calendar.id))}
+                          className="opacity-90 transition-opacity group-hover:opacity-100"
+                          aria-label={`Toggle sync for ${calendar.name}`}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -147,7 +154,7 @@ export const UnifiedCalendarSidebar = ({
         </div>
       </ScrollArea>
 
-      <div className="border-border/40 border-t px-4 py-3">
+      <div className="border-border/40 border-t py-3">
         <p className="text-muted-foreground/50 text-center text-[10px]">
           {calendars.filter((calendar) => calendar.syncEnabled).length} of {calendars.length} sync enabled
         </p>

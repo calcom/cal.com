@@ -8,6 +8,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 
 import {
+  attachMeetingUrlToCalEvent,
   assertValidTimeRange,
   buildAttendeeRows,
   buildUnifiedCalendarEvent,
@@ -15,6 +16,7 @@ import {
   replaceBookingReferences,
   resolveUnifiedTargetDestinationCalendar,
   toDateOrThrow,
+  updateBookingMetadataVideoCallUrl,
 } from "./bookingLifecycle.shared";
 import type {
   TUnifiedCalendarRescheduleBookingInput,
@@ -53,6 +55,7 @@ export const rescheduleUnifiedCalendarBookingHandler = async ({
       endTime: true,
       location: true,
       iCalUID: true,
+      metadata: true,
       destinationCalendar: true,
       attendees: {
         select: {
@@ -144,6 +147,7 @@ export const rescheduleUnifiedCalendarBookingHandler = async ({
       endTime: true,
       location: true,
       iCalUID: true,
+      metadata: true,
       destinationCalendar: true,
       attendees: {
         select: {
@@ -202,6 +206,12 @@ export const rescheduleUnifiedCalendarBookingHandler = async ({
   await replaceBookingReferences({
     bookingId: updatedBooking.id,
     references: eventManagerResult.referencesToCreate,
+  });
+  attachMeetingUrlToCalEvent(calEvent, eventManagerResult);
+  await updateBookingMetadataVideoCallUrl({
+    bookingId: updatedBooking.id,
+    currentMetadata: updatedBooking.metadata,
+    createOrRescheduleResult: eventManagerResult,
   });
 
   await triggerBookingEmails({

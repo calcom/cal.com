@@ -36,6 +36,7 @@ export interface InternalBookingForUnifiedCalendar {
   title: string | null;
   description: string | null;
   location: string | null;
+  meetingUrl: string | null;
   status: BookingStatus;
   eventTypeId: number | null;
   attendeeCount: number;
@@ -113,7 +114,7 @@ export const mapInternalBookingToUnifiedItem = (
     title: booking.title,
     description: booking.description,
     location: booking.location,
-    meetingUrl: null,
+    meetingUrl: booking.meetingUrl,
     color: null,
     showAsBusy: true,
     status: mapInternalStatus(booking.status),

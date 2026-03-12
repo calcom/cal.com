@@ -1,9 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
 import { Button } from "@calid/features/ui/components/button";
 import { Separator } from "@calid/features/ui/components/separator";
-import { ChevronLeft, ChevronRight, Globe, PanelLeft, PanelLeftClose } from "lucide-react";
+import { ChevronLeft, ChevronRight, PanelLeft, PanelLeftClose, Plus } from "lucide-react";
 
-import { TIMEZONES } from "../lib/constants";
 import type { ViewMode } from "../lib/types";
 
 interface UnifiedCalendarToolbarProps {
@@ -15,8 +14,6 @@ interface UnifiedCalendarToolbarProps {
   headerTitle: string;
   viewMode: ViewMode;
   onChangeViewMode: (viewMode: ViewMode) => void;
-  timezone: string;
-  onChangeTimezone: (timezone: string) => void;
   isMobile: boolean;
 }
 
@@ -29,8 +26,6 @@ export const UnifiedCalendarToolbar = ({
   headerTitle,
   viewMode,
   onChangeViewMode,
-  timezone,
-  onChangeTimezone,
   isMobile,
 }: UnifiedCalendarToolbarProps) => {
   return (
@@ -77,16 +72,17 @@ export const UnifiedCalendarToolbar = ({
         <span className="text-foreground/80 whitespace-nowrap text-sm font-medium">{headerTitle}</span>
 
         <div className="ml-auto flex items-center gap-2">
-          <div className="bg-muted/30 border-border/20 flex rounded-md border p-0.5">
+          <div className="bg-muted/40 border-border/30 flex rounded-lg border p-0.5 shadow-inner">
             {(["day", "week", "month"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 type="button"
+                aria-pressed={viewMode === mode}
                 className={cn(
-                  "rounded-[4px] px-2.5 py-1 text-[11px] font-medium capitalize transition-all",
+                  "min-w-[52px] rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-all",
                   viewMode === mode
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground/60 hover:text-foreground/80"
+                    ? "bg-background text-foreground border-border/40 border shadow-sm"
+                    : "text-muted-foreground/70 hover:bg-background/60 hover:text-foreground"
                 )}
                 onClick={() => onChangeViewMode(mode)}>
                 {mode}
@@ -95,19 +91,14 @@ export const UnifiedCalendarToolbar = ({
           </div>
 
           {!isMobile && (
-            <div className="border-border/30 text-muted-foreground/70 flex h-7 items-center gap-1 rounded-md border bg-transparent px-2 text-[11px]">
-              <Globe className="h-3 w-3" />
-              <select
-                value={timezone}
-                onChange={(event) => onChangeTimezone(event.target.value)}
-                className="bg-transparent text-[11px] outline-none">
-                {TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz.replace(/_/g, " ")}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Button
+              color="secondary"
+              size="sm"
+              className="h-7 gap-1.5 px-2.5 text-xs"
+              href="/apps?category=calendar">
+              <Plus className="h-3.5 w-3.5" />
+              Add Calendar
+            </Button>
           )}
         </div>
       </div>
