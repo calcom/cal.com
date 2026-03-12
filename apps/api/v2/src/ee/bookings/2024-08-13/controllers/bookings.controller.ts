@@ -163,10 +163,14 @@ export class BookingsController_2024_08_13 {
   ): Promise<CreateBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.createBooking(request, body, user);
 
-    if (Array.isArray(booking)) {
-      await this.bookingsService.billBookings(booking);
-    } else {
-      await this.bookingsService.billBooking(booking);
+    try {
+      if (Array.isArray(booking)) {
+        await this.bookingsService.billBookings(booking);
+      } else {
+        await this.bookingsService.billBooking(booking);
+      }
+    } catch (err) {
+      this.logger.error(`Billing failed for booking but booking was created successfully: ${err}`);
     }
 
     return {
