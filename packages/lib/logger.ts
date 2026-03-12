@@ -19,4 +19,6 @@ export const loggerConfig: ISettingsParam<unknown> = {
 
 const logger = new Logger(loggerConfig);
 
+export type { Logger };
+export type AppLogger = typeof logger;
 export default logger;

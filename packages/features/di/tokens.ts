@@ -1,5 +1,6 @@
 import { ABUSE_SCORING_TASKER_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tasker/tokens";
 import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tokens";
+import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
 import { AVATAR_DI_TOKENS } from "@calcom/features/avatars/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
@@ -101,6 +102,7 @@ export const DI_TOKENS = {
   ...WEBHOOK_TOKENS,
   ...ABUSE_SCORING_DI_TOKENS,
   ...ABUSE_SCORING_TASKER_DI_TOKENS,
+  ...AUTH_DI_TOKENS,
   ...EVENT_TYPE_DI_TOKENS,
   ...CALENDARS_DI_TOKENS,
   ...CALENDAR_SUBSCRIPTION_DI_TOKENS,

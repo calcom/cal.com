@@ -1,0 +1,16 @@
+export const AUTH_DI_TOKENS = {
+  AUTH_SIGN_IN_SERVICE: Symbol("AuthSignInService"),
+  AUTH_SIGN_IN_SERVICE_MODULE: Symbol("AuthSignInServiceModule"),
+  AUTH_CREDENTIALS_SERVICE: Symbol("AuthCredentialsService"),
+  AUTH_CREDENTIALS_SERVICE_MODULE: Symbol("AuthCredentialsServiceModule"),
+  AUTH_ACCOUNT_LINKING_SERVICE: Symbol("AuthAccountLinkingService"),
+  AUTH_ACCOUNT_LINKING_SERVICE_MODULE: Symbol("AuthAccountLinkingServiceModule"),
+  AUTH_ORG_AUTO_LINK_SERVICE: Symbol("AuthOrgAutoLinkService"),
+  AUTH_ORG_AUTO_LINK_SERVICE_MODULE: Symbol("AuthOrgAutoLinkServiceModule"),
+  AUTH_SESSION_SERVICE: Symbol("AuthSessionService"),
+  AUTH_SESSION_SERVICE_MODULE: Symbol("AuthSessionServiceModule"),
+  AUTH_GOOGLE_CALENDAR_SERVICE: Symbol("AuthGoogleCalendarService"),
+  AUTH_GOOGLE_CALENDAR_SERVICE_MODULE: Symbol("AuthGoogleCalendarServiceModule"),
+  AUTH_ACCOUNT_REPOSITORY: Symbol("AuthAccountRepository"),
+  AUTH_ACCOUNT_REPOSITORY_MODULE: Symbol("AuthAccountRepositoryModule"),
+};
