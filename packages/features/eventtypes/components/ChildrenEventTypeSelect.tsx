@@ -1,19 +1,25 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
 import type { Props } from "react-select";
+import ReactSelectCreatable from "react-select/creatable";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { getReactSelectProps } from "@calcom/ui/components/form/select/selectTheme";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { parseCommaSeparatedEmails, looksLikeEmail } from "@calcom/web/modules/event-types/lib/emailUtils";
 
 export type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 
@@ -44,25 +50,86 @@ export const ChildrenEventTypeSelect = ({
   options = [],
   value = [],
   customClassNames,
+  teamId,
   ...props
 }: Omit<Props<ChildrenEventType, true>, "value" | "onChange"> & {
   value?: ChildrenEventType[];
   onChange: (value: readonly ChildrenEventType[]) => void;
   customClassNames?: ChildrenEventTypeSelectCustomClassNames;
+  teamId?: number;
 }) => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+  const [isInviting, setIsInviting] = useState(false);
+  const utils = trpc.useUtils();
+
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    onSuccess: () => {
+      showToast(t("success"), "success");
+      utils.viewer.eventTypes.get.invalidate();
+      utils.viewer.teams.get.invalidate();
+    },
+    onError: (error) => {
+      showToast(error.message || t("something_went_wrong"), "error");
+    },
+    onSettled: () => setIsInviting(false),
+  });
+
+  const handleCreateOption = async (inputValue: string) => {
+    if (!teamId) {
+      showToast(t("something_went_wrong"), "error");
+      return;
+    }
+
+    const emails = parseCommaSeparatedEmails(inputValue);
+    if (!emails.length) {
+      showToast(t("enter_valid_email"), "error");
+      return;
+    }
+
+    setIsInviting(true);
+    await inviteMemberMutation.mutateAsync({
+      teamId,
+      usernameOrEmail: emails,
+      role: MembershipRole.MEMBER,
+      language: i18n.language || "en",
+      creationSource: CreationSource.ASSIGNMENT,
+    });
+  };
+
+  const reactSelectProps = getReactSelectProps<ChildrenEventType, true>({
+    components: {},
+    menuPlacement: "auto",
+  });
 
   return (
     <>
-      <Select
+      <ReactSelectCreatable
+        {...reactSelectProps}
         name={props.name}
         placeholder={t("select")}
         options={options}
         className={customClassNames?.assignToSelect?.select}
-        innerClassNames={customClassNames?.assignToSelect?.innerClassNames}
         value={value}
         isMulti
+        isDisabled={isInviting}
+        isLoading={isInviting}
+        onCreateOption={handleCreateOption}
+        filterOption={(option, inputValue) => {
+          if (!inputValue) return true;
+          const normalizedInput = inputValue.toLowerCase();
+          return (
+            option.label?.toLowerCase().includes(normalizedInput) ||
+            option.data?.owner?.email?.toLowerCase().includes(normalizedInput) ||
+            looksLikeEmail(inputValue)
+          );
+        }}
+        formatCreateLabel={(inputValue) => {
+          const emails = parseCommaSeparatedEmails(inputValue);
+          if (emails.length > 1) return `Invite ${emails.length} emails`;
+          return `${inputValue} (invite)`;
+        }}
+        onChange={(newValue) => props.onChange(newValue as readonly ChildrenEventType[])}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
