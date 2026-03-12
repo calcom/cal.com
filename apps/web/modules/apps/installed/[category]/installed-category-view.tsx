@@ -1,28 +1,26 @@
 "use client";
 
-import { useReducer } from "react";
-
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import { AppList, type HandleDisconnect } from "@calcom/web/modules/apps/components/AppList";
+import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { QueryCell } from "@lib/QueryCell";
-
+import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
+import { QueryCell } from "@lib/QueryCell";
+import { useReducer } from "react";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
@@ -166,6 +164,7 @@ const IntegrationsContainer = ({
               isEventTypesFetching={isEventTypesFetching}
               handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
               handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+              AppListCardComponent={AppListCardWebWrapper}
             />
           </div>
         );

@@ -1,7 +1,9 @@
 "use client";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
+import { AppList } from "@calcom/features/apps/components/AppList";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,13 +19,12 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { AppList } from "@calcom/web/modules/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducer, useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
+import AppListCardPlatformWrapper from "./AppListCardPlatformWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
@@ -328,10 +329,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
                 isBulkUpdateDefaultLocationPending={bulkUpdateEventTypesToDefaultLocation?.isPending}
                 eventTypes={eventTypesQuery?.eventTypes}
                 isEventTypesFetching={isEventTypesFetching}
-                handleConnectDisconnectIntegrationMenuToggle={
-                  handleConnectDisconnectIntegrationMenuToggle
-                }
+                handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
                 handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+                AppListCardComponent={AppListCardPlatformWrapper}
               />
             )}
           </div>
@@ -341,6 +341,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
             credentialId={modal.credentialId}
             app={modal.app}
             handleRemoveApp={handleRemoveApp}
+            isPlatform={true}
           />
 
           <AccountDialog
