@@ -170,7 +170,10 @@ export class BookingsController_2024_08_13 {
         await this.bookingsService.billBooking(booking);
       }
     } catch (err) {
-      this.logger.error(`Billing failed for booking but booking was created successfully: ${err}`);
+      this.logger.error(
+        "Billing failed for booking but booking was created successfully",
+        err instanceof Error ? err.stack : undefined
+      );
     }
 
     return {
