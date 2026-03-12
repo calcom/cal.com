@@ -69,6 +69,8 @@ type RawPayloadLike = {
   colorId?: unknown;
   color?: unknown;
   start?: { timeZone?: unknown };
+  originalStartTimeZone?: unknown;
+  calcomResolvedStartTimeZone?: unknown;
   attendees?: unknown;
 };
 
@@ -194,7 +196,10 @@ export const mapExternalEventToUnifiedItem = (
     startTime: event.startTime.toISOString(),
     endTime: event.endTime.toISOString(),
     isAllDay: event.isAllDay,
-    timeZone: toStringOrNull(startObj?.timeZone),
+    timeZone:
+      toStringOrNull(payload.originalStartTimeZone) ??
+      toStringOrNull(payload.calcomResolvedStartTimeZone) ??
+      toStringOrNull(startObj?.timeZone),
     title: toStringOrNull(payload.summary) ?? toStringOrNull(payload.subject),
     description: toStringOrNull(payload.description) ?? toStringOrNull(body?.content),
     location: toStringOrNull(payload.location) ?? toStringOrNull(locationObj?.displayName),

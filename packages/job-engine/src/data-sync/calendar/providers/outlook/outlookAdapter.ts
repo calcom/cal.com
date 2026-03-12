@@ -21,6 +21,22 @@ const OUTLOOK_SUBSCRIPTION_MAX_MINUTES = 10070;
 const OUTLOOK_SUBSCRIPTION_SAFETY_MINUTES = 10;
 const OUTLOOK_SUBSCRIPTION_TTL_MS =
   (OUTLOOK_SUBSCRIPTION_MAX_MINUTES - OUTLOOK_SUBSCRIPTION_SAFETY_MINUTES) * 60 * 1000;
+const OUTLOOK_WINDOWS_TIME_ZONE_TO_IANA: Record<string, string> = {
+  UTC: "UTC",
+  "India Standard Time": "Asia/Kolkata",
+  "Pacific Standard Time": "America/Los_Angeles",
+  "Mountain Standard Time": "America/Denver",
+  "Central Standard Time": "America/Chicago",
+  "Eastern Standard Time": "America/New_York",
+  "GMT Standard Time": "Europe/London",
+  "W. Europe Standard Time": "Europe/Berlin",
+  "Romance Standard Time": "Europe/Paris",
+  "Arabian Standard Time": "Asia/Dubai",
+  "South Africa Standard Time": "Africa/Johannesburg",
+  "China Standard Time": "Asia/Shanghai",
+  "Tokyo Standard Time": "Asia/Tokyo",
+  "AUS Eastern Standard Time": "Australia/Sydney",
+};
 
 const getFirstHeaderValue = (
   headers: Record<string, string | string[] | undefined>,
@@ -469,7 +485,8 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       return null;
     }
 
-    console.log("in_here_start", event.start, event.originalStartTimeZone, event.originalEndTimeZone);
+    const originalStartTimeZone = this.extractOutlookOriginalTimeZone(event.originalStartTimeZone);
+    const originalEndTimeZone = this.extractOutlookOriginalTimeZone(event.originalEndTimeZone);
     const start = this.extractOutlookDateTime(event.start);
     const end = this.extractOutlookDateTime(event.end);
     if (!start || !end) {
@@ -514,7 +531,7 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       startTime: start.dateTime,
       endTime: end.dateTime,
       isAllDay: Boolean(event.isAllDay),
-      timeZone: start.timeZone,
+      timeZone: originalStartTimeZone ?? start.timeZone,
       title: typeof event.subject === "string" ? event.subject : undefined,
       description: this.extractOutlookBodyContent(event.body),
       location: this.extractOutlookLocation(event.location),
@@ -525,7 +542,13 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
       providerUpdatedAt: typeof event.lastModifiedDateTime === "string" ? event.lastModifiedDateTime : null,
       providerCreatedAt: typeof event.createdDateTime === "string" ? event.createdDateTime : null,
       sequence: null,
-      rawPayload: event,
+      rawPayload: {
+        ...event,
+        originalStartTimeZone,
+        originalEndTimeZone,
+        calcomResolvedStartTimeZone: start.timeZone,
+        calcomResolvedEndTimeZone: end.timeZone,
+      },
       changeType,
     };
   }
@@ -564,14 +587,19 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     };
   }
 
-  private extractOutlookDateTime(value: unknown): { dateTime: string; timeZone: string | null } | null {
+  private extractOutlookDateTime(
+    value: unknown,
+    preferredTimeZone?: string | null
+  ): { dateTime: string; timeZone: string | null } | null {
     const node = value as Record<string, unknown> | null;
     if (!node || typeof node !== "object") {
       return null;
     }
 
     const dateTimeRaw = typeof node.dateTime === "string" ? node.dateTime : null;
-    const timeZone = typeof node.timeZone === "string" ? node.timeZone : null;
+    const timeZone =
+      preferredTimeZone ??
+      this.extractOutlookOriginalTimeZone(typeof node.timeZone === "string" ? node.timeZone : null);
     const dateTime = this.normalizeOutlookDateTime(dateTimeRaw, timeZone);
     if (!dateTime) {
       return null;
@@ -596,13 +624,26 @@ export class OutlookCalendarProviderAdapter implements CalendarProviderAdapter {
     }
 
     if (timeZone) {
-      const zoned = dayjs.tz(dateTime, timeZone);
+      const resolvedTimeZone = this.resolveOutlookTimeZoneForParsing(timeZone);
+      const zoned = dayjs.tz(dateTime, resolvedTimeZone);
       return zoned.isValid() ? zoned.toISOString() : null;
     }
 
     // Fall back to UTC interpretation when timezone is absent.
     const utc = dayjs.utc(dateTime);
     return utc.isValid() ? utc.toISOString() : null;
+  }
+
+  private extractOutlookOriginalTimeZone(value: unknown): string | null {
+    if (typeof value !== "string") {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private resolveOutlookTimeZoneForParsing(timeZone: string): string {
+    return OUTLOOK_WINDOWS_TIME_ZONE_TO_IANA[timeZone] ?? timeZone;
   }
 
   private extractOutlookBodyContent(value: unknown): string | undefined {
