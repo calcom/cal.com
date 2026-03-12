@@ -1,30 +1,27 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import type React from "react";
-import { cloneElement } from "react";
-import { Toaster } from "sonner";
-
-import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
-import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
-import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
-
-import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
+import type { LayoutProps } from "@calcom/features/shell/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-import { DynamicModals } from "./DynamicModals";
-import { KBarContent, KBarRoot } from "./Kbar";
-import { SideBarContainer } from "./SideBar";
-import { TopNavContainer } from "./TopNav";
+import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/hooks/useRedirectToLoginIfUnauthenticated";
+import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
+import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
+import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type React from "react";
+import { cloneElement } from "react";
+import { Toaster } from "sonner";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
+import { DynamicModals } from "./DynamicModals";
+import { KBarContent, KBarRoot } from "./Kbar";
 import { MobileNavigationContainer } from "./navigation/Navigation";
+import { SideBarContainer } from "./SideBar";
+import { TopNavContainer } from "./TopNav";
 import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
@@ -59,36 +56,7 @@ const Layout = (props: LayoutProps) => {
   );
 };
 
-type DrawerState = [isOpen: boolean, setDrawerOpen: Dispatch<SetStateAction<boolean>>];
-
-export type LayoutProps = {
-  centered?: boolean;
-  title?: string;
-  description?: string;
-  heading?: ReactNode;
-  subtitle?: ReactNode;
-  headerClassName?: string;
-  children: ReactNode;
-  CTA?: ReactNode;
-  large?: boolean;
-  MobileNavigationContainer?: ReactNode;
-  SidebarContainer?: ReactElement;
-  TopNavContainer?: ReactNode;
-  drawerState?: DrawerState;
-  HeadingLeftIcon?: ReactNode;
-  backPath?: string | boolean; // renders back button to specified path
-  // use when content needs to expand with flex
-  flexChildrenContainer?: boolean;
-  isPublic?: boolean;
-  withoutMain?: boolean;
-  // Gives the ability to include actions to the right of the heading
-  actions?: JSX.Element;
-  beforeCTAactions?: JSX.Element;
-  afterHeading?: ReactNode;
-  smallHeading?: boolean;
-  isPlatformUser?: boolean;
-  disableSticky?: boolean;
-};
+export type { LayoutProps } from "@calcom/features/shell/types";
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
   withKBar ? (

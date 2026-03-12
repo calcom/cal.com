@@ -1,6 +1,4 @@
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { LayoutProps } from "@calcom/web/modules/shell/Shell";
-
+import type { LayoutProps } from "@calcom/features/shell/types";
 import { cn } from "../../lib/utils";
 
 export const Shell = (props: LayoutProps) => {

@@ -22,21 +22,7 @@ export type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-export type scheduleClassNames = {
-  schedule?: string;
-  scheduleDay?: string;
-  dayRanges?: string;
-  timeRangeField?: string;
-  labelAndSwitchContainer?: string;
-  scheduleContainer?: string;
-  timePicker?: {
-    container?: string;
-    valueContainer?: string;
-    value?: string;
-    input?: string;
-    dropdown?: string;
-  };
-};
+export type { scheduleClassNames } from "@calcom/features/schedules/types";
 
 export type AvailabilityFormValidationResult = {
   isValid: boolean;
