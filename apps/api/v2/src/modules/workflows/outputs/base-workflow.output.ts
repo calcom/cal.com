@@ -61,6 +61,7 @@ export class BaseWorkflowStepOutputDto {
     description: "whether or not the attendees are required to provide their phone numbers when booking",
     example: true,
     default: false,
+    type: Boolean,
   })
   @IsBoolean()
   @Expose()
@@ -74,6 +75,7 @@ export class BaseWorkflowStepOutputDto {
   @ApiPropertyOptional({
     description: "Whether a calendar event (.ics) was included (for email actions)",
     example: true,
+    type: Boolean,
   })
   @Expose()
   includeCalendarEvent = false;
@@ -123,11 +125,11 @@ export class BaseWorkflowOutput {
   @Expose()
   teamId?: number;
 
-  @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z" })
+  @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z", type: String })
   @Expose()
   createdAt?: Date | string;
 
-  @ApiPropertyOptional({ description: "Timestamp of last update", example: "2024-05-12T11:30:00.000Z" })
+  @ApiPropertyOptional({ description: "Timestamp of last update", example: "2024-05-12T11:30:00.000Z", type: String })
   @Expose()
   updatedAt?: Date | string;
 }

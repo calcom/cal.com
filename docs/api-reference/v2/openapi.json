@@ -25334,7 +25334,7 @@
             "enum": ["reminder", "custom", "rescheduled", "completed", "rating", "cancelled"]
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether a calendar event (.ics) was included (for email actions)",
             "example": true
@@ -25394,12 +25394,12 @@
             "example": 4214321
           },
           "createdAt": {
-            "type": "object",
+            "type": "string",
             "description": "Timestamp of creation",
             "example": "2024-05-12T10:00:00.000Z"
           },
           "updatedAt": {
-            "type": "object",
+            "type": "string",
             "description": "Timestamp of last update",
             "example": "2024-05-12T11:30:00.000Z"
           },
@@ -25535,7 +25535,7 @@
             "enum": ["reminder", "custom", "rescheduled", "completed", "rating", "cancelled"]
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether a calendar event (.ics) was included (for email actions)",
             "example": true
@@ -25586,12 +25586,12 @@
             "example": 4214321
           },
           "createdAt": {
-            "type": "object",
+            "type": "string",
             "description": "Timestamp of creation",
             "example": "2024-05-12T10:00:00.000Z"
           },
           "updatedAt": {
-            "type": "object",
+            "type": "string",
             "description": "Timestamp of last update",
             "example": "2024-05-12T11:30:00.000Z"
           },
@@ -25694,7 +25694,7 @@
             "example": 24
           },
           "unit": {
-            "type": "object",
+            "type": "string",
             "enum": ["hour", "minute", "day"],
             "description": "Unit for the offset time",
             "example": "hour"
@@ -25942,7 +25942,7 @@
             }
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true
@@ -26008,7 +26008,7 @@
             "description": "Displayed sender name."
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true
@@ -26073,7 +26073,7 @@
             "description": "Displayed sender name."
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true
@@ -26353,7 +26353,7 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "object",
+            "type": "string",
             "enum": [
               "beforeEvent",
               "eventCancelled",
@@ -26522,7 +26522,7 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": "object",
+            "type": "string",
             "enum": ["formSubmitted", "formSubmittedNoEvent"],
             "description": "Trigger type for the routing-form workflow",
             "example": "formSubmitted"
@@ -26648,7 +26648,7 @@
             }
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true
@@ -26719,7 +26719,7 @@
             "description": "Displayed sender name."
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true
@@ -26789,7 +26789,7 @@
             "description": "Displayed sender name."
           },
           "includeCalendarEvent": {
-            "type": "object",
+            "type": "boolean",
             "default": false,
             "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
             "example": true

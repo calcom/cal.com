@@ -133,7 +133,7 @@ export class WorkflowTriggerOffsetDto {
   @IsNumber()
   value!: number;
 
-  @ApiProperty({ description: "Unit for the offset time", example: HOUR })
+  @ApiProperty({ description: "Unit for the offset time", example: HOUR, type: String, enum: TIME_UNITS })
   @IsString()
   @IsIn(TIME_UNITS)
   unit!: TimeUnitType;
@@ -143,6 +143,8 @@ export class EventTypeWorkflowTriggerDto {
   @ApiProperty({
     description: "Trigger type for the event-type workflow",
     example: "beforeEvent",
+    type: String,
+    enum: EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
   })
   @IsString()
   @IsIn(EVENT_TYPE_WORKFLOW_TRIGGER_TYPES)
@@ -153,6 +155,8 @@ export class RoutingFormWorkflowTriggerDto {
   @ApiProperty({
     description: "Trigger type for the routing-form workflow",
     example: "formSubmitted",
+    type: String,
+    enum: FORM_WORKFLOW_TRIGGER_TYPES,
   })
   @IsString()
   @IsIn(FORM_WORKFLOW_TRIGGER_TYPES)

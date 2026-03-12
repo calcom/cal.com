@@ -156,6 +156,7 @@ export class WorkflowEmailHostStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
+    type: Boolean,
   })
   @IsBoolean()
   includeCalendarEvent = false;
@@ -189,6 +190,7 @@ export class WorkflowEmailAddressStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
+    type: Boolean,
   })
   @IsBoolean()
   includeCalendarEvent = false;
@@ -212,6 +214,7 @@ export class WorkflowEmailAttendeeStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description: `Whether to include a calendar event in the notification, can be included with actions ${EMAIL_HOST}, ${EMAIL_ATTENDEE}, ${EMAIL_ADDRESS}`,
     example: true,
+    type: Boolean,
   })
   @IsBoolean()
   includeCalendarEvent = false;
@@ -274,6 +277,7 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
     description: "whether or not the attendees are required to provide their phone numbers when booking",
     example: true,
     default: false,
+    type: Boolean,
   })
   @IsBoolean()
   @IsOptional()
@@ -325,6 +329,7 @@ export class WorkflowPhoneWhatsAppAttendeeStepDto extends BaseWorkflowStepDto {
     description: "whether or not the attendees are required to provide their phone numbers when booking",
     example: true,
     default: false,
+    type: Boolean,
   })
   @IsBoolean()
   @IsOptional()
