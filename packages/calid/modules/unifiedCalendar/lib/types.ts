@@ -59,6 +59,7 @@ export type UnifiedCalendarItem = {
   attendees?: string[];
   external?: {
     calendarId: number;
+    calendarName?: string | null;
     provider: string;
     externalEventId: string;
     iCalUID?: string | null;

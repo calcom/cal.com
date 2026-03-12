@@ -19,6 +19,7 @@ export type UnifiedCalendarItem = {
   attendees?: string[];
   external?: {
     calendarId: number;
+    calendarName?: string | null;
     provider: "GOOGLE" | "OUTLOOK" | string;
     externalEventId: string;
     iCalUID?: string | null;
@@ -47,6 +48,7 @@ export interface InternalBookingForUnifiedCalendar {
 export interface ExternalEventForUnifiedCalendar {
   id: number;
   calendarId: number;
+  calendarName: string | null;
   provider: string;
   externalEventId: string;
   iCalUID: string | null;
@@ -210,6 +212,7 @@ export const mapExternalEventToUnifiedItem = (
     attendees,
     external: {
       calendarId: event.calendarId,
+      calendarName: event.calendarName,
       provider: event.provider,
       externalEventId: event.externalEventId,
       iCalUID: event.iCalUID,

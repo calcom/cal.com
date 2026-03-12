@@ -14,7 +14,6 @@ import {
   Video,
 } from "lucide-react";
 
-import { PROVIDER_LABELS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface UnifiedCalendarEventDetailsPanelProps {
@@ -36,6 +35,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
 }: UnifiedCalendarEventDetailsPanelProps) => {
   const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
   const attendeeEmails = event.attendees ?? [];
+  const providerLabel = event.provider ? (event.provider === "google" ? "Google" : "Outlook") : event.source;
+  const calendarLabel = event.calendarName?.trim() || "Calendar";
+  const subtitleLabel = event.source === "EXTERNAL" ? `${providerLabel} · ${calendarLabel}` : calendarLabel;
 
   return (
     <div className="space-y-5">
@@ -46,9 +48,10 @@ export const UnifiedCalendarEventDetailsPanel = ({
         />
         <div className="min-w-0 flex-1">
           <h3 className="text-foreground text-base font-semibold">{event.title}</h3>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {event.calendarName || "Calendar"} ·{" "}
-            {event.provider ? PROVIDER_LABELS[event.provider] : event.source}
+          <p
+            className="text-muted-foreground mt-0.5 overflow-hidden whitespace-normal break-words text-xs [-webkit-box-orient:vertical] [-webkit-line-clamp:2] [display:-webkit-box]"
+            title={subtitleLabel}>
+            {subtitleLabel}
           </p>
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary" className="text-[10px] font-medium uppercase">

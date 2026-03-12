@@ -160,7 +160,9 @@ export const mapUnifiedCalendarItemToVM = (
     color,
     provider,
     calendarId,
-    calendarName: calendarId && options?.calendarNameById ? options.calendarNameById[calendarId] : null,
+    calendarName:
+      item.external?.calendarName ??
+      (calendarId && options?.calendarNameById ? options.calendarNameById[calendarId] : null),
     external: item.external,
     internal: item.internal,
     attendeeCount: item.attendees?.length ?? item.internal?.attendeeCount ?? null,

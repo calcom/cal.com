@@ -33,6 +33,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 interface ExternalEventRow {
   id: number;
   calendarId: number;
+  calendarName: string | null;
   provider: string;
   externalEventId: string;
   iCalUID: string | null;
@@ -160,6 +161,7 @@ const fetchExternalEvents = async (params: {
       SELECT
         e."id",
         e."calendarId",
+        ec."calendarName" AS "calendarName",
         e."provider",
         e."externalEventId",
         e."iCalUID",
@@ -181,6 +183,7 @@ const fetchExternalEvents = async (params: {
   return rows.map((row) => ({
     id: row.id,
     calendarId: row.calendarId,
+    calendarName: row.calendarName,
     provider: row.provider,
     externalEventId: row.externalEventId,
     iCalUID: row.iCalUID,

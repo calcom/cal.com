@@ -37,6 +37,7 @@ export const ZUnifiedCalendarItemSchema = z.object({
   external: z
     .object({
       calendarId: z.number().int(),
+      calendarName: z.string().nullable().optional(),
       provider: z.string(),
       externalEventId: z.string(),
       iCalUID: z.string().nullable().optional(),
