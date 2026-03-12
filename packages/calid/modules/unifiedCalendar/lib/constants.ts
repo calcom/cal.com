@@ -7,6 +7,12 @@ const PALETTE = {
   neutralGray: "hsl(220, 10%, 55%)",
   warmAmber: "hsl(36, 65%, 56%)",
   roseRed: "hsl(355, 56%, 58%)",
+  skyBlue: "hsl(204, 56%, 66%)",
+  seafoam: "hsl(172, 36%, 58%)",
+  peach: "hsl(20, 72%, 70%)",
+  lavender: "hsl(276, 36%, 68%)",
+  butterYellow: "hsl(48, 82%, 72%)",
+  blushPink: "hsl(338, 62%, 72%)",
 };
 
 export { PALETTE };
@@ -16,6 +22,12 @@ export const CALENDAR_COLORS = [
   PALETTE.softEmerald,
   PALETTE.mutedPurple,
   PALETTE.neutralGray,
+  PALETTE.skyBlue,
+  PALETTE.seafoam,
+  PALETTE.peach,
+  PALETTE.lavender,
+  PALETTE.butterYellow,
+  PALETTE.blushPink,
 ];
 
 export const PROVIDER_LABELS: Record<SupportedCalendarProvider, string> = {

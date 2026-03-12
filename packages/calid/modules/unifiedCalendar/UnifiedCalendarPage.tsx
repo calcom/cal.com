@@ -40,6 +40,7 @@ const UnifiedCalendarPage = () => {
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [localCalendarColors, setLocalCalendarColors] = useState<Record<string, string>>({});
+  const [pendingColorById, setPendingColorById] = useState<Record<string, boolean>>({});
   const [optimisticSyncById, setOptimisticSyncById] = useState<Record<string, boolean>>({});
   const [pendingSyncById, setPendingSyncById] = useState<Record<string, boolean>>({});
   const trpcUtils = trpc.useUtils();
@@ -49,6 +50,7 @@ const UnifiedCalendarPage = () => {
   });
 
   const toggleCalendarSyncMutation = trpc.viewer.unifiedCalendar.toggleCalendarSync.useMutation();
+  const updateCalendarColorMutation = trpc.viewer.unifiedCalendar.updateCalendarColor.useMutation();
   const createBookingMutation = trpc.viewer.unifiedCalendar.createBooking.useMutation();
   const rescheduleBookingMutation = trpc.viewer.unifiedCalendar.rescheduleBooking.useMutation();
   const cancelBookingMutation = trpc.viewer.unifiedCalendar.cancelBooking.useMutation();
@@ -129,11 +131,29 @@ const UnifiedCalendarPage = () => {
     }, {});
   }, [connectedCalendars]);
 
+  const calendarColorById = useMemo(() => {
+    return connectedCalendars.reduce<Record<string, string>>((accumulator, calendar) => {
+      if (typeof calendar.externalCalendarId === "number" && Number.isFinite(calendar.externalCalendarId)) {
+        accumulator[String(calendar.externalCalendarId)] = calendar.color;
+      }
+      return accumulator;
+    }, {});
+  }, [connectedCalendars]);
+
   const unifiedEvents = useMemo(() => {
-    return mapUnifiedCalendarItemsToVM(unifiedCalendarListQuery.data?.items ?? [], {
+    const mappedEvents = mapUnifiedCalendarItemsToVM(unifiedCalendarListQuery.data?.items ?? [], {
       calendarNameById,
     });
-  }, [calendarNameById, unifiedCalendarListQuery.data?.items]);
+
+    return mappedEvents.map((event) => {
+      if (!event.calendarId) return event;
+
+      const calendarColor = calendarColorById[event.calendarId];
+      if (!calendarColor) return event;
+
+      return { ...event, color: calendarColor };
+    });
+  }, [calendarColorById, calendarNameById, unifiedCalendarListQuery.data?.items]);
 
   const visibleCalendarIds = useMemo(() => {
     if (visibleSyncedExternalCalendarIds.length > 0) {
@@ -205,8 +225,42 @@ const UnifiedCalendarPage = () => {
     }
   };
 
-  const changeCalendarColor = (id: string, color: string) => {
+  const changeCalendarColor = async (id: string, color: string) => {
+    const calendar = sidebarCalendars.find((value) => value.id === id);
+
+    if (!calendar || typeof calendar.credentialId !== "number" || pendingColorById[id] || calendar.readOnly) {
+      return;
+    }
+
+    const previousColor = calendar.color;
+
+    setPendingColorById((current) => ({ ...current, [id]: true }));
     setLocalCalendarColors((current) => ({ ...current, [id]: color }));
+
+    try {
+      await updateCalendarColorMutation.mutateAsync({
+        provider: calendar.syncProvider,
+        credentialId: calendar.credentialId,
+        providerCalendarId: calendar.providerCalendarId,
+        color,
+      });
+
+      await connectedCalendarsQuery.refetch();
+      setLocalCalendarColors((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+    } catch (_error) {
+      setLocalCalendarColors((current) => ({ ...current, [id]: previousColor }));
+      showToast("Failed to update calendar color. Please try again.", "error");
+    } finally {
+      setPendingColorById((current) => {
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+    }
   };
 
   const clearActionErrors = () => {

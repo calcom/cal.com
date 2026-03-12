@@ -14,10 +14,12 @@ type ConnectedCalendarsOptions = {
 };
 
 interface ExternalCalendarSyncStateRow {
+  externalCalendarId: number;
   credentialId: number;
   providerCalendarId: string;
   provider: string;
   syncEnabled: boolean;
+  metadata: Prisma.JsonValue | null;
 }
 
 const getProviderFromIntegrationType = (integrationType: string): "GOOGLE" | "OUTLOOK" | null => {
@@ -46,10 +48,12 @@ const buildCalendarSyncStateMap = async (params: {
   const rows = await prisma.$queryRaw<ExternalCalendarSyncStateRow[]>(
     Prisma.sql`
       SELECT
+        ec."id" AS "externalCalendarId",
         ec."credentialId",
         ec."providerCalendarId",
         ec."provider"::text AS "provider",
-        ec."syncEnabled"
+        ec."syncEnabled",
+        ec."metadata"
       FROM "ExternalCalendar" ec
       WHERE ec."credentialId" IN (${Prisma.join(params.credentialIds)})
         AND ec."providerCalendarId" IN (${Prisma.join(params.providerCalendarIds)})
@@ -95,8 +99,10 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
         const syncState = syncStateMap.get(`${calendar.credentialId}:${cal.externalId}`);
         return {
           ...cal,
+          externalCalendarId: syncState?.externalCalendarId ?? cal.externalCalendarId ?? null,
           syncEnabled: syncState?.syncEnabled ?? false,
           syncProvider: syncState?.provider ?? getProviderFromIntegrationType(calendar.integration.type),
+          metadata: syncState?.metadata ?? null,
         };
       }) ?? [],
   }));

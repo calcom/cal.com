@@ -14,10 +14,15 @@ import {
   ZUnifiedCalendarRescheduleBookingOutputSchema,
 } from "./rescheduleBooking.schema";
 import { ZToggleCalendarSyncInputSchema, ZToggleCalendarSyncOutputSchema } from "./toggleCalendarSync.schema";
+import {
+  ZUpdateCalendarColorInputSchema,
+  ZUpdateCalendarColorOutputSchema,
+} from "./updateCalendarColor.schema";
 
 type UnifiedCalendarRouterHandlerCache = {
   list?: typeof import("./list.handler").listUnifiedCalendarHandler;
   toggleCalendarSync?: typeof import("./toggleCalendarSync.handler").toggleCalendarSyncHandler;
+  updateCalendarColor?: typeof import("./updateCalendarColor.handler").updateCalendarColorHandler;
   createBooking?: typeof import("./createBooking.handler").createUnifiedCalendarBookingHandler;
   rescheduleBooking?: typeof import("./rescheduleBooking.handler").rescheduleUnifiedCalendarBookingHandler;
   cancelBooking?: typeof import("./cancelBooking.handler").cancelUnifiedCalendarBookingHandler;
@@ -60,6 +65,24 @@ export const unifiedCalendarRouter = router({
       }
 
       return UNSTABLE_HANDLER_CACHE.toggleCalendarSync({ ctx, input });
+    }),
+
+  updateCalendarColor: authedProcedure
+    .input(ZUpdateCalendarColorInputSchema)
+    .output(ZUpdateCalendarColorOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.updateCalendarColor) {
+        UNSTABLE_HANDLER_CACHE.updateCalendarColor = await import("./updateCalendarColor.handler").then(
+          (mod) => mod.updateCalendarColorHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.updateCalendarColor) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.updateCalendarColor({ ctx, input });
     }),
 
   createBooking: authedProcedure

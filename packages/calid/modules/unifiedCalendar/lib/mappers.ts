@@ -60,6 +60,22 @@ const withSafeTitle = (title: string | null | undefined): string => {
   return normalized && normalized.length > 0 ? normalized : UNIFIED_EVENT_FALLBACK_TITLE;
 };
 
+const asObject = (value: unknown): Record<string, unknown> | null => {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+};
+
+const resolveCalendarColorFromMetadata = (metadata: unknown): string | null => {
+  const root = asObject(metadata);
+  const calid = asObject(root?.calid);
+  const unifiedCalendar = asObject(calid?.unifiedCalendar);
+  const color = unifiedCalendar?.color;
+
+  return typeof color === "string" && color.trim().length > 0 ? color : null;
+};
+
 function isGoogleHolidayCalendar(calendarId: string): boolean {
   return calendarId.includes("#holiday@group.v.calendar.google.com");
 }
@@ -90,6 +106,7 @@ export const mapConnectedCalendarToVM = (input: {
     provider,
     email: input.connection.primary?.email ?? "",
     color:
+      resolveCalendarColorFromMetadata(input.calendar.metadata) ??
       input.fallbackColor ??
       deriveUnifiedEventColor({
         source: "EXTERNAL",

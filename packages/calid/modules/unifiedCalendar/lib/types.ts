@@ -13,6 +13,7 @@ export interface ConnectedCalendarRaw {
   syncProvider?: string | null;
   isSelected?: boolean;
   readOnly?: boolean;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface ConnectedCalendarIntegrationRaw {

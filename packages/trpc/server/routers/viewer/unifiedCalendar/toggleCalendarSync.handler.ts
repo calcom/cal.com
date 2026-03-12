@@ -1,3 +1,4 @@
+import { PALETTE } from "@calid/features/modules/unifiedCalendar/lib/constants";
 import { buildJobId, dispatcher, JobName } from "@calid/job-dispatcher";
 import type { CalendarSyncJobData } from "@calid/job-engine";
 import { QueueName } from "@calid/queue";
@@ -40,6 +41,22 @@ type ToggleForUserOptions = {
 };
 
 const log = logger.getSubLogger({ prefix: ["viewer", "unifiedCalendar", "toggleSync"] });
+
+const PALETTE_COLORS = Object.values(PALETTE);
+
+const getRandomPaletteColor = () => {
+  return PALETTE_COLORS[Math.floor(Math.random() * PALETTE_COLORS.length)] ?? PALETTE.neutralGray;
+};
+
+const buildCalendarColorMetadata = (color: string): Prisma.JsonObject => {
+  return {
+    calid: {
+      unifiedCalendar: {
+        color,
+      },
+    },
+  };
+};
 
 const toProviderSlug = (provider: "GOOGLE" | "OUTLOOK"): "google" | "outlook" =>
   provider === "GOOGLE" ? "google" : "outlook";
@@ -151,6 +168,8 @@ const ensureExternalCalendarTracked = async (params: {
   calendarName: string | null;
   isPrimary: boolean;
 }): Promise<CalendarOwnershipRow | null> => {
+  const metadata = buildCalendarColorMetadata(getRandomPaletteColor());
+
   const rows = await prisma.$queryRaw<CalendarOwnershipRow[]>(
     Prisma.sql`
       INSERT INTO "ExternalCalendar" (
@@ -161,6 +180,7 @@ const ensureExternalCalendarTracked = async (params: {
         "isPrimary",
         "syncEnabled",
         "syncStatus",
+        "metadata",
         "createdAt",
         "updatedAt"
       )
@@ -172,6 +192,7 @@ const ensureExternalCalendarTracked = async (params: {
         ${params.isPrimary},
         false,
         CAST(${"IDLE"} AS "CalendarSyncStatus"),
+        ${metadata}::jsonb,
         NOW(),
         NOW()
       )

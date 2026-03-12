@@ -324,6 +324,7 @@ model ExternalCalendar {
   lastErrorMessage   String?
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
+  metadata           Json?
 
   credential    Credential                       @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   syncCursor    ExternalCalendarSyncCursor?
