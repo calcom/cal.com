@@ -71,6 +71,7 @@ export const handleNewRecurringBooking = async function (
       numSlotsToCheckForAvailability,
       currentRecurringIndex: 0,
       noEmail: input.noEmail !== undefined ? input.noEmail : false,
+      creationSource,
     };
 
     const firstBookingResult = await regularBookingService.createBooking({
@@ -114,6 +115,7 @@ export const handleNewRecurringBooking = async function (
       currentRecurringIndex: key,
       noEmail: input.noEmail !== undefined ? input.noEmail : key !== 0,
       luckyUsers,
+      creationSource,
     };
 
     const promiseEachRecurringBooking = regularBookingService.createBooking({
