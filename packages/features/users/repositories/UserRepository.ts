@@ -1715,4 +1715,15 @@ export class UserRepository {
     });
     return !!redirect;
   }
+
+  async countLockedSince({ since }: { since: Date }): Promise<number> {
+    return this.prismaClient.user.count({
+      where: {
+        locked: true,
+        emailVerified: {
+          gte: since,
+        },
+      },
+    });
+  }
 }

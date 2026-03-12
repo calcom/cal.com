@@ -202,6 +202,7 @@ export default function Signup({
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
+  turnstileAppearance,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isSamlSignup, setIsSamlSignup] = useState(false);
@@ -612,7 +613,7 @@ export default function Signup({
                       {CLOUDFLARE_SITE_ID ? (
                         <TurnstileCaptcha
                           key={turnstileKey}
-                          appearance="interaction-only"
+                          appearance={turnstileAppearance ?? "interaction-only"}
                           onVerify={(token) => {
                             formMethods.setValue("cfToken", token);
                           }}

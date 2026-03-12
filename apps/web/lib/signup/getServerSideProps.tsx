@@ -1,6 +1,7 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -9,7 +10,23 @@ import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import type { GetServerSidePropsContext } from "next";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
+
+const ATTACK_DETECTION_WINDOW_MS = 5 * 60 * 1000;
+const ATTACK_DETECTION_CACHE_TTL_SECONDS = 30;
+
+const getIsUnderAttack = unstable_cache(
+  async () => {
+    const userRepository = getUserRepository();
+    const count = await userRepository.countLockedSince({
+      since: new Date(Date.now() - ATTACK_DETECTION_WINDOW_MS),
+    });
+    return count > 0;
+  },
+  ["signup-under-attack"],
+  { revalidate: ATTACK_DETECTION_CACHE_TTL_SECONDS }
+);
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
@@ -24,8 +41,11 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const featureRepository = getFeatureRepository();
-  const emailVerificationEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
-  const signupDisabled = await featureRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
+  const [emailVerificationEnabled, signupDisabled, isUnderAttack] = await Promise.all([
+    featureRepository.checkIfFeatureIsEnabledGlobally("email-verification"),
+    featureRepository.checkIfFeatureIsEnabledGlobally("disable-signup"),
+    getIsUnderAttack(),
+  ]);
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
     .string()
@@ -57,6 +77,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
+    turnstileAppearance: isUnderAttack ? ("managed" as const) : ("interaction-only" as const),
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {

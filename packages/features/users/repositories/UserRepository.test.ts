@@ -108,4 +108,74 @@ describe("UserRepository", () => {
       );
     });
   });
+
+  describe("countLockedSince", () => {
+    test("returns 0 when no locked users exist", async () => {
+      const count = await new UserRepository(prismock).countLockedSince({
+        since: new Date(Date.now() - 5 * 60 * 1000),
+      });
+
+      expect(count).toBe(0);
+    });
+
+    test("counts locked users whose emailVerified is within the window", async () => {
+      const now = new Date();
+      const withinWindow = new Date(now.getTime() - 60_000); // 1 min ago
+
+      await prismock.user.create({
+        data: {
+          username: "locked-recent",
+          email: "locked-recent@example.com",
+          locked: true,
+          emailVerified: withinWindow,
+        },
+      });
+
+      const count = await new UserRepository(prismock).countLockedSince({
+        since: new Date(now.getTime() - 5 * 60 * 1000),
+      });
+
+      expect(count).toBe(1);
+    });
+
+    test("does not count locked users whose emailVerified is before the window", async () => {
+      const now = new Date();
+      const beforeWindow = new Date(now.getTime() - 10 * 60 * 1000); // 10 min ago
+
+      await prismock.user.create({
+        data: {
+          username: "locked-old",
+          email: "locked-old@example.com",
+          locked: true,
+          emailVerified: beforeWindow,
+        },
+      });
+
+      const count = await new UserRepository(prismock).countLockedSince({
+        since: new Date(now.getTime() - 5 * 60 * 1000),
+      });
+
+      expect(count).toBe(0);
+    });
+
+    test("does not count unlocked users even if emailVerified is within the window", async () => {
+      const now = new Date();
+      const withinWindow = new Date(now.getTime() - 60_000);
+
+      await prismock.user.create({
+        data: {
+          username: "unlocked-recent",
+          email: "unlocked-recent@example.com",
+          locked: false,
+          emailVerified: withinWindow,
+        },
+      });
+
+      const count = await new UserRepository(prismock).countLockedSince({
+        since: new Date(now.getTime() - 5 * 60 * 1000),
+      });
+
+      expect(count).toBe(0);
+    });
+  });
 });
