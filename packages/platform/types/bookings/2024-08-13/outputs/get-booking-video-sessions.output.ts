@@ -59,8 +59,6 @@ export class GetBookingVideoSessionsOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  error?: Error;
-
   @ApiProperty({ type: [CalMeetingSession] })
   @ValidateNested({ each: true })
   @Type(() => CalMeetingSession)

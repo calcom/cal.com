@@ -17913,9 +17913,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/CreateManagedUserData"
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -22135,8 +22132,9 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "object",
-            "example": "success"
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
           }
         },
         "required": ["status"]
@@ -22550,9 +22548,6 @@
             "items": {
               "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
             }
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -22639,9 +22634,6 @@
                 "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
               }
             ]
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -22699,9 +22691,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -31750,9 +31739,6 @@
               }
             ],
             "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -31809,9 +31795,6 @@
             "example": "success",
             "enum": ["success", "error"]
           },
-          "error": {
-            "type": "object"
-          },
           "data": {
             "type": "array",
             "items": {
@@ -31835,9 +31818,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]
@@ -31872,9 +31852,6 @@
           },
           "pagination": {
             "$ref": "#/components/schemas/PaginationMetaDto"
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data", "pagination"]
@@ -32162,7 +32139,8 @@
           "status": {
             "type": "object",
             "description": "The status of the request, always 'success' for successful responses",
-            "example": "success"
+            "example": "success",
+            "enum": ["success", "error"]
           },
           "data": {
             "description": "Calendar links for the booking",
@@ -32203,7 +32181,8 @@
           "status": {
             "type": "object",
             "description": "The status of the request, always 'success' for successful responses",
-            "example": "success"
+            "example": "success",
+            "enum": ["success", "error"]
           },
           "data": {
             "description": "Booking References",
@@ -32288,9 +32267,6 @@
             "items": {
               "$ref": "#/components/schemas/CalMeetingSession"
             }
-          },
-          "error": {
-            "type": "object"
           }
         },
         "required": ["status", "data"]

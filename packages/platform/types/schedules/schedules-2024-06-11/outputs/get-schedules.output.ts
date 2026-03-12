@@ -17,6 +17,4 @@ export class GetSchedulesOutput_2024_06_11 {
   @Type(() => ScheduleOutput_2024_06_11)
   @IsArray()
   data!: ScheduleOutput_2024_06_11[];
-
-  error?: Error;
 }

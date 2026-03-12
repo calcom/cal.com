@@ -18,6 +18,4 @@ export class UpdateScheduleOutput_2024_06_11 {
   @ValidateNested()
   @Type(() => ScheduleOutput_2024_06_11)
   data!: ScheduleOutput_2024_06_11;
-
-  error?: Error;
 }

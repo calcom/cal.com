@@ -50,8 +50,6 @@ export class GetBookingRecordingsOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  error?: Error;
-
   @ValidateNested({ each: true })
   @Type(() => RecordingItem)
   data!: RecordingItem[];

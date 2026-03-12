@@ -759,3 +759,5 @@ PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-fo
 PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form the 'data/items/createdAt' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
 PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form the 'data/items/steps/items/includeCalendarEvent' response's property type/format changed from 'object'/'' to 'boolean'/'' for status '200'
 PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form the 'data/items/updatedAt' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/stripe/check the 'status' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/stripe/check the 'status' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'

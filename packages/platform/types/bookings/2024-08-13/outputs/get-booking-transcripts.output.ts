@@ -8,8 +8,6 @@ export class GetBookingTranscriptsOutput {
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  error?: Error;
-
   @ApiProperty({ type: [String], example: ["https://transcript1.com", "https://transcript2.com"] })
   @IsArray()
   @IsString({ each: true })

@@ -21,6 +21,8 @@ export class CalendarLinksOutput_2024_08_13 {
   @ApiProperty({
     description: "The status of the request, always 'success' for successful responses",
     example: SUCCESS_STATUS,
+    type: String,
+    enum: [SUCCESS_STATUS, ERROR_STATUS],
   })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
