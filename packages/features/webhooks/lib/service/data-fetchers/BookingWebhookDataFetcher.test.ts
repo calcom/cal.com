@@ -10,6 +10,11 @@ vi.mock("@calcom/features/CalendarEventBuilder", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 
 describe("BookingWebhookDataFetcher", () => {

@@ -1,8 +1,6 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
-
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getConnectedCalendars } from "../lib/CalendarManager";
 import { DestinationCalendarService } from "./DestinationCalendarService";
 
@@ -13,6 +11,15 @@ vi.mock("@calcom/app-store/delegationCredential", () => ({
 vi.mock("../lib/CalendarManager", () => ({
   getConnectedCalendars: vi.fn(),
   getCalendarCredentials: vi.fn().mockImplementation((creds) => creds),
+}));
+
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 function createMockRepository() {

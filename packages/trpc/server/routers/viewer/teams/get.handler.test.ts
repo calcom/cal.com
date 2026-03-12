@@ -1,7 +1,5 @@
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
@@ -21,6 +19,11 @@ vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", (
 
 vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
   getTeamWithoutMembers: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 describe("getTeam", () => {

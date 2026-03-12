@@ -1,3 +1,4 @@
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -7,9 +8,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import type { Membership, Profile, Team, User, VerificationToken } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import { TeamService } from "./teamService";
 
 const { MockSeatChangeTrackingService } = vi.hoisted(() => {
@@ -29,6 +28,11 @@ vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
   SeatChangeTrackingService: MockSeatChangeTrackingService,
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 const mockTeamBilling = {

@@ -16,6 +16,17 @@ vi.mock("@calcom/i18n/server", () => {
   };
 });
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 describe("UserRepository", () => {
   beforeEach(() => {
     prismock;

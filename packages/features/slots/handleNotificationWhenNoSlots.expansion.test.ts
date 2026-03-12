@@ -24,6 +24,18 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
   }),
 }));
 
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  OrganizationEmailService: vi.fn().mockImplementation(() => ({
+    sendOrganizationCreationEmail: vi.fn(),
+  })),
+  sendOrganizationAdminNoSlotsNotification: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");
 
 describe("(Orgs) No-slots notification - expanded edge cases", () => {

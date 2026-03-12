@@ -9,6 +9,11 @@ import { pendingReportsCountHandler } from "./pendingReportsCount.handler";
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("pendingReportsCountHandler (Organization watchlist PBAC)", () => {
   const mockUser = {
     id: 1,

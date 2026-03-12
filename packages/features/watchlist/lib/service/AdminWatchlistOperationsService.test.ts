@@ -6,6 +6,11 @@ vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
   sendEmailVerification: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 
 function createMockWatchlistRepo() {

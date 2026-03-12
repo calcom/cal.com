@@ -34,6 +34,12 @@ vi.mock("@calcom/lib/crypto", async (importOriginal) => {
     }),
   };
 });
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
 // Test Data Helpers
 const buildMockServiceAccountKey = () => ({
   client_email: "test@example.com",

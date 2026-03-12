@@ -5,6 +5,12 @@ vi.mock("@calcom/lib/constants", async (importOriginal) => {
   return { ...actual, WEBAPP_URL: "https://app.cal.com" };
 });
 
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
+  onSignup: vi.fn(),
+  onBookingCreated: vi.fn(),
+}));
+
 import type { AlertPayload } from "../lib/alerts";
 import { SlackAbuseAlerter } from "../lib/alerts";
 

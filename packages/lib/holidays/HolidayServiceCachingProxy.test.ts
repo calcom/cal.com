@@ -40,6 +40,11 @@ vi.mock("@calcom/dayjs", () => {
   return { default: realDayjs };
 });
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 // biome-ignore lint/style/noRestrictedImports: test file mirrors source's import of HolidayRepository
 import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
 import { getGoogleCalendarClient } from "./GoogleCalendarClient";

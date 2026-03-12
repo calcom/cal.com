@@ -20,6 +20,12 @@ vi.mock("@calcom/lib/server/buildCredentialPayloadForCalendar", () => ({
   buildCredentialPayloadForPrisma: mockBuildCredentialPayload,
 }));
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 import { DestinationCalendarRepository } from "./DestinationCalendarRepository";
 
 describe("DestinationCalendarRepository", () => {

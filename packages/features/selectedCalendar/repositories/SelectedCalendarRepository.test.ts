@@ -8,6 +8,17 @@ import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 const mockPrismaClient = {
   selectedCalendar: {
     findUnique: vi.fn(),

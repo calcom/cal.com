@@ -54,6 +54,12 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
 }));
 vi.mock("@calcom/lib/crypto", () => ({ symmetricDecrypt: vi.fn() }));
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 import EventManager from "./EventManager";
 
 function minimalCalEvent(overrides: Partial<CalendarEvent> = {}): CalendarEvent {

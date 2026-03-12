@@ -31,6 +31,11 @@ vi.mock("@calcom/lib/tracing/factory", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { handleWebhookTrigger } from "./handleWebhookTrigger";

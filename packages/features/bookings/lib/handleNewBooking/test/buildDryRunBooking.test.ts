@@ -1,12 +1,32 @@
-import { describe, it, expect, vi } from "vitest";
-
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
-
+import { describe, expect, it, vi } from "vitest";
 import { buildDryRunBooking } from "../../service/RegularBookingService";
 
 vi.mock("@calcom/prisma", () => ({
   default: {}, // empty object as default export
   prisma: {},
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
+  onSignup: vi.fn(),
+  onBookingCreated: vi.fn(),
+}));
+
+vi.mock("@calcom/features/di/watchlist/containers/SpamCheckService.container", () => ({
+  getSpamCheckService: vi.fn().mockReturnValue({
+    checkForSpam: vi.fn().mockResolvedValue({ isSpam: false }),
+  }),
+}));
+
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
 describe("buildDryRunBooking", () => {

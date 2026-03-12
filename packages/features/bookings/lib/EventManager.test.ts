@@ -49,6 +49,12 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 const mockedCredentialRepository = vi.mocked(CredentialRepository);
 

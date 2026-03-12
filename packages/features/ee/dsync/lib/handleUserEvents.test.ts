@@ -55,6 +55,11 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   }),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 async function createMockOrganization({ id, name, slug }: { id: number; name: string; slug: string }) {
   return prismock.team.create({
     data: {

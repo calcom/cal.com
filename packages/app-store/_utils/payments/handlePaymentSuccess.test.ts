@@ -1,8 +1,9 @@
 /**
  * @vitest-environment node
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePaymentSuccess } from "./handlePaymentSuccess";
 
 // Mock dependencies
@@ -79,34 +80,54 @@ vi.mock("@calcom/app-store/routing-forms/lib/findFieldValueByIdentifier", () => 
   findFieldValueByIdentifier: vi.fn(),
 }));
 
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn(),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+}));
+
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  getBusyCalendarTimes: vi.fn().mockResolvedValue([]),
+  createEvent: vi.fn().mockResolvedValue({}),
+  updateEvent: vi.fn().mockResolvedValue({}),
+  deleteEvent: vi.fn().mockResolvedValue({}),
+}));
+
+import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import prisma from "@calcom/prisma";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import type { TraceContext } from "@calcom/lib/tracing";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import type { TraceContext } from "@calcom/lib/tracing";
+import prisma from "@calcom/prisma";
 
 describe("handlePaymentSuccess", () => {
   const mockBookingId = 1;

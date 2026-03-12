@@ -25,6 +25,11 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
 import sendPayload from "./sendPayload";

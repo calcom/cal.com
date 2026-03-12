@@ -10,6 +10,11 @@ vi.mock("@calcom/lib/server/resizeBase64Image", () => ({
   resizeBase64Image: vi.fn((input) => input),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const { uploadLogo } = await import("@calcom/lib/server/avatar");
 const { resizeBase64Image } = await import("@calcom/lib/server/resizeBase64Image");
 

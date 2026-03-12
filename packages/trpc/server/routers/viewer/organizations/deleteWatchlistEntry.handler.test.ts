@@ -8,6 +8,11 @@ import { deleteWatchlistEntryHandler } from "./deleteWatchlistEntry.handler";
 vi.mock("@calcom/features/di/watchlist/containers/watchlist");
 vi.mock("@calcom/features/watchlist/lib/repository/WatchlistRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("deleteWatchlistEntryHandler", () => {
   const mockUser = {
     id: 1,

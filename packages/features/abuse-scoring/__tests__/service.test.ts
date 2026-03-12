@@ -5,6 +5,12 @@ import { ABUSE_WEIGHTS, SIGNUP_FLAG_CAP, VELOCITY_GATE_THRESHOLD } from "../lib/
 import type { AbuseScoringServiceDeps } from "../services/AbuseScoringService";
 import { AbuseScoringService } from "../services/AbuseScoringService";
 
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
+  onSignup: vi.fn(),
+  onBookingCreated: vi.fn(),
+}));
+
 function buildMockRepository(): AbuseScoringServiceDeps["repository"] {
   return {
     findForScoring: vi.fn().mockResolvedValue(null),

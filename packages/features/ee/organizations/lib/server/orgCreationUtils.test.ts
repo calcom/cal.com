@@ -1,4 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue(true),
+  deleteDomain: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendAdminOrganizationNotification: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 
 import { isNotACompanyEmail } from "./orgCreationUtils";
 

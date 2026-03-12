@@ -1,22 +1,20 @@
+import {
+  expectScenario,
+  getLocationBookingField,
+  mockProps as mockPropsBase,
+  pageObject,
+  setMockIntersectionObserver,
+  setMockMatchMedia,
+  verifier,
+} from "@calcom/features/form-builder/testUtils";
+import { showToast } from "@calcom/ui/components/toast";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
-
-import { showToast } from "@calcom/ui/components/toast";
-
 import { FormBuilder } from "./FormBuilder";
-import {
-  mockProps as mockPropsBase,
-  verifier,
-  setMockIntersectionObserver,
-  setMockMatchMedia,
-  pageObject,
-  expectScenario,
-  getLocationBookingField,
-} from "@calcom/features/form-builder/testUtils";
 
 // Re-type mockProps to ensure LockedIcon is typed as `false` instead of `boolean`
 const mockProps = { ...mockPropsBase, LockedIcon: false as const };
@@ -41,9 +39,14 @@ vi.mock("@calcom/ui/components/toast", () => ({
   showToast: vi.fn(),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const renderComponent = ({
-  formBuilderProps: formBuilderProps,
-  formDefaultValues: formDefaultValues,
+  formBuilderProps,
+  formDefaultValues,
 }: {
   formBuilderProps: Parameters<typeof FormBuilder>[0];
   formDefaultValues: { [x: string]: {} | undefined };

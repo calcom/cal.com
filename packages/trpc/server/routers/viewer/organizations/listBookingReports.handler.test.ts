@@ -14,6 +14,11 @@ import { listBookingReportsHandler } from "./listBookingReports.handler";
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("listBookingReportsHandler (Organization)", () => {
   const mockUser = {
     id: 1,

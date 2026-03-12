@@ -31,6 +31,11 @@ vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
   default: vi.fn().mockResolvedValue(null),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
 import { handleBookingRequested } from "./handleBookingRequested";
 

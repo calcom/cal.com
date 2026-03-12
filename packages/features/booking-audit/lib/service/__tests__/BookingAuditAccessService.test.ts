@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, vi, type Mock } from "vitest";
-
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import {
   BookingAuditAccessService,
   BookingAuditErrorCode,
@@ -14,6 +12,11 @@ import {
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 const DB = {
   bookings: {} as Record<
     string,

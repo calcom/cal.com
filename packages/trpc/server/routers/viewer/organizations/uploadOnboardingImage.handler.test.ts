@@ -17,6 +17,11 @@ vi.mock("uuid", () => ({
   v4: vi.fn(() => "mock-uuid-1234"),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 const { resizeBase64Image } = await import("@calcom/lib/server/resizeBase64Image");
 const { convertSvgToPng } = await import("@calcom/lib/server/imageUtils");

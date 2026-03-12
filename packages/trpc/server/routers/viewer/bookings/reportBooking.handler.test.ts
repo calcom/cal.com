@@ -30,6 +30,11 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("reportBookingHandler", () => {
   const mockUser = {
     id: 1,

@@ -16,6 +16,11 @@ vi.mock("@calcom/features/watchlist/lib/utils/normalization", () => ({
   extractDomainFromEmail: (email: string) => email.split("@")[1],
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("getUpcomingBookingsByDomainHandler", () => {
   const mockUser = {
     id: 1,

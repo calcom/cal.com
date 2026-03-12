@@ -1,4 +1,5 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -7,7 +8,6 @@ import {
   getCalendarCredentials,
   processEvent,
 } from "./CalendarManager";
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,
@@ -28,6 +28,15 @@ vi.mock("@calcom/app-store/locations", () => ({
 
 vi.mock("@calcom/lib/CalEventParser", () => ({
   getRichDescription: vi.fn(() => "Test description"),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn(),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
 }));
 
 function buildCredential(data: {

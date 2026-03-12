@@ -18,15 +18,26 @@ vi.mock("@calcom/i18n/server", () => ({
 
 vi.mock("@calcom/lib/availability", () => ({
   DEFAULT_SCHEDULE: [],
-  getAvailabilityFromSchedule: vi.fn().mockReturnValue([
-    { days: [1, 2, 3, 4, 5], startTime: new Date("1970-01-01T09:00:00Z"), endTime: new Date("1970-01-01T17:00:00Z") },
-  ]),
+  getAvailabilityFromSchedule: vi
+    .fn()
+    .mockReturnValue([
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date("1970-01-01T09:00:00Z"),
+        endTime: new Date("1970-01-01T17:00:00Z"),
+      },
+    ]),
 }));
 
 vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
     generateProfileUid: vi.fn().mockReturnValue("mock-profile-uid"),
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 const mockUserRepository = {

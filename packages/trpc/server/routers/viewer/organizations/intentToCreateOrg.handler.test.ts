@@ -357,6 +357,11 @@ describe("intentToCreateOrgHandler", () => {
           IS_SELF_HOSTED: true,
         };
       });
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
     });
 
     it("should throw error when license is not valid", async () => {

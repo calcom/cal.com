@@ -8,8 +8,9 @@
  * - Non-organizer outside minimum notice → no throw
  * - Seated reschedule UID: getSeatedBooking returns seat, actualRescheduleUid from booking.uid
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { HttpError } from "@calcom/lib/http-error";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { validateRescheduleRestrictions } from "../service/RegularBookingService";
 
 // Use var so Vitest's vi.mock hoisting doesn't hit TDZ
@@ -32,8 +33,29 @@ vi.mock("../handleNewBooking/originalRescheduledBookingUtils", () => {
   };
 });
 
-describe("validateRescheduleRestrictions", () => {
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
 
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
+  onSignup: vi.fn(),
+  onBookingCreated: vi.fn(),
+}));
+
+vi.mock("@calcom/features/di/watchlist/containers/SpamCheckService.container", () => ({
+  getSpamCheckService: vi.fn().mockReturnValue({
+    checkForSpam: vi.fn().mockResolvedValue({ isSpam: false }),
+  }),
+}));
+
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
+}));
+
+describe("validateRescheduleRestrictions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();

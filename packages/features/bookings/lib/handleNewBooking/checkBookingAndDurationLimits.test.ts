@@ -9,6 +9,11 @@ vi.mock("@calcom/features/bookings/lib/checkDurationLimits", () => ({
   checkDurationLimits: vi.fn(),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { checkDurationLimits } from "@calcom/features/bookings/lib/checkDurationLimits";
 
 const mockCheckDurationLimits = vi.mocked(checkDurationLimits);

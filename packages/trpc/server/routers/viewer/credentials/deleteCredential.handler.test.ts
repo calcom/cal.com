@@ -1,9 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteCredentialHandler } from "./deleteCredential.handler";
 
 vi.mock("@calcom/features/credentials/handleDeleteCredential", () => ({
@@ -14,6 +11,11 @@ vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", (
   PrismaMembershipRepository: {
     getAdminOrOwnerMembership: vi.fn(),
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 const makeCtx = (userId = 1) =>
@@ -29,9 +31,9 @@ describe("deleteCredentialHandler", () => {
   it("rejects team credential deletion when user has no admin/owner membership", async () => {
     vi.mocked(PrismaMembershipRepository.getAdminOrOwnerMembership).mockResolvedValue(null);
 
-    await expect(
-      deleteCredentialHandler({ ctx: makeCtx(), input: { id: 10, teamId: 99 } })
-    ).rejects.toThrow(TRPCError);
+    await expect(deleteCredentialHandler({ ctx: makeCtx(), input: { id: 10, teamId: 99 } })).rejects.toThrow(
+      TRPCError
+    );
 
     expect(PrismaMembershipRepository.getAdminOrOwnerMembership).toHaveBeenCalledWith(1, 99);
   });

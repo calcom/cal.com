@@ -17,6 +17,12 @@ vi.mock("@calcom/prisma/selects/credential", () => ({
   credentialForCalendarServiceSelect: { id: true, type: true },
 }));
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 import prisma from "@calcom/prisma";
 import { getBookingToDelete } from "./getBookingToDelete";
 

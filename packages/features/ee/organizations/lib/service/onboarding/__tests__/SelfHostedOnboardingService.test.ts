@@ -53,6 +53,11 @@ vi.mock("@calcom/i18n/server", () => {
   };
 });
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const mockAdminUser = {
   id: 2,
   email: "admin@example.com",

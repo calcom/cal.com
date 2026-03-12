@@ -16,6 +16,11 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber");
 vi.mock("../teams/hasTeamPlan.handler");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("sendVerificationCodeHandler", () => {
   const mockUser = {
     id: 123,

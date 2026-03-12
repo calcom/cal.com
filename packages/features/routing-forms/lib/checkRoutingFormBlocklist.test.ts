@@ -12,6 +12,16 @@ vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getOrganizationBlockingService: vi.fn(),
 }));
 
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn(),
+  verifyEmail: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const mockGlobalBlockingService = {
   areBlocked: vi.fn(),
   isBlocked: vi.fn(),

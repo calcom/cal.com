@@ -9,6 +9,11 @@ vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDom
   checkIfFreeEmailDomain: vi.fn(),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getRequiresConfirmationFlags } from "./getRequiresConfirmationFlags";
 

@@ -1,12 +1,10 @@
 import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { vi, describe, it, beforeAll, afterAll, expect, beforeEach, afterEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails/organization-email-service";
 import { getNoSlotsNotificationService } from "@calcom/features/di/containers/NoSlotsNotification";
 import { RedisService } from "@calcom/features/redis/RedisService";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/redis/RedisService", () => {
   const mockedRedis = vi.fn();
@@ -24,6 +22,18 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
       checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
     };
   }),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  OrganizationEmailService: vi.fn().mockImplementation(() => ({
+    sendOrganizationCreationEmail: vi.fn(),
+  })),
+  sendOrganizationAdminNoSlotsNotification: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");

@@ -13,6 +13,12 @@ vi.mock("./filterHostsByLeadThreshold", () => {
   };
 });
 
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn().mockImplementation(({ hosts }) => hosts),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 // Clear call history after each test
 afterEach(() => {
   (filterHostsByLeadThreshold as Mock).mockClear();

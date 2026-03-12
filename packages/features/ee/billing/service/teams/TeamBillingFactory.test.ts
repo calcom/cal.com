@@ -8,6 +8,11 @@ import { StubTeamBillingService } from "./StubTeamBillingService";
 import { TeamBillingService } from "./TeamBillingService";
 import { TeamBillingServiceFactory } from "./TeamBillingServiceFactory";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("TeamBilling", () => {
   const mockTeam = { id: 1, metadata: null, isOrganization: true, parentId: null, name: "" };
   const mockTeams = [mockTeam, { id: 2, metadata: null, isOrganization: false, parentId: 1, name: "" }];

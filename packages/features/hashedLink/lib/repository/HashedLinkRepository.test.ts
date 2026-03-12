@@ -2,6 +2,11 @@ import type { PrismaClient } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HashedLinkRepository } from "./HashedLinkRepository";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 function createMockPrisma() {
   return {
     hashedLink: {

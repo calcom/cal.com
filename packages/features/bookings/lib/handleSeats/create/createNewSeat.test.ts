@@ -3,6 +3,11 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { describe, expect, it, vi } from "vitest";
 import { addSeatToBooking } from "./createNewSeat";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("addSeatToBooking", () => {
   const makeMockPrisma = () => {
     const txMock = {

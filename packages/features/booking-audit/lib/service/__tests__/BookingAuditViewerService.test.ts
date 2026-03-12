@@ -24,6 +24,11 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/credentials/repositories/CredentialRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 type MockBooking = {
   userId: number;
   user: {

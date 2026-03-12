@@ -2,6 +2,17 @@ import type { PrismaClient } from "@calcom/prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CredentialRepository } from "./CredentialRepository";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
 describe("CredentialRepository", () => {
   let mockPrisma: { credential: { findMany: ReturnType<typeof vi.fn> } };
   let repo: CredentialRepository;

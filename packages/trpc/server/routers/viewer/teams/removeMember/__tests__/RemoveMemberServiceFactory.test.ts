@@ -12,6 +12,11 @@ vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
 vi.mock("../LegacyRemoveMemberService");
 vi.mock("../PBACRemoveMemberService");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("RemoveMemberServiceFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();

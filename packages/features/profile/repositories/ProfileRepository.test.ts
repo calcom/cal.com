@@ -21,6 +21,11 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
   let user1: { id: number; email: string; username: string };
   let user2: { id: number; email: string; username: string };

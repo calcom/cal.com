@@ -9,6 +9,11 @@ import { TRPCError } from "@trpc/server";
 
 import { createTeamsHandler } from "../createTeams.handler";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 // Helper functions for creating test data
 async function createTestUser(data: {
   email: string;

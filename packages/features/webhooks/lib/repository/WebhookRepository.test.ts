@@ -8,6 +8,11 @@ import type { IUsersRepository } from "@calcom/features/users/users.repository.i
 import { WebhookVersion } from "../interface/IWebhookRepository";
 import { WebhookRepository } from "./WebhookRepository";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("WebhookRepository", () => {
   let mockPrisma: { $queryRaw: ReturnType<typeof vi.fn> };
   let mockEventTypeRepo: { findParentEventTypeId: ReturnType<typeof vi.fn> };
