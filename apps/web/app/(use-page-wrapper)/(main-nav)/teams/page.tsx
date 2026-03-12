@@ -1,13 +1,10 @@
-import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { ServerTeamsListing } from "./server-page";
 
 export const generateMetadata = async () =>
@@ -37,10 +34,14 @@ const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
   }
 
   const t = await getTranslate();
-  const { Main, CTA } = await ServerTeamsListing({ searchParams, session });
+  const { Main, CTA, showHeader } = await ServerTeamsListing({ searchParams, session });
 
   return (
-    <ShellMainAppDir CTA={CTA} heading={t("teams")} subtitle={t("create_manage_teams_collaborative")}>
+    <ShellMainAppDir
+      CTA={showHeader ? CTA : null}
+      heading={showHeader ? t("teams") : undefined}
+      subtitle={showHeader ? t("create_manage_teams_collaborative") : undefined}
+      flexChildrenContainer={!showHeader}>
       {Main}
     </ShellMainAppDir>
   );

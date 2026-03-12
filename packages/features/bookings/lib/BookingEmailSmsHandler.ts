@@ -8,7 +8,7 @@ import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -372,6 +372,31 @@ export class BookingEmailSmsHandler {
       });
     } catch (err) {
       this.log.error("Failed to send add guests related emails and SMS", err);
+    }
+  }
+
+  public async handleAddAttendee(data: AddGuestsEmailAndSmsPayload) {
+    const {
+      evt,
+      eventType: { metadata },
+      newGuests,
+    } = data;
+
+    this.log.debug(
+      "Action: ADD_ATTENDEE. Sending add attendee emails and SMS.",
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
+    );
+
+    const { sendAddAttendeeEmailsAndSMS } = await import("@calcom/emails/email-manager");
+
+    try {
+      await sendAddAttendeeEmailsAndSMS({
+        calEvent: evt,
+        newAttendees: newGuests,
+        eventTypeMetadata: metadata,
+      });
+    } catch (err) {
+      this.log.error("Failed to send add attendee related emails and SMS", err);
     }
   }
 }

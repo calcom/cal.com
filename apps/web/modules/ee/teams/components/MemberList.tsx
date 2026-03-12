@@ -1,53 +1,36 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-} from "@tanstack/react-table";
-import classNames from "classnames";
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { useQueryState, parseAsBoolean } from "nuqs";
-import posthog from "posthog-js";
-import { useMemo, useReducer, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
+import process from "node:process";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import {
-  DataTableProvider,
-  useDataTable,
-  useFetchMoreOnBottomReached,
-  useColumnFilters,
-  convertFacetedValuesToMap,
-} from "@calcom/features/data-table";
-import { DataTableToolbar, DataTableFilters, DataTableWrapper, DataTableSelectionBar } from "~/data-table/components";
+import { convertFacetedValuesToMap } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useFillRemainingHeight } from "@calcom/lib/hooks/useFillRemainingHeight";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
-  DropdownMenuPortal,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
@@ -56,8 +39,27 @@ import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import TeamAvailabilityModal from "@calcom/web/modules/ee/teams/components/TeamAvailabilityModal";
 import { DynamicLink } from "@calcom/web/modules/users/components/UserTable/BulkActions/DynamicLink";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import classNames from "classnames";
+import { usePathname } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { parseAsBoolean, useQueryState } from "nuqs";
+import posthog from "posthog-js";
+import type { Dispatch, SetStateAction } from "react";
+import { useMemo, useReducer, useRef, useState } from "react";
+import {
+  DataTableFilters,
+  DataTableSelectionBar,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import { EventTypesList } from "./EventTypesList";
@@ -685,13 +687,6 @@ function MemberListContent(props: Props) {
       return new Map();
     },
     getRowId: (row) => `${row.id}`,
-  });
-
-  useFetchMoreOnBottomReached({
-    tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
   });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;

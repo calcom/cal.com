@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { BookingAccessService } from "./BookingAccessService";
 
@@ -40,8 +38,12 @@ describe("BookingAccessService", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(BookingRepository).mockImplementation(function() { return mockBookingRepo as any; });
-    vi.mocked(UserRepository).mockImplementation(function() { return mockUserRepo as any; });
+    vi.mocked(BookingRepository).mockImplementation(function () {
+      return mockBookingRepo as any;
+    });
+    vi.mocked(UserRepository).mockImplementation(function () {
+      return mockUserRepo as any;
+    });
 
     service = new BookingAccessService(mockPrismaClient);
 
@@ -337,4 +339,5 @@ describe("BookingAccessService", () => {
       });
     });
   });
+
 });

@@ -18,7 +18,8 @@ export const useSubmitOnboarding = () => {
   const submitOnboarding = async (
     store: OnboardingState,
     userEmail: string,
-    invitesToSubmit: OnboardingState["invites"]
+    invitesToSubmit: OnboardingState["invites"],
+    options?: { billingPeriod?: "MONTHLY" | "ANNUALLY" }
   ) => {
     setIsSubmitting(true);
     setError(null);
@@ -55,9 +56,7 @@ export const useSubmitOnboarding = () => {
           let teamName: string | undefined = undefined;
 
           if (invite.team && invite.team.trim().length > 0) {
-            const matchingTeam = teams.find(
-              (team) => team.name.toLowerCase() === invite.team.toLowerCase()
-            );
+            const matchingTeam = teams.find((team) => team.name.toLowerCase() === invite.team.toLowerCase());
             if (matchingTeam?.isBeingMigrated && matchingTeam.id !== -1) {
               // Use team ID for migrated teams
               teamId = matchingTeam.id;
@@ -98,6 +97,7 @@ export const useSubmitOnboarding = () => {
         creationSource: CreationSource.WEBAPP,
         teams: teamsData,
         invitedMembers: allInvitedMembers,
+        ...(options?.billingPeriod && { billingPeriod: options.billingPeriod }),
       });
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)
@@ -111,7 +111,7 @@ export const useSubmitOnboarding = () => {
       showToast("Organization created successfully!", "success");
       // Set flag to show welcome modal after redirect
       setShowNewOrgModalFlag();
-      
+
       // Check if this is a migration flow (user has already completed onboarding)
       const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
       if (hasMigratedTeams) {

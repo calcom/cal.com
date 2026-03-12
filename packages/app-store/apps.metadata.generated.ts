@@ -13,6 +13,7 @@ import bolna_config_json from "./bolna/config.json";
 import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
+import caretta_config_json from "./caretta/config.json";
 import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -54,6 +55,7 @@ import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
 import lindy_config_json from "./lindy/config.json";
 import linear_config_json from "./linear/config.json";
+import lyra_config_json from "./lyra/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
@@ -123,6 +125,7 @@ export const appStoreMetadata = {
   btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
+  caretta: caretta_config_json,
   chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
@@ -164,6 +167,7 @@ export const appStoreMetadata = {
   larkcalendar: larkcalendar__metadata_ts,
   lindy: lindy_config_json,
   linear: linear_config_json,
+  lyra: lyra_config_json,
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,

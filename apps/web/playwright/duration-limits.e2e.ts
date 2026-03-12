@@ -152,12 +152,15 @@ test.describe("Duration limits", () => {
     test("day limit with multiple limits set", async ({ page, users }) => {
       const slug = "duration-limit-multiple-day";
 
-      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-        return {
-          ...limits,
-          [limitKey]: bookingLimit * EVENT_LENGTH,
-        };
-      }, {} as Record<keyof IntervalLimit, number>);
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce(
+        (limits, [limitKey, bookingLimit]) => {
+          return {
+            ...limits,
+            [limitKey]: bookingLimit * EVENT_LENGTH,
+          };
+        },
+        {} as Record<keyof IntervalLimit, number>
+      );
 
       const user = await createUserWithLimits({
         users,
@@ -218,12 +221,15 @@ test.describe("Duration limits", () => {
     test("week limit with multiple limits set", async ({ page, users, bookings }) => {
       const slug = "duration-limit-multiple-week";
 
-      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-        return {
-          ...limits,
-          [limitKey]: bookingLimit * EVENT_LENGTH,
-        };
-      }, {} as Record<keyof IntervalLimit, number>);
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce(
+        (limits, [limitKey, bookingLimit]) => {
+          return {
+            ...limits,
+            [limitKey]: bookingLimit * EVENT_LENGTH,
+          };
+        },
+        {} as Record<keyof IntervalLimit, number>
+      );
 
       const user = await createUserWithLimits({
         users,
@@ -303,12 +309,15 @@ test.describe("Duration limits", () => {
     test("month limit with multiple limits set", async ({ page, users, bookings }) => {
       const slug = "duration-limit-multiple-month";
 
-      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-        return {
-          ...limits,
-          [limitKey]: bookingLimit * EVENT_LENGTH,
-        };
-      }, {} as Record<keyof IntervalLimit, number>);
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce(
+        (limits, [limitKey, bookingLimit]) => {
+          return {
+            ...limits,
+            [limitKey]: bookingLimit * EVENT_LENGTH,
+          };
+        },
+        {} as Record<keyof IntervalLimit, number>
+      );
 
       const user = await createUserWithLimits({
         users,
@@ -383,12 +392,15 @@ test.describe("Duration limits", () => {
     test("year limit with multiple limits set", async ({ page, users, bookings }) => {
       const slug = "duration-limit-multiple-year";
 
-      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce((limits, [limitKey, bookingLimit]) => {
-        return {
-          ...limits,
-          [limitKey]: bookingLimit * EVENT_LENGTH,
-        };
-      }, {} as Record<keyof IntervalLimit, number>);
+      const durationLimits = entries(BOOKING_LIMITS_MULTIPLE).reduce(
+        (limits, [limitKey, bookingLimit]) => {
+          return {
+            ...limits,
+            [limitKey]: bookingLimit * EVENT_LENGTH,
+          };
+        },
+        {} as Record<keyof IntervalLimit, number>
+      );
 
       const user = await createUserWithLimits({
         users,

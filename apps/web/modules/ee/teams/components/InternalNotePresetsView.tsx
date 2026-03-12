@@ -5,15 +5,15 @@ import { useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { CornerDownRightIcon, TrashIcon } from "@coss/ui/icons";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];
@@ -141,11 +141,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                           variant="icon"
                           onClick={() => remove(index)}
                           disabled={fields.length === 1}>
-                          <Icon name="trash" className="h-4 w-5" />
+                          <TrashIcon className="h-4 w-5" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Icon name="corner-down-right" className="h-4 w-4" />
+                        <CornerDownRightIcon className="h-4 w-4" />
                         <Controller
                           name={`presets.${index}.cancellationReason`}
                           control={form.control}

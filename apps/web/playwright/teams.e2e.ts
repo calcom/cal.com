@@ -1,9 +1,7 @@
-import { expect } from "@playwright/test";
-
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test, todo } from "./lib/fixtures";
 import {
   bookTimeSlot,
@@ -18,7 +16,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Teams tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
-    const user = await users.create();
+    const user = await users.create(undefined, { hasTeam: true });
 
     await user.apiLogin();
 
@@ -123,6 +121,7 @@ test.describe("Teams - NonOrg", () => {
     const owner = await users.create(undefined, {
       hasTeam: true,
       isOrg: true,
+      hasSubteam: true,
       teammates: [{ name: teamMateName }],
     });
 
@@ -131,54 +130,67 @@ test.describe("Teams - NonOrg", () => {
 
     // eslint-disable-next-line playwright/no-conditional-in-test
     if (memberUser) {
+      // Add teammate to the sub-team so they have a team membership and see teams list
+      const org = await owner.getOrgMembership();
+      const subTeam = await prisma.team.findFirst({
+        where: { parentId: org.teamId },
+        select: { id: true },
+      });
+      if (!subTeam) throw new Error("Expected a sub-team under the org, but none was found");
+      await prisma.membership.create({
+        data: {
+          teamId: subTeam.id,
+          userId: memberUser.id,
+          role: "MEMBER",
+          accepted: true,
+        },
+      });
+
       await memberUser.apiLogin();
 
       await page.goto("/teams");
       await expect(page.locator("[data-testid=new-team-btn]")).toBeHidden();
-      await expect(page.locator("[data-testid=create-team-btn]")).toHaveAttribute("disabled", "");
 
       const uniqueName = "test-unique-team-name";
 
-      // Go directly to the create team page
+      // Go directly to the create team page (new onboarding-v3 style flow)
       await page.goto("/settings/teams/new");
       await page.waitForLoadState("networkidle");
-      // Fill input[name="name"]
-      await page.locator('input[name="name"]').fill(uniqueName);
+      // Fill team name input
+      await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
       await page.click("[type=submit]");
 
       // cleanup
-      const org = await owner.getOrgMembership();
       await prisma.team.delete({ where: { id: org.teamId } });
     }
   });
 
   test("Can create team with same name as user", async ({ page, users }) => {
-    const user = await users.create();
+    const user = await users.create(undefined, { hasTeam: true });
     // Name to be used for both user and team
     const uniqueName = user.username!;
     await user.apiLogin();
     await page.goto("/teams");
 
     await test.step("Can create team with same name", async () => {
-      // Click text=Create Team
-      await page.locator("text=Create Team").click();
+      await page.locator("[data-testid=new-team-btn]").click();
       await page.waitForLoadState("networkidle");
-      // Fill input[name="name"]
-      await page.locator('input[name="name"]').fill(uniqueName);
-      // Click text=Continue
+      // Fill team name input (new onboarding-v3 style flow)
+      await page.locator('[data-testid="team-name-input"]').fill(uniqueName);
+      // Click Continue
       await page.click("[type=submit]");
       // TODO: Figure out a way to make this more reliable
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (IS_TEAM_BILLING_ENABLED) await fillStripeTestCheckout(page);
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
-      // Wait for the page to fully load and the publish button to be visible
+      // Wait for the invite email page
+      await expect(page).toHaveURL(/\/settings\/teams\/new\/invite\/email.*$/i);
       await page.waitForLoadState("networkidle");
-      const publishButton = page.locator("[data-testid=publish-button]");
-      await publishButton.waitFor({ state: "visible", timeout: 10000 });
-      await publishButton.click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
-      await page.locator("[data-testid=handle-later-button]").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      // Skip the invite step
+      const skipButton = page.locator("[data-testid=skip-invite-button]");
+      await skipButton.waitFor({ state: "visible", timeout: 10000 });
+      await skipButton.click();
+      // Wait for redirect to teams page
+      await page.waitForURL(/\/teams$/i);
     });
 
     await test.step("Can access user and team with same slug", async () => {
