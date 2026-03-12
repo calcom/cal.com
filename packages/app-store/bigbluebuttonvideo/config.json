@@ -1,0 +1,25 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton",
+  "title": "BigBlueButton",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://bigbluebutton.org",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "BigBlueButton is an open-source web conferencing platform for virtual meetings, classes, and collaboration.",
+  "__createdUsingCli": true,
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:bigbluebutton_video",
+      "label": "BigBlueButton"
+    }
+  },
+  "dirName": "bigbluebuttonvideo",
+  "concurrentMeetings": true,
+  "isOAuth": false
+}

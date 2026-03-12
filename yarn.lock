@@ -2181,6 +2181,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/bigbluebuttonvideo@workspace:packages/app-store/bigbluebuttonvideo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/bigbluebuttonvideo@workspace:packages/app-store/bigbluebuttonvideo"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/btcpayserver@workspace:packages/app-store/btcpayserver":
   version: 0.0.0-use.local
   resolution: "@calcom/btcpayserver@workspace:packages/app-store/btcpayserver"
