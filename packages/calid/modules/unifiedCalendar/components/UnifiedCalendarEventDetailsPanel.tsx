@@ -2,6 +2,7 @@ import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Separator } from "@calid/features/ui/components/separator";
 import { differenceInMinutes, format } from "date-fns";
+import DOMPurify from "dompurify";
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
@@ -38,6 +39,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
   const providerLabel = event.provider ? (event.provider === "google" ? "Google" : "Outlook") : event.source;
   const calendarLabel = event.calendarName?.trim() || "Calendar";
   const subtitleLabel = event.source === "EXTERNAL" ? `${providerLabel} · ${calendarLabel}` : calendarLabel;
+  const description = event.description?.trim();
+  const descriptionHasHtml = Boolean(description && /<\/?[a-z][\s\S]*>/i.test(description));
+  const sanitizedDescriptionHtml = descriptionHasHtml && description ? DOMPurify.sanitize(description) : null;
 
   return (
     <div className="space-y-5">
@@ -133,7 +137,23 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </div>
         ) : null}
 
-        {event.description && <p className="text-muted-foreground/80 pl-7 text-sm">{event.description}</p>}
+        {/* {(descriptionHasHtml && sanitizedDescriptionHtml) || description ? (
+          <div className="pl-7 pt-1">
+            <p className="text-foreground/80 mb-1 text-xs font-medium uppercase tracking-wide">
+              Meeting description
+            </p>
+            {descriptionHasHtml && sanitizedDescriptionHtml ? (
+              <div
+                className="text-muted-foreground/80 rounded-md bg-muted/30 px-3 py-2 text-sm"
+                dangerouslySetInnerHTML={{ __html: sanitizedDescriptionHtml }}
+              />
+            ) : (
+              description && (
+                <p className="text-muted-foreground/80 rounded-md bg-muted/30 px-3 py-2 text-sm">{description}</p>
+              )
+            )}
+          </div>
+        ) : null} */}
       </div>
 
       <Separator className="bg-border/40" />
