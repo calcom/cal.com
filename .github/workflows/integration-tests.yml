@@ -85,6 +85,9 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
       - uses: ./.github/actions/cache-db
+        env:
+          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
       - name: Run Tests
         run: VITEST_MODE=integration yarn test
       # TODO: Generate test results so we can upload them
