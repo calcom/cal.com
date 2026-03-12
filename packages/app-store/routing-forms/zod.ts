@@ -6,7 +6,7 @@ import { routingFormAppDataSchemas } from "./appDataSchemas";
 
 export const zodNonRouterField = z.object({
   id: z.string(),
-  label: z.string(),
+  label: z.string().optional(),
   identifier: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
@@ -26,6 +26,21 @@ export const zodNonRouterField = z.object({
         id: z.string().or(z.null()),
       })
     )
+    .optional(),
+  uiConfig: z
+    .object({
+      layout: z.enum(["full", "half"]).optional(),
+      helpText: z.string().optional(),
+      content: z.string().optional(),
+      checkboxDirection: z.enum(["row", "column"]).optional(),
+      checkboxVariant: z.enum(["default", "largeSquare"]).optional(),
+      validation: z
+        .object({
+          minChars: z.number().optional(),
+        })
+        .optional(),
+    })
+    .passthrough()
     .optional(),
 });
 

@@ -21,7 +21,7 @@ export type FormResponse = Record<
   string,
   {
     value: number | string | string[];
-    label: string;
+    label?: string;
     identifier?: string;
   }
 >;

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
+import { cva } from "class-variance-authority";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Label } from "@calid/features/ui/components/label";
 import React from "react";
@@ -11,14 +12,50 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-type TextAreaProps = JSX.IntrinsicElements["textarea"];
+const textAreaStyles = cva(
+  [
+    "min-h-[80px] w-full rounded-md border text-sm",
+    "placeholder:text-muted",
+    "placeholder:text-sm",
+    "transition",
+  ],
+  {
+    variants: {
+      size: {
+        md: "px-3 py-2",
+      },
+      variant: {
+        default: "bg-default border-default text-default",
+        underline: [
+          "bg-transparent border-0 border-b border-brand-default rounded-none px-0",
+          "shadow-none focus:shadow-none focus:ring-0",
+          "placeholder:text-muted-foreground",
+          "disabled:bg-transparent disabled:text-muted-foreground",
+          "h-auto min-h-[48px] resize-none pt-1 pb-1",
+        ],
+      },
+    },
+    defaultVariants: {
+      size: "md",
+      variant: "default",
+    },
+  }
+);
 
-export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
+type TextAreaProps = JSX.IntrinsicElements["textarea"] & {
+  variant?: "default" | "underline";
+  size?: "md";
+};
+
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(
+  { variant = "default", size = "md", className, ...props },
+  ref
+) {
   return (
     <textarea
       {...props}
       ref={ref}
-      className={cn("bg-default min-h-[80px] w-full rounded-md dark:focus:border-white", props.className)}
+      className={cn(textAreaStyles({ variant, size }), className)}
     />
   );
 });

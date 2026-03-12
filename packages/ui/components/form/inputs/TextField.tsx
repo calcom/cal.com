@@ -22,11 +22,12 @@ export const inputStyles = cva(
     "border-default",
     "text-default",
     "placeholder:text-muted",
+    "placeholder:text-sm",
 
     // States
     "hover:border-emphasis",
     "focus:ring-0",
-    "focus:shadow-outline-gray-focused",
+    "focus:shadow-none",
 
     // Disabled state
     "disabled:bg-subtle",
@@ -34,7 +35,7 @@ export const inputStyles = cva(
     "disabled:cursor-not-allowed",
 
     // Shadow
-    "shadow-outline-gray-rested",
+    "shadow-none",
 
     // Transitions
     "transition",

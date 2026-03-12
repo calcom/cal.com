@@ -16,7 +16,7 @@ type SelectProps<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group> & {
-  variant?: "default" | "checkbox";
+  variant?: "default" | "checkbox" | "underline";
   "data-testid"?: string;
   size?: "sm" | "md";
   grow?: boolean;
@@ -53,6 +53,9 @@ export const Select = <
   }, [components, menuPlacement]);
 
   const hasMultiLastIcons = props.isMulti || props.isLoading || props.isClearable;
+  const isUnderline = variant === "underline";
+  const disabledBgClass = props.isDisabled ? (isUnderline ? "bg-transparent" : "bg-subtle") : "";
+  const showFocusRing = false;
 
   // Annoyingly if we update styles here we have to update timezone select too
   // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
@@ -77,12 +80,21 @@ export const Select = <
             state.isSelected && "bg-emphasis text-default",
             innerClassNames?.option
           ),
-        placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
+        placeholder: () => cx("text-subtle text-sm", variant === "checkbox" && "hidden"),
+        dropdownIndicator: (state) =>
+          cx(
+            "text-default",
+            "w-4 h-4",
+            "flex items-center justify-center",
+            isUnderline && "p-0",
+            state.isDisabled && "text-muted-foreground"
+          ),
         control: (state) =>
           cx(
             inputStyles({ size }),
-            state.isMulti
+            isUnderline
+              ? "px-0 py-2 h-auto"
+              : state.isMulti
               ? variant === "checkbox"
                 ? "px-3 h-fit"
                 : state.hasValue
@@ -91,14 +103,22 @@ export const Select = <
               : size === "sm"
               ? "h-7 px-2 py-1"
               : "h-8 px-3 py-1",
-            props.isDisabled && "bg-subtle",
-            "shadow-none border-default rounded-[6px]",
-            "[&:focus-within]:border-none [&:focus-within]:ring-brand-default [&:focus-within]:ring-2 !flex",
+            disabledBgClass,
+            !isUnderline && "shadow-none border-default rounded-[6px]",
+            isUnderline &&
+              "rounded-none border-0 border-b border-brand-default bg-transparent shadow-none hover:border-brand-default focus-within:border-brand-default focus-within:ring-0 focus-within:shadow-none disabled:border-muted disabled:text-muted-foreground",
+            showFocusRing &&
+              "[&:focus-within]:border-none [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            "!flex",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
         valueContainer: () =>
-          cx("text-default placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
+          cx(
+            "text-default placeholder:text-muted flex gap-1",
+            isUnderline && "px-0",
+            innerClassNames?.valueContainer
+          ),
         multiValue: () =>
           cx(
             "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
@@ -117,7 +137,8 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
-            "flex items-center justify-center mt-0.5",
+            "flex items-center justify-center",
+            isUnderline ? "mt-0" : "mt-0.5",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"

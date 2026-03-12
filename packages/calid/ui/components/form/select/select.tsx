@@ -42,19 +42,36 @@ export const Select = <
   }, [components, menuPlacement]);
 
   const hasMultiLastIcons = props.isMulti || props.isLoading || props.isClearable;
+  const resolvedSize = size;
+  const inputVariant = variant === "underline" ? "underline" : "default";
+  const showFocusRing = false;
+  const disabledBgClass = props.isDisabled
+    ? variant === "underline"
+      ? "bg-transparent"
+      : "bg-subtle"
+    : "";
 
   // Annoyingly if we update styles here we have to update timezone select too
   // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
+  const providedStyles = restProps.styles as any;
+
   return (
     <ReactSelect
       {...reactSelectProps}
       menuPlacement={menuPlacement}
       styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
-        }),
+        ...providedStyles,
+        control: (base, state) => {
+          const withSizing = {
+            ...base,
+            minHeight: size === "sm" ? "28px" : "32px",
+            height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          };
+          if (typeof providedStyles?.control === "function") {
+            return providedStyles.control(withSizing, state);
+          }
+          return { ...withSizing, ...(providedStyles?.control ?? {}) };
+        },
       }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
@@ -66,12 +83,21 @@ export const Select = <
             state.isSelected && "bg-emphasis text-default",
             innerClassNames?.option
           ),
-        placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
-        dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
+        placeholder: () => cx("text-muted text-sm", variant === "checkbox" && "hidden"),
+        dropdownIndicator: (state) =>
+          cx(
+            "text-default",
+            "w-4 h-4",
+            "flex items-center justify-center",
+            variant === "underline" && "p-0",
+            state.isDisabled && "text-muted-foreground"
+          ),
         control: (state) =>
           cx(
-            inputStyles({ size }),
-            state.isMulti
+            inputStyles({ size: resolvedSize, variant: inputVariant }),
+            variant === "underline"
+              ? "px-0 py-2"
+              : state.isMulti
               ? variant === "checkbox"
                 ? "px-3 h-fit"
                 : state.hasValue
@@ -80,18 +106,32 @@ export const Select = <
               : size === "sm"
               ? "h-7 px-2 py-1"
               : "h-8 px-3 py-1",
-            props.isDisabled && "bg-subtle",
-            "shadow-none border-default rounded-[6px]",
-            "[&:focus-within]:border-none [&:focus-within]:ring-brand-default [&:focus-within]:ring-2 !flex",
+            disabledBgClass,
+            showFocusRing &&
+              "[&:focus-within]:border-none [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            variant !== "underline" && "rounded-[6px]",
+            variant === "underline" &&
+              "rounded-none border-b border-brand-default bg-transparent shadow-none hover:border-brand-default focus-within:border-brand-default focus-within:ring-0 focus-within:shadow-none disabled:border-muted disabled:text-muted-foreground",
+            "!flex",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
         valueContainer: () =>
-          cx("text-default placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
+          cx(
+            "text-default placeholder:text-muted flex gap-1",
+            variant === "underline" && "px-0",
+            innerClassNames?.valueContainer
+          ),
         multiValue: () =>
           cx(
-            "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
-            size == "sm" ? "px-1.5 py-[1px] rounded-md" : "py-1 px-1.5 leading-none rounded-lg"
+            variant === "underline"
+              ? "inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
+              : "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
+            variant === "underline"
+              ? ""
+              : size == "sm"
+              ? "px-1.5 py-[1px] rounded-md"
+              : "py-1 px-1.5 leading-none rounded-lg"
           ),
         menu: () =>
           cx(
@@ -106,7 +146,8 @@ export const Select = <
           ),
         indicatorsContainer: (state) =>
           cx(
-            "flex items-center justify-center mt-0.5",
+            "flex items-center justify-center",
+            variant === "underline" ? "mt-0" : "mt-0.5",
             state.selectProps.menuIsOpen
               ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform [&>*:last-child]:w-4 [&>*:last-child]:h-4"

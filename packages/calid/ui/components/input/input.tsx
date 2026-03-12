@@ -23,11 +23,12 @@ export const inputStyles = cva(
     "border-default",
     "text-default",
     "placeholder:text-muted",
+    "placeholder:text-sm",
 
     // States
     "hover:border-emphasis",
     "focus:ring-0",
-    "focus:shadow-outline-gray-focused",
+    "focus:shadow-none",
 
     // Disabled state
     "disabled:bg-subtle",
@@ -52,6 +53,13 @@ export const inputStyles = cva(
           "peer w-full bg-transparent focus:outline-none font-medium",
           "placeholder:opacity-0 focus:placeholder:opacity-100",
           "border-0 focus:ring-0 shadow-none",
+        ],
+        underline: [
+          "bg-transparent border-0 border-b border-brand-default rounded-none px-0 py-2",
+          "shadow-none focus:shadow-none focus:ring-0",
+          "placeholder:text-muted-foreground",
+          "disabled:bg-transparent disabled:text-muted-foreground",
+          "h-auto",
         ],
       },
     },
@@ -91,7 +99,10 @@ export const floatingLabelStyles = cn(
   "peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-[#252525]"
 );
 
-export const Input = forwardRef<HTMLInputElement, InputProps & { variant?: "default" | "floating" }>(
+export const Input = forwardRef<
+  HTMLInputElement,
+  InputProps & { variant?: "default" | "floating" | "underline" }
+>(
   function Input({ isFullWidth = true, size = "md", variant = "default", className, ...props }, ref) {
     return (
       <input
@@ -132,7 +143,7 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
 
 export const InputField = forwardRef<
   HTMLInputElement,
-  InputFieldProps & { variant?: "default" | "floating"; prefixIcon?: string }
+  InputFieldProps & { variant?: "default" | "floating" | "underline"; prefixIcon?: string }
 >(function InputField(props, ref) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
@@ -339,9 +350,10 @@ export const InputField = forwardRef<
         <div
           dir="ltr"
           className={cn(
-            inputStyles({ size }),
+            inputStyles({ size, variant }),
             "group relative flex min-w-0 items-center",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            variant !== "underline" &&
+              "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
@@ -409,11 +421,14 @@ export const InputField = forwardRef<
           type={type}
           placeholder={placeholder}
           size={size}
+          variant={variant}
           min={min}
           max={max}
           className={cn(
             className,
-            "disabled:bg-subtle disabled:hover:border-subtle focus:ring-brand-default focus:border-none focus:ring-2 disabled:cursor-not-allowed"
+            variant === "default" || variant === "floating"
+              ? "disabled:bg-subtle disabled:hover:border-subtle focus:ring-brand-default focus:border-none focus:ring-2 disabled:cursor-not-allowed"
+              : "disabled:cursor-not-allowed"
           )}
           {...passThrough}
           onChange={type === "number" ? handleChange : onChange}
@@ -432,14 +447,14 @@ export const InputField = forwardRef<
 
 export const TextField = forwardRef<
   HTMLInputElement,
-  InputFieldProps & { variant?: "default" | "floating"; prefixIcon?: string }
+  InputFieldProps & { variant?: "default" | "floating" | "underline"; prefixIcon?: string }
 >(function TextField(props, ref) {
   return <InputField ref={ref} {...props} />;
 });
 
 export const EmailField = forwardRef<
   HTMLInputElement,
-  TextFieldProps & { variant?: "default" | "floating"; prefixIcon?: string }
+  TextFieldProps & { variant?: "default" | "floating" | "underline"; prefixIcon?: string }
 >(function EmailField(props, ref) {
   return (
     <TextField
@@ -489,7 +504,7 @@ interface PasswordFieldProps extends Omit<TextFieldProps, "type"> {
   showStrengthMeter?: boolean;
   showRequirements?: boolean;
   onPasswordChange?: (value: string, checks: PasswordChecks, strength: PasswordStrength) => void;
-  variant?: "default" | "floating";
+  variant?: "default" | "floating" | "underline";
   prefixIcon?: string;
 }
 

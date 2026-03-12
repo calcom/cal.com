@@ -1,12 +1,9 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
 } from "react-awesome-query-builder";
-
-import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
 import widgetsComponents from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
@@ -64,16 +61,7 @@ const EmailFactory = (props: WidgetProps | undefined) => {
     return <div />;
   }
 
-  return (
-    <EmailWidget
-      onChange={(e: ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        props.setValue(val);
-      }}
-      containerClassName="w-full mb-2"
-      {...props}
-    />
-  );
+  return <TextWidget type="email" {...props} />;
 };
 
 // react-query-builder types have missing type property on Widget

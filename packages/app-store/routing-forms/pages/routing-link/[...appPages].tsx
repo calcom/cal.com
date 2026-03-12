@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@calid/features/ui/components/button";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -11,7 +10,6 @@ import { v4 as uuidv4 } from "uuid";
 import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
@@ -19,7 +17,8 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-import FormInputFields from "../../components/FormInputFields";
+import { getValidationErrorMessage } from "../../components/FormInputFields";
+import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
@@ -47,6 +46,7 @@ const useBrandColors = ({
 function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
+  const [showErrors, setShowErrors] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
   useBrandColors({
@@ -166,46 +166,39 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowErrors(true);
+    const hasErrors =
+      form.fields?.some((field) => {
+        const value = response[field.id]?.value ?? "";
+        return !!getValidationErrorMessage(field, value);
+      }) ?? false;
+    if (hasErrors) {
+      return;
+    }
     onSubmit(response);
   };
 
-  const { t } = useLocale();
-
   return (
-    <div>
-      <div>
-        {!customPageMessage ? (
-          <>
-            <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
-              <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 shadow-md sm:-mx-4 sm:px-8">
-                  <Toaster position="bottom-right" />
+    <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
+      <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
 
-                  <form onSubmit={handleOnSubmit}>
-                    <div className="mb-8">
-                      <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
-                        {form.name}
-                      </h1>
-                      {form.description ? (
-                        <p className="text-subtle min-h-10 text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
-                      ) : null}
-                    </div>
-                    <FormInputFields form={form} response={response} setResponse={setResponse} />
-                    <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                      <Button
-                        className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
-                        loading={responseMutation.isPending}
-                        type="submit"
-                        color="primary">
-                        {t("continue")}
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
+      {!customPageMessage ? (
+        <>
+          <Toaster position="bottom-right" />
+          <form onSubmit={handleOnSubmit} className="min-h-screen w-full">
+            <RoutingFormRenderer
+              form={form}
+              response={response}
+              setResponse={setResponse}
+              submitLoading={responseMutation.isPending}
+              submitDisabled={responseMutation.isPending}
+              showErrors={showErrors}
+              className="min-h-screen w-full"
+            />
+          </form>
+        </>
+      ) : (
+        <div className="min-h-screen w-full">
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
               <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
@@ -213,8 +206,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

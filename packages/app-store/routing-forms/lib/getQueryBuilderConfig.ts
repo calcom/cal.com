@@ -50,6 +50,10 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     if ("routerField" in field) {
       field = field.routerField;
     }
+    // Skip layout-only and unsupported fields (UI-only)
+    if (field.type === "divider" || field.type === "heading" || field.type === "paragraph") {
+      return;
+    }
     // We can assert the type because otherwise we throw 'Unsupported field type' error
     const fieldType = field.type as (typeof FieldTypes)[number]["value"];
     if (FieldTypes.map((f) => f.value).includes(fieldType)) {
@@ -67,8 +71,6 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
           listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
         },
       };
-    } else {
-      throw new Error(`Unsupported field type:${field.type}`);
     }
   });
 

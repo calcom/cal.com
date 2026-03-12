@@ -20,7 +20,7 @@ import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import { findMatchingRoute } from "../../lib/processRoute";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
-import FormInputFields from "../FormInputFields";
+import RoutingFormRenderer from "../RoutingFormRenderer";
 import { ResultsView as Results } from "./ResultSection";
 import type { MembersMatchResultType } from "./TeamMembersMatchResult";
 import { TeamMembersMatchResult } from "./TeamMembersMatchResult";
@@ -47,7 +47,6 @@ const FormView = ({
   onSubmit: () => void;
   renderFooter?: (onClose: () => void, onSubmit: () => void, isValid: boolean) => React.ReactNode;
 }) => {
-  const { t } = useLocale();
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -59,17 +58,18 @@ const FormView = ({
         onSubmit={(e) => {
           e.preventDefault();
         }}>
-        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+        {form && (
+          <RoutingFormRenderer
+            form={form as RoutingForm}
+            response={response}
+            setResponse={setResponse}
+            submitDisabled={!areRequiredFieldsFilled}
+            onSubmit={onSubmit}
+            hideSubmit={!!renderFooter}
+          />
+        )}
       </form>
-      {!renderFooter ? (
-        <div className="mt-4">
-          <Button onClick={onSubmit} disabled={!areRequiredFieldsFilled} data-testid="submit-button">
-            {t("submit")}
-          </Button>
-        </div>
-      ) : (
-        renderFooter(onClose, onSubmit, areRequiredFieldsFilled)
-      )}
+      {renderFooter ? renderFooter(onClose, onSubmit, areRequiredFieldsFilled) : null}
     </motion.div>
   );
 };

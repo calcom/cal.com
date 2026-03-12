@@ -556,6 +556,55 @@ export const RoutingFormSettings = z
     // Applicable only for Team Forms
     sendUpdatesTo: z.array(z.number()).optional(),
     sendToAll: z.boolean().optional(),
+
+    // UI configuration for the new routing form design
+    uiConfig: z
+      .object({
+        header: z
+          .object({
+            title: z.string(),
+            subtitle: z.string(),
+            alignment: z.enum(["left", "center", "right"]),
+            titleSize: z.number().optional(),
+            subtitleSize: z.number().optional(),
+            spacingBottom: z.number().optional(),
+            titleColor: z.string().optional(),
+            subtitleColor: z.string().optional(),
+          })
+          .optional(),
+        style: z
+          .object({
+            fieldStyle: z.enum(["default", "underline"]),
+            accentColor: z.string().optional(),
+            secondaryColor: z.string().optional(),
+            fontLabel: z.string().optional(),
+            background: z
+              .object({
+                type: z.enum(["none", "color", "image"]),
+                color: z.string(),
+                imageUrl: z.string(),
+                overlayOpacity: z.number(),
+                blur: z.number(),
+              })
+              .optional(),
+            formWidth: z.number().optional(),
+            bgColor: z.string(),
+            borderRadius: z.number(),
+            padding: z.number(),
+          })
+          .optional(),
+        submitButton: z
+          .object({
+            text: z.string(),
+            color: z.string(),
+            textColor: z.string(),
+            borderRadius: z.number(),
+            alignment: z.enum(["left", "center", "right"]),
+            width: z.enum(["auto", "full"]),
+          })
+          .optional(),
+      })
+      .optional(),
   })
   .nullable();
 

@@ -5,7 +5,7 @@ export type SelectProps<
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group> & {
-  variant?: "default" | "checkbox";
+  variant?: "default" | "checkbox" | "underline";
   "data-testid"?: string;
   size?: "sm" | "md";
   grow?: boolean;

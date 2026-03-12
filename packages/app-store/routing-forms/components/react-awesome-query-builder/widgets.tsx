@@ -30,9 +30,12 @@ export type CommonProps<
 > = {
   placeholder?: string;
   readOnly?: boolean;
+  disabled?: boolean;
   className?: string;
   name?: string;
   label?: string;
+  variant?: "default" | "floating" | "underline";
+  size?: "sm" | "md";
   value: TVal;
   setValue: (value: TVal) => void;
   /**
@@ -79,7 +82,19 @@ export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
   };
 
 const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
-  const { value, setValue, readOnly, placeholder, maxLength, customProps, ...remainingProps } = props;
+  const {
+    value,
+    setValue,
+    readOnly,
+    disabled,
+    placeholder,
+    maxLength,
+    customProps,
+    className,
+    variant,
+    size,
+    ...remainingProps
+  } = props;
 
   const onChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
@@ -91,8 +106,10 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
     <TextArea
       value={textValue}
       placeholder={placeholder}
-      className="mb-2 rounded-md border border-default hover:border-emphasis text-sm"
-      disabled={readOnly}
+      className={["mb-2", className].filter(Boolean).join(" ")}
+      variant={variant}
+      size={size}
+      disabled={readOnly || disabled}
       onChange={onChange}
       maxLength={maxLength}
       {...customProps}
@@ -107,9 +124,11 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     noLabel,
     setValue,
     readOnly,
+    disabled,
     placeholder,
     customProps,
     type = "text",
+    className,
     ...remainingProps
   } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -119,11 +138,11 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      className="mb-2 w-full"
+      className={["mb-2 w-full", className].filter(Boolean).join(" ")}
       type={type}
       value={textValue}
       placeholder={placeholder}
-      disabled={readOnly}
+      disabled={readOnly || disabled}
       onChange={onChange}
       {...remainingProps}
       {...customProps}
@@ -138,9 +157,11 @@ const InputWidget = (props: TextLikeComponentPropsRAQB) => {
     noLabel,
     setValue,
     readOnly,
+    disabled,
     placeholder,
     customProps,
     type = "text",
+    className,
     ...remainingProps
   } = props;
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -150,11 +171,11 @@ const InputWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <Input
-      className="mb-2 w-full"
+      className={["mb-2 w-full", className].filter(Boolean).join(" ")}
       type={type}
       value={textValue}
       placeholder={placeholder}
-      disabled={readOnly}
+      disabled={readOnly || disabled}
       onChange={onChange}
       {...remainingProps}
       {...customProps}
@@ -163,14 +184,22 @@ const InputWidget = (props: TextLikeComponentPropsRAQB) => {
 };
 
 
-function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+function NumberWidget({
+  value,
+  setValue,
+  className,
+  readOnly,
+  disabled,
+  ...remainingProps
+}: TextLikeComponentPropsRAQB) {
   return (
     <TextField
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
-      className="mb-2"
+      className={["mb-2", className].filter(Boolean).join(" ")}
       value={value}
+      disabled={readOnly || disabled}
       onChange={(e) => {
         setValue(e.target.value);
       }}
@@ -195,13 +224,19 @@ const MultiSelectWidget = ({
     };
   });
 
-  const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
+  const normalizedValue = Array.isArray(value) ? value : [];
+  const optionsFromList = selectItems.filter((item) => normalizedValue.includes(item.value));
+  const placeholder =
+    remainingProps.placeholder ??
+    (remainingProps as {
+      valuePlaceholder?: string;
+    }).valuePlaceholder;
 
   // If no value could be found in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
   // Do it only when it is not already empty, this is to avoid infinite state updates
   // NOTE: value is some times sent as undefined even though the type will tell you that it can't be
-  if (optionsFromList.length === 0 && value?.length) {
+  if (optionsFromList.length === 0 && normalizedValue.length) {
     setValue([]);
   }
 
@@ -214,7 +249,8 @@ const MultiSelectWidget = ({
       }}
       value={optionsFromList}
       isMulti={true}
-      isDisabled={remainingProps.readOnly}
+      isDisabled={remainingProps.readOnly || remainingProps.disabled}
+      placeholder={placeholder}
       options={selectItems}
       {...remainingProps}
     />
@@ -231,12 +267,18 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       value: item.value,
     };
   });
-  const optionFromList = selectItems.find((item) => item.value === value);
+  const normalizedValue = typeof value === "string" ? value : "";
+  const optionFromList = selectItems.find((item) => item.value === normalizedValue);
+  const placeholder =
+    remainingProps.placeholder ??
+    (remainingProps as {
+      valuePlaceholder?: string;
+    }).valuePlaceholder;
 
   // If the value is not in the list, then we set the value to undefined.
   // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
   // Do it only when it is not already empty string, this is to avoid infinite state updates
-  if (!optionFromList && value) {
+  if (!optionFromList && normalizedValue) {
     setValue("");
   }
 
@@ -250,8 +292,9 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
         }
         setValue(item.value);
       }}
-      isDisabled={remainingProps.readOnly}
-      value={optionFromList}
+      isDisabled={remainingProps.readOnly || remainingProps.disabled}
+      value={optionFromList ?? null}
+      placeholder={placeholder}
       options={selectItems}
       {...remainingProps}>
       {/* <SelectTrigger>
