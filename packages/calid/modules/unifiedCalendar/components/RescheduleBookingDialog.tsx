@@ -9,6 +9,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { formatBookingDuration } from "../lib/formatBookingDuration";
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface RescheduleBookingDialogProps {
@@ -238,7 +239,7 @@ export const RescheduleBookingDialog = ({
           <p className="text-muted-foreground text-[11px]">
             Duration:{" "}
             {typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
-              ? `${durationMinutes} min`
+              ? formatBookingDuration(durationMinutes)
               : "Invalid range"}
           </p>
 

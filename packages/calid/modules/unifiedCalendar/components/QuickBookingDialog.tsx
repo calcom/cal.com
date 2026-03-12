@@ -13,6 +13,7 @@ import { type ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getEventLocationType, isAttendeeInputRequired } from "@calcom/app-store/locations";
 import { trpc } from "@calcom/trpc/react";
 
+import { formatBookingDuration } from "../lib/formatBookingDuration";
 import type { ConnectedCalendarVM, QuickBookSlot, UnifiedCalendarBookingFormInput } from "../lib/types";
 
 interface QuickBookingDialogProps {
@@ -447,7 +448,7 @@ export const QuickBookingDialog = ({
           <p className="text-muted-foreground text-[11px]">
             Duration:{" "}
             {typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
-              ? `${durationMinutes} min`
+              ? formatBookingDuration(durationMinutes)
               : "Invalid range"}
           </p>
 
