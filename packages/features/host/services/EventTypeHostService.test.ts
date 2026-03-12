@@ -4,13 +4,13 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 // Mock the repositories and external dependencies
 vi.mock("@calcom/features/host/repositories/HostRepository");
-vi.mock("@calcom/features/membership/repositories/MembershipRepository");
+vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic");
 
 import { EventTypeHostService } from "./EventTypeHostService";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository as MembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 

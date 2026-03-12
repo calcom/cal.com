@@ -268,7 +268,7 @@ describe("getBusyTimesFromBookingLimits", () => {
   it("should skip already busy periods", async () => {
     const limitManager = new LimitManager();
     // Pre-mark the period as busy
-    limitManager.addBusyTime(dateFrom.startOf("day"), "day");
+    limitManager.addBusyTime({ start: dateFrom.startOf("day"), unit: "day", title: "test", source: "test" });
 
     const testBookings: EventBusyDetails[] = [
       {

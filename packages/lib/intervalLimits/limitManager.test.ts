@@ -13,7 +13,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start, "day");
+      manager.addBusyTime({ start, unit: "day", title: "test", source: "test" });
 
       const busyTimes = manager.getBusyTimes();
       expect(busyTimes).toHaveLength(1);
@@ -25,8 +25,8 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start, "day");
-      manager.addBusyTime(start, "week");
+      manager.addBusyTime({ start, unit: "day", title: "test", source: "test" });
+      manager.addBusyTime({ start, unit: "week", title: "test", source: "test" });
 
       expect(manager.getBusyTimes()).toHaveLength(2);
     });
@@ -45,7 +45,7 @@ describe("LimitManager", () => {
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
       // Use startOf("year") so addBusyTime's key matches createKey's lookup
-      manager.addBusyTime(start.startOf("year"), "year");
+      manager.addBusyTime({ start: start.startOf("year"), unit: "year", title: "test", source: "test" });
 
       // Any unit should return true if the year is busy
       expect(manager.isAlreadyBusy(start, "day")).toBe(true);
@@ -57,7 +57,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start.startOf("month"), "month");
+      manager.addBusyTime({ start: start.startOf("month"), unit: "month", title: "test", source: "test" });
 
       expect(manager.isAlreadyBusy(start, "day")).toBe(true);
     });
@@ -66,7 +66,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start.startOf("week"), "week");
+      manager.addBusyTime({ start: start.startOf("week"), unit: "week", title: "test", source: "test" });
 
       expect(manager.isAlreadyBusy(start, "day")).toBe(true);
     });
@@ -75,7 +75,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start.startOf("day"), "day");
+      manager.addBusyTime({ start: start.startOf("day"), unit: "day", title: "test", source: "test" });
 
       expect(manager.isAlreadyBusy(start, "day")).toBe(true);
     });
@@ -84,7 +84,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start.startOf("month"), "month");
+      manager.addBusyTime({ start: start.startOf("month"), unit: "month", title: "test", source: "test" });
 
       expect(manager.isAlreadyBusy(start, "month")).toBe(true);
     });
@@ -93,7 +93,7 @@ describe("LimitManager", () => {
       const manager = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager.addBusyTime(start.startOf("day"), "day");
+      manager.addBusyTime({ start: start.startOf("day"), unit: "day", title: "test", source: "test" });
 
       expect(manager.isAlreadyBusy(start, "month")).toBe(false);
     });
@@ -106,8 +106,8 @@ describe("LimitManager", () => {
       const start1 = dayjs("2024-06-15T10:00:00Z").utc();
       const start2 = dayjs("2024-07-15T10:00:00Z").utc();
 
-      manager1.addBusyTime(start1, "day");
-      manager2.addBusyTime(start2, "day");
+      manager1.addBusyTime({ start: start1, unit: "day", title: "test", source: "test" });
+      manager2.addBusyTime({ start: start2, unit: "day", title: "test", source: "test" });
 
       manager1.mergeBusyTimes(manager2);
 
@@ -119,8 +119,8 @@ describe("LimitManager", () => {
       const manager2 = new LimitManager();
       const start = dayjs("2024-06-15T10:00:00Z").utc();
 
-      manager1.addBusyTime(start, "day");
-      manager2.addBusyTime(start, "day");
+      manager1.addBusyTime({ start, unit: "day", title: "test", source: "test" });
+      manager2.addBusyTime({ start, unit: "day", title: "test", source: "test" });
 
       manager1.mergeBusyTimes(manager2);
 

@@ -2,7 +2,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { PrismaMembershipRepository as MembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
