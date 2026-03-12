@@ -81,6 +81,7 @@ type HandleMarkHostNoShowArgs = {
   actionSource: ValidActionSource;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  impersonatedByUserUuid: string | null;
 };
 
 type HandleMarkAttendeesAndHostNoShowArgs = {
@@ -92,6 +93,7 @@ type HandleMarkAttendeesAndHostNoShowArgs = {
   actionSource: ValidActionSource;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  impersonatedByUserUuid: string | null;
 };
 
 type HandleMarkNoShowArgs = {
@@ -104,6 +106,7 @@ type HandleMarkNoShowArgs = {
   locale?: string;
   platformClientParams?: PlatformClientParams;
   actor: Actor;
+  impersonatedByUserUuid: string | null;
 };
 
 const buildResultPayload = async ({
@@ -201,6 +204,7 @@ async function fireNoShowUpdated({
   actor,
   orgId,
   actionSource,
+  impersonatedByUserUuid,
 }: {
   updatedNoShowHost?: boolean;
   hostUserUuid?: string;
@@ -213,6 +217,7 @@ async function fireNoShowUpdated({
   actor: Actor;
   orgId: number | null;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 }): Promise<void> {
   const auditData: {
     host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
@@ -248,12 +253,14 @@ async function fireNoShowUpdated({
   const isSomethingChanged =
     auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
   if (isSomethingChanged) {
+    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       actor,
       organizationId: orgId ?? null,
       source: actionSource,
       auditData,
+      context: auditContext,
       isBookingAuditEnabled,
     });
   }
@@ -268,6 +275,7 @@ const handleMarkNoShow = async ({
   locale,
   platformClientParams,
   actionSource,
+  impersonatedByUserUuid,
 }: HandleMarkNoShowArgs): Promise<ResponsePayloadResult> => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
@@ -470,6 +478,7 @@ const handleMarkNoShow = async ({
       actor,
       orgId: orgId ?? null,
       actionSource,
+      impersonatedByUserUuid,
     });
 
     return responsePayload.getPayload();
@@ -552,6 +561,7 @@ export const handleMarkHostNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
+  impersonatedByUserUuid,
 }: HandleMarkHostNoShowArgs): Promise<ResponsePayloadResult> => {
   const actorEmail = buildActorEmail({
     identifier: getUniqueIdentifier({ prefix: "attendee" }),
@@ -568,6 +578,7 @@ export const handleMarkHostNoShow = async ({
     actionSource,
     locale,
     platformClientParams,
+    impersonatedByUserUuid,
   });
 };
 
@@ -585,6 +596,7 @@ export const handleMarkAttendeesAndHostNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
+  impersonatedByUserUuid,
 }: HandleMarkAttendeesAndHostNoShowArgs): Promise<ResponsePayloadResult> => {
   const actor = makeUserActor(userUuid);
 
@@ -597,6 +609,7 @@ export const handleMarkAttendeesAndHostNoShow = async ({
     actionSource,
     locale,
     platformClientParams,
+    impersonatedByUserUuid,
   });
 };
 
