@@ -1,5 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import { getRoutedUsersWithContactOwnerAndFixedUsers } from "./getRoutedUsers";
 
 vi.mock("@calcom/prisma", () => {
@@ -8,6 +7,12 @@ vi.mock("@calcom/prisma", () => {
     prisma: vi.fn(),
   };
 });
+// Mock the delegation credential module to prevent its heavy transitive imports
+// (CalendarService, Office365, repositories, etc.) from triggering background
+// fetch calls that outlive the vitest worker.
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+}));
 
 describe("getRoutedUsersWithContactOwnerAndFixedUsers", () => {
   const users = [

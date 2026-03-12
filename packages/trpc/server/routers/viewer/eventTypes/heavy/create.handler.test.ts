@@ -1,15 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createHandler } from "./create.handler";
 
 const mockCreateEventType = vi.fn();
 const mockCheckSuccessRedirectUrlAllowed = vi.fn();
 
+vi.mock("@calcom/prisma", () => ({
+  default: prismaMock,
+}));
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 vi.mock("@calcom/features/eventtypes/lib/successRedirectUrlAllowed", () => ({
   checkSuccessRedirectUrlAllowed: (...args: unknown[]) => mockCheckSuccessRedirectUrlAllowed(...args),
+}));
+// Mock abuse-scoring to prevent the fire-and-forget dynamic import from
+// starting a real fetch after the test worker begins shutting down.
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
 }));
 
 describe("createHandler", () => {
