@@ -49,7 +49,6 @@ import {
   TextField,
 } from "@calcom/ui/components/form";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import {
   SelectedCalendarSettingsScope,
@@ -147,6 +146,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   showBookerLayoutSelector: boolean;
   localeOptions?: { value: string; label: string }[];
   verifiedEmails?: string[];
+  hasActiveTeamPlan?: boolean;
 };
 
 type CalendarSettingsProps = {
@@ -480,6 +480,7 @@ export const EventAdvancedTab = ({
   verifiedEmails,
   orgId,
   localeOptions,
+  hasActiveTeamPlan,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -504,7 +505,6 @@ export const EventAdvancedTab = ({
         watchedInterfaceLanguage !== undefined
     );
   }, [watchedInterfaceLanguage]);
-  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
   const isRedirectUrlGrandfathered = !!eventType.successRedirectUrl;
   const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
 
@@ -1069,7 +1069,7 @@ export const EventAdvancedTab = ({
               descriptionClassName={
                 customClassNames?.bookingRedirect?.description
               }
-              Badge={!isRedirectUrlGrandfathered ? <UpgradeTeamsBadge checkForActiveStatus /> : undefined}
+              Badge={!isPlatform && !isRedirectUrlGrandfathered ? <UpgradeTeamsBadge checkForActiveStatus /> : undefined}
               title={t("redirect_success_booking")}
               data-testid="redirect-success-booking"
               {...successRedirectUrlLocked}
