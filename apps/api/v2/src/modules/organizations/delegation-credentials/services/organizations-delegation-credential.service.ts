@@ -85,6 +85,8 @@ export class OrganizationsDelegationCredentialService {
       throw new NotFoundException(`DelegationCredential with id ${delegationCredentialId} not found`);
     }
 
+    const wasEnabledBeforeUpdate = delegationCredential.enabled;
+
     if (body.serviceAccountKey !== undefined) {
       const updatedDelegationCredential = await this.updateDelegationCredentialServiceAccountKey(
         delegationCredential.id,
@@ -103,7 +105,7 @@ export class OrganizationsDelegationCredentialService {
     }
 
     // once delegation credentials are enabled, slowly set all the destination calendars of delegated users
-    if (body.enabled === true && delegationCredential.enabled === false) {
+    if (body.enabled === true && !wasEnabledBeforeUpdate) {
       await this.ensureDefaultCalendars(orgId, delegationCredential.domain);
     }
 

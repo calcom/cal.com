@@ -73,6 +73,114 @@ describe("OrganizationsDelegationCredentialService", () => {
     jest.restoreAllMocks();
   });
 
+  describe("updateDelegationCredential", () => {
+    const delegationCredentialId = "cred-123";
+    const mockDelegatedServiceAccountUser = {
+      id: 10,
+      email: "service@example.com",
+    } as any;
+
+    const baseDelegationCredential = {
+      id: delegationCredentialId,
+      organizationId: orgId,
+      serviceAccountKey: {},
+      enabled: true,
+      lastEnabledAt: new Date(),
+      lastDisabledAt: null,
+      domain: "example.com",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      workspacePlatformId: 1,
+      workspacePlatform: {
+        name: "Google",
+        id: 1,
+        enabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        slug: "google",
+        description: "Google Workspace",
+        defaultServiceAccountKey: {},
+      },
+    };
+
+    beforeEach(() => {
+      (mockRepository as any).findByIdWithWorkspacePlatform = jest.fn();
+      (mockRepository as any).updateIncludeWorkspacePlatform = jest.fn();
+      jest.spyOn(service, "ensureDefaultCalendars").mockResolvedValue(undefined);
+      jest.spyOn(service, "updateDelegationCredentialEnabled").mockResolvedValue(undefined);
+      jest.spyOn(service, "updateDelegationCredentialServiceAccountKey").mockImplementation(async () => {
+        return { ...baseDelegationCredential, enabled: false };
+      });
+    });
+
+    it("does not call ensureDefaultCalendars when credential was already enabled and both serviceAccountKey and enabled=true are provided", async () => {
+      (mockRepository as any).findByIdWithWorkspacePlatform.mockResolvedValue({
+        ...baseDelegationCredential,
+        enabled: true,
+      });
+
+      await service.updateDelegationCredential(orgId, delegationCredentialId, mockDelegatedServiceAccountUser, {
+        serviceAccountKey: { client_email: "new@test.com" } as any,
+        enabled: true,
+      });
+
+      expect(service.ensureDefaultCalendars).not.toHaveBeenCalled();
+    });
+
+    it("calls ensureDefaultCalendars when credential was disabled and enabled=true is provided", async () => {
+      (mockRepository as any).findByIdWithWorkspacePlatform.mockResolvedValue({
+        ...baseDelegationCredential,
+        enabled: false,
+      });
+
+      await service.updateDelegationCredential(orgId, delegationCredentialId, mockDelegatedServiceAccountUser, {
+        enabled: true,
+      });
+
+      expect(service.ensureDefaultCalendars).toHaveBeenCalledWith(orgId, "example.com");
+    });
+
+    it("calls ensureDefaultCalendars when credential was disabled and both serviceAccountKey and enabled=true are provided", async () => {
+      (mockRepository as any).findByIdWithWorkspacePlatform.mockResolvedValue({
+        ...baseDelegationCredential,
+        enabled: false,
+      });
+
+      await service.updateDelegationCredential(orgId, delegationCredentialId, mockDelegatedServiceAccountUser, {
+        serviceAccountKey: { client_email: "new@test.com" } as any,
+        enabled: true,
+      });
+
+      expect(service.ensureDefaultCalendars).toHaveBeenCalledWith(orgId, "example.com");
+    });
+
+    it("does not call ensureDefaultCalendars when only serviceAccountKey is updated without enabled", async () => {
+      (mockRepository as any).findByIdWithWorkspacePlatform.mockResolvedValue({
+        ...baseDelegationCredential,
+        enabled: true,
+      });
+
+      await service.updateDelegationCredential(orgId, delegationCredentialId, mockDelegatedServiceAccountUser, {
+        serviceAccountKey: { client_email: "new@test.com" } as any,
+      });
+
+      expect(service.ensureDefaultCalendars).not.toHaveBeenCalled();
+    });
+
+    it("does not call ensureDefaultCalendars when enabled=false is provided", async () => {
+      (mockRepository as any).findByIdWithWorkspacePlatform.mockResolvedValue({
+        ...baseDelegationCredential,
+        enabled: true,
+      });
+
+      await service.updateDelegationCredential(orgId, delegationCredentialId, mockDelegatedServiceAccountUser, {
+        enabled: false,
+      });
+
+      expect(service.ensureDefaultCalendars).not.toHaveBeenCalled();
+    });
+  });
+
   describe("ensureDefaultCalendars", () => {
     it("adds calendar jobs for each delegated user profile", async () => {
       (mockRepository.findDelegatedUserProfiles as jest.Mock).mockResolvedValue([
