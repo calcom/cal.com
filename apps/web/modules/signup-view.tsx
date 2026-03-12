@@ -238,6 +238,11 @@ export default function Signup({
   const isPlatformUser =
     redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
+  const isOAuthSignup = redirectUrl?.includes("auth/oauth2/authorize") ?? false;
+  const oauthClientId = isOAuthSignup && redirectUrl
+    ? new URL(redirectUrl).searchParams.get("client_id")
+    : null;
+
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
 
@@ -247,6 +252,8 @@ export default function Signup({
       org_slug: orgSlug,
       is_premium_username: premiumUsername,
       username_taken: usernameTaken,
+      is_oauth_signup: isOAuthSignup,
+      oauth_client_id: oauthClientId,
     });
 
     try {
@@ -350,6 +357,8 @@ export default function Signup({
         org_slug: orgSlug,
         is_premium_username: premiumUsername,
         error_message: errorMessage,
+        is_oauth_signup: isOAuthSignup,
+        oauth_client_id: oauthClientId,
       });
       formMethods.setError("apiError", { message: errorMessage });
     }
