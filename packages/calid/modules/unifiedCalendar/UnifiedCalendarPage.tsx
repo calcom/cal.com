@@ -4,6 +4,7 @@ import { Alert } from "@calid/features/ui/components/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calid/features/ui/components/sheet";
+import { isEqual } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -29,6 +30,17 @@ import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateD
 const UNIFIED_CALENDAR_REFRESH_INTERVAL_MS = 15_000;
 const CONNECTED_CALENDARS_REFRESH_INTERVAL_MS = 30_000;
 
+const compareUnifiedItemsByTime = (
+  left: { startTime: string; endTime: string; id: string },
+  right: { startTime: string; endTime: string; id: string }
+) => {
+  const startDiff = Date.parse(left.startTime) - Date.parse(right.startTime);
+  if (startDiff !== 0) return startDiff;
+  const endDiff = Date.parse(left.endTime) - Date.parse(right.endTime);
+  if (endDiff !== 0) return endDiff;
+  return left.id.localeCompare(right.id);
+};
+
 const UnifiedCalendarPage = () => {
   const isMobile = useIsMobile();
 
@@ -46,6 +58,8 @@ const UnifiedCalendarPage = () => {
   const [pendingColorById, setPendingColorById] = useState<Record<string, boolean>>({});
   const [optimisticSyncById, setOptimisticSyncById] = useState<Record<string, boolean>>({});
   const [pendingSyncById, setPendingSyncById] = useState<Record<string, boolean>>({});
+  const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
+  const [pendingRescheduleByEventId, setPendingRescheduleByEventId] = useState<Record<string, boolean>>({});
   const trpcUtils = trpc.useUtils();
 
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
@@ -108,8 +122,8 @@ const UnifiedCalendarPage = () => {
     );
   }, [connectedCalendars]);
 
-  const unifiedCalendarListQuery = trpc.viewer.unifiedCalendar.list.useQuery(
-    {
+  const unifiedCalendarListInput = useMemo(
+    () => ({
       from: queryRange.from,
       to: queryRange.to,
       cursor: null,
@@ -121,13 +135,15 @@ const UnifiedCalendarPage = () => {
       showAsBusyOnly: false,
       includeExternalCalendarIds:
         visibleSyncedExternalCalendarIds.length > 0 ? visibleSyncedExternalCalendarIds : undefined,
-    },
-    {
-      refetchOnWindowFocus: false,
-      refetchInterval: UNIFIED_CALENDAR_REFRESH_INTERVAL_MS,
-      refetchOnReconnect: true,
-    }
+    }),
+    [queryRange.from, queryRange.to, visibleSyncedExternalCalendarIds]
   );
+
+  const unifiedCalendarListQuery = trpc.viewer.unifiedCalendar.list.useQuery(unifiedCalendarListInput, {
+    refetchOnWindowFocus: false,
+    refetchInterval: UNIFIED_CALENDAR_REFRESH_INTERVAL_MS,
+    refetchOnReconnect: true,
+  });
 
   const calendarNameById = useMemo(() => {
     return connectedCalendars.reduce<Record<string, string>>((accumulator, calendar) => {
@@ -179,6 +195,19 @@ const UnifiedCalendarPage = () => {
     [searchQuery, unifiedEvents, visibleCalendarIds]
   );
 
+  const pendingRescheduleEventIds = useMemo(
+    () =>
+      new Set(
+        Object.entries(pendingRescheduleByEventId).flatMap(([id, isPending]) => (isPending ? [id] : []))
+      ),
+    [pendingRescheduleByEventId]
+  );
+
+  const draggingEvent = useMemo(
+    () => (draggingEventId ? filteredEvents.find((event) => event.id === draggingEventId) ?? null : null),
+    [draggingEventId, filteredEvents]
+  );
+
   const getConflicts = useCallback(
     (event: UnifiedCalendarEventVM) => getEventConflicts(event, filteredEvents),
     [filteredEvents]
@@ -186,6 +215,35 @@ const UnifiedCalendarPage = () => {
 
   const viewDays = useMemo(() => getViewDays(currentDate, viewMode), [currentDate, viewMode]);
   const headerTitle = useMemo(() => getHeaderTitle(currentDate, viewMode), [currentDate, viewMode]);
+
+  useEffect(() => {
+    if (!draggingEventId) return;
+    if (!filteredEvents.some((event) => event.id === draggingEventId)) {
+      setDraggingEventId(null);
+    }
+  }, [draggingEventId, filteredEvents]);
+
+  useEffect(() => {
+    if (!selectedEvent) return;
+    const updated = filteredEvents.find((event) => event.id === selectedEvent.id);
+    if (!updated) return;
+    if (
+      !isEqual(updated.start, selectedEvent.start) ||
+      !isEqual(updated.end, selectedEvent.end) ||
+      updated.status !== selectedEvent.status
+    ) {
+      setSelectedEvent(updated);
+    }
+  }, [filteredEvents, selectedEvent]);
+
+  useEffect(() => {
+    if (!rescheduleEvent) return;
+    const updated = filteredEvents.find((event) => event.id === rescheduleEvent.id);
+    if (!updated) return;
+    if (!isEqual(updated.start, rescheduleEvent.start) || !isEqual(updated.end, rescheduleEvent.end)) {
+      setRescheduleEvent(updated);
+    }
+  }, [filteredEvents, rescheduleEvent]);
 
   const handleSyncToggle = async (id: string, enabled: boolean) => {
     const calendar = sidebarCalendars.find((value) => value.id === id);
@@ -295,6 +353,53 @@ const UnifiedCalendarPage = () => {
     );
   };
 
+  const setBookingTimeInListCache = useCallback(
+    (bookingId: number, startTime: Date, endTime: Date) => {
+      trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, (cachedData) => {
+        if (!cachedData) return cachedData;
+
+        let hasUpdates = false;
+        const nextItems = cachedData.items
+          .map((item) => {
+            if (item.source !== "INTERNAL" || item.internal?.bookingId !== bookingId) {
+              return item;
+            }
+
+            hasUpdates = true;
+            return {
+              ...item,
+              startTime: startTime.toISOString(),
+              endTime: endTime.toISOString(),
+            };
+          })
+          .sort(compareUnifiedItemsByTime);
+
+        if (!hasUpdates) return cachedData;
+        return {
+          ...cachedData,
+          items: nextItems,
+        };
+      });
+    },
+    [trpcUtils.viewer.unifiedCalendar.list, unifiedCalendarListInput]
+  );
+
+  const handleStartDragEvent = useCallback(
+    (event: UnifiedCalendarEventVM) => {
+      if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
+        return;
+      }
+
+      clearActionErrors();
+      setDraggingEventId(event.id);
+    },
+    [pendingRescheduleByEventId]
+  );
+
+  const handleEndDragEvent = useCallback(() => {
+    setDraggingEventId(null);
+  }, []);
+
   const handleCreateBooking = async (draft: UnifiedCalendarBookingFormInput) => {
     setQuickBookingError(null);
 
@@ -343,24 +448,107 @@ const UnifiedCalendarPage = () => {
       return;
     }
 
+    if (payload.start >= payload.end) {
+      setRescheduleError("Invalid time range selected.");
+      return;
+    }
+
+    if (isEqual(payload.start, rescheduleEvent.start) && isEqual(payload.end, rescheduleEvent.end)) {
+      setRescheduleEvent(null);
+      return;
+    }
+
     setRescheduleError(null);
+    const bookingId = rescheduleEvent.internal.bookingId;
+    const previousData = trpcUtils.viewer.unifiedCalendar.list.getData(unifiedCalendarListInput);
+    const eventId = rescheduleEvent.id;
 
     try {
+      await trpcUtils.viewer.unifiedCalendar.list.cancel(unifiedCalendarListInput);
+      setPendingRescheduleByEventId((current) => ({ ...current, [eventId]: true }));
+      setBookingTimeInListCache(bookingId, payload.start, payload.end);
+
       await rescheduleBookingMutation.mutateAsync({
-        bookingId: rescheduleEvent.internal.bookingId,
+        bookingId,
         startTime: payload.start.toISOString(),
         endTime: payload.end.toISOString(),
       });
 
-      await trpcUtils.viewer.unifiedCalendar.list.invalidate();
       showToast("Booking rescheduled.", "success");
       setRescheduleEvent(null);
       setSelectedEvent(null);
+      void trpcUtils.viewer.unifiedCalendar.list.invalidate();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+      trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
       setRescheduleError(message);
+      showToast(message, "error");
+    } finally {
+      setPendingRescheduleByEventId((current) => {
+        const next = { ...current };
+        delete next[eventId];
+        return next;
+      });
     }
   };
+
+  const handleDropReschedule = useCallback(
+    async (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => {
+      const { event, start, end } = payload;
+      if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
+        return;
+      }
+
+      setDraggingEventId(null);
+
+      if (start >= end) {
+        showToast("Invalid time range selected.", "error");
+        return;
+      }
+
+      if (isEqual(start, event.start) && isEqual(end, event.end)) {
+        return;
+      }
+
+      const bookingId = event.internal.bookingId;
+      const eventId = event.id;
+      const previousData = trpcUtils.viewer.unifiedCalendar.list.getData(unifiedCalendarListInput);
+
+      try {
+        await trpcUtils.viewer.unifiedCalendar.list.cancel(unifiedCalendarListInput);
+        setPendingRescheduleByEventId((current) => ({ ...current, [eventId]: true }));
+        setBookingTimeInListCache(bookingId, start, end);
+
+        await rescheduleBookingMutation.mutateAsync({
+          bookingId,
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+        });
+
+        showToast("Booking rescheduled.", "success");
+        setRescheduleEvent((current) => (current?.id === eventId ? null : current));
+        setSelectedEvent((current) => (current?.id === eventId ? null : current));
+        void trpcUtils.viewer.unifiedCalendar.list.invalidate();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+        trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
+        showToast(message, "error");
+      } finally {
+        setPendingRescheduleByEventId((current) => {
+          const next = { ...current };
+          delete next[eventId];
+          return next;
+        });
+      }
+    },
+    [
+      pendingRescheduleByEventId,
+      rescheduleBookingMutation,
+      setBookingTimeInListCache,
+      trpcUtils.viewer.unifiedCalendar.list,
+      unifiedCalendarListInput,
+    ]
+  );
 
   const handleCancelAction = async (event: UnifiedCalendarEventVM) => {
     if (!event.canDelete || !event.internal?.bookingId) return;
@@ -479,6 +667,11 @@ const UnifiedCalendarPage = () => {
                   setCurrentDate(day);
                   setViewMode("day");
                 }}
+                draggingEvent={draggingEvent}
+                pendingRescheduleEventIds={pendingRescheduleEventIds}
+                onStartDragEvent={handleStartDragEvent}
+                onEndDragEvent={handleEndDragEvent}
+                onDropReschedule={handleDropReschedule}
               />
             )}
           </div>

@@ -15,6 +15,11 @@ interface UnifiedCalendarEventBlockProps {
   style: CSSProperties;
   onClick: () => void;
   isConflict: boolean;
+  draggable?: boolean;
+  isDragging?: boolean;
+  isRescheduling?: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 export const UnifiedCalendarEventBlock = ({
@@ -22,6 +27,11 @@ export const UnifiedCalendarEventBlock = ({
   style,
   onClick,
   isConflict,
+  draggable = false,
+  isDragging = false,
+  isRescheduling = false,
+  onDragStart,
+  onDragEnd,
 }: UnifiedCalendarEventBlockProps) => {
   const providerLabel = event.provider ? PROVIDER_LABELS[event.provider] : event.source;
   const statusLabel = event.status === "CONFIRMED" ? "" : event.status.toLowerCase();
@@ -32,13 +42,20 @@ export const UnifiedCalendarEventBlock = ({
       <PopoverTrigger asChild>
         <button
           type="button"
+          draggable={draggable}
+          aria-grabbed={isDragging}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
           onClick={onClick}
           className={cn(
             "absolute cursor-pointer overflow-hidden rounded-[6px] px-2.5 py-1.5 text-left",
             "bg-background border-border/60 border shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
             "hover:border-border transition-all duration-150 hover:shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]",
             "group border-l-[3px]",
-            event.status === "CANCELLED" && "opacity-65"
+            draggable && "cursor-grab active:cursor-grabbing",
+            event.status === "CANCELLED" && "opacity-65",
+            isDragging && "ring-border opacity-45 ring-1",
+            isRescheduling && "cursor-progress opacity-70"
           )}
           style={{
             ...style,
@@ -65,6 +82,7 @@ export const UnifiedCalendarEventBlock = ({
           <p className="text-muted-foreground/50 mt-0.5 text-[9px] leading-tight">
             {providerLabel}
             {statusLabel ? ` · ${statusLabel}` : ""}
+            {isRescheduling ? " · saving..." : ""}
           </p>
         </button>
       </PopoverTrigger>
