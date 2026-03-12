@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import CredentialActionsDropdown from "@calcom/features/apps/components/CredentialActionsDropdown";
@@ -9,10 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { Select, Switch } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
@@ -54,65 +51,7 @@ const ConnectedCalendarList = ({
   isDisabled: boolean;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
   const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
-  const toggleCalendarSync = trpc.viewer.unifiedCalendar.toggleCalendarSync.useMutation();
-  const [pendingSyncKeys, setPendingSyncKeys] = React.useState<Record<string, boolean>>({});
-  const [syncStateByKey, setSyncStateByKey] = React.useState<Record<string, boolean>>({});
-
-  const buildSyncKey = React.useCallback((credentialId: number | null, externalId: string) => {
-    return `${credentialId ?? "na"}:${externalId}`;
-  }, []);
-
-  React.useEffect(() => {
-    const initialSyncState: Record<string, boolean> = {};
-    for (const connectedCalendar of items) {
-      for (const cal of connectedCalendar.calendars ?? []) {
-        const syncKey = buildSyncKey(cal.credentialId, cal.externalId);
-        const syncEnabled = "syncEnabled" in cal ? Boolean(cal.syncEnabled) : false;
-        initialSyncState[syncKey] = syncEnabled;
-      }
-    }
-    setSyncStateByKey(initialSyncState);
-  }, [items, buildSyncKey]);
-
-  const getSyncProvider = React.useCallback(
-    (input: { integrationType: string; syncProvider: unknown }): "GOOGLE" | "OUTLOOK" | null => {
-      if (input.syncProvider === "GOOGLE" || input.syncProvider === "OUTLOOK") {
-        return input.syncProvider;
-      }
-      const normalized = input.integrationType.toLowerCase();
-      if (normalized.includes("google")) {
-        return "GOOGLE";
-      }
-      if (
-        normalized.includes("office365") ||
-        normalized.includes("outlook") ||
-        normalized.includes("microsoft")
-      ) {
-        return "OUTLOOK";
-      }
-      return null;
-    },
-    []
-  );
-
-  const setSyncPending = React.useCallback((syncKey: string, pending: boolean) => {
-    setPendingSyncKeys((prev) => {
-      if (pending) {
-        return { ...prev, [syncKey]: true };
-      }
-      const next = { ...prev };
-      delete next[syncKey];
-      return next;
-    });
-  }, []);
-
-  function isGoogleHolidayCalendar(calendarId: string): boolean {
-    return calendarId.includes("#holiday@group.v.calendar.google.com");
-  }
-
-  const publicGoogleSyncDisabledMessage = "Sync cannot be enabled for public Google holiday calendars";
 
   return (
     <List noBorderTreatment className="p-6 pt-2">
@@ -145,68 +84,8 @@ const ConnectedCalendarList = ({
                     <p className="text-subtle px-5 text-xs font-medium">{t("toggle_calendars_conflict")}</p>
                     <ul className="space-y-4 px-5 ">
                       {connectedCalendar.calendars?.map((cal) => {
-                        const syncKey = buildSyncKey(cal.credentialId, cal.externalId);
-                        const syncEnabled =
-                          syncStateByKey[syncKey] ??
-                          ("syncEnabled" in cal ? Boolean(cal.syncEnabled) : false);
-                        const syncProvider = getSyncProvider({
-                          integrationType: connectedCalendar.integration.type,
-                          syncProvider: "syncProvider" in cal ? cal.syncProvider : null,
-                        });
-                        const isPublicGoogleCalendar = isGoogleHolidayCalendar(cal.externalId);
-                        const syncToggleDisabled =
-                          isDisabled ||
-                          !cal.isSelected ||
-                          isPublicGoogleCalendar ||
-                          Boolean(pendingSyncKeys[syncKey]) ||
-                          !syncProvider ||
-                          typeof cal.credentialId !== "number" ||
-                          cal.credentialId <= 0;
-                        const syncToggle = (
-                          <Switch
-                            checked={syncEnabled}
-                            disabled={syncToggleDisabled}
-                            onCheckedChange={async (checked) => {
-                              if (!syncProvider || typeof cal.credentialId !== "number") {
-                                showToast("Failed to update calendar sync. Please try again.", "error");
-                                return;
-                              }
-
-                              const previousValue = syncEnabled;
-                              setSyncStateByKey((prev) => ({
-                                ...prev,
-                                [syncKey]: checked,
-                              }));
-                              setSyncPending(syncKey, true);
-
-                              try {
-                                await toggleCalendarSync.mutateAsync({
-                                  provider: syncProvider,
-                                  credentialId: cal.credentialId,
-                                  providerCalendarId: cal.externalId,
-                                  enabled: checked,
-                                });
-
-                                showToast(
-                                  checked ? t("enable_calendar_sync") : t("disable_calendar_sync"),
-                                  "success"
-                                );
-                                await utils.viewer.calendars.connectedCalendars.invalidate();
-                              } catch (error) {
-                                setSyncStateByKey((prev) => ({
-                                  ...prev,
-                                  [syncKey]: previousValue,
-                                }));
-                                showToast("Failed to update calendar sync. Please try again.", "error");
-                                void error;
-                              } finally {
-                                setSyncPending(syncKey, false);
-                              }
-                            }}
-                          />
-                        );
                         return (
-                          <div key={cal.externalId} className="flex items-center justify-between gap-4">
+                          <div key={cal.externalId}>
                             <CalendarSwitch
                               disabled={isDisabled}
                               externalId={cal.externalId}
@@ -219,16 +98,6 @@ const ConnectedCalendarList = ({
                               eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
                               delegationCredentialId={connectedCalendar.delegationCredentialId || null}
                             />
-                            <div className="flex shrink-0 items-center gap-2">
-                              <span className="text-subtle text-xs font-medium">Sync</span>
-                              {isPublicGoogleCalendar ? (
-                                <Tooltip content={publicGoogleSyncDisabledMessage}>
-                                  <span className="inline-flex">{syncToggle}</span>
-                                </Tooltip>
-                              ) : (
-                                syncToggle
-                              )}
-                            </div>
                           </div>
                         );
                       })}
@@ -350,9 +219,8 @@ export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
             <div className="bg-emphasis h-4 w-64 animate-pulse rounded-md" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between">
+                <div key={i} className="flex items-center">
                   <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
-                  <div className="bg-emphasis h-6 w-10 animate-pulse rounded-md" />
                 </div>
               ))}
             </div>
