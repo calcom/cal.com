@@ -7,6 +7,7 @@
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/emails": "*",
+    "@calid/redis": "*",
     "axios": "^1.6.5",
     "uuid": "^13.0.0"
   },

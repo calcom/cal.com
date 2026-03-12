@@ -1,5 +1,4 @@
 import Link from "next/link";
-import React from "react";
 
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import CredentialActionsDropdown from "@calcom/features/apps/components/CredentialActionsDropdown";
@@ -53,6 +52,7 @@ const ConnectedCalendarList = ({
 }) => {
   const { t } = useLocale();
   const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
+
   return (
     <List noBorderTreatment className="p-6 pt-2">
       {items.map((connectedCalendar) => {
@@ -65,7 +65,7 @@ const ConnectedCalendarList = ({
               title={connectedCalendar.integration.name}
               logo={connectedCalendar.integration.logo}
               description={connectedCalendar.primary?.email ?? connectedCalendar.integration.description}
-              className="bg-muted border-subtle mt-4 pb-4 rounded-lg border"
+              className="bg-muted border-subtle mt-4 rounded-lg border pb-4"
               actions={
                 <div className="flex w-32 justify-end">
                   <CredentialActionsDropdown
@@ -81,23 +81,26 @@ const ConnectedCalendarList = ({
               <div className="border-subtle">
                 {!fromOnboarding && (
                   <>
-                    <p className="text-subtle px-5 font-medium text-xs">{t("toggle_calendars_conflict")}</p>
+                    <p className="text-subtle px-5 text-xs font-medium">{t("toggle_calendars_conflict")}</p>
                     <ul className="space-y-4 px-5 ">
-                      {connectedCalendar.calendars?.map((cal) => (
-                        <CalendarSwitch
-                          disabled={isDisabled}
-                          key={cal.externalId}
-                          externalId={cal.externalId}
-                          title={cal.name || "Nameless calendar"}
-                          name={cal.name || "Nameless calendar"}
-                          type={connectedCalendar.integration.type}
-                          isChecked={cal.isSelected}
-                          destination={cal.externalId === destinationCalendarId}
-                          credentialId={cal.credentialId}
-                          eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
-                          delegationCredentialId={connectedCalendar.delegationCredentialId || null}
-                        />
-                      ))}
+                      {connectedCalendar.calendars?.map((cal) => {
+                        return (
+                          <div key={cal.externalId}>
+                            <CalendarSwitch
+                              disabled={isDisabled}
+                              externalId={cal.externalId}
+                              title={cal.name || "Nameless calendar"}
+                              name={cal.name || "Nameless calendar"}
+                              type={connectedCalendar.integration.type}
+                              isChecked={cal.isSelected}
+                              destination={cal.externalId === destinationCalendarId}
+                              credentialId={cal.credentialId}
+                              eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
+                              delegationCredentialId={connectedCalendar.delegationCredentialId || null}
+                            />
+                          </div>
+                        );
+                      })}
                     </ul>
                   </>
                 )}
@@ -216,9 +219,8 @@ export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
             <div className="bg-emphasis h-4 w-64 animate-pulse rounded-md" />
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between">
+                <div key={i} className="flex items-center">
                   <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
-                  <div className="bg-emphasis h-6 w-10 animate-pulse rounded-md" />
                 </div>
               ))}
             </div>
@@ -248,7 +250,7 @@ const SelectedCalendarsSettingsHeading = (props: {
       <div className="flex items-start justify-between">
         <div>
           <h4 className="text-default text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
-          <p className="text-subtle text-sm mt-6 leading-tight">{t("select_calendars")}</p>
+          <p className="text-subtle mt-6 text-sm leading-tight">{t("select_calendars")}</p>
         </div>
 
         {!props.shouldDisableConnectionModification && (

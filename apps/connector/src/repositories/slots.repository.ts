@@ -1,11 +1,11 @@
-import { slotsQuerySchema } from "@/schema/slots.schema";
-import { z } from "zod";
+import type { slotsQuerySchema } from "@/schema/slots.schema";
+import { randomUUID } from "crypto";
+import type { z } from "zod";
 
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
-import { AvailableSlotsService } from "@calcom/platform-libraries/slots";
+import type { AvailableSlotsService } from "@calcom/platform-libraries/slots";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { randomUUID } from "crypto";
 
 import { BaseRepository } from "./base.repository";
 
@@ -72,7 +72,7 @@ export class SlotsRepository extends BaseRepository<User> {
 
   async createSelectedSlot(
     userId: number,
-  eventTypeId: number,
+    eventTypeId: number,
     slotUtcStartDate: string,
     slotUtcEndDate: string,
     isSeat: boolean,
@@ -102,7 +102,7 @@ export class SlotsRepository extends BaseRepository<User> {
   ) {
     return this.prisma.selectedSlots.update({
       where: {
-        id
+        id,
       },
       data: {
         userId,
@@ -134,4 +134,3 @@ export class SlotsRepository extends BaseRepository<User> {
     }
   }
 }
-

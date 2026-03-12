@@ -271,12 +271,156 @@ model Credential {
   calIdTeamId            Int?
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
+  externalCalendars     ExternalCalendar[]
 
   @@index([appId])
   @@index([subscriptionId])
   @@index([invalid])
   @@index([userId, delegationCredentialId])
   @@index([calIdTeamId])
+}
+
+enum CalendarProvider {
+  GOOGLE
+  OUTLOOK
+}
+
+enum CalendarSyncStatus {
+  IDLE
+  SYNCING
+  ERROR
+}
+
+enum CalendarSyncDisabledReason {
+  USER_DISCONNECTED
+  USER_TOGGLED_OFF
+  SUBSCRIPTION_RENEWAL_FAILED
+}
+
+enum CalendarSyncDisabledBy {
+  USER
+  SYSTEM
+}
+
+enum CalendarCursorType {
+  GOOGLE_SYNC_TOKEN
+  OUTLOOK_DELTA_LINK
+}
+
+model ExternalCalendar {
+  id                 Int                         @id @default(autoincrement())
+  credentialId       Int
+  provider           CalendarProvider
+  providerCalendarId String
+  calendarName       String?
+  isPrimary          Boolean                     @default(false)
+  syncEnabled        Boolean                     @default(false)
+  syncStatus         CalendarSyncStatus          @default(IDLE)
+  syncDisabledReason CalendarSyncDisabledReason?
+  syncDisabledAt     DateTime?
+  syncDisabledBy     CalendarSyncDisabledBy?
+  lastSyncAt         DateTime?
+  lastErrorAt        DateTime?
+  lastErrorMessage   String?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  metadata           Json?
+
+  credential    Credential                       @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  syncCursor    ExternalCalendarSyncCursor?
+  subscriptions ExternalCalendarSubscription[]
+  events        ExternalCalendarEvent[]
+  tombstones    ExternalCalendarEventTombstone[]
+
+  @@unique([credentialId, providerCalendarId])
+  @@index([credentialId])
+  @@index([syncEnabled])
+}
+
+model ExternalCalendarSyncCursor {
+  id              Int                @id @default(autoincrement())
+  calendarId      Int
+  cursor          String
+  cursorType      CalendarCursorType
+  expiresAt       DateTime?
+  lastDeltaSyncAt DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  calendar ExternalCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId])
+}
+
+model ExternalCalendarSubscription {
+  id                 Int              @id @default(autoincrement())
+  calendarId         Int
+  provider           CalendarProvider
+  subscriptionId     String
+  resourceId         String?
+  webhookUrl         String
+  clientState        String?
+  expirationDateTime DateTime?
+  isActive           Boolean          @default(true)
+  failureCount       Int              @default(0)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  calendar ExternalCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subscriptionId])
+  @@index([calendarId])
+  @@index([expirationDateTime])
+}
+
+model ExternalCalendarEvent {
+  id                Int              @id @default(autoincrement())
+  userId            Int
+  calendarId        Int
+  provider          CalendarProvider
+  externalEventId   String
+  iCalUID           String?
+  recurringEventId  String?
+  originalStartTime DateTime?
+  startTime         DateTime
+  endTime           DateTime
+  isAllDay          Boolean
+  showAsBusy        Boolean
+  status            String?
+  providerUpdatedAt DateTime?
+  sequence          Int?
+  rawPayload        Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  calendar ExternalCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, externalEventId])
+  @@index([userId])
+  @@index([startTime, endTime])
+  @@index([iCalUID])
+  @@index([recurringEventId])
+  @@index([calendarId, startTime, endTime])
+}
+
+model ExternalCalendarEventTombstone {
+  id                Int       @id @default(autoincrement())
+  calendarId        Int
+  externalEventId   String
+  iCalUID           String?
+  recurringEventId  String?
+  originalStartTime DateTime?
+  deletedAt         DateTime
+  expiresAt         DateTime
+  rawPayload        Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  calendar ExternalCalendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarId, externalEventId])
+  @@index([calendarId])
+  @@index([expiresAt])
 }
 
 enum IdentityProvider {

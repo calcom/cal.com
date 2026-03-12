@@ -6,5 +6,6 @@ export { JobDispatcher, JobDispatchError, default as dispatcher } from "./dispat
 
 export * from "./adapter";
 export * from "./inngestClient";
+export { buildJobId, sanitizeBullmqJobIdPart } from "./jobId";
 
 export { JobName } from "./jobs";

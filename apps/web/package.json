@@ -44,6 +44,7 @@
     "@calid/embed-runtime": "workspace:*",
     "@calid/features": "*",
     "@calid/queue": "*",
+    "@calid/redis": "*",
     "@calid/react-embed": "workspace:*",
     "@daily-co/daily-js": "^0.76.0",
     "@daily-co/daily-react": "^0.22.0",

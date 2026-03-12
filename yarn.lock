@@ -3802,6 +3802,7 @@ __metadata:
     "@calid/embed-runtime": "workspace:*"
     "@calid/features": "*"
     "@calid/queue": "*"
+    "@calid/redis": "*"
     "@calid/react-embed": "workspace:*"
     "@daily-co/daily-js": ^0.76.0
     "@daily-co/daily-react": ^0.22.0
@@ -4175,6 +4176,7 @@ __metadata:
   dependencies:
     "@calcom/dayjs": "*"
     "@calcom/emails": "*"
+    "@calid/redis": "*"
     "@types/uuid": ^11.0.0
     axios: ^1.6.5
     prisma: ^7.3.0
@@ -4187,8 +4189,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calid/queue@workspace:packages/queue"
   dependencies:
+    "@calid/redis": "*"
     bullmq: ^5.67.2
     dotenv: ^17.2.4
+    typescript: ^5.9.3
+  languageName: unknown
+  linkType: soft
+
+"@calid/redis@*, @calid/redis@workspace:packages/redis":
+  version: 0.0.0-use.local
+  resolution: "@calid/redis@workspace:packages/redis"
+  dependencies:
+    bullmq: ^5.67.2
     ioredis: ^5.9.2
     typescript: ^5.9.3
   languageName: unknown
@@ -4219,6 +4231,7 @@ __metadata:
   dependencies:
     "@calid/job-engine": "*"
     "@calid/queue": "*"
+    "@calid/redis": "*"
     ts-node: ^10.9.2
     tsup: ^8.5.1
     typescript: ^5.9.3

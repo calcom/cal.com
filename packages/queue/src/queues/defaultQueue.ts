@@ -1,6 +1,5 @@
+import { getRedisOptions } from "@calid/redis";
 import { Queue } from "bullmq";
-
-import { getRedisOptions } from "../redis";
 
 let queue: Queue | null = null;
 // const queueEvents: QueueEvents | null = null;

@@ -10,6 +10,7 @@ import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cach
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
+import { CALENDAR_EVENT_ORIGIN_MARKER, GOOGLE_EVENT_ORIGIN_PRIVATE_KEY } from "@calcom/lib/calendarOrigin";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -192,6 +193,11 @@ export default class GoogleCalendarService implements Calendar {
       },
       guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
+      extendedProperties: {
+        private: {
+          [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+        },
+      },
     };
     if (calEvent.hideCalendarEventDetails) {
       payload.visibility = "private";
@@ -374,6 +380,11 @@ export default class GoogleCalendarService implements Calendar {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      extendedProperties: {
+        private: {
+          [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+        },
+      },
     };
 
     if (event.location) {
@@ -1372,6 +1383,11 @@ export default class GoogleCalendarService implements Calendar {
           useDefault: true,
         },
         guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+        extendedProperties: {
+          private: {
+            [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+          },
+        },
       };
 
       if (event.hideCalendarEventDetails) {

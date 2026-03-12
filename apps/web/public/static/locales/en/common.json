@@ -1,6 +1,10 @@
 {
-  "background_jobs": "Background Jobs",
-  "background_jobs_description": "Dashboard for monitoring bullmq background jobs",
+  "unified_calendar_heading":"Unified Calendar",
+  "unified_calendar_subtitle":"View and manage all your connected calendars in one place.",
+  "enable_calendar_sync":"Calendar sync enabled. Initial sync started",
+  "disable_calendar_sync":"Calendar sync disabled. Cleanup started",
+  "background_jobs":"Background Jobs",
+  "background_jobs_description":"Dashboard for monitoring bullmq background jobs",
   "third_party_services": "Third Party Service Providers",
   "third_party_services_description": "Manage and configure third-party services integrated with Cal ID.",
   "view_response": "View response",
