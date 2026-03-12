@@ -31,6 +31,7 @@ import { LoaderIcon, TriangleAlertIcon } from "@coss/ui/icons";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
+import type { HostLocationsSlotProps } from "@calcom/features/eventtypes/components/locations/types";
 import type { FormValues, Host, HostLocation } from "@calcom/features/eventtypes/lib/types";
 import type { TLocationOptions } from "./Locations";
 
@@ -63,10 +64,7 @@ type HostWithLocationOptions = {
   }[];
 };
 
-type HostLocationsProps = {
-  eventTypeId: number;
-  locationOptions: TLocationOptions;
-};
+type HostLocationsProps = HostLocationsSlotProps;
 
 const getLocationFromOptions = (
   locationType: string,

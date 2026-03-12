@@ -1,6 +1,9 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
+import type {
+  HostLocationsSlotProps,
+  LocationCustomClassNames,
+  LocationsSlotProps,
+} from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -27,12 +30,16 @@ import {
 } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
-import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
+import type { ComponentType } from "react";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
+
+export type EventSetupTabComponents = {
+  Locations?: ComponentType<LocationsSlotProps> | null;
+  HostLocations?: ComponentType<HostLocationsSlotProps> | null;
+};
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -58,24 +65,34 @@ export type EventSetupTabCustomClassNames = {
   };
 };
 
-export type EventSetupTabProps = Pick<
+export type EventSetupTabWrapperProps = Pick<
   EventTypeSetupProps,
   "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
 > & {
   customClassNames?: EventSetupTabCustomClassNames;
 };
-export const EventSetupTab = (
-  props: EventSetupTabProps & {
-    urlPrefix: string;
-    hasOrgBranding: boolean;
-    orgId?: number;
-    localeOptions?: { value: string; label: string }[];
-  }
-) => {
+
+export type EventSetupTabProps = EventSetupTabWrapperProps & {
+  urlPrefix: string;
+  hasOrgBranding: boolean;
+  orgId?: number;
+  localeOptions?: { value: string; label: string }[];
+  components?: EventSetupTabComponents;
+  isPlatform?: boolean;
+};
+
+export const EventSetupTab = (props: EventSetupTabProps) => {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const {
+    eventType,
+    team,
+    urlPrefix,
+    hasOrgBranding,
+    customClassNames,
+    components,
+    isPlatform = false,
+  } = props;
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -111,6 +128,9 @@ export const EventSetupTab = (
   const descriptionLockedProps = shouldLockDisableProps("description");
   const urlLockedProps = shouldLockDisableProps("slug");
   const titleLockedProps = shouldLockDisableProps("title");
+
+  const Locations = components?.Locations;
+  const HostLocations = components?.HostLocations;
 
   return (
     <div>
@@ -364,52 +384,55 @@ export const EventSetupTab = (
             </div>
           )}
         </div>
-        <Tooltip
-          content={t("locations_disabled_per_host_enabled")}
-          side="top"
-          open={shouldDisableSharedLocations ? undefined : false}>
-          <div
-            className={classNames(
-              "rounded-lg border border-subtle p-6",
-              customClassNames?.locationSection?.container,
-              shouldDisableSharedLocations && "cursor-not-allowed opacity-60"
-            )}>
-            <div>
-              <Skeleton
-                as={Label}
-                loadingClassName="w-16"
-                htmlFor="locations"
-                className={customClassNames?.locationSection?.label}>
-                {t("location")}
-                {/*improve shouldLockIndicator function to also accept eventType and then conditionally render
-                based on Managed Event type or not.*/}
-                {shouldLockIndicator("locations")}
-              </Skeleton>
-              <Controller
-                name="locations"
-                control={formMethods.control}
-                defaultValue={eventType.locations || []}
-                render={() => (
-                  <Locations
-                    showAppStoreLink={true}
-                    isChildrenManagedEventType={isChildrenManagedEventType}
-                    isManagedEventType={isManagedEventType}
-                    disableLocationProp={
-                      shouldLockDisableProps("locations").disabled || shouldDisableSharedLocations
-                    }
-                    getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
-                    setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
-                    control={formMethods.control as unknown as Control<LocationFormValues>}
-                    formState={formMethods.formState as unknown as FormState<LocationFormValues>}
-                    {...props}
-                    customClassNames={customClassNames?.locationSection}
-                  />
-                )}
-              />
+        {Locations && (
+          <Tooltip
+            content={t("locations_disabled_per_host_enabled")}
+            side="top"
+            open={shouldDisableSharedLocations ? undefined : false}>
+            <div
+              className={classNames(
+                "rounded-lg border border-subtle p-6",
+                customClassNames?.locationSection?.container,
+                shouldDisableSharedLocations && "cursor-not-allowed opacity-60"
+              )}>
+              <div>
+                <Skeleton
+                  as={Label}
+                  loadingClassName="w-16"
+                  htmlFor="locations"
+                  className={customClassNames?.locationSection?.label}>
+                  {t("location")}
+                  {shouldLockIndicator("locations")}
+                </Skeleton>
+                <Controller
+                  name="locations"
+                  control={formMethods.control}
+                  defaultValue={eventType.locations || []}
+                  render={() => (
+                    <Locations
+                      showAppStoreLink={true}
+                      isChildrenManagedEventType={isChildrenManagedEventType}
+                      isManagedEventType={isManagedEventType}
+                      disableLocationProp={
+                        shouldLockDisableProps("locations").disabled || shouldDisableSharedLocations
+                      }
+                      getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
+                      setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
+                      control={formMethods.control as unknown as Control<LocationFormValues>}
+                      formState={formMethods.formState as unknown as FormState<LocationFormValues>}
+                      team={props.team}
+                      destinationCalendar={props.destinationCalendar}
+                      eventType={props.eventType}
+                      locationOptions={props.locationOptions}
+                      customClassNames={customClassNames?.locationSection}
+                    />
+                  )}
+                />
+              </div>
             </div>
-          </div>
-        </Tooltip>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isPlatform && (
+          </Tooltip>
+        )}
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isPlatform && HostLocations && (
           <HostLocations eventTypeId={eventType.id} locationOptions={props.locationOptions} />
         )}
       </div>

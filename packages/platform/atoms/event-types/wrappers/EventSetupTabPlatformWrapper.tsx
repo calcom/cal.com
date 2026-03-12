@@ -1,12 +1,17 @@
-import React from "react";
+import {
+  EventSetupTab,
+  type EventSetupTabWrapperProps,
+} from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { EventSetupTabProps } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { EventSetupTab } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
-
-const EventSetupTabPlatformWrapper = (props: EventSetupTabProps) => {
-  return <EventSetupTab {...props} urlPrefix="" hasOrgBranding={false} />;
+const EventSetupTabPlatformWrapper = (props: EventSetupTabWrapperProps) => {
+  return (
+    <EventSetupTab
+      {...props}
+      urlPrefix=""
+      hasOrgBranding={false}
+      isPlatform={true}
+    />
+  );
 };
 
 export default EventSetupTabPlatformWrapper;

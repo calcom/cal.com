@@ -3,12 +3,11 @@ import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useFieldArray } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
+import type { LocationsSlotProps } from "@calcom/features/eventtypes/components/locations/types";
 import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
@@ -30,21 +29,8 @@ export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["loc
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
-type LocationsProps = {
-  team: { id: number } | null;
-  destinationCalendar: TDestinationCalendar;
-  showAppStoreLink: boolean;
-  isChildrenManagedEventType?: boolean;
-  isManagedEventType?: boolean;
-  disableLocationProp?: boolean;
-  getValues: UseFormGetValues<LocationFormValues>;
-  setValue: UseFormSetValue<LocationFormValues>;
-  control: Control<LocationFormValues>;
-  formState: FormState<LocationFormValues>;
-  eventType: TEventTypeLocation;
-  locationOptions: TLocationOptions;
+type LocationsProps = LocationsSlotProps & {
   prefillLocation?: SingleValueLocationOption;
-  customClassNames?: LocationCustomClassNames;
 };
 
 const getLocationFromType = (type: EventLocationType["type"], locationOptions: TLocationOptions) => {

@@ -3,6 +3,7 @@
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
+import type { EventSetupTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/setup/EventSetupTab";
 import type {
   EventTypePlatformWrapperRef,
   EventTypeSetupProps,
@@ -22,8 +23,6 @@ import type { EventTeamAssignmentTabCustomClassNames } from "@calcom/web/modules
 import type { EventLimitsTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/limits/EventLimitsTab";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/recurring/RecurringEventController";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import type { EventSetupTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/setup/EventSetupTab";
 import { useQueryClient } from "@tanstack/react-query";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
