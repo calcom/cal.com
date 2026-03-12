@@ -28,7 +28,7 @@ export class PlatformOAuthClientDto {
   })
   permissions!: Array<keyof typeof PERMISSION_MAP>;
 
-  @ApiPropertyOptional({ example: "https://example.com/logo.png" })
+  @ApiPropertyOptional({ example: "https://example.com/logo.png", type: String })
   @IsOptional()
   @IsString()
   logo!: string | null;

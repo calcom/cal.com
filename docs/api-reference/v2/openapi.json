@@ -18191,7 +18191,7 @@
             "example": ["BOOKING_READ", "BOOKING_WRITE"]
           },
           "logo": {
-            "type": "object",
+            "type": "string",
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -28179,7 +28179,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "object"
+            "type": "number"
           },
           "integration": {
             "type": "string"
