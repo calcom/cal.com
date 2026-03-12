@@ -620,6 +620,7 @@ async function handler(
     areCalendarEventsEnabled = true,
     skipAvailabilityCheck = false,
     skipEventLimitsCheck = false,
+    skipBookingTimeOutOfBoundsCheck = false,
     skipCalendarSyncTaskCreation = false,
     traceContext: passedTraceContext,
   } = input;
@@ -890,13 +891,15 @@ async function handler(
   const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
-  await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
-    reqBody.start,
-    reqBody.timeZone,
-    eventType,
-    eventTimeZone,
-    tracingLogger
-  );
+  if (!skipBookingTimeOutOfBoundsCheck) {
+    await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
+      reqBody.start,
+      reqBody.timeZone,
+      eventType,
+      eventTimeZone,
+      tracingLogger
+    );
+  }
 
   validateEventLength({
     reqBodyStart: reqBody.start,
@@ -2786,7 +2789,6 @@ async function handler(
         })
       );
     }
-
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });

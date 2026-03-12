@@ -162,10 +162,26 @@ export class CalendarSyncService {
     }
 
     try {
-      const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+      let booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
       if (!booking) {
         log.debug("Unable to sync, booking not found in database", { bookingUid });
         return;
+      }
+
+      // The iCalUID references the original booking, but it may have been rescheduled already.
+      // Follow the reschedule chain to find the latest active booking so we compare
+      // against the correct startTime and reschedule from the right booking.
+      if (booking.rescheduled) {
+        const latestBooking = await this.deps.bookingRepository.findLatestBookingInRescheduleChain({
+          bookingUid,
+        });
+        if (latestBooking) {
+          log.debug("Resolved reschedule chain to latest booking", {
+            originalUid: bookingUid,
+            latestUid: latestBooking.uid,
+          });
+          booking = latestBooking;
+        }
       }
 
       if (booking.userId !== calendarUserId) {
@@ -189,10 +205,7 @@ export class CalendarSyncService {
       }
 
       if (!hasStartTimeChanged(booking, event)) {
-        log.debug("Skipping reschedule, start time has not changed", { bookingUid });
-        metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
-          attributes: { status: "skipped", reason: "no_time_change" },
-        });
+        await this.updateBookingFields(booking, event);
         return;
       }
 
@@ -210,6 +223,8 @@ export class CalendarSyncService {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          // Host-initiated reschedule from calendar — booker-facing time restrictions don't apply
+          skipBookingTimeOutOfBoundsCheck: true,
         },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });
@@ -230,6 +245,53 @@ export class CalendarSyncService {
         attributes: { status: "error" },
       });
       metrics.distribution("calendar.sync.rescheduleBooking.duration_ms", performance.now() - startTime, {
+        attributes: { status: "error" },
+      });
+    }
+  }
+
+  /**
+   * Updates booking fields (title, description, location) when the external calendar
+   * event changed metadata without changing time.
+   */
+  async updateBookingFields(booking: BookingWithEventType, event: CalendarSubscriptionEventItem) {
+    const startTime = performance.now();
+    const { changed, fields } = hasFieldsChanged(booking, event);
+
+    if (!changed) {
+      log.debug("Skipping field update, no fields changed", { bookingUid: booking.uid });
+      metrics.count("calendar.sync.updateBookingFields.calls", 1, {
+        attributes: { status: "skipped", reason: "no_changes" },
+      });
+      return;
+    }
+
+    try {
+      await this.deps.bookingRepository.update({
+        where: { uid: booking.uid },
+        data: fields,
+      });
+      log.info("Successfully updated booking fields from calendar sync", {
+        bookingUid: booking.uid,
+        updatedFields: Object.keys(fields),
+      });
+
+      metrics.count("calendar.sync.updateBookingFields.calls", 1, {
+        attributes: { status: "success" },
+      });
+      metrics.distribution("calendar.sync.updateBookingFields.duration_ms", performance.now() - startTime, {
+        attributes: { status: "success" },
+      });
+    } catch (error) {
+      log.error("Failed to update booking fields from calendar sync", {
+        bookingUid: booking.uid,
+        error: safeStringify(error),
+      });
+
+      metrics.count("calendar.sync.updateBookingFields.calls", 1, {
+        attributes: { status: "error" },
+      });
+      metrics.distribution("calendar.sync.updateBookingFields.duration_ms", performance.now() - startTime, {
         attributes: { status: "error" },
       });
     }
@@ -355,4 +417,28 @@ export const hasStartTimeChanged = (
 ): boolean => {
   if (!event.start) return false;
   return event.start.getTime() !== booking.startTime.getTime();
+};
+
+export const hasFieldsChanged = (
+  booking: BookingWithEventType,
+  event: CalendarSubscriptionEventItem
+): {
+  changed: boolean;
+  fields: { title?: string; description?: string | null; location?: string | null };
+} => {
+  const fields: { title?: string; description?: string | null; location?: string | null } = {};
+
+  if (event.summary && event.summary !== booking.title) {
+    fields.title = event.summary;
+  }
+
+  if (event.description !== undefined && (event.description ?? null) !== (booking.description ?? null)) {
+    fields.description = event.description;
+  }
+
+  if (event.location !== undefined && (event.location ?? null) !== (booking.location ?? null)) {
+    fields.location = event.location;
+  }
+
+  return { changed: Object.keys(fields).length > 0, fields };
 };

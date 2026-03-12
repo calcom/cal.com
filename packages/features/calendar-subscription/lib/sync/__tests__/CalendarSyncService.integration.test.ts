@@ -947,6 +947,7 @@ describe("CalendarSyncService - error isolation", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          skipBookingTimeOutOfBoundsCheck: true,
         },
       })
     );

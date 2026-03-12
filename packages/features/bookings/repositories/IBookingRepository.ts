@@ -24,6 +24,9 @@ export interface BookingUpdateData {
   cancellationReason?: string | null;
   cancelledBy?: string | null;
   iCalSequence?: number;
+  title?: string;
+  description?: string | null;
+  location?: string | null;
 }
 
 interface BookingWithWorkflowReminders {

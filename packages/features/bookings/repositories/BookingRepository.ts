@@ -1023,6 +1023,38 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  /**
+   * Follows the reschedule chain starting from a booking UID to find the latest
+   * non-cancelled booking. Uses a recursive CTE for a single DB round-trip
+   * instead of N sequential queries.
+   */
+  async findLatestBookingInRescheduleChain({ bookingUid }: { bookingUid: string }) {
+    const result = await this.prismaClient.$queryRaw<{ uid: string }[]>`
+      WITH RECURSIVE chain AS (
+        SELECT uid, "fromReschedule", 0 AS depth
+        FROM "Booking"
+        WHERE uid = ${bookingUid}
+
+        UNION ALL
+
+        SELECT b.uid, b."fromReschedule", c.depth + 1
+        FROM "Booking" b
+        INNER JOIN chain c ON b."fromReschedule" = c.uid
+      )
+      SELECT uid FROM chain
+      ORDER BY depth DESC
+      LIMIT 1
+    `;
+
+    const latestUid = result[0]?.uid;
+    if (!latestUid || latestUid === bookingUid) return null;
+
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: latestUid },
+      include: { eventType: true },
+    });
+  }
+
   async findByIdIncludeUserAndAttendees(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {

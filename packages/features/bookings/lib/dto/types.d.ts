@@ -29,6 +29,7 @@ export type PlatformParams = {
   areCalendarEventsEnabled?: boolean;
   skipAvailabilityCheck?: boolean;
   skipEventLimitsCheck?: boolean;
+  skipBookingTimeOutOfBoundsCheck?: boolean;
   skipCalendarSyncTaskCreation?: boolean;
 };
 

@@ -342,4 +342,115 @@ describe("BookingRepository (Integration Tests)", () => {
       expect(bookings[0].startTime.toISOString()).toBe("2025-06-26T00:00:00.000Z");
     });
   });
+
+  describe("findLatestBookingInRescheduleChain", () => {
+    const bookingRepo = new BookingRepository(prisma);
+    const chainUidPrefix = `chain-test-${Date.now()}`;
+
+    async function createRescheduleChain(length: number) {
+      const bookings = [];
+      for (let i = 0; i < length; i++) {
+        const booking = await prisma.booking.create({
+          data: {
+            userId: testUserId,
+            uid: `${chainUidPrefix}-${i}`,
+            eventTypeId: testEventTypeId,
+            status: i < length - 1 ? BookingStatus.CANCELLED : BookingStatus.ACCEPTED,
+            rescheduled: i < length - 1,
+            fromReschedule: i > 0 ? `${chainUidPrefix}-${i - 1}` : null,
+            startTime: new Date(`2025-06-01T${String(i).padStart(2, "0")}:00:00.000Z`),
+            endTime: new Date(`2025-06-01T${String(i).padStart(2, "0")}:30:00.000Z`),
+            title: `Chain Booking ${i}`,
+          },
+        });
+        createdBookingIds.push(booking.id);
+        bookings.push(booking);
+      }
+      return bookings;
+    }
+
+    it("should return null when booking has no reschedule chain", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${chainUidPrefix}-solo`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          startTime: new Date("2025-06-01T10:00:00.000Z"),
+          endTime: new Date("2025-06-01T10:30:00.000Z"),
+          title: "Solo Booking",
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-solo`,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should resolve a chain of 2 bookings (A → B)", async () => {
+      await createRescheduleChain(2);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-0`,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.uid).toBe(`${chainUidPrefix}-1`);
+    });
+
+    it("should resolve a chain of 5 bookings (A → B → C → D → E)", async () => {
+      await createRescheduleChain(5);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-0`,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.uid).toBe(`${chainUidPrefix}-4`);
+    });
+
+    it("should resolve from a mid-chain booking", async () => {
+      await createRescheduleChain(4);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-1`,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.uid).toBe(`${chainUidPrefix}-3`);
+    });
+
+    it("should return null when called with the last booking in the chain", async () => {
+      await createRescheduleChain(3);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-2`,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should include eventType in the result", async () => {
+      await createRescheduleChain(2);
+
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: `${chainUidPrefix}-0`,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.eventType).toBeDefined();
+      expect(result!.eventType!.id).toBe(testEventTypeId);
+    });
+
+    it("should return null for non-existent booking uid", async () => {
+      const result = await bookingRepo.findLatestBookingInRescheduleChain({
+        bookingUid: "non-existent-uid",
+      });
+
+      expect(result).toBeNull();
+    });
+  });
 });

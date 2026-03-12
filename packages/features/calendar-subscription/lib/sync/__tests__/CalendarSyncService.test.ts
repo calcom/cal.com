@@ -2,7 +2,7 @@ import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-su
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { CalendarSyncService } from "../CalendarSyncService";
+import { CalendarSyncService, hasFieldsChanged } from "../CalendarSyncService";
 
 const { mockHandleCancelBooking, mockCreateBooking } = vi.hoisted(() => ({
   mockHandleCancelBooking: vi.fn().mockResolvedValue(undefined),
@@ -147,6 +147,8 @@ describe("CalendarSyncService", () => {
   beforeEach(() => {
     mockBookingRepository = {
       findBookingByUidWithEventType: vi.fn(),
+      findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -347,6 +349,7 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          skipBookingTimeOutOfBoundsCheck: true,
         },
       });
       const lastCall = mockCreateBooking.mock.calls.at(-1)!;
@@ -439,6 +442,7 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          skipBookingTimeOutOfBoundsCheck: true,
         },
       });
       const baseCall = mockCreateBooking.mock.calls.at(-1)!;
@@ -512,6 +516,245 @@ describe("CalendarSyncService", () => {
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateBookingFields (via rescheduleBooking when no time change)", () => {
+    test("should update title when event summary changed", async () => {
+      const eventWithNewTitle: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: "New Title From Google",
+        description: mockBooking.description,
+        location: mockBooking.location,
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithNewTitle, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: mockBooking.uid },
+        data: { title: "New Title From Google" },
+      });
+    });
+
+    test("should update location when event location changed", async () => {
+      const eventWithNewLocation: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: mockBooking.title,
+        description: mockBooking.description,
+        location: "New Office",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithNewLocation, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: mockBooking.uid },
+        data: { location: "New Office" },
+      });
+    });
+
+    test("should update description when event description changed", async () => {
+      const eventWithNewDescription: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: mockBooking.title,
+        description: "Updated meeting notes",
+        location: mockBooking.location,
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithNewDescription, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: mockBooking.uid },
+        data: { description: "Updated meeting notes" },
+      });
+    });
+
+    test("should update multiple fields at once", async () => {
+      const eventWithMultipleChanges: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: "New Title",
+        description: "New Desc",
+        location: "New Loc",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithMultipleChanges, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: mockBooking.uid },
+        data: {
+          title: "New Title",
+          description: "New Desc",
+          location: "New Loc",
+        },
+      });
+    });
+
+    test("should skip update when no fields changed", async () => {
+      const eventWithSameFields: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: mockBooking.title,
+        description: mockBooking.description,
+        location: mockBooking.location,
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithSameFields, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      expect(mockBookingRepository.update).not.toHaveBeenCalled();
+    });
+
+    test("should handle null summary gracefully (no title update)", async () => {
+      const eventWithNullSummary: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: null,
+        description: mockBooking.description,
+        location: "New Location",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithNullSummary, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: mockBooking.uid },
+        data: { location: "New Location" },
+      });
+    });
+
+    test("should handle update errors gracefully without throwing", async () => {
+      const eventWithNewTitle: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: mockBooking.startTime,
+        summary: "New Title",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      (mockBookingRepository.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error("DB update failed")
+      );
+
+      await expect(
+        service.rescheduleBooking(eventWithNewTitle, mockSelectedCalendar.userId)
+      ).resolves.not.toThrow();
+
+      expect(mockBookingRepository.update).toHaveBeenCalled();
+    });
+
+    test("should still reschedule when time has changed (not call updateBookingFields)", async () => {
+      const eventWithTimeAndFieldChange: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-01T14:00:00Z"),
+        end: new Date("2023-12-01T15:00:00Z"),
+        summary: "New Title",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithTimeAndFieldChange, mockSelectedCalendar.userId);
+
+      expect(mockCreateBooking).toHaveBeenCalled();
+      expect(mockBookingRepository.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("hasFieldsChanged", () => {
+    const booking = mockBooking as Parameters<typeof hasFieldsChanged>[0];
+
+    test("should detect title change", () => {
+      const event = {
+        ...mockCalComEvent,
+        summary: "Different Title",
+        description: booking.description,
+        location: booking.location,
+      };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(true);
+      expect(result.fields).toEqual({ title: "Different Title" });
+    });
+
+    test("should detect description change", () => {
+      const event = { ...mockCalComEvent, summary: booking.title, description: "New notes" };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(true);
+      expect(result.fields).toEqual({ description: "New notes" });
+    });
+
+    test("should detect location change", () => {
+      const event = {
+        ...mockCalComEvent,
+        summary: booking.title,
+        description: booking.description,
+        location: "New Place",
+      };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(true);
+      expect(result.fields).toEqual({ location: "New Place" });
+    });
+
+    test("should return no changes when all fields match", () => {
+      const event = {
+        ...mockCalComEvent,
+        summary: booking.title,
+        description: booking.description,
+        location: booking.location,
+      };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(false);
+      expect(result.fields).toEqual({});
+    });
+
+    test("should treat null summary as no title change", () => {
+      const event = {
+        ...mockCalComEvent,
+        summary: null,
+        description: booking.description,
+        location: booking.location,
+      };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(false);
+    });
+
+    test("should detect clearing description to null", () => {
+      const event = {
+        ...mockCalComEvent,
+        summary: booking.title,
+        description: null,
+        location: booking.location,
+      };
+      const result = hasFieldsChanged(booking, event);
+      expect(result.changed).toBe(true);
+      expect(result.fields).toEqual({ description: null });
+    });
+
+    test("should not flag change when both booking and event description are null", () => {
+      const bookingWithNullDesc = { ...booking, description: null };
+      const event = {
+        ...mockCalComEvent,
+        summary: bookingWithNullDesc.title,
+        description: null,
+        location: bookingWithNullDesc.location,
+      };
+      const result = hasFieldsChanged(bookingWithNullDesc as Parameters<typeof hasFieldsChanged>[0], event);
+      expect(result.changed).toBe(false);
     });
   });
 });
