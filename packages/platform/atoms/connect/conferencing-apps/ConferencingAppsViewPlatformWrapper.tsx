@@ -1,6 +1,7 @@
 "use client";
 
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
@@ -17,7 +18,6 @@ import {
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { AppList } from "@calcom/web/modules/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducer, useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -343,6 +343,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
             credentialId={modal.credentialId}
             app={modal.app}
             handleRemoveApp={handleRemoveApp}
+            isPlatform={true}
           />
 
           <AccountDialog
