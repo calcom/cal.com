@@ -1265,3 +1265,6 @@ GET /v2/verified-resources/phones/{id} removed the required property 'data/readO
 GET /v2/verified-resources/phones/{id} removed the required property 'data/schedule' from the response with the '200' status
 GET /v2/verified-resources/phones/{id} removed the required property 'data/timeZone' from the response with the '200' status
 GET /v2/verified-resources/phones/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/bookings/{bookingUid}/calendar-links the 'status' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/bookings/{bookingUid}/references the 'status' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references the 'status' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'

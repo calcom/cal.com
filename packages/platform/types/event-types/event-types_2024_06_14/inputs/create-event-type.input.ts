@@ -42,6 +42,7 @@ import {
   RadioGroupFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   SelectFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
@@ -124,6 +125,7 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
   LocationDefaultFieldInput_2024_06_14,
@@ -237,6 +239,7 @@ export class BaseCreateEventTypeInput {
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(SplitNameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(LocationDefaultFieldInput_2024_06_14) },

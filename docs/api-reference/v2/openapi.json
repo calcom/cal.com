@@ -9400,18 +9400,17 @@
     },
     "/v2/bookings": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_createBooking",
+        "operationId": "BookingsController_2026_02_25_createBooking",
         "summary": "Create a booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n\n      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      For event types that have SMS reminders workflow, you need to pass the attendee's phone number in the request body via `attendee.phoneNumber` (e.g., \"+19876543210\" in international format). This is an optional field, but becomes required when SMS reminders are enabled for the event type. For the complete attendee object structure, see the [attendee object](https://cal.com/docs/api-reference/v2/bookings/create-a-booking#body-attendee) documentation.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9444,7 +9443,6 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of booking input: Create Booking (Option 1), Create Instant Booking (Option 2), or Create Recurring Booking (Option 3)",
           "content": {
             "application/json": {
               "schema": {
@@ -9478,18 +9476,17 @@
         "tags": ["Bookings"]
       },
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBookings",
+        "operationId": "BookingsController_2026_02_25_getBookings",
         "summary": "Get all bookings",
-        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9729,18 +9726,17 @@
     },
     "/v2/bookings/by-seat/{seatUid}": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBookingBySeatUid",
+        "operationId": "BookingsController_2026_02_25_getBookingBySeatUid",
         "summary": "Get a booking by seat UID",
-        "description": "Get a seated booking by its seat reference UID. This is useful when you have a seatUid from a seated booking and want to retrieve the full booking details.\n\n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9796,18 +9792,17 @@
     },
     "/v2/bookings/{bookingUid}": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBooking",
+        "operationId": "BookingsController_2026_02_25_getBooking",
         "summary": "Get a booking",
-        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n\n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9863,18 +9858,17 @@
     },
     "/v2/bookings/{bookingUid}/recordings": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBookingRecordings",
+        "operationId": "BookingsController_2026_02_25_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`. Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9912,18 +9906,17 @@
     },
     "/v2/bookings/{bookingUid}/transcripts": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
-        "summary": "Get Cal Video real time transcript download links for the booking",
-        "description": "Fetches all the transcript download links for the booking `:bookingUid`\n\n    <Note>\n    Transcripts are generated when clicking \"Transcribe\" during a Cal Video meeting. Download links are valid for 1 hour only - make a new request to generate fresh links after expiration.\n\n    Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.\n    </Note>\n    ",
+        "operationId": "BookingsController_2026_02_25_getBookingTranscripts",
+        "summary": "Get all the transcripts for the booking",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -9961,18 +9954,17 @@
     },
     "/v2/bookings/{bookingUid}/reschedule": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_rescheduleBooking",
+        "operationId": "BookingsController_2026_02_25_rescheduleBooking",
         "summary": "Reschedule a booking",
-        "description": "Reschedule a booking or seated booking\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10013,7 +10005,6 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2). If you're rescheduling a seated booking as org admin of booking host, pass booking input for Reschedule Booking (Option 1) along with your access token in the request header.\n\n      If you are rescheduling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.",
           "content": {
             "application/json": {
               "schema": {
@@ -10046,18 +10037,17 @@
     },
     "/v2/bookings/{bookingUid}/cancel": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_cancelBooking",
+        "operationId": "BookingsController_2026_02_25_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n\n    \nCancelling normal bookings:\n    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL `/bookings/:bookingUid/cancel` and optionally cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}`.\n\n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n\n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n\n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10098,7 +10088,6 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "Accepts different types of cancel booking input: Cancel Booking (Option 1 which is for normal or recurring bookings) or Cancel Seated Booking (Option 2 which is for seated bookings)",
           "content": {
             "application/json": {
               "schema": {
@@ -10131,18 +10120,17 @@
     },
     "/v2/bookings/{bookingUid}/mark-absent": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_markNoShow",
+        "operationId": "BookingsController_2026_02_25_markNoShow",
         "summary": "Mark a booking absence",
-        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10190,18 +10178,17 @@
     },
     "/v2/bookings/{bookingUid}/reassign": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_reassignBooking",
+        "operationId": "BookingsController_2026_02_25_reassignBooking",
         "summary": "Reassign a booking to auto-selected host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n\n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10239,18 +10226,17 @@
     },
     "/v2/bookings/{bookingUid}/reassign/{userId}": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
+        "operationId": "BookingsController_2026_02_25_reassignBookingToUser",
         "summary": "Reassign a booking to a specific host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10306,18 +10292,17 @@
     },
     "/v2/bookings/{bookingUid}/confirm": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_confirmBooking",
+        "operationId": "BookingsController_2026_02_25_confirmBooking",
         "summary": "Confirm a booking",
-        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10355,18 +10340,17 @@
     },
     "/v2/bookings/{bookingUid}/decline": {
       "post": {
-        "operationId": "BookingsController_2024_08_13_declineBooking",
+        "operationId": "BookingsController_2026_02_25_declineBooking",
         "summary": "Decline a booking",
-        "description": "The provided authorization header refers to the owner of the booking.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10414,18 +10398,17 @@
     },
     "/v2/bookings/{bookingUid}/calendar-links": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getCalendarLinks",
-        "summary": "Get 'Add to Calendar' links for a booking",
-        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
+        "operationId": "BookingsController_2026_02_25_getCalendarLinks",
+        "summary": "Get Add to Calendar links for a booking",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10463,18 +10446,17 @@
     },
     "/v2/bookings/{bookingUid}/references": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getBookingReferences",
+        "operationId": "BookingsController_2026_02_25_getBookingReferences",
         "summary": "Get booking references",
-        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10530,18 +10512,17 @@
     },
     "/v2/bookings/{bookingUid}/conferencing-sessions": {
       "get": {
-        "operationId": "BookingsController_2024_08_13_getVideoSessions",
-        "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
-        "description": "Requires authentication and proper authorization. Access is granted if you are the booking organizer, team admin or org admin/owner.\n\n    <Note>cal-api-version: `2024-08-13` is required in the request header.</Note>",
+        "operationId": "BookingsController_2026_02_25_getVideoSessions",
+        "summary": "Get Video Meeting Sessions",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "description": "Must be set to 2026-02-25.",
             "required": true,
             "schema": {
               "type": "string",
-              "default": "2024-08-13"
+              "default": "2026-02-25"
             }
           },
           {
@@ -10661,7 +10642,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -10773,7 +10754,7 @@
           {
             "name": "Authorization",
             "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
             "required": true,
             "schema": {
               "type": "string"
@@ -19920,6 +19901,44 @@
         },
         "required": ["type", "label", "placeholder"]
       },
+      "SplitNameDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "splitName",
+            "description": "only allowed value for type is `splitName`. Used to have 2 booking fields - 1 for first name and 1 for last name."
+          },
+          "firstNameLabel": {
+            "type": "string"
+          },
+          "firstNamePlaceholder": {
+            "type": "string"
+          },
+          "lastNameLabel": {
+            "type": "string"
+          },
+          "lastNamePlaceholder": {
+            "type": "string"
+          },
+          "lastNameRequired": {
+            "type": "boolean",
+            "description": "First name field is required but last name field is not by default."
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&firstName=bob&lastName=jones`,      the first name and last name fields will be prefilled with this value and disabled. In case of Booker atom need to pass 'firstName' and 'lastName' to defaultFormValues prop e.g. `defaultFormValues={{firstName: 'bob', lastName: 'doe'}}` or pass 'name' prop but as a string containing name and surname e.g. `defaultFormValues={{name: 'bob doe'}}`.  See guide https://cal.com/docs/platform/guides/booking-fields"
+          }
+        },
+        "required": [
+          "type",
+          "firstNameLabel",
+          "firstNamePlaceholder",
+          "lastNameLabel",
+          "lastNamePlaceholder",
+          "lastNameRequired"
+        ]
+      },
       "EmailDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -20197,6 +20216,9 @@
               "oneOf": [
                 {
                   "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SplitNameDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
@@ -22359,6 +22381,9 @@
                   "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/SplitNameDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -24137,6 +24162,9 @@
                   "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
+                  "$ref": "#/components/schemas/SplitNameDefaultFieldInput_2024_06_14"
+                },
+                {
                   "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
                 },
                 {
@@ -24683,6 +24711,9 @@
               "oneOf": [
                 {
                   "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SplitNameDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
@@ -32872,7 +32903,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "object",
+            "type": "string",
             "description": "The status of the request, always 'success' for successful responses",
             "example": "success",
             "enum": ["success", "error"]
@@ -32914,7 +32945,7 @@
         "type": "object",
         "properties": {
           "status": {
-            "type": "object",
+            "type": "string",
             "description": "The status of the request, always 'success' for successful responses",
             "example": "success",
             "enum": ["success", "error"]
@@ -33002,6 +33033,121 @@
             "items": {
               "$ref": "#/components/schemas/CalMeetingSession"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "BookingAttendeeWithId_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "id": {
+            "type": "number",
+            "example": 251
+          }
+        },
+        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id"]
+      },
+      "GetBookingAttendeesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetBookingAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
           }
         },
         "required": ["status", "data"]
@@ -33181,121 +33327,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/BookingAttendeeOutput_2024_08_13"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "BookingAttendeeWithId_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "email": {
-            "type": "string",
-            "example": "john@example.com"
-          },
-          "displayEmail": {
-            "type": "string",
-            "example": "john@example.com",
-            "description": "Clean email for display purposes"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "America/New_York"
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "ar",
-              "ca",
-              "de",
-              "es",
-              "eu",
-              "he",
-              "id",
-              "ja",
-              "lv",
-              "pl",
-              "ro",
-              "sr",
-              "th",
-              "vi",
-              "az",
-              "cs",
-              "el",
-              "es-419",
-              "fi",
-              "hr",
-              "it",
-              "km",
-              "nl",
-              "pt",
-              "ru",
-              "sv",
-              "tr",
-              "zh-CN",
-              "bg",
-              "da",
-              "en",
-              "et",
-              "fr",
-              "hu",
-              "iw",
-              "ko",
-              "no",
-              "pt-BR",
-              "sk",
-              "ta",
-              "uk",
-              "zh-TW",
-              "bn"
-            ],
-            "example": "en"
-          },
-          "absent": {
-            "type": "boolean",
-            "example": false
-          },
-          "phoneNumber": {
-            "type": "string",
-            "example": "+1234567890"
-          },
-          "id": {
-            "type": "number",
-            "example": 251
-          }
-        },
-        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id"]
-      },
-      "GetBookingAttendeesOutput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
-            }
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GetBookingAttendeeOutput_2024_08_13": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
           }
         },
         "required": ["status", "data"]
