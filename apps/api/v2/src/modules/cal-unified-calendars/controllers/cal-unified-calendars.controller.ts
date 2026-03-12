@@ -126,7 +126,7 @@ export class CalUnifiedCalendarsController {
     const event = await this.googleCalendarService.createEventForUserByConnectionId(
       userId,
       credentialId,
-      calendarId ?? "primary",
+      calendarId?.trim() || "primary",
       body
     );
     const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
