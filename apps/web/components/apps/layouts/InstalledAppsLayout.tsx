@@ -11,7 +11,7 @@ export default function InstalledAppsLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest} title="Installed Apps" description="Manage your installed apps or change settings">
-      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="min-w-0 w-full">
+      <AppCategoryNavigation baseURL="/apps/installed">
         {children}
       </AppCategoryNavigation>
     </Shell>

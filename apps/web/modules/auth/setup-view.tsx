@@ -108,10 +108,9 @@ export function Setup(props: PageProps) {
           id={`wizard-step-${steps.length}`}
           name={`wizard-step-${steps.length}`}
           classNames={{
-            form: "mb-4 rounded-md bg-default px-0 pt-0 md:max-w-full",
+            form: "mb-4 md:max-w-full",
             appCategoryNavigationContainer: "max-h-[400px] overflow-y-auto md:p-4",
-            verticalTabsItem: "w-48! md:p-4",
-          }}
+          }}          
           baseURL={`/auth/setup?step=${steps.length}`}
           useQueryParam={true}
           onSubmit={() => {

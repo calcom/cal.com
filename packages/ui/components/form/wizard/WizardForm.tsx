@@ -58,7 +58,7 @@ export function WizardForm({
   }, [currentStep]);
 
   return (
-    <div className="mx-auto mt-4 print:w-full" data-testid="wizard-form">
+    <div className="mx-auto max-md:w-full mt-4 print:w-full" data-testid="wizard-form">
       <div className={classNames("overflow-hidden md:mb-2 md:w-[700px]", containerClassname)}>
         <div className="px-6 py-5">
           <h1 className="font-cal text-emphasis text-2xl" data-testid="step-title">

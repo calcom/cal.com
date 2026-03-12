@@ -5,10 +5,12 @@ import type { IconName } from "@calcom/ui/components/icon";
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
   baseUrlParsed.searchParams.set("category", category);
-  return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
+  return useQueryParam
+    ? `${baseUrlParsed.pathname}${baseUrlParsed.search}`
+    : `${baseURL}/${category}`;
 }
 
-type AppCategoryEntry = {
+export type AppCategoryEntry = {
   name: AppCategories;
   href: string;
   icon: IconName;

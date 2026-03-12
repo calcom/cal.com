@@ -2,7 +2,11 @@ import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
 import AdminAppsList from "~/apps/components/AdminAppsList";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ category: string }> }) =>
   await _generateMetadata(
@@ -17,16 +21,16 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader title={t("apps")} description={t("admin_apps_description")}>
-      <div className="flex">
-        <AdminAppsList
-          baseURL="/settings/admin/apps"
-          classNames={{
-            appCategoryNavigationRoot: "overflow-x-scroll",
-          }}
-        />
-      </div>
-    </SettingsHeader>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("apps")}>
+          <AppHeaderDescription>{t("admin_apps_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <AdminAppsList
+        baseURL="/settings/admin/apps"
+      />
+    </>
   );
 };
 
