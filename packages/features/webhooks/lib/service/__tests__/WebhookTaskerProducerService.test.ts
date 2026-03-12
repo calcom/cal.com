@@ -1,6 +1,6 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import type { IWebhookRepository } from "../../interface/IWebhookRepository";
 import type { ILogger } from "../../interface/infrastructure";
 import type { WebhookTasker } from "../../tasker/WebhookTasker";
 import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
@@ -13,13 +13,36 @@ import { WebhookTaskerProducerService } from "../WebhookTaskerProducerService";
 describe("WebhookTaskerProducerService", () => {
   let producer: WebhookTaskerProducerService;
   let mockWebhookTasker: WebhookTasker;
+  let mockWebhookRepository: IWebhookRepository;
   let mockLogger: ILogger;
+
+  const defaultSubscriber = {
+    id: "sub-1",
+    subscriberUrl: "https://example.com/webhook",
+    payloadTemplate: null,
+    appId: null,
+    secret: null,
+    time: null,
+    timeUnit: null,
+    eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+    version: "2021-10-20" as const,
+  };
 
   beforeEach(() => {
     // Mock WebhookTasker
     mockWebhookTasker = {
       deliverWebhook: vi.fn().mockResolvedValue({ taskId: "task-id-123" }),
     } as unknown as WebhookTasker;
+
+    // Mock WebhookRepository - default to returning subscribers
+    mockWebhookRepository = {
+      getSubscribers: vi.fn().mockResolvedValue([defaultSubscriber]),
+      getWebhookById: vi.fn(),
+      findByWebhookId: vi.fn(),
+      findByOrgIdAndTrigger: vi.fn(),
+      getFilteredWebhooksForUser: vi.fn(),
+      listWebhooks: vi.fn(),
+    } as unknown as IWebhookRepository;
 
     // Mock Logger
     mockLogger = {
@@ -32,6 +55,7 @@ describe("WebhookTaskerProducerService", () => {
 
     producer = new WebhookTaskerProducerService({
       webhookTasker: mockWebhookTasker,
+      webhookRepository: mockWebhookRepository,
       logger: mockLogger,
     });
   });
@@ -57,6 +81,14 @@ describe("WebhookTaskerProducerService", () => {
         userId: 789,
       });
 
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+          userId: 789,
+          eventTypeId: 456,
+        })
+      );
+
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
@@ -65,6 +97,26 @@ describe("WebhookTaskerProducerService", () => {
           userId: 789,
           operationId: expect.any(String),
           timestamp: expect.any(String),
+        })
+      );
+    });
+
+    it("should not queue task when no subscribers match", async () => {
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([]);
+
+      await producer.queueBookingCreatedWebhook({
+        bookingUid: "booking-123",
+        eventTypeId: 456,
+        userId: 789,
+      });
+
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalled();
+      expect(mockWebhookTasker.deliverWebhook).not.toHaveBeenCalled();
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        "No webhook subscribers found, skipping task queue",
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+          bookingUid: "booking-123",
         })
       );
     });
@@ -165,6 +217,19 @@ describe("WebhookTaskerProducerService", () => {
           error: "WebhookTasker failed",
         })
       );
+    });
+
+    it("should propagate errors from webhookRepository.getSubscribers", async () => {
+      const error = new Error("DB connection failed");
+      vi.mocked(mockWebhookRepository.getSubscribers).mockRejectedValueOnce(error);
+
+      await expect(
+        producer.queueBookingCreatedWebhook({
+          bookingUid: "booking-123",
+        })
+      ).rejects.toThrow("DB connection failed");
+
+      expect(mockWebhookTasker.deliverWebhook).not.toHaveBeenCalled();
     });
   });
 

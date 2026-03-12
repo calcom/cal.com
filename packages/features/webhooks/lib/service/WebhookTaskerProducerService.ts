@@ -1,6 +1,7 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
 import type { BookingTriggerEvents, PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
+import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
@@ -26,6 +27,7 @@ import type { WebhookTaskPayload } from "../types/webhookTask";
  */
 export interface IWebhookTaskerProducerServiceDeps {
   webhookTasker: WebhookTasker;
+  webhookRepository: IWebhookRepository;
   logger: ILogger;
 }
 
@@ -147,7 +149,8 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
   }
 
   /**
-   * Internal helper to queue booking-related webhooks
+   * Internal helper to queue booking-related webhooks.
+   * Checks for matching subscribers before queuing to avoid unnecessary task creation.
    */
   private async queueBookingWebhook(
     triggerEvent: Exclude<
@@ -157,6 +160,24 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     params: QueueBookingWebhookParams
   ): Promise<void> {
     const operationId = params.operationId || uuidv4();
+
+    const subscribers = await this.deps.webhookRepository.getSubscribers({
+      triggerEvent,
+      userId: params.userId,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+    });
+
+    if (subscribers.length === 0) {
+      this.log.debug("No webhook subscribers found, skipping task queue", {
+        operationId,
+        triggerEvent,
+        bookingUid: params.bookingUid,
+      });
+      return;
+    }
 
     this.log.debug("Queueing booking webhook task", {
       operationId,
