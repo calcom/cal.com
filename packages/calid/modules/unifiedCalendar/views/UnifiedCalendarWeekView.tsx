@@ -47,7 +47,7 @@ export const UnifiedCalendarWeekView = ({
             <p
               className={cn(
                 "text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider",
-                isToday(day) && "text-active"
+                isToday(day) && "text-brand-default"
               )}>
               {format(day, "EEE")}
             </p>
@@ -55,7 +55,7 @@ export const UnifiedCalendarWeekView = ({
               <div
                 className={cn(
                   "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
-                  isToday(day) && "bg-active text-white"
+                  isToday(day) && "bg-brand-default text-white"
                 )}>
                 {format(day, "d")}
               </div>

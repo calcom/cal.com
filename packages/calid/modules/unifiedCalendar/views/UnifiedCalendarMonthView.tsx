@@ -67,7 +67,7 @@ export const UnifiedCalendarMonthView = ({
                     "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
                     !isCurrentMonth && "text-muted-foreground/30",
                     isCurrentMonth && "text-foreground/60",
-                    isToday(day) && "bg-active text-white"
+                    isToday(day) && "bg-brand-default text-white"
                   )}>
                   {format(day, "d")}
                 </div>
