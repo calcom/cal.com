@@ -1,11 +1,11 @@
 import { cn } from "@calid/features/lib/cn";
-import { differenceInMinutes, format, isSameDay, isToday, setHours, startOfDay } from "date-fns";
+import { differenceInMinutes, format, isSameDay, setHours, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { UnifiedCalendarEventBlock } from "../components/UnifiedCalendarEventBlock";
 import { HOURS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
-import { getCurrentTimeTop, splitEventsForDay } from "../lib/utils";
+import { splitEventsForDay } from "../lib/utils";
 
 interface UnifiedCalendarDayColumnProps {
   day: Date;
@@ -58,8 +58,6 @@ export const UnifiedCalendarDayColumn = ({
     column.forEach((event) => eventColumnMap.set(event.id, { col: columnIndex, total: eventColumns.length }));
   });
 
-  const currentTimeTop = getCurrentTimeTop();
-
   return (
     <div
       key={day.toISOString()}
@@ -83,15 +81,6 @@ export const UnifiedCalendarDayColumn = ({
           style={{ top: `${((hour + 0.5) / 24) * 100}%` }}
         />
       ))}
-
-      {isToday(day) && (
-        <div
-          className="pointer-events-none absolute left-0 right-0 z-20 flex items-center"
-          style={{ top: `${currentTimeTop}%` }}>
-          <div className="bg-destructive/70 -ml-1 h-2 w-2 rounded-full" />
-          <div className="bg-destructive/50 h-px flex-1" />
-        </div>
-      )}
 
       {dragPreview?.dropSurface === "time-grid" && isSameDay(dragPreview.start, day) && (
         <div

@@ -973,10 +973,7 @@ const UnifiedCalendarPage = () => {
   };
 
   return (
-    <div
-      className="bg-background min-h-screen"
-      data-query-from={queryRange.from}
-      data-query-to={queryRange.to}>
+    <div className="bg-default min-h-screen" data-query-from={queryRange.from} data-query-to={queryRange.to}>
       <UnifiedCalendarToolbar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((value) => !value)}
@@ -1032,7 +1029,7 @@ const UnifiedCalendarPage = () => {
                 {pageFlipIntent === "prev" && (
                   <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-40 w-16">
                     <div className="from-primary/35 via-primary/18 to-primary/0 flex h-full w-full items-center justify-start bg-gradient-to-r pl-1.5">
-                      <div className="border-primary/45 bg-background/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                      <div className="border-primary/45 bg-default/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
                         <ChevronLeft className="h-4 w-4" />
                       </div>
                     </div>
@@ -1041,7 +1038,7 @@ const UnifiedCalendarPage = () => {
                 {pageFlipIntent === "next" && (
                   <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-40 w-16">
                     <div className="from-primary/35 via-primary/18 to-primary/0 flex h-full w-full items-center justify-end bg-gradient-to-l pr-1.5">
-                      <div className="border-primary/45 bg-background/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                      <div className="border-primary/45 bg-default/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
                         <ChevronRight className="h-4 w-4" />
                       </div>
                     </div>
@@ -1050,7 +1047,7 @@ const UnifiedCalendarPage = () => {
                 {verticalScrollIntent === "up" && (
                   <div className="pointer-events-none absolute left-0 right-0 top-0 z-40 h-16">
                     <div className="from-accent/35 via-accent/16 to-accent/0 flex h-full w-full items-start justify-center bg-gradient-to-b pt-1.5">
-                      <div className="border-accent/45 bg-background/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                      <div className="border-accent/45 bg-default/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
                         <ChevronUp className="h-4 w-4" />
                       </div>
                     </div>
@@ -1059,7 +1056,7 @@ const UnifiedCalendarPage = () => {
                 {verticalScrollIntent === "down" && (
                   <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-40 h-16">
                     <div className="from-accent/35 via-accent/16 to-accent/0 flex h-full w-full items-end justify-center bg-gradient-to-t pb-1.5">
-                      <div className="border-accent/45 bg-background/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                      <div className="border-accent/45 bg-default/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
                         <ChevronDown className="h-4 w-4" />
                       </div>
                     </div>

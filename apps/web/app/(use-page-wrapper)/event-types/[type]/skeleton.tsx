@@ -68,7 +68,7 @@ export const EventTypeEditPageSkeleton = () => {
 
   return (
     <Shell heading="Edit Event" subtitle="Edit your event type" backPath="/event-types" CTA={ctaSkeleton}>
-      <div className="bg-background min-h-screen">
+      <div className="bg-default min-h-screen">
         {/* Horizontal tabs skeleton */}
         <div className="bg-primary border-b border-default">
           <div className="flex space-x-8">
@@ -84,7 +84,7 @@ export const EventTypeEditPageSkeleton = () => {
         </div>
 
         {/* Content skeleton */}
-        <div className="bg-background py-4">
+        <div className="bg-default py-4">
           <div className="mx-auto max-w-none">
             <SetupTabSkeleton />
           </div>

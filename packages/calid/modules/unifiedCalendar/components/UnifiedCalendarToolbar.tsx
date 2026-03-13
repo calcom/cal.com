@@ -29,7 +29,7 @@ export const UnifiedCalendarToolbar = ({
   isMobile,
 }: UnifiedCalendarToolbarProps) => {
   return (
-    <div className="bg-background/95 border-border/30 sticky top-0 z-30 border-b backdrop-blur-sm">
+    <div className="bg-default/95 border-border/30 sticky top-0 z-30 border-b backdrop-blur-sm">
       <div className="flex flex-wrap items-center gap-2 px-4 py-2">
         <Button
           variant="icon"
@@ -81,8 +81,8 @@ export const UnifiedCalendarToolbar = ({
                 className={cn(
                   "min-w-[52px] rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-all",
                   viewMode === mode
-                    ? "bg-background text-foreground border-border/40 border shadow-sm"
-                    : "text-muted-foreground/70 hover:bg-background/60 hover:text-foreground"
+                    ? "bg-default text-foreground border-border/40 border shadow-sm"
+                    : "text-muted-foreground/70 hover:bg-default/60 hover:text-foreground"
                 )}
                 onClick={() => onChangeViewMode(mode)}>
                 {mode}

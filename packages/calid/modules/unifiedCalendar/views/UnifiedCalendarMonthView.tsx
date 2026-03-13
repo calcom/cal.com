@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { format, isSameMonth, isToday, startOfDay } from "date-fns";
+import { format, isSameMonth, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
@@ -53,7 +53,6 @@ export const UnifiedCalendarMonthView = ({
               className={cn(
                 "border-border/20 hover:bg-muted/15 min-h-[110px] cursor-pointer border-b border-r p-1.5 transition-colors",
                 !isCurrentMonth && "bg-muted/[0.04]",
-                isToday(day) && "bg-primary/[0.03]",
                 hoveredDayKey === day.toISOString() && "ring-primary/55 bg-primary/[0.05] ring-1 ring-inset"
               )}
               onClick={() => {
@@ -65,10 +64,8 @@ export const UnifiedCalendarMonthView = ({
               <p
                 className={cn(
                   "mb-1 text-[11px] font-medium",
-                  isToday(day) &&
-                    "bg-foreground text-background flex h-5 w-5 items-center justify-center rounded-full text-[10px]",
                   !isCurrentMonth && "text-muted-foreground/30",
-                  isCurrentMonth && !isToday(day) && "text-foreground/60"
+                  isCurrentMonth && "text-foreground/60"
                 )}>
                 {format(day, "d")}
               </p>
