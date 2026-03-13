@@ -8,7 +8,7 @@ export class AssignedOptionOutput extends OptionOutput {
   @Expose()
   @IsArray()
   @ApiProperty({
-    type: Array,
+    type: [Number],
     required: true,
     description: "Ids of the users assigned to the attribute option.",
     example: [124, 224],

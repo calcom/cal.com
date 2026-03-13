@@ -82,7 +82,7 @@ class User_2024_06_14 {
   id!: number;
 
   @IsString()
-  @DocsProperty({ nullable: true })
+  @DocsProperty({ nullable: true, type: String })
   name!: string | null;
 
   @IsString()
@@ -553,6 +553,7 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
+    type: String,
     example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
     nullable: true,
   })
@@ -566,7 +567,7 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 
   @Type(() => User_2024_06_14)
   @IsArray()
-  @DocsProperty()
+  @DocsProperty({ type: [User_2024_06_14] })
   users!: User_2024_06_14[];
 
   @IsString()
@@ -601,7 +602,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ValidateNested({ each: true })
   @Type(() => TeamEventTypeResponseHost)
   @IsArray()
-  @DocsProperty()
+  @DocsProperty({ type: [TeamEventTypeResponseHost] })
   hosts!: TeamEventTypeResponseHost[];
 
   @IsBoolean()
@@ -620,7 +621,7 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @ValidateNested()
   @Type(() => EventTypeTeam)
-  @DocsProperty()
+  @DocsProperty({ type: () => EventTypeTeam })
   team!: EventTypeTeam;
 
   @IsOptional()

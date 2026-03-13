@@ -18196,7 +18196,7 @@
           },
           "grant_type": {
             "type": "string",
-            "description": "The grant type — must be 'authorization_code'",
+            "description": "The grant type \u2014 must be 'authorization_code'",
             "example": "authorization_code",
             "enum": ["authorization_code"]
           },
@@ -18227,7 +18227,7 @@
           },
           "grant_type": {
             "type": "string",
-            "description": "The grant type — must be 'authorization_code'",
+            "description": "The grant type \u2014 must be 'authorization_code'",
             "example": "authorization_code",
             "enum": ["authorization_code"]
           },
@@ -18258,7 +18258,7 @@
           },
           "grant_type": {
             "type": "string",
-            "description": "The grant type — must be 'refresh_token'",
+            "description": "The grant type \u2014 must be 'refresh_token'",
             "example": "refresh_token",
             "enum": ["refresh_token"]
           },
@@ -18284,7 +18284,7 @@
           },
           "grant_type": {
             "type": "string",
-            "description": "The grant type — must be 'refresh_token'",
+            "description": "The grant type \u2014 must be 'refresh_token'",
             "example": "refresh_token",
             "enum": ["refresh_token"]
           },
@@ -19646,7 +19646,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10\u201312).\n    "
           }
         },
         "required": ["type", "value"]
@@ -19667,7 +19667,7 @@
           "rolling": {
             "type": "boolean",
             "example": true,
-            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10–12).\n    "
+            "description": "\n      Determines the behavior of the booking window:\n      - If **true**, the window is rolling. This means the number of available days will always be equal the specified 'value' \n        and adjust dynamically as bookings are made. For example, if 'value' is 3 and availability is only on Mondays, \n        a booker attempting to schedule on November 10 will see slots on November 11, 18, and 25. As one of these days \n        becomes fully booked, a new day (e.g., December 2) will open up to ensure 3 available days are always visible.\n      - If **false**, the window is fixed. This means the booking window only considers the next 'value' days from the\n        moment someone is trying to book. For example, if 'value' is 3, availability is only on Mondays, and the current \n        date is November 10, the booker will only see slots on November 11 because the window is restricted to the next \n        3 calendar days (November 10\u201312).\n    "
           }
         },
         "required": ["type", "value"]
@@ -21501,6 +21501,50 @@
           }
         }
       },
+      "User_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "avatarUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "metadata"
+        ]
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -21828,7 +21872,7 @@
           "users": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/User_2024_06_14"
             }
           },
           "bookingUrl": {
@@ -21876,6 +21920,37 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamEventTypeResponseHost": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "Which user is the host of this event"
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["lowest", "low", "medium", "high", "highest"]
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "john-doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+            "nullable": true
+          }
+        },
+        "required": ["userId", "name", "username"]
       },
       "EventTypeTeam": {
         "type": "object",
@@ -22255,7 +22330,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -25029,7 +25104,7 @@
             "type": "string",
             "enum": ["collective", "roundRobin"],
             "example": "collective",
-            "description": "The scheduling type for the team event - collective or roundRobin. ❗If you change scheduling type you must also provide `hosts` or `assignAllTeamMembers` in the request body, otherwise the event type will have no hosts - this is required because\n      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one."
+            "description": "The scheduling type for the team event - collective or roundRobin. \u2757If you change scheduling type you must also provide `hosts` or `assignAllTeamMembers` in the request body, otherwise the event type will have no hosts - this is required because\n      in case of collective event type all hosts are mandatory but in case of round robin some or non can be mandatory so we can't predict how you want the hosts to be setup which is why you must provide that information.  If you want to convert round robin or collective into managed or managed into round robin or collective then you will have to create a new team event type and delete old one."
           },
           "hosts": {
             "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
@@ -25112,6 +25187,20 @@
         },
         "required": ["status", "data"]
       },
+      "DeletedTeamEventTypeData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Team Meeting"
+          }
+        },
+        "required": ["id", "title"]
+      },
       "DeleteTeamEventTypeOutput": {
         "type": "object",
         "properties": {
@@ -25121,7 +25210,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "type": "object"
+            "$ref": "#/components/schemas/DeletedTeamEventTypeData"
           }
         },
         "required": ["status", "data"]
@@ -25550,7 +25639,7 @@
             "example": [124, 224],
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           }
         },

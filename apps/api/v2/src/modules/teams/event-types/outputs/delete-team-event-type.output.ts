@@ -1,10 +1,19 @@
-import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsInt, IsString } from "class-validator";
 
-import { ApiResponseWithoutData, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import { ApiResponseWithoutData } from "@calcom/platform-types";
+
+class DeletedTeamEventTypeData {
+  @IsInt()
+  @ApiProperty({ example: 1 })
+  id!: number;
+
+  @IsString()
+  @ApiProperty({ example: "Team Meeting" })
+  title!: string;
+}
 
 export class DeleteTeamEventTypeOutput extends ApiResponseWithoutData {
-  @ValidateNested()
-  @Type(() => TeamEventTypeOutput_2024_06_14)
-  data!: Pick<TeamEventTypeOutput_2024_06_14, "id" | "title">;
+  @ApiProperty({ type: DeletedTeamEventTypeData })
+  data!: DeletedTeamEventTypeData;
 }
