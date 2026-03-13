@@ -435,4 +435,23 @@ export class WatchlistRepository implements IWatchlistRepository {
       meta: { totalRowCount },
     };
   }
+
+  async countOrgEntriesForValue(params: { type: WatchlistEntry["type"]; value: string }): Promise<number> {
+    return this.prismaClient.watchlist.count({
+      where: {
+        type: params.type,
+        value: params.value,
+        organizationId: { not: null },
+        isGlobal: false,
+      },
+    });
+  }
+
+  async findTeamNamesByIds(ids: number[]): Promise<Array<{ id: number; name: string }>> {
+    if (ids.length === 0) return [];
+    return this.prismaClient.team.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true },
+    });
+  }
 }

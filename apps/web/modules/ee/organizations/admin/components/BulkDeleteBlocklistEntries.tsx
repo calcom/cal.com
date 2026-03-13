@@ -53,6 +53,7 @@ export function BulkDeleteBlocklistEntries({ entries, onRemove }: Props) {
             ids: entries.map((entry) => entry.id),
           });
         }}>
+        <p className="mb-2 font-medium text-attention">{t("global_watchlist_scope_warning")}</p>
         <p className="mt-5">{t("remove_entries_confirm", { count: entries.length })}</p>
       </ConfirmationDialogContent>
     </Dialog>

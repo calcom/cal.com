@@ -8,6 +8,7 @@ import { ZCreateWatchlistEntryInputSchema } from "./create.schema";
 import { ZDeleteWatchlistEntryInputSchema } from "./delete.schema";
 import { ZDismissReportInputSchema } from "./dismissReport.schema";
 import { ZGetWatchlistEntryDetailsInputSchema } from "./getDetails.schema";
+import { ZGetEntryImpactInputSchema } from "./getEntryImpact.schema";
 import { ZListWatchlistEntriesInputSchema } from "./list.schema";
 import { ZListReportsInputSchema } from "./listReports.schema";
 
@@ -64,6 +65,12 @@ export const watchlistRouter = router({
     .input(ZAddToWatchlistInputSchema)
     .mutation(async (opts) => {
       const { addToWatchlistHandler: handler } = await import("./addToWatchlist.handler");
+      return handler(opts);
+    }),
+  getEntryImpact: createSystemPbacProcedure("watchlist.read")
+    .input(ZGetEntryImpactInputSchema)
+    .query(async (opts) => {
+      const { getEntryImpactHandler: handler } = await import("./getEntryImpact.handler");
       return handler(opts);
     }),
   pendingReportsCount: createSystemPbacProcedure("watchlist.read").query(async () => {

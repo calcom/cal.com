@@ -12,9 +12,9 @@ describe("admin watchlist router (system PBAC wiring)", () => {
   const source = readFileSync(routerPath, "utf-8");
 
   describe("permission count per scope", () => {
-    it("uses watchlist.read for list, getDetails, listReports, pendingReportsCount", () => {
+    it("uses watchlist.read for list, getDetails, listReports, pendingReportsCount, getEntryImpact", () => {
       const matches = source.match(/createSystemPbacProcedure\("watchlist\.read"\)/g);
-      expect(matches).toHaveLength(4);
+      expect(matches).toHaveLength(5);
     });
 
     it("uses watchlist.create for create and addToWatchlist", () => {
@@ -50,6 +50,7 @@ describe("admin watchlist router (system PBAC wiring)", () => {
     it.each([
       ["list", "watchlist.read"],
       ["getDetails", "watchlist.read"],
+      ["getEntryImpact", "watchlist.read"],
       ["listReports", "watchlist.read"],
       ["pendingReportsCount", "watchlist.read"],
     ])("%s uses %s", (endpoint, expectedPermission) => {
@@ -94,9 +95,9 @@ describe("admin watchlist router (system PBAC wiring)", () => {
   });
 
   describe("all PBAC-protected endpoints use createSystemPbacProcedure", () => {
-    it("should have exactly 10 endpoints using createSystemPbacProcedure", () => {
+    it("should have exactly 11 endpoints using createSystemPbacProcedure", () => {
       const matches = source.match(/createSystemPbacProcedure\(/g);
-      expect(matches).toHaveLength(10);
+      expect(matches).toHaveLength(11);
     });
 
     it("should import createSystemPbacProcedure from pbacProcedures", () => {

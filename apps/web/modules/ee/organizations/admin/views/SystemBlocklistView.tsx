@@ -182,7 +182,7 @@ function SystemBlocklistContent() {
         </div>
         <div className="flex items-center gap-2">
           {activeView === "blocked" && resolvedPermissions.canCreate === true && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button color="destructive" StartIcon="ban" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
           )}

@@ -8,7 +8,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { ExternalLinkIcon, GlobeIcon, MailIcon } from "@coss/ui/icons";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { EntryImpactPanel, useEntryImpact } from "./EntryImpactPanel";
+
+const IMPACT_SUPPORTED_TYPES = new Set<WatchlistType>([WatchlistType.EMAIL, WatchlistType.DOMAIN]);
 
 interface FormData {
   blockType: WatchlistType;
@@ -42,6 +46,8 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
   const { t } = useLocale();
   const isSystem = scope === "system";
   const isDomainReport = entry?.bookerEmail.startsWith("@") ?? false;
+  const [step, setStep] = useState<"details" | "impact">("details");
+  const [pendingBlockType, setPendingBlockType] = useState<WatchlistType | null>(null);
 
   const {
     control,
@@ -54,9 +60,30 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        blockType: isDomainReport ? WatchlistType.DOMAIN : WatchlistType.EMAIL,
+      });
+      setStep("details");
+      setPendingBlockType(null);
+    }
+  }, [isOpen, reset, isDomainReport]);
+
   const onSubmit = (data: FormData) => {
     if (!entry) return;
+    if (isSystem && IMPACT_SUPPORTED_TYPES.has(data.blockType)) {
+      setPendingBlockType(data.blockType);
+      setStep("impact");
+      return;
+    }
     onAddToBlocklist(entry.bookerEmail, data.blockType);
+  };
+
+  const handleConfirmFromImpact = () => {
+    if (entry && pendingBlockType !== null) {
+      onAddToBlocklist(entry.bookerEmail, pendingBlockType);
+    }
   };
 
   const handleDismiss = () => {
@@ -64,9 +91,11 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
     onDismiss(entry.bookerEmail);
   };
 
-  const handleGoBack = () => {
+  const handleClose = () => {
     onClose();
     reset();
+    setStep("details");
+    setPendingBlockType(null);
   };
 
   const reasonMap: Record<string, string> = {
@@ -78,136 +107,200 @@ export function BookingReportDetailsModal<T extends GroupedBookingReport>({
   if (!entry) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent enableOverflow>
-        <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-5">
-            <div className="bg-subtle rounded-xl p-1">
-              <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
-              <div className="bg-default space-y-4 rounded-xl p-5">
-                <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">
-                    {isDomainReport ? t("domain") : t("email")}
-                  </label>
-                  <p className="text-subtle text-sm">{entry.bookerEmail}</p>
+        {step === "details" ? (
+          <>
+            <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="space-y-5">
+                <div className="bg-subtle rounded-xl p-1">
+                  <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
+                  <div className="bg-default space-y-4 rounded-xl p-5">
+                    <div>
+                      <label className="text-emphasis mb-1 block text-sm font-semibold">
+                        {isDomainReport ? t("domain") : t("email")}
+                      </label>
+                      <p className="text-subtle text-sm">{entry.bookerEmail}</p>
+                    </div>
+
+                    {isSystem && entry.organization && (
+                      <div>
+                        <label className="text-emphasis mb-1 block text-sm font-semibold">
+                          {t("organization")}
+                        </label>
+                        <p className="text-subtle text-sm">{entry.organization.name}</p>
+                      </div>
+                    )}
+
+                    {isSystem && !entry.organization && (
+                      <div>
+                        <label className="text-emphasis mb-1 block text-sm font-semibold">
+                          {t("organization")}
+                        </label>
+                        <p className="text-subtle text-sm">{t("individual")}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reason")}</label>
+                      <p className="text-subtle text-sm">{reasonMap[entry.reason] || entry.reason}</p>
+                    </div>
+
+                    <div>
+                      <label className="text-emphasis mb-1 block text-sm font-semibold">
+                        {t("reported_by")}
+                      </label>
+                      <p className="text-subtle text-sm">{entry.reporter?.email || "—"}</p>
+                    </div>
+
+                    <div>
+                      <label className="text-emphasis mb-1 block text-sm font-semibold">
+                        {t("description")}
+                      </label>
+                      <p className="text-subtle text-sm">
+                        {entry.description || t("no_description_provided")}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-emphasis mb-1 block text-sm font-semibold">
+                        {t("related_bookings")} ({entry.reports.length})
+                      </label>
+                      <div className="max-h-32 space-y-1 overflow-y-auto">
+                        {entry.reports.map((report) => (
+                          <Link key={report.id} href={`/booking/${report.booking.uid}`}>
+                            <div className="text-subtle hover:text-emphasis flex items-center gap-1 text-sm">
+                              {report.booking.title || t("untitled")}
+                              <ExternalLinkIcon className="h-3 w-3" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {isSystem && entry.organization && (
+                {!isDomainReport && (
                   <div>
-                    <label className="text-emphasis mb-1 block text-sm font-semibold">
-                      {t("organization")}
-                    </label>
-                    <p className="text-subtle text-sm">{entry.organization.name}</p>
-                  </div>
-                )}
-
-                {isSystem && !entry.organization && (
-                  <div>
-                    <label className="text-emphasis mb-1 block text-sm font-semibold">
-                      {t("organization")}
-                    </label>
-                    <p className="text-subtle text-sm">{t("individual")}</p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reason")}</label>
-                  <p className="text-subtle text-sm">{reasonMap[entry.reason] || entry.reason}</p>
-                </div>
-
-                <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reported_by")}</label>
-                  <p className="text-subtle text-sm">{entry.reporter?.email || "—"}</p>
-                </div>
-
-                <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("description")}</label>
-                  <p className="text-subtle text-sm">{entry.description || t("no_description_provided")}</p>
-                </div>
-
-                <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">
-                    {t("related_bookings")} ({entry.reports.length})
-                  </label>
-                  <div className="max-h-32 space-y-1 overflow-y-auto">
-                    {entry.reports.map((report) => (
-                      <Link key={report.id} href={`/booking/${report.booking.uid}`}>
-                        <div className="text-subtle hover:text-emphasis flex items-center gap-1 text-sm">
-                          {report.booking.title || t("untitled")}
-                          <ExternalLinkIcon className="h-3 w-3" />
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {!isDomainReport && (
-              <div>
-                <h2 className="text-emphasis mb-2 text-base font-semibold">
-                  {t("what_would_you_like_to_block")}
-                </h2>
-                {isSystem && <p className="text-subtle mb-3 text-sm">{t("system_wide_blocklist_warning")}</p>}
-                <Controller
-                  name="blockType"
-                  control={control}
-                  render={({ field }) => (
-                    <ToggleGroup
-                      value={field.value}
-                      onValueChange={(value) => {
-                        if (value) field.onChange(value);
-                      }}
-                      options={[
-                        {
-                          value: WatchlistType.EMAIL,
-                          label: t("block_this_email"),
-                          iconLeft: <MailIcon className="h-4 w-4" />,
-                        },
-                        {
-                          value: WatchlistType.DOMAIN,
-                          label: t("block_all_from_domain"),
-                          iconLeft: <GlobeIcon className="h-4 w-4" />,
-                        },
-                      ]}
+                    <h2 className="text-emphasis mb-2 text-base font-semibold">
+                      {t("what_would_you_like_to_block")}
+                    </h2>
+                    {isSystem && (
+                      <p className="text-subtle mb-3 text-sm">{t("system_wide_blocklist_warning")}</p>
+                    )}
+                    <Controller
+                      name="blockType"
+                      control={control}
+                      render={({ field }) => (
+                        <ToggleGroup
+                          value={field.value}
+                          onValueChange={(value) => {
+                            if (value) field.onChange(value);
+                          }}
+                          options={[
+                            {
+                              value: WatchlistType.EMAIL,
+                              label: t("block_this_email"),
+                              iconLeft: <MailIcon className="h-4 w-4" />,
+                            },
+                            {
+                              value: WatchlistType.DOMAIN,
+                              label: t("block_all_from_domain"),
+                              iconLeft: <GlobeIcon className="h-4 w-4" />,
+                            },
+                          ]}
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <DialogFooter className="mt-6">
-            <div className="flex w-full items-center justify-between">
-              <Button
-                type="button"
-                color="minimal"
-                onClick={handleGoBack}
-                disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
-                {t("go_back")}
-              </Button>
+              <DialogFooter className="mt-6">
+                <div className="flex w-full items-center justify-between">
+                  <Button
+                    type="button"
+                    color="minimal"
+                    onClick={handleClose}
+                    disabled={isSubmitting || isAddingToBlocklist || isDismissing}>
+                    {t("go_back")}
+                  </Button>
 
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  color="secondary"
-                  onClick={handleDismiss}
-                  loading={isDismissing}
-                  disabled={!canDismiss || isSubmitting || isAddingToBlocklist || isDismissing}>
-                  {t("dont_block")}
-                </Button>
-                <Button
-                  type="submit"
-                  loading={isSubmitting || isAddingToBlocklist}
-                  disabled={!canAddToBlocklist || isSubmitting || isAddingToBlocklist || isDismissing}>
-                  {t(isSystem ? "add_to_system_blocklist" : "add_to_blocklist")}
-                </Button>
-              </div>
-            </div>
-          </DialogFooter>
-        </form>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      color="secondary"
+                      onClick={handleDismiss}
+                      loading={isDismissing}
+                      disabled={!canDismiss || isSubmitting || isAddingToBlocklist || isDismissing}>
+                      {t("dont_block")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      loading={isSubmitting || isAddingToBlocklist}
+                      disabled={!canAddToBlocklist || isSubmitting || isAddingToBlocklist || isDismissing}>
+                      {isSystem ? t("check_impact") : t("add_to_blocklist")}
+                    </Button>
+                  </div>
+                </div>
+              </DialogFooter>
+            </form>
+          </>
+        ) : (
+          <ReportImpactStep
+            entry={entry}
+            blockType={pendingBlockType ?? WatchlistType.EMAIL}
+            onBack={() => setStep("details")}
+            onConfirm={handleConfirmFromImpact}
+            isPending={isAddingToBlocklist}
+          />
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ReportImpactStep({
+  entry,
+  blockType,
+  onBack,
+  onConfirm,
+  isPending,
+}: {
+  entry: GroupedBookingReport;
+  blockType: WatchlistType;
+  onBack: () => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  const { t } = useLocale();
+
+  const impactValue =
+    blockType === WatchlistType.DOMAIN
+      ? (entry.bookerEmail.split("@")[1] ?? entry.bookerEmail)
+      : entry.bookerEmail;
+
+  const { data: impact, isLoading } = useEntryImpact({ type: blockType, value: impactValue });
+
+  return (
+    <>
+      <DialogHeader title={t("blast_radius")} />
+      <p className="text-subtle -mt-2 mb-2 text-sm">
+        {blockType === WatchlistType.DOMAIN ? t("domain") : t("email")}:{" "}
+        <code className="bg-subtle text-emphasis rounded px-1.5 py-0.5 text-sm font-semibold">{impactValue}</code>
+      </p>
+
+      <EntryImpactPanel impact={impact} isLoading={isLoading} />
+
+      <DialogFooter className="mt-6">
+        <Button type="button" color="secondary" onClick={onBack} disabled={isPending}>
+          {t("back")}
+        </Button>
+        <Button type="button" color="destructive" StartIcon="ban" onClick={onConfirm} loading={isPending}>
+          {t("confirm_and_add_to_blocklist")}
+        </Button>
+      </DialogFooter>
+    </>
   );
 }

@@ -169,7 +169,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         </div>
         <div className="flex items-center gap-2">
           {permissions?.canCreate && (
-            <Button color="primary" StartIcon="plus" onClick={() => setShowCreateModal(true)}>
+            <Button color="destructive" StartIcon="ban" onClick={() => setShowCreateModal(true)}>
               {t("add")}
             </Button>
           )}

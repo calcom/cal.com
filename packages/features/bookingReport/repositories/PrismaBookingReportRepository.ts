@@ -1,12 +1,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { BookingReportStatus, SystemReportStatus } from "@calcom/prisma/enums";
 import type { Prisma } from "@calcom/prisma/generated/prisma/client";
-
 import type {
-  IBookingReportRepository,
-  CreateBookingReportInput,
   BookingReportWithDetails,
+  CreateBookingReportInput,
   GroupedBookingReportWithDetails,
+  IBookingReportRepository,
   ListBookingReportsFilters,
   SystemBookingReportsFilters,
 } from "./IBookingReportRepository";
@@ -407,5 +406,47 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       },
       select: { id: true, bookerEmail: true, globalWatchlistId: true },
     });
+  }
+
+  async getReportReasonCounts(params: { email: string; isExactEmail: boolean; since: Date }) {
+    return this.prismaClient.bookingReport.groupBy({
+      by: ["reason"],
+      where: {
+        createdAt: { gte: params.since },
+        bookerEmail: params.isExactEmail
+          ? { equals: params.email, mode: "insensitive" }
+          : { endsWith: params.email, mode: "insensitive" },
+      },
+      _count: { id: true },
+    });
+  }
+
+  async countReportsPerOrg(params: {
+    email: string;
+    isExactEmail: boolean;
+    orgIds: number[];
+    since: Date;
+  }): Promise<Map<number, number>> {
+    if (params.orgIds.length === 0) return new Map();
+
+    const groups = await this.prismaClient.bookingReport.groupBy({
+      by: ["organizationId"],
+      where: {
+        createdAt: { gte: params.since },
+        organizationId: { in: params.orgIds },
+        bookerEmail: params.isExactEmail
+          ? { equals: params.email, mode: "insensitive" }
+          : { endsWith: params.email, mode: "insensitive" },
+      },
+      _count: { id: true },
+    });
+
+    const map = new Map<number, number>();
+    for (const g of groups) {
+      if (g.organizationId !== null) {
+        map.set(g.organizationId, g._count.id);
+      }
+    }
+    return map;
   }
 }

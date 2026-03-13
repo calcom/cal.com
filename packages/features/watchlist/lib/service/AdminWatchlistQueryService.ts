@@ -3,11 +3,11 @@ import type {
   SystemBookingReportsFilters,
 } from "@calcom/features/bookingReport/repositories/IBookingReportRepository";
 import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
-import type { PrismaClient } from "@calcom/prisma";
-import type { WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
-
+import type { WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 import { WatchlistErrors } from "../errors/WatchlistErrors";
 
 export interface ListWatchlistEntriesInput {
@@ -36,8 +36,8 @@ export interface ListBookingReportsInput {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
+  bookingRepo: BookingRepository;
   userRepo: UserRepository;
-  prisma: PrismaClient;
 };
 
 export class AdminWatchlistQueryService {
@@ -130,5 +130,148 @@ export class AdminWatchlistQueryService {
 
   async getPendingReportsCount(): Promise<number> {
     return this.deps.bookingReportRepo.countSystemPendingReports();
+  }
+
+  async getEntryImpact({ type, value }: { type: WatchlistType; value: string }) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const isEmail = type === "EMAIL";
+    const attendeeWhere = isEmail ? { email: value } : { email: { endsWith: `@${value}` } };
+    const bookerEmail = isEmail ? value : `@${value}`;
+
+    const [bookingStats, recentBookingCount, distinctHostCount, reportData, existingOrgBlockCount, orgResult] =
+      await this.fetchImpactData({
+        type,
+        value,
+        attendeeWhere,
+        bookerEmail,
+        isExactEmail: isEmail,
+        thirtyDaysAgo,
+        sevenDaysAgo,
+      });
+
+    const { totalBookings, statusBreakdown } = this.aggregateBookingStats(bookingStats);
+    const { reportCount, reportsByReason } = this.aggregateReportData(reportData);
+    const { topAffectedOrgs, affectedOrgCount } = await this.resolveAffectedOrgs({
+      orgResult,
+      bookerEmail,
+      isExactEmail: isEmail,
+      thirtyDaysAgo,
+    });
+
+    return {
+      totalBookings,
+      recentBookings: recentBookingCount,
+      distinctHostCount,
+      affectedOrgCount,
+      reportCount,
+      reportsByReason,
+      existingOrgBlockCount,
+      statusBreakdown,
+      topAffectedOrgs,
+    };
+  }
+
+  private async fetchImpactData({
+    type,
+    value,
+    attendeeWhere,
+    bookerEmail,
+    isExactEmail,
+    thirtyDaysAgo,
+    sevenDaysAgo,
+  }: {
+    type: WatchlistType;
+    value: string;
+    attendeeWhere: { email: string } | { email: { endsWith: string } };
+    bookerEmail: string;
+    isExactEmail: boolean;
+    thirtyDaysAgo: Date;
+    sevenDaysAgo: Date;
+  }) {
+    return Promise.all([
+      this.deps.bookingRepo.getBookingStatsByAttendee({ attendeeWhere, since: thirtyDaysAgo }),
+      this.deps.bookingRepo.countBookingsByAttendee({ attendeeWhere, since: sevenDaysAgo }),
+      this.deps.bookingRepo.countDistinctHostsByAttendee({ attendeeWhere, since: thirtyDaysAgo }),
+      this.deps.bookingReportRepo.getReportReasonCounts({ email: bookerEmail, isExactEmail, since: thirtyDaysAgo }),
+      this.deps.watchlistRepo.countOrgEntriesForValue({ type, value }),
+      this.deps.bookingRepo.getTopOrgsByAttendeeBookings({ attendeeWhere, since: thirtyDaysAgo, limit: 3 }),
+    ]);
+  }
+
+  private aggregateBookingStats(bookingStats: Array<{ status: string; _count: { id: number } }>) {
+    const STATUS_MAP: Record<string, keyof typeof statusBreakdown> = {
+      ACCEPTED: "accepted",
+      CANCELLED: "cancelled",
+      REJECTED: "rejected",
+      PENDING: "pending",
+      AWAITING_HOST: "awaitingHost",
+    };
+    const statusBreakdown = { accepted: 0, cancelled: 0, rejected: 0, pending: 0, awaitingHost: 0 };
+    let totalBookings = 0;
+
+    for (const row of bookingStats) {
+      const count = row._count.id;
+      totalBookings += count;
+      const key = STATUS_MAP[row.status];
+      if (key) statusBreakdown[key] += count;
+    }
+
+    return { totalBookings, statusBreakdown };
+  }
+
+  private aggregateReportData(reportData: Array<{ reason: string; _count: { id: number } }>) {
+    const reportsByReason = { spam: 0, dontKnowPerson: 0, other: 0 };
+    let reportCount = 0;
+
+    for (const row of reportData) {
+      const count = row._count.id;
+      reportCount += count;
+      if (row.reason === BookingReportReason.SPAM) reportsByReason.spam += count;
+      else if (row.reason === BookingReportReason.DONT_KNOW_PERSON) reportsByReason.dontKnowPerson += count;
+      else reportsByReason.other += count;
+    }
+
+    return { reportCount, reportsByReason };
+  }
+
+  private async resolveAffectedOrgs({
+    orgResult,
+    bookerEmail,
+    isExactEmail,
+    thirtyDaysAgo,
+  }: {
+    orgResult: { topOrgs: Array<{ organizationId: number; bookingCount: number }>; totalOrgCount: number };
+    bookerEmail: string;
+    isExactEmail: boolean;
+    thirtyDaysAgo: Date;
+  }) {
+    const orgIds = orgResult.topOrgs.map((r) => r.organizationId);
+
+    const [orgNames, reportCountsPerOrg] = await Promise.all([
+      this.deps.watchlistRepo.findTeamNamesByIds(orgIds),
+      this.deps.bookingReportRepo.countReportsPerOrg({
+        email: bookerEmail,
+        isExactEmail,
+        orgIds,
+        since: thirtyDaysAgo,
+      }),
+    ]);
+
+    const orgNameMap = new Map(orgNames.map((o) => [o.id, o.name]));
+
+    return {
+      affectedOrgCount: orgResult.totalOrgCount,
+      topAffectedOrgs: orgResult.topOrgs.map((r) => ({
+        id: r.organizationId,
+        name: orgNameMap.get(r.organizationId) ?? "Unknown",
+        bookingCount: r.bookingCount,
+        reportCount: reportCountsPerOrg.get(r.organizationId) ?? 0,
+      })),
+    };
   }
 }

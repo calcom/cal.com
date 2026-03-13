@@ -1,4 +1,5 @@
 import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { moduleLoader as loggerModuleLoader } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
@@ -104,13 +105,14 @@ export function getOrganizationWatchlistOperationsService(
 export function getAdminWatchlistQueryService(): AdminWatchlistQueryService {
   const watchlistRepo = new WatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const bookingRepo = new BookingRepository(prisma);
   const userRepo = new UserRepository(prisma);
 
   return new AdminWatchlistQueryService({
     watchlistRepo,
     bookingReportRepo,
+    bookingRepo,
     userRepo,
-    prisma,
   });
 }
 

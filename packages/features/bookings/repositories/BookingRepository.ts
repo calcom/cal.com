@@ -1,6 +1,7 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Booking, Prisma } from "@calcom/prisma/client";
+import type { Booking } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, RRTimestampBasis } from "@calcom/prisma/enums";
 import {
   bookingAuthorizationCheckSelect,
@@ -2329,5 +2330,91 @@ export class BookingRepository implements IBookingRepository {
         },
       },
     });
+  }
+
+  async getBookingStatsByAttendee(params: {
+    attendeeWhere: { email: string } | { email: { endsWith: string } };
+    since: Date;
+  }) {
+    return this.prismaClient.booking.groupBy({
+      by: ["status"],
+      where: {
+        createdAt: { gte: params.since },
+        attendees: { some: params.attendeeWhere },
+      },
+      _count: { id: true },
+    });
+  }
+
+  async countBookingsByAttendee(params: {
+    attendeeWhere: { email: string } | { email: { endsWith: string } };
+    since: Date;
+  }) {
+    return this.prismaClient.booking.count({
+      where: {
+        createdAt: { gte: params.since },
+        attendees: { some: params.attendeeWhere },
+      },
+    });
+  }
+
+  async countDistinctHostsByAttendee(params: {
+    attendeeWhere: { email: string } | { email: { endsWith: string } };
+    since: Date;
+  }): Promise<number> {
+    const emailFilter = this.attendeeEmailFilter(params.attendeeWhere);
+    const rows = await this.prismaClient.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(DISTINCT b."userId") as count
+      FROM "Booking" b
+      JOIN "Attendee" a ON a."bookingId" = b."id"
+      WHERE b."createdAt" >= ${params.since}
+        AND ${emailFilter}
+    `;
+    return Number(rows[0]?.count ?? 0);
+  }
+
+  /**
+   * Returns top N orgs by booking count AND total distinct org count in a single query.
+   * Avoids two separate round-trips for getTopOrgs + countDistinctOrgs.
+   */
+  async getTopOrgsByAttendeeBookings(params: {
+    attendeeWhere: { email: string } | { email: { endsWith: string } };
+    since: Date;
+    limit: number;
+  }): Promise<{ topOrgs: Array<{ organizationId: number; bookingCount: number }>; totalOrgCount: number }> {
+    const emailFilter = this.attendeeEmailFilter(params.attendeeWhere);
+
+    const rows = await this.prismaClient.$queryRaw<
+      Array<{ organizationId: number; bookingCount: bigint }>
+    >`
+      SELECT u."organizationId" as "organizationId", COUNT(*) as "bookingCount"
+      FROM "Booking" b
+      JOIN "Attendee" a ON a."bookingId" = b."id"
+      JOIN "users" u ON u."id" = b."userId"
+      WHERE b."createdAt" >= ${params.since}
+        AND u."organizationId" IS NOT NULL
+        AND ${emailFilter}
+      GROUP BY u."organizationId"
+      ORDER BY COUNT(*) DESC
+    `;
+
+    const totalOrgCount = rows.length;
+    const topOrgs = rows.slice(0, params.limit).map((r) => ({
+      organizationId: r.organizationId,
+      bookingCount: Number(r.bookingCount),
+    }));
+
+    return { topOrgs, totalOrgCount };
+  }
+
+  private attendeeEmailFilter(
+    where: { email: string } | { email: { endsWith: string } }
+  ): Prisma.Sql {
+    if ("email" in where && typeof where.email === "string") {
+      return Prisma.sql`a."email" = ${where.email}`;
+    }
+    const raw = (where as { email: { endsWith: string } }).email.endsWith;
+    const escaped = raw.replace(/[%_\\]/g, "\\$&");
+    return Prisma.sql`a."email" LIKE ${"%" + escaped}`;
   }
 }
