@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cal.diy Docs</title>
+    <style>
+      @font-face {
+        font-family: 'Cal Sans';
+        src: url('/fonts/CalSans-Regular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cal Sans UI';
+        src: url('/fonts/CalSansUI-UILight.woff2') format('woff2');
+        font-weight: 300;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cal Sans UI';
+        src: url('/fonts/CalSansUI-UIRegular.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cal Sans UI';
+        src: url('/fonts/CalSansUI-UIMedium.woff2') format('woff2');
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cal Sans UI';
+        src: url('/fonts/CalSansUI-UISemiBold.woff2') format('woff2');
+        font-weight: 600;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Cal Sans UI';
+        src: url('/fonts/CalSansUI-UIBold.woff2') format('woff2');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        -webkit-font-smoothing: antialiased;
+        font-family: 'Cal Sans UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 400;
+        letter-spacing: 0;
+        font-feature-settings: normal;
+      }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+  </head>
+  <body>
+    <div id="tome-root"></div>
+    <script type="module" src="./.tome/entry.tsx"></script>
+  </body>
+</html>

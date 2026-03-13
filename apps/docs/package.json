@@ -1,0 +1,19 @@
+{
+  "name": "@calcom/docs",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tome dev",
+    "build": "tome build",
+    "lint": "echo 'No lint configured'"
+  },
+  "dependencies": {
+    "@tomehq/cli": "^0.2.6",
+    "@tomehq/components": "^0.2.6",
+    "@tomehq/core": "^0.2.6",
+    "@tomehq/theme": "^0.2.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

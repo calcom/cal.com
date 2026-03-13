@@ -1,0 +1,147 @@
+---
+title: Installation
+description: Learn how to install and set up Cal.diy for self-hosting.
+---
+
+# Installation
+
+There are multiple ways in which you can deploy Cal.diy, providing support for customers who want to implement Cal.diy within their existing infrastructure stack. Let's go through them one-by-one. You can find the instructions for deployment in our README file, which is the section you see when you scroll down in our GitHub repository, or if you've got a copy of Cal.diy downloaded already, you can open the file contained in the downloaded repository called `README.md`.
+
+## Requirements
+
+Cal.diy runs with pretty minimal hardware requirements by itself. The most intensive part for the software is when you actually build the software, but once it's running it's relatively lightweight.
+
+Cal.diy works with a very large range of operating systems, as it only requires JavaScript execution to run. **Cal.diy is known to work well with Windows, Mac, Linux and BSD.** Although they do work well on all of them, for production deployments we would suggest Linux as the ideal platform. Any operating system that runs Node.js should be able to work too, but these are some of the common operating systems that we know work well.
+
+To run Cal.diy, you need to install a few things. **Node.js, yarn, Git and PostgreSQL**. We use **Prisma** for database maintenance, and is one of the dependencies. We won't publish installation guides for these as they have their own resources available on the internet. If you're on Linux/BSD, all of these things should be readily available on your package manager. Your best bet is searching for something like **Debian 12 PostgreSQL**, which will give you a guide to installing and configuring PostgreSQL on Debian Linux 12.
+
+> To ensure optimal performance and compatibility, we highly recommend using Node.js version 18 for your development environment. This version provides the best balance of stability, features, and security for this project. Please make sure to update your Node.js installation if necessary.
+
+## Production Build
+
+1. First, you git clone the repository with the following command, so you have a copy of the code.
+
+```bash
+git clone https://github.com/calcom/cal.diy.git
+```
+
+> If you are on windows, you would need to use the following command when cloning, with **admin privileges**:
+>
+> ```bash
+> git clone -c core.symlinks=true https://github.com/calcom/cal.diy.git
+> ```
+
+2. Then, go into the directory you just cloned with
+
+```bash
+cd cal.diy
+```
+
+and run
+
+```bash
+yarn
+```
+
+to install all of the dependencies. Essentially, dependencies are just things that Cal.diy needs to install to be able to work.
+
+3. Then, you just need to set up a couple of things. For that, we use a `.env` file. We just need to copy and paste the `.env.example` file and rename the copy to `.env`. Here you'll have a template with comments showing you the settings you need/might want to set.
+
+> For preview deployments on **Vercel**, please leave the following environment variables empty:
+>
+> - **NEXTAUTH_URL**
+> - **NEXT_PUBLIC_WEBSITE_URL**
+> - **NEXT_PUBLIC_WEBAPP_URL**
+
+4. Next, use the command
+
+```bash
+openssl rand -base64 32
+```
+
+(or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+
+5. You'll also want to fill out the `.env.appStore` file similar to the `.env` file as this includes keys to enable apps.
+
+#### Production Build
+
+For a production build, **please make sure** to set up E2E testing and [Upgrading](/upgrading) the database from earlier version, and the proceed to build as follows:
+
+```bash
+yarn build
+yarn start
+```
+
+> **Warning:** Please make sure to upgrade your database before you build for production
+
+## Cron Jobs
+
+There are a few features which require cron job setup. When self-hosting, you would probably need to set up cron jobs according to the hosting platform you are using. For instance, if you are hosting on Vercel, you would need to set up cron jobs by following [this document](https://vercel.com/guides/how-to-setup-cron-jobs).
+
+At cal.diy, the cron jobs are found in the following directory:
+
+```
+/apps/web/app/api/cron
+```
+
+## App store seeder
+
+> We recommend using the admin UI/wizard instead of the seeder to enable app store apps
+
+## API
+
+#### Step 1
+
+Copy the .env files from their respective example files:
+
+```bash
+cp apps/api/v2/.env.example apps/api/v2/.env
+cp .env.example .env
+```
+
+#### Step 2
+
+Install packages with yarn:
+
+```bash
+yarn
+```
+
+### Running API server
+
+Build & Run the API V2 with yarn:
+
+```bash
+yarn workspace @calcom/api-v2 build
+yarn workspace @calcom/api-v2 start
+```
+
+## One Click Deployments
+
+### Azure
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template)
+
+### GCP
+
+[![Run on Google Cloud](https://storage.googleapis.com/gweb-cloudblog-publish/images/run_on_google_cloud.max-300x300.png)](https://deploy.cloud.run/?git_repo=https://github.com/calcom/docker)
+
+### Railway
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/calcom)
+
+### Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
+
+### Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/calcom/cal.diy)
+
+## Elestio
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/cal.diy)
+
+## Other environments
+
+Cal.diy effectively is just a Next.js application, so any possible solution you find online pertaining to Next.js applications should work. One example is Netlify, which is pretty similar to Vercel. It says it supports Next.js, so you can deploy Cal.diy on Netlify. Refer to Netlify's docs on Next.js projects for more info. Another example is on a self hosted instance people may want to configure complex reverse proxies, SSL gateways and all sorts of other stuff. We can't officially support every configuration, but for any edge case where you may want to deploy Cal.diy with X, just refer to X's docs on Next.js applications and you should be fine. That's it. Your new self hosted Cal.diy instance should now be up and running.

@@ -1,0 +1,34 @@
+---
+title: Stripe
+description: Set up Stripe payment integration for Cal.diy.
+---
+
+# Stripe
+
+### Setting up Stripe
+
+1. **Create or log into a Stripe account** - Go to [Stripe](https://stripe.com) and either create a new account or log into an existing one. For testing, activate the Test-Mode toggle in the top right of the Stripe dashboard.
+
+2. **Save API keys** - Open [Stripe API Keys](https://dashboard.stripe.com/apikeys), then save the token starting with `pk_...` to `NEXT_PUBLIC_STRIPE_PUBLIC_KEY` and `sk_...` to `STRIPE_PRIVATE_KEY` in the `.env` file.
+
+3. **Activate OAuth for Standard Accounts** - Go to [Stripe Connect Settings](https://dashboard.stripe.com/settings/connect) and activate OAuth for Standard Accounts.
+
+4. **Add the redirect URL** - Add the following redirect URL, replacing `<Cal.com URL>` with your application's URL:
+
+```
+<Cal.com URL>/api/integrations/stripepayment/callback
+```
+
+5. **Save the Stripe Client ID** - Copy your client ID (`ca_...`) to `STRIPE_CLIENT_ID` in the `.env` file.
+
+6. **Set up a Stripe webhook** - Open [Stripe Webhooks](https://dashboard.stripe.com/webhooks) and add:
+
+```
+<Cal.com URL>/api/integrations/stripepayment/webhook
+```
+
+as the webhook for connected applications.
+
+7. **Select webhook events** - Select all `payment_intent` and `setup_intent` events for the webhook.
+
+8. **Save the webhook secret** - Copy the webhook secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET` in the `.env` file.

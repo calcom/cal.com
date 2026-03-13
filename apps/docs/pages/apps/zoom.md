@@ -1,0 +1,45 @@
+---
+title: Zoom
+description: Set up Zoom video conferencing integration for Cal.diy.
+---
+
+# Zoom
+
+### Obtaining Zoom Client ID and Secret
+
+1. **Sign into Zoom Marketplace** - Go to [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
+
+2. **Build a New App** - In the upper right, click "Develop" and then "Build App".
+
+3. **Create an OAuth App** - Under "OAuth", select "Create".
+
+4. **Name Your App** - Provide a name for your app.
+
+5. **Choose User-managed App Type** - Select "User-managed app" as the app type.
+
+6. **Set Marketplace Visibility** - De-select the option to publish the app on the Zoom App Marketplace.
+
+7. **Create the App** - Click "Create" to proceed.
+
+8. **Save Client ID and Secret** - Copy the Client ID and Client Secret and add them to your `.env` file under the fields:
+
+```
+ZOOM_CLIENT_ID
+ZOOM_CLIENT_SECRET
+```
+
+9. **Set the Redirect URL for OAuth** - Set the Redirect URL for OAuth to:
+
+```
+<Cal.com URL>/api/integrations/zoomvideo/callback
+```
+
+Replace `<Cal.com URL>` with your application URL.
+
+10. **Configure Allow List and Subdomain Check** - Add the redirect URL to the allow list and enable "Subdomain check". Ensure it displays "saved" below the form.
+
+11. **Skip Basic Information and Add Scopes** - You don't need to provide basic information about your app. Instead, go to "Scopes", click "+ Add Scopes", then select the category "Meeting" on the left, and check the scope `meeting:write`.
+
+12. **Save the Scope** - Click "Done" to save the scope settings.
+
+13. **Complete Zoom Integration** - Your Zoom integration is now ready and can be easily added in the Cal.com settings.

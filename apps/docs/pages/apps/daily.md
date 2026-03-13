@@ -1,0 +1,18 @@
+---
+title: Daily
+description: Set up Daily video conferencing integration for Cal.diy.
+---
+
+# Daily
+
+#### Obtaining Daily API Credentials
+
+1. **Open Daily and sign into your account** - Go to [Daily](https://daily.co) and sign into your account.
+
+2. **Navigate to the Developers tab** - From within your dashboard, go to the developers tab.
+
+3. **Copy your API key** - Copy the API key provided in the developers tab.
+
+4. **Paste the API key into the .env file** - Now paste the API key into the `DAILY_API_KEY` field in your `.env` file.
+
+5. **Set the DAILY_SCALE_PLAN variable (optional)** - If you have the Daily Scale Plan, set the `DAILY_SCALE_PLAN` variable to `true` in the `.env` file to use features like video recording.

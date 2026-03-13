@@ -1,0 +1,14 @@
+---
+title: Railway
+description: Deploy Cal.diy on Railway with one click.
+---
+
+# Railway
+
+You can deploy Cal.diy on Railway using the button below.
+
+The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calcom) on deploying Cal.diy on their platform.
+
+## One Click Deployment
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/calcom)
