@@ -345,7 +345,15 @@ export class GoogleCalendarService {
     const status = (error as { code?: number })?.code ?? (error as { status?: number })?.status;
     if (status === 400) return new BadRequestException(fallbackMessage);
     if (status === 401) return new UnauthorizedException(fallbackMessage);
-    if (status === 403) return new ForbiddenException(fallbackMessage);
+    if (status === 403) {
+      // Google returns 403 for both permission errors and quota/rate-limit errors.
+      // Check the error reason to distinguish retriable throttling from permanent permission denial.
+      const reason = (error as { errors?: Array<{ reason?: string }> })?.errors?.[0]?.reason;
+      if (reason === "rateLimitExceeded" || reason === "userRateLimitExceeded" || reason === "dailyLimitExceeded") {
+        return new HttpException(fallbackMessage, 429);
+      }
+      return new ForbiddenException(fallbackMessage);
+    }
     if (status === 404) return new NotFoundException(fallbackMessage);
     if (status === 429) return new HttpException(fallbackMessage, 429);
     return new InternalServerErrorException(fallbackMessage);
