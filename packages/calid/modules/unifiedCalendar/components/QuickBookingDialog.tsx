@@ -8,7 +8,7 @@ import { Label } from "@calid/features/ui/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { differenceInMinutes, format, setHours, setMinutes, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { getEventLocationType, isAttendeeInputRequired } from "@calcom/app-store/locations";
 import { trpc } from "@calcom/trpc/react";
@@ -123,6 +123,9 @@ export const QuickBookingDialog = ({
   onClose,
   onSubmit,
 }: QuickBookingDialogProps) => {
+  const wasOpenRef = useRef(false);
+  const initializedSlotKeyRef = useRef<string | null>(null);
+
   const locationOptionsQuery = trpc.viewer.apps.locationOptions.useQuery(
     {},
     {
@@ -167,6 +170,10 @@ export const QuickBookingDialog = ({
   useEffect(() => {
     if (!slot || !open) return;
 
+    const slotKey = `${startOfDay(slot.date).getTime()}-${slot.hour}`;
+    const shouldInitialize = !wasOpenRef.current || initializedSlotKeyRef.current !== slotKey;
+    if (!shouldInitialize) return;
+
     const initialDate = startOfDay(slot.date);
     const initialStartMinutes = Math.min(slot.hour * 60, LAST_START_MINUTES);
     const initialEndMinutes = Math.min(initialStartMinutes + 30, LAST_END_MINUTES);
@@ -181,7 +188,30 @@ export const QuickBookingDialog = ({
     setLocationInput("");
     setNotes("");
     setFormError(null);
+    wasOpenRef.current = true;
+    initializedSlotKeyRef.current = slotKey;
   }, [calendars, open, slot]);
+
+  useEffect(() => {
+    if (open) return;
+
+    wasOpenRef.current = false;
+    initializedSlotKeyRef.current = null;
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!calendarId && calendars.length > 0) {
+      setCalendarId(calendars[0].id);
+      return;
+    }
+    if (calendarId && calendars.some((calendar) => calendar.id === calendarId)) {
+      return;
+    }
+    if (calendarId || calendars.length === 0) {
+      setCalendarId(calendars[0]?.id || "");
+    }
+  }, [calendarId, calendars, open]);
 
   useEffect(() => {
     if (!locationType && flattenedLocationOptions.length > 0) {
