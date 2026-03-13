@@ -79,7 +79,26 @@ export function registerStyleSetter(
 export function resolveNs(): string | null | undefined {
   if (iframeState.ns !== undefined && iframeState.ns !== null) return iframeState.ns;
   if (inBrowser) {
-    iframeState.ns = window.getEmbedNamespace?.() ?? null;
+    const fromGlobal = window.getEmbedNamespace?.();
+    if (typeof fromGlobal === "string") {
+      iframeState.ns = fromGlobal;
+      return iframeState.ns;
+    }
+    const url = new URL(document.URL);
+    const fromParam = url.searchParams.get("embed");
+    if (typeof fromParam === "string") {
+      iframeState.ns = fromParam;
+      return iframeState.ns;
+    }
+    if (window.name.includes("cal-embed=")) {
+      iframeState.ns = window.name.replace(/cal-embed=(.*)/, "$1").trim();
+      return iframeState.ns;
+    }
+    if (url.pathname.endsWith("/embed")) {
+      iframeState.ns = "";
+      return iframeState.ns;
+    }
+    iframeState.ns = null;
     return iframeState.ns;
   }
 }
@@ -396,10 +415,11 @@ export function initFrameBridge(): void {
     const eventType = (e as any).detail.type;
     if (isPrerenderMode() && !PRERENDER_ALLOWED.includes(eventType)) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parent.postMessage({ originator: "CAL", ...(e as any).detail }, "");
+    parent.postMessage({ originator: "CAL", ...(e as any).detail }, "*");
   });
 
-  if (url.searchParams.get("preload") !== "true" && window.isEmbed?.()) {
+  const isEmbed = window.isEmbed?.() ?? resolveNs() !== null;
+  if (url.searchParams.get("preload") !== "true" && isEmbed) {
     beginEmbed();
   }
 }

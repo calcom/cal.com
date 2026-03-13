@@ -1487,6 +1487,24 @@ export default function FormEmbed({
   appUrl,
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.top === window) return;
+    if (window.isEmbed?.()) return;
+    const formId =
+      props.form?.id ||
+      (() => {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        return parts[parts.length - 1] || null;
+      })();
+    if (!formId) return;
+    const url = new URL(window.location.href);
+    if (!url.pathname.endsWith("/embed")) {
+      url.pathname = `/forms/${formId}/embed`;
+      window.location.replace(url.toString());
+    }
+  }, [props.form?.id]);
+
   const types = useEmbedTypes();
 
   const routingFormTypes = types.filter((type) => type.type !== "email");

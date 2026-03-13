@@ -1,5 +1,6 @@
 "use client";
 
+import "./sdk-event";
 import { initFrameBridge, frameActions } from "./iframe/bridge";
 import type { UiOptions, EmbedConfig, BookerEmbedState, SlotQueryStatus } from "./types/shared";
 
