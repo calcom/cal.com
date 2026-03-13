@@ -3,6 +3,7 @@ export { BookingReferenceRepository as PrismaBookingReferenceRepository } from "
 export { BookingRepository as PrismaBookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 export { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+export { PrismaTeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 export { TeamRepository as PrismaTeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 export { EventTypeRepository as PrismaEventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";

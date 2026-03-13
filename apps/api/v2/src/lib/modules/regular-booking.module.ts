@@ -2,7 +2,6 @@ import { BookingAuditTaskerModule } from "@/lib/modules/booking-audit-tasker.mod
 import { Logger } from "@/lib/logger.bridge";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
@@ -22,15 +21,16 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module, Scope } from "@nestjs/common";
 
 import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
+import { getTeamFeatureRepository } from "@calcom/platform-libraries/repositories";
 
 import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
+import { TEAM_FEATURE_REPOSITORY } from "./team-feature-repository.tokens";
 
 @Module({
   imports: [PrismaModule, BookingAuditTaskerModule],
   providers: [
     PrismaAttributeRepository,
     PrismaBookingRepository,
-    PrismaFeaturesRepository,
     PrismaHostRepository,
     PrismaOOORepository,
     PrismaUserRepository,
@@ -45,6 +45,10 @@ import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
       provide: WEBHOOK_PRODUCER,
       useFactory: () => getWebhookProducer(),
     },
+    {
+      provide: TEAM_FEATURE_REPOSITORY,
+      useFactory: () => getTeamFeatureRepository(),
+    },
     BookingAuditProducerService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
@@ -58,6 +62,6 @@ import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
     BookingEmailAndSmsTasker,
     RegularBookingService,
   ],
-  exports: [RegularBookingService, WEBHOOK_PRODUCER],
+  exports: [RegularBookingService, WEBHOOK_PRODUCER, TEAM_FEATURE_REPOSITORY],
 })
 export class RegularBookingModule {}

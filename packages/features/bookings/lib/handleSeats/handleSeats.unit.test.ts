@@ -50,7 +50,7 @@ vi.mock("../handleNewBooking/getBookingAuditActorForNewBooking", () => ({
   }),
 }));
 
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import prisma from "@calcom/prisma";
 import createNewSeat from "./create/createNewSeat";
 import handleSeats from "./handleSeats";
@@ -61,11 +61,10 @@ const mockPrisma = vi.mocked(prisma);
 const mockCreateNewSeat = vi.mocked(createNewSeat);
 const mockRescheduleSeatedBooking = vi.mocked(rescheduleSeatedBooking);
 
-function createMockFeaturesRepository(): FeaturesRepository {
+function createMockFeaturesRepository(): ITeamFeatureRepository {
   return {
     checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-    checkIfUserHasFeature: vi.fn().mockResolvedValue(false),
-  } as unknown as FeaturesRepository;
+  } as unknown as ITeamFeatureRepository;
 }
 
 function createMinimalBookingObject(overrides: Partial<NewSeatedBookingObject> = {}): NewSeatedBookingObject {

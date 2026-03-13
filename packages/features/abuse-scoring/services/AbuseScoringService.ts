@@ -1,4 +1,4 @@
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { WatchlistType } from "@calcom/prisma/enums";
 import type { AbuseAlerter } from "../lib/alerts";
@@ -25,10 +25,7 @@ export type AbuseScoringServiceDeps = {
     | "countRecentBookings"
     | "updateAbuseData"
   >;
-  featuresRepository: Pick<
-    FeaturesRepository,
-    "checkIfFeatureIsEnabledGlobally"
-  >;
+  featuresRepository: Pick<IFeatureRepository, "checkIfFeatureIsEnabledGlobally">;
   alerter: AbuseAlerter;
 };
 
@@ -44,10 +41,7 @@ export class AbuseScoringService {
   }
 
   async checkSignup(email: string, name?: string): Promise<SignupCheckResult> {
-    const enabled =
-      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-        "abuse-scoring"
-      );
+    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return { flagged: false, flags: [], initialScore: 0 };
 
     const patterns = await this.repository.findWatchlistPatterns([
@@ -99,10 +93,7 @@ export class AbuseScoringService {
     }
 
     const flagged = flags.length > 0;
-    const initialScore = Math.min(
-      flags.length * ABUSE_WEIGHTS.signupFlag,
-      SIGNUP_FLAG_CAP
-    );
+    const initialScore = Math.min(flags.length * ABUSE_WEIGHTS.signupFlag, SIGNUP_FLAG_CAP);
 
     if (flagged) {
       log.warn("Signup flagged", {
@@ -117,9 +108,7 @@ export class AbuseScoringService {
 
   async analyzeUser(userId: number, reason: string): Promise<void> {
     try {
-      const cutoff = new Date(
-        Date.now() - ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY
-      );
+      const cutoff = new Date(Date.now() - ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY);
       const user = await this.repository.findForScoring(userId, cutoff);
       if (!user) return;
 
@@ -133,16 +122,10 @@ export class AbuseScoringService {
         .filter((p) => p.type === WatchlistType.SPAM_KEYWORD)
         .map((p) => p.value.toLowerCase());
       const maliciousDomains = new Set(
-        patterns
-          .filter((p) => p.type === WatchlistType.REDIRECT_DOMAIN)
-          .map((p) => p.value.toLowerCase())
+        patterns.filter((p) => p.type === WatchlistType.REDIRECT_DOMAIN).map((p) => p.value.toLowerCase())
       );
 
-      const { score, signals } = calculateScore(
-        user,
-        maliciousDomains,
-        spamKeywords
-      );
+      const { score, signals } = calculateScore(user, maliciousDomains, spamKeywords);
 
       const shouldLock = score >= ABUSE_THRESHOLDS.lock;
 
@@ -196,10 +179,7 @@ export class AbuseScoringService {
 
   /** Gate 2: check if EventType content should be scanned. Does NOT require flags. */
   async shouldUsersCheckEventType(userId: number): Promise<boolean> {
-    const enabled =
-      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-        "abuse-scoring"
-      );
+    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
 
     const user = await this.repository.findForMonitoring(userId);
@@ -228,10 +208,7 @@ export class AbuseScoringService {
 
   /** Gate 3 (legacy): velocity check for unflagged accounts < 7 days. */
   async checkBookingVelocity(userId: number): Promise<boolean> {
-    const enabled =
-      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-        "abuse-scoring"
-      );
+    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
 
     const user = await this.repository.findForMonitoring(userId);
@@ -247,10 +224,7 @@ export class AbuseScoringService {
 
   /** Monitor check — requires flags (used for already-flagged users). */
   async shouldMonitor(userId: number): Promise<boolean> {
-    const enabled =
-      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-        "abuse-scoring"
-      );
+    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
 
     const user = await this.repository.findForMonitoring(userId);

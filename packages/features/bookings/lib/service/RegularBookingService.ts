@@ -51,7 +51,7 @@ import {
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -489,7 +489,7 @@ export interface IBookingServiceDependencies {
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
-  featuresRepository: FeaturesRepository;
+  teamFeatureRepository: ITeamFeatureRepository;
   bookingEventHandler: BookingEventHandlerService;
   webhookProducer: IWebhookProducerService;
 }
@@ -1867,7 +1867,7 @@ async function handler(
         traceContext,
         deps,
       },
-      deps.featuresRepository
+      deps.teamFeatureRepository
     );
 
     if (newBooking) {
@@ -2527,8 +2527,8 @@ async function handler(
   // TODO: We should support checkIfOrgHasFeatures - Bulk plus orgId check, that would be more efficient.
   const [isBookingEmailSmsTaskerEnabled, isBookingAuditEnabled] = orgId
     ? await Promise.all([
-        deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
-        deps.featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit"),
+        deps.teamFeatureRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
+        deps.teamFeatureRepository.checkIfTeamHasFeature(orgId, "booking-audit"),
       ])
     : [false, false];
 

@@ -4,7 +4,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -145,7 +145,7 @@ const fireBookingEvents = async ({
 
 const handleSeats = async (
   newSeatedBookingObject: NewSeatedBookingObject,
-  featuresRepository: FeaturesRepository
+  teamFeatureRepository: ITeamFeatureRepository
 ) => {
   const {
     eventType,
@@ -246,7 +246,7 @@ const handleSeats = async (
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await teamFeatureRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
     await fireBookingEvents({

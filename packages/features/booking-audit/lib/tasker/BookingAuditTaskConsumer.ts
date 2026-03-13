@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { JsonValue } from "@calcom/types/Json";
@@ -21,7 +21,7 @@ import type {
 interface BookingAuditTaskConsumerDeps {
   bookingAuditRepository: IBookingAuditRepository;
   auditActorRepository: IAuditActorRepository;
-  featuresRepository: IFeaturesRepository;
+  teamFeatureRepository: ITeamFeatureRepository;
   actionServiceRegistry: IBookingAuditActionServiceRegistry;
 }
 
@@ -61,12 +61,12 @@ export class BookingAuditTaskConsumer {
   private readonly actionServiceRegistry: IBookingAuditActionServiceRegistry;
   private readonly bookingAuditRepository: IBookingAuditRepository;
   private readonly auditActorRepository: IAuditActorRepository;
-  private readonly featuresRepository: IFeaturesRepository;
+  private readonly teamFeatureRepository: ITeamFeatureRepository;
 
   constructor(deps: BookingAuditTaskConsumerDeps) {
     this.bookingAuditRepository = deps.bookingAuditRepository;
     this.auditActorRepository = deps.auditActorRepository;
-    this.featuresRepository = deps.featuresRepository;
+    this.teamFeatureRepository = deps.teamFeatureRepository;
     this.actionServiceRegistry = deps.actionServiceRegistry;
   }
 
@@ -172,7 +172,7 @@ export class BookingAuditTaskConsumer {
       return false;
     }
 
-    const isFeatureEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+    const isFeatureEnabled = await this.teamFeatureRepository.checkIfTeamHasFeature(
       organizationId,
       "booking-audit"
     );

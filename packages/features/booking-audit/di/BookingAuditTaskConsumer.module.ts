@@ -3,7 +3,7 @@ import { moduleLoader as actionServiceRegistryModuleLoader } from "@calcom/featu
 import { moduleLoader as bookingAuditRepositoryModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditRepository.module";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { BookingAuditTaskConsumer } from "@calcom/features/booking-audit/lib/tasker/BookingAuditTaskConsumer";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { moduleLoader as teamFeatureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedTeamFeatureRepository.module";
 import { bindModuleToClassOnToken, createModule } from "../../di/di";
 
 const bookingAuditTaskConsumerModule = createModule();
@@ -18,7 +18,7 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     bookingAuditRepository: bookingAuditRepositoryModuleLoader,
     auditActorRepository: auditActorRepositoryModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
+    teamFeatureRepository: teamFeatureRepositoryModuleLoader,
     actionServiceRegistry: actionServiceRegistryModuleLoader,
   },
 });

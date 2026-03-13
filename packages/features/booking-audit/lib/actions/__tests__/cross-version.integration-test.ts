@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { prisma } from "@calcom/prisma";
 import { type BookingAuditAction, BookingStatus } from "@calcom/prisma/enums";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -108,7 +108,7 @@ describe("Cross-version deployment scenarios", () => {
     consumer = new BookingAuditTaskConsumer({
       bookingAuditRepository: new PrismaBookingAuditRepository({ prismaClient: prisma }),
       auditActorRepository: new PrismaAuditActorRepository({ prismaClient: prisma }),
-      featuresRepository: new FeaturesRepository(prisma),
+      teamFeatureRepository: getTeamFeatureRepository(),
       actionServiceRegistry: new DummyBookingAuditActionServiceRegistry(),
     });
     producer = getBookingAuditProducerService();

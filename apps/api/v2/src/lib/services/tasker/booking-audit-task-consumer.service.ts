@@ -8,7 +8,7 @@ import {
   PrismaAuditActorRepository,
   BookingAuditActionServiceRegistry,
 } from "@calcom/platform-libraries/bookings";
-import { PrismaFeaturesRepository } from "@calcom/platform-libraries/repositories";
+import { PrismaTeamFeatureRepository } from "@calcom/platform-libraries/repositories";
 import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
@@ -18,7 +18,7 @@ export class BookingAuditTaskConsumerService extends BaseBookingAuditTaskConsume
     super({
       bookingAuditRepository: new PrismaBookingAuditRepository({ prismaClient }),
       auditActorRepository: new PrismaAuditActorRepository({ prismaClient }),
-      featuresRepository: new PrismaFeaturesRepository(prismaClient),
+      teamFeatureRepository: new PrismaTeamFeatureRepository(prismaClient),
       actionServiceRegistry: new BookingAuditActionServiceRegistry(),
     });
   }
