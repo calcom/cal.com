@@ -44,6 +44,15 @@ vi.mock("@calcom/features/tasker", () => {
   return { default: Promise.resolve(tasker) };
 });
 
+const mockEmitRoutingFormFallbackHit = vi.fn(() => Promise.resolve());
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookFeature: () => ({
+    form: {
+      emitRoutingFormFallbackHit: mockEmitRoutingFormFallbackHit,
+    },
+  }),
+}));
+
 // Mock workflow dependencies
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
   WorkflowService: {
@@ -438,90 +447,35 @@ describe("_onFormSubmission with fallbackAction", () => {
     vi.restoreAllMocks();
   });
 
-  it("should fetch ROUTING_FORM_FALLBACK_HIT webhooks when fallbackAction is provided", async () => {
+  it("should call emitRoutingFormFallbackHit when fallbackAction is provided", async () => {
     vi.mocked(getWebhooks).mockResolvedValue([]);
 
     await _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction);
 
-    expect(getWebhooks).toHaveBeenCalledWith({
+    expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalledWith({
+      form: { id: "form-1", name: "Test Form" },
+      responseId: 123,
+      fallbackAction: {
+        type: "externalRedirectUrl",
+        value: "https://example.com/fallback",
+      },
+      responses: mockResponse,
       userId: null,
       teamId: 1,
       orgId: 1,
-      triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
     });
   });
 
-  it("should not fetch ROUTING_FORM_FALLBACK_HIT webhooks when fallbackAction is not provided", async () => {
+  it("should not call emitRoutingFormFallbackHit when fallbackAction is not provided", async () => {
     vi.mocked(getWebhooks).mockResolvedValue([]);
 
     await _onFormSubmission(mockForm, mockResponse, 123);
 
-    const calls = vi.mocked(getWebhooks).mock.calls;
-    const fallbackCalls = calls.filter(
-      (call) => call[0].triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT
-    );
-    expect(fallbackCalls).toHaveLength(0);
+    expect(mockEmitRoutingFormFallbackHit).not.toHaveBeenCalled();
   });
 
-  it("should send ROUTING_FORM_FALLBACK_HIT webhook payload with correct data", async () => {
-    const mockWebhook: WebhookSubscriber = {
-      id: "wh-1",
-      secret: "secret",
-      subscriberUrl: "https://example.com/webhook",
-      payloadTemplate: null,
-      appId: null,
-      eventTriggers: [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT],
-      time: null,
-      timeUnit: null,
-      version: WebhookVersionEnum.V_2021_10_20,
-    };
-    vi.mocked(getWebhooks).mockImplementation(async (opts) => {
-      if (opts.triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
-        return [mockWebhook];
-      }
-      return [];
-    });
-
-    await _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction);
-
-    expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
-      expect.objectContaining({
-        secretKey: "secret",
-        triggerEvent: "ROUTING_FORM_FALLBACK_HIT",
-        webhook: mockWebhook,
-        data: {
-          formId: "form-1",
-          formName: "Test Form",
-          teamId: 1,
-          responseId: 123,
-          fallbackAction: {
-            type: "externalRedirectUrl",
-            value: "https://example.com/fallback",
-          },
-          responses: mockResponse,
-        },
-      })
-    );
-  });
-
-  it("should include eventTypeId in fallbackAction payload when present", async () => {
-    const mockWebhook: WebhookSubscriber = {
-      id: "wh-1",
-      secret: "secret",
-      subscriberUrl: "https://example.com/webhook",
-      payloadTemplate: null,
-      appId: null,
-      eventTriggers: [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT],
-      time: null,
-      timeUnit: null,
-      version: WebhookVersionEnum.V_2021_10_20,
-    };
-    vi.mocked(getWebhooks).mockImplementation(async (opts) => {
-      if (opts.triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
-        return [mockWebhook];
-      }
-      return [];
-    });
+  it("should include eventTypeId in fallbackAction when present", async () => {
+    vi.mocked(getWebhooks).mockResolvedValue([]);
 
     const fallbackWithEventType = {
       type: "eventTypeRedirectUrl" as const,
@@ -531,81 +485,14 @@ describe("_onFormSubmission with fallbackAction", () => {
 
     await _onFormSubmission(mockForm, mockResponse, 123, undefined, fallbackWithEventType);
 
-    expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+    expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          fallbackAction: {
-            type: "eventTypeRedirectUrl",
-            value: "team/30min",
-            eventTypeId: 42,
-          },
-        }),
+        fallbackAction: {
+          type: "eventTypeRedirectUrl",
+          value: "team/30min",
+          eventTypeId: 42,
+        },
       })
     );
-  });
-
-  it("should send to multiple ROUTING_FORM_FALLBACK_HIT webhooks", async () => {
-    const mockWebhooks: WebhookSubscriber[] = [
-      {
-        id: "wh-1",
-        secret: "secret1",
-        subscriberUrl: "https://example.com/webhook1",
-        payloadTemplate: null,
-        appId: null,
-        eventTriggers: [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT],
-        time: null,
-        timeUnit: null,
-        version: WebhookVersionEnum.V_2021_10_20,
-      },
-      {
-        id: "wh-2",
-        secret: "secret2",
-        subscriberUrl: "https://example.com/webhook2",
-        payloadTemplate: null,
-        appId: null,
-        eventTriggers: [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT],
-        time: null,
-        timeUnit: null,
-        version: WebhookVersionEnum.V_2021_10_20,
-      },
-    ];
-    vi.mocked(getWebhooks).mockImplementation(async (opts) => {
-      if (opts.triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
-        return mockWebhooks;
-      }
-      return [];
-    });
-
-    await _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction);
-
-    const fallbackCalls = vi.mocked(sendGenericWebhookPayload).mock.calls.filter(
-      (call) => call[0].triggerEvent === "ROUTING_FORM_FALLBACK_HIT"
-    );
-    expect(fallbackCalls).toHaveLength(2);
-  });
-
-  it("should not throw when ROUTING_FORM_FALLBACK_HIT webhook payload fails", async () => {
-    const mockWebhook: WebhookSubscriber = {
-      id: "wh-1",
-      secret: "secret",
-      subscriberUrl: "https://example.com/webhook",
-      payloadTemplate: null,
-      appId: null,
-      eventTriggers: [WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT],
-      time: null,
-      timeUnit: null,
-      version: WebhookVersionEnum.V_2021_10_20,
-    };
-    vi.mocked(getWebhooks).mockImplementation(async (opts) => {
-      if (opts.triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
-        return [mockWebhook];
-      }
-      return [];
-    });
-    vi.mocked(sendGenericWebhookPayload).mockRejectedValueOnce(new Error("Network error"));
-
-    await expect(
-      _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction)
-    ).resolves.not.toThrow();
   });
 });
