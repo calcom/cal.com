@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Availability",
   "pbac_resource_out_of_office": "Out of office",
-  "pbac_resource_blocklist": "Blocklist",
   "pbac_desc_create_webhooks": "Create webhooks",
   "pbac_desc_view_webhooks": "View webhooks",
   "pbac_desc_update_webhooks": "Update webhooks",

@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Erabilgarritasuna",
   "pbac_resource_out_of_office": "Bulegotik kanpo",
-  "pbac_resource_blocklist": "Blokeo-zerrenda",
   "pbac_desc_create_webhooks": "Sortu webhook-ak",
   "pbac_desc_view_webhooks": "Ikusi webhook-ak",
   "pbac_desc_update_webhooks": "Webhookak eguneratu",

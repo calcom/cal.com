@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Veebihaak",
   "pbac_resource_availability": "Saadavus",
   "pbac_resource_out_of_office": "Kontorist väljas",
-  "pbac_resource_blocklist": "Blokeerimisnimekiri",
   "pbac_desc_create_webhooks": "Loo veebihaake",
   "pbac_desc_view_webhooks": "Vaata veebihaake",
   "pbac_desc_update_webhooks": "Uuenda veebihaake",

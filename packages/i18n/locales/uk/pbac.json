@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Вебгук",
   "pbac_resource_availability": "Доступність",
   "pbac_resource_out_of_office": "Відсутність в офісі",
-  "pbac_resource_blocklist": "Чорний список",
   "pbac_desc_create_webhooks": "Створення вебгуків",
   "pbac_desc_view_webhooks": "Перегляд вебгуків",
   "pbac_desc_update_webhooks": "Оновлення вебгуків",

@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "空き状況",
   "pbac_resource_out_of_office": "不在",
-  "pbac_resource_blocklist": "ブロックリスト",
   "pbac_desc_create_webhooks": "Webhookを作成",
   "pbac_desc_view_webhooks": "Webhookを表示",
   "pbac_desc_update_webhooks": "ウェブフックを更新する",

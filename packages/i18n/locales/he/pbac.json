@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "זמינות",
   "pbac_resource_out_of_office": "מחוץ למשרד",
-  "pbac_resource_blocklist": "רשימת חסימה",
   "pbac_desc_create_webhooks": "יצירת רכיבי webhook",
   "pbac_desc_view_webhooks": "צפייה ברכיבי webhook",
   "pbac_desc_update_webhooks": "עדכון webhooks",

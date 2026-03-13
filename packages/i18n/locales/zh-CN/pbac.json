@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "可用性",
   "pbac_resource_out_of_office": "外出",
-  "pbac_resource_blocklist": "阻止列表",
   "pbac_desc_create_webhooks": "创建 Webhook",
   "pbac_desc_view_webhooks": "查看 Webhook",
   "pbac_desc_update_webhooks": "更新 Webhooks",

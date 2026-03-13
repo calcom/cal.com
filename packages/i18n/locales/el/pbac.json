@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Διαθεσιμότητα",
   "pbac_resource_out_of_office": "Εκτός Γραφείου",
-  "pbac_resource_blocklist": "Λίστα αποκλεισμού",
   "pbac_desc_create_webhooks": "Δημιουργία webhooks",
   "pbac_desc_view_webhooks": "Προβολή webhooks",
   "pbac_desc_update_webhooks": "Ενημέρωση webhooks",

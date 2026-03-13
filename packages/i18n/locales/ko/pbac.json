@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "웹훅",
   "pbac_resource_availability": "가용성",
   "pbac_resource_out_of_office": "부재중",
-  "pbac_resource_blocklist": "차단 목록",
   "pbac_desc_create_webhooks": "웹훅 생성",
   "pbac_desc_view_webhooks": "웹훅 보기",
   "pbac_desc_update_webhooks": "웹훅 업데이트",

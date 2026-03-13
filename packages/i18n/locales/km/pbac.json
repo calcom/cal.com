@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "ភាពអាចប្រើបាន",
   "pbac_resource_out_of_office": "ក្រៅការិយាល័យ",
-  "pbac_resource_blocklist": "បញ្ជីហាមឃាត់",
   "pbac_desc_create_webhooks": "បង្កើត webhooks",
   "pbac_desc_view_webhooks": "មើល webhooks",
   "pbac_desc_update_webhooks": "ធ្វើបច្ចុប្បន្នភាព webhooks",

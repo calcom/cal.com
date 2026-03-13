@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Disponibilités",
   "pbac_resource_out_of_office": "Absence du bureau",
-  "pbac_resource_blocklist": "Liste de blocage",
   "pbac_desc_create_webhooks": "Créer des webhooks",
   "pbac_desc_view_webhooks": "Consulter les webhooks",
   "pbac_desc_update_webhooks": "Mettre à jour les webhooks",

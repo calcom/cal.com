@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Уебхук",
   "pbac_resource_availability": "Наличност",
   "pbac_resource_out_of_office": "Извън офиса",
-  "pbac_resource_blocklist": "Черен списък",
   "pbac_desc_create_webhooks": "Създаване на уебхуци",
   "pbac_desc_view_webhooks": "Преглед на уебхуци",
   "pbac_desc_update_webhooks": "Актуализиране на уебхукове",

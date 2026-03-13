@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Disponibilitat",
   "pbac_resource_out_of_office": "Fora de l'oficina",
-  "pbac_resource_blocklist": "Llista de bloqueig",
   "pbac_desc_create_webhooks": "Crea webhooks",
   "pbac_desc_view_webhooks": "Visualitza webhooks",
   "pbac_desc_update_webhooks": "Actualitza els webhooks",

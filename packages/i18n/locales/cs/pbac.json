@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Dostupnost",
   "pbac_resource_out_of_office": "Mimo kancelář",
-  "pbac_resource_blocklist": "Seznam blokovaných",
   "pbac_desc_create_webhooks": "Vytvářet webhooky",
   "pbac_desc_view_webhooks": "Zobrazit webhooky",
   "pbac_desc_update_webhooks": "Aktualizovat webhooky",

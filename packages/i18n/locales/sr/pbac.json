@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Dostupnost",
   "pbac_resource_out_of_office": "Van kancelarije",
-  "pbac_resource_blocklist": "Lista blokiranih",
   "pbac_desc_create_webhooks": "Kreirajte webhooks",
   "pbac_desc_view_webhooks": "Pregledajte webhooks",
   "pbac_desc_update_webhooks": "Ažuriraj webhook-ove",

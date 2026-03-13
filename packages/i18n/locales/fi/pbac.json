@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Saatavuus",
   "pbac_resource_out_of_office": "Poissa toimistolta",
-  "pbac_resource_blocklist": "Estolista",
   "pbac_desc_create_webhooks": "Luo webhookeja",
   "pbac_desc_view_webhooks": "Tarkastele webhookeja",
   "pbac_desc_update_webhooks": "Päivitä webhookit",

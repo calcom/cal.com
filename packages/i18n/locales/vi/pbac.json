@@ -53,7 +53,6 @@
   "pbac_resource_webhook": "Webhook",
   "pbac_resource_availability": "Lịch khả dụng",
   "pbac_resource_out_of_office": "Vắng mặt",
-  "pbac_resource_blocklist": "Danh sách chặn",
   "pbac_desc_create_webhooks": "Tạo webhooks",
   "pbac_desc_view_webhooks": "Xem webhooks",
   "pbac_desc_update_webhooks": "Cập nhật webhooks",
