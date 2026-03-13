@@ -11002,7 +11002,7 @@
           },
           {
             "name": "calendarId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -11055,7 +11055,7 @@
           },
           {
             "name": "calendarId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -11118,7 +11118,7 @@
           },
           {
             "name": "calendarId",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
