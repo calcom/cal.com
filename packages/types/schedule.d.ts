@@ -2,6 +2,7 @@ export type TimeRange = {
   userId?: number | null;
   start: Date;
   end: Date;
+  targetTimeZones?: string[];
 };
 
 export type Schedule = TimeRange[][];

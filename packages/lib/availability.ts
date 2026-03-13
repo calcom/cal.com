@@ -29,15 +29,17 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
         days: [day],
         startTime: time.start,
         endTime: time.end,
+        targetTimeZones: time.targetTimeZones ?? [],
       } as Availability);
 
     const filteredTimes = times.filter((time) => {
       let idx;
       if (
         (idx = availability.findIndex(
-          (schedule) =>
-            schedule.startTime.toString() === time.start.toString() &&
-            schedule.endTime.toString() === time.end.toString()
+          (s) =>
+            s.startTime.toString() === time.start.toString() &&
+            s.endTime.toString() === time.end.toString() &&
+            JSON.stringify(s.targetTimeZones ?? []) === JSON.stringify(time.targetTimeZones ?? [])
         )) !== -1
       ) {
         availability[idx].days.push(day);
@@ -50,6 +52,24 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
     });
     return availability;
   }, [] as Availability[]);
+}
+
+/**
+ * Filters availability blocks by booker timezone. Blocks with empty/null targetTimeZones are shown to everyone.
+ * Blocks with targetTimeZones are only included when the booker's timezone matches one of them.
+ */
+export function filterAvailabilityByBookerTimezone<T extends { targetTimeZones?: string[] | null }>(
+  availability: T[],
+  bookerTimezone: string | null | undefined
+): T[] {
+  if (!availability.length) return availability;
+  if (!bookerTimezone) return availability;
+
+  return availability.filter((block) => {
+    const targetTz = block.targetTimeZones;
+    if (!targetTz || targetTz.length === 0) return true;
+    return targetTz.includes(bookerTimezone);
+  });
 }
 
 export const MINUTES_IN_DAY = 60 * 24;

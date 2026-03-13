@@ -1,0 +1,11 @@
+const MINS = 60;
+const SECS = 60;
+const MS = 1000;
+
+export const SLOT_STALE_DURATION = SECS * MS;
+export const IFRAME_FORCE_RELOAD_DURATION = MINS * 15 * MS;
+export const PRERENDER_COOLDOWN_DURATION = MINS * MS;
+
+if (SLOT_STALE_DURATION > IFRAME_FORCE_RELOAD_DURATION) {
+  throw new Error("SLOT_STALE_DURATION must be less than IFRAME_FORCE_RELOAD_DURATION");
+}

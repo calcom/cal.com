@@ -1060,17 +1060,18 @@ model Schedule {
 }
 
 model Availability {
-  id          Int        @id @default(autoincrement())
-  user        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int?
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
-  eventTypeId Int?
-  days        Int[]
-  startTime   DateTime   @db.Time
-  endTime     DateTime   @db.Time
-  date        DateTime?  @db.Date
-  Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
-  scheduleId  Int?
+  id              Int        @id @default(autoincrement())
+  user            User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int?
+  eventType       EventType? @relation(fields: [eventTypeId], references: [id])
+  eventTypeId     Int?
+  days            Int[]
+  startTime       DateTime   @db.Time
+  endTime         DateTime   @db.Time
+  date            DateTime?  @db.Date
+  Schedule        Schedule?  @relation(fields: [scheduleId], references: [id])
+  scheduleId      Int?
+  targetTimeZones String[]   @default([])
 
   @@index([userId])
   @@index([eventTypeId])

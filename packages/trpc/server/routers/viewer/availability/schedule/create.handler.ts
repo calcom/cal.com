@@ -46,10 +46,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const availability = getAvailabilityFromSchedule(input.schedule || DEFAULT_SCHEDULE);
   data.availability = {
     createMany: {
-      data: availability.map((schedule) => ({
-        days: schedule.days,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
+      data: availability.map((a) => ({
+        days: a.days,
+        startTime: a.startTime,
+        endTime: a.endTime,
+        targetTimeZones: a.targetTimeZones ?? [],
       })),
     },
   };

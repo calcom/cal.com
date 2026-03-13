@@ -1,0 +1,36 @@
+{
+    "name": "@calid/booker-embed",
+    "version": "1.0.0",
+    "type": "module",
+    "sideEffects": false,
+    "files": [
+        "dist",
+        "dist/style.css"
+    ],
+    "module": "./dist/booker-embed.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/booker-embed.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./styles": "./dist/style.css"
+    },
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite build --watch"
+    },
+    "dependencies": {
+        "@calcom/atoms": "^1.1.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0"
+    },
+    "devDependencies": {
+        "@rollup/plugin-replace": "^6.0.3",
+        "@vitejs/plugin-react": "^2.2.0",
+        "typescript": "^5.7.2",
+        "vite": "^5.0.10",
+        "vite-plugin-dts": "^3.7.3"
+    }
+}
