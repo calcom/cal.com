@@ -109,16 +109,31 @@ class ProtonCalendarService implements Calendar {
   fetchCalendar = async (): Promise<{ url: string; vcalendar: ICAL.Component } | null> => {
     let response: Response;
     try {
-      response = await fetch(this.url);
+      // Use redirect:'manual' to intercept any HTTP redirect before it is followed.
+      // This lets us validate the destination URL against the allowlist BEFORE
+      // sending a request there, preventing redirect-based SSRF attacks.
+      response = await fetch(this.url, { redirect: "manual" });
     } catch (e) {
       throw new Error(`Failed to fetch Proton Calendar ICS feed: ${e instanceof Error ? e.message : String(e)}`);
     }
 
-    // Re-validate the final URL after any HTTP redirects to prevent SSRF bypass.
-    // fetch() follows redirects by default; the resolved response.url may differ
-    // from this.url if the server issued a redirect to an off-allowlist domain.
-    if (response.url && response.url !== this.url) {
-      validateProtonUrl(response.url);
+    // Handle HTTP redirects securely: validate the Location before following.
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      if (!location) {
+        throw new Error("Received redirect without Location header from Proton Calendar feed");
+      }
+      // Resolve relative redirects and validate the destination is a Proton domain.
+      const resolvedUrl = new URL(location, this.url).toString();
+      validateProtonUrl(resolvedUrl);
+      try {
+        // Follow at most one hop; reject further redirects.
+        response = await fetch(resolvedUrl, { redirect: "error" });
+      } catch (e) {
+        throw new Error(
+          `Failed to fetch Proton Calendar ICS feed after redirect: ${e instanceof Error ? e.message : String(e)}`
+        );
+      }
     }
 
     if (response.status === 401) {
@@ -185,13 +200,17 @@ class ProtonCalendarService implements Calendar {
     // Recurring series exception VEVENTs with STATUS:CANCELLED indicate that a
     // specific occurrence is cancelled. We must record these BEFORE processing
     // the master VEVENT so cancelled occurrences can be skipped during expansion.
+    // Map of "uid:recurrenceIdISO" for cancelled exception VEVENTs.
+    // Including the UID prevents a cancellation in one series from incorrectly
+    // suppressing an occurrence in a different series at the same timestamp.
     const cancelledRecurrenceIds = new Set<string>();
     vevents.forEach((vevent) => {
       const status = vevent.getFirstPropertyValue("status") as string | null;
       if (status && String(status).toUpperCase() === "CANCELLED") {
         const recurrenceId = vevent.getFirstPropertyValue("recurrence-id") as ICAL.Time | null;
         if (recurrenceId) {
-          cancelledRecurrenceIds.add(recurrenceId.toISOString());
+          const uid = (vevent.getFirstPropertyValue("uid") as string | null) ?? "";
+          cancelledRecurrenceIds.add(`${uid}:${recurrenceId.toISOString()}`);
         }
       }
     });
@@ -282,7 +301,8 @@ class ProtonCalendarService implements Calendar {
           if (!currentEvent) return;
 
           // Skip occurrences cancelled via a STATUS:CANCELLED exception VEVENT.
-          if (cancelledRecurrenceIds.has(currentEvent.startDate.toISOString())) {
+          // Key includes the series UID to avoid cross-series timestamp collisions.
+          if (cancelledRecurrenceIds.has(`${event.uid}:${currentEvent.startDate.toISOString()}`)) {
             continue;
           }
 
