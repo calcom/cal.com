@@ -14,7 +14,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsPublicPage from "@lib/hooks/useIsPublicPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
 
@@ -107,7 +107,7 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
-  const isBookingPage = useIsBookingPage();
+  const isBookingPage = useIsPublicPage();
   const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (
