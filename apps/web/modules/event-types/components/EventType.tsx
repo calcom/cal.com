@@ -64,6 +64,7 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;
+  Shell: React.ElementType;
 };
 
 export const EventType = ({
@@ -83,6 +84,7 @@ export const EventType = ({
   children,
   allowDelete = true,
   saveButtonRef,
+  Shell,
 }: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -103,7 +105,8 @@ export const EventType = ({
         isPlatform={isPlatform}
         allowDelete={allowDelete}
         tabsNavigation={tabsNavigation}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+        Shell={Shell}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>

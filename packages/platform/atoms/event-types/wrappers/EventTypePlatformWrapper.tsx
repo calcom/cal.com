@@ -11,6 +11,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { Shell as PlatformShell } from "../../src/components/ui/shell";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { ChildrenEventType } from "@calcom/web/modules/event-types/components/ChildrenEventTypeSelect";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -362,7 +363,8 @@ const EventType = forwardRef<
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
         allowDelete={allowDelete}
-        saveButtonRef={saveButtonRef}>
+        saveButtonRef={saveButtonRef}
+        Shell={PlatformShell}>
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog

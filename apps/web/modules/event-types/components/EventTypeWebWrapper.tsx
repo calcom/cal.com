@@ -24,6 +24,7 @@ import { TRPCClientError } from "@trpc/react-query";
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
+import WebShell from "@calcom/web/modules/shell/Shell";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
@@ -413,7 +414,8 @@ const EventTypeWeb = ({
       isUpdating={updateMutation.isPending}
       isPlatform={false}
       tabName={tabName}
-      tabsNavigation={tabsNavigation}>
+      tabsNavigation={tabsNavigation}
+      Shell={WebShell}>
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog
