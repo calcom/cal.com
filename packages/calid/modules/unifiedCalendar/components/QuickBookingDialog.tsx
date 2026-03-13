@@ -2,6 +2,7 @@ import { Alert } from "@calid/features/ui/components/alert";
 import { Button } from "@calid/features/ui/components/button";
 import { Calendar } from "@calid/features/ui/components/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import { Select } from "@calid/features/ui/components/form/select";
 import { Input } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import { Label } from "@calid/features/ui/components/label";
@@ -43,6 +44,16 @@ type TimeOption = {
   label: string;
   value: string;
   minutes: number;
+};
+
+type TimeSelectOption = {
+  label: string;
+  value: string;
+};
+
+type CalendarSelectOption = {
+  label: string;
+  value: string;
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -231,12 +242,20 @@ export const QuickBookingDialog = ({
       setEndMinutes(nextEnd?.minutes ?? null);
     }
   }, [endMinutes, startMinutes]);
+  const { t } = useLocale();
 
   const selectedLocationOption = useMemo(() => {
     return flattenedLocationOptions.find((option) => option.value === locationType);
   }, [flattenedLocationOptions, locationType]);
 
   const selectedLocationType = useMemo(() => getEventLocationType(locationType), [locationType]);
+
+  const calendarOptions = useMemo<CalendarSelectOption[]>(() => {
+    return calendars.map((calendar) => ({
+      value: calendar.id,
+      label: calendar.name,
+    }));
+  }, [calendars]);
 
   const endTimeOptions = useMemo(() => {
     if (startMinutes === null) return END_TIME_OPTIONS;
@@ -340,7 +359,6 @@ export const QuickBookingDialog = ({
       description: notes.trim() || undefined,
     });
   };
-  const { t } = useLocale();
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isSubmitting && onClose()}>
@@ -401,37 +419,60 @@ export const QuickBookingDialog = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs">Start time</Label>
-              <select
-                value={startMinutes === null ? "" : String(startMinutes)}
-                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                  setStartMinutes(parseMinuteValue(event.target.value))
+              <Select
+                value={
+                  startMinutes === null
+                    ? null
+                    : {
+                        value: String(startMinutes),
+                        label:
+                          START_TIME_OPTIONS.find((o) => String(o.value) === String(startMinutes))?.label ??
+                          "",
+                      }
                 }
-                className=" bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
-                <option value="">Select start time</option>
-                {START_TIME_OPTIONS.map((option) => (
-                  <option key={`start-${option.value}`} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(option: TimeSelectOption | null) =>
+                  setStartMinutes(parseMinuteValue(option?.value ?? ""))
+                }
+                options={[
+                  { value: "", label: "Select start time" },
+                  ...START_TIME_OPTIONS.map((option) => ({
+                    value: String(option.value),
+                    label: option.label,
+                  })),
+                ]}
+                innerClassNames={{
+                  menuList: "max-h-[20vh]",
+                }}
+              />
             </div>
 
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs">End time</Label>
-              <select
-                value={endMinutes === null ? "" : String(endMinutes)}
-                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                  setEndMinutes(parseMinuteValue(event.target.value))
+              <Select
+                value={
+                  endMinutes === null
+                    ? null
+                    : {
+                        value: String(endMinutes),
+                        label:
+                          endTimeOptions.find((o) => String(o.value) === String(endMinutes))?.label ?? "",
+                      }
                 }
-                className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none"
-                disabled={startMinutes === null || endTimeOptions.length === 0}>
-                <option value="">Select end time</option>
-                {endTimeOptions.map((option) => (
-                  <option key={`end-${option.value}`} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(option: TimeSelectOption | null) =>
+                  setEndMinutes(parseMinuteValue(option?.value ?? ""))
+                }
+                options={[
+                  { value: "", label: "Select end time" },
+                  ...endTimeOptions.map((option) => ({
+                    value: String(option.value),
+                    label: option.label,
+                  })),
+                ]}
+                isDisabled={startMinutes === null || endTimeOptions.length === 0}
+                innerClassNames={{
+                  menuList: "max-h-[20vh]",
+                }}
+              />
             </div>
           </div>
 
@@ -444,44 +485,43 @@ export const QuickBookingDialog = ({
 
           <div className="space-y-1.5">
             <Label className="text-muted-foreground text-xs">Target calendar</Label>
-            <select
-              value={calendarId}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) => setCalendarId(event.target.value)}
-              disabled={!hasCalendarChoices}
-              className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
-              {!hasCalendarChoices && <option value="">No writable calendars available</option>}
-              {calendars.map((calendar) => (
-                <option key={calendar.id} value={calendar.id}>
-                  {calendar.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={
+                hasCalendarChoices
+                  ? calendarOptions.find((option) => option.value === calendarId) ?? null
+                  : { value: "", label: "No writable calendars available" }
+              }
+              onChange={(option: CalendarSelectOption | null) => setCalendarId(option?.value ?? "")}
+              isDisabled={!hasCalendarChoices}
+              options={
+                hasCalendarChoices
+                  ? calendarOptions
+                  : [{ value: "", label: "No writable calendars available" }]
+              }
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label className="text-muted-foreground text-xs">Location</Label>
-            <select
-              value={locationType}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-                setLocationType(event.target.value);
+            <Select
+              value={
+                locationOptionsQuery.isPending
+                  ? { value: "", label: "Loading locations..." }
+                  : flattenedLocationOptions.find((option) => option.value === locationType) ?? null
+              }
+              onChange={(option: LocationOption | null) => {
+                setLocationType(option?.value ?? "");
                 setLocationInput("");
               }}
-              disabled={locationOptionsQuery.isPending || flattenedLocationOptions.length === 0}
-              className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
-              {locationOptionsQuery.isPending && <option value="">Loading locations...</option>}
-              {!locationOptionsQuery.isPending && flattenedLocationOptions.length === 0 && (
-                <option value="">No supported location options</option>
-              )}
-              {locationGroups.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((option) => (
-                    <option key={`${group.label}-${option.value}`} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              isDisabled={locationOptionsQuery.isPending || flattenedLocationOptions.length === 0}
+              options={
+                locationOptionsQuery.isPending
+                  ? [{ value: "", label: "Loading locations..." }]
+                  : flattenedLocationOptions.length === 0
+                  ? [{ value: "", label: "No supported location options" }]
+                  : locationGroups
+              }
+            />
 
             {selectedLocationType?.organizerInputType && (
               <Input
@@ -500,7 +540,7 @@ export const QuickBookingDialog = ({
               value={notes}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNotes(event.target.value)}
               rows={2}
-              className="resize-none"
+              className="border-default shadow-outline-gray-rested hover:border-emphasis focus:shadow-outline-gray-focused resize-none border"
             />
           </div>
 

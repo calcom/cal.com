@@ -2,11 +2,11 @@ import { Alert } from "@calid/features/ui/components/alert";
 import { Button } from "@calid/features/ui/components/button";
 import { Calendar } from "@calid/features/ui/components/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import { Select } from "@calid/features/ui/components/form/select";
 import { Label } from "@calid/features/ui/components/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { differenceInMinutes, format, setHours, setMinutes, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { formatBookingDuration } from "../lib/formatBookingDuration";
@@ -26,6 +26,11 @@ type TimeOption = {
   label: string;
   value: string;
   minutes: number;
+};
+
+type TimeSelectOption = {
+  label: string;
+  value: string;
 };
 
 const MIN_DURATION_MINUTES = 15;
@@ -202,37 +207,60 @@ export const RescheduleBookingDialog = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs">Start time</Label>
-              <select
-                value={startMinutes === null ? "" : String(startMinutes)}
-                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                  setStartMinutes(parseMinuteValue(event.target.value))
+              <Select
+                value={
+                  startMinutes === null
+                    ? null
+                    : {
+                        value: String(startMinutes),
+                        label:
+                          START_TIME_OPTIONS.find((option) => String(option.value) === String(startMinutes))
+                            ?.label ?? "",
+                      }
                 }
-                className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none">
-                <option value="">Select start time</option>
-                {START_TIME_OPTIONS.map((option) => (
-                  <option key={`start-${option.value}`} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(option: TimeSelectOption | null) =>
+                  setStartMinutes(parseMinuteValue(option?.value ?? ""))
+                }
+                options={[
+                  { value: "", label: "Select start time" },
+                  ...START_TIME_OPTIONS.map((option) => ({
+                    value: String(option.value),
+                    label: option.label,
+                  })),
+                ]}
+                innerClassNames={{
+                  menuList: "max-h-[20vh]",
+                }}
+              />
             </div>
 
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs">End time</Label>
-              <select
-                value={endMinutes === null ? "" : String(endMinutes)}
-                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                  setEndMinutes(parseMinuteValue(event.target.value))
+              <Select
+                value={
+                  endMinutes === null
+                    ? null
+                    : {
+                        value: String(endMinutes),
+                        label:
+                          endTimeOptions.find((option) => String(option.value) === String(endMinutes))?.label ?? "",
+                      }
                 }
-                className="bg-default border-border/40 h-9 w-full rounded-md border px-3 text-sm outline-none"
-                disabled={startMinutes === null || endTimeOptions.length === 0}>
-                <option value="">Select end time</option>
-                {endTimeOptions.map((option) => (
-                  <option key={`end-${option.value}`} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(option: TimeSelectOption | null) =>
+                  setEndMinutes(parseMinuteValue(option?.value ?? ""))
+                }
+                options={[
+                  { value: "", label: "Select end time" },
+                  ...endTimeOptions.map((option) => ({
+                    value: String(option.value),
+                    label: option.label,
+                  })),
+                ]}
+                isDisabled={startMinutes === null || endTimeOptions.length === 0}
+                innerClassNames={{
+                  menuList: "max-h-[20vh]",
+                }}
+              />
             </div>
           </div>
 
