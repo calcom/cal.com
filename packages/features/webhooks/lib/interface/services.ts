@@ -110,6 +110,21 @@ export interface IFormEventEmitter {
     platformClientId?: string;
     isDryRun?: boolean;
   }): Promise<void>;
+
+  emitRoutingFormFallbackHit(params: {
+    form: { id: string; name: string };
+    responseId: number;
+    fallbackAction?: {
+      type: string;
+      value: string;
+      eventTypeId?: number;
+    };
+    responses: Record<string, unknown>;
+    userId?: number | null;
+    teamId?: number | null;
+    orgId?: number | null;
+    isDryRun?: boolean;
+  }): Promise<void>;
 }
 
 // Form Scheduling Interface - Form webhook scheduling operations

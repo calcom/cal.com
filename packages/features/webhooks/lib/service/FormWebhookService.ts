@@ -1,10 +1,9 @@
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
+import type { FormSubmittedDTO, FormSubmittedNoEventDTO, RoutingFormFallbackHitDTO } from "../dto/types";
 import type { FormSubmittedPayload } from "../factory/types";
-import type { IWebhookService, IFormWebhookService } from "../interface/services";
+import type { IFormWebhookService, IWebhookService } from "../interface/services";
 import type { IWebhookNotifier } from "../interface/webhook";
 
 export class FormWebhookService implements IFormWebhookService {
@@ -56,6 +55,35 @@ export class FormWebhookService implements IFormWebhookService {
       platformClientId: params.platformClientId,
       form: params.form,
       response: params.response,
+    };
+
+    await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
+  }
+
+  async emitRoutingFormFallbackHit(params: {
+    form: { id: string; name: string };
+    responseId: number;
+    fallbackAction?: {
+      type: string;
+      value: string;
+      eventTypeId?: number;
+    };
+    responses: Record<string, unknown>;
+    userId?: number | null;
+    teamId?: number | null;
+    orgId?: number | null;
+    isDryRun?: boolean;
+  }): Promise<void> {
+    const dto: RoutingFormFallbackHitDTO = {
+      triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      createdAt: new Date().toISOString(),
+      userId: params.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      form: params.form,
+      responseId: params.responseId,
+      fallbackAction: params.fallbackAction,
+      responses: params.responses,
     };
 
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);

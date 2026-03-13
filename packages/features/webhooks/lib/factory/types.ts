@@ -13,6 +13,19 @@ export interface FormSubmittedPayload {
   responses: Record<string, unknown>;
 }
 
+export interface RoutingFormFallbackHitPayload {
+  formId: string;
+  formName: string;
+  teamId?: number | null;
+  responseId: number;
+  fallbackAction?: {
+    type: string;
+    value: string;
+    eventTypeId?: number;
+  };
+  responses: Record<string, unknown>;
+}
+
 export interface RecordingPayload {
   downloadLink?: string;
   downloadLinks?: {
@@ -92,6 +105,7 @@ export interface WebhookPayload {
     | OOOEntryPayloadType
     | BookingNoShowUpdatedPayload
     | FormSubmittedPayload
+    | RoutingFormFallbackHitPayload
     | RecordingPayload
     | MeetingPayload
     | InstantMeetingPayload

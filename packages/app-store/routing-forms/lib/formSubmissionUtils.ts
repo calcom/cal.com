@@ -177,19 +177,28 @@ export async function _onFormSubmission(
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   };
 
-  const subscriberOptionsFallbackHit = fallbackAction
-    ? {
-        userId,
-        teamId,
-        orgId,
-        triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
-      }
-    : null;
+  // Emit fallback hit webhook via the new webhook architecture (trigger.dev)
+  if (fallbackAction) {
+    const { getWebhookFeature } = await import("@calcom/features/di/webhooks/containers/webhook");
+    const webhooks = getWebhookFeature();
+    await webhooks.form.emitRoutingFormFallbackHit({
+      form: { id: form.id, name: form.name },
+      responseId,
+      fallbackAction: {
+        type: fallbackAction.type,
+        value: fallbackAction.value,
+        ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
+      },
+      responses: response,
+      userId,
+      teamId,
+      orgId,
+    });
+  }
 
-  const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent, webhooksFallbackHit] = await Promise.all([
+  const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent] = await Promise.all([
     getWebhooks(subscriberOptionsFormSubmitted),
     getWebhooks(subscriberOptionsFormSubmittedNoEvent),
-    subscriberOptionsFallbackHit ? getWebhooks(subscriberOptionsFallbackHit) : Promise.resolve([]),
   ]);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
@@ -243,32 +252,7 @@ export async function _onFormSubmission(
         );
       });
 
-      const promisesFallbackHit = webhooksFallbackHit.map((webhook) =>
-        sendGenericWebhookPayload({
-          secretKey: webhook.secret,
-          triggerEvent: "ROUTING_FORM_FALLBACK_HIT",
-          createdAt: new Date().toISOString(),
-          webhook,
-          data: {
-            formId: form.id,
-            formName: form.name,
-            teamId: form.teamId,
-            responseId,
-            fallbackAction: fallbackAction
-              ? {
-                  type: fallbackAction.type,
-                  value: fallbackAction.value,
-                  ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
-                }
-              : undefined,
-            responses: response,
-          },
-        }).catch((e) => {
-          moduleLogger.error(`Error executing ROUTING_FORM_FALLBACK_HIT webhook`, e);
-        })
-      );
-
-      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent, ...promisesFallbackHit];
+      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
 
@@ -322,7 +306,7 @@ export async function _onFormSubmission(
 }
 export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
-export type TargetRoutingFormForResponse= SerializableForm<
+export type TargetRoutingFormForResponse = SerializableForm<
   App_RoutingForms_Form & {
     user: {
       id: number;

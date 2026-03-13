@@ -1,4 +1,4 @@
-import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../../dto/types";
+import type { FormSubmittedDTO, FormSubmittedNoEventDTO, RoutingFormFallbackHitDTO } from "../../dto/types";
 import type { WebhookPayload } from "../types";
 import type { IFormPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
@@ -16,5 +16,5 @@ export abstract class BaseFormPayloadBuilder implements IFormPayloadBuilder {
    * Build the form webhook payload.
    * Each version must implement this method with its specific payload structure.
    */
-  abstract build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO): WebhookPayload;
+  abstract build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO | RoutingFormFallbackHitDTO): WebhookPayload;
 }
