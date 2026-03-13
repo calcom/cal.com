@@ -155,6 +155,88 @@ function BasePhoneInputWeb({
   );
 }
 
+// Maps IANA timezone to ISO 3166-1 alpha-2 country code (lowercase).
+// navigator.language region is unreliable — browser language ≠ user location.
+// Timezone is a much better proxy for physical location.
+const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
+  "Asia/Kolkata": "in",
+  "Asia/Calcutta": "in",
+  "America/New_York": "us",
+  "America/Chicago": "us",
+  "America/Denver": "us",
+  "America/Los_Angeles": "us",
+  "America/Anchorage": "us",
+  "Pacific/Honolulu": "us",
+  "Europe/London": "gb",
+  "Europe/Paris": "fr",
+  "Europe/Berlin": "de",
+  "Europe/Madrid": "es",
+  "Europe/Rome": "it",
+  "Europe/Amsterdam": "nl",
+  "Europe/Brussels": "be",
+  "Europe/Zurich": "ch",
+  "Europe/Vienna": "at",
+  "Europe/Stockholm": "se",
+  "Europe/Oslo": "no",
+  "Europe/Copenhagen": "dk",
+  "Europe/Helsinki": "fi",
+  "Europe/Warsaw": "pl",
+  "Europe/Prague": "cz",
+  "Europe/Bucharest": "ro",
+  "Europe/Athens": "gr",
+  "Europe/Istanbul": "tr",
+  "Europe/Moscow": "ru",
+  "Europe/Lisbon": "pt",
+  "Europe/Dublin": "ie",
+  "Asia/Tokyo": "jp",
+  "Asia/Shanghai": "cn",
+  "Asia/Hong_Kong": "hk",
+  "Asia/Singapore": "sg",
+  "Asia/Seoul": "kr",
+  "Asia/Taipei": "tw",
+  "Asia/Bangkok": "th",
+  "Asia/Jakarta": "id",
+  "Asia/Manila": "ph",
+  "Asia/Kuala_Lumpur": "my",
+  "Asia/Dubai": "ae",
+  "Asia/Riyadh": "sa",
+  "Asia/Karachi": "pk",
+  "Asia/Dhaka": "bd",
+  "Asia/Colombo": "lk",
+  "Asia/Kathmandu": "np",
+  "Asia/Ho_Chi_Minh": "vn",
+  "Australia/Sydney": "au",
+  "Australia/Melbourne": "au",
+  "Australia/Perth": "au",
+  "Pacific/Auckland": "nz",
+  "America/Toronto": "ca",
+  "America/Vancouver": "ca",
+  "America/Mexico_City": "mx",
+  "America/Sao_Paulo": "br",
+  "America/Argentina/Buenos_Aires": "ar",
+  "America/Santiago": "cl",
+  "America/Bogota": "co",
+  "America/Lima": "pe",
+  "Africa/Cairo": "eg",
+  "Africa/Lagos": "ng",
+  "Africa/Johannesburg": "za",
+  "Africa/Nairobi": "ke",
+  "Africa/Casablanca": "ma",
+  "Asia/Jerusalem": "il",
+  "Asia/Beirut": "lb",
+  "Asia/Baghdad": "iq",
+  "Asia/Tehran": "ir",
+};
+
+function getCountryFromTimezone(): string | undefined {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return TIMEZONE_COUNTRY_MAP[tz];
+  } catch {
+    return undefined;
+  }
+}
+
 const useDefaultCountry = () => {
   const defaultPhoneCountryFromStore = useBookerStore((state) => state.defaultPhoneCountry);
   const [defaultCountry, setDefaultCountry] = useState<CountryCode>(defaultPhoneCountryFromStore || "us");
@@ -179,9 +261,9 @@ const useDefaultCountry = () => {
       if (isSupportedCountry(data?.countryCode)) {
         setDefaultCountry(data.countryCode.toLowerCase() as CountryCode);
       } else {
-        const navCountry = navigator.language.split("-")[1]?.toUpperCase();
-        if (navCountry && isSupportedCountry(navCountry)) {
-          setDefaultCountry(navCountry.toLowerCase() as CountryCode);
+        const tzCountry = getCountryFromTimezone();
+        if (tzCountry && isSupportedCountry(tzCountry.toUpperCase())) {
+          setDefaultCountry(tzCountry as CountryCode);
         } else {
           setDefaultCountry("us");
         }
