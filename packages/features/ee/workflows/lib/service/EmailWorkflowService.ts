@@ -10,6 +10,12 @@ import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubm
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  buildPlatformCancelLink,
+  buildPlatformRescheduleLink,
+  buildStandardCancelLink,
+  buildStandardRescheduleLink,
+} from "@calcom/lib/LinkBuilder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -485,6 +491,21 @@ export class EmailWorkflowService {
           location: evt.location,
         }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
 
+      const cancelLink = this.buildCancelLink({
+        evt,
+        bookerUrl,
+        recipientEmail,
+        isEmailAttendeeAction,
+        seatReferenceUid,
+      });
+
+      const rescheduleLink = this.buildRescheduleLink({
+        evt,
+        bookerUrl,
+        recipientEmail,
+        isEmailAttendeeAction,
+        seatReferenceUid,
+      });
       const variables: VariablesType = {
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
@@ -499,22 +520,9 @@ export class EmailWorkflowService {
         additionalNotes: evt.additionalNotes,
         responses: transformBookingResponsesToVariableFormat(evt.responses),
         meetingUrl,
-        cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
-          recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
-        }${isEmailAttendeeAction && seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
+        cancelLink,
         cancelReason: evt.cancellationReason,
-        rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
-          recipientEmail
-            ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}${
-                isEmailAttendeeAction && seatReferenceUid
-                  ? `&seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-                  : ""
-              }`
-            : isEmailAttendeeAction && seatReferenceUid
-              ? `?seatReferenceUid=${encodeURIComponent(seatReferenceUid)}`
-              : ""
-        }`,
-
+        rescheduleLink,
         rescheduleReason: evt.rescheduleReason,
         ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
         noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
@@ -624,5 +632,75 @@ export class EmailWorkflowService {
       attachments,
       sender,
     };
+  }
+
+  private buildCancelLink({
+    evt,
+    bookerUrl,
+    recipientEmail,
+    isEmailAttendeeAction,
+    seatReferenceUid,
+  }: {
+    evt: BookingInfo;
+    bookerUrl: string;
+    recipientEmail: string | null;
+    isEmailAttendeeAction: boolean;
+    seatReferenceUid?: string;
+  }): string {
+    const seatUidToUse = isEmailAttendeeAction ? seatReferenceUid : undefined;
+
+    if (evt.platformClientId && evt.platformCancelUrl) {
+      return buildPlatformCancelLink({
+        platformCancelUrl: evt.platformCancelUrl,
+        uid: evt.uid,
+        slug: evt.eventType?.slug,
+        username: evt.organizer.username ?? undefined,
+        isRecurring: !!evt.eventType?.recurringEvent,
+        seatReferenceUid: seatUidToUse,
+        teamId: evt.team?.id,
+      });
+    }
+
+    return buildStandardCancelLink({
+      bookerUrl,
+      uid: evt.uid,
+      cancelledBy: recipientEmail,
+      seatReferenceUid: seatUidToUse,
+      isRecurring: !!evt.eventType?.recurringEvent,
+    });
+  }
+
+  private buildRescheduleLink({
+    evt,
+    bookerUrl,
+    recipientEmail,
+    isEmailAttendeeAction,
+    seatReferenceUid,
+  }: {
+    evt: BookingInfo;
+    bookerUrl: string;
+    recipientEmail: string | null;
+    isEmailAttendeeAction: boolean;
+    seatReferenceUid?: string;
+  }): string {
+    const seatUidToUse = isEmailAttendeeAction ? seatReferenceUid : undefined;
+
+    if (evt.platformClientId && evt.platformRescheduleUrl) {
+      return buildPlatformRescheduleLink({
+        platformRescheduleUrl: evt.platformRescheduleUrl,
+        uid: evt.uid,
+        slug: evt.eventType?.slug,
+        username: evt.organizer.username ?? undefined,
+        seatReferenceUid: seatUidToUse,
+        teamId: evt.team?.id,
+      });
+    }
+
+    return buildStandardRescheduleLink({
+      bookerUrl,
+      uid: evt.uid,
+      rescheduledBy: recipientEmail,
+      seatReferenceUid: seatUidToUse,
+    });
   }
 }
