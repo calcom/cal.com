@@ -4,7 +4,9 @@ import type { Prisma } from "@calcom/prisma/client";
 import { calendar_v3 } from "@googleapis/calendar";
 import {
   BadRequestException,
+  HttpException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -230,7 +232,7 @@ export class GoogleCalendarService {
         (e) => e.start?.dateTime != null || e.start?.date != null
       ) as GoogleCalendarEventResponse[];
     } catch (error) {
-      throw new NotFoundException("Failed to list calendar events");
+      throw this.mapGoogleApiError(error, "Failed to list calendar events");
     }
   }
 
@@ -267,8 +269,8 @@ export class GoogleCalendarService {
       }
       return response.data as GoogleCalendarEventResponse;
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException("Failed to create calendar event");
+      if (error instanceof HttpException) throw error;
+      throw this.mapGoogleApiError(error, "Failed to create calendar event");
     }
   }
 
@@ -288,8 +290,8 @@ export class GoogleCalendarService {
       }
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      throw new NotFoundException("Failed to retrieve event details");
+      if (error instanceof HttpException) throw error;
+      throw this.mapGoogleApiError(error, "Failed to retrieve event details");
     }
   }
 
@@ -312,8 +314,8 @@ export class GoogleCalendarService {
       }
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
-      if (error instanceof NotFoundException) throw error;
-      throw new NotFoundException("Failed to update event details");
+      if (error instanceof HttpException) throw error;
+      throw this.mapGoogleApiError(error, "Failed to update event details");
     }
   }
 
@@ -330,8 +332,20 @@ export class GoogleCalendarService {
         sendUpdates: "none",
       });
     } catch (error) {
-      throw new NotFoundException("Failed to delete event");
+      throw this.mapGoogleApiError(error, "Failed to delete event");
     }
+  }
+
+  /**
+   * Maps a Google API error (GaxiosError) to the appropriate NestJS HttpException
+   * based on the HTTP status code returned by the Google Calendar API.
+   */
+  private mapGoogleApiError(error: unknown, fallbackMessage: string): HttpException {
+    const status = (error as { code?: number })?.code ?? (error as { status?: number })?.status;
+    if (status === 404) return new NotFoundException(fallbackMessage);
+    if (status === 401 || status === 403) return new UnauthorizedException(fallbackMessage);
+    if (status === 400) return new BadRequestException(fallbackMessage);
+    return new InternalServerErrorException(fallbackMessage);
   }
 
   // ─── Public user-scoped methods ──────────────────────────────────────
