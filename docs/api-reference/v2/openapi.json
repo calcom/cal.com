@@ -11213,8 +11213,8 @@
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
-        "summary": "Get meeting details from calendar",
-        "description": "Returns detailed information about a meeting including attendance metrics. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+        "summary": "Get meeting details from calendar (deprecated path)",
+        "description": "Deprecated: use /events/ (plural) instead. Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -11259,9 +11259,9 @@
         "tags": ["Cal Unified Calendars"]
       },
       "patch": {
-        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
-        "summary": "Update meeting details in calendar",
-        "description": "Updates event information in the specified calendar provider. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEventDeprecated",
+        "summary": "Update meeting details in calendar (deprecated path)",
+        "description": "Deprecated: use /events/ (plural) instead. Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -11311,6 +11311,152 @@
                 }
               }
             }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getCalendarEventDetailsPlural",
+        "summary": "Get meeting details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "delete": {
+        "operationId": "CalUnifiedCalendarsController_deleteCalendarEvent",
+        "summary": "Delete a calendar event",
+        "description": "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The calendar provider's event ID (e.g. Google Calendar event ID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
           }
         },
         "tags": ["Cal Unified Calendars"]
@@ -11438,48 +11584,6 @@
                 }
               }
             }
-          }
-        },
-        "tags": ["Cal Unified Calendars"]
-      }
-    },
-    "/v2/calendars/{calendar}/events/{eventUid}": {
-      "delete": {
-        "operationId": "CalUnifiedCalendarsController_deleteCalendarEvent",
-        "summary": "Delete a calendar event",
-        "description": "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
-        "parameters": [
-          {
-            "name": "calendar",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "enum": ["google", "office365", "apple"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "eventUid",
-            "required": true,
-            "in": "path",
-            "description": "The calendar provider's event ID (e.g. Google Calendar event ID)",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
           }
         },
         "tags": ["Cal Unified Calendars"]
