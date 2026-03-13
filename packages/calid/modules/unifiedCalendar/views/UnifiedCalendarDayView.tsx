@@ -164,7 +164,7 @@ export const UnifiedCalendarAllDayRow = ({
   const { allDayEvents } = splitEventsForDay(filteredEvents, day);
 
   return (
-    <div className="border-border/20 border-b">
+    <div className="border-border/20 bg-default sticky top-0 z-20 border-b">
       <div className="flex min-h-11 items-start gap-2 p-2">
         <span className="text-muted-foreground/60 mt-1 shrink-0 text-[10px] uppercase tracking-wide">
           All-day
