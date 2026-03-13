@@ -77,7 +77,7 @@ export function enrichFieldWithUIConfig(rawField: Record<string, any>): BuilderF
 
   return {
     ...rawField,
-    label: isLayout ? undefined : labelText || undefined,
+    label: labelText,
     placeholder:
       type === "attachment"
         ? undefined

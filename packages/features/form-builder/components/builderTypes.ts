@@ -37,7 +37,7 @@ export interface UIFieldConfig {
 export interface BuilderField {
   // Backend-required
   id: string;
-  label?: string;
+  label: string;
   identifier?: string;
   type: string;
   required?: boolean;
@@ -52,7 +52,7 @@ export interface BuilderField {
 // ─── UI field type enum ────────────────────────────────────────────────────────
 export type UIFieldType =
   | "text" | "textarea" | "number" | "email" | "phone"
-  | "address" | "url" | "multiemail" | "attachment" | "date" | "time"
+  | "address" | "url" | "multiemail" | "attachment" | "date" | "time" | "calendar"
   | "select" | "multiselect" | "radio" | "checkbox" | "boolean"
   | "divider" | "heading" | "paragraph";
 
@@ -85,6 +85,7 @@ export const FIELD_LIBRARY_CONFIG: FieldLibraryEntry[] = [
   { type: "multiemail",  label: "Multi Email",    icon: "MailPlus",    category: "input" },
   { type: "date",        label: "Date",           icon: "Calendar",    category: "input" },
   { type: "time",        label: "Time",           icon: "Clock",       category: "input" },
+  { type: "calendar",    label: "Calendar",       icon: "CalendarDays", category: "input" },
   { type: "select",      label: "Dropdown",       icon: "ChevronDown", category: "selection" },
   { type: "multiselect", label: "Multi Select",   icon: "ListChecks",  category: "selection" },
   { type: "radio",       label: "Radio Group",    icon: "Circle",      category: "selection" },
@@ -305,7 +306,7 @@ export const FORM_FONT_OPTIONS: FormFontOption[] = [
 
 export const DEFAULT_FORM_FONT = FORM_FONT_OPTIONS[0];
 
-export function resolveFormFontStyle(label?: string): FormFontStyle {
+export function resolveFormFontStyle(label: string): FormFontStyle {
   const match = FORM_FONT_OPTIONS.find((option) => option.label === label);
   return (match ?? DEFAULT_FORM_FONT).style;
 }
@@ -346,7 +347,7 @@ export function createBuilderField(type: UIFieldType): BuilderField {
 
   return {
     id: `field-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    label: isLayout ? undefined : "",
+    label: "",
     identifier: isLayout ? undefined : "",
     type,
     options: needsOptions ? toBackendOptions(["Option 1", "Option 2"]) : undefined,

@@ -12,7 +12,7 @@ type Translate = ReturnType<typeof useLocale>["t"];
 function getTranslatedConfigVariants(configVariants: ConfigVariants, translate: Translate) {
   return Object.entries(configVariants).reduce((variantsConfigVariants, [variantName, variant]) => {
     const translatedFields = variant.fields.map((field) => {
-      const label = field.label ?? "";
+      const label = field.label;
       const placeholder = field.placeholder ?? "";
       return {
         ...field,

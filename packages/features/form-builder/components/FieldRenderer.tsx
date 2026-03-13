@@ -31,9 +31,9 @@ export function FieldRenderer({ field, fieldStyle = "default", secondaryColor }:
     field.placeholder || t("form_builder_enter_field_type", { fieldType: field.type });
   const uiConfig: UIFieldConfig = field.uiConfig ?? {};
   const legacyHideLabel = (uiConfig as { hideLabel?: boolean }).hideLabel;
-  const labelText = legacyHideLabel ? "" : field.label?.trim() ?? "";
+  const labelText = legacyHideLabel ? "" : field.label.trim();
   const hideLabel = labelText.length === 0;
-  const layoutContent = uiConfig.content ?? field.label ?? "";
+  const layoutContent = uiConfig.content ?? field.label;
   const inputVariant = isUnderline ? "underline" : "default";
   const inputSize = "md";
   const underlineStyle =

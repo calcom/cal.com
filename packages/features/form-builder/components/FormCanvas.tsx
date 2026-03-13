@@ -116,7 +116,7 @@ function FieldCard({
   const { t } = useLocale();
   const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
   const legacyHideLabel = (field.uiConfig as { hideLabel?: boolean } | undefined)?.hideLabel;
-  const labelText = legacyHideLabel ? "" : field.label?.trim() ?? "";
+  const labelText = legacyHideLabel ? "" : field.label.trim();
   const hideLabel = labelText.length === 0;
   const validation = field.uiConfig?.validation;
   // For underline style, skip the block label — FieldRenderer shows it inline

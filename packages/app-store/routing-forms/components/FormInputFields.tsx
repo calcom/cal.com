@@ -19,6 +19,7 @@ import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
+import CalendarFieldController from "./CalendarFieldController";
 
 const emailRegex = /^\S+@\S+\.\S+$/;
 const phoneRegex = /^\+?[0-9\s\-()]{7,}$/;
@@ -34,7 +35,7 @@ export const getValidationErrorMessage = (field: any, value: unknown) => {
   const validation = field.uiConfig?.validation;
   const minChars = typeof validation?.minChars === "number" ? validation.minChars : null;
   const labelOrPlaceholder =
-    field.label?.trim() || field.placeholder?.trim() || field.identifier?.trim() || "value";
+    field.label.trim() || field.placeholder?.trim() || field.identifier?.trim() || "value";
   const requiredMessage = `Please enter ${labelOrPlaceholder}`;
 
   if (field.required && isEmptyValue(value)) {
@@ -74,6 +75,13 @@ export type FormInputFieldsProps = {
   showErrors?: boolean;
   accentColor?: string;
   secondaryColor?: string;
+  calendarEventType?: string | null;
+  calendarFormContext?: { username?: string | null; teamSlug?: string | null };
+  onFieldChange?: (args: {
+    field: SerializableForm<App_RoutingForms_Form>["fields"][number];
+    value: number | string | string[];
+    nextResponse: FormResponse;
+  }) => void;
 };
 
 export default function FormInputFields(props: FormInputFieldsProps) {
@@ -86,6 +94,9 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     showErrors = false,
     accentColor,
     secondaryColor,
+    calendarEventType,
+    calendarFormContext,
+    onFieldChange,
   } = props;
   const checkboxAccentClass = "data-[state=checked]:bg-transparent";
   const checkboxStyle = {
@@ -146,10 +157,11 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         }
 
         const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
-        const isFull = isLayout || (field.uiConfig?.layout ?? "full") === "full";
+        const isCalendar = field.type === "calendar";
+        const isFull = isLayout || isCalendar || (field.uiConfig?.layout ?? "full") === "full";
         const fieldIdentifier = getFieldIdentifier(field);
         const legacyHideLabel = (field.uiConfig as { hideLabel?: boolean } | undefined)?.hideLabel;
-        const labelText = legacyHideLabel ? "" : field.label?.trim() ?? "";
+        const labelText = legacyHideLabel ? "" : field.label.trim();
         const hideLabel = labelText.length === 0;
         const currentValue = response[field.id]?.value ?? "";
         const errorMessage = getValidationErrorMessage(field, currentValue);
@@ -157,7 +169,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const isDisabled = disabledFields?.includes(fieldIdentifier);
 
         if (isLayout) {
-          const layoutContent = field.uiConfig?.content ?? field.label ?? "";
+          const layoutContent = field.uiConfig?.content ?? field.label;
           return (
             <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
               <div className="rounded-lg border-2 border-transparent p-3">
@@ -178,15 +190,17 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         }
 
         const updateResponse = (value: number | string | string[]) => {
-          setResponse(() => {
-            return {
-              ...response,
+          setResponse((prev) => {
+            const next: FormResponse = {
+              ...prev,
               [field.id]: {
                 label: field.label,
                 identifier: field?.identifier,
                 value: getFieldResponseForJsonLogic({ field, value }),
               },
             };
+            onFieldChange?.({ field, value, nextResponse: next });
+            return next;
           });
         };
 
@@ -309,9 +323,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                   onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                   onCheckedChange={(next) => updateResponse(next ? "true" : "")}
                 />
-                {!hideLabel && (
-                  <span className="text-muted-foreground">{labelText || "Confirm"}</span>
-                )}
+                {!hideLabel && <span className="text-muted-foreground">{labelText}</span>}
               </label>
             );
           }
@@ -354,6 +366,21 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             );
           }
 
+          if (field.type === "calendar") {
+            return (
+              <CalendarFieldController
+                field={field}
+                value={currentValue}
+                onChange={(slot) => updateResponse(slot)}
+                eventType={calendarEventType ?? null}
+                formContext={calendarFormContext ?? {}}
+                disabled={isDisabled}
+                accentColor={accentColor}
+                secondaryColor={secondaryColor}
+              />
+            );
+          }
+
           return null;
         };
 
@@ -362,7 +389,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
           return (
             <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
               <div className="rounded-lg border-2 border-transparent p-3">
-                {labelText && !hideLabel && (
+                {!hideLabel && (
                   <label
                     id={`field-label-${field.id}`}
                     className={labelClassName}
@@ -399,7 +426,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         return (
           <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
             <div className="rounded-lg border-2 border-transparent p-3">
-              {labelText && !hideLabel && (
+              {!hideLabel && (
                 <label
                   id={`field-label-${field.id}`}
                   className={labelClassName}

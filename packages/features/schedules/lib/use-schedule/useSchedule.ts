@@ -1,6 +1,6 @@
+import { updateEmbedBookerState } from "@calid/embed-runtime/src/embed-iframe";
 import { useSearchParams } from "next/navigation";
 
-import { updateEmbedBookerState } from "@calid/embed-runtime/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
@@ -81,7 +81,7 @@ export const useSchedule = ({
     // Prioritize slug over id, since slug is the first value we get available.
     // If we have a slug, we don't need to fetch the id.
     // TODO: are queries using eventTypeId faster? Even tho we lost time fetching the id with the slug.
-    ...(eventId ? { eventTypeId: eventId ?? 0 }: { eventTypeSlug: eventSlug }),
+    ...(eventId ? { eventTypeId: eventId ?? 0 } : { eventTypeSlug: eventSlug }),
     // ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
 
     // @TODO: Old code fetched 2 days ago if we were fetching the current month.
@@ -146,7 +146,6 @@ export const useSchedule = ({
       })
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
-  
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
       bookerState,

@@ -414,6 +414,7 @@ export function initFrameBridge(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const eventType = (e as any).detail.type;
     if (isPrerenderMode() && !PRERENDER_ALLOWED.includes(eventType)) return;
+    console.log("Publishing event to parent", (e as any).detail);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parent.postMessage({ originator: "CAL", ...(e as any).detail }, "*");
   });

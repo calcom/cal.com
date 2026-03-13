@@ -330,7 +330,7 @@ export const FormBuilder = function FormBuilder({
             }
 
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label ?? "") };
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label) };
             }
             const numOptions = options?.length ?? 0;
             const firstOptionInput =

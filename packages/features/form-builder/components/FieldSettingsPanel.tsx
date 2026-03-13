@@ -268,15 +268,15 @@ function FieldTab({
     const hasContent = newLabel.trim().length > 0;
     if (isTextLayout) {
       onUpdateUIConfig({ content: hasContent ? newLabel : undefined });
-      onUpdate({ label: undefined });
+      onUpdate({ label: "" });
       return;
     }
-    const derived = labelToIdentifier(field.label ?? "");
+    const derived = labelToIdentifier(field.label);
     const currentId = field.identifier ?? "";
     // auto-sync identifier if it still matches the label-derived value
     const shouldSync = !currentId || currentId === derived;
     onUpdate({
-      label: hasContent ? newLabel : undefined,
+      label: hasContent ? newLabel : "",
       ...(shouldSync
         ? { identifier: hasContent ? labelToIdentifier(newLabel) : undefined }
         : {}),
@@ -290,7 +290,7 @@ function FieldTab({
         <div className="space-y-1">
           <FieldLabel>{t("label")}</FieldLabel>
           <Input
-            value={field.label ?? ""}
+            value={field.label}
             onChange={(e) => handleLabelChange(e.target.value)}
             placeholder={t("form_builder_field_label_placeholder")}
             className="h-8 text-sm"
@@ -337,6 +337,7 @@ function FieldTab({
               placeholder={t("form_builder_auto_from_label")}
               className="h-8 text-xs font-mono"
             />
+            <p className="text-[10px] text-muted">Embed integrations use identifier <code>event_type</code>.</p>
           </div>
 
           {/* Placeholder */}

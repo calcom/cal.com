@@ -3,7 +3,7 @@
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -20,6 +20,13 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
+import { applyFieldUpdate, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
+import {
+  attachCommandListener,
+  emitRoutingEvent,
+  isIntegrationEnabled,
+  isSelectableFieldType,
+} from "../../lib/embedIntegration";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
@@ -48,6 +55,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const formFillerIdRef = useRef(uuidv4());
   const [showErrors, setShowErrors] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
+  const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
   useTheme(profile.theme);
   useBrandColors({
     brandColor: profile.brandColor,
@@ -67,7 +75,88 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     route: NonRouterRoute;
     response: FormResponse;
   }>();
+  const pendingSubmissionIdRef = useRef<string | null>(null);
+  const pendingRedirectUrlRef = useRef<string | null>(null);
+  const pendingFallbackRef = useRef<(() => void) | null>(null);
+  const pendingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
+
+  const calendarFormContext = useMemo(
+    () => ({
+      username: (form as any)?.user?.username ?? (form as any)?.nonOrgUsername ?? null,
+      teamSlug: (form as any)?.team?.slug ?? null,
+    }),
+    [form]
+  );
+
+  useEffect(() => {
+    const fromResponse = resolveEventTypeValue(response, form.fields, "event_type");
+    if (fromResponse && fromResponse !== calendarEventType) {
+      setCalendarEventType(fromResponse);
+    }
+  }, [response, form.fields, calendarEventType]);
+
+  const clearPendingTimeout = () => {
+    if (pendingTimeoutRef.current) {
+      window.clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
+  };
+
+  const handleAck = (submissionId: string, redirectUrl?: string) => {
+    console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
+
+    if (pendingSubmissionIdRef.current !== submissionId) return;
+    clearPendingTimeout();
+    const finalUrl = redirectUrl ?? pendingRedirectUrlRef.current;
+    if (finalUrl) {
+      navigateInTopWindow(finalUrl);
+    } else {
+      pendingFallbackRef.current?.();
+    }
+    pendingSubmissionIdRef.current = null;
+    pendingRedirectUrlRef.current = null;
+    pendingFallbackRef.current = null;
+  };
+
+  useEffect(() => {
+    if (!isIntegrationEnabled(!!isEmbed)) return;
+    return attachCommandListener({
+      onSetFieldValue: (identifier, value) => {
+        setResponse((prev) => applyFieldUpdate(prev, identifier, value, form.fields));
+      },
+      onSetCalendarEventType: (eventType, fieldIdentifier) => {
+        setCalendarEventType(eventType);
+        const targetIdentifier = fieldIdentifier ?? "event_type";
+        const targetField = form.fields?.find(
+          (field) => getFieldIdentifier(field) === targetIdentifier
+        );
+        if (targetField?.type === "calendar") return;
+        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, eventType, form.fields));
+      },
+      onAck: (submissionId, redirectUrl) => handleAck(submissionId, redirectUrl),
+    });
+  }, [isEmbed, form.fields]);
+
+  const handleFieldChange = (args: {
+    field: NonNullable<typeof form.fields>[number];
+    value: number | string | string[];
+    nextResponse: FormResponse;
+  }) => {
+    if (!isIntegrationEnabled(!!isEmbed)) return;
+    if (!isSelectableFieldType(args.field)) return;
+    const lastChangedField = {
+      id: args.field.id,
+      identifier: getFieldIdentifier(args.field),
+      label: args.field.label,
+      type: args.field.type,
+      value: args.value,
+    };
+    emitRoutingEvent("routing_form_change", {
+      fields: args.nextResponse,
+      lastChangedField,
+    });
+  };
 
   const onSubmit = (response: FormResponse) => {
     const chosenRoute = findMatchingRoute({ form, response });
@@ -133,22 +222,70 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         actionType: decidedAction.type,
         actionValue: decidedAction.value,
       });
-      //TODO: Maybe take action after successful mutation
-      if (decidedAction.type === "customPageMessage") {
-        setCustomPageMessage(decidedAction.value);
-      } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
-        router.push(
-          getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
-            form,
-            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
-            allURLSearchParams,
-            isEmbed: !!isEmbed,
-          })
-        );
-      } else if (decidedAction.type === "externalRedirectUrl") {
-        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
+      const runDecidedAction = () => {
+        if (decidedAction.type === "customPageMessage") {
+          setCustomPageMessage(decidedAction.value);
+        } else if (decidedAction.type === "eventTypeRedirectUrl") {
+          const eventTypeUrlWithResolvedVariables = substituteVariables(
+            decidedAction.value,
+            chosenRouteWithFormResponse.response,
+            fields
+          );
+          router.push(
+            getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+              form,
+              eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+              allURLSearchParams,
+              isEmbed: !!isEmbed,
+            })
+          );
+        } else if (decidedAction.type === "externalRedirectUrl") {
+          navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
+        }
+      };
+
+      if (isIntegrationEnabled(!!isEmbed)) {
+        const submissionId = uuidv4();
+        const redirectUrl =
+          decidedAction.type === "eventTypeRedirectUrl"
+            ? getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+                form,
+                eventTypeRedirectUrl: substituteVariables(
+                  decidedAction.value,
+                  chosenRouteWithFormResponse.response,
+                  fields
+                ),
+                allURLSearchParams,
+                isEmbed: !!isEmbed,
+              })
+            : decidedAction.type === "externalRedirectUrl"
+            ? `${decidedAction.value}?${allURLSearchParams}`
+            : null;
+        pendingSubmissionIdRef.current = submissionId;
+        pendingRedirectUrlRef.current = redirectUrl;
+        pendingFallbackRef.current = runDecidedAction;
+        clearPendingTimeout();
+        pendingTimeoutRef.current = window.setTimeout(() => {
+          pendingSubmissionIdRef.current = null;
+          pendingRedirectUrlRef.current = null;
+          pendingFallbackRef.current = null;
+          // runDecidedAction();
+        }, 20000);
+
+        emitRoutingEvent("form_submission", {
+          submissionId,
+          formId: form.id,
+          response: chosenRouteWithFormResponse.response,
+          chosenRouteId: chosenRoute.id,
+          redirectUrl,
+          formResponseId: formResponse?.id ?? null,
+          queuedFormResponseId: queuedFormResponse?.id ?? null,
+        });
+
+        return;
       }
+
+      runDecidedAction();
       // We don't want to show this message as it doesn't look good in Embed.
       // triggerToast("Form submitted successfully! Redirecting now ...", "success");
     },
@@ -194,6 +331,9 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               submitDisabled={responseMutation.isPending}
               showErrors={showErrors}
               className="min-h-screen w-full"
+              calendarEventType={calendarEventType}
+              calendarFormContext={calendarFormContext}
+              onFieldChange={handleFieldChange}
             />
           </form>
         </>
