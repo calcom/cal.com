@@ -1,23 +1,18 @@
-import Link from "next/link";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
-import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { API_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { API_NAME_LENGTH_MAX_LIMIT, IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { SelectField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, SelectField, Switch, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
+import Link from "next/link";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 export default function ApiKeyDialogForm({
   defaultValues,
@@ -51,6 +46,8 @@ export default function ApiKeyDialogForm({
     note: "" as string | null,
     neverExpires: false,
   });
+
+  const [keyType, setKeyType] = useState<"api_key" | "agent">("api_key");
 
   const form = useForm({
     defaultValues: {
@@ -143,7 +140,7 @@ export default function ApiKeyDialogForm({
             if (defaultValues) {
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
-              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
+              const apiKey = await utils.client.viewer.apiKeys.create.mutate({ ...event, keyType });
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
               await utils.viewer.apiKeys.list.invalidate();
@@ -158,9 +155,22 @@ export default function ApiKeyDialogForm({
             </h2>
             {IS_CALCOM ? (
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <div className="border-emphasis relative flex w-full items-start rounded-[10px] border p-4 text-sm">
+                <button
+                  type="button"
+                  onClick={() => setKeyType("api_key")}
+                  className={`relative flex w-full cursor-pointer items-start rounded-[10px] border p-4 text-left text-sm ${
+                    keyType === "api_key" ? "border-emphasis ring-emphasis ring-1" : "border-subtle"
+                  }`}>
                   {t("api_key_modal_subtitle")}
-                </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setKeyType("agent")}
+                  className={`relative flex w-full cursor-pointer items-start rounded-[10px] border p-4 text-left text-sm ${
+                    keyType === "agent" ? "border-emphasis ring-emphasis ring-1" : "border-subtle"
+                  }`}>
+                  {t("agent_api_key_modal_subtitle")}
+                </button>
                 <Link
                   target="_blank"
                   rel="noopener noreferrer"

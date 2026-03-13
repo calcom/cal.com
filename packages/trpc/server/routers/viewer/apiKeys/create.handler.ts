@@ -1,9 +1,8 @@
-import { v4 } from "uuid";
-
+import process from "node:process";
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { v4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import { checkPermissions } from "./_auth-middleware";
 import type { TCreateInputSchema } from "./create.schema";
@@ -19,7 +18,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   const [hashedApiKey, apiKey] = generateUniqueAPIKey();
 
   // Here we snap never expires before deleting it so it's not passed to prisma create call.
-  const { neverExpires, teamId, ...rest } = input;
+  const { neverExpires, teamId, keyType, ...rest } = input;
   const userId = ctx.user.id;
 
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
@@ -37,7 +36,8 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
     },
   });
 
-  const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+  const baseApiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+  const apiKeyPrefix = keyType === "agent" ? `${baseApiKeyPrefix}agent_` : baseApiKeyPrefix;
 
   const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
 

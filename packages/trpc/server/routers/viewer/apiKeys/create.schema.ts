@@ -6,6 +6,7 @@ export type TCreateInputSchema = {
   neverExpires?: boolean;
   appId?: string | null;
   teamId?: number;
+  keyType?: "api_key" | "agent";
 };
 
 export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
@@ -14,4 +15,5 @@ export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   neverExpires: z.boolean().optional(),
   appId: z.string().optional().nullable(),
   teamId: z.number().optional(),
+  keyType: z.enum(["api_key", "agent"]).optional(),
 });
