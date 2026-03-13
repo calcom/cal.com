@@ -748,3 +748,121 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
     });
   });
 });
+
+// ─── getAvailability — Zimbra/non-standard TZID tests ────────────────────────
+
+import { fetchCalendarObjects } from "tsdav";
+
+// Minimal ICS helpers for getAvailability tests
+const makeZimbraIcs = (startLocal: string, endLocal: string, tzid: string) => `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:${tzid}
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0100
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=${tzid}:${startLocal}
+DTEND;TZID=${tzid}:${endLocal}
+SUMMARY:Zimbra Test
+END:VEVENT
+END:VCALENDAR`;
+
+// Zimbra-style ICS where TZID in DTSTART uses a vendor-prefixed form
+// but the VTIMEZONE component uses the plain IANA name.
+const makeZimbraVendorIcs = (startLocal: string, endLocal: string, ianaName: string) => `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:${ianaName}
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0100
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=/zimbra.com/standard/${ianaName}:${startLocal}
+DTEND;TZID=/zimbra.com/standard/${ianaName}:${endLocal}
+SUMMARY:Zimbra Vendor TZID Test
+END:VEVENT
+END:VCALENDAR`;
+
+describe("CalendarService - getAvailability timezone handling", () => {
+  let service: TestCalendarService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    service = new TestCalendarService();
+    (service as unknown as Record<string, unknown>).getUserTimezoneFromDB = vi.fn().mockResolvedValue("UTC");
+  });
+
+  it("should return correct start/end for non-recurring event with VTIMEZONE (no double-conversion)", async () => {
+    // Event: 09:00–09:15 Europe/Berlin (UTC+1 → 08:00–08:15 UTC)
+    const ics = makeZimbraIcs("20260105T090000", "20260105T091500", "Europe/Berlin");
+    vi.mocked(fetchCalendarObjects).mockResolvedValue([
+      { data: ics, url: "https://example.com/event.ics", etag: '"1"' } as any,
+    ]);
+
+    const result = await service.getAvailability({
+      dateFrom: "2026-01-05",
+      dateTo: "2026-01-06",
+      selectedCalendars: [
+        {
+          externalId: "https://example.com/calendar/",
+          name: "Test",
+          primary: true,
+          readOnly: false,
+          email: "test@example.com",
+          integrationName: "caldav",
+          credentialId: 1,
+          userId: 1,
+        },
+      ],
+    });
+
+    expect(result).toHaveLength(1);
+    const startHour = new Date(result[0].start).getUTCHours();
+    const endHour = new Date(result[0].end).getUTCHours();
+    const endMin = new Date(result[0].end).getUTCMinutes();
+
+    // start must be 08:00 UTC (09:00 Berlin - 1h offset), NOT 10:00 UTC (double-converted)
+    expect(startHour).toBe(8);
+    // end must be AFTER start (08:15 UTC), not before (which would indicate double-conversion)
+    expect(new Date(result[0].end).getTime()).toBeGreaterThan(new Date(result[0].start).getTime());
+    expect(endHour).toBe(8);
+    expect(endMin).toBe(15);
+  });
+
+  it("should handle Zimbra vendor-prefixed TZID (e.g. /zimbra.com/standard/Europe/Berlin)", async () => {
+    // Zimbra uses DTSTART;TZID=/zimbra.com/standard/Europe/Berlin but VTIMEZONE has TZID:Europe/Berlin
+    // The lookup by exact match would fail; fallback to IANA suffix extraction must work.
+    const ics = makeZimbraVendorIcs("20260105T090000", "20260105T091500", "Europe/Berlin");
+    vi.mocked(fetchCalendarObjects).mockResolvedValue([
+      { data: ics, url: "https://example.com/event.ics", etag: '"1"' } as any,
+    ]);
+
+    const result = await service.getAvailability({
+      dateFrom: "2026-01-05",
+      dateTo: "2026-01-06",
+      selectedCalendars: [
+        {
+          externalId: "https://example.com/calendar/",
+          name: "Test",
+          primary: true,
+          readOnly: false,
+          email: "test@example.com",
+          integrationName: "caldav",
+          credentialId: 1,
+          userId: 1,
+        },
+      ],
+    });
+
+    // Should return 1 event; end must be after start (positive duration)
+    expect(result).toHaveLength(1);
+    expect(new Date(result[0].end).getTime()).toBeGreaterThan(new Date(result[0].start).getTime());
+  });
+});

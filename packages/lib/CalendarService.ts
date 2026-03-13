@@ -726,7 +726,18 @@ export default abstract class BaseCalendarService implements Calendar {
         let vtimezone = null;
         if (tzid) {
           const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
+          // First: exact TZID match (covers standard cases: "Europe/Berlin" == "Europe/Berlin")
           vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
+
+          // Second: some CalDAV providers (e.g. Zimbra) use non-standard TZIDs like
+          // "/zimbra.com/standard/Europe/Berlin" or "/mozilla.org/20070129_1/Europe/Berlin".
+          // Extract the IANA part after the last "/" and retry the lookup.
+          if (!vtimezone && tzid.includes("/")) {
+            const ianaCandidate = tzid.split("/").pop();
+            if (ianaCandidate) {
+              vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === ianaCandidate);
+            }
+          }
         }
 
         if (!vtimezone) {
@@ -777,7 +788,12 @@ export default abstract class BaseCalendarService implements Calendar {
             // do not mix up caldav and icalendar! For the recurring events here, the timezone
             // provided is relevant, not as pointed out in https://datatracker.ietf.org/doc/html/rfc4791#section-9.6.5
             // where recurring events are always in utc (in caldav!). Thus, apply the time zone here.
-            if (vtimezone) {
+            //
+            // Guard: only convert floating times. ical.js already resolves DTSTART;TZID=... into
+            // a zone-aware ICAL.Time; calling convertToZone on a non-floating time would
+            // re-interpret the local value as UTC first, applying the offset a second time and
+            // producing an incorrect (negative) duration (Zimbra CalDAV bug, #27877).
+            if (vtimezone && currentEvent.startDate.isFloating()) {
               const zone = new ICAL.Timezone(vtimezone);
               currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
               currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
@@ -797,7 +813,8 @@ export default abstract class BaseCalendarService implements Calendar {
           return;
         }
 
-        if (vtimezone) {
+        // Guard: only convert floating times (see recurring case comment above).
+        if (vtimezone && event.startDate.isFloating()) {
           const zone = new ICAL.Timezone(vtimezone);
           event.startDate = event.startDate.convertToZone(zone);
           event.endDate = event.endDate.convertToZone(zone);
