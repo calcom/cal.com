@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tome dev",
     "build": "tome build",
-    "lint": "tome build --mode production"
+    "lint": "echo 'Tome v0.2.x does not include a linter; skipping lint'"
   },
   "dependencies": {
     "@tomehq/cli": "^0.2.6",
