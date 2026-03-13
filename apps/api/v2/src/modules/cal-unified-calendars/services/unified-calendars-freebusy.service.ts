@@ -7,7 +7,7 @@ import {
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 
 type ConnectedCalendarsList = ConnectedDestinationCalendars["connectedCalendars"];
@@ -97,9 +97,7 @@ export class UnifiedCalendarsFreebusyService {
    */
   async getBusyTimesForGoogleCalendars(userId: number, from: string, to: string, timezone: string) {
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const googleCalendars = connectedCalendars.filter(
-      (c) => getIntegrationType(c) === GOOGLE_CALENDAR_TYPE
-    );
+    const googleCalendars = connectedCalendars.filter((c) => getIntegrationType(c) === GOOGLE_CALENDAR_TYPE);
     const calendarsToLoad: CalendarToLoad[] = googleCalendars.flatMap((conn) =>
       (conn.calendars ?? [])
         .filter((cal) => cal.isSelected)

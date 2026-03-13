@@ -1,4 +1,17 @@
+/**
+ * Virtual mocks are required here because:
+ * - @calcom/platform-libraries/app-store and @calcom/platform-libraries are workspace packages
+ *   whose transitive dependencies (prisma, DB connections) cannot be resolved in the Jest
+ *   unit-test environment. We mock them to isolate GoogleCalendarService logic.
+ * - googleapis-common and @googleapis/calendar are mocked to verify JWT creation params
+ *   and Calendar construction without hitting real Google APIs.
+ */
 const mockDelegationFindById = jest.fn().mockResolvedValue(null);
+const mockJwtAuthorize = jest.fn().mockResolvedValue(undefined);
+const MockJWT = jest.fn().mockImplementation(() => ({
+  authorize: mockJwtAuthorize,
+}));
+const MockCalendar = jest.fn().mockImplementation(() => ({ events: {} }));
 jest.mock(
   "@calcom/platform-libraries/app-store",
   () => ({
@@ -19,13 +32,11 @@ jest.mock(
   { virtual: true }
 );
 jest.mock("googleapis-common", () => ({
-  JWT: jest.fn().mockImplementation(() => ({
-    authorize: jest.fn().mockResolvedValue(undefined),
-  })),
+  JWT: MockJWT,
 }));
 jest.mock("@googleapis/calendar", () => ({
   calendar_v3: {
-    Calendar: jest.fn().mockImplementation(() => ({})),
+    Calendar: MockCalendar,
   },
 }));
 
@@ -149,8 +160,7 @@ describe("GoogleCalendarService", () => {
       mockDelegationFindById.mockResolvedValueOnce({
         serviceAccountKey: {
           client_email: "sa@project.iam.gserviceaccount.com",
-          private_key:
-            "-----BEGIN PRIVATE KEY-----\nMOCK_KEY_FOR_TEST\n-----END PRIVATE KEY-----\n",
+          private_key: "-----BEGIN PRIVATE KEY-----\nMOCK_KEY_FOR_TEST\n-----END PRIVATE KEY-----\n",
         },
       });
       mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
@@ -166,6 +176,149 @@ describe("GoogleCalendarService", () => {
 
       expect(calendar).toBeDefined();
       expect(mockGCalService.getOAuthClient).not.toHaveBeenCalled();
+    });
+
+    it("should create JWT with correct params for delegation (email, key, scopes, subject)", async () => {
+      MockJWT.mockClear();
+      mockJwtAuthorize.mockClear();
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key: "-----BEGIN PRIVATE KEY-----\nTEST_KEY\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: null,
+        invalid: false,
+        delegationCredentialId: "deleg-cred-200",
+        user: { email: "delegated-user@example.com" },
+      });
+
+      await service.getCalendarClientForUser(userId);
+
+      expect(MockJWT).toHaveBeenCalledWith({
+        email: "sa@project.iam.gserviceaccount.com",
+        key: "-----BEGIN PRIVATE KEY-----\nTEST_KEY\n-----END PRIVATE KEY-----\n",
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        subject: "delegated-user@example.com",
+      });
+      expect(mockJwtAuthorize).toHaveBeenCalled();
+    });
+
+    it("should strip OAuth client ID alias from email before delegation", async () => {
+      MockJWT.mockClear();
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key: "-----BEGIN PRIVATE KEY-----\nKEY\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: null,
+        invalid: false,
+        delegationCredentialId: "deleg-cred-300",
+        user: { email: "user+abcdefghijklmnopqrstuvwxy@example.com" },
+      });
+
+      await service.getCalendarClientForUser(userId);
+
+      expect(MockJWT).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subject: "user@example.com",
+        })
+      );
+    });
+
+    it("should fall back to OAuth when delegation service account key has missing client_email", async () => {
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: null,
+          private_key: "-----BEGIN PRIVATE KEY-----\nKEY\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: { access_token: "token", refresh_token: "refresh", token_type: "Bearer" },
+        invalid: false,
+        delegationCredentialId: "deleg-cred-400",
+        user: { email: "user@example.com" },
+      });
+
+      const calendar = await service.getCalendarClientForUser(userId);
+
+      expect(calendar).toBeDefined();
+      expect(mockGCalService.getOAuthClient).toHaveBeenCalled();
+    });
+
+    it("should fall back to OAuth when delegation service account key has missing private_key", async () => {
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key: null,
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: { access_token: "token", refresh_token: "refresh", token_type: "Bearer" },
+        invalid: false,
+        delegationCredentialId: "deleg-cred-500",
+        user: { email: "user@example.com" },
+      });
+
+      const calendar = await service.getCalendarClientForUser(userId);
+
+      expect(calendar).toBeDefined();
+      expect(mockGCalService.getOAuthClient).toHaveBeenCalled();
+    });
+
+    it("should fall back to OAuth when JWT authorize() throws", async () => {
+      mockJwtAuthorize.mockRejectedValueOnce(new Error("authorize failed"));
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key: "-----BEGIN PRIVATE KEY-----\nKEY\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: { access_token: "token", refresh_token: "refresh", token_type: "Bearer" },
+        invalid: false,
+        delegationCredentialId: "deleg-cred-600",
+        user: { email: "user@example.com" },
+      });
+
+      const calendar = await service.getCalendarClientForUser(userId);
+
+      expect(calendar).toBeDefined();
+      expect(mockGCalService.getOAuthClient).toHaveBeenCalled();
+    });
+
+    it("should throw UnauthorizedException when delegation fails and no OAuth key available", async () => {
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: null,
+          private_key: null,
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: null,
+        invalid: false,
+        delegationCredentialId: "deleg-cred-700",
+        user: { email: "user@example.com" },
+      });
+
+      await expect(service.getCalendarClientForUser(userId)).rejects.toThrow(
+        "No valid credentials available for Google Calendar"
+      );
     });
 
     it("should handle missing user email gracefully", async () => {
@@ -254,6 +407,37 @@ describe("GoogleCalendarService", () => {
       const calendar = await service.getCalendarClientByCredentialId(userId, credentialId);
 
       expect(calendar).toBeDefined();
+    });
+
+    it("should use delegation path with JWT for getCalendarClientByCredentialId", async () => {
+      MockJWT.mockClear();
+      mockJwtAuthorize.mockClear();
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key: "-----BEGIN PRIVATE KEY-----\nKEY_FOR_CRED\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialByIdAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: null,
+        invalid: false,
+        delegationCredentialId: "deleg-by-cred-id",
+        user: { email: "cred-user@example.com" },
+      });
+
+      const calendar = await service.getCalendarClientByCredentialId(userId, credentialId);
+
+      expect(calendar).toBeDefined();
+      expect(MockJWT).toHaveBeenCalledWith({
+        email: "sa@project.iam.gserviceaccount.com",
+        key: "-----BEGIN PRIVATE KEY-----\nKEY_FOR_CRED\n-----END PRIVATE KEY-----\n",
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        subject: "cred-user@example.com",
+      });
+      expect(mockJwtAuthorize).toHaveBeenCalled();
+      expect(mockGCalService.getOAuthClient).not.toHaveBeenCalled();
     });
   });
 

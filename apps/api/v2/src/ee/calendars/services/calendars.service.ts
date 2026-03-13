@@ -1,10 +1,10 @@
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import {
   type EventBusyDate,
   getBusyCalendarTimes,
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
 } from "@calcom/platform-libraries";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { Calendar } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User } from "@calcom/prisma/client";
@@ -85,8 +85,15 @@ export class CalendarsService {
 
   /**
    * Returns calendar data for a single connection (credential).
-   * Use this when only one connection is needed to avoid relying on fetch-all-then-filter in callers.
-   * Implementation currently uses getCalendars then filters; can be optimized later (e.g. targeted platform-lib query).
+   *
+   * Uses getCalendars() under the hood which benefits from the CalendarsCacheService
+   * cache layer — repeated calls for different connections of the same user hit the
+   * cache instead of re-fetching all providers from the external APIs.
+   *
+   * A fully targeted query (fetching only the single credential's calendars from the
+   * provider) would require changes to the upstream platform-libraries
+   * `getConnectedDestinationCalendarsAndEnsureDefaultsInDb` API, which currently only
+   * supports fetching all credentials at once. This is tracked as a future optimisation.
    */
   async getCalendarsForConnection(
     userId: number,

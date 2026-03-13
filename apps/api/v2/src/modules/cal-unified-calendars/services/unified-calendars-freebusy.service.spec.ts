@@ -1,3 +1,10 @@
+/**
+ * Virtual mock is required because CalendarsService (imported for the DI token) has
+ * runtime imports from @calcom/platform-libraries whose transitive dependencies
+ * (prisma, DB) cannot be resolved in the Jest unit-test environment.
+ * The integration spec (unified-calendars-freebusy.integration.spec.ts) imports the
+ * real ConnectedDestinationCalendars type to catch type-shape changes at compile time.
+ */
 jest.mock(
   "@calcom/platform-libraries",
   () => ({
