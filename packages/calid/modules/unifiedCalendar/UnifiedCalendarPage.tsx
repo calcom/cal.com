@@ -4,8 +4,9 @@ import { Alert } from "@calid/features/ui/components/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calid/features/ui/components/sheet";
-import { differenceInMinutes, isEqual, startOfDay } from "date-fns";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { addMinutes, differenceInMinutes, isEqual, set, startOfDay } from "date-fns";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
@@ -30,6 +31,21 @@ import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateD
 const UNIFIED_CALENDAR_REFRESH_INTERVAL_MS = 15_000;
 const CONNECTED_CALENDARS_REFRESH_INTERVAL_MS = 30_000;
 const TIME_GRID_SNAP_MINUTES = 15;
+const DRAG_START_THRESHOLD_PX = 4;
+const EDGE_NAV_ZONE_PX = 56;
+const EDGE_NAV_HOVER_DELAY_MS = 420;
+const EDGE_NAV_COOLDOWN_MS = 850;
+const EDGE_SCROLL_ZONE_PX = 64;
+const EDGE_SCROLL_MAX_STEP_PX = 18;
+
+type DropSurface = "time-grid" | "month-grid";
+
+interface DragSessionState {
+  event: UnifiedCalendarEventVM;
+  initialPointer: { x: number; y: number };
+  pointer: { x: number; y: number };
+  isActive: boolean;
+}
 
 const compareUnifiedItemsByTime = (
   left: { startTime: string; endTime: string; id: string },
@@ -58,6 +74,14 @@ const snapToMinutes = (value: Date, snapMinutes: number) => {
   return next;
 };
 
+const isMonthCellElement = (value: Element | null): value is HTMLElement => {
+  return Boolean(value && value instanceof HTMLElement && value.dataset.unifiedMonthCell === "true");
+};
+
+const isTimeColumnElement = (value: Element | null): value is HTMLElement => {
+  return Boolean(value && value instanceof HTMLElement && value.dataset.unifiedTimeColumn === "true");
+};
+
 const UnifiedCalendarPage = () => {
   const isMobile = useIsMobile();
 
@@ -75,8 +99,22 @@ const UnifiedCalendarPage = () => {
   const [pendingColorById, setPendingColorById] = useState<Record<string, boolean>>({});
   const [optimisticSyncById, setOptimisticSyncById] = useState<Record<string, boolean>>({});
   const [pendingSyncById, setPendingSyncById] = useState<Record<string, boolean>>({});
-  const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
+  const [dragSession, setDragSession] = useState<DragSessionState | null>(null);
+  const [dragPreview, setDragPreview] = useState<{ start: Date; end: Date; dropSurface: DropSurface } | null>(
+    null
+  );
+  const [pageFlipIntent, setPageFlipIntent] = useState<"prev" | "next" | null>(null);
+  const [verticalScrollIntent, setVerticalScrollIntent] = useState<"up" | "down" | null>(null);
   const [pendingRescheduleByEventId, setPendingRescheduleByEventId] = useState<Record<string, boolean>>({});
+  const [suppressSelectUntilTs, setSuppressSelectUntilTs] = useState(0);
+  const scrollAreaRootRef = useRef<HTMLDivElement | null>(null);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const calendarViewportRef = useRef<HTMLDivElement | null>(null);
+  const edgeIntentSinceRef = useRef<number | null>(null);
+  const lastEdgeNavAtRef = useRef<number>(0);
+  const dragSessionRef = useRef<DragSessionState | null>(null);
+  const pageFlipIntentRef = useRef<"prev" | "next" | null>(null);
+  const verticalScrollIntentRef = useRef<"up" | "down" | null>(null);
   const trpcUtils = trpc.useUtils();
 
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
@@ -97,6 +135,25 @@ const UnifiedCalendarPage = () => {
       setSidebarOpen(false);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    dragSessionRef.current = dragSession;
+  }, [dragSession]);
+
+  useEffect(() => {
+    pageFlipIntentRef.current = pageFlipIntent;
+  }, [pageFlipIntent]);
+
+  useEffect(() => {
+    verticalScrollIntentRef.current = verticalScrollIntent;
+  }, [verticalScrollIntent]);
+
+  useEffect(() => {
+    if (!scrollAreaRootRef.current) return;
+    scrollViewportRef.current = scrollAreaRootRef.current.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLDivElement | null;
+  }, []);
 
   const connectedCalendars = useMemo(() => {
     const mapped = mapConnectedCalendarsToVM(connectedCalendarsQuery.data?.connectedCalendars ?? []);
@@ -220,10 +277,8 @@ const UnifiedCalendarPage = () => {
     [pendingRescheduleByEventId]
   );
 
-  const draggingEvent = useMemo(
-    () => (draggingEventId ? filteredEvents.find((event) => event.id === draggingEventId) ?? null : null),
-    [draggingEventId, filteredEvents]
-  );
+  const draggingEvent = dragSession?.event ?? null;
+  const hasDragSession = Boolean(dragSession);
 
   const getConflicts = useCallback(
     (event: UnifiedCalendarEventVM) => getEventConflicts(event, filteredEvents),
@@ -234,11 +289,14 @@ const UnifiedCalendarPage = () => {
   const headerTitle = useMemo(() => getHeaderTitle(currentDate, viewMode), [currentDate, viewMode]);
 
   useEffect(() => {
-    if (!draggingEventId) return;
-    if (!filteredEvents.some((event) => event.id === draggingEventId)) {
-      setDraggingEventId(null);
+    if (!dragSession?.isActive) return;
+    if (pendingRescheduleEventIds.has(dragSession.event.id)) {
+      setDragSession(null);
+      setDragPreview(null);
+      setPageFlipIntent(null);
+      setVerticalScrollIntent(null);
     }
-  }, [draggingEventId, filteredEvents]);
+  }, [dragSession, pendingRescheduleEventIds]);
 
   useEffect(() => {
     if (!selectedEvent) return;
@@ -438,21 +496,353 @@ const UnifiedCalendarPage = () => {
     []
   );
 
+  const resolveDropPreviewFromPointer = useCallback(
+    (
+      pointer: { x: number; y: number },
+      event: UnifiedCalendarEventVM
+    ): { start: Date; end: Date; dropSurface: DropSurface } | null => {
+      const elementAtPointer = document.elementFromPoint(pointer.x, pointer.y);
+      const monthCell = elementAtPointer?.closest("[data-unified-month-cell='true']") ?? null;
+      const timeColumn = elementAtPointer?.closest("[data-unified-time-column='true']") ?? null;
+      const durationMinutes = Math.max(15, differenceInMinutes(event.end, event.start));
+
+      if (isTimeColumnElement(timeColumn)) {
+        const dayStartRaw = timeColumn.dataset.unifiedDayStart;
+        if (!dayStartRaw) return null;
+
+        const dayStart = new Date(dayStartRaw);
+        if (Number.isNaN(dayStart.getTime())) return null;
+
+        const bounds = timeColumn.getBoundingClientRect();
+        if (bounds.height <= 0) return null;
+
+        const maxStartMinutes = Math.max(0, 1440 - durationMinutes);
+        const minutesFromTop = ((pointer.y - bounds.top) / bounds.height) * 1440;
+        const clampedMinutes = Math.max(0, Math.min(maxStartMinutes, minutesFromTop));
+        const snappedMinutes = Math.floor(clampedMinutes / TIME_GRID_SNAP_MINUTES) * TIME_GRID_SNAP_MINUTES;
+        const start = addMinutes(startOfDay(dayStart), snappedMinutes);
+
+        return {
+          start,
+          end: addMinutes(start, durationMinutes),
+          dropSurface: "time-grid",
+        };
+      }
+
+      if (isMonthCellElement(monthCell)) {
+        const dayStartRaw = monthCell.dataset.unifiedDayStart;
+        if (!dayStartRaw) return null;
+
+        const dayStart = new Date(dayStartRaw);
+        if (Number.isNaN(dayStart.getTime())) return null;
+
+        if (event.isAllDay) {
+          const start = startOfDay(dayStart);
+          return {
+            start,
+            end: addMinutes(start, durationMinutes),
+            dropSurface: "month-grid",
+          };
+        }
+
+        const start = set(dayStart, {
+          hours: event.start.getHours(),
+          minutes: event.start.getMinutes(),
+          seconds: 0,
+          milliseconds: 0,
+        });
+
+        return {
+          start,
+          end: addMinutes(start, durationMinutes),
+          dropSurface: "month-grid",
+        };
+      }
+
+      return null;
+    },
+    []
+  );
+
+  const handleDropReschedule = useCallback(
+    async (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date; dropSurface: DropSurface }) => {
+      const { event, start, end } = payload;
+      if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
+        return;
+      }
+
+      if (start >= end) {
+        showToast("Invalid time range selected.", "error");
+        return;
+      }
+
+      if (isNoopDropReschedule(payload)) {
+        return;
+      }
+
+      const bookingId = event.internal.bookingId;
+      const eventId = event.id;
+      const previousData = trpcUtils.viewer.unifiedCalendar.list.getData(unifiedCalendarListInput);
+
+      try {
+        await trpcUtils.viewer.unifiedCalendar.list.cancel(unifiedCalendarListInput);
+        setPendingRescheduleByEventId((current) => ({ ...current, [eventId]: true }));
+        setBookingTimeInListCache(bookingId, start, end);
+
+        await rescheduleBookingMutation.mutateAsync({
+          bookingId,
+          startTime: start.toISOString(),
+          endTime: end.toISOString(),
+        });
+
+        showToast("Booking rescheduled.", "success");
+        setRescheduleEvent((current) => (current?.id === eventId ? null : current));
+        setSelectedEvent((current) => (current?.id === eventId ? null : current));
+        void trpcUtils.viewer.unifiedCalendar.list.invalidate();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+        trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
+        showToast(message, "error");
+      } finally {
+        setPendingRescheduleByEventId((current) => {
+          const next = { ...current };
+          delete next[eventId];
+          return next;
+        });
+      }
+    },
+    [
+      pendingRescheduleByEventId,
+      isNoopDropReschedule,
+      rescheduleBookingMutation,
+      setBookingTimeInListCache,
+      trpcUtils.viewer.unifiedCalendar.list,
+      unifiedCalendarListInput,
+    ]
+  );
+
   const handleStartDragEvent = useCallback(
-    (event: UnifiedCalendarEventVM) => {
+    (event: UnifiedCalendarEventVM, pointer: { x: number; y: number }) => {
       if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
         return;
       }
 
       clearActionErrors();
-      setDraggingEventId(event.id);
+      setDragSession({
+        event,
+        initialPointer: pointer,
+        pointer,
+        isActive: false,
+      });
+      setDragPreview(null);
+      setPageFlipIntent(null);
+      setVerticalScrollIntent(null);
+      edgeIntentSinceRef.current = null;
     },
     [pendingRescheduleByEventId]
   );
 
-  const handleEndDragEvent = useCallback(() => {
-    setDraggingEventId(null);
-  }, []);
+  useEffect(() => {
+    if (!hasDragSession) return;
+
+    const updateEdgeIntents = (pointerX: number, pointerY: number) => {
+      const viewport = scrollViewportRef.current ?? calendarViewportRef.current;
+      if (!viewport) {
+        setPageFlipIntent(null);
+        setVerticalScrollIntent(null);
+        edgeIntentSinceRef.current = null;
+        return;
+      }
+
+      const bounds = viewport.getBoundingClientRect();
+      if (
+        pointerY < bounds.top ||
+        pointerY > bounds.bottom ||
+        pointerX < bounds.left ||
+        pointerX > bounds.right
+      ) {
+        setPageFlipIntent(null);
+        setVerticalScrollIntent(null);
+        edgeIntentSinceRef.current = null;
+        return;
+      }
+
+      let nextIntent: "prev" | "next" | null = null;
+      if (pointerX <= bounds.left + EDGE_NAV_ZONE_PX) {
+        nextIntent = "prev";
+      } else if (pointerX >= bounds.right - EDGE_NAV_ZONE_PX) {
+        nextIntent = "next";
+      }
+
+      if (nextIntent !== pageFlipIntentRef.current) {
+        edgeIntentSinceRef.current = nextIntent ? Date.now() : null;
+        setPageFlipIntent(nextIntent);
+      }
+
+      let nextVerticalIntent: "up" | "down" | null = null;
+      if (pointerY <= bounds.top + EDGE_SCROLL_ZONE_PX) {
+        if (viewport.scrollTop > 0) {
+          nextVerticalIntent = "up";
+        }
+      } else if (pointerY >= bounds.bottom - EDGE_SCROLL_ZONE_PX) {
+        const maxScrollTop = viewport.scrollHeight - viewport.clientHeight;
+        if (viewport.scrollTop < maxScrollTop) {
+          nextVerticalIntent = "down";
+        }
+      }
+
+      if (nextVerticalIntent !== verticalScrollIntentRef.current) {
+        setVerticalScrollIntent(nextVerticalIntent);
+      }
+    };
+
+    const maybeNavigateByPageFlipIntent = () => {
+      const currentSession = dragSessionRef.current;
+      if (!currentSession?.isActive) return;
+
+      const currentPageFlipIntent = pageFlipIntentRef.current;
+      if (!currentPageFlipIntent) return;
+      const intentSince = edgeIntentSinceRef.current;
+      if (!intentSince) return;
+
+      const now = Date.now();
+      if (now - intentSince < EDGE_NAV_HOVER_DELAY_MS) return;
+      if (now - lastEdgeNavAtRef.current < EDGE_NAV_COOLDOWN_MS) return;
+
+      lastEdgeNavAtRef.current = now;
+      edgeIntentSinceRef.current = now;
+      handleNavigate(currentPageFlipIntent);
+    };
+
+    const maybeRunVerticalAutoScroll = () => {
+      const currentSession = dragSessionRef.current;
+      if (!currentSession?.isActive) return;
+
+      const currentVerticalIntent = verticalScrollIntentRef.current;
+      if (!currentVerticalIntent) return;
+
+      const viewport = scrollViewportRef.current ?? calendarViewportRef.current;
+      if (!viewport) return;
+
+      const bounds = viewport.getBoundingClientRect();
+      const pointerY = currentSession.pointer.y;
+
+      let intensity = 0;
+      if (currentVerticalIntent === "up") {
+        const depth = bounds.top + EDGE_SCROLL_ZONE_PX - pointerY;
+        intensity = Math.max(0, Math.min(1, depth / EDGE_SCROLL_ZONE_PX));
+      } else {
+        const depth = pointerY - (bounds.bottom - EDGE_SCROLL_ZONE_PX);
+        intensity = Math.max(0, Math.min(1, depth / EDGE_SCROLL_ZONE_PX));
+      }
+
+      if (intensity <= 0) return;
+
+      const step = Math.max(2, Math.round(2 + intensity * EDGE_SCROLL_MAX_STEP_PX));
+      const currentScrollTop = viewport.scrollTop;
+      const maxScrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+      const nextScrollTop =
+        currentVerticalIntent === "up"
+          ? Math.max(0, currentScrollTop - step)
+          : Math.min(maxScrollTop, currentScrollTop + step);
+
+      if (nextScrollTop === currentScrollTop) {
+        setVerticalScrollIntent(null);
+        return;
+      }
+
+      viewport.scrollTop = nextScrollTop;
+
+      const nextPreview = resolveDropPreviewFromPointer(currentSession.pointer, currentSession.event);
+      setDragPreview(nextPreview);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      const nextPointer = { x: event.clientX, y: event.clientY };
+      let shouldActivate = false;
+
+      setDragSession((current) => {
+        if (!current) return null;
+
+        const deltaX = Math.abs(nextPointer.x - current.initialPointer.x);
+        const deltaY = Math.abs(nextPointer.y - current.initialPointer.y);
+        shouldActivate =
+          current.isActive || deltaX > DRAG_START_THRESHOLD_PX || deltaY > DRAG_START_THRESHOLD_PX;
+
+        return {
+          ...current,
+          pointer: nextPointer,
+          isActive: shouldActivate,
+        };
+      });
+
+      if (shouldActivate) {
+        updateEdgeIntents(nextPointer.x, nextPointer.y);
+      } else {
+        setPageFlipIntent(null);
+        setVerticalScrollIntent(null);
+        edgeIntentSinceRef.current = null;
+      }
+    };
+
+    const onPointerUp = () => {
+      setDragSession((current) => {
+        if (!current) return null;
+        if (!current.isActive) return null;
+
+        const dropTarget = resolveDropPreviewFromPointer(current.pointer, current.event);
+        if (dropTarget) {
+          void handleDropReschedule({
+            ...dropTarget,
+            event: current.event,
+          });
+          setSuppressSelectUntilTs(Date.now() + 250);
+        }
+
+        return null;
+      });
+
+      setDragPreview(null);
+      setPageFlipIntent(null);
+      setVerticalScrollIntent(null);
+      edgeIntentSinceRef.current = null;
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setDragSession(null);
+      setDragPreview(null);
+      setPageFlipIntent(null);
+      setVerticalScrollIntent(null);
+      edgeIntentSinceRef.current = null;
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("keydown", onKeyDown);
+
+    const edgeLoop = window.setInterval(() => {
+      maybeNavigateByPageFlipIntent();
+      maybeRunVerticalAutoScroll();
+    }, 50);
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("keydown", onKeyDown);
+      window.clearInterval(edgeLoop);
+    };
+  }, [hasDragSession, handleDropReschedule, handleNavigate, resolveDropPreviewFromPointer]);
+
+  useEffect(() => {
+    if (!dragSession?.isActive) {
+      setDragPreview(null);
+      return;
+    }
+
+    const nextPreview = resolveDropPreviewFromPointer(dragSession.pointer, dragSession.event);
+    setDragPreview(nextPreview);
+  }, [dragSession, resolveDropPreviewFromPointer, currentDate, viewMode]);
 
   const handleCreateBooking = async (draft: UnifiedCalendarBookingFormInput) => {
     setQuickBookingError(null);
@@ -546,70 +936,6 @@ const UnifiedCalendarPage = () => {
     }
   };
 
-  const handleDropReschedule = useCallback(
-    async (payload: {
-      event: UnifiedCalendarEventVM;
-      start: Date;
-      end: Date;
-      dropSurface: "time-grid" | "month-grid";
-    }) => {
-      const { event, start, end } = payload;
-      if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
-        return;
-      }
-
-      setDraggingEventId(null);
-
-      if (start >= end) {
-        showToast("Invalid time range selected.", "error");
-        return;
-      }
-
-      if (isNoopDropReschedule(payload)) {
-        return;
-      }
-
-      const bookingId = event.internal.bookingId;
-      const eventId = event.id;
-      const previousData = trpcUtils.viewer.unifiedCalendar.list.getData(unifiedCalendarListInput);
-
-      try {
-        await trpcUtils.viewer.unifiedCalendar.list.cancel(unifiedCalendarListInput);
-        setPendingRescheduleByEventId((current) => ({ ...current, [eventId]: true }));
-        setBookingTimeInListCache(bookingId, start, end);
-
-        await rescheduleBookingMutation.mutateAsync({
-          bookingId,
-          startTime: start.toISOString(),
-          endTime: end.toISOString(),
-        });
-
-        showToast("Booking rescheduled.", "success");
-        setRescheduleEvent((current) => (current?.id === eventId ? null : current));
-        setSelectedEvent((current) => (current?.id === eventId ? null : current));
-        void trpcUtils.viewer.unifiedCalendar.list.invalidate();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
-        trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
-        showToast(message, "error");
-      } finally {
-        setPendingRescheduleByEventId((current) => {
-          const next = { ...current };
-          delete next[eventId];
-          return next;
-        });
-      }
-    },
-    [
-      pendingRescheduleByEventId,
-      isNoopDropReschedule,
-      rescheduleBookingMutation,
-      setBookingTimeInListCache,
-      trpcUtils.viewer.unifiedCalendar.list,
-      unifiedCalendarListInput,
-    ]
-  );
-
   const handleCancelAction = async (event: UnifiedCalendarEventVM) => {
     if (!event.canDelete || !event.internal?.bookingId) return;
     setCancelError(null);
@@ -632,6 +958,19 @@ const UnifiedCalendarPage = () => {
   const quickBookingCalendars = connectedCalendars.filter(
     (calendar) => typeof calendar.credentialId === "number" && !calendar.readOnly
   );
+
+  const hoveredMonthDayKey =
+    dragPreview?.dropSurface === "month-grid" ? startOfDay(dragPreview.start).toISOString() : null;
+
+  const handleSelectEvent = (event: UnifiedCalendarEventVM) => {
+    if (dragSession?.isActive) {
+      return;
+    }
+    if (Date.now() < suppressSelectUntilTs) {
+      return;
+    }
+    setSelectedEvent(event);
+  };
 
   return (
     <div
@@ -686,8 +1025,57 @@ const UnifiedCalendarPage = () => {
           </Sheet>
         )}
 
-        <ScrollArea className="h-[calc(100vh-105px)] flex-1">
-          <div className="min-w-0">
+        <ScrollArea ref={scrollAreaRootRef} className="h-[calc(100vh-105px)] flex-1">
+          <div ref={calendarViewportRef} className="relative min-w-0">
+            {dragSession?.isActive && (
+              <>
+                {pageFlipIntent === "prev" && (
+                  <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-40 w-16">
+                    <div className="from-primary/35 via-primary/18 to-primary/0 flex h-full w-full items-center justify-start bg-gradient-to-r pl-1.5">
+                      <div className="border-primary/45 bg-background/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                        <ChevronLeft className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {pageFlipIntent === "next" && (
+                  <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-40 w-16">
+                    <div className="from-primary/35 via-primary/18 to-primary/0 flex h-full w-full items-center justify-end bg-gradient-to-l pr-1.5">
+                      <div className="border-primary/45 bg-background/92 text-primary animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {verticalScrollIntent === "up" && (
+                  <div className="pointer-events-none absolute left-0 right-0 top-0 z-40 h-16">
+                    <div className="from-accent/35 via-accent/16 to-accent/0 flex h-full w-full items-start justify-center bg-gradient-to-b pt-1.5">
+                      <div className="border-accent/45 bg-background/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                        <ChevronUp className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {verticalScrollIntent === "down" && (
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-40 h-16">
+                    <div className="from-accent/35 via-accent/16 to-accent/0 flex h-full w-full items-end justify-center bg-gradient-to-t pb-1.5">
+                      <div className="border-accent/45 bg-background/92 text-foreground animate-pulse rounded-md border px-1.5 py-1 shadow-sm backdrop-blur-[1px]">
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div
+                  className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 shadow-md"
+                  style={{
+                    left: dragSession.pointer.x + 14,
+                    top: dragSession.pointer.y + 14,
+                  }}>
+                  <p className="max-w-[220px] truncate text-xs font-medium">{dragSession.event.title}</p>
+                </div>
+              </>
+            )}
+
             {unifiedCalendarListQuery.isPending && (
               <div className="space-y-3 p-4">
                 <div className="bg-muted h-12 animate-pulse rounded-md" />
@@ -721,7 +1109,7 @@ const UnifiedCalendarPage = () => {
                 viewDays={viewDays}
                 filteredEvents={filteredEvents}
                 getConflicts={getConflicts}
-                onSelectEvent={setSelectedEvent}
+                onSelectEvent={handleSelectEvent}
                 onQuickBookSlot={setQuickBookSlot}
                 onSelectDay={(day) => {
                   setCurrentDate(day);
@@ -729,9 +1117,9 @@ const UnifiedCalendarPage = () => {
                 }}
                 draggingEvent={draggingEvent}
                 pendingRescheduleEventIds={pendingRescheduleEventIds}
+                dragPreview={dragPreview}
+                hoveredMonthDayKey={hoveredMonthDayKey}
                 onStartDragEvent={handleStartDragEvent}
-                onEndDragEvent={handleEndDragEvent}
-                onDropReschedule={handleDropReschedule}
               />
             )}
           </div>

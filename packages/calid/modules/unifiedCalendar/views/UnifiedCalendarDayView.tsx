@@ -1,6 +1,6 @@
 import { cn } from "@calid/features/lib/cn";
-import { addMinutes, differenceInMinutes, format, isToday, setHours, startOfDay } from "date-fns";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { differenceInMinutes, format, isSameDay, isToday, setHours, startOfDay } from "date-fns";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { UnifiedCalendarEventBlock } from "../components/UnifiedCalendarEventBlock";
 import { HOURS } from "../lib/constants";
@@ -15,14 +15,12 @@ interface UnifiedCalendarDayColumnProps {
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
   draggingEvent: UnifiedCalendarEventVM | null;
   pendingRescheduleEventIds: Set<string>;
-  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
-  onEndDragEvent: () => void;
-  onDropReschedule: (payload: {
-    event: UnifiedCalendarEventVM;
+  dragPreview: {
     start: Date;
     end: Date;
     dropSurface: "time-grid" | "month-grid";
-  }) => void;
+  } | null;
+  onStartDragEvent: (event: UnifiedCalendarEventVM, pointer: { x: number; y: number }) => void;
 }
 
 export const UnifiedCalendarDayColumn = ({
@@ -33,49 +31,9 @@ export const UnifiedCalendarDayColumn = ({
   onQuickBookSlot,
   draggingEvent,
   pendingRescheduleEventIds,
+  dragPreview,
   onStartDragEvent,
-  onEndDragEvent,
-  onDropReschedule,
 }: UnifiedCalendarDayColumnProps) => {
-  const columnRef = useRef<HTMLDivElement | null>(null);
-  const [dropPreview, setDropPreview] = useState<{ start: Date; end: Date } | null>(null);
-
-  const canDropDraggedEvent = useMemo(() => {
-    if (!draggingEvent) return false;
-    if (!draggingEvent.canReschedule || !draggingEvent.internal?.bookingId) return false;
-    if (draggingEvent.isAllDay) return false;
-    if (pendingRescheduleEventIds.has(draggingEvent.id)) return false;
-    return true;
-  }, [draggingEvent, pendingRescheduleEventIds]);
-
-  const resolveDropRange = useCallback(
-    (clientY: number) => {
-      if (!canDropDraggedEvent || !draggingEvent || !columnRef.current) {
-        return null;
-      }
-
-      const bounds = columnRef.current.getBoundingClientRect();
-      if (bounds.height <= 0) return null;
-
-      const durationMinutes = Math.max(15, differenceInMinutes(draggingEvent.end, draggingEvent.start));
-      const maxStartMinutes = Math.max(0, 1440 - durationMinutes);
-      const minutesFromTop = ((clientY - bounds.top) / bounds.height) * 1440;
-      const clampedMinutes = Math.max(0, Math.min(maxStartMinutes, minutesFromTop));
-      const snappedMinutes = Math.floor(clampedMinutes / 15) * 15;
-
-      const start = addMinutes(startOfDay(day), snappedMinutes);
-      const end = addMinutes(start, durationMinutes);
-      return { start, end };
-    },
-    [canDropDraggedEvent, day, draggingEvent]
-  );
-
-  useEffect(() => {
-    if (!draggingEvent) {
-      setDropPreview(null);
-    }
-  }, [draggingEvent]);
-
   const { timedEvents } = splitEventsForDay(filteredEvents, day);
   const sortedEvents = [...timedEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
   const eventColumns: UnifiedCalendarEventVM[][] = [];
@@ -105,50 +63,10 @@ export const UnifiedCalendarDayColumn = ({
   return (
     <div
       key={day.toISOString()}
-      ref={columnRef}
-      className={cn("relative", canDropDraggedEvent && "select-none")}
+      className={cn("relative", draggingEvent && "select-none")}
       style={{ minHeight: "1440px" }}
-      onDragOver={(event) => {
-        if (!canDropDraggedEvent) return;
-
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-
-        const nextPreview = resolveDropRange(event.clientY);
-        if (!nextPreview) return;
-
-        setDropPreview((current) => {
-          if (
-            current?.start.getTime() === nextPreview.start.getTime() &&
-            current?.end.getTime() === nextPreview.end.getTime()
-          ) {
-            return current;
-          }
-          return nextPreview;
-        });
-      }}
-      onDragLeave={(event) => {
-        const nextTarget = event.relatedTarget as Node | null;
-        if (nextTarget && event.currentTarget.contains(nextTarget)) {
-          return;
-        }
-        setDropPreview(null);
-      }}
-      onDrop={(event) => {
-        event.preventDefault();
-
-        if (!canDropDraggedEvent || !draggingEvent || !dropPreview) {
-          setDropPreview(null);
-          return;
-        }
-        setDropPreview(null);
-        onDropReschedule({
-          event: draggingEvent,
-          start: dropPreview.start,
-          end: dropPreview.end,
-          dropSurface: "time-grid",
-        });
-      }}>
+      data-unified-time-column="true"
+      data-unified-day-start={startOfDay(day).toISOString()}>
       {HOURS.map((hour) => (
         <div
           key={hour}
@@ -175,18 +93,18 @@ export const UnifiedCalendarDayColumn = ({
         </div>
       )}
 
-      {dropPreview && (
+      {dragPreview?.dropSurface === "time-grid" && isSameDay(dragPreview.start, day) && (
         <div
           className="pointer-events-none absolute left-1 right-1 z-30 rounded-md border border-dashed border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.12)]"
           style={{
-            top: `${((dropPreview.start.getHours() * 60 + dropPreview.start.getMinutes()) / 1440) * 100}%`,
+            top: `${((dragPreview.start.getHours() * 60 + dragPreview.start.getMinutes()) / 1440) * 100}%`,
             height: `${Math.max(
-              (differenceInMinutes(dropPreview.end, dropPreview.start) / 1440) * 100,
+              (differenceInMinutes(dragPreview.end, dragPreview.start) / 1440) * 100,
               (20 / 1440) * 100
             )}%`,
           }}>
           <p className="text-primary px-1 py-0.5 text-[10px] font-medium">
-            {format(dropPreview.start, "h:mm")} - {format(dropPreview.end, "h:mm a")}
+            {format(dragPreview.start, "h:mm")} - {format(dragPreview.end, "h:mm a")}
           </p>
         </div>
       )}
@@ -206,7 +124,7 @@ export const UnifiedCalendarDayColumn = ({
             event={event}
             isConflict={getConflicts(event).length > 0}
             onClick={() => onSelectEvent(event)}
-            draggable={
+            isDragEnabled={
               event.canReschedule &&
               Boolean(event.internal?.bookingId) &&
               !event.isAllDay &&
@@ -214,8 +132,10 @@ export const UnifiedCalendarDayColumn = ({
             }
             isDragging={draggingEvent?.id === event.id}
             isRescheduling={pendingRescheduleEventIds.has(event.id)}
-            onDragStart={() => onStartDragEvent(event)}
-            onDragEnd={onEndDragEvent}
+            onPointerDown={(pointerEvent: ReactPointerEvent<HTMLButtonElement>) => {
+              if (pointerEvent.button !== 0) return;
+              onStartDragEvent(event, { x: pointerEvent.clientX, y: pointerEvent.clientY });
+            }}
             style={{
               top: `${topPercent}%`,
               height: `${heightPercent}%`,
@@ -297,14 +217,12 @@ interface UnifiedCalendarDayViewProps {
   onQuickBookSlot: (slot: { date: Date; hour: number }) => void;
   draggingEvent: UnifiedCalendarEventVM | null;
   pendingRescheduleEventIds: Set<string>;
-  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
-  onEndDragEvent: () => void;
-  onDropReschedule: (payload: {
-    event: UnifiedCalendarEventVM;
+  dragPreview: {
     start: Date;
     end: Date;
     dropSurface: "time-grid" | "month-grid";
-  }) => void;
+  } | null;
+  onStartDragEvent: (event: UnifiedCalendarEventVM, pointer: { x: number; y: number }) => void;
 }
 
 export const UnifiedCalendarDayView = ({
@@ -315,9 +233,8 @@ export const UnifiedCalendarDayView = ({
   onQuickBookSlot,
   draggingEvent,
   pendingRescheduleEventIds,
+  dragPreview,
   onStartDragEvent,
-  onEndDragEvent,
-  onDropReschedule,
 }: UnifiedCalendarDayViewProps) => {
   return (
     <div>
@@ -337,9 +254,8 @@ export const UnifiedCalendarDayView = ({
             onQuickBookSlot={onQuickBookSlot}
             draggingEvent={draggingEvent}
             pendingRescheduleEventIds={pendingRescheduleEventIds}
+            dragPreview={dragPreview}
             onStartDragEvent={onStartDragEvent}
-            onEndDragEvent={onEndDragEvent}
-            onDropReschedule={onDropReschedule}
           />
         </div>
       </div>

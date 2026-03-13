@@ -5,7 +5,7 @@ import { Separator } from "@calid/features/ui/components/separator";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { format } from "date-fns";
 import { AlertTriangle, Video } from "lucide-react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 
 import { PROVIDER_LABELS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
@@ -15,11 +15,10 @@ interface UnifiedCalendarEventBlockProps {
   style: CSSProperties;
   onClick: () => void;
   isConflict: boolean;
-  draggable?: boolean;
+  isDragEnabled?: boolean;
   isDragging?: boolean;
   isRescheduling?: boolean;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
+  onPointerDown?: (event: ReactPointerEvent<HTMLButtonElement>) => void;
 }
 
 export const UnifiedCalendarEventBlock = ({
@@ -27,11 +26,10 @@ export const UnifiedCalendarEventBlock = ({
   style,
   onClick,
   isConflict,
-  draggable = false,
+  isDragEnabled = false,
   isDragging = false,
   isRescheduling = false,
-  onDragStart,
-  onDragEnd,
+  onPointerDown,
 }: UnifiedCalendarEventBlockProps) => {
   const providerLabel = event.provider ? PROVIDER_LABELS[event.provider] : event.source;
   const statusLabel = event.status === "CONFIRMED" ? "" : event.status.toLowerCase();
@@ -42,17 +40,15 @@ export const UnifiedCalendarEventBlock = ({
       <PopoverTrigger asChild>
         <button
           type="button"
-          draggable={draggable}
           aria-grabbed={isDragging}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
+          onPointerDown={onPointerDown}
           onClick={onClick}
           className={cn(
             "absolute cursor-pointer overflow-hidden rounded-[6px] px-2.5 py-1.5 text-left",
             "bg-background border-border/60 border shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
             "hover:border-border transition-all duration-150 hover:shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]",
             "group border-l-[3px]",
-            draggable && "cursor-grab active:cursor-grabbing",
+            isDragEnabled && "cursor-grab active:cursor-grabbing",
             event.status === "CANCELLED" && "opacity-65",
             isDragging && "ring-border opacity-45 ring-1",
             isRescheduling && "cursor-progress opacity-70"

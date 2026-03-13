@@ -14,14 +14,13 @@ interface UnifiedCalendarGridProps {
   onSelectDay: (day: Date) => void;
   draggingEvent: UnifiedCalendarEventVM | null;
   pendingRescheduleEventIds: Set<string>;
-  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
-  onEndDragEvent: () => void;
-  onDropReschedule: (payload: {
-    event: UnifiedCalendarEventVM;
+  dragPreview: {
     start: Date;
     end: Date;
     dropSurface: "time-grid" | "month-grid";
-  }) => void;
+  } | null;
+  hoveredMonthDayKey: string | null;
+  onStartDragEvent: (event: UnifiedCalendarEventVM, pointer: { x: number; y: number }) => void;
 }
 
 export const UnifiedCalendarGrid = ({
@@ -35,9 +34,9 @@ export const UnifiedCalendarGrid = ({
   onSelectDay,
   draggingEvent,
   pendingRescheduleEventIds,
+  dragPreview,
+  hoveredMonthDayKey,
   onStartDragEvent,
-  onEndDragEvent,
-  onDropReschedule,
 }: UnifiedCalendarGridProps) => {
   if (viewMode === "day") {
     return (
@@ -49,9 +48,8 @@ export const UnifiedCalendarGrid = ({
         onQuickBookSlot={onQuickBookSlot}
         draggingEvent={draggingEvent}
         pendingRescheduleEventIds={pendingRescheduleEventIds}
+        dragPreview={dragPreview}
         onStartDragEvent={onStartDragEvent}
-        onEndDragEvent={onEndDragEvent}
-        onDropReschedule={onDropReschedule}
       />
     );
   }
@@ -67,9 +65,8 @@ export const UnifiedCalendarGrid = ({
         onSelectDay={onSelectDay}
         draggingEvent={draggingEvent}
         pendingRescheduleEventIds={pendingRescheduleEventIds}
+        dragPreview={dragPreview}
         onStartDragEvent={onStartDragEvent}
-        onEndDragEvent={onEndDragEvent}
-        onDropReschedule={onDropReschedule}
       />
     );
   }
@@ -83,9 +80,8 @@ export const UnifiedCalendarGrid = ({
       onSelectEvent={onSelectEvent}
       draggingEvent={draggingEvent}
       pendingRescheduleEventIds={pendingRescheduleEventIds}
+      hoveredDayKey={hoveredMonthDayKey}
       onStartDragEvent={onStartDragEvent}
-      onEndDragEvent={onEndDragEvent}
-      onDropReschedule={onDropReschedule}
     />
   );
 };

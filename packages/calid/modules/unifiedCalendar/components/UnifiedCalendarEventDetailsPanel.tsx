@@ -2,7 +2,6 @@ import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Separator } from "@calid/features/ui/components/separator";
 import { differenceInMinutes, format } from "date-fns";
-import DOMPurify from "dompurify";
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
@@ -39,9 +38,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
   const providerLabel = event.provider ? (event.provider === "google" ? "Google" : "Outlook") : event.source;
   const calendarLabel = event.calendarName?.trim() || "Calendar";
   const subtitleLabel = event.source === "EXTERNAL" ? `${providerLabel} · ${calendarLabel}` : calendarLabel;
-  const description = event.description?.trim();
-  const descriptionHasHtml = Boolean(description && /<\/?[a-z][\s\S]*>/i.test(description));
-  const sanitizedDescriptionHtml = descriptionHasHtml && description ? DOMPurify.sanitize(description) : null;
+  // const description = event.description?.trim();
+  // const descriptionHasHtml = Boolean(description && /<\/?[a-z][\s\S]*>/i.test(description));
+  // const sanitizedDescriptionHtml = descriptionHasHtml && description ? DOMPurify.sanitize(description) : null;
 
   return (
     <div className="space-y-5">

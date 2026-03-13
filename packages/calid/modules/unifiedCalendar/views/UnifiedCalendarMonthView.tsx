@@ -1,6 +1,6 @@
 import { cn } from "@calid/features/lib/cn";
-import { addMinutes, differenceInMinutes, format, isSameMonth, isToday, set, startOfDay } from "date-fns";
-import { useEffect, useMemo, useState } from "react";
+import { format, isSameMonth, isToday, startOfDay } from "date-fns";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
@@ -14,14 +14,8 @@ interface UnifiedCalendarMonthViewProps {
   onSelectEvent: (event: UnifiedCalendarEventVM) => void;
   draggingEvent: UnifiedCalendarEventVM | null;
   pendingRescheduleEventIds: Set<string>;
-  onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
-  onEndDragEvent: () => void;
-  onDropReschedule: (payload: {
-    event: UnifiedCalendarEventVM;
-    start: Date;
-    end: Date;
-    dropSurface: "time-grid" | "month-grid";
-  }) => void;
+  hoveredDayKey: string | null;
+  onStartDragEvent: (event: UnifiedCalendarEventVM, pointer: { x: number; y: number }) => void;
 }
 
 export const UnifiedCalendarMonthView = ({
@@ -32,46 +26,9 @@ export const UnifiedCalendarMonthView = ({
   onSelectEvent,
   draggingEvent,
   pendingRescheduleEventIds,
+  hoveredDayKey,
   onStartDragEvent,
-  onEndDragEvent,
-  onDropReschedule,
 }: UnifiedCalendarMonthViewProps) => {
-  const [hoveredDayKey, setHoveredDayKey] = useState<string | null>(null);
-
-  const canDropDraggedEvent = useMemo(() => {
-    if (!draggingEvent) return false;
-    if (!draggingEvent.canReschedule || !draggingEvent.internal?.bookingId) return false;
-    if (pendingRescheduleEventIds.has(draggingEvent.id)) return false;
-    return true;
-  }, [draggingEvent, pendingRescheduleEventIds]);
-
-  useEffect(() => {
-    if (!draggingEvent) {
-      setHoveredDayKey(null);
-    }
-  }, [draggingEvent]);
-
-  const resolveMonthDropRange = (day: Date, event: UnifiedCalendarEventVM) => {
-    const durationMinutes = Math.max(15, differenceInMinutes(event.end, event.start));
-
-    if (event.isAllDay) {
-      const start = startOfDay(day);
-      return { start, end: addMinutes(start, durationMinutes) };
-    }
-
-    const start = set(day, {
-      hours: event.start.getHours(),
-      minutes: event.start.getMinutes(),
-      seconds: 0,
-      milliseconds: 0,
-    });
-
-    return {
-      start,
-      end: addMinutes(start, durationMinutes),
-    };
-  };
-
   return (
     <div>
       <div className="border-border/30 grid grid-cols-7 border-b">
@@ -103,35 +60,8 @@ export const UnifiedCalendarMonthView = ({
                 if (draggingEvent) return;
                 onSelectDay(day);
               }}
-              onDragOver={(event) => {
-                if (!canDropDraggedEvent) return;
-                event.preventDefault();
-                event.dataTransfer.dropEffect = "move";
-                setHoveredDayKey(day.toISOString());
-              }}
-              onDragLeave={(event) => {
-                const nextTarget = event.relatedTarget as Node | null;
-                if (nextTarget && event.currentTarget.contains(nextTarget)) {
-                  return;
-                }
-                setHoveredDayKey((current) => (current === day.toISOString() ? null : current));
-              }}
-              onDrop={(event) => {
-                event.preventDefault();
-                setHoveredDayKey(null);
-
-                if (!canDropDraggedEvent || !draggingEvent) {
-                  return;
-                }
-
-                const nextRange = resolveMonthDropRange(day, draggingEvent);
-                onDropReschedule({
-                  event: draggingEvent,
-                  start: nextRange.start,
-                  end: nextRange.end,
-                  dropSurface: "month-grid",
-                });
-              }}>
+              data-unified-month-cell="true"
+              data-unified-day-start={startOfDay(day).toISOString()}>
               <p
                 className={cn(
                   "mb-1 text-[11px] font-medium",
@@ -149,13 +79,17 @@ export const UnifiedCalendarMonthView = ({
                     <button
                       key={event.id}
                       type="button"
-                      draggable={
-                        event.canReschedule &&
-                        Boolean(event.internal?.bookingId) &&
-                        !pendingRescheduleEventIds.has(event.id)
-                      }
-                      onDragStart={() => onStartDragEvent(event)}
-                      onDragEnd={onEndDragEvent}
+                      onPointerDown={(pointerEvent: ReactPointerEvent<HTMLButtonElement>) => {
+                        if (pointerEvent.button !== 0) return;
+                        if (
+                          !event.canReschedule ||
+                          !event.internal?.bookingId ||
+                          pendingRescheduleEventIds.has(event.id)
+                        ) {
+                          return;
+                        }
+                        onStartDragEvent(event, { x: pointerEvent.clientX, y: pointerEvent.clientY });
+                      }}
                       className={cn(
                         "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1.5 py-0.5 text-left text-[10px] transition-colors",
                         event.status === "CANCELLED" && "text-muted-foreground/50 line-through",
