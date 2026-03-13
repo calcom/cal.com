@@ -61,7 +61,9 @@ Re-apply individual migrations that you know have already been run against your 
 
 ```bash
 # For each migration you are certain has been applied, run:
-yarn prisma migrate resolve --applied <migration_name>
+yarn prisma migrate resolve --applied MIGRATION_NAME
 ```
+
+Replace `MIGRATION_NAME` with the actual migration directory name (e.g. `20210101000000_init`).
 
 > **Warning:** Only resolve migrations that have actually been applied to your database. Marking a pending migration as applied will cause it to be skipped, and your database schema will be out of sync.
