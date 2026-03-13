@@ -9,7 +9,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import { getPlaceholderHeader } from "@calcom/lib/defaultHeaderImage";
 import { getBrandLogoUrl } from "@calcom/lib/getAvatarUrl";

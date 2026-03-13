@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
-import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";

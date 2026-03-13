@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { z } from "zod";
 
-import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useEmbedNonStylesConfig, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

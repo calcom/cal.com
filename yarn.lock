@@ -3846,8 +3846,8 @@ __metadata:
     "@calcom/ui": "*"
     "@calid/embed-runtime": "workspace:*"
     "@calid/features": "*"
-    "@calid/react-embed": "workspace:*"
     "@calid/queue": "*"
+    "@calid/react-embed": "workspace:*"
     "@daily-co/daily-js": ^0.76.0
     "@daily-co/daily-react": ^0.22.0
     "@dub/analytics": ^0.0.27
@@ -4203,28 +4203,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calid/react-embed@workspace:*, @calid/react-embed@workspace:packages/calid-embeds/react-embed":
-  version: 0.0.0-use.local
-  resolution: "@calid/react-embed@workspace:packages/calid-embeds/react-embed"
-  dependencies:
-    "@calid/embed-runtime": "workspace:*"
-    "@playwright/test": ^1.45.3
-    "@types/react": 18.0.26
-    "@types/react-dom": ^18.0.9
-    "@vitejs/plugin-react": ^2.2.0
-    eslint: ^8.34.0
-    npm-run-all: ^4.1.5
-    typescript: ^5.7.2
-    vite: ^4.5.2
-  peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
-  languageName: unknown
-  linkType: soft
-
-"@changesets/apply-release-plan@npm:^7.0.12":
-  version: 7.0.13
-  resolution: "@changesets/apply-release-plan@npm:7.0.13"
 "@calid/job-dispatcher@workspace:packages/job-dispatcher":
   version: 0.0.0-use.local
   resolution: "@calid/job-dispatcher@workspace:packages/job-dispatcher"
@@ -4258,6 +4236,25 @@ __metadata:
     dotenv: ^17.2.4
     ioredis: ^5.9.2
     typescript: ^5.9.3
+  languageName: unknown
+  linkType: soft
+
+"@calid/react-embed@workspace:*, @calid/react-embed@workspace:packages/calid-embeds/react-embed":
+  version: 0.0.0-use.local
+  resolution: "@calid/react-embed@workspace:packages/calid-embeds/react-embed"
+  dependencies:
+    "@calid/embed-runtime": "workspace:*"
+    "@playwright/test": ^1.45.3
+    "@types/react": 18.0.26
+    "@types/react-dom": ^18.0.9
+    "@vitejs/plugin-react": ^2.2.0
+    eslint: ^8.34.0
+    npm-run-all: ^4.1.5
+    typescript: ^5.7.2
+    vite: ^4.5.2
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 

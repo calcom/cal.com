@@ -1,5 +1,5 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

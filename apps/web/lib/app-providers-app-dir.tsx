@@ -46,7 +46,10 @@ export type AppProps = Omit<
 const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
+  if (typeof window !== "undefined" && typeof window.getEmbedNamespace === "function") {
+    return window.getEmbedNamespace();
+  }
+  return searchParams.get("embed") ?? null;
 };
 
 type CalcomThemeProps = Readonly<{

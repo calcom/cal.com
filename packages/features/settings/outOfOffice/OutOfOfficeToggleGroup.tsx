@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-import { useCompatSearchParams } from "@calcom/embed-core/src/useCompatSearchParams";
+import { useCompatSearchParams } from "@calid/embed-runtime/src/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ToggleGroup } from "@calcom/ui/components/form";
 

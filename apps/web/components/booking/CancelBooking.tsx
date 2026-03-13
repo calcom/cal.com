@@ -4,7 +4,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";

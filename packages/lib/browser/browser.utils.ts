@@ -1,4 +1,4 @@
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
 
 type BrowserInfo = {
   url: string;

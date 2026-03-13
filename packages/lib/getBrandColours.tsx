@@ -1,4 +1,4 @@
-import { useBrandColors } from "@calcom/embed-core/embed-iframe";
+import { useBrandColors } from "@calid/embed-runtime/embed-iframe";
 
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "./constants";
 

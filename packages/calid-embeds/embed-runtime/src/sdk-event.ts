@@ -9,4 +9,13 @@ if (typeof window !== "undefined") {
   const embedNamespace = window.getEmbedNamespace();
   setupFrameBus(embedNamespace);
   sdkActionManager = getFrameBus();
+  if (sdkActionManager) {
+    // Compatibility aliases for external callers expecting fire/on.
+    const manager = sdkActionManager as EventChannel & {
+      fire?: (eventName: any, payload?: any) => void;
+      on?: (eventName: any, handler: (e: CustomEvent<any>) => void) => void;
+    };
+    if (!manager.fire) manager.fire = (eventName, payload) => manager.publish(eventName, payload);
+    if (!manager.on) manager.on = (eventName, handler) => manager.listen(eventName, handler);
+  }
 }

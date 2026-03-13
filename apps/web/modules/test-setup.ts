@@ -47,7 +47,7 @@ vi.mock("@calcom/features/eventtypes/components", () => ({
   EventTypeDescriptionLazy: vi.fn(),
 }));
 
-vi.mock("@calcom/embed-core/embed-iframe", () => {
+vi.mock("@calid/embed-runtime/embed-iframe", () => {
   return {
     useIsBackgroundTransparent: vi.fn(),
     useIsEmbed: vi.fn(),

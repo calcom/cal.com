@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

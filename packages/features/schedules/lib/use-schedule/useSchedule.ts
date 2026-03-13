@@ -1,6 +1,6 @@
 import { useSearchParams } from "next/navigation";
 
-import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { updateEmbedBookerState } from "@calid/embed-runtime/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
