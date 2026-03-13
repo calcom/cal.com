@@ -344,9 +344,11 @@ export class GoogleCalendarService {
   private mapGoogleApiError(error: unknown, fallbackMessage: string): HttpException {
     const errCode = (error as { code?: string | number })?.code;
     const status =
-      errCode != null
-        ? Number(errCode)
-        : ((error as { response?: { status?: number } })?.response?.status ?? 0);
+      typeof errCode === "number"
+        ? errCode
+        : typeof errCode === "string" && !Number.isNaN(Number(errCode))
+          ? Number(errCode)
+          : ((error as { response?: { status?: number } })?.response?.status ?? 0);
     if (status === 400) return new BadRequestException(fallbackMessage);
     if (status === 401) return new UnauthorizedException(fallbackMessage);
     if (status === 403) {
