@@ -1487,7 +1487,7 @@
   "test_failed": "Test failed",
   "provide_api_key": "Provide API key",
   "api_key_modal_subtitle": "API keys allow you to make API calls for your own account.",
-  "agent_api_key_modal_subtitle": "Agent API Key allows your agent to make API calls on behalf of you.",
+  "agent_api_key_modal_subtitle": "An Agent API Key allows your agent to make API calls on your behalf.",
   "api_key_modal_subtitle_platform": "Create an OAuth app and allow user to schedule.",
   "api_keys_subtitle": "Generate API keys to use for accessing your own account.",
   "create_api_key": "Create an API key",
