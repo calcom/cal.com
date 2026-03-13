@@ -90,15 +90,31 @@ Use the following command to pull the Cal.diy Docker image from Docker Hub:
 docker pull calcom/cal.com
 ```
 
-#### Run the Docker Container
+#### Configure Environment
 
-Run the Docker container using the following command:
+Before running the container, create a `.env` file with the required environment variables. At minimum you need a `DATABASE_URL` pointing to a PostgreSQL instance, `NEXTAUTH_SECRET`, and `CALENDSO_ENCRYPTION_KEY`:
 
 ```bash
-docker run -d -p 80:3000 calcom/cal.com
+cat > .env <<EOF
+DATABASE_URL=postgresql://user:password@host:5432/calcom
+NEXTAUTH_SECRET=$(openssl rand -base64 32)
+CALENDSO_ENCRYPTION_KEY=$(openssl rand -base64 24)
+NEXT_PUBLIC_WEBAPP_URL=http://[EXTERNAL_IP]
+NEXTAUTH_URL=http://[EXTERNAL_IP]/api/auth
+EOF
 ```
 
-This command maps port 80 on the VM to port 3000 inside the container (Cal.diy's default port), so you can access Cal.diy from outside the container.
+Replace `[EXTERNAL_IP]` with your VM's external IP and update `DATABASE_URL` to point to your PostgreSQL database. For a quick start with a local database, see the [Docker Compose guide](/docker).
+
+#### Run the Docker Container
+
+Run the Docker container with the `.env` file:
+
+```bash
+docker run -d -p 80:3000 --env-file .env calcom/cal.com
+```
+
+This command maps port 80 on the VM to port 3000 inside the container (Cal.diy's default port), so you can access Cal.diy from outside the container. The `--env-file` flag loads your environment configuration.
 
 #### Access Cal.diy
 

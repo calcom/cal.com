@@ -57,9 +57,11 @@ When your local Prisma database runs out of sync with migrations on local and yo
 DELETE FROM "_prisma_migrations";
 ```
 
-Quickly re-index
+Re-apply individual migrations that you know have already been run against your database:
 
 ```bash
-# Run the following to easily apply all migrations in the packages/prisma/migrations directory
-ls -1d packages/prisma/migrations/*/ | xargs -I{} basename {} | xargs -I{} yarn prisma migrate resolve --applied {}
+# For each migration you are certain has been applied, run:
+yarn prisma migrate resolve --applied <migration_name>
 ```
+
+> **Warning:** Only resolve migrations that have actually been applied to your database. Marking a pending migration as applied will cause it to be skipped, and your database schema will be out of sync.
