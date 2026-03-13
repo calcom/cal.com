@@ -16,7 +16,12 @@ interface UnifiedCalendarWeekViewProps {
   pendingRescheduleEventIds: Set<string>;
   onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
   onEndDragEvent: () => void;
-  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
+  onDropReschedule: (payload: {
+    event: UnifiedCalendarEventVM;
+    start: Date;
+    end: Date;
+    dropSurface: "time-grid" | "month-grid";
+  }) => void;
 }
 
 export const UnifiedCalendarWeekView = ({

@@ -4,7 +4,7 @@ import { Alert } from "@calid/features/ui/components/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@calid/features/ui/components/sheet";
-import { isEqual } from "date-fns";
+import { differenceInMinutes, isEqual, startOfDay } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
@@ -29,6 +29,7 @@ import { filterEvents, getEventConflicts, getHeaderTitle, getViewDays, navigateD
 
 const UNIFIED_CALENDAR_REFRESH_INTERVAL_MS = 15_000;
 const CONNECTED_CALENDARS_REFRESH_INTERVAL_MS = 30_000;
+const TIME_GRID_SNAP_MINUTES = 15;
 
 const compareUnifiedItemsByTime = (
   left: { startTime: string; endTime: string; id: string },
@@ -39,6 +40,22 @@ const compareUnifiedItemsByTime = (
   const endDiff = Date.parse(left.endTime) - Date.parse(right.endTime);
   if (endDiff !== 0) return endDiff;
   return left.id.localeCompare(right.id);
+};
+
+const normalizeToMinute = (value: Date) => {
+  const next = new Date(value);
+  next.setSeconds(0, 0);
+  return next;
+};
+
+const snapToMinutes = (value: Date, snapMinutes: number) => {
+  const normalized = normalizeToMinute(value);
+  const minutesOfDay = normalized.getHours() * 60 + normalized.getMinutes();
+  const snappedMinutesOfDay = Math.floor(minutesOfDay / snapMinutes) * snapMinutes;
+
+  const next = new Date(normalized);
+  next.setHours(Math.floor(snappedMinutesOfDay / 60), snappedMinutesOfDay % 60, 0, 0);
+  return next;
 };
 
 const UnifiedCalendarPage = () => {
@@ -384,6 +401,43 @@ const UnifiedCalendarPage = () => {
     [trpcUtils.viewer.unifiedCalendar.list, unifiedCalendarListInput]
   );
 
+  const isNoopDropReschedule = useCallback(
+    (payload: {
+      event: UnifiedCalendarEventVM;
+      start: Date;
+      end: Date;
+      dropSurface: "time-grid" | "month-grid";
+    }) => {
+      const { event, start, end, dropSurface } = payload;
+
+      if (dropSurface === "time-grid") {
+        const originalStart = snapToMinutes(event.start, TIME_GRID_SNAP_MINUTES);
+        const droppedStart = snapToMinutes(start, TIME_GRID_SNAP_MINUTES);
+        const originalDuration = Math.max(15, differenceInMinutes(event.end, event.start));
+        const droppedDuration = Math.max(15, differenceInMinutes(end, start));
+
+        return isEqual(originalStart, droppedStart) && originalDuration === droppedDuration;
+      }
+
+      if (event.isAllDay) {
+        const originalStart = startOfDay(event.start);
+        const droppedStart = startOfDay(start);
+        const originalDuration = Math.max(15, differenceInMinutes(event.end, event.start));
+        const droppedDuration = Math.max(15, differenceInMinutes(end, start));
+
+        return isEqual(originalStart, droppedStart) && originalDuration === droppedDuration;
+      }
+
+      const originalStart = normalizeToMinute(event.start);
+      const originalEnd = normalizeToMinute(event.end);
+      const droppedStart = normalizeToMinute(start);
+      const droppedEnd = normalizeToMinute(end);
+
+      return isEqual(originalStart, droppedStart) && isEqual(originalEnd, droppedEnd);
+    },
+    []
+  );
+
   const handleStartDragEvent = useCallback(
     (event: UnifiedCalendarEventVM) => {
       if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
@@ -493,7 +547,12 @@ const UnifiedCalendarPage = () => {
   };
 
   const handleDropReschedule = useCallback(
-    async (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => {
+    async (payload: {
+      event: UnifiedCalendarEventVM;
+      start: Date;
+      end: Date;
+      dropSurface: "time-grid" | "month-grid";
+    }) => {
       const { event, start, end } = payload;
       if (!event.canReschedule || !event.internal?.bookingId || pendingRescheduleByEventId[event.id]) {
         return;
@@ -506,7 +565,7 @@ const UnifiedCalendarPage = () => {
         return;
       }
 
-      if (isEqual(start, event.start) && isEqual(end, event.end)) {
+      if (isNoopDropReschedule(payload)) {
         return;
       }
 
@@ -543,6 +602,7 @@ const UnifiedCalendarPage = () => {
     },
     [
       pendingRescheduleByEventId,
+      isNoopDropReschedule,
       rescheduleBookingMutation,
       setBookingTimeInListCache,
       trpcUtils.viewer.unifiedCalendar.list,

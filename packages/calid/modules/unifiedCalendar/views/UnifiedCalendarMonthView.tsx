@@ -16,7 +16,12 @@ interface UnifiedCalendarMonthViewProps {
   pendingRescheduleEventIds: Set<string>;
   onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
   onEndDragEvent: () => void;
-  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
+  onDropReschedule: (payload: {
+    event: UnifiedCalendarEventVM;
+    start: Date;
+    end: Date;
+    dropSurface: "time-grid" | "month-grid";
+  }) => void;
 }
 
 export const UnifiedCalendarMonthView = ({
@@ -124,6 +129,7 @@ export const UnifiedCalendarMonthView = ({
                   event: draggingEvent,
                   start: nextRange.start,
                   end: nextRange.end,
+                  dropSurface: "month-grid",
                 });
               }}>
               <p

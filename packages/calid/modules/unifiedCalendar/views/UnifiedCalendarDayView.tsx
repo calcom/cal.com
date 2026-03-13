@@ -17,7 +17,12 @@ interface UnifiedCalendarDayColumnProps {
   pendingRescheduleEventIds: Set<string>;
   onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
   onEndDragEvent: () => void;
-  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
+  onDropReschedule: (payload: {
+    event: UnifiedCalendarEventVM;
+    start: Date;
+    end: Date;
+    dropSurface: "time-grid" | "month-grid";
+  }) => void;
 }
 
 export const UnifiedCalendarDayColumn = ({
@@ -141,6 +146,7 @@ export const UnifiedCalendarDayColumn = ({
           event: draggingEvent,
           start: dropPreview.start,
           end: dropPreview.end,
+          dropSurface: "time-grid",
         });
       }}>
       {HOURS.map((hour) => (
@@ -293,7 +299,12 @@ interface UnifiedCalendarDayViewProps {
   pendingRescheduleEventIds: Set<string>;
   onStartDragEvent: (event: UnifiedCalendarEventVM) => void;
   onEndDragEvent: () => void;
-  onDropReschedule: (payload: { event: UnifiedCalendarEventVM; start: Date; end: Date }) => void;
+  onDropReschedule: (payload: {
+    event: UnifiedCalendarEventVM;
+    start: Date;
+    end: Date;
+    dropSurface: "time-grid" | "month-grid";
+  }) => void;
 }
 
 export const UnifiedCalendarDayView = ({
