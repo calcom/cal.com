@@ -4,11 +4,12 @@ export default {
   theme: {
     preset: "amber",
     mode: "auto",
+    fonts: {
+      heading: "'Cal Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      body: "'Cal Sans UI', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    },
   },
-  logo: {
-    light: "/cal-docs-logo.svg",
-    dark: "/cal-docs-logo-white.svg",
-  },
+  logo: "/cal-docs-logo.svg",
   navigation: [
     {
       group: "Getting Started",

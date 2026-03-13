@@ -5,13 +5,9 @@ description: Self-hosting documentation for Cal.diy, the open source community e
 
 # Cal.diy Self-Hosting Documentation
 
-<Callout type="warning" title="Use at your own risk">
-  Cal.diy is the open source community edition of Cal.com and it is intended for users who want to self-host their own Cal.diy instance. **It is strictly recommended for personal, non-production use.** Please review all installation and configuration steps carefully. Self-hosting requires advanced knowledge of server administration, database management, and securing sensitive data. Proceed only if you are comfortable with these responsibilities.
-</Callout>
+> **Use at your own risk:** Cal.diy is the open source community edition of Cal.com and it is intended for users who want to self-host their own Cal.diy instance. **It is strictly recommended for personal, non-production use.** Please review all installation and configuration steps carefully. Self-hosting requires advanced knowledge of server administration, database management, and securing sensitive data. Proceed only if you are comfortable with these responsibilities.
 
-<Callout type="info" title="Enterprise">
-  **For any commercial and enterprise-ready scheduling infrastructure, use Cal.com**, not Cal.diy; hosted by us or get invited to on-prem enterprise access here: https://cal.com/sales
-</Callout>
+> **Enterprise:** **For any commercial and enterprise-ready scheduling infrastructure, use Cal.com**, not Cal.diy; hosted by us or get invited to on-prem enterprise access here: https://cal.com/sales
 
 ## Getting Started
 
