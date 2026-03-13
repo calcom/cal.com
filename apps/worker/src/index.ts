@@ -1,6 +1,6 @@
-import dotenv from "dotenv";
-import fs from "fs";
-import path from "path";
+import * as dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "path";
 
 type ClosableWorker = {
   close: () => Promise<void>;
@@ -45,9 +45,9 @@ async function start() {
   loadRootEnv();
 
   const [{ dataSyncWorker }, { defaultWorker }, { scheduledWorker }] = await Promise.all([
-    import("./workers/dataSync.worker.js"),
-    import("./workers/default.worker.js"),
-    import("./workers/scheduled.worker.js"),
+    import("./workers/dataSync.worker"),
+    import("./workers/default.worker"),
+    import("./workers/scheduled.worker"),
   ]);
 
   workers = [defaultWorker, scheduledWorker, dataSyncWorker];
