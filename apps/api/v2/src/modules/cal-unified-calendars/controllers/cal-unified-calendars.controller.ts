@@ -53,7 +53,7 @@ export class CalUnifiedCalendarsController {
   @ApiOperation({
     summary: "List calendar connections",
     description:
-      "Returns all calendar connections for the authenticated user. Use connectionId in connection-scoped endpoints.",
+      "Returns all calendar connections for the authenticated user (Google, Office 365, Apple). Use connectionId in connection-scoped endpoints. Note: Event CRUD (list/create/get/update/delete events) is currently only supported for Google Calendar connections; other types will return 400.",
   })
   async listConnections(@GetUser("id") userId: number): Promise<ListConnectionsOutput> {
     const connections = await this.freebusyService.getConnections(userId);
@@ -74,7 +74,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "List events for a connection",
-    description: "List events in a date range for a specific calendar connection.",
+    description:
+      "List events in a date range for a specific calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
   @ApiQuery({ name: "from", required: true, type: String })
   @ApiQuery({ name: "to", required: true, type: String })
@@ -110,7 +111,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Create event on a connection",
-    description: "Create a new event on the specified calendar connection.",
+    description:
+      "Create a new event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async createConnectionEvent(
@@ -141,7 +143,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get event for a connection",
-    description: "Get a single event by ID for the specified calendar connection.",
+    description:
+      "Get a single event by ID for the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
   async getConnectionEvent(
     @Param("connectionId") connectionId: string,
@@ -171,7 +174,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update event for a connection",
-    description: "Update an event on the specified calendar connection.",
+    description:
+      "Update an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
   async updateConnectionEvent(
     @Param("connectionId") connectionId: string,
@@ -203,7 +207,8 @@ export class CalUnifiedCalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Delete event for a connection",
-    description: "Delete/cancel an event on the specified calendar connection.",
+    description:
+      "Delete/cancel an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
   async deleteConnectionEvent(
     @Param("connectionId") connectionId: string,

@@ -16,20 +16,25 @@ import {
   OFFICE_365_CALENDAR,
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnifiedCalendarsFreebusyService } from "./unified-calendars-freebusy.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 
 describe("UnifiedCalendarsFreebusyService", () => {
   let service: UnifiedCalendarsFreebusyService;
-  let mockCalendarsService: { getCalendars: jest.Mock; getBusyTimes: jest.Mock };
+  let mockCalendarsService: {
+    getCalendars: jest.Mock;
+    getCalendarsForConnection: jest.Mock;
+    getBusyTimes: jest.Mock;
+  };
 
   const userId = 42;
 
   beforeEach(async () => {
     mockCalendarsService = {
       getCalendars: jest.fn(),
+      getCalendarsForConnection: jest.fn(),
       getBusyTimes: jest.fn(),
     };
 
@@ -193,7 +198,7 @@ describe("UnifiedCalendarsFreebusyService", () => {
     const timezone = "America/New_York";
 
     it("should return busy times for selected calendars in a connection", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
+      mockCalendarsService.getCalendarsForConnection.mockResolvedValue({
         connectedCalendars: [
           {
             credentialId: 10,
@@ -212,6 +217,7 @@ describe("UnifiedCalendarsFreebusyService", () => {
       const result = await service.getBusyTimesForConnection(userId, 10, from, to, timezone);
 
       expect(result).toEqual(busyData);
+      expect(mockCalendarsService.getCalendarsForConnection).toHaveBeenCalledWith(userId, 10);
       expect(mockCalendarsService.getBusyTimes).toHaveBeenCalledWith(
         [{ credentialId: 10, externalId: "user@gmail.com" }],
         userId,
@@ -221,23 +227,18 @@ describe("UnifiedCalendarsFreebusyService", () => {
       );
     });
 
-    it("should throw BadRequestException when connection not found", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 10,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-          },
-        ],
-      });
+    it("should throw when connection not found", async () => {
+      mockCalendarsService.getCalendarsForConnection.mockRejectedValue(
+        new NotFoundException("Calendar connection not found")
+      );
 
       await expect(service.getBusyTimesForConnection(userId, 999, from, to, timezone)).rejects.toThrow(
-        BadRequestException
+        NotFoundException
       );
     });
 
     it("should fall back to primary calendar when no calendars are selected", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
+      mockCalendarsService.getCalendarsForConnection.mockResolvedValue({
         connectedCalendars: [
           {
             credentialId: 10,
@@ -261,7 +262,7 @@ describe("UnifiedCalendarsFreebusyService", () => {
     });
 
     it("should return empty array when no calendars and no primary", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
+      mockCalendarsService.getCalendarsForConnection.mockResolvedValue({
         connectedCalendars: [
           {
             credentialId: 10,
@@ -279,7 +280,7 @@ describe("UnifiedCalendarsFreebusyService", () => {
     });
 
     it("should handle connection with no calendars array", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
+      mockCalendarsService.getCalendarsForConnection.mockResolvedValue({
         connectedCalendars: [
           {
             credentialId: 10,
@@ -292,7 +293,6 @@ describe("UnifiedCalendarsFreebusyService", () => {
 
       await service.getBusyTimesForConnection(userId, 10, from, to, timezone);
 
-      // Should fall back to primary
       expect(mockCalendarsService.getBusyTimes).toHaveBeenCalledWith(
         [{ credentialId: 10, externalId: "user@gmail.com" }],
         userId,

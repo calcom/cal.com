@@ -4,6 +4,7 @@ import {
   getBusyCalendarTimes,
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
 } from "@calcom/platform-libraries";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { Calendar } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User } from "@calcom/prisma/client";
@@ -51,7 +52,10 @@ export class CalendarsService {
       .filter((credential) => !!credential);
   }
 
-  async getCalendars(userId: number, ensureDefaultSelectedCalendars = false) {
+  async getCalendars(
+    userId: number,
+    ensureDefaultSelectedCalendars = false
+  ): Promise<ConnectedDestinationCalendars> {
     const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
 
     if (cachedResult && !ensureDefaultSelectedCalendars) {
@@ -77,6 +81,26 @@ export class CalendarsService {
     await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
 
     return result;
+  }
+
+  /**
+   * Returns calendar data for a single connection (credential).
+   * Use this when only one connection is needed to avoid relying on fetch-all-then-filter in callers.
+   * Implementation currently uses getCalendars then filters; can be optimized later (e.g. targeted platform-lib query).
+   */
+  async getCalendarsForConnection(
+    userId: number,
+    credentialId: number
+  ): Promise<ConnectedDestinationCalendars> {
+    const full = await this.getCalendars(userId);
+    const conn = full.connectedCalendars.find((c) => c.credentialId === credentialId);
+    if (!conn) {
+      throw new NotFoundException("Calendar connection not found");
+    }
+    return {
+      ...full,
+      connectedCalendars: [conn],
+    };
   }
 
   async getBusyTimes(

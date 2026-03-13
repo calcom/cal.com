@@ -1,8 +1,9 @@
+const mockDelegationFindById = jest.fn().mockResolvedValue(null);
 jest.mock(
   "@calcom/platform-libraries/app-store",
   () => ({
     DelegationCredentialRepository: {
-      findByIdIncludeSensitiveServiceAccountKey: jest.fn().mockResolvedValue(null),
+      findByIdIncludeSensitiveServiceAccountKey: mockDelegationFindById,
     },
     OAuth2UniversalSchema: { parse: jest.fn((v: unknown) => v) },
   }),
@@ -17,6 +18,16 @@ jest.mock(
   }),
   { virtual: true }
 );
+jest.mock("googleapis-common", () => ({
+  JWT: jest.fn().mockImplementation(() => ({
+    authorize: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+jest.mock("@googleapis/calendar", () => ({
+  calendar_v3: {
+    Calendar: jest.fn().mockImplementation(() => ({})),
+  },
+}));
 
 import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { BadRequestException, NotFoundException, UnauthorizedException } from "@nestjs/common";
@@ -132,6 +143,29 @@ describe("GoogleCalendarService", () => {
       const calendar = await service.getCalendarClientForUser(userId);
 
       expect(calendar).toBeDefined();
+    });
+
+    it("should use delegation path when service account key is available (getOAuthClient not called)", async () => {
+      mockDelegationFindById.mockResolvedValueOnce({
+        serviceAccountKey: {
+          client_email: "sa@project.iam.gserviceaccount.com",
+          private_key:
+            "-----BEGIN PRIVATE KEY-----\nMOCK_KEY_FOR_TEST\n-----END PRIVATE KEY-----\n",
+        },
+      });
+      mockCredentialsRepo.findCredentialWithDelegationByTypeAndUserId.mockResolvedValue({
+        id: credentialId,
+        type: GOOGLE_CALENDAR_TYPE,
+        key: null,
+        invalid: false,
+        delegationCredentialId: "deleg-cred-123",
+        user: { email: "user@example.com" },
+      });
+
+      const calendar = await service.getCalendarClientForUser(userId);
+
+      expect(calendar).toBeDefined();
+      expect(mockGCalService.getOAuthClient).not.toHaveBeenCalled();
     });
 
     it("should handle missing user email gracefully", async () => {

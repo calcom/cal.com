@@ -93,6 +93,20 @@ describe("CalUnifiedCalendarsController", () => {
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data.connections).toEqual([]);
     });
+
+    it("should never expose credential key in connection list response", async () => {
+      const connections = [
+        { connectionId: "1", type: "google" as const, email: "user@gmail.com" },
+      ];
+      mockFreebusyService.getConnections.mockResolvedValue(connections);
+
+      const result = await controller.listConnections(userId);
+
+      expect(result.data.connections.every((c) => !Object.prototype.hasOwnProperty.call(c, "key"))).toBe(
+        true
+      );
+      expect(JSON.stringify(result)).not.toMatch(/"key"\s*:/);
+    });
   });
 
   describe("listConnectionEvents", () => {
@@ -278,6 +292,23 @@ describe("CalUnifiedCalendarsController", () => {
         "custom@calendar",
         "event-1"
       );
+    });
+
+    it("should never expose credential key in event response", async () => {
+      const mockEvent = {
+        id: "event-1",
+        status: "confirmed",
+        summary: "Test",
+        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
+        organizer: { email: "user@gmail.com" },
+      };
+      mockGoogleCalendarService.getEventByConnectionId.mockResolvedValue(mockEvent);
+
+      const result = await controller.getConnectionEvent("10", "event-1", userId);
+
+      expect(Object.prototype.hasOwnProperty.call(result.data, "key")).toBe(false);
+      expect(JSON.stringify(result)).not.toMatch(/"key"\s*:/);
     });
   });
 

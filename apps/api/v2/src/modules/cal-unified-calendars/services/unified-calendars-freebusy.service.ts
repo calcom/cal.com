@@ -6,20 +6,20 @@ import {
   OFFICE_365_CALENDAR,
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 
-/** Shape returned by CalendarsService.getCalendars().connectedCalendars */
-interface ConnectedCalendarEntry {
-  credentialId: number;
-  integration: { type: string };
-  primary?: { externalId?: string; email?: string };
-  calendars?: Array<{ credentialId: number; externalId: string; isSelected: boolean }>;
+type ConnectedCalendarsList = ConnectedDestinationCalendars["connectedCalendars"];
+type CalendarToLoad = { credentialId: number; externalId: string };
+
+/** Integration type at runtime (e.g. google_calendar); not always present on shared type. */
+function getIntegrationType(c: ConnectedCalendarsList[number]): string | undefined {
+  return (c.integration as { type?: string }).type;
 }
 
-interface CalendarToLoad {
-  credentialId: number;
-  externalId: string;
+function getPrimaryEmail(c: ConnectedCalendarsList[number]): string | null | undefined {
+  return (c.primary as { email?: string } | undefined)?.email;
 }
 
 const INTEGRATION_TYPE_TO_API: Record<
@@ -42,16 +42,16 @@ export class UnifiedCalendarsFreebusyService {
     userId: number
   ): Promise<Array<{ connectionId: string; type: "google" | "office365" | "apple"; email: string | null }>> {
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    return (connectedCalendars as ConnectedCalendarEntry[])
+    return connectedCalendars
       .filter(
         (c) =>
-          c.integration.type === GOOGLE_CALENDAR_TYPE ||
-          c.integration.type === OFFICE_365_CALENDAR_TYPE ||
-          c.integration.type === APPLE_CALENDAR_TYPE
+          getIntegrationType(c) === GOOGLE_CALENDAR_TYPE ||
+          getIntegrationType(c) === OFFICE_365_CALENDAR_TYPE ||
+          getIntegrationType(c) === APPLE_CALENDAR_TYPE
       )
       .map((c) => {
-        const apiType = INTEGRATION_TYPE_TO_API[c.integration.type];
-        const email = c.primary?.externalId ?? c.primary?.email ?? null;
+        const apiType = INTEGRATION_TYPE_TO_API[getIntegrationType(c) ?? ""];
+        const email = c.primary?.externalId ?? getPrimaryEmail(c) ?? null;
         return {
           connectionId: String(c.credentialId),
           type: apiType ?? GOOGLE_CALENDAR,
@@ -71,13 +71,11 @@ export class UnifiedCalendarsFreebusyService {
     to: string,
     timezone: string
   ) {
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const conn = (connectedCalendars as ConnectedCalendarEntry[]).find(
-      (c) => c.credentialId === credentialId
+    const { connectedCalendars } = await this.calendarsService.getCalendarsForConnection(
+      userId,
+      credentialId
     );
-    if (!conn) {
-      throw new BadRequestException("Calendar connection not found");
-    }
+    const conn = connectedCalendars[0];
     let calendarsToLoad: CalendarToLoad[] = (conn.calendars ?? [])
       .filter((cal) => cal.isSelected)
       .map((cal) => ({
@@ -99,8 +97,8 @@ export class UnifiedCalendarsFreebusyService {
    */
   async getBusyTimesForGoogleCalendars(userId: number, from: string, to: string, timezone: string) {
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const googleCalendars = (connectedCalendars as ConnectedCalendarEntry[]).filter(
-      (c) => c.integration.type === GOOGLE_CALENDAR_TYPE
+    const googleCalendars = connectedCalendars.filter(
+      (c) => getIntegrationType(c) === GOOGLE_CALENDAR_TYPE
     );
     const calendarsToLoad: CalendarToLoad[] = googleCalendars.flatMap((conn) =>
       (conn.calendars ?? [])
