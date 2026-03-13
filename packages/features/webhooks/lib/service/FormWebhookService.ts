@@ -72,6 +72,7 @@ export class FormWebhookService implements IFormWebhookService {
     userId?: number | null;
     teamId?: number | null;
     orgId?: number | null;
+    platformClientId?: string;
     isDryRun?: boolean;
   }): Promise<void> {
     const dto: RoutingFormFallbackHitDTO = {
@@ -80,6 +81,7 @@ export class FormWebhookService implements IFormWebhookService {
       userId: params.userId,
       teamId: params.teamId,
       orgId: params.orgId,
+      platformClientId: params.platformClientId,
       form: params.form,
       responseId: params.responseId,
       fallbackAction: params.fallbackAction,

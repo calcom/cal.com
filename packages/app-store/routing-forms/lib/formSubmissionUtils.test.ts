@@ -451,6 +451,10 @@ describe("_onFormSubmission with fallbackAction", () => {
     vi.mocked(getWebhooks).mockResolvedValue([]);
 
     await _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction);
+    // Flush microtasks so the fire-and-forget promise chain resolves
+    await vi.waitFor(() => {
+      expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalled();
+    });
 
     expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalledWith({
       form: { id: "form-1", name: "Test Form" },
@@ -470,6 +474,8 @@ describe("_onFormSubmission with fallbackAction", () => {
     vi.mocked(getWebhooks).mockResolvedValue([]);
 
     await _onFormSubmission(mockForm, mockResponse, 123);
+    // Give time for any potential async calls to resolve
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(mockEmitRoutingFormFallbackHit).not.toHaveBeenCalled();
   });
@@ -484,6 +490,9 @@ describe("_onFormSubmission with fallbackAction", () => {
     };
 
     await _onFormSubmission(mockForm, mockResponse, 123, undefined, fallbackWithEventType);
+    await vi.waitFor(() => {
+      expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalled();
+    });
 
     expect(mockEmitRoutingFormFallbackHit).toHaveBeenCalledWith(
       expect.objectContaining({

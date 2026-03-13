@@ -179,21 +179,26 @@ export async function _onFormSubmission(
 
   // Emit fallback hit webhook via the new webhook architecture (trigger.dev)
   if (fallbackAction) {
-    const { getWebhookFeature } = await import("@calcom/features/di/webhooks/containers/webhook");
-    const webhooks = getWebhookFeature();
-    await webhooks.form.emitRoutingFormFallbackHit({
-      form: { id: form.id, name: form.name },
-      responseId,
-      fallbackAction: {
-        type: fallbackAction.type,
-        value: fallbackAction.value,
-        ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
-      },
-      responses: response,
-      userId,
-      teamId,
-      orgId,
-    });
+    import("@calcom/features/di/webhooks/containers/webhook")
+      .then(({ getWebhookFeature }) => {
+        const webhooks = getWebhookFeature();
+        return webhooks.form.emitRoutingFormFallbackHit({
+          form: { id: form.id, name: form.name },
+          responseId,
+          fallbackAction: {
+            type: fallbackAction.type,
+            value: fallbackAction.value,
+            ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
+          },
+          responses: response,
+          userId,
+          teamId,
+          orgId,
+        });
+      })
+      .catch((e) => {
+        moduleLogger.error("Error emitting ROUTING_FORM_FALLBACK_HIT webhook", e);
+      });
   }
 
   const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent] = await Promise.all([
