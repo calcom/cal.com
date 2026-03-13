@@ -11,7 +11,7 @@ import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import CustomerEngagementProvider from "@lib/customerEngagementProvider";
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsPublicPage from "@lib/hooks/useIsPublicPage";
 
 import { queryClient } from "./_trpc/query-client";
 
@@ -21,7 +21,7 @@ type ProvidersProps = {
   nonce: string | undefined;
 };
 export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) {
-  const isBookingPage = useIsBookingPage();
+  const isBookingPage = useIsPublicPage();
 
   useEffect(() => {
     if (isBookingPage) {
