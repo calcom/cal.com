@@ -197,7 +197,10 @@ export async function _onFormSubmission(
         });
       })
       .catch((e) => {
-        moduleLogger.error("Error emitting ROUTING_FORM_FALLBACK_HIT webhook", e);
+        moduleLogger.error("Error emitting ROUTING_FORM_FALLBACK_HIT webhook", {
+          errorMessage: e instanceof Error ? e.message : "Unknown error",
+          errorName: e instanceof Error ? e.name : "UnknownError",
+        });
       });
   }
 
