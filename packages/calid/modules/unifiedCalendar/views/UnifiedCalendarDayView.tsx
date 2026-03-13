@@ -162,14 +162,14 @@ export const UnifiedCalendarAllDayRow = ({
   const { allDayEvents } = splitEventsForDay(filteredEvents, day);
 
   return (
-    <div className="border-border/20 bg-default sticky top-0 z-20 border-b">
-      <div className="flex min-h-11 items-start gap-2 p-2">
-        <span className="text-muted-foreground/60 mt-1 shrink-0 text-[10px] uppercase tracking-wide">
-          All-day
-        </span>
-        <div className="flex flex-1 flex-wrap gap-1.5">
+    <div className="bg-default sticky top-0 z-20 border-b">
+      <div className="flex h-full  items-start">
+        <div className="flex w-12 shrink-0 items-center justify-center border-r px-4 py-2 text-[10px] uppercase tracking-wide">
+          Full Day
+        </div>
+        <div className="flex flex-1 flex-wrap gap-1.5 p-1.5">
           {allDayEvents.length === 0 && (
-            <span className="text-muted-foreground/35 mt-1 text-[11px]">No events</span>
+            <span className="text-muted-foreground/35 mt-1 text-[11px]">{"\u200B"}</span>
           )}
           {allDayEvents.map((event) => (
             <button
