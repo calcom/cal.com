@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString,IsUrl } from "class-validator";
 
 import {
   ARE_CALENDAR_EVENTS_ENABLED_DOCS,
@@ -20,21 +20,25 @@ export class UpdateOAuthClientInput {
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
+  @IsUrl({ require_tld: false }, { each: true })
   @ApiPropertyOptional({ type: [String] })
   redirectUris?: string[];
 
   @IsOptional()
   @IsString()
+  @IsUrl({ require_tld: false })
   @ApiPropertyOptional()
   bookingRedirectUri?: string;
 
   @IsOptional()
   @IsString()
+  @IsUrl({ require_tld: false })
   @ApiPropertyOptional()
   bookingCancelRedirectUri?: string;
 
   @IsOptional()
   @IsString()
+  @IsUrl({ require_tld: false })
   @ApiPropertyOptional()
   bookingRescheduleRedirectUri?: string;
 

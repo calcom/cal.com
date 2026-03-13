@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsArray, IsEnum, IsOptional, IsBoolean, IsString } from "class-validator";
+import { IsArray, IsEnum, IsOptional, IsBoolean, IsString,IsUrl } from "class-validator";
 
 import { PERMISSION_MAP } from "@calcom/platform-constants";
 
@@ -23,6 +23,7 @@ export class CreateOAuthClientInput {
   @IsArray()
   @IsString({ each: true })
   @ApiProperty({ type: [String] })
+  @IsUrl({ require_tld: false }, { each: true })
   redirectUris!: string[];
 
   @IsArray()
@@ -37,17 +38,20 @@ export class CreateOAuthClientInput {
 
   @IsOptional()
   @IsString()
+  @IsUrl({ require_tld: false })
   @ApiPropertyOptional()
   bookingRedirectUri?: string;
 
   @IsOptional()
   @IsString()
+  @IsUrl({ require_tld: false })
   @ApiPropertyOptional()
   bookingCancelRedirectUri?: string;
 
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional()
+  @IsUrl({ require_tld: false })
+  @ApiPropertyOptional({ require_tld: false })
   bookingRescheduleRedirectUri?: string;
 
   @IsOptional()

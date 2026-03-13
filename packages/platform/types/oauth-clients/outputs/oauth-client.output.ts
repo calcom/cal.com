@@ -36,6 +36,7 @@ export class PlatformOAuthClientDto {
   @ApiProperty({ example: ["https://example.com/callback"] })
   @IsArray()
   @IsString({ each: true })
+  @IsUrl({ require_tld: false }, { each: true })
   redirectUris!: string[];
 
   @ApiProperty({ example: 1 })
@@ -64,16 +65,16 @@ export class PlatformOAuthClientDto {
 
   @ApiPropertyOptional({ example: "https://example.com/booking-redirect" })
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   bookingRedirectUri?: string;
 
   @ApiPropertyOptional({ example: "https://example.com/booking-cancel" })
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   bookingCancelRedirectUri?: string;
 
   @ApiPropertyOptional({ example: "https://example.com/booking-reschedule" })
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   bookingRescheduleRedirectUri?: string;
 }
