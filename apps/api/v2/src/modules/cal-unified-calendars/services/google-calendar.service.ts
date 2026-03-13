@@ -4,6 +4,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { calendar_v3 } from "@googleapis/calendar";
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -342,9 +343,11 @@ export class GoogleCalendarService {
    */
   private mapGoogleApiError(error: unknown, fallbackMessage: string): HttpException {
     const status = (error as { code?: number })?.code ?? (error as { status?: number })?.status;
-    if (status === 404) return new NotFoundException(fallbackMessage);
-    if (status === 401 || status === 403) return new UnauthorizedException(fallbackMessage);
     if (status === 400) return new BadRequestException(fallbackMessage);
+    if (status === 401) return new UnauthorizedException(fallbackMessage);
+    if (status === 403) return new ForbiddenException(fallbackMessage);
+    if (status === 404) return new NotFoundException(fallbackMessage);
+    if (status === 429) return new HttpException(fallbackMessage, 429);
     return new InternalServerErrorException(fallbackMessage);
   }
 
