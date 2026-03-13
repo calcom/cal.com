@@ -15,7 +15,7 @@ export function Tooltip({
   side = "top",
   ...props
 }: {
-  children: React.ReactNode;
+  children: React.ReactElement;
   content: React.ReactNode;
   delayDuration?: number;
   open?: boolean;

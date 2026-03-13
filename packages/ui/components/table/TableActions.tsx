@@ -40,7 +40,7 @@ export const DropdownActions = ({
   actionTrigger,
 }: {
   actions: ActionType[];
-  actionTrigger?: React.ReactNode;
+  actionTrigger?: React.ReactElement;
 }) => {
   return (
     <Dropdown>
