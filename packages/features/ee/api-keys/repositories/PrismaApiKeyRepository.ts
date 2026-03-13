@@ -56,6 +56,13 @@ export class PrismaApiKeyRepository {
     });
   }
 
+  async updateLastUsedAt(id: string) {
+    return this.prismaClient.apiKey.update({
+      where: { id },
+      data: { lastUsedAt: new Date() },
+    });
+  }
+
   async createApiKey({
     userId,
     teamId,

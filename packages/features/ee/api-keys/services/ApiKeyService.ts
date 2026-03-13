@@ -38,6 +38,9 @@ export class ApiKeyService {
       return { valid: false, error: "No user found for this API key." };
     }
 
+    // Fire-and-forget: don't block auth on this update
+    void this.deps.apiKeyRepo.updateLastUsedAt(apiKey.id).catch(() => void 0);
+
     return {
       valid: true,
       userId: apiKey.userId,

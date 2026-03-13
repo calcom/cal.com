@@ -260,6 +260,9 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("ApiAuthStrategy - api key - No user tied to this apiKey");
     }
 
+    // Fire-and-forget: don't block auth on this update
+    void this.apiKeyRepository.updateLastUsedAt(keyData.id).catch(() => void 0);
+
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(apiKeyOwnerId);
     request.organizationId = keyData.teamId;
 

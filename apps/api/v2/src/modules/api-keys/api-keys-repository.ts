@@ -14,6 +14,13 @@ export class ApiKeysRepository {
     });
   }
 
+  async updateLastUsedAt(id: string) {
+    return this.dbWrite.prisma.apiKey.update({
+      where: { id },
+      data: { lastUsedAt: new Date() },
+    });
+  }
+
   async getTeamApiKeys(teamId: number) {
     return this.dbRead.prisma.apiKey.findMany({
       where: {
