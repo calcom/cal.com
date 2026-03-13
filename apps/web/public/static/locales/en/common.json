@@ -1,4 +1,5 @@
 {
+  "multiple_attendee_comma_separated":"Add multiple attendees separated by commas",
   "unified_calendar_heading":"Unified Calendar",
   "unified_calendar_subtitle":"View and manage all your connected calendars in one place.",
   "enable_calendar_sync":"Calendar sync enabled. Initial sync started",

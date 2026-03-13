@@ -11,6 +11,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { getEventLocationType, isAttendeeInputRequired } from "@calcom/app-store/locations";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { formatBookingDuration } from "../lib/formatBookingDuration";
@@ -158,7 +159,7 @@ export const QuickBookingDialog = ({
 
   const [title, setTitle] = useState("");
   const [calendarId, setCalendarId] = useState(calendars[0]?.id || "");
-  const [attendeeRows, setAttendeeRows] = useState<string[]>([""]);
+  const [attendeesInput, setAttendeesInput] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [startMinutes, setStartMinutes] = useState<number | null>(null);
   const [endMinutes, setEndMinutes] = useState<number | null>(null);
@@ -180,7 +181,7 @@ export const QuickBookingDialog = ({
 
     setTitle("");
     setCalendarId(calendars[0]?.id || "");
-    setAttendeeRows([""]);
+    setAttendeesInput("");
     setSelectedDate(initialDate);
     setStartMinutes(initialStartMinutes);
     setEndMinutes(Math.max(initialStartMinutes + MIN_DURATION_MINUTES, initialEndMinutes));
@@ -263,26 +264,12 @@ export const QuickBookingDialog = ({
 
   const hasCalendarChoices = calendars.length > 0;
 
-  const normalizedAttendees = attendeeRows
-    .map((row) => row.trim().toLowerCase())
-    .filter((row): row is string => Boolean(row));
+  const normalizedAttendees = attendeesInput
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter((value): value is string => Boolean(value));
 
   const attendeesInvalid = normalizedAttendees.some((attendee) => !EMAIL_REGEX.test(attendee));
-
-  const addAttendeeRow = () => {
-    setAttendeeRows((current) => [...current, ""]);
-  };
-
-  const removeAttendeeRow = (index: number) => {
-    setAttendeeRows((current) => {
-      if (current.length <= 1) return current;
-      return current.filter((_, currentIndex) => currentIndex !== index);
-    });
-  };
-
-  const updateAttendeeRow = (index: number, value: string) => {
-    setAttendeeRows((current) => current.map((row, rowIndex) => (rowIndex === index ? value : row)));
-  };
 
   const handleSubmit = async () => {
     setFormError(null);
@@ -353,6 +340,7 @@ export const QuickBookingDialog = ({
       description: notes.trim() || undefined,
     });
   };
+  const { t } = useLocale();
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isSubmitting && onClose()}>
@@ -377,43 +365,15 @@ export const QuickBookingDialog = ({
             />
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-muted-foreground text-xs">Attendees</Label>
-              <Button
-                color="minimal"
-                size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={addAttendeeRow}
-                disabled={isSubmitting}>
-                Add Attendee
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              {attendeeRows.map((attendee, index) => (
-                <div key={`attendee-${index}`} className="flex items-center gap-2">
-                  <Input
-                    placeholder="email@example.com"
-                    value={attendee}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      updateAttendeeRow(index, event.target.value)
-                    }
-                    className="h-9"
-                  />
-                  {attendeeRows.length > 1 && (
-                    <Button
-                      color="minimal"
-                      size="sm"
-                      className="h-9 px-2 text-xs"
-                      onClick={() => removeAttendeeRow(index)}
-                      disabled={isSubmitting}>
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-muted-foreground text-xs">Attendees</Label>
+            <Input
+              placeholder="john@example.com, jane@example.com"
+              value={attendeesInput}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setAttendeesInput(event.target.value)}
+              className="h-9"
+            />
+            <p className="text-muted-foreground text-[11px]">{t("multiple_attendee_comma_separated")}</p>
           </div>
 
           <div className="space-y-1.5">
