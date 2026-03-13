@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { format, isSameMonth, startOfDay } from "date-fns";
+import { format, isSameMonth, isToday, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
@@ -61,14 +61,17 @@ export const UnifiedCalendarMonthView = ({
               }}
               data-unified-month-cell="true"
               data-unified-day-start={startOfDay(day).toISOString()}>
-              <p
-                className={cn(
-                  "mb-1 text-[11px] font-medium",
-                  !isCurrentMonth && "text-muted-foreground/30",
-                  isCurrentMonth && "text-foreground/60"
-                )}>
-                {format(day, "d")}
-              </p>
+              <div className="mb-1 flex items-center justify-center">
+                <div
+                  className={cn(
+                    "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
+                    !isCurrentMonth && "text-muted-foreground/30",
+                    isCurrentMonth && "text-foreground/60",
+                    isToday(day) && "bg-active text-white"
+                  )}>
+                  {format(day, "d")}
+                </div>
+              </div>
 
               <div className="space-y-0.5">
                 {dayEvents.slice(0, 3).map((event) => {

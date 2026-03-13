@@ -14,7 +14,17 @@ import {
   Video,
 } from "lucide-react";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
+
 import type { UnifiedCalendarEventVM } from "../lib/types";
+
+const getHumanReadableLocation = (location: string) => {
+  if (!location.startsWith("integrations:")) {
+    return location;
+  }
+
+  return guessEventLocationType(location)?.label ?? location;
+};
 
 interface UnifiedCalendarEventDetailsPanelProps {
   event: UnifiedCalendarEventVM;
@@ -38,6 +48,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
   const providerLabel = event.provider ? (event.provider === "google" ? "Google" : "Outlook") : event.source;
   const calendarLabel = event.calendarName?.trim() || "Calendar";
   const subtitleLabel = event.source === "EXTERNAL" ? `${providerLabel} · ${calendarLabel}` : calendarLabel;
+  const locationLabel = event.location ? getHumanReadableLocation(event.location) : null;
   // const description = event.description?.trim();
   // const descriptionHasHtml = Boolean(description && /<\/?[a-z][\s\S]*>/i.test(description));
   // const sanitizedDescriptionHtml = descriptionHasHtml && description ? DOMPurify.sanitize(description) : null;
@@ -96,10 +107,10 @@ export const UnifiedCalendarEventDetailsPanel = ({
           </span>
         </div>
 
-        {event.location && (
+        {locationLabel && (
           <div className="text-foreground/80 flex items-center gap-3 text-sm">
             <MapPin className="text-muted-foreground/60 h-3.5 w-3.5 shrink-0" />
-            <span>{event.location}</span>
+            <span>{locationLabel}</span>
           </div>
         )}
 

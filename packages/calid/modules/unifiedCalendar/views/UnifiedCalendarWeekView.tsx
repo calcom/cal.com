@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 
 import type { UnifiedCalendarEventVM } from "../lib/types";
 import { splitEventsForDay } from "../lib/utils";
@@ -44,10 +44,22 @@ export const UnifiedCalendarWeekView = ({
             key={day.toISOString()}
             className="border-border/20 hover:bg-muted/20 flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
             onClick={() => onSelectDay(day)}>
-            <p className="text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider">
+            <p
+              className={cn(
+                "text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider",
+                isToday(day) && "text-active"
+              )}>
               {format(day, "EEE")}
             </p>
-            <p className={cn("mt-1 text-xs font-medium")}>{format(day, "d")}</p>
+            <div className="mt-1 flex items-center justify-center">
+              <div
+                className={cn(
+                  "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
+                  isToday(day) && "bg-active text-white"
+                )}>
+                {format(day, "d")}
+              </div>
+            </div>
           </div>
         ))}
       </div>
