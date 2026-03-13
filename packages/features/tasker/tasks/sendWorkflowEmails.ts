@@ -1,13 +1,12 @@
-import { z } from "zod";
-
 import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { prisma } from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export const ZSendWorkflowEmailsSchemaEager = z.object({
   to: z.array(z.string()),
@@ -30,6 +29,10 @@ export const ZSendWorkflowEmailsSchemaEager = z.object({
 const ZSendWorkflowEmailsSchemaLazy = z.object({
   bookingUid: z.string(),
   workflowReminderId: z.number(),
+  platformClientId: z.string().optional(),
+  platformRescheduleUrl: z.string().optional(),
+  platformCancelUrl: z.string().optional(),
+  platformBookingUrl: z.string().optional(),
 });
 
 export const ZSendWorkflowEmailsSchema = z.union([
@@ -53,7 +56,10 @@ export async function sendWorkflowEmails(payload: string): Promise<void> {
 
     const calendarEvent = (
       await CalendarEventBuilder.fromBooking(booking, {
-        platformClientId: bookingMetadata?.platformClientId,
+        platformClientId: mailData.platformClientId ?? bookingMetadata?.platformClientId,
+        platformRescheduleUrl: mailData.platformRescheduleUrl,
+        platformCancelUrl: mailData.platformCancelUrl,
+        platformBookingUrl: mailData.platformBookingUrl,
       })
     ).build();
 
