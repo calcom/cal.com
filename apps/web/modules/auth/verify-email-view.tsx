@@ -83,7 +83,7 @@ function VerifyEmailPage() {
                     </Button>
                   ))}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-2">
                   <Button
                     color="minimal"
                     loading={mutation.isPending}
@@ -96,9 +96,8 @@ function VerifyEmailPage() {
                   </Button>
                   <Button
                     color="minimal"
-                    onClick={async () => {
-                      await signOut({ redirect: false });
-                      router.push("/signup");
+                    onClick={() => {
+                      signOut({ callbackUrl: "/signup" });
                     }}>
                     {t("use_different_email")}
                   </Button>
