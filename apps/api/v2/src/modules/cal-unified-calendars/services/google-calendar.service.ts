@@ -216,18 +216,22 @@ export class GoogleCalendarService {
     timeMax: string
   ): Promise<GoogleCalendarEventResponse[]> {
     const effectiveCalendarId = calendarId || "primary";
-    const response = await calendar.events.list({
-      calendarId: effectiveCalendarId,
-      timeMin,
-      timeMax,
-      singleEvents: true,
-      orderBy: "startTime",
-    });
-    const items = (response.data.items || []) as GoogleCalendarEventResponse[];
-    // Include both timed events (start.dateTime) and all-day events (start.date)
-    return items.filter(
-      (e) => e.start?.dateTime != null || e.start?.date != null
-    ) as GoogleCalendarEventResponse[];
+    try {
+      const response = await calendar.events.list({
+        calendarId: effectiveCalendarId,
+        timeMin,
+        timeMax,
+        singleEvents: true,
+        orderBy: "startTime",
+      });
+      const items = (response.data.items || []) as GoogleCalendarEventResponse[];
+      // Include both timed events (start.dateTime) and all-day events (start.date)
+      return items.filter(
+        (e) => e.start?.dateTime != null || e.start?.date != null
+      ) as GoogleCalendarEventResponse[];
+    } catch (error) {
+      throw new NotFoundException("Failed to list calendar events");
+    }
   }
 
   private async createEventWithClient(
@@ -252,15 +256,20 @@ export class GoogleCalendarService {
         displayName: a.name,
       })),
     };
-    const response = await calendar.events.insert({
-      calendarId: effectiveCalendarId,
-      requestBody,
-      sendUpdates: "none",
-    });
-    if (!response.data) {
+    try {
+      const response = await calendar.events.insert({
+        calendarId: effectiveCalendarId,
+        requestBody,
+        sendUpdates: "none",
+      });
+      if (!response.data) {
+        throw new BadRequestException("Failed to create calendar event");
+      }
+      return response.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       throw new BadRequestException("Failed to create calendar event");
     }
-    return response.data as GoogleCalendarEventResponse;
   }
 
   private async getEventWithClient(
@@ -269,14 +278,19 @@ export class GoogleCalendarService {
     eventId: string
   ): Promise<GoogleCalendarEventResponse> {
     const effectiveCalendarId = calendarId || "primary";
-    const event = await calendar.events.get({
-      calendarId: effectiveCalendarId,
-      eventId,
-    });
-    if (!event.data) {
-      throw new NotFoundException("Event not found");
+    try {
+      const event = await calendar.events.get({
+        calendarId: effectiveCalendarId,
+        eventId,
+      });
+      if (!event.data) {
+        throw new NotFoundException("Event not found");
+      }
+      return event.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new NotFoundException("Failed to retrieve event details");
     }
-    return event.data as GoogleCalendarEventResponse;
   }
 
   private async updateEventWithClient(
@@ -287,15 +301,20 @@ export class GoogleCalendarService {
   ): Promise<GoogleCalendarEventResponse> {
     const effectiveCalendarId = calendarId || "primary";
     const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
-    const event = await calendar.events.patch({
-      calendarId: effectiveCalendarId,
-      eventId,
-      requestBody: updatePayload,
-    });
-    if (!event.data) {
-      throw new NotFoundException("Failed to update event");
+    try {
+      const event = await calendar.events.patch({
+        calendarId: effectiveCalendarId,
+        eventId,
+        requestBody: updatePayload,
+      });
+      if (!event.data) {
+        throw new NotFoundException("Failed to update event");
+      }
+      return event.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new NotFoundException("Failed to update event details");
     }
-    return event.data as GoogleCalendarEventResponse;
   }
 
   private async deleteEventWithClient(
@@ -304,11 +323,15 @@ export class GoogleCalendarService {
     eventId: string
   ): Promise<void> {
     const effectiveCalendarId = calendarId || "primary";
-    await calendar.events.delete({
-      calendarId: effectiveCalendarId,
-      eventId,
-      sendUpdates: "none",
-    });
+    try {
+      await calendar.events.delete({
+        calendarId: effectiveCalendarId,
+        eventId,
+        sendUpdates: "none",
+      });
+    } catch (error) {
+      throw new NotFoundException("Failed to delete event");
+    }
   }
 
   // ─── Public user-scoped methods ──────────────────────────────────────
