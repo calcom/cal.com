@@ -1,6 +1,7 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
 import type { PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
+import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type {
   IWebhookProducerService,
@@ -11,7 +12,6 @@ import type {
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
 } from "../interface/WebhookProducerService";
-import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 
@@ -204,24 +204,23 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    * - E2E Tests: Executes immediately via WebhookSyncTasker
    */
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
-    const subscribers = await this.deps.webhookRepository.getSubscribers({
-      triggerEvent: taskPayload.triggerEvent,
-      userId: "userId" in taskPayload ? taskPayload.userId : undefined,
-      eventTypeId: "eventTypeId" in taskPayload ? taskPayload.eventTypeId : undefined,
-      teamId: "teamId" in taskPayload ? taskPayload.teamId : undefined,
-      orgId: "orgId" in taskPayload ? taskPayload.orgId : undefined,
-      oAuthClientId: "oAuthClientId" in taskPayload ? taskPayload.oAuthClientId : undefined,
-    });
-
-    if (subscribers.length === 0) {
-      this.log.debug("No webhook subscribers found, skipping task queue", {
-        operationId,
-        triggerEvent: taskPayload.triggerEvent,
-      });
-      return;
-    }
-
     try {
+      const subscribers = await this.deps.webhookRepository.getSubscribers({
+        triggerEvent: taskPayload.triggerEvent,
+        userId: "userId" in taskPayload ? taskPayload.userId : undefined,
+        eventTypeId: "eventTypeId" in taskPayload ? taskPayload.eventTypeId : undefined,
+        teamId: "teamId" in taskPayload ? taskPayload.teamId : undefined,
+        orgId: "orgId" in taskPayload ? taskPayload.orgId : undefined,
+        oAuthClientId: "oAuthClientId" in taskPayload ? taskPayload.oAuthClientId : undefined,
+      });
+
+      if (subscribers.length === 0) {
+        this.log.debug("No webhook subscribers found, skipping task queue", {
+          operationId,
+          triggerEvent: taskPayload.triggerEvent,
+        });
+        return;
+      }
       const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
       this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });
     } catch (error) {
