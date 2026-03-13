@@ -71,7 +71,7 @@ describe("Webhook Producer Integration", () => {
         id: `webhook-producer-test-${testId}`,
         userId: testUser.id,
         subscriberUrl: "https://example.com/webhook",
-        eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+        eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED, WebhookTriggerEvents.BOOKING_REQUESTED],
         active: true,
       },
     });
