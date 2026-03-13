@@ -1,0 +1,291 @@
+---
+title: "AI agents"
+description: "How AI agents can use the Cal.com API v2 to manage scheduling"
+---
+
+This guide explains how to build AI agents that interact with Cal.com's scheduling infrastructure.
+
+## Recommended: Use the Cal.com CLI
+
+For agents that can execute commands on a machine, use the official Cal.com CLI instead of calling the API directly. The CLI handles authentication, versioning, and common workflows automatically.
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install -g @calcom/cli
+    ```
+  </Tab>
+  <Tab title="curl">
+    ```bash
+    curl -fsSL https://cal.com/install.sh | bash
+    ```
+  </Tab>
+</Tabs>
+
+The CLI includes `--help` flags on all commands to learn about available options:
+
+```bash
+calcom --help
+calcom bookings --help
+calcom slots --help
+```
+
+<Note>
+  Only fall back to the API approach below if your agent cannot install or execute the CLI on its machine.
+</Note>
+
+## Overview
+
+Cal.com API v2 enables AI agents to:
+
+- **Check availability** - Query available time slots for any user or team
+- **Create bookings** - Schedule meetings on behalf of users
+- **Manage event types** - Create and configure different meeting types
+- **Handle rescheduling and cancellations** - Modify existing bookings
+- **Manage schedules** - Set and update user availability
+
+## Authentication
+
+AI agents should authenticate using an **API key**. Generate one in [Settings > Security](https://app.cal.com/settings/security).
+
+```bash
+curl -X GET "https://api.cal.com/v2/me" \
+  -H "Authorization: Bearer cal_live_xxxxxxxxxxxx" \
+  -H "cal-api-version: 2024-08-13"
+```
+
+<Warning>
+  The `cal-api-version` header is required for all v2 endpoints. If you omit it, requests will return a 404 or fall back to v1 behavior. Always include `cal-api-version: 2024-08-13`.
+</Warning>
+
+## Common workflows
+
+### 1. Check availability
+
+Query available slots using username and event slug—no need to look up IDs first:
+
+```bash
+curl -X GET "https://api.cal.com/v2/slots?username=bailey&eventSlug=15min&startTime=2024-01-15T00:00:00Z&endTime=2024-01-16T23:59:59Z" \
+  -H "cal-api-version: 2024-08-13"
+```
+
+Response includes available time slots:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "slots": {
+      "2024-01-15": [
+        { "time": "2024-01-15T09:00:00Z" },
+        { "time": "2024-01-15T10:00:00Z" },
+        { "time": "2024-01-15T14:00:00Z" }
+      ]
+    }
+  }
+}
+```
+
+### 2. Create a booking
+
+Schedule a meeting using username and event slug. This is the most common pattern for AI agents that extract scheduling intent from natural language (e.g., "book 15min with bailey"):
+
+```bash
+curl -X POST "https://api.cal.com/v2/bookings" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "eventTypeSlug": "15min",
+    "username": "bailey",
+    "start": "2024-01-15T09:00:00Z",
+    "attendee": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "timeZone": "America/New_York"
+    }
+  }'
+```
+
+<Note>
+  The booking creation endpoint is public and does not require authentication. This allows agents to book on behalf of external users.
+</Note>
+
+### 3. Handle custom booking questions
+
+Most Cal.com users have required questions on their booking pages (e.g., "What is this meeting about?"). If you omit required fields, the API returns a 400 error.
+
+Include responses in `bookingFieldsResponses`:
+
+```bash
+curl -X POST "https://api.cal.com/v2/bookings" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "eventTypeSlug": "consultation",
+    "username": "bailey",
+    "start": "2024-01-15T09:00:00Z",
+    "attendee": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "timeZone": "America/New_York"
+    },
+    "bookingFieldsResponses": {
+      "notes": "Discussing the new AI integration",
+      "company_size": "10-50"
+    }
+  }'
+```
+
+<Tip>
+  To discover which fields are required, fetch the event type details first. The `bookingFields` array shows all custom questions and their requirements.
+</Tip>
+
+### 4. Instant bookings for urgent requests
+
+For teams handling urgent requests, use the `instant` flag to bypass normal scheduling and immediately ring available team members:
+
+```bash
+curl -X POST "https://api.cal.com/v2/bookings" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "eventTypeSlug": "urgent-support",
+    "username": "support-team",
+    "start": "2024-01-15T09:00:00Z",
+    "instant": true,
+    "attendee": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "timeZone": "America/New_York"
+    }
+  }'
+```
+
+<Note>
+  Instant bookings require the event type to be configured for instant meetings. This is ideal for AI agents routing urgent customer requests.
+</Note>
+
+### 5. Get user's event types
+
+Retrieve available event types to offer booking options:
+
+```bash
+curl -X GET "https://api.cal.com/v2/event-types?username=bailey" \
+  -H "Authorization: Bearer cal_live_xxxxxxxxxxxx" \
+  -H "cal-api-version: 2024-08-13"
+```
+
+### 6. Reschedule a booking
+
+Move an existing booking to a new time:
+
+```bash
+curl -X POST "https://api.cal.com/v2/bookings/{bookingUid}/reschedule" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "start": "2024-01-16T10:00:00Z",
+    "rescheduleReason": "Attendee requested different time"
+  }'
+```
+
+### 7. Cancel a booking
+
+```bash
+curl -X POST "https://api.cal.com/v2/bookings/{bookingUid}/cancel" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "cancellationReason": "Meeting no longer needed"
+  }'
+```
+
+## Best practices for AI agents
+
+### Handle time zones correctly
+
+Always specify time zones explicitly. Store user preferences and pass them in requests:
+
+```json
+{
+  "attendee": {
+    "timeZone": "Europe/London"
+  }
+}
+```
+
+### Implement retry logic
+
+API requests may occasionally fail. Implement exponential backoff:
+
+```typescript
+async function callWithRetry(fn: () => Promise<Response>, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fn();
+      if (response.ok) return response;
+      if (response.status === 429) {
+        await sleep(Math.pow(2, i) * 1000);
+        continue;
+      }
+      throw new Error(`API error: ${response.status}`);
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await sleep(Math.pow(2, i) * 1000);
+    }
+  }
+}
+```
+
+### Validate availability before booking
+
+Always check slots before attempting to create a booking to avoid conflicts:
+
+```typescript
+// 1. Get available slots
+const slots = await getAvailableSlots("bailey", "15min", startDate, endDate);
+
+// 2. Verify the desired slot is available
+const isAvailable = slots.some(slot => slot.time === desiredTime);
+
+// 3. Create booking only if slot is available
+if (isAvailable) {
+  await createBooking("bailey", "15min", desiredTime, attendee);
+}
+```
+
+### Use webhooks for real-time updates
+
+Configure webhooks to receive notifications when bookings are created, rescheduled, or cancelled:
+
+```bash
+curl -X POST "https://api.cal.com/v2/webhooks" \
+  -H "Authorization: Bearer cal_live_xxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "subscriberUrl": "https://your-agent.com/webhooks/cal",
+    "eventTriggers": ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+    "active": true
+  }'
+```
+
+## Rate limits
+
+API key authentication allows **120 requests per minute** by default. Contact support if you need higher limits for production agents.
+
+## API reference
+
+For complete endpoint documentation, see the [API v2 Reference](/api-reference/v2/introduction).
+
+Key endpoints for agents:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /v2/slots` | Check available time slots |
+| `POST /v2/bookings` | Create a new booking |
+| `POST /v2/bookings/:uid/reschedule` | Reschedule a booking |
+| `POST /v2/bookings/:uid/cancel` | Cancel a booking |
+| `GET /v2/event-types` | List event types |
+| `GET /v2/schedules` | Get user schedules |
+| `POST /v2/webhooks` | Configure webhooks |

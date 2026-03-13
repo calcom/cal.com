@@ -28,7 +28,8 @@
             "pages": [
               "api-reference/v2/introduction",
               "api-reference/v2/oauth",
-              "api-reference/v2/v1-v2-differences"
+              "api-reference/v2/v1-v2-differences",
+              "agents"
             ]
           }
         ]
