@@ -1,7 +1,6 @@
-import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { fadeInUp } from "@calcom/features/bookings/Booker/config";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
 import { FromToTime } from "@calcom/features/bookings/Booker/utils/dates";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -15,7 +14,8 @@ import { EventMetaBlock } from "@calcom/web/modules/bookings/components/event-me
 import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
+import type { ComponentType } from "react";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import i18nConfigration from "../../../../../i18n.json";
 import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "./event-meta";
@@ -47,6 +47,7 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  TimezoneSelect: TimezoneSelectProp,
   isPrivateLink,
   classNames,
   locale,
@@ -84,6 +85,7 @@ export const EventMeta = ({
   isPending: boolean;
   isPrivateLink: boolean;
   isPlatform?: boolean;
+  TimezoneSelect?: ComponentType<Record<string, unknown>>;
   classNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
@@ -110,10 +112,7 @@ export const EventMeta = ({
     shallow
   );
   const { i18n, t } = useLocale();
-  const [TimezoneSelect] = useMemo(
-    () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
-    [isPlatform]
-  );
+  const TimezoneSelect = TimezoneSelectProp ?? WebTimezoneSelect;
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone

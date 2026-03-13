@@ -1,4 +1,3 @@
-import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { Timezone } from "@calcom/features/bookings/Booker/types";
@@ -53,6 +52,7 @@ type SlotSelectionModalHeaderProps = {
     | "enablePerHostLocations"
   > | null;
   isPlatform?: boolean;
+  TimezoneSelect?: ComponentType<Record<string, unknown>>;
   timeZones?: Timezone[];
   selectedDate: string | null;
 };
@@ -60,7 +60,7 @@ type SlotSelectionModalHeaderProps = {
 export const SlotSelectionModalHeader = ({
   onClick,
   event,
-  isPlatform = false,
+  TimezoneSelect: TimezoneSelectProp,
   timeZones,
   selectedDate,
 }: SlotSelectionModalHeaderProps): JSX.Element => {
@@ -70,10 +70,7 @@ export const SlotSelectionModalHeader = ({
     (state) => [state.timezone, state.setTimezone],
     shallow
   );
-  const [TimezoneSelect] = useMemo(
-    () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
-    [isPlatform]
-  );
+  const TimezoneSelect = TimezoneSelectProp ?? WebTimezoneSelect;
 
   const formattedDate = useMemo(() => {
     if (!selectedDate) return { dayOfWeek: "", fullDate: "" };

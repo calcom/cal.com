@@ -1,17 +1,17 @@
-import type { DataTableRow } from "@calcom/features/data-table/lib/separator";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import type { BookerEventQuery } from "@calcom/features/bookings/types";
-import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
-import type { ToggledConnectedCalendars, CustomClassNames } from "@calcom/features/bookings/Booker/types";
-import type { EventBusyDate } from "@calcom/types/Calendar";
-
-import type { validStatuses } from "./lib/validStatuses";
 import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import type { CustomClassNames, ToggledConnectedCalendars } from "@calcom/features/bookings/Booker/types";
+import type { BookerEventQuery } from "@calcom/features/bookings/types";
+import type { DataTableRow } from "@calcom/features/data-table/lib/separator";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
+import type { ComponentType } from "react";
 import type { UseBookingsReturnType } from "./hooks/useBookings";
 import type { UseSlotsReturnType } from "./hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "./hooks/useVerifyCode";
 import type { UseVerifyEmailReturnType } from "./hooks/useVerifyEmail";
+import type { validStatuses } from "./lib/validStatuses";
 
 export type BookingsGetOutput = RouterOutputs["viewer"]["bookings"]["get"];
 
@@ -105,6 +105,7 @@ export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
   timeZones?: import("@calcom/features/bookings/Booker/types").Timezone[];
+  TimezoneSelect?: ComponentType<Record<string, unknown>>;
   roundRobinHideOrgAndTeam?: boolean;
   hideOrgTeamAvatar?: boolean;
 };
@@ -113,6 +114,7 @@ export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: import("@calcom/features/bookings/Booker/types").Timezone[];
+  TimezoneSelect?: ComponentType<Record<string, unknown>>;
   roundRobinHideOrgAndTeam?: boolean;
   hideOrgTeamAvatar?: boolean;
 };

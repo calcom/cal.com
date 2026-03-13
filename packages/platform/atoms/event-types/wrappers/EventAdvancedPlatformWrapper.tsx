@@ -2,8 +2,8 @@
 import type { EventAdvancedBaseProps } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { EventAdvancedTab } from "@calcom/web/modules/event-types/components/tabs/advanced/EventAdvancedTab";
-
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
+import { Timezone } from "../../timezone/index";
 import { useGetVerifiedEmails } from "../hooks/useGetVerifiedEmails";
 
 const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
@@ -16,6 +16,7 @@ const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
       calendarsQuery={{ data: connectedCalendarsQuery, isPending, error }}
       showBookerLayoutSelector={false}
       verifiedEmails={verifiedEmails}
+      TimezoneSelect={Timezone}
     />
   );
 };
