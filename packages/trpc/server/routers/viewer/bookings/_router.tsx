@@ -13,6 +13,7 @@ import { ZGetInputSchema } from "./get.schema";
 import { ZGetAvatarUrlInputSchema } from "./getAvatarUrl.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
+import { ZGetBookingForTabResolutionInputSchema } from "./getBookingForTabResolution.schema";
 import { ZGetBookingHistoryInputSchema } from "./getBookingHistory.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
@@ -87,6 +88,13 @@ export const bookingsRouter = router({
         ctx,
         input,
       });
+    }),
+
+  getBookingForTabResolution: authedProcedure
+    .input(ZGetBookingForTabResolutionInputSchema)
+    .query(async ({ input, ctx }) => {
+      const { getBookingForTabResolutionHandler } = await import("./getBookingForTabResolution.handler");
+      return getBookingForTabResolutionHandler({ ctx, input });
     }),
 
   getBookingDetails: authedProcedure.input(ZGetBookingDetailsInputSchema).query(async ({ input, ctx }) => {

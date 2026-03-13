@@ -13,6 +13,19 @@ export class BookingDetailsService {
     this.bookingAccessService = new BookingAccessService(prismaClient);
   }
 
+  async getBookingForTabResolution({ userId, bookingUid }: { userId: number; bookingUid: string }) {
+    const booking = await this.bookingRepo.findByUidSelectBasicStatus({ bookingUid });
+    if (!booking) return null;
+
+    const hasAccess = await this.bookingAccessService.doesUserIdHaveAccessToBooking({
+      userId,
+      bookingUid,
+    });
+    if (!hasAccess) return null;
+
+    return booking;
+  }
+
   async getBookingDetails({ userId, bookingUid }: { userId: number; bookingUid: string }) {
     const hasAccess = await this.bookingAccessService.checkBookingAccessWithPBAC({
       userId,

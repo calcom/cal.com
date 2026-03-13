@@ -236,7 +236,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
   const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
     useBookingFilters();
 
-  const { resolvedTabStatus, isResolvingTabStatus, preSelectedBooking } = useSwitchToCorrectStatusTab({
+  const { resolvedTabStatus, isResolvingTabStatus } = useSwitchToCorrectStatusTab({
     defaultStatus: props.status,
   });
 
@@ -280,15 +280,7 @@ export function BookingListContainer(props: BookingListContainerProps) {
     enabled: !isValidatorPending && !isResolvingTabStatus, // Wait for validator to be ready before fetching
   });
 
-  const bookings = useMemo(() => {
-    const queryBookings = query.data?.bookings ?? [];
-    if (!preSelectedBooking) return queryBookings;
-    if (queryBookings.some((b) => b.uid === preSelectedBooking.uid)) return queryBookings;
-    // It ensures that the drawer opens for a booking that isn't even in the bookings list
-    // Note that, bookings list doesn't use this so, it won't be visible in the list view but drawer will open for it
-    // We don't want to show this booking in the list view, as it might not match the filters/pagination applied
-    return [...queryBookings, preSelectedBooking];
-  }, [query.data?.bookings, preSelectedBooking]);
+  const bookings = query.data?.bookings ?? [];
 
   // Always call the hook and provide navigation capabilities
   // The BookingDetailsSheet is only rendered when bookingsV3Enabled is true (see line 212)

@@ -696,6 +696,13 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findByUidSelectBasicStatus({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { uid: true, status: true, endTime: true, recurringEventId: true },
+    });
+  }
+
   async findRescheduledToBooking({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findFirst({
       where: {

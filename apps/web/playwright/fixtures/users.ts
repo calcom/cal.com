@@ -35,7 +35,7 @@ const DEFAULT_TEAM_FEATURE_FLAGS: Array<keyof AppFlags> = [];
 
 /**
  * Default feature flags enabled for individual users created in E2E tests.
- * Empty by default - users don't typically have feature flags unless explicitly needed.
+ * ["bookings-v3"] by default.
  */
 const DEFAULT_USER_FEATURE_FLAGS: Array<keyof AppFlags> = ["bookings-v3"];
 

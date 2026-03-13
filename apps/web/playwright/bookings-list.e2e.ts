@@ -768,20 +768,43 @@ test.describe("Bookings", () => {
     page,
     users,
     bookings,
-    prisma,
   }) => {
-    const existingFlag = await prisma.feature.findUnique({ where: { slug: "bookings-v3" } });
-    await prisma.feature.upsert({
-      where: { slug: "bookings-v3" },
-      update: { enabled: true },
-      create: { slug: "bookings-v3", enabled: true, type: "OPERATIONAL" },
+    const user = await users.create();
+
+    const bookingFixture = await createBooking({
+      title: "Test booking for uid param",
+      bookingsFixture: bookings,
+      relativeDate: 3,
+      organizer: user,
+      organizerEventType: user.eventTypes[0],
+      attendees: [{ name: "Attendee", email: "attendee@example.com", timeZone: "Europe/Berlin" }],
     });
 
-    try {
-      const user = await users.create();
+    await user.apiLogin();
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
 
-      const bookingFixture = await createBooking({
-        title: "Test booking for uid param",
+    const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
+    await expect(bookingItem).toBeVisible();
+
+    await bookingItem.locator('[role="button"]').first().click();
+
+    await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
+  });
+
+  test.describe("Booking details sheet", () => {
+    test("clicking a booking on the current page opens the sheet without extra bookings.get call", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const user = await users.create();
+  
+      await createBooking({
+        title: "On-page booking",
         bookingsFixture: bookings,
         relativeDate: 3,
         organizer: user,
@@ -790,28 +813,80 @@ test.describe("Bookings", () => {
       });
 
       await user.apiLogin();
-      const bookingsGetResponse = page.waitForResponse((response) =>
-        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      const initialGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get/.test(response.url())
       );
       await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
-      await bookingsGetResponse;
+      await initialGetResponse;
 
-      const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
+      // Track any additional bookings/get list calls after page load.
+      // The [?&] ensures we match only the list endpoint, not getBookingDetails etc.
+      let extraListGetCalls = 0;
+      page.on("response", (response) => {
+        if (/\/api\/trpc\/bookings\/get[?&]/.test(response.url())) {
+          extraListGetCalls++;
+        }
+      });
+
+      const bookingItem = page.locator('[data-testid="booking-item"]').first();
       await expect(bookingItem).toBeVisible();
-
       await bookingItem.locator('[role="button"]').first().click();
 
-      await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
-    } finally {
-      if (existingFlag) {
-        await prisma.feature.update({
-          where: { slug: "bookings-v3" },
-          data: { enabled: existingFlag.enabled },
+      const sheet = page.locator('[role="dialog"]');
+      await expect(sheet).toBeVisible();
+
+      await page.waitForLoadState("networkidle");
+      expect(extraListGetCalls).toBe(0);
+    });
+
+    test("deep-linking to an off-page booking triggers the fallback bookings.get query", async ({
+      page,
+      users,
+      bookings,
+    }) => {
+      const user = await users.create();
+  
+      // Create 11 bookings so the last one spills to page 2 (10 per page)
+      const fixtures = [];
+      for (let i = 0; i < 11; i++) {
+        const fixture = await createBooking({
+          title: `Booking ${i + 1}`,
+          bookingsFixture: bookings,
+          relativeDate: i + 1,
+          organizer: user,
+          organizerEventType: user.eventTypes[0],
+          attendees: [
+            { name: `Attendee ${i + 1}`, email: `attendee${i + 1}@example.com`, timeZone: "Europe/Berlin" },
+          ],
         });
-      } else {
-        await prisma.feature.deleteMany({ where: { slug: "bookings-v3" } });
+        fixtures.push(fixture);
       }
-    }
+
+      // The 11th booking (relativeDate: 11) is the furthest future,
+      // so it appears last in the "upcoming" sort and lands on page 2
+      const offPageBookingUid = fixtures[10].uid;
+
+      await user.apiLogin();
+
+      // Track all bookings.get calls
+      let getCallCount = 0;
+      page.on("response", (response) => {
+        if (/\/api\/trpc\/bookings\/get/.test(response.url())) {
+          getCallCount++;
+        }
+      });
+
+      // Navigate directly with the off-page booking uid (no page param)
+      await page.goto(`/bookings/upcoming?uid=${offPageBookingUid}`, { waitUntil: "domcontentloaded" });
+
+      const sheet = page.locator('[role="dialog"]');
+      await expect(sheet).toBeVisible();
+
+      // Expect 2 bookings.get calls:
+      // 1) initial page 1 list load
+      // 2) fallback fetch for the off-page booking
+      await expect.poll(() => getCallCount).toBe(2);
+    });
   });
 });
 
@@ -863,3 +938,4 @@ async function createBooking({
     },
   });
 }
+

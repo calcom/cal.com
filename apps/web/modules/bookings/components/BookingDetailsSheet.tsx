@@ -44,6 +44,7 @@ import { RejectBookingButton } from "../../../components/booking/RejectBookingBu
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { useAvatarUrl } from "../hooks/useAvatarUrl";
 import { usePaymentStatus } from "../hooks/usePaymentStatus";
+import { useResolvedBooking } from "../hooks/useResolvedBooking";
 import { checkSheetActive, createBookingSheetKeydownHandler } from "../lib/bookingSheetKeyboardHandler";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";
 import type { BookingOutput } from "../types";
@@ -66,26 +67,15 @@ export function BookingDetailsSheet({
   userEmail,
   bookingAuditEnabled = false,
 }: BookingDetailsSheetProps) {
-  const booking = useBookingDetailsSheetStore((state) => state.getSelectedBooking());
-  const selectedBookingUid = useBookingDetailsSheetStore((state) => state.selectedBookingUid);
-  const lastBookingRef = useRef<BookingOutput | null>(null);
+  const { resolvedBooking, bookingDetails } = useResolvedBooking();
 
-  if (booking) {
-    lastBookingRef.current = booking;
-  }
-
-  if (!selectedBookingUid) {
-    lastBookingRef.current = null;
-  }
-
-  const displayBooking = booking ?? lastBookingRef.current;
-
-  if (!displayBooking) return null;
+  if (!resolvedBooking) return null;
 
   return (
     <BookingActionsStoreProvider>
       <BookingDetailsSheetInner
-        booking={displayBooking}
+        booking={resolvedBooking}
+        bookingDetails={bookingDetails}
         userTimeZone={userTimeZone}
         userTimeFormat={userTimeFormat}
         userId={userId}
@@ -96,8 +86,21 @@ export function BookingDetailsSheet({
   );
 }
 
+interface BookingDetailsData {
+  rescheduledToBooking?: { uid: string } | null;
+  previousBooking?: { uid: string; startTime: Date; endTime: Date } | null;
+  tracking?: {
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_term: string | null;
+    utm_content: string | null;
+  } | null;
+}
+
 interface BookingDetailsSheetInnerProps {
   booking: BookingOutput;
+  bookingDetails?: BookingDetailsData | null;
   userTimeZone?: string;
   userTimeFormat?: number;
   userId?: number;
@@ -138,6 +141,7 @@ function useActiveSegment(bookingAuditEnabled: boolean) {
 
 function BookingDetailsSheetInner({
   booking,
+  bookingDetails,
   userTimeZone,
   userTimeFormat,
   userId,
@@ -146,15 +150,6 @@ function BookingDetailsSheetInner({
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
   const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
-
-  // Fetch additional booking details for reschedule information
-  const { data: bookingDetails } = trpc.viewer.bookings.getBookingDetails.useQuery(
-    { uid: booking.uid },
-    {
-      // Keep data fresh but don't refetch too aggressively
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }
-  );
 
   // Get navigation state from the store in a single selector
   const navigation = useBookingDetailsSheetStore((state) => {
