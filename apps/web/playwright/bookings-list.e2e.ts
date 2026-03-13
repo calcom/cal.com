@@ -802,7 +802,7 @@ test.describe("Bookings", () => {
       bookings,
     }) => {
       const user = await users.create();
-  
+
       await createBooking({
         title: "On-page booking",
         bookingsFixture: bookings,
@@ -835,6 +835,8 @@ test.describe("Bookings", () => {
       const sheet = page.locator('[role="dialog"]');
       await expect(sheet).toBeVisible();
 
+      await expect(sheet.locator('[data-testid="booking-sheet-title"]')).toHaveText("On-page booking");
+
       await page.waitForLoadState("networkidle");
       expect(extraListGetCalls).toBe(0);
     });
@@ -845,7 +847,7 @@ test.describe("Bookings", () => {
       bookings,
     }) => {
       const user = await users.create();
-  
+
       // Create 11 bookings so the last one spills to page 2 (10 per page)
       const fixtures = [];
       for (let i = 0; i < 11; i++) {
@@ -881,6 +883,8 @@ test.describe("Bookings", () => {
 
       const sheet = page.locator('[role="dialog"]');
       await expect(sheet).toBeVisible();
+
+      await expect(sheet.locator('[data-testid="booking-sheet-title"]')).toHaveText("Booking 11");
 
       // Expect 2 bookings.get calls:
       // 1) initial page 1 list load
