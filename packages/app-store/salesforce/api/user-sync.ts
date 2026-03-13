@@ -3,7 +3,7 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAttributeSyncRuleService } from "@calcom/features/ee/integration-attribute-sync/di/AttributeSyncRuleService.container";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
+import { IntegrationAttributeSyncOutputMapper } from "@calcom/features/ee/integration-attribute-sync/mappers/IntegrationAttributeSyncOutputMapper";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
@@ -41,81 +41,59 @@ export default async function handler(
   });
 
   const credentialRepository = new CredentialRepository(prisma);
-  const credential = await credentialRepository.findByAppIdAndKeyValue({
-    appId: "salesforce",
-    keyPath: ["instance_url"],
-    value: instanceUrl,
-    keyFields: ["id"],
-  });
+  const allCredentials =
+    await credentialRepository.findAllByAppIdAndKeyValueWithSyncs({
+      appId: "salesforce",
+      keyPath: ["instance_url"],
+      value: instanceUrl,
+      keyFields: ["id"],
+    });
 
-  if (!credential) {
-    log.error(`No credential found for ${instanceUrl}`);
+  if (allCredentials.length === 0) {
+    log.error(`No credentials with attribute syncs found for ${instanceUrl}`);
     return res.status(400).json({ error: "Invalid instance URL" });
   }
 
-  if (!credential?.teamId) {
-    log.error(`Missing teamId for credential ${credential.id}`);
-    return res.status(400).json({ error: "Invalid credential ID" });
-  }
+  const credentials = allCredentials.filter((cred) => {
+    const sfdcId = (cred.key as { id?: string } | null)?.id;
+    if (!sfdcId) return false;
+    try {
+      return new URL(sfdcId).pathname.split("/")[2] === sfdcOrgId;
+    } catch {
+      return false;
+    }
+  });
 
-  const salesforceCredentialId = (credential.key as { id?: string } | null)?.id;
-
-  if (!salesforceCredentialId) {
-    log.error(`Missing SFDC id for credential ${credential.id}`);
-    return res.status(400).json({ error: "Invalid credential ID" });
-  }
-
-  let storedSfdcOrgId: string | undefined;
-  try {
-    storedSfdcOrgId = new URL(salesforceCredentialId).pathname.split("/")[2];
-  } catch {
-    log.error(`Invalid SFDC credential URL format for credential ${credential.id}`);
-    return res.status(400).json({ error: "Invalid credential format" });
-  }
-
-  if (storedSfdcOrgId !== sfdcOrgId) {
-    log.error(`Mismatched orgId ${sfdcOrgId} for credential ${credential.id}`);
+  if (credentials.length === 0) {
+    log.error(`No credentials matching orgId ${sfdcOrgId} for ${instanceUrl}`);
     return res.status(400).json({ error: "Invalid org ID" });
   }
 
   const userRepository = new UserRepository(prisma);
-  const user = await userRepository.findByEmailAndTeamId({
-    email,
-    teamId: credential.teamId,
-  });
-
-  if (!user) {
-    log.error(
-      `User not found for email ${email} and teamId ${credential.teamId}`
-    );
-    return res.status(400).json({ error: "Invalid user" });
-  }
-
-  const organizationId = credential.teamId;
-
-  const integrationAttributeSyncService = getIntegrationAttributeSyncService();
-
-  const integrationAttributeSyncs =
-    await integrationAttributeSyncService.getAllByCredentialId(credential.id);
-
   const attributeSyncRuleService = getAttributeSyncRuleService();
   const attributeSyncFieldMappingService =
     getAttributeSyncFieldMappingService();
 
   const results = await Promise.allSettled(
-    integrationAttributeSyncs.map(async (sync) => {
-      // Only check rule if one exists - skip sync only if rule returns false
-      if (sync.attributeSyncRule) {
-        const shouldSyncApplyToUser =
-          await attributeSyncRuleService.shouldSyncApplyToUser({
-            user: {
-              id: user.id,
-              organizationId,
-            },
-            attributeSyncRule: sync.attributeSyncRule.rule,
-          });
+    credentials.map(async (credential) => {
+      if (!credential.teamId) {
+        log.error(`Missing teamId for credential ${credential.id}`);
+        return;
+      }
 
-        if (!shouldSyncApplyToUser) return;
+      // Only organization scoped credentials are used for attribute syncing
+      const organizationId = credential.teamId;
+
+      const user = await userRepository.findByEmailAndTeamId({
+        email,
+        teamId: organizationId,
+      });
+
+      if (!user) {
+        log.warn(
+          `User not found for email ${email} and teamId ${organizationId}`
+        );
+        return;
       }
 
       // Salesforce multi-select picklists use `;` as separator, convert to `,` for the service
@@ -125,12 +103,36 @@ export default async function handler(
           .map(([key, value]) => [key, String(value).replaceAll(";", ",")])
       );
 
-      await attributeSyncFieldMappingService.syncIntegrationFieldsToAttributes({
-        userId: user.id,
-        organizationId,
-        syncFieldMappings: sync.syncFieldMappings,
-        integrationFields,
-      });
+      for (const sync of credential.integrationAttributeSyncs) {
+        try {
+          if (sync.attributeSyncRule) {
+            const shouldSyncApplyToUser =
+              await attributeSyncRuleService.shouldSyncApplyToUser({
+                user: {
+                  id: user.id,
+                  organizationId,
+                },
+                attributeSyncRule:
+                  IntegrationAttributeSyncOutputMapper.attributeSyncRuleToDomain(
+                    sync.attributeSyncRule
+                  ).rule,
+              });
+
+            if (!shouldSyncApplyToUser) continue;
+          }
+
+          await attributeSyncFieldMappingService.syncIntegrationFieldsToAttributes(
+            {
+              userId: user.id,
+              organizationId,
+              syncFieldMappings: sync.syncFieldMappings,
+              integrationFields,
+            }
+          );
+        } catch (err) {
+          log.error(`Failed to process sync ${sync.id}`, { error: err });
+        }
+      }
     })
   );
 

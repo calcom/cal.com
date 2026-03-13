@@ -417,4 +417,65 @@ export class CredentialRepository {
 
     return { ...credential, key: filteredKey };
   }
+
+  async findAllByAppIdAndKeyValueWithSyncs({
+    appId,
+    keyPath,
+    value,
+    keyFields,
+  }: {
+    appId: string;
+    keyPath: string[];
+    value: Prisma.InputJsonValue;
+    keyFields?: string[];
+  }) {
+    const credentials = await this.prismaClient.credential.findMany({
+      where: {
+        appId,
+        key: {
+          path: keyPath,
+          equals: value,
+        },
+        integrationAttributeSyncs: {
+          some: {},
+        },
+      },
+      select: {
+        ...safeCredentialSelect,
+        integrationAttributeSyncs: {
+          select: {
+            id: true,
+            attributeSyncRule: true,
+            syncFieldMappings: {
+              select: {
+                id: true,
+                integrationFieldName: true,
+                attributeId: true,
+                enabled: true,
+              },
+            },
+          },
+        },
+        key: keyFields ? true : false,
+      },
+    });
+
+    if (!keyFields) {
+      return credentials;
+    }
+
+    return credentials.map((credential) => {
+      const key = credential.key as Record<string, unknown>;
+      const filteredKey = keyFields.reduce(
+        (acc, field) => {
+          if (field in key) {
+            acc[field] = key[field];
+          }
+          return acc;
+        },
+        {} as Record<string, unknown>
+      );
+      return { ...credential, key: filteredKey };
+    });
+  }
 }
