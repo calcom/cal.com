@@ -277,32 +277,47 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
-  @Get("/:calendar/events/:eventUid")
   @Get("/:calendar/event/:eventUid")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get meeting details from calendar (deprecated path)",
+    description:
+      "Deprecated: use /events/ (plural) instead. Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+  })
+  async getCalendarEventDetails(
+    @Param("calendar") calendar: string,
+    @Param("eventUid") eventUid: string
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    return this.handleGetCalendarEvent(calendar, eventUid);
+  }
+
+  @ApiParam({
+    name: "calendar",
+    enum: [GOOGLE_CALENDAR],
+    type: String,
+  })
+  @ApiParam({
+    name: "eventUid",
+    description:
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+    type: String,
+  })
+  @Get("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get meeting details from calendar",
     description:
-      "Returns detailed information about a meeting including attendance metrics. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+      "Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
   })
-  async getCalendarEventDetails(
+  async getCalendarEventDetailsPlural(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string
   ): Promise<GetUnifiedCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException("Meeting details are currently only available for Google Calendar");
-    }
-
-    const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
-
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(eventDetails);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: transformedEvent,
-    };
+    return this.handleGetCalendarEvent(calendar, eventUid);
   }
 
   @ApiParam({
@@ -317,32 +332,48 @@ export class CalUnifiedCalendarsController {
     type: String,
   })
   @Patch("/:calendar/events/:eventUid")
-  @Patch("/:calendar/event/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update meeting details in calendar",
     description:
-      "Updates event information in the specified calendar provider. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+      "Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
   })
   async updateCalendarEvent(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string,
     @Body() updateData: UpdateUnifiedCalendarEventInput
   ): Promise<GetUnifiedCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException("Event updates are currently only available for Google Calendar");
-    }
+    return this.handleUpdateCalendarEvent(calendar, eventUid, updateData);
+  }
 
-    const updatedEvent = await this.googleCalendarService.updateEventDetails(eventUid, updateData);
-
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(updatedEvent);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: transformedEvent,
-    };
+  @ApiParam({
+    name: "calendar",
+    enum: [GOOGLE_CALENDAR],
+    type: String,
+  })
+  @ApiParam({
+    name: "eventUid",
+    description:
+      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+    type: String,
+  })
+  @Patch("/:calendar/event/:eventUid")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Update meeting details in calendar (deprecated path)",
+    description:
+      "Deprecated: use /events/ (plural) instead. Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+  })
+  async updateCalendarEventDeprecated(
+    @Param("calendar") calendar: string,
+    @Param("eventUid") eventUid: string,
+    @Body() updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    return this.handleUpdateCalendarEvent(calendar, eventUid, updateData);
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
@@ -466,5 +497,40 @@ export class CalUnifiedCalendarsController {
       timezone
     );
     return { status: SUCCESS_STATUS, data: busyTimes };
+  }
+
+  private async handleGetCalendarEvent(
+    calendar: string,
+    eventUid: string
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    if (calendar !== GOOGLE_CALENDAR) {
+      throw new BadRequestException("Meeting details are currently only available for Google Calendar");
+    }
+
+    const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
+    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(eventDetails);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transformedEvent,
+    };
+  }
+
+  private async handleUpdateCalendarEvent(
+    calendar: string,
+    eventUid: string,
+    updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GetUnifiedCalendarEventOutput> {
+    if (calendar !== GOOGLE_CALENDAR) {
+      throw new BadRequestException("Event updates are currently only available for Google Calendar");
+    }
+
+    const updatedEvent = await this.googleCalendarService.updateEventDetails(eventUid, updateData);
+    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(updatedEvent);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: transformedEvent,
+    };
   }
 }
