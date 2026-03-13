@@ -149,6 +149,7 @@ export class CalUnifiedCalendarsController {
     description:
       "Get a single event by ID for the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
+  @ApiQuery({ name: "calendarId", required: false, type: String })
   async getConnectionEvent(
     @Param("connectionId") connectionId: string,
     @Param("eventId") eventId: string,
@@ -180,6 +181,7 @@ export class CalUnifiedCalendarsController {
     description:
       "Update an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
+  @ApiQuery({ name: "calendarId", required: false, type: String })
   async updateConnectionEvent(
     @Param("connectionId") connectionId: string,
     @Param("eventId") eventId: string,
@@ -213,6 +215,7 @@ export class CalUnifiedCalendarsController {
     description:
       "Delete/cancel an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
   })
+  @ApiQuery({ name: "calendarId", required: false, type: String })
   async deleteConnectionEvent(
     @Param("connectionId") connectionId: string,
     @Param("eventId") eventId: string,
