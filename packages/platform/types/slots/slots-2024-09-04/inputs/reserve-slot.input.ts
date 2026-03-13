@@ -16,7 +16,7 @@ export class ReserveSlotInput_2024_09_04 {
   @IsInt()
   @IsOptional()
   @ApiPropertyOptional({
-    example: "30",
+    example: 30,
     description:
       "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this.",
   })

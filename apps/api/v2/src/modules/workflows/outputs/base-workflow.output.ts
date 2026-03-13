@@ -47,7 +47,7 @@ export class BaseWorkflowStepOutputDto {
   @Expose()
   recipient!: RecipientType;
 
-  @ApiPropertyOptional({ description: "Verified Email  if action is EMAIL_ADDRESS", example: 31214 })
+  @ApiPropertyOptional({ description: "Verified email address if action is EMAIL_ADDRESS", example: "notifications@example.com" })
   @Expose()
   email?: string;
 

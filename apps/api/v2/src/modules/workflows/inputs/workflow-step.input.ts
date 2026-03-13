@@ -179,7 +179,7 @@ export class WorkflowEmailAddressStepDto extends BaseWorkflowStepDto {
 
   @ApiProperty({
     description: "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
-    example: "31214",
+    example: 31214,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team",
     },
@@ -237,7 +237,7 @@ export class WorkflowPhoneWhatsAppNumberStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description:
       "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-    example: "3243434",
+    example: 3243434,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
     },
@@ -260,14 +260,6 @@ export class WorkflowPhoneAttendeeStepDto extends BaseWorkflowStepDto {
   @IsIn(STEP_ACTIONS)
   action: typeof SMS_ATTENDEE = SMS_ATTENDEE;
 
-  @ApiProperty({
-    description:
-      "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-    example: "3243434",
-    externalDocs: {
-      url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
-    },
-  })
   @ApiProperty({ description: "Message content for this step", type: TextWorkflowMessageDto })
   @ValidateNested()
   @Type(() => TextWorkflowMessageDto)
@@ -296,7 +288,7 @@ export class WorkflowPhoneNumberStepDto extends BaseWorkflowStepDto {
   @ApiProperty({
     description:
       "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
-    example: "3243434",
+    example: 3243434,
     externalDocs: {
       url: "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team",
     },

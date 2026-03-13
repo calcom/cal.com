@@ -35,7 +35,7 @@ export class UserOooOutputDto {
   @Expose()
   @ApiProperty({
     description: "The UUID of the ooo entry.",
-    example: 2,
+    example: "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
   })
   readonly uuid!: string;
 
