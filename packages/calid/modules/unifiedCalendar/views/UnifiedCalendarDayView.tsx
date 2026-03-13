@@ -42,7 +42,8 @@ export const UnifiedCalendarDayColumn = ({
     let placed = false;
 
     for (const column of eventColumns) {
-      if (column[column.length - 1].end <= event.start) {
+      const lastEvent = column[column.length - 1];
+      if (lastEvent.end <= event.start) {
         column.push(event);
         placed = true;
         break;
@@ -54,8 +55,16 @@ export const UnifiedCalendarDayColumn = ({
 
   const eventColumnMap = new Map<string, { col: number; total: number }>();
 
+  // For each event, compute the number of columns that overlap with it (its local conflict group),
+  // rather than using the global column count. This ensures non-overlapping events
+  // take the full width of their slot instead of being squeezed into a fraction.
   eventColumns.forEach((column, columnIndex) => {
-    column.forEach((event) => eventColumnMap.set(event.id, { col: columnIndex, total: eventColumns.length }));
+    column.forEach((event) => {
+      const localTotal = eventColumns.filter((otherCol) =>
+        otherCol.some((otherEvent) => otherEvent.start < event.end && otherEvent.end > event.start)
+      ).length;
+      eventColumnMap.set(event.id, { col: columnIndex, total: localTotal });
+    });
   });
 
   return (
