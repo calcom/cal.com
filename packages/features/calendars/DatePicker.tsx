@@ -427,7 +427,7 @@ const DatePicker = ({
               className={classNames(
                 `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
                 !browsingDate.isAfter(dayjs()) &&
-                  `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
+                  `disabled:text-bookinglighter hover:bg-default hover:opacity-70`,
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}

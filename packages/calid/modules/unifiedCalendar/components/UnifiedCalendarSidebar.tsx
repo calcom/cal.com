@@ -93,7 +93,7 @@ export const UnifiedCalendarSidebar = ({
                   {providerCalendars.map((calendar) => (
                     <div
                       key={calendar.id}
-                      className="bg-background/30 hover:bg-muted/50 border-border/20 group flex min-w-0 items-center gap-2.5 rounded-md  py-2 pr-2 transition-colors">
+                      className="bg-default/30 hover:bg-muted/50 border-border/20 group flex min-w-0 items-center gap-2.5 rounded-md  py-2 pr-2 transition-colors">
                       <div className="flex min-w-0 flex-1 items-center gap-2.5">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
