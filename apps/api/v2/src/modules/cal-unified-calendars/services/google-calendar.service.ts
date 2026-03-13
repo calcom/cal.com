@@ -342,13 +342,18 @@ export class GoogleCalendarService {
    * based on the HTTP status code returned by the Google Calendar API.
    */
   private mapGoogleApiError(error: unknown, fallbackMessage: string): HttpException {
-    const status = (error as { code?: number })?.code ?? (error as { status?: number })?.status;
+    const errCode = (error as { code?: string | number })?.code;
+    const status =
+      errCode != null
+        ? Number(errCode)
+        : ((error as { response?: { status?: number } })?.response?.status ?? 0);
     if (status === 400) return new BadRequestException(fallbackMessage);
     if (status === 401) return new UnauthorizedException(fallbackMessage);
     if (status === 403) {
       // Google returns 403 for both permission errors and quota/rate-limit errors.
       // Check the error reason to distinguish retriable throttling from permanent permission denial.
-      const reason = (error as { errors?: Array<{ reason?: string }> })?.errors?.[0]?.reason;
+      const reason = (error as { response?: { data?: { error?: { errors?: Array<{ reason?: string }> } } } })?.response
+        ?.data?.error?.errors?.[0]?.reason;
       if (reason === "rateLimitExceeded" || reason === "userRateLimitExceeded") {
         return new HttpException(fallbackMessage, 429);
       }
