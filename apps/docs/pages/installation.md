@@ -59,7 +59,7 @@ to install all of the dependencies. Essentially, dependencies are just things th
 openssl rand -base64 32
 ```
 
-(or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+(or another secret generator tool if you prefer) to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file. Also generate a value with `openssl rand -base64 24` and add it under `CALENDSO_ENCRYPTION_KEY` in the same file.
 
 5. You'll also want to fill out the `.env.appStore` file similar to the `.env` file as this includes keys to enable apps.
 
@@ -98,6 +98,8 @@ Copy the .env files from their respective example files:
 cp apps/api/v2/.env.example apps/api/v2/.env
 cp .env.example .env
 ```
+
+> **Important:** Make sure the `NEXTAUTH_SECRET` value is identical in both `.env` files (root and `apps/api/v2/.env`). Mismatched values will break API v2 authentication.
 
 #### Step 2
 

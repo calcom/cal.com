@@ -29,6 +29,6 @@ description: Set up Stripe payment integration for Cal.diy.
 
 as the webhook for connected applications.
 
-7. **Select webhook events** - Select all `payment_intent` and `setup_intent` events for the webhook.
+7. **Select webhook events** - Select the `payment_intent.succeeded` and `setup_intent.succeeded` events for the webhook.
 
 8. **Save the webhook secret** - Copy the webhook secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET` in the `.env` file.

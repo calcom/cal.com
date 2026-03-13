@@ -58,6 +58,16 @@
         letter-spacing: 0;
         font-feature-settings: normal;
       }
+      /* Dark mode logo swap (Tome schema only accepts string for logo) */
+      @media (prefers-color-scheme: dark) {
+        img[src*="cal-docs-logo"]:not([src*="white"]) {
+          content: url('/cal-docs-logo-white.svg');
+        }
+      }
+      .dark img[src*="cal-docs-logo"]:not([src*="white"]),
+      [data-theme="dark"] img[src*="cal-docs-logo"]:not([src*="white"]) {
+        content: url('/cal-docs-logo-white.svg');
+      }
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }

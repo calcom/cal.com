@@ -17,12 +17,7 @@ description: Set up Zoho CRM, Calendar, and Bigin integrations for Cal.diy.
 
 5. **Go to the Client Secret tab** - Navigate to the "Client Secret" tab.
 
-6. **Save Client ID and Secret to .env** - Copy the Client ID and Client Secret into your `.env` file under:
-
-```
-ZOHOCRM_CLIENT_ID
-ZOHOCRM_CLIENT_SECRET
-```
+6. **Save Client ID and Secret in Admin Panel** - Copy the Client ID and Client Secret to your app keys in the Cal.com admin panel at `<Cal.com>/settings/admin/apps`.
 
 7. **Set the Redirect URL for OAuth** - Set the Redirect URL for OAuth to:
 
@@ -90,12 +85,7 @@ Replace `<Cal.com URL>` with your application URL.
 
 4. **Go to the Client Secret tab** - Navigate to the "Client Secret" tab.
 
-5. **Save Client ID and Secret to .env.appStore** - Copy the Client ID and Client Secret into the `.env.appStore` file under:
-
-```
-ZOHO_BIGIN_CLIENT_ID
-ZOHO_BIGIN_CLIENT_SECRET
-```
+5. **Save Client ID and Secret in Admin Panel** - Copy the Client ID and Client Secret to your app keys in the Cal.com admin panel at `<Cal.com>/settings/admin/apps`.
 
 6. **Enable Multi-DC Option** - In the "Settings" section, check the "Multi-DC" option if you wish to use the same OAuth credentials across data centers.
 

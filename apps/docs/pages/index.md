@@ -11,7 +11,7 @@ description: Self-hosting documentation for Cal.diy, the open source community e
 
 ## Getting Started
 
-- [Installation](/installation) - Learn how to install and set up Cal.com
+- [Installation](/installation) - Learn how to install and set up Cal.diy
 - [Database Migrations](/database-migrations) - Manage database schema changes
 - [Upgrading](/upgrading) - Keep your instance up to date
 - [Docker](/docker) - Deploy with Docker
@@ -19,7 +19,7 @@ description: Self-hosting documentation for Cal.diy, the open source community e
 
 ## Deployments
 
-Deploy Cal.com on your preferred platform:
+Deploy Cal.diy on your preferred platform:
 
 - [AWS](/deployments/aws)
 - [Azure](/deployments/azure)

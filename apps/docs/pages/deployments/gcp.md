@@ -56,7 +56,7 @@ Now that your virtual machine is configured, you need to install Docker on it.
 Open a terminal window on your local machine and use SSH to connect to your virtual machine. You can find the external IP address or DNS name of your instance in the GCP console. Use the following command to connect to your instance:
 
 ```bash
-gcloud ssh --project=[PROJECT_ID] --zone=[ZONE] [INSTANCE_NAME]
+gcloud compute ssh --project=[PROJECT_ID] --zone=[ZONE] [INSTANCE_NAME]
 ```
 
 Replace `[PROJECT_ID]` with your project ID, `[ZONE]` with the zone where your instance is located, and `[INSTANCE_NAME]` with the name of your instance. You can also use web based SSH.
@@ -87,7 +87,7 @@ Now that Docker is installed and running, you can deploy Cal.diy on your virtual
 Use the following command to pull the Cal.diy Docker image from Docker Hub:
 
 ```bash
-docker pull cal/calcom
+docker pull calcom/cal.com
 ```
 
 #### Run the Docker Container
@@ -95,13 +95,13 @@ docker pull cal/calcom
 Run the Docker container using the following command:
 
 ```bash
-docker run -d -p 80:80 cal/cal.com
+docker run -d -p 80:3000 calcom/cal.com
 ```
 
-This command maps port 80 on your local machine to port 80 inside the container, so you can access Cal.diy from outside the container.
+This command maps port 80 on the VM to port 3000 inside the container (Cal.diy's default port), so you can access Cal.diy from outside the container.
 
 #### Access Cal.diy
 
-Open a web browser and navigate to `http://localhost`. You should now be able to access the Cal.diy homepage.
+Open a web browser and navigate to `http://[EXTERNAL_IP]` (replace `[EXTERNAL_IP]` with your VM's external IP address noted earlier). You should now be able to access the Cal.diy homepage.
 
 Congratulations! You have successfully deployed Cal.diy on Google Cloud Platform.

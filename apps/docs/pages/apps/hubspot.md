@@ -32,7 +32,7 @@ HUBSPOT_CLIENT_SECRET
 
 Replace `<Cal.com URL>` with the URL where your application is hosted.
 
-8. **Select Required Scopes** - In the "Scopes" section, select "Read" and "Write" for the scope called `crm.objects.contacts`.
+8. **Select Required Scopes** - In the "Scopes" section, select "Read" and "Write" for the scope called `crm.objects.contacts`. Also add the `crm.objects.owners.read` scope.
 
 9. **Save the Application** - Click the "Save" button at the bottom of the page.
 

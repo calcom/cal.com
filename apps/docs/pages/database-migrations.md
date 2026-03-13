@@ -60,6 +60,6 @@ DELETE FROM "_prisma_migrations";
 Quickly re-index
 
 ```bash
-# Run the following to easily apply all migrations in the prisma/migrations directory
-ls -1a prisma/migrations/ | grep 2021 | xargs -I{} prisma migrate resolve --applied {}
+# Run the following to easily apply all migrations in the packages/prisma/migrations directory
+ls -1d packages/prisma/migrations/*/ | xargs -I{} basename {} | xargs -I{} yarn prisma migrate resolve --applied {}
 ```

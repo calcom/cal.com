@@ -59,4 +59,4 @@ TWILIO_MESSAGING_SID
 TWILIO_VERIFY_SID
 ```
 
-> This app is **required** for Workflows
+> This app is **required** for SMS and WhatsApp steps in Workflows

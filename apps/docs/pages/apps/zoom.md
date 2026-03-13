@@ -38,7 +38,7 @@ Replace `<Cal.com URL>` with your application URL.
 
 10. **Configure Allow List and Subdomain Check** - Add the redirect URL to the allow list and enable "Subdomain check". Ensure it displays "saved" below the form.
 
-11. **Skip Basic Information and Add Scopes** - You don't need to provide basic information about your app. Instead, go to "Scopes", click "+ Add Scopes", then select the category "Meeting" on the left, and check the scope `meeting:write`.
+11. **Skip Basic Information and Add Scopes** - You don't need to provide basic information about your app. Instead, go to "Scopes", click "+ Add Scopes", then select the scopes `meeting:write:meeting` and `user:read:settings`.
 
 12. **Save the Scope** - Click "Done" to save the scope settings.
 

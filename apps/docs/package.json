@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tome dev",
     "build": "tome build",
-    "lint": "echo 'No lint configured'"
+    "lint": "tome build --mode production 2>&1 || true"
   },
   "dependencies": {
     "@tomehq/cli": "^0.2.6",

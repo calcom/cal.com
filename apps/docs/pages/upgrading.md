@@ -33,10 +33,10 @@ In a production environment, run:
 yarn workspace @calcom/prisma db-deploy
 ```
 
-Check for `.env` variables changes
+Compare your `.env` file against `.env.example` to check for any new or changed environment variables:
 
 ```bash
-yarn predev
+diff .env.example .env
 ```
 
 Start the server. In a development environment, just do:

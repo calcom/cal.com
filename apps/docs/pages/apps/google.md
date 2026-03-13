@@ -40,10 +40,10 @@ Replace `<Cal.com URL>` with the URL where your application runs.
 GOOGLE_LOGIN_ENABLED=false
 ```
 
-This will configure the Google integration as an Internal app, restricting login access.
+This disables Google sign-in for authentication. It is not required for the Google Calendar app itself, so only set it if you explicitly want Google SSO turned off.
 
 ### Adding Google Calendar to Cal.com App Store
 
 After adding Google credentials, you can now add the Google Calendar App to the app store. Repopulate the App store by running:
 
-1. **Repopulate App Store** - Run `pnpm db-seed` to update the app store and include the newly added Google Calendar integration.
+1. **Repopulate App Store** - Run `yarn seed-app-store` to update the app store and include the newly added Google Calendar integration.
