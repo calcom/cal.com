@@ -1091,14 +1091,6 @@ const UnifiedCalendarPage = () => {
               </div>
             )}
 
-            {!unifiedCalendarListQuery.isPending &&
-              !unifiedCalendarListQuery.error &&
-              filteredEvents.length === 0 && (
-                <div className="px-4 pt-3">
-                  <p className="text-muted-foreground/70 text-xs">No events in this range.</p>
-                </div>
-              )}
-
             {!unifiedCalendarListQuery.isPending && !unifiedCalendarListQuery.error && (
               <UnifiedCalendarGrid
                 viewMode={viewMode}
