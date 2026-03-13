@@ -57,9 +57,12 @@ export class CalUnifiedCalendarsController {
   })
   async listConnections(@GetUser("id") userId: number): Promise<ListConnectionsOutput> {
     const connections = await this.freebusyService.getConnections(userId);
+    // Defense-in-depth: only forward the public fields so that any future service
+    // regression that accidentally includes credential.key cannot leak to the client.
+    const safeConnections = connections.map(({ connectionId, type, email }) => ({ connectionId, type, email }));
     return {
       status: SUCCESS_STATUS,
-      data: { connections },
+      data: { connections: safeConnections },
     };
   }
 

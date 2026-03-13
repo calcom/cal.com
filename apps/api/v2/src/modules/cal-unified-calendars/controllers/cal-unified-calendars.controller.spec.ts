@@ -101,48 +101,34 @@ describe("CalUnifiedCalendarsController", () => {
       expect(result.data.connections).toEqual([]);
     });
 
-    it("should not include credential key even if service accidentally includes it", async () => {
-      // Simulate a regression where the service layer accidentally includes credential key.
-      // The controller passes through service data directly, so if the service leaks key,
-      // it will appear in the response. This test documents that the protection lives in
-      // UnifiedCalendarsFreebusyService.getConnections() which only returns
-      // { connectionId, type, email } — never credential.key.
+    it("should strip credential key even if service accidentally includes it (defense-in-depth)", async () => {
+      // The controller destructures only { connectionId, type, email } from each connection,
+      // so even if the service layer has a regression that leaks credential.key, the
+      // controller response will never contain it.
       const connectionsWithKey = [
         {
           connectionId: "1",
           type: "google" as const,
           email: "user@gmail.com",
-          key: { access_token: "SECRET" },
+          key: { access_token: "SECRET_TOKEN", refresh_token: "SECRET_REFRESH" },
         },
       ];
       mockFreebusyService.getConnections.mockResolvedValue(connectionsWithKey);
 
       const result = await controller.listConnections(userId);
+      const conn = result.data.connections[0];
       const serialized = JSON.stringify(result);
 
-      // Verify core fields are present
-      expect(result.data.connections[0]).toHaveProperty("connectionId", "1");
-      expect(result.data.connections[0]).toHaveProperty("type", "google");
-      expect(result.data.connections[0]).toHaveProperty("email", "user@gmail.com");
-      // Document: controller currently passes through extra fields — key leak prevention
-      // is the responsibility of the service layer (getConnections returns only safe fields).
-      // This test verifies the expected shape; the service-level tests in
-      // unified-calendars-freebusy.service.spec.ts verify no extra fields are returned.
-      expect(serialized).toContain('"connectionId"');
-    });
-
-    it("service getConnections should only return connectionId, type, email — no credential key", async () => {
-      // Verify the service contract: getConnections returns ONLY safe fields
-      const safeConnections = [{ connectionId: "1", type: "google" as const, email: "user@gmail.com" }];
-      mockFreebusyService.getConnections.mockResolvedValue(safeConnections);
-
-      const result = await controller.listConnections(userId);
-      const conn = result.data.connections[0];
-
-      expect(Object.keys(conn)).toEqual(expect.arrayContaining(["connectionId", "type", "email"]));
+      // Core fields are present
+      expect(conn).toHaveProperty("connectionId", "1");
+      expect(conn).toHaveProperty("type", "google");
+      expect(conn).toHaveProperty("email", "user@gmail.com");
+      // key is stripped by the controller's destructuring — this is the key assertion
       expect(conn).not.toHaveProperty("key");
-      expect(conn).not.toHaveProperty("access_token");
-      expect(JSON.stringify(result)).not.toContain("SECRET");
+      expect(serialized).not.toContain("SECRET_TOKEN");
+      expect(serialized).not.toContain("SECRET_REFRESH");
+      // Only the 3 safe fields exist
+      expect(Object.keys(conn)).toEqual(["connectionId", "type", "email"]);
     });
   });
 
