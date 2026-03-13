@@ -64,7 +64,7 @@ export class CredentialsRepository {
 
   /** Find a user's credential by type with delegation info (for unified calendar API). */
   findCredentialWithDelegationByTypeAndUserId(type: string, userId: number) {
-    return this.dbWrite.prisma.credential.findFirst({
+    return this.dbRead.prisma.credential.findFirst({
       where: { type, userId },
       select: {
         id: true,
