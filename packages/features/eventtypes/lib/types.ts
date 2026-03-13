@@ -16,6 +16,7 @@ import type {
   eventTypeBookingFields,
   eventTypeColor,
 } from "@calcom/prisma/zod-utils";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
@@ -51,6 +52,8 @@ export type Host = {
   scheduleId?: number | null;
   groupId: string | null;
   location?: HostLocation | null;
+  isEmailInvite?: boolean;
+  email?: string;
 };
 
 export type TeamMember = {
@@ -497,7 +500,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;
