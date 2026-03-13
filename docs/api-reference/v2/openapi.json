@@ -10813,11 +10813,408 @@
         "tags": ["Bookings / Guests"]
       }
     },
+    "/v2/calendars/connections": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listConnections",
+        "summary": "List calendar connections",
+        "description": "Returns all calendar connections for the authenticated user (Google, Office 365, Apple). Use connectionId in connection-scoped endpoints. Note: Event CRUD (list/create/get/update/delete events) is currently only supported for Google Calendar connections; other types will return 400.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListConnectionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/events": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listConnectionEvents",
+        "summary": "List events for a connection",
+        "description": "List events in a date range for a specific calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "description": "Calendar connection ID from GET /connections",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone for the request (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "description": "Calendar ID. Use 'primary' for the user's primary calendar, or the external ID of a connected calendar.",
+            "schema": {
+              "default": "primary",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListUnifiedCalendarEventsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "post": {
+        "operationId": "CalUnifiedCalendarsController_createConnectionEvent",
+        "summary": "Create event on a connection",
+        "description": "Create a new event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/events/{eventId}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getConnectionEvent",
+        "summary": "Get event for a connection",
+        "description": "Get a single event by ID for the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateConnectionEvent",
+        "summary": "Update event for a connection",
+        "description": "Update an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "delete": {
+        "operationId": "CalUnifiedCalendarsController_deleteConnectionEvent",
+        "summary": "Delete event for a connection",
+        "description": "Delete/cancel an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/freebusy": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getConnectionFreeBusy",
+        "summary": "Get free/busy for a connection",
+        "description": "Get busy time slots for the specified calendar connection.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBusyTimesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
         "summary": "Get meeting details from calendar",
-        "description": "Returns detailed information about a meeting including attendance metrics",
+        "description": "Returns detailed information about a meeting including attendance metrics. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -10860,13 +11257,11 @@
           }
         },
         "tags": ["Cal Unified Calendars"]
-      }
-    },
-    "/v2/calendars/{calendar}/events/{eventUid}": {
+      },
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
         "summary": "Update meeting details in calendar",
-        "description": "Updates event information in the specified calendar provider",
+        "description": "Updates event information in the specified calendar provider. Prefer the plural path /events/ (singular /event/ is deprecated). For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -10913,6 +11308,244 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/events": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listCalendarEvents",
+        "summary": "List calendar events",
+        "description": "List events in a date range for the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone for the request (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "description": "Calendar ID. Use 'primary' for the user's primary calendar, or the external ID of a connected calendar.",
+            "schema": {
+              "default": "primary",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListUnifiedCalendarEventsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "post": {
+        "operationId": "CalUnifiedCalendarsController_createCalendarEvent",
+        "summary": "Create a calendar event",
+        "description": "Create a new event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
+      "delete": {
+        "operationId": "CalUnifiedCalendarsController_deleteCalendarEvent",
+        "summary": "Delete a calendar event",
+        "description": "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The calendar provider's event ID (e.g. Google Calendar event ID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/freebusy": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getFreeBusy",
+        "summary": "Get free/busy times",
+        "description": "Get busy time slots for the authenticated user's selected calendars in the given date range. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBusyTimesOutput"
                 }
               }
             }
@@ -33391,6 +34024,55 @@
         },
         "required": ["status", "data"]
       },
+      "CalendarConnectionItem": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "description": "Stable ID for this calendar connection (use in connection-scoped endpoints)",
+            "example": "123"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["google", "office365", "apple"],
+            "description": "Calendar provider type",
+            "example": "google"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary email for this connection (null if unavailable)",
+            "example": "user@gmail.com"
+          }
+        },
+        "required": ["connectionId", "type"]
+      },
+      "ListConnectionsData": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarConnectionItem"
+            }
+          }
+        },
+        "required": ["connections"]
+      },
+      "ListConnectionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ListConnectionsData"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CalendarEventVideoLocation": {
         "type": "object",
         "properties": {
@@ -33706,6 +34388,90 @@
           }
         },
         "required": ["start", "end", "id", "title", "source"]
+      },
+      "ListUnifiedCalendarEventsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateEventDateTimeWithZone": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start or end time in ISO 8601 format"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "IANA time zone (e.g. America/New_York)"
+          }
+        },
+        "required": ["time", "timeZone"]
+      },
+      "CreateEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          }
+        },
+        "required": ["email"]
+      },
+      "CreateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "start": {
+            "description": "Start date and time with time zone",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateEventDateTimeWithZone"
+              }
+            ]
+          },
+          "end": {
+            "description": "End date and time with time zone",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateEventDateTimeWithZone"
+              }
+            ]
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description of the event"
+          },
+          "attendees": {
+            "description": "List of attendees",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEventAttendee"
+            }
+          }
+        },
+        "required": ["title", "start", "end"]
       },
       "GetUnifiedCalendarEventOutput": {
         "type": "object",
