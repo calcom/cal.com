@@ -71,7 +71,7 @@ describe("Webhook Producer Integration", () => {
         id: `webhook-producer-test-${testId}`,
         userId: testUser.id,
         subscriberUrl: "https://example.com/webhook",
-        eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+        eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED, WebhookTriggerEvents.BOOKING_REQUESTED, WebhookTriggerEvents.BOOKING_RESCHEDULED],
         active: true,
       },
     });
@@ -143,6 +143,7 @@ describe("Webhook Producer Integration", () => {
       await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
         bookingUid,
         eventTypeId: testEventType.id,
+        userId: testUser.id,
         teamId: 999,
       });
 
@@ -183,6 +184,7 @@ describe("Webhook Producer Integration", () => {
       await producer.queueBookingWebhook(WebhookTriggerEvents.BOOKING_RESCHEDULED, {
         bookingUid,
         eventTypeId: testEventType.id,
+        userId: testUser.id,
         teamId: 999,
       });
 

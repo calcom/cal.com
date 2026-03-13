@@ -11,13 +11,14 @@ import type {
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
 } from "../interface/WebhookProducerService";
+import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 
 /**
  * Lightweight Producer Service for webhook delivery.
  *
- * DEPENDENCIES: Only Tasker and Logger (no Prisma, no repositories)
+ * DEPENDENCIES: Tasker, WebhookRepository, and Logger
  *
  * This service queues minimal webhook tasks to be processed by WebhookTaskConsumer.
  * The consumer handles the heavy lifting (DB queries, payload building, HTTP delivery).
@@ -27,6 +28,7 @@ import type { WebhookTaskPayload } from "../types/webhookTask";
  */
 export interface IWebhookTaskerProducerServiceDeps {
   webhookTasker: WebhookTasker;
+  webhookRepository: IWebhookRepository;
   logger: ILogger;
 }
 
@@ -202,6 +204,23 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    * - E2E Tests: Executes immediately via WebhookSyncTasker
    */
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
+    const subscribers = await this.deps.webhookRepository.getSubscribers({
+      triggerEvent: taskPayload.triggerEvent,
+      userId: "userId" in taskPayload ? taskPayload.userId : undefined,
+      eventTypeId: "eventTypeId" in taskPayload ? taskPayload.eventTypeId : undefined,
+      teamId: "teamId" in taskPayload ? taskPayload.teamId : undefined,
+      orgId: "orgId" in taskPayload ? taskPayload.orgId : undefined,
+      oAuthClientId: "oAuthClientId" in taskPayload ? taskPayload.oAuthClientId : undefined,
+    });
+
+    if (subscribers.length === 0) {
+      this.log.debug("No webhook subscribers found, skipping task queue", {
+        operationId,
+        triggerEvent: taskPayload.triggerEvent,
+      });
+      return;
+    }
+
     try {
       const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
       this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });

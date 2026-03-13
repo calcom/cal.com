@@ -3,6 +3,7 @@ import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/
 import { WebhookTaskerProducerService } from "@calcom/features/webhooks/lib/service/WebhookTaskerProducerService";
 
 import { moduleLoader as webhookTaskerModule } from "../tasker/WebhookTasker.module";
+import { moduleLoader as webhookRepositoryModule } from "./WebhookRepository.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 /**
@@ -26,6 +27,7 @@ const loadModule = bindModuleToClassOnToken({
   classs: WebhookTaskerProducerService,
   depsMap: {
     webhookTasker: webhookTaskerModule,
+    webhookRepository: webhookRepositoryModule,
     logger: loggerServiceModule,
   },
 });
