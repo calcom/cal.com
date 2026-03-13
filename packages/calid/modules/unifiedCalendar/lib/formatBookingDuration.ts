@@ -1,5 +1,5 @@
 export const formatBookingDuration = (durationMinutes: number): string => {
-  if (durationMinutes <= 60) {
+  if (durationMinutes < 60) {
     return `${durationMinutes} mins`;
   }
 
