@@ -114,6 +114,13 @@ class ProtonCalendarService implements Calendar {
       throw new Error(`Failed to fetch Proton Calendar ICS feed: ${e instanceof Error ? e.message : String(e)}`);
     }
 
+    // Re-validate the final URL after any HTTP redirects to prevent SSRF bypass.
+    // fetch() follows redirects by default; the resolved response.url may differ
+    // from this.url if the server issued a redirect to an off-allowlist domain.
+    if (response.url && response.url !== this.url) {
+      validateProtonUrl(response.url);
+    }
+
     if (response.status === 401) {
       throw new Error(
         "401 Unauthorized: The ICS feed requires authentication. Use a public sharing link from Proton Calendar."
@@ -132,16 +139,18 @@ class ProtonCalendarService implements Calendar {
     }
 
     const text = await response.text();
+    // Propagate parse errors instead of returning null (fail-open).
+    // A broken ICS feed must not silently appear as an empty calendar.
+    let jcalData;
     try {
-      const jcalData = ICAL.parse(text);
-      return {
-        url: this.url,
-        vcalendar: new ICAL.Component(jcalData),
-      };
+      jcalData = ICAL.parse(text);
     } catch (e) {
-      console.error("Error parsing Proton Calendar ICS data:", e);
-      return null;
+      throw new Error(`Failed to parse Proton Calendar ICS data: ${e instanceof Error ? e.message : String(e)}`);
     }
+    return {
+      url: this.url,
+      vcalendar: new ICAL.Component(jcalData),
+    };
   };
 
   getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
@@ -171,6 +180,22 @@ class ProtonCalendarService implements Calendar {
     const events: { start: string; end: string; title: string }[] = [];
 
     const vevents = vcalendar.getAllSubcomponents("vevent");
+
+    // First pass: collect RECURRENCE-IDs of cancelled exception VEVENTs.
+    // Recurring series exception VEVENTs with STATUS:CANCELLED indicate that a
+    // specific occurrence is cancelled. We must record these BEFORE processing
+    // the master VEVENT so cancelled occurrences can be skipped during expansion.
+    const cancelledRecurrenceIds = new Set<string>();
+    vevents.forEach((vevent) => {
+      const status = vevent.getFirstPropertyValue("status") as string | null;
+      if (status && String(status).toUpperCase() === "CANCELLED") {
+        const recurrenceId = vevent.getFirstPropertyValue("recurrence-id") as ICAL.Time | null;
+        if (recurrenceId) {
+          cancelledRecurrenceIds.add(recurrenceId.toISOString());
+        }
+      }
+    });
+
     vevents.forEach((vevent) => {
       // Skip cancelled events (Proton marks cancelled recurring instances with STATUS:CANCELLED)
       const status = vevent.getFirstPropertyValue("status") as string | null;
@@ -255,6 +280,12 @@ class ProtonCalendarService implements Calendar {
             }
           }
           if (!currentEvent) return;
+
+          // Skip occurrences cancelled via a STATUS:CANCELLED exception VEVENT.
+          if (cancelledRecurrenceIds.has(currentEvent.startDate.toISOString())) {
+            continue;
+          }
+
           if (vtimezone) {
             const zone = new ICAL.Timezone(vtimezone);
             currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
