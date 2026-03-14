@@ -4776,7 +4776,6 @@
   "discount_25": "-25%",
   "n_apps_one": "{{count}} app",
   "n_apps_other": "{{count}} apps",
-  "n_active_one": "{{count}} active",
-  "n_active_other": "{{count}} active",
+  "n_active": "{{count}} active",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
