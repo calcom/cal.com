@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { InsightsChatChart } from "./InsightsChatChart";
 import type { ChatChartResult } from "./types";
@@ -38,11 +39,13 @@ export function SavedCharts({
   charts: ChatChartResult[];
   onRemove: (chartId: string) => void;
 }) {
+  const { t } = useLocale();
+
   if (charts.length === 0) return null;
 
   return (
     <div className="stack-y-3">
-      <h3 className="text-emphasis text-sm font-semibold">Saved Charts</h3>
+      <h3 className="text-emphasis text-sm font-semibold">{t("saved_charts")}</h3>
       {charts.map((chart) => (
         <div key={chart.id} className="relative">
           <InsightsChatChart result={chart} onSave={() => undefined} isSaved={true} />
@@ -52,7 +55,7 @@ export function SavedCharts({
             className="absolute right-2 top-2"
             onClick={() => onRemove(chart.id)}
             StartIcon="trash-2">
-            Remove
+            {t("remove")}
           </Button>
         </div>
       ))}

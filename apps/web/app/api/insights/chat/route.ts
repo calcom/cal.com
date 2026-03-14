@@ -7,12 +7,15 @@ import {
   replaceDateRangeColumnFilter,
 } from "@calcom/features/insights/lib/bookingUtils";
 import { getDateRanges, getTimeView } from "@calcom/features/insights/server/insightsDateUtils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import logger from "@calcom/lib/logger";
 import { readonlyPrisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: [`/api/insights/chat`] });
 
@@ -176,12 +179,12 @@ interface GroqApiResult {
   choices: GroqChoice[];
 }
 
-interface GroqParsed {
-  endpoint: string;
-  chartType: string;
-  title: string;
-  description: string;
-}
+const GroqParsedSchema = z.object({
+  endpoint: z.string(),
+  chartType: z.string(),
+  title: z.string(),
+  description: z.string(),
+});
 
 interface ChartConfig {
   chartType: ChartType;
@@ -232,7 +235,18 @@ async function callGroq(prompt: string): Promise<ChartConfig> {
     throw new Error("No response content from Groq");
   }
 
-  const parsed: GroqParsed = JSON.parse(content.trim());
+  let cleanedContent = content.trim();
+  // Strip markdown code fences if the LLM wraps the JSON
+  if (cleanedContent.startsWith("```")) {
+    cleanedContent = cleanedContent.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+  }
+
+  const parseResult = GroqParsedSchema.safeParse(JSON.parse(cleanedContent));
+  if (!parseResult.success) {
+    throw new Error(`Invalid response format from Groq: ${parseResult.error.message}`);
+  }
+
+  const parsed = parseResult.data;
   const matchedEndpoint = AVAILABLE_ENDPOINTS.find((ep) => ep.name === parsed.endpoint);
   if (!matchedEndpoint) {
     throw new Error(`Unknown endpoint: ${parsed.endpoint}`);
@@ -444,7 +458,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   try {
     const body: RequestBody = await req.json();
-    const { query } = body;
+    const { query, scope, selectedTeamId } = body;
 
     if (!query || typeof query !== "string" || !query.trim()) {
       return NextResponse.json({ error: "Query is required" }, { status: 400 });
@@ -457,6 +471,48 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Authorization: verify team membership and insights permission
+    if (scope === "team" && selectedTeamId) {
+      const membership = await readonlyPrisma.membership.findFirst({
+        where: { userId: user.id, teamId: selectedTeamId, accepted: true },
+        select: { id: true },
+      });
+
+      if (!membership && user.organizationId) {
+        // Check if the team is a child of the user's org
+        const isChildTeam = await readonlyPrisma.team.findFirst({
+          where: { id: selectedTeamId, parentId: user.organizationId },
+          select: { id: true },
+        });
+        if (!isChildTeam) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        const permissionCheck = new PermissionCheckService();
+        const hasAccess = await permissionCheck.checkPermission({
+          userId: user.id,
+          teamId: user.organizationId,
+          permission: "insights.read",
+          fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        });
+        if (!hasAccess) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+      } else if (!membership) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else if (scope === "org" && user.organizationId) {
+      const permissionCheck = new PermissionCheckService();
+      const hasAccess = await permissionCheck.checkPermission({
+        userId: user.id,
+        teamId: user.organizationId,
+        permission: "insights.read",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      if (!hasAccess) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const prompt = buildGroqPrompt(query.trim());

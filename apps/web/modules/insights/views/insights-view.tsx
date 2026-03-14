@@ -65,7 +65,7 @@ const startTimeColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr
 function InsightsPageContent() {
   const { t } = useLocale();
   const { table } = useInsightsBookings();
-  const { isAll, teamId, userId } = useInsightsOrgTeams();
+  const { isAll, teamId, userId, scope } = useInsightsOrgTeams();
   const { removeFilter } = useDataTable();
   const [dateTarget, _setDateTarget] = useState<"startTime" | "createdAt">("startTime");
 
@@ -159,7 +159,7 @@ function InsightsPageContent() {
         <div className="h-20" />
       </div>
 
-      <InsightsChatBox />
+      <InsightsChatBox scope={scope} selectedTeamId={teamId} />
     </>
   );
 }

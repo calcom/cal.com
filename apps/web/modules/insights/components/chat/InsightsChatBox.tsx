@@ -20,7 +20,12 @@ interface ChatApiResponse {
   error?: string;
 }
 
-export function InsightsChatBox() {
+interface InsightsChatBoxProps {
+  scope: "user" | "team" | "org";
+  selectedTeamId?: number;
+}
+
+export function InsightsChatBox({ scope, selectedTeamId }: InsightsChatBoxProps) {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +56,8 @@ export function InsightsChatBox() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             query: query.trim(),
-            scope: "user",
+            scope,
+            ...(selectedTeamId && { selectedTeamId }),
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }),
         });

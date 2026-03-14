@@ -4753,5 +4753,6 @@
   "discount_25": "-25%",
   "insights_chat_placeholder": "Chat with your booking insights",
   "insights_chat_empty_state": "Ask a question about your booking data to generate a chart",
+  "saved_charts": "Saved Charts",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

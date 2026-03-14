@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { useState } from "react";
 import {
@@ -31,7 +32,7 @@ const CHART_COLORS: string[] = [
   "#ec4899",
 ];
 
-function RenderLineChart({ result }: { result: ChatChartResult }): React.JSX.Element {
+function RenderLineChart({ result }: { result: ChatChartResult }): JSX.Element {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={result.data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
@@ -61,7 +62,7 @@ function RenderLineChart({ result }: { result: ChatChartResult }): React.JSX.Ele
   );
 }
 
-function RenderBarChart({ result }: { result: ChatChartResult }): React.JSX.Element {
+function RenderBarChart({ result }: { result: ChatChartResult }): JSX.Element {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={result.data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
@@ -88,7 +89,7 @@ function RenderBarChart({ result }: { result: ChatChartResult }): React.JSX.Elem
   );
 }
 
-function RenderPieChart({ result }: { result: ChatChartResult }): React.JSX.Element {
+function RenderPieChart({ result }: { result: ChatChartResult }): JSX.Element {
   const dataKey = result.dataKeys[0] || "count";
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -100,9 +101,12 @@ function RenderPieChart({ result }: { result: ChatChartResult }): React.JSX.Elem
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, value }: { name: string; value: number }): string => `${name}: ${value}`}>
+          label={({ name, value }: { name: string; value?: number }): string => `${name}: ${value ?? 0}`}>
           {result.data.map((_entry: Record<string, unknown>, index: number) => (
-            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+            <Cell
+              key={`cell-${index}`}
+              fill={result.colors[index] || CHART_COLORS[index % CHART_COLORS.length]}
+            />
           ))}
         </Pie>
         <Tooltip
@@ -117,7 +121,7 @@ function RenderPieChart({ result }: { result: ChatChartResult }): React.JSX.Elem
   );
 }
 
-function RenderAreaChart({ result }: { result: ChatChartResult }): React.JSX.Element {
+function RenderAreaChart({ result }: { result: ChatChartResult }): JSX.Element {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <AreaChart data={result.data} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
@@ -155,6 +159,7 @@ export function InsightsChatChart({
   onSave: (result: ChatChartResult) => void;
   isSaved: boolean;
 }) {
+  const { t } = useLocale();
   const [saving, setSaving] = useState(false);
 
   const handleSave = () => {
@@ -185,7 +190,7 @@ export function InsightsChatChart({
           onClick={handleSave}
           disabled={isSaved || saving}
           StartIcon="download">
-          {isSaved ? "Saved" : "Save"}
+          {isSaved ? t("saved") : t("save")}
         </Button>
       </div>
       <ChartComponent result={result} />
