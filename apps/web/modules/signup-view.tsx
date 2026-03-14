@@ -405,7 +405,7 @@ export default function Signup({
                 )}
 
                 {/* Divider */}
-                {isGoogleLoginEnabled && inWebView === false && (
+                {isGoogleLoginEnabled && (
                   <div className="fade-in-up my-6" style={{ animationDelay: "200ms" }}>
                     <div className="relative flex items-center">
                       <div className="flex-grow border-t border-gray-200" />
