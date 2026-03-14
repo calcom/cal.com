@@ -1,8 +1,8 @@
 import type { CreateRegularBookingData } from "@calcom/features/bookings/lib/dto/types";
-import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -195,6 +195,32 @@ export class CalendarSyncService {
           attributes: { status: "skipped", reason: "no_time_change" },
         });
         return;
+      }
+
+      // For recurring bookings, all Google Calendar instances of a recurring event share the same
+      // iCalUID (from the first booking). When webhook notifications arrive, the sync service
+      // resolves each instance to the first booking's UID. Since later instances have different
+      // start times, hasStartTimeChanged returns true and incorrectly triggers a reschedule.
+      // To prevent this, check if another booking in the same recurring series already exists
+      // at the event's start time — if so, this is just a different instance, not a real reschedule.
+      if (booking.recurringEventId && event.start) {
+        const existingBookingAtEventTime =
+          await this.deps.bookingRepository.findByRecurringEventIdAndStartTime({
+            recurringEventId: booking.recurringEventId,
+            startTime: event.start,
+          });
+
+        if (existingBookingAtEventTime) {
+          log.debug("Skipping reschedule, event matches a different booking in the same recurring series", {
+            bookingUid,
+            recurringEventId: booking.recurringEventId,
+            matchedBookingUid: existingBookingAtEventTime.uid,
+          });
+          metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+            attributes: { status: "skipped", reason: "recurring_series_instance" },
+          });
+          return;
+        }
       }
 
       // Dynamic import to avoid loading the entire booking service chain at module evaluation time

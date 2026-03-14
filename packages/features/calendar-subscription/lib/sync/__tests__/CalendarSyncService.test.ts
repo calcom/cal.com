@@ -1,9 +1,7 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
-
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CalendarSyncService } from "../CalendarSyncService";
 
 const { mockHandleCancelBooking, mockCreateBooking } = vi.hoisted(() => ({
@@ -149,6 +147,7 @@ describe("CalendarSyncService", () => {
   beforeEach(() => {
     mockBookingRepository = {
       findBookingByUidWithEventType: vi.fn(),
+      findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -282,7 +281,9 @@ describe("CalendarSyncService", () => {
       mockHandleCancelBooking.mockRejectedValue(new Error("Cancellation failed"));
 
       // Should not throw - errors are caught and logged
-      await expect(service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)).resolves.not.toThrow();
+      await expect(
+        service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)
+      ).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockHandleCancelBooking).toHaveBeenCalled();
@@ -293,7 +294,9 @@ describe("CalendarSyncService", () => {
         .fn()
         .mockRejectedValue(new Error("DB connection failed"));
 
-      await expect(service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)).resolves.not.toThrow();
+      await expect(
+        service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)
+      ).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
@@ -494,7 +497,9 @@ describe("CalendarSyncService", () => {
       mockCreateBooking.mockRejectedValue(new Error("Rescheduling failed"));
 
       // Should not throw - errors are caught and logged
-      await expect(service.rescheduleBooking(eventWithDifferentStart, mockSelectedCalendar.userId)).resolves.not.toThrow();
+      await expect(
+        service.rescheduleBooking(eventWithDifferentStart, mockSelectedCalendar.userId)
+      ).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockCreateBooking).toHaveBeenCalled();
@@ -505,10 +510,83 @@ describe("CalendarSyncService", () => {
         .fn()
         .mockRejectedValue(new Error("DB connection failed"));
 
-      await expect(service.rescheduleBooking(mockCalComEvent, mockSelectedCalendar.userId)).resolves.not.toThrow();
+      await expect(
+        service.rescheduleBooking(mockCalComEvent, mockSelectedCalendar.userId)
+      ).resolves.not.toThrow();
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
+    });
+
+    test("should skip reschedule when event is a different instance in a recurring series", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        recurringEventId: "recurring-event-id-123",
+      };
+
+      // Event has a different start time (week 2 of recurring series)
+      const recurringInstanceEvent: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-08T10:00:00Z"),
+        end: new Date("2023-12-08T11:00:00Z"),
+        recurringEventId: "gcal-recurring-id",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      // Another booking exists in the series at the event's start time
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 2, uid: "other-booking-uid" });
+
+      await service.rescheduleBooking(recurringInstanceEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).toHaveBeenCalledWith({
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-08T10:00:00Z"),
+      });
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+    });
+
+    test("should allow reschedule for recurring booking when no other booking exists at event time", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        recurringEventId: "recurring-event-id-123",
+      };
+
+      // Event has a different start time and no matching booking in series
+      const rescheduledRecurringEvent: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-01T16:00:00Z"),
+        end: new Date("2023-12-01T17:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      // No booking in the series at the new time — this is a real reschedule
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
+
+      await service.rescheduleBooking(rescheduledRecurringEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).toHaveBeenCalledWith({
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-01T16:00:00Z"),
+      });
+      expect(mockCreateBooking).toHaveBeenCalled();
+    });
+
+    test("should not check recurring series for non-recurring bookings", async () => {
+      // mockBooking has no recurringEventId
+      const eventWithDifferentStart: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-01T14:00:00Z"),
+        end: new Date("2023-12-01T15:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.rescheduleBooking(eventWithDifferentStart, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).not.toHaveBeenCalled();
+      expect(mockCreateBooking).toHaveBeenCalled();
     });
   });
 });
