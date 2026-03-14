@@ -4751,5 +4751,7 @@
   "dashboard": "dashboard",
   "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
   "discount_25": "-25%",
+  "insights_chat_placeholder": "Chat with your booking insights",
+  "insights_chat_empty_state": "Ask a question about your booking data to generate a chart",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1,14 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useState, useCallback } from "react";
-
 import { ColumnFilterType, type FilterableColumn } from "@calcom/features/data-table";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { DataTableFilters, DateRangeFilter } from "~/data-table/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { FilterType } from "@calcom/types/data-table";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useSegments } from "~/data-table/hooks/useSegments";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -18,25 +13,30 @@ import {
   HighestNoShowHostTable,
   HighestRatedMembersTable,
   LeastBookedTeamMembersTable,
+  LeastCompletedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
   MostCompletedTeamMembersTable,
-  LeastCompletedTeamMembersTable,
   NoShowHostsOverTimeChart,
   PopularEventsTable,
-  RecentNoShowGuestsChart,
   RecentFeedbackTable,
+  RecentNoShowGuestsChart,
   TimezoneBadge,
 } from "@calcom/web/modules/insights/components/booking";
-import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeamsProvider";
-import { DateTargetSelector, type DateTarget } from "../components/filters/DateTargetSelector";
-import { Download } from "../components/filters/Download/Download";
-import { OrgTeamsFilter } from "../components/filters/OrgTeamsFilter";
 import { useInsightsBookings } from "@calcom/web/modules/insights/hooks/useInsightsBookings";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { usePathname } from "next/navigation";
+import { useCallback, useState } from "react";
+import { DataTableFilters, DateRangeFilter } from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useSegments } from "~/data-table/hooks/useSegments";
+import { InsightsChatBox } from "../components/chat/InsightsChatBox";
+import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeamsProvider";
+import { type DateTarget, DateTargetSelector } from "../components/filters/DateTargetSelector";
+import { Download } from "../components/filters/Download/Download";
+import { OrgTeamsFilter } from "../components/filters/OrgTeamsFilter";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   const pathname = usePathname();
@@ -154,7 +154,12 @@ function InsightsPageContent() {
             {t("contact_support")}
           </a>
         </small>
+
+        {/* Spacer for the fixed chat box */}
+        <div className="h-20" />
       </div>
+
+      <InsightsChatBox />
     </>
   );
 }
