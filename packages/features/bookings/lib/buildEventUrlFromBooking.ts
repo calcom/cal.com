@@ -38,12 +38,15 @@ export async function buildEventUrlFromBooking(booking: {
   const bookingOrganizationId = getOrganizationIdOfBooking({ eventType, profileEnrichedBookingUser });
 
   const bookerUrl = await getBookerBaseUrl(bookingOrganizationId);
+  const base = bookerUrl.replace(/\/$/, "");
+  const encodedEventSlug = encodeURIComponent(eventSlug);
+
   if (dynamicGroupSlugRef) {
-    return `${bookerUrl}/${dynamicGroupSlugRef}/${eventSlug}`;
+    return `${base}/${dynamicGroupSlugRef}/${encodedEventSlug}`;
   }
 
   if (eventTeam?.slug) {
-    return `${bookerUrl}/team/${eventTeam.slug}/${eventSlug}`;
+    return `${base}/team/${eventTeam.slug}/${encodedEventSlug}`;
   }
 
   const username = profileEnrichedBookingUser?.profile?.username;
@@ -51,5 +54,5 @@ export async function buildEventUrlFromBooking(booking: {
     logger.error("No username found for booking user.", safeStringify({ profileEnrichedBookingUser }));
     throw new Error("No username found for booking user.");
   }
-  return `${bookerUrl}/${username}/${eventSlug}`;
+  return `${base}/${username}/${encodedEventSlug}`;
 }
