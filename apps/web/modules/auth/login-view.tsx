@@ -262,8 +262,7 @@ export default function Login({
                       {inWebView ? (
                         <WebViewBlocker />
                       ) : (
-                        isGoogleLoginEnabled &&
-                        inWebView === false && (
+                        isGoogleLoginEnabled && (
                           <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
                             <Button
                               color="secondary"
