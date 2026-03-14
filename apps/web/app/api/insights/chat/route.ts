@@ -245,7 +245,7 @@ async function callGroq(prompt: string): Promise<ChartConfig> {
   try {
     rawParsed = JSON.parse(cleanedContent);
   } catch {
-    throw new Error(`Failed to parse Groq response as JSON: ${cleanedContent.substring(0, 200)}`);
+    throw new Error("Failed to parse Groq response as JSON");
   }
 
   const parseResult = GroqParsedSchema.safeParse(rawParsed);
