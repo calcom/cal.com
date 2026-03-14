@@ -94,7 +94,7 @@ export function InsightsChatBox({ scope, selectedTeamId }: InsightsChatBoxProps)
         setIsLoading(false);
       }
     },
-    [query, isLoading]
+    [query, isLoading, scope, selectedTeamId]
   );
 
   const handleSaveChart = useCallback((chart: ChatChartResult) => {

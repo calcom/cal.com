@@ -241,7 +241,14 @@ async function callGroq(prompt: string): Promise<ChartConfig> {
     cleanedContent = cleanedContent.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
   }
 
-  const parseResult = GroqParsedSchema.safeParse(JSON.parse(cleanedContent));
+  let rawParsed: unknown;
+  try {
+    rawParsed = JSON.parse(cleanedContent);
+  } catch {
+    throw new Error(`Failed to parse Groq response as JSON: ${cleanedContent.substring(0, 200)}`);
+  }
+
+  const parseResult = GroqParsedSchema.safeParse(rawParsed);
   if (!parseResult.success) {
     throw new Error(`Invalid response format from Groq: ${parseResult.error.message}`);
   }
