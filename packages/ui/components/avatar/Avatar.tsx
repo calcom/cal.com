@@ -89,9 +89,7 @@ export function Avatar(props: AvatarProps) {
           delayMs={600}
           asChild={props.asChild}
           className="flex h-full items-center justify-center">
-          <>
-            {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
-          </>
+          {props.fallback ? props.fallback : <img src={AVATAR_FALLBACK} alt={alt} className={rootClass} />}
         </AvatarPrimitive.Fallback>
         {indicator}
       </>
