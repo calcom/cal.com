@@ -1,4 +1,3 @@
-import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import {
@@ -84,7 +83,7 @@ export class TeamVerifiedEmailOutput {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: ScheduleOutput,
+    type: TeamVerifiedEmailOutputData,
   })
   @IsNotEmptyObject()
   @Type(() => TeamVerifiedEmailOutputData)
@@ -97,7 +96,7 @@ export class UserVerifiedEmailOutput {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: ScheduleOutput,
+    type: UserVerifiedEmailOutputData,
   })
   @IsNotEmptyObject()
   @Type(() => UserVerifiedEmailOutputData)
@@ -110,7 +109,7 @@ export class TeamVerifiedEmailsOutput {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: ScheduleOutput,
+    type: [TeamVerifiedEmailOutputData],
   })
   @IsNotEmptyObject()
   @IsArray()
@@ -125,7 +124,7 @@ export class UserVerifiedEmailsOutput {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: ScheduleOutput,
+    type: [UserVerifiedEmailOutputData],
   })
   @IsNotEmptyObject()
   @IsArray()
