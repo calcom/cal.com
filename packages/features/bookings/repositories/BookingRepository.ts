@@ -806,6 +806,22 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findByRecurringEventIdAndStartTime({
+    recurringEventId,
+    startTime,
+  }: {
+    recurringEventId: string;
+    startTime: Date;
+  }) {
+    return await this.prismaClient.booking.findFirst({
+      where: {
+        recurringEventId,
+        startTime,
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+      },
+      select: { id: true, uid: true },
+    });
+  }
   private async _findAllExistingBookingsForEventTypeBetween({
     eventTypeId,
     seatedEvent = false,
