@@ -22,7 +22,7 @@ export const AnimatedPopover = ({
   count?: number;
   children: React.ReactNode;
   popoverTriggerClassNames?: string;
-  Trigger?: React.ReactElement;
+  Trigger?: React.ReactNode;
   defaultOpen?: boolean;
   prefix?: string;
 }) => {
