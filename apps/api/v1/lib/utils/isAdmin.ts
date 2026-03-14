@@ -22,7 +22,9 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       team: {
         isOrganization: true,
         organizationSettings: {
-          isAdminAPIEnabled: true,
+          is: {
+            isAdminAPIEnabled: true,
+          },
         },
       },
     },
