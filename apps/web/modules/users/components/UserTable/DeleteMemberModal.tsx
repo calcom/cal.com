@@ -6,6 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { UserTableAction, UserTableState } from "./types";
 
@@ -24,6 +25,7 @@ export function DeleteMemberModal({
       utils.viewer.organizations.listMembers.invalidate();
       utils.viewer.teams.get.invalidate();
       utils.viewer.eventTypes.invalidate();
+      revalidateTeamsList();
 
       showToast(t("success"), "success");
 

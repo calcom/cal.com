@@ -5,6 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
 
 import MemberInvitationModal from "~/ee/teams/components/MemberInvitationModal";
@@ -27,6 +28,7 @@ export function InviteMemberModal(props: Props) {
       // loaded a bunch of data and idk how pagination works with invalidation. We may need to use
       // Optimistic updates here instead.
       await utils.viewer.organizations.listMembers.invalidate();
+      revalidateTeamsList();
 
       if (Array.isArray(data.usernameOrEmail)) {
         showToast(

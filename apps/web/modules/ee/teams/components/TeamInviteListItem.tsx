@@ -46,6 +46,7 @@ export default function TeamInviteListItem(props: Props) {
       await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
       await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.insights.teamListForUser.invalidate();
     },
   });
 

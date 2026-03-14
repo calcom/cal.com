@@ -532,6 +532,7 @@ export const MemberInvitationModalWithoutMembers = ({
               await utils.viewer.teams.get.invalidate();
               await utils.viewer.teams.listMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
+              revalidateTeamsList();
               hideInvitationModal();
 
               if (Array.isArray(data.usernameOrEmail)) {

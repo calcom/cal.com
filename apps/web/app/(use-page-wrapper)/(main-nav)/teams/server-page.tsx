@@ -10,17 +10,18 @@ import type { Session } from "next-auth";
 import { TeamsListing } from "~/ee/teams/components/TeamsListing";
 import { TeamsCTA } from "./CTA";
 
-const getCachedTeams = unstable_cache(
-  async (userId: number) => {
-    const teamRepo = new TeamRepository(prisma);
-    return await teamRepo.findTeamsByUserId({
-      userId,
-      includeOrgs: true,
-    });
-  },
-  undefined,
-  { revalidate: 3600, tags: ["viewer.teams.list"] } // Cache for 1 hour
-);
+const getTeams = async (userId: number) => {
+  const teamRepo = new TeamRepository(prisma);
+  return await teamRepo.findTeamsByUserId({
+    userId,
+    includeOrgs: true,
+  });
+};
+
+const getCachedTeams = unstable_cache(getTeams, undefined, {
+  revalidate: 3600,
+  tags: ["viewer.teams.list"],
+});
 
 export const ServerTeamsListing = async ({
   searchParams,
@@ -57,7 +58,9 @@ export const ServerTeamsListing = async ({
     }
   }
 
-  const teams = await getCachedTeams(userId);
+  // Bypass cache if an invitation was just accepted or a new invite was processed via token
+  // to ensure the user sees fresh data immediately
+  const teams = token ? await getTeams(userId) : await getCachedTeams(userId);
   const userProfile = session?.user?.profile;
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
 

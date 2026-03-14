@@ -18,6 +18,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { CheckIcon } from "@coss/ui/icons";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { UserTableUser } from "../types";
 
@@ -42,6 +43,7 @@ export function TeamListBulkAction({ table }: Props) {
       // Optimistically update the data from query trpc cache listMembers
       // We may need to set this data instead of invalidating. Will see how performance handles it
       utils.viewer.organizations.listMembers.invalidate();
+      revalidateTeamsList();
 
       // Clear the selected values
       setSelectedValues(new Set());
@@ -57,6 +59,7 @@ export function TeamListBulkAction({ table }: Props) {
       showToast(`${selectedUsers.length} Users removed from ${removeFromTeams.size} teams`, "success");
 
       utils.viewer.organizations.listMembers.invalidate();
+      revalidateTeamsList();
 
       // Clear the selected values
       setRemoveFromTeams(new Set());

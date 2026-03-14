@@ -36,6 +36,7 @@ import {
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 import TeamAvailabilityModal from "@calcom/web/modules/ee/teams/components/TeamAvailabilityModal";
 import { DynamicLink } from "@calcom/web/modules/users/components/UserTable/BulkActions/DynamicLink";
 import { keepPreviousData } from "@tanstack/react-query";
@@ -276,6 +277,7 @@ function MemberListContent(props: Props) {
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
+      revalidateTeamsList();
       showToast(t("success"), "success");
     },
     async onError(err) {

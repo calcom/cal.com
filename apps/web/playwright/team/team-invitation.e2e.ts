@@ -203,6 +203,57 @@ test.describe("Team", () => {
     expect(parentEventType?.children.find((et) => et.userId === invitedMember.id)).toBeTruthy();
   });
 
+  test("Teams list updates immediately after accepting invitation from /teams page", async ({
+    page,
+    users,
+  }) => {
+    const teamOwner = await users.create({ name: `team-owner-${Date.now()}` }, { hasTeam: true });
+    const { team } = await teamOwner.getFirstTeamMembership();
+    const invitedMember = await users.create({
+      name: `invited-member-${Date.now()}`,
+      email: `invited-member-${Date.now()}@example.com`,
+    });
+
+    // Team owner invites the member
+    await teamOwner.apiLogin();
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500);
+    await page.getByTestId("new-member-button").click();
+    await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
+    const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+    await page.getByTestId("invite-new-member-button").click();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
+
+    // Login as invited member and go to /teams
+    await invitedMember.apiLogin();
+    await page.goto("/teams");
+    await page.waitForLoadState("domcontentloaded");
+
+    // Verify the pending invitation is visible
+    await expect(page.getByTestId(`accept-invitation-${team.id}`).first()).toBeVisible();
+
+    // Accept the invitation
+    const acceptPromise = page.waitForResponse("/api/trpc/teams/acceptOrLeave?batch=1");
+    await page.getByTestId(`accept-invitation-${team.id}`).first().click();
+    const acceptResponse = await acceptPromise;
+    expect(acceptResponse.status()).toBe(200);
+
+    // Wait for the cache invalidation to take effect
+    await page.waitForTimeout(1000);
+
+    // Navigate to /teams again and verify the team is immediately visible (not cached as empty)
+    await page.goto("/teams");
+    await page.waitForLoadState("domcontentloaded");
+
+    // The team should now appear as an accepted team with a link to its settings
+    await expect(page.getByTestId("team-list-item-link")).toBeVisible();
+
+    // The pending invitation should no longer be visible
+    await expect(page.getByTestId(`accept-invitation-${team.id}`)).toHaveCount(0);
+  });
+
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create({ name: "Invited User" }, { hasTeam: true });

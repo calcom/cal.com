@@ -5,6 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 export type User = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
@@ -25,6 +26,7 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
+      revalidateTeamsList();
       showToast("Deleted Users", "success");
     },
     async onError(err) {

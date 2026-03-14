@@ -20,6 +20,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 import InviteLinkSettingsModal from "@calcom/web/modules/ee/teams/components/InviteLinkSettingsModal";
 
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
@@ -210,6 +211,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.listMembers.invalidate();
       await utils.viewer.eventTypes.invalidate();
+      revalidateTeamsList();
       showToast(t("member_removed"), "success");
     },
     async onError(err) {

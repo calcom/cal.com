@@ -64,6 +64,7 @@ export default function TeamListItem(props: Props) {
       revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
+      utils.viewer.insights.teamListForUser.invalidate();
       const userOrganizationId = orgId ?? undefined;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
