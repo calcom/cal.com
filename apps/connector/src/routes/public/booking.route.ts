@@ -4,14 +4,14 @@ import { confirmHandler } from '@calcom/trpc/server/routers/viewer/bookings/conf
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import { GetUserAvailabilityResult } from '@calcom/lib/getUserAvailability';
-import { bookingsQueryRequestSchema, bookingsQueryResponseSchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, cancelBookingParamsSchema, CancelBookingBody, singleBookingQueryResponseSchema } from '@/schema/booking.schema';
+import { bookingsQueryRequestSchema, bookingsQueryResponseSchema, createBookingBodySchema, bookingResponseSchema, getBookingParamsSchema, deleteBookingParamsSchema, cancelBookingBodySchema, cancelBookingParamsSchema,rescheduleBookingBodySchema, rescheduleBookingParamsSchema,  CancelBookingBody, singleBookingQueryResponseSchema } from '@/schema/booking.schema';
 import { getUserAvailability } from "@calcom/lib/getUserAvailability";
 import { responseSchemas } from "@/schema/response";
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { BookingService } from '@/services/public/booking.service';
-
+import {EventTypeService} from '@/services/public/event-type.service';
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { ResponseFormatter } from '@/utils/response';
 import prisma from "@calcom/prisma";
@@ -25,9 +25,12 @@ import {
   roundRobinManualReassignment,
 } from "@calcom/platform-libraries";
 import { CreationSource } from '@calcom/prisma/client';
+import { TeamService } from '../../services/public/team.service';
 
 export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   const bookingService = new BookingService(prisma);
+  const eventTypeService = new EventTypeService(prisma);
+  const teamService = new TeamService(prisma);
   const userService = new UserService(prisma)
   // Route with specific auth methods allowed
   fastify.get('/', {
@@ -67,6 +70,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     schema: {
       description: 'Create a new booking',
       tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       body: zodToJsonSchema(createBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(bookingResponseSchema, 'Booking created')),
@@ -75,22 +79,37 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       },
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
-
     try {
+      const userId = Number.parseInt(request.user!.id);
 
-      // const userId = Number.parseInt(request.user!.id);
-
-       const parseResult = createBookingBodySchema.safeParse(request.body);
+      const parseResult = createBookingBodySchema.safeParse(request.body);
       if (!parseResult.success) {
         return ResponseFormatter.error(reply, `Validation failed: ${parseResult.error.errors[0].message}`, 400);
       }
       const body = parseResult.data;
-      
+
+      let eventTypeId = body.eventTypeId;
+
+      if(!eventTypeId) {
+        const fullSlug = body.eventTypeSlug;
+        const parts = fullSlug.split("/").filter(Boolean);
+
+        if (parts.length === 2 && parts[0] !== "team") {
+          const eventType = await eventTypeService.getEventTypeUserIdBySlug(userId, body.eventTypeSlug!);
+          eventTypeId = eventType.id;
+        }
+
+        if (parts.length === 3 && parts[0] === "team") {
+          const eventType = await teamService.getTeamEventTypeBySlug(userId, parts[1], parts[2]);
+          eventTypeId = eventType.id;
+        }
+      }
 
       // const platformClientParams = await bookingService.getOAuthClientParamsByUserId(userId);
 
       const booking = await handleNewBooking({
       bookingData: {...body,
+        eventTypeId,
         CreationSource: "API",
         guests: body.responses.guests || [],
       } as Record<string, unknown>,
@@ -120,7 +139,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       // querystring: zodToJsonSchema(z.object({ expand: z.union([z.string(), z.array(z.string())]).optional() })),
       response: {
         200: zodToJsonSchema(responseSchemas.success(singleBookingQueryResponseSchema, 'Booking')), // refined below after parsing
-        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found or invalid credentials')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -138,7 +157,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     // Check if event type exists and belongs to user
     const bookingExists = await bookingService.bookingExists(userId, id);
     if (!bookingExists) {
-      return ResponseFormatter.notFound(reply, "Booking not found");
+      return ResponseFormatter.notFound(reply, "Booking not found or doesn't belong to the user");
     }
 
     const booking = await bookingService.getBookingById(id);
@@ -198,13 +217,13 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     const userId = Number.parseInt(request.user!.id);
     const bookingExists = await bookingService.bookingExists(userId, id);
     if (!bookingExists) {
-      return ResponseFormatter.notFound(reply, "Booking not found");
+      return ResponseFormatter.notFound(reply, "Booking not found or invalid credentials");
     }
 
     const headers = request.headers as Record<string, string | undefined>;
     const platformClientId = headers['x-cal-client-id'] || undefined;
     const platformEmbed = headers['x-cal-platform-embed'] || undefined;
-    const arePlatformEmailsEnabled = platformEmbed === '1' ? false : true;
+    const arePlatformEmailsEnabled = headers['x-cal-disable-emails'] !== '1' || true;
 
     try {
       const result = await handleCancelBooking({
@@ -238,7 +257,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
           bookingId: z.number(),
         }), 'Booking status changed')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
-        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found or invalid credentials')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -254,8 +273,9 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       const userId = Number.parseInt(request.user!.id);
       // Check if event type exists and belongs to user
       const bookingExists = await bookingService.bookingExists(userId, id);
+
       if (!bookingExists) {
-        return ResponseFormatter.notFound(reply, "Booking not found");
+        return ResponseFormatter.notFound(reply, "Booking not found or invalid credentials");
       }
 
       const parsed = bookingConfirmPatchBodySchema.omit({ bookingId: true }).safeParse(request.body);
@@ -304,7 +324,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
           bookingId: z.number(),
         }), 'Booking reassigned')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
-        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found or invalid credentials')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -317,7 +337,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     // Check if event type exists and belongs to user
     const bookingExists = await bookingService.bookingExists(userId, id);
     if (!bookingExists) {
-      return ResponseFormatter.notFound(reply, "Booking not found");
+      return ResponseFormatter.notFound(reply, "Booking not found or invalid credentials");
     }
 
     const booking = await bookingService.getBookingById(Number(id));
@@ -385,7 +405,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
           bookingId: z.number(),
         }), 'Booking reassigned')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
-        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found or invalid credentials')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -401,7 +421,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
 
     const booking = await bookingService.getBookingById(Number(id));
     if (!booking) {
-      return ResponseFormatter.error(reply, 'Booking not found', 404);
+      return ResponseFormatter.error(reply, 'Booking not found or invalid credentials', 404);
     }
 
     //TODO: IMPLEMENT OAUTH CLIENT FIRST
@@ -455,20 +475,15 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     schema: {
       description: 'Reschedule booking by id',
       tags: ['Booking'],
-      // params: zodToJsonSchema(z.object({ id: z.union([z.string(), z.number()]) })),
-      body: zodToJsonSchema(z.object({
-        start: z.string().min(1),
-        reschedulingReason: z.string().optional(),
-        rescheduledBy: z.string().email().optional(),
-        seatUid: z.string().optional(),
-      })),
+      security: [{ bearerAuth: [] }],
+      params: zodToJsonSchema(rescheduleBookingParamsSchema),
+      body: zodToJsonSchema(rescheduleBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(z.object({
-          newUserId: z.number(),
           bookingId: z.number(),
         }), 'Booking reassigned')),
         400: zodToJsonSchema(responseSchemas.badRequest()),
-        404: zodToJsonSchema(responseSchemas.notFound('Booking not found')),
+        404: zodToJsonSchema(responseSchemas.notFound('Booking not found or invalid credentials')),
         401: zodToJsonSchema(responseSchemas.unauthorized()),
       },
     },
@@ -480,7 +495,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
 
     const booking = await bookingService.getBookingById(Number(id));
     if (!booking) {
-      return ResponseFormatter.error(reply, 'Booking not found', 404);
+      return ResponseFormatter.error(reply, 'Booking not found or invalid credentials', 404);
     }
 
     const platformClientParams = booking.eventTypeId

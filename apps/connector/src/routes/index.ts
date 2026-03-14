@@ -47,16 +47,6 @@ export async function registerRoutes(fastify: FastifyInstance): Promise<void> {
           return;
         }
 
-        //Skip auth for PATCH /booking/:id/reschedule
-        if (
-          request.method === "PATCH" &&
-          request.url.startsWith(`${PATH_PREFIX}/booking/`) &&
-          (request.url.endsWith("/reschedule") || request.url.endsWith("/reschedule/"))
-        ) {
-          console.log("Skipping auth for PATCH /booking/:id/reschedule");
-          return;
-        }
-
         // Apply auth for all other routes
         return AuthGuards.authenticateFlexible()(request, reply);
       });
