@@ -174,7 +174,7 @@ export default function Login({
     [error]
   );
 
-  const [inWebView, setInWebView] = useState(false);
+  const [inWebView, setInWebView] = useState<boolean | null>(null);
 
   useEffect(() => {
     setInWebView(isWebView());
@@ -262,7 +262,8 @@ export default function Login({
                       {inWebView ? (
                         <WebViewBlocker />
                       ) : (
-                        isGoogleLoginEnabled && (
+                        isGoogleLoginEnabled &&
+                        inWebView === false && (
                           <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
                             <Button
                               color="secondary"
@@ -291,7 +292,7 @@ export default function Login({
                     </div>
 
                     {/* Divider */}
-                    {isGoogleLoginEnabled && (
+                    {isGoogleLoginEnabled && inWebView === false && (
                       <div className="fade-in-up my-2" style={{ animationDelay: "200ms" }}>
                         <div className="relative flex items-center">
                           <div className="flex-grow border-t border-gray-200" />
