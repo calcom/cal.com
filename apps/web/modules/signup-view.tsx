@@ -150,7 +150,7 @@ export default function Signup({
     let level = strengthLevels.weak;
     if (checks.length && checks.noRepeat) {
       if (score >= 4) level = strengthLevels.strong;
-      else if (checks.hasLower && checks.hasLower && checks.hasNumber) level = strengthLevels.acceptable;
+      else if (checks.hasLower && checks.hasUpper && checks.hasNumber) level = strengthLevels.acceptable;
     }
 
     if (watchedPassword.length === 0) level = strengthLevels.empty;
@@ -260,7 +260,7 @@ export default function Signup({
       });
   };
 
-  const [inWebView, setInWebView] = useState(false);
+  const [inWebView, setInWebView] = useState<boolean | null>(null);
 
   useEffect(() => {
     setInWebView(isWebView());
@@ -360,10 +360,11 @@ export default function Signup({
               {/* Social Login Buttons */}
               <div className="mb-4 space-y-2">
                 {/* Google Button or WebView Blocker */}
-                {inWebView ? (
+                {true ? (
                   <WebViewBlocker />
                 ) : (
-                  isGoogleLoginEnabled && (
+                  isGoogleLoginEnabled &&
+                  inWebView === false && (
                     <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
                       <Button
                         color="secondary"
@@ -405,7 +406,7 @@ export default function Signup({
                 )}
 
                 {/* Divider */}
-                {isGoogleLoginEnabled && (
+                {isGoogleLoginEnabled && inWebView === false && (
                   <div className="fade-in-up my-6" style={{ animationDelay: "200ms" }}>
                     <div className="relative flex items-center">
                       <div className="flex-grow border-t border-gray-200" />
