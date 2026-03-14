@@ -28,7 +28,7 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import Image from "next/image";
+import { Avatar } from "@calcom/ui/components/avatar";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -622,12 +622,11 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     </div>
                     {}
                     {!team.parentId && (
-                      <Image
-                        src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        width={16}
-                        height={16}
-                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                      <Avatar
+                        size="xs"
+                        imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                         alt={team.name || "Team logo"}
+                        className="self-start border-0 bg-transparent ltr:mr-2 rtl:ml-2 md:mt-0"
                       />
                     )}
                     <p className="w-1/2 truncate leading-normal">{team.name}</p>
@@ -813,12 +812,11 @@ const SettingsSidebarContainer = ({
                       )}
                       {}
                       {!tab.icon && tab?.avatar && (
-                        <Image
-                          width={16}
-                          height={16}
-                          className="rounded-full ltr:mr-3 rtl:ml-3"
-                          src={tab?.avatar}
-                          alt="Organization Logo"
+                        <Avatar
+                          size="xs"
+                          imageSrc={tab?.avatar}
+                          alt={tab.name || "Organization Logo"}
+                          className="border-0 bg-transparent ltr:mr-3 rtl:ml-3"
                         />
                       )}
                       <Skeleton
@@ -969,12 +967,11 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {}
                                   {!otherTeam.parentId && (
-                                    <Image
-                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      width={16}
-                                      height={16}
-                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                    <Avatar
+                                      size="xs"
+                                      imageSrc={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
                                       alt={otherTeam.name || "Team logo"}
+                                      className="self-start border-0 bg-transparent ltr:mr-2 rtl:ml-2 md:mt-0"
                                     />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
