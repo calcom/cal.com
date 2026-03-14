@@ -8,10 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { autoOpenInExternalBrowser, isOpenedInWebView, openInExternalBrowser } from "@lib/isWebView";
 
 export default function WebViewBlocker() {
-  // On iOS, auto-redirect almost never works — go straight to manual fallback.
-  // On Android, show "opening..." briefly then reveal manual fallback if browser didn't open.
   const isIOS = typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const [needsManualFallback, setNeedsManualFallback] = useState(isIOS);
+  const [needsManualFallback, setNeedsManualFallback] = useState(false);
   const [copied, setCopied] = useState(false);
   const { t } = useLocale();
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -32,11 +30,9 @@ export default function WebViewBlocker() {
 
   useEffect(() => {
     if (!isOpenedInWebView()) return;
-    if (isIOS) return; // Already showing manual fallback
 
-    const { likelySucceeded } = autoOpenInExternalBrowser();
-
-    if (!likelySucceeded) {
+    const redirected = autoOpenInExternalBrowser();
+    if (!redirected) {
       setNeedsManualFallback(true);
       return;
     }
@@ -56,14 +52,14 @@ export default function WebViewBlocker() {
 
   if (!needsManualFallback) {
     return (
-      <div className="rounded-md border border-gray-200/80 bg-white/80 px-3 py-2 text-left">
+      <div className="bg-default rounded-md border border-gray-200/80 px-3 py-2 text-left">
         <p className="text-emphasis text-sm font-semibold">Opening your browser…</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-gray-200/80 bg-white/85 p-3 text-left">
+    <div className="bg-default space-y-3 rounded-md border border-gray-200/80 p-3 text-left">
       <div className="space-y-1">
         <h2 className="text-emphasis text-sm font-semibold">Open in browser to continue</h2>
         <p className="text-default text-xs">
