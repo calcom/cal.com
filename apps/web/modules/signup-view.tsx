@@ -360,11 +360,10 @@ export default function Signup({
               {/* Social Login Buttons */}
               <div className="mb-4 space-y-2">
                 {/* Google Button or WebView Blocker */}
-                {true ? (
+                {inWebView ? (
                   <WebViewBlocker />
                 ) : (
-                  isGoogleLoginEnabled &&
-                  inWebView === false && (
+                  isGoogleLoginEnabled && (
                     <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
                       <Button
                         color="secondary"
