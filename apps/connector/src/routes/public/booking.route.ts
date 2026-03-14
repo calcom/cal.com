@@ -11,7 +11,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { BookingService } from '@/services/public/booking.service';
-
+import {EventTypeService} from '@/services/public/event-type.service';
 import { AuthGuards, AuthRequest } from '@/auth/guards';
 import { ResponseFormatter } from '@/utils/response';
 import prisma from "@calcom/prisma";
@@ -25,9 +25,12 @@ import {
   roundRobinManualReassignment,
 } from "@calcom/platform-libraries";
 import { CreationSource } from '@calcom/prisma/client';
+import { TeamService } from '../../services/public/team.service';
 
 export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
   const bookingService = new BookingService(prisma);
+  const eventTypeService = new EventTypeService(prisma);
+  const teamService = new TeamService(prisma);
   const userService = new UserService(prisma)
   // Route with specific auth methods allowed
   fastify.get('/', {
@@ -67,6 +70,7 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
     schema: {
       description: 'Create a new booking',
       tags: ['Booking'],
+      security: [{ bearerAuth: [] }],
       body: zodToJsonSchema(createBookingBodySchema),
       response: {
         200: zodToJsonSchema(responseSchemas.success(bookingResponseSchema, 'Booking created')),
@@ -75,22 +79,37 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
       },
     },
   }, async (request: AuthRequest, reply: FastifyReply) => {
-
     try {
+      const userId = Number.parseInt(request.user!.id);
 
-      // const userId = Number.parseInt(request.user!.id);
-
-       const parseResult = createBookingBodySchema.safeParse(request.body);
+      const parseResult = createBookingBodySchema.safeParse(request.body);
       if (!parseResult.success) {
         return ResponseFormatter.error(reply, `Validation failed: ${parseResult.error.errors[0].message}`, 400);
       }
       const body = parseResult.data;
-      
+
+      let eventTypeId = body.eventTypeId;
+
+      if(!eventTypeId) {
+        const fullSlug = body.eventTypeSlug;
+        const parts = fullSlug.split("/").filter(Boolean);
+
+        if (parts.length === 2 && parts[0] !== "team") {
+          const eventType = await eventTypeService.getEventTypeUserIdBySlug(userId, body.eventTypeSlug!);
+          eventTypeId = eventType.id;
+        }
+
+        if (parts.length === 3 && parts[0] === "team") {
+          const eventType = await teamService.getTeamEventTypeBySlug(userId, parts[1], parts[2]);
+          eventTypeId = eventType.id;
+        }
+      }
 
       // const platformClientParams = await bookingService.getOAuthClientParamsByUserId(userId);
 
       const booking = await handleNewBooking({
       bookingData: {...body,
+        eventTypeId,
         CreationSource: "API",
         guests: body.responses.guests || [],
       } as Record<string, unknown>,
