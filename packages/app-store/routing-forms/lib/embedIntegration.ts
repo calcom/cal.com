@@ -12,6 +12,8 @@ export type LastChangedField = {
   label: string;
   type: string;
   value: unknown;
+  optionId?: string | string[];
+  displayValue?: string | string[];
 };
 
 export type RoutingFormChangePayload = {

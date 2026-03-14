@@ -152,5 +152,6 @@ export const routingFormResponseInDbSchema = z.record(
   z.object({
     label: z.string(),
     value: z.union([z.string(), z.number(), z.array(z.string())]),
+    optionId: z.union([z.string(), z.array(z.string())]).optional(),
   })
 );

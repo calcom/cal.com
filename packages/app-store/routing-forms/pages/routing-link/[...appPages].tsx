@@ -21,6 +21,7 @@ import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import { applyFieldUpdate, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
+import { getDisplayValueForValue } from "../../lib/transformResponse";
 import {
   attachCommandListener,
   emitRoutingEvent,
@@ -56,6 +57,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const [showErrors, setShowErrors] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
+  const isEmbedAckEnabled =
+    isIntegrationEnabled(!!isEmbed) && !!form.settings?.waitForBookingAcknowledgement;
+  const bookingAckTimeoutMessage =
+    "We couldn't confirm your booking right now. Please try again.";
   useTheme(profile.theme);
   useBrandColors({
     brandColor: profile.brandColor,
@@ -76,7 +81,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     response: FormResponse;
   }>();
   const pendingSubmissionIdRef = useRef<string | null>(null);
-  const pendingRedirectUrlRef = useRef<string | null>(null);
   const pendingFallbackRef = useRef<(() => void) | null>(null);
   const pendingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
@@ -106,16 +110,23 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const handleAck = (submissionId: string, redirectUrl?: string) => {
     console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
 
+    if (!isEmbedAckEnabled) return;
     if (pendingSubmissionIdRef.current !== submissionId) return;
     clearPendingTimeout();
-    const finalUrl = redirectUrl ?? pendingRedirectUrlRef.current;
+    const finalUrl = redirectUrl;
+
+    console.log(
+      "Handle ack: ", {
+      finalUrl,
+      2: pendingFallbackRef.current,
+      }
+    )
     if (finalUrl) {
       navigateInTopWindow(finalUrl);
     } else {
-      pendingFallbackRef.current?.();
+      // pendingFallbackRef.current?.();
     }
     pendingSubmissionIdRef.current = null;
-    pendingRedirectUrlRef.current = null;
     pendingFallbackRef.current = null;
   };
 
@@ -136,7 +147,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       },
       onAck: (submissionId, redirectUrl) => handleAck(submissionId, redirectUrl),
     });
-  }, [isEmbed, form.fields]);
+  }, [isEmbed, form.fields, isEmbedAckEnabled]);
 
   const handleFieldChange = (args: {
     field: NonNullable<typeof form.fields>[number];
@@ -145,12 +156,19 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   }) => {
     if (!isIntegrationEnabled(!!isEmbed)) return;
     if (!isSelectableFieldType(args.field)) return;
+    const responseForField = args.nextResponse[args.field.id];
+    const displayValue = getDisplayValueForValue({
+      field: args.field,
+      value: args.value,
+    });
     const lastChangedField = {
       id: args.field.id,
       identifier: getFieldIdentifier(args.field),
       label: args.field.label,
       type: args.field.type,
-      value: args.value,
+      value: responseForField?.value ?? args.value,
+      optionId: responseForField?.optionId,
+      displayValue,
     };
     emitRoutingEvent("routing_form_change", {
       fields: args.nextResponse,
@@ -244,7 +262,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         }
       };
 
-      if (isIntegrationEnabled(!!isEmbed)) {
+      if (isEmbedAckEnabled) {
         const submissionId = uuidv4();
         const redirectUrl =
           decidedAction.type === "eventTypeRedirectUrl"
@@ -262,20 +280,35 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             ? `${decidedAction.value}?${allURLSearchParams}`
             : null;
         pendingSubmissionIdRef.current = submissionId;
-        pendingRedirectUrlRef.current = redirectUrl;
-        pendingFallbackRef.current = runDecidedAction;
+        pendingFallbackRef.current = () => setCustomPageMessage(bookingAckTimeoutMessage);
         clearPendingTimeout();
         pendingTimeoutRef.current = window.setTimeout(() => {
           pendingSubmissionIdRef.current = null;
-          pendingRedirectUrlRef.current = null;
           pendingFallbackRef.current = null;
-          // runDecidedAction();
+          setCustomPageMessage(bookingAckTimeoutMessage);
         }, 20000);
+
+        const responseWithDisplayValue = Object.fromEntries(
+          Object.entries(chosenRouteWithFormResponse.response).map(([fieldId, fieldResponse]) => {
+            const field = form.fields?.find((item) => item.id === fieldId);
+            if (!field || !isSelectableFieldType(field)) {
+              return [fieldId, fieldResponse];
+            }
+            const displayValue = getDisplayValueForValue({
+              field,
+              value: fieldResponse.value,
+            });
+            if (displayValue === undefined) {
+              return [fieldId, fieldResponse];
+            }
+            return [fieldId, { ...fieldResponse, displayValue }];
+          })
+        ) as FormResponse;
 
         emitRoutingEvent("form_submission", {
           submissionId,
           formId: form.id,
-          response: chosenRouteWithFormResponse.response,
+          response: responseWithDisplayValue,
           chosenRouteId: chosenRoute.id,
           redirectUrl,
           formResponseId: formResponse?.id ?? null,

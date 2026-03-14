@@ -16,7 +16,7 @@ import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
-import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
+import { getFieldResponseForJsonLogic, getOptionIdForValue } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 import CalendarFieldController from "./CalendarFieldController";
@@ -146,7 +146,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
   );
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {form.fields?.map((field) => {
         if (isRouterLinkedField(field)) {
           // @ts-expect-error FIXME @hariombalhara
@@ -171,7 +171,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (isLayout) {
           const layoutContent = field.uiConfig?.content ?? field.label;
           return (
-            <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
+            <div
+              key={field.id}
+              className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
+            >
               <div className="rounded-lg border-2 border-transparent p-3">
                 {field.type === "divider" && <hr className="border-border my-1" />}
                 {field.type === "heading" && (
@@ -191,12 +194,14 @@ export default function FormInputFields(props: FormInputFieldsProps) {
 
         const updateResponse = (value: number | string | string[]) => {
           setResponse((prev) => {
+            const optionId = getOptionIdForValue({ field, value });
             const next: FormResponse = {
               ...prev,
               [field.id]: {
                 label: field.label,
                 identifier: field?.identifier,
                 value: getFieldResponseForJsonLogic({ field, value }),
+                ...(optionId !== undefined ? { optionId } : {}),
               },
             };
             onFieldChange?.({ field, value, nextResponse: next });
@@ -375,6 +380,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 eventType={calendarEventType ?? null}
                 formContext={calendarFormContext ?? {}}
                 disabled={isDisabled}
+                fieldStyle={fieldStyle}
                 accentColor={accentColor}
                 secondaryColor={secondaryColor}
               />
@@ -387,7 +393,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const customField = renderCustomField();
         if (customField) {
           return (
-            <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
+            <div
+              key={field.id}
+              className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
+            >
               <div className="rounded-lg border-2 border-transparent p-3">
                 {!hideLabel && (
                   <label
@@ -424,7 +433,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
           "";
 
         return (
-          <div key={field.id} className={isFull ? "col-span-2" : "col-span-1"}>
+          <div
+            key={field.id}
+            className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
+          >
             <div className="rounded-lg border-2 border-transparent p-3">
               {!hideLabel && (
                 <label

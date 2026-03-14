@@ -12,7 +12,7 @@
  * Switch: @calid/features/ui/components/switch/switch — Radix, uses checked + onCheckedChange
  */
 import React, { useState } from "react";
-import { Trash2, Copy, Plus, X } from "lucide-react";
+import { Trash2, Copy, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@calid/features/ui/components/input/input";
 import { Switch } from "@calid/features/ui/components/switch/switch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -169,17 +169,56 @@ function SliderRow({
 function OptionsEditor({
   options,
   onChange,
+  testIdPrefix,
 }: {
   options: BackendOption[];
   onChange: (opts: BackendOption[]) => void;
+  testIdPrefix?: string;
 }) {
   const { t } = useLocale();
+  const [expandedOptions, setExpandedOptions] = useState<Set<number>>(new Set());
   const labels = toUIOptions(options);
 
-  const update = (i: number, newLabel: string) => {
-    onChange(options.map((opt, idx) => (idx === i ? { label: newLabel, id: newLabel } : opt)));
+  const toggleExpanded = (index: number) => {
+    setExpandedOptions((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
-  const remove = (i: number) => onChange(options.filter((_, idx) => idx !== i));
+
+  const update = (i: number, newLabel: string) => {
+    onChange(
+      options.map((opt, idx) => {
+        if (idx !== i) return opt;
+        const isLegacy = opt.id === null || opt.id === undefined;
+        const shouldSyncId = !isLegacy && opt.id === opt.label;
+        return {
+          ...opt,
+          label: newLabel,
+          id: shouldSyncId ? newLabel : opt.id,
+        };
+      })
+    );
+  };
+
+  const updateId = (i: number, newId: string) => {
+    onChange(options.map((opt, idx) => (idx === i ? { ...opt, id: newId } : opt)));
+  };
+  const remove = (i: number) => {
+    setExpandedOptions((prev) => {
+      const next = new Set<number>();
+      Array.from(prev)
+        .filter((idx) => idx !== i)
+        .forEach((idx) => next.add(idx > i ? idx - 1 : idx));
+      return next;
+    });
+    onChange(options.filter((_, idx) => idx !== i));
+  };
   const add = () => {
     const next = t("form_builder_option_number", { number: options.length + 1 });
     onChange([...options, { label: next, id: next }]);
@@ -188,19 +227,43 @@ function OptionsEditor({
   return (
     <div className="space-y-1.5">
       {labels.map((lbl, i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <Input
-            value={lbl}
-            onChange={(e) => update(i, e.target.value)}
-            className="h-8 flex-1 text-xs"
-          />
-          <button
-            type="button"
-            onClick={() => remove(i)}
-            className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded border border-default hover:bg-error/10 hover:border-error transition-colors"
-          >
-            <X className="h-3 w-3 text-error" />
-          </button>
+        <div key={i} className="space-y-1.5">
+          <div className="flex items-center gap-1.5">
+            <Input
+              value={lbl}
+              onChange={(e) => update(i, e.target.value)}
+              className="h-8 flex-1 text-xs"
+              data-testid={testIdPrefix ? `${testIdPrefix}.${i}-input` : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => toggleExpanded(i)}
+              className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded border border-default hover:bg-subtle transition-colors"
+              aria-label={t("identifier")}
+            >
+              {expandedOptions.has(i) ? (
+                <ChevronUp className="h-3 w-3 text-muted" />
+              ) : (
+                <ChevronDown className="h-3 w-3 text-muted" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded border border-default hover:bg-error/10 hover:border-error transition-colors"
+            >
+              <X className="h-3 w-3 text-error" />
+            </button>
+          </div>
+          {expandedOptions.has(i) && (
+            <Input
+              value={options[i]?.id ?? lbl}
+              onChange={(e) => updateId(i, e.target.value)}
+              className="h-8 w-full text-xs"
+              placeholder={t("identifier")}
+              data-testid={testIdPrefix ? `${testIdPrefix}.${i}-id-input` : undefined}
+            />
+          )}
         </div>
       ))}
       <button
@@ -219,12 +282,14 @@ function OptionsEditor({
 
 function FieldTab({
   field,
+  selectedIndex,
   onUpdate,
   onUpdateUIConfig,
   onDelete,
   onDuplicate,
 }: {
   field: BuilderField | null;
+  selectedIndex: number | null;
   onUpdate: (u: Partial<BuilderField>) => void;
   onUpdateUIConfig: (u: Partial<BuilderField["uiConfig"]>) => void;
   onDelete: () => void;
@@ -483,6 +548,9 @@ function FieldTab({
               <OptionsEditor
                 options={field.options ?? []}
                 onChange={(opts) => onUpdate({ options: opts })}
+                testIdPrefix={
+                  selectedIndex !== null ? `fields.${selectedIndex}.options` : undefined
+                }
               />
             </>
           )}
@@ -894,6 +962,7 @@ export function FieldSettingsPanel({
         {activeTab === "field" && (
           <FieldTab
             field={field}
+            selectedIndex={selectedIndex}
             onUpdate={onUpdate}
             onUpdateUIConfig={onUpdateUIConfig}
             onDelete={onDelete}

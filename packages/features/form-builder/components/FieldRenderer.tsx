@@ -14,16 +14,24 @@ import { SelectWithValidation, Checkbox, DatePicker } from "@calcom/ui/component
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { cn } from "@calid/features/lib/cn";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import CalendarFieldController from "@calcom/app-store/routing-forms/components/CalendarFieldController";
+import type { Field as RoutingFormField } from "@calcom/app-store/routing-forms/types/types";
 
 type FieldStyle = "default" | "underline";
 
 interface FieldRendererProps {
   field: BuilderField;
   fieldStyle?: FieldStyle;
+  accentColor?: string;
   secondaryColor?: string;
 }
 
-export function FieldRenderer({ field, fieldStyle = "default", secondaryColor }: FieldRendererProps) {
+export function FieldRenderer({
+  field,
+  fieldStyle = "default",
+  accentColor,
+  secondaryColor,
+}: FieldRendererProps) {
   const { t } = useLocale();
   const isUnderline = fieldStyle === "underline";
   const options = toUIOptions(field.options);
@@ -143,6 +151,21 @@ export function FieldRenderer({ field, fieldStyle = "default", secondaryColor }:
           variant={inputVariant}
           size={inputSize}
           style={underlineStyle}
+        />
+      );
+
+    case "calendar":
+      return (
+        <CalendarFieldController
+          field={field as unknown as RoutingFormField}
+          value=""
+          onChange={() => {}}
+          eventType={null}
+          formContext={{}}
+          disabled
+          fieldStyle={fieldStyle}
+          accentColor={accentColor}
+          secondaryColor={secondaryColor}
         />
       );
 

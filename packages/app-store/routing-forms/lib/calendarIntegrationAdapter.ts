@@ -1,6 +1,6 @@
 import type { FormResponse, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
-import { getFieldResponseForJsonLogic } from "./transformResponse";
+import { getFieldResponseForJsonLogic, getOptionIdForValue } from "./transformResponse";
 
 export type EventTypeContext = {
   username?: string | null;
@@ -17,12 +17,14 @@ export const applyFieldUpdate = (
   if (!fields) return prev;
   const match = fields.find((field) => getFieldIdentifier(field) === fieldIdentifier);
   if (!match) return prev;
+  const optionId = getOptionIdForValue({ field: match, value });
   return {
     ...prev,
     [match.id]: {
       label: match.label,
       identifier: match.identifier,
       value: getFieldResponseForJsonLogic({ field: match, value }),
+      ...(optionId !== undefined ? { optionId } : {}),
     },
   };
 };

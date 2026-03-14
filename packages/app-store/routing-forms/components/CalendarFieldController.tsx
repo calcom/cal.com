@@ -3,15 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { Spinner } from "@calcom/ui/components/icon";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
 
-import type { Field } from "../types/types";
 import {
   parseEventTypeInput,
   validateEventOwnership,
   type EventTypeContext,
 } from "../lib/calendarIntegrationAdapter";
+import type { Field } from "../types/types";
 import ExtendedDatePicker from "./calendar/ExtendedDatePicker";
 import TimePicker from "./calendar/TimePicker";
 
@@ -22,6 +21,7 @@ type CalendarFieldControllerProps = {
   eventType: string | null;
   formContext: EventTypeContext;
   disabled?: boolean;
+  fieldStyle?: "default" | "underline";
   accentColor?: string;
   secondaryColor?: string;
 };
@@ -33,6 +33,7 @@ export default function CalendarFieldController({
   eventType,
   formContext,
   disabled,
+  fieldStyle,
   accentColor,
   secondaryColor,
 }: CalendarFieldControllerProps) {
@@ -71,11 +72,13 @@ export default function CalendarFieldController({
   const availableDates = Object.keys(slotsByDate).sort();
   const availableTimes = selectedDate ? (slotsByDate[selectedDate] ?? []).map((slot) => slot.time) : [];
 
-  const isLoading =
-    !!eventType && ownershipValid && (schedule?.isPending || schedule?.isLoading);
+  const isLoading = !!eventType && ownershipValid && (schedule?.isPending || schedule?.isLoading);
   const hasError = !!eventType && ownershipValid && schedule?.isError;
-  const isDisabled =
-    disabled || !ownershipValid || hasError || !eventType || availableDates.length === 0;
+  const isDisabled = disabled || !ownershipValid || hasError || !eventType || availableDates.length === 0;
+
+  const isUnderline = fieldStyle === "underline";
+  const inputVariant = isUnderline ? "underline" : "default";
+  const underlineColor = secondaryColor ?? "var(--cal-secondary)";
 
   const emitValue = (next: string) => {
     if (lastEmittedValueRef.current === next) return;
@@ -124,53 +127,45 @@ export default function CalendarFieldController({
 
   if (!ownershipValid && eventType) {
     return (
-      <div className="rounded-md border border-default p-3 text-xs text-muted">
+      <div className="border-default text-muted rounded-md border p-3 text-xs">
         Calendar disabled: event type is not owned by this routing form owner.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {isLoading ? (
-        <div className="col-span-1 flex h-10 items-center justify-center sm:col-span-2">
-          <Spinner className="h-4 w-4" />
-        </div>
-      ) : (
-        <>
-          <div className="w-full">
-            <ExtendedDatePicker
-              selectedDate={selectedDate}
-              onChange={(nextDate) => {
-                if (nextDate !== selectedDate) setSelectedDate(nextDate);
-                if (selectedTime) setSelectedTime(null);
-                emitValue("");
-              }}
-              availableDates={availableDates}
-              disabled={isDisabled}
-              accentColor={accentColor}
-              placeholder={field.placeholder || "Pick a date"}
-            />
-          </div>
-          <div className="w-full">
-            <TimePicker
-              selectedTime={selectedTime}
-              timeslots={availableTimes}
-              onChange={(time) => {
-                if (time !== selectedTime) setSelectedTime(time);
-                emitValue(time);
-              }}
-              disabled={isDisabled || !selectedDate}
-              placeholder="Pick a time"
-            />
-          </div>
-        </>
-      )}
-      {!isLoading && isDisabled && (
-        <div className="col-span-1 text-[10px] text-muted sm:col-span-2" style={{ color: secondaryColor }}>
-          Availability unavailable.
-        </div>
-      )}
+    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
+      <div className="w-full">
+        <ExtendedDatePicker
+          selectedDate={selectedDate}
+          onChange={(nextDate) => {
+            if (nextDate !== selectedDate) setSelectedDate(nextDate);
+            if (selectedTime) setSelectedTime(null);
+            emitValue("");
+          }}
+          availableDates={availableDates}
+          disabled={isDisabled || isLoading}
+          loading={isLoading}
+          accentColor={accentColor}
+          variant={inputVariant}
+          underlineColor={underlineColor}
+          placeholder={field.placeholder || "Pick a date"}
+        />
+      </div>
+      <div className="w-full">
+        <TimePicker
+          selectedTime={selectedTime}
+          timeslots={availableTimes}
+          onChange={(time) => {
+            if (time !== selectedTime) setSelectedTime(time);
+            emitValue(time);
+          }}
+          disabled={isDisabled || isLoading || !selectedDate}
+          variant={inputVariant}
+          underlineColor={underlineColor}
+          placeholder="Pick a time"
+        />
+      </div>
     </div>
   );
 }

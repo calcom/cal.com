@@ -315,10 +315,9 @@ export function resolveFormFontStyle(label: string): FormFontStyle {
 
 export function labelToIdentifier(label: string): string {
   return label
-    .toLowerCase()
     .trim()
     .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "");
+    .replace(/[^a-zA-Z0-9_]/g, "");
 }
 
 export function toBackendOptions(labels: string[]): BackendOption[] {

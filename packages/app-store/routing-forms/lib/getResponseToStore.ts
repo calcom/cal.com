@@ -1,7 +1,10 @@
 import type { z } from "zod";
 
 import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
-import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
+import {
+  getFieldResponseForJsonLogic,
+  getOptionIdForValue,
+} from "@calcom/app-store/routing-forms/lib/transformResponse";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 
 import type { zodFields } from "../zod";
@@ -16,10 +19,12 @@ export const getResponseToStore = ({
   const response: FormResponse = {};
   formFields.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
+    const optionId = getOptionIdForValue({ field, value: fieldResponse });
 
     response[field.id] = {
       label: field.label,
       value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
+      ...(optionId !== undefined ? { optionId } : {}),
     };
   });
   return response;

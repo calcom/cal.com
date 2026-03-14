@@ -552,6 +552,8 @@ export const RoutingFormSettings = z
   .object({
     // Applicable only for User Forms
     emailOwnerOnSubmission: z.boolean(),
+    // Embed-only: wait for booking acknowledgement before redirect
+    waitForBookingAcknowledgement: z.boolean().optional(),
 
     // Applicable only for Team Forms
     sendUpdatesTo: z.array(z.number()).optional(),

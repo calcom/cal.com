@@ -156,6 +156,27 @@ const FormSettings = ({
                 );
               }}
             />
+
+            <Controller
+              name="settings.waitForBookingAcknowledgement"
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <div className="mt-4 flex items-center gap-2">
+                    <Checkbox
+                      checked={!!value}
+                      onCheckedChange={(val) => onChange(!!val)}
+                      id="waitForBookingAcknowledgement"
+                    />
+                    <label
+                      htmlFor="waitForBookingAcknowledgement"
+                      className="text-default text-sm font-medium leading-none">
+                      Wait for booking acknowledgement before redirect (embed only)
+                    </label>
+                  </div>
+                );
+              }}
+            />
           </div>
 
           <div className="bg-default border-subtle w-full gap-3 rounded-md border p-6">

@@ -52,6 +52,84 @@ function transformSelectValue({
   return idOrLabel;
 }
 
+function resolveOptionLabel({
+  field,
+  idOrLabel,
+}: {
+  field: Pick<Field, "options" | "type">;
+  idOrLabel: string;
+}) {
+  const options = field.options ?? [];
+  const foundOptionById = options.find((option) => option.id === idOrLabel);
+  if (foundOptionById) {
+    return foundOptionById.label;
+  }
+  const foundOptionByLabel = options.find((option) => option.label === idOrLabel);
+  return foundOptionByLabel?.label ?? idOrLabel;
+}
+
+export function getDisplayValueForValue({
+  field,
+  value,
+}: {
+  field: Pick<Field, "options" | "type">;
+  value: FormResponse[string]["value"] | undefined;
+}): string | string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (field.type !== "select" && field.type !== "multiselect") {
+    return undefined;
+  }
+  const valueArray =
+    value instanceof Array ? value : value.toString().split(",").filter(Boolean);
+  if (valueArray.length === 0) {
+    return undefined;
+  }
+  const resolved = valueArray.map((idOrLabel) =>
+    resolveOptionLabel({ field, idOrLabel: String(idOrLabel).trim() })
+  );
+  return field.type === "select" ? resolved[0] : resolved;
+}
+
+function resolveOptionId({
+  field,
+  idOrLabel,
+}: {
+  field: Pick<Field, "options" | "type">;
+  idOrLabel: string;
+}) {
+  const options = field.options ?? [];
+  const foundOptionById = options.find((option) => option.id === idOrLabel);
+  if (foundOptionById?.id) {
+    return foundOptionById.id;
+  }
+  const foundOptionByLabel = options.find((option) => option.label === idOrLabel);
+  return foundOptionByLabel?.id ?? idOrLabel;
+}
+
+export function getOptionIdForValue({
+  field,
+  value,
+}: {
+  field: Pick<Field, "options" | "type">;
+  value: FormResponse[string]["value"] | undefined;
+}): string | string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (field.type !== "select" && field.type !== "multiselect") {
+    return undefined;
+  }
+  const valueArray =
+    value instanceof Array ? value : value.toString().split(",").filter(Boolean);
+  if (valueArray.length === 0) {
+    return undefined;
+  }
+  const resolved = valueArray.map((idOrLabel) => resolveOptionId({ field, idOrLabel: String(idOrLabel).trim() }));
+  return field.type === "select" ? resolved[0] : resolved;
+}
+
 export function getFieldResponseForJsonLogic({
   field,
   value,

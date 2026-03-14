@@ -36,11 +36,13 @@ function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
 
 export function getFieldResponse({
   field,
-  fieldResponseValue,
+  fieldResponse,
 }: {
-  fieldResponseValue: FormResponse[keyof FormResponse]["value"];
+  fieldResponse: FormResponse[keyof FormResponse];
   field: Pick<SerializableField, "type" | "options">;
 }) {
+  const fieldResponseValue = fieldResponse.value;
+  const fieldOptionId = fieldResponse.optionId;
   if (!isOptionsField(field)) {
     return {
       value: fieldResponseValue,
@@ -55,7 +57,14 @@ export function getFieldResponse({
     };
   }
 
-  const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+  const valueArray =
+    fieldOptionId instanceof Array
+      ? fieldOptionId
+      : fieldOptionId !== undefined
+      ? [fieldOptionId]
+      : fieldResponseValue instanceof Array
+      ? fieldResponseValue
+      : [fieldResponseValue];
 
   const chosenOptions = valueArray.map((idOrLabel) => {
     const foundOptionById = field.options?.find((option) => {
@@ -110,7 +119,7 @@ export async function _onFormSubmission(
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
     fieldResponsesByIdentifier[key] = getFieldResponse({
-      fieldResponseValue: fieldResponse.value,
+      fieldResponse,
       field,
     });
   }

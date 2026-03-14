@@ -88,6 +88,7 @@ interface FieldCardProps {
   total: number;
   isSelected: boolean;
   fieldStyle: "default" | "underline";
+  accentColor?: string;
   secondaryColor?: string;
   onSelect: () => void;
   onDelete: () => void;
@@ -104,6 +105,7 @@ function FieldCard({
   total,
   isSelected,
   fieldStyle,
+  accentColor,
   secondaryColor,
   onSelect,
   onDelete,
@@ -256,6 +258,7 @@ function FieldCard({
       <FieldRenderer
         field={field}
         fieldStyle={fieldStyle}
+        accentColor={accentColor}
         secondaryColor={secondaryColor}
       />
 
@@ -511,7 +514,7 @@ export function FormCanvas({
               <div className="space-y-0">
                 {/* Top insert zone */}
                 <InsertZone
-                  className="col-span-2"
+                  className="col-span-1 sm:col-span-2"
                   onDrop={(type, fromIdx) =>
                     handleInsertZoneDrop(type, fromIdx, 0)
                   }
@@ -532,7 +535,7 @@ export function FormCanvas({
                 */}
                 <div
                   ref={gridRef}
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-1 gap-3 sm:grid-cols-2"
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -541,9 +544,9 @@ export function FormCanvas({
                 >
                   {(() => {
                     const items: React.ReactNode[] = [];
-                    const placeholder =
+                      const placeholder =
                       draggingIndex !== null ? (
-                        <div className="col-span-2 h-10 rounded-lg border-2 border-dashed border-brand bg-brand/10" />
+                        <div className="col-span-1 sm:col-span-2 h-10 rounded-lg border-2 border-dashed border-brand bg-brand/10" />
                       ) : null;
 
                     fields.forEach((field, index) => {
@@ -563,7 +566,9 @@ export function FormCanvas({
                         <div
                           key={field.id}
                           data-field-index={index}
-                          className={`${isFull ? "col-span-2" : "col-span-1"} flex flex-col`}
+                          className={`${
+                            isFull ? "col-span-1 sm:col-span-2" : "col-span-1"
+                          } flex flex-col`}
                           onDragOver={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -581,6 +586,7 @@ export function FormCanvas({
                             total={fields.length}
                             isSelected={selectedFieldIndex === index}
                             fieldStyle={fieldStyle}
+                            accentColor={formConfig.style.accentColor}
                             secondaryColor={formConfig.style.secondaryColor}
                             onSelect={() => onSelectField(index)}
                             onDelete={() => onDelete(index)}
