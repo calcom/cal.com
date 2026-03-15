@@ -283,11 +283,17 @@ class ProtonCalendarService implements Calendar {
           console.error("Won't handle SECONDLY recurrence in Proton Calendar");
           return;
         }
+        // Calculate dynamic iteration cap based on the actual query window so
+        // long windows (e.g. 6-month availability scans) are never truncated,
+        // while a fixed 365-occurrence guard still protects non-HOURLY/MINUTELY
+        // recurrences (DAILY/WEEKLY/MONTHLY/YEARLY are bounded by day count).
         let maxIterations = 365;
         if (event.getRecurrenceTypes() === "HOURLY") {
-          maxIterations = 8760; // up to 1 year of hourly occurrences
+          // Hours in the window + 48 h buffer for DST shifts and seeding lookback.
+          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(dateFrom), "hours") + 48);
         } else if (event.getRecurrenceTypes() === "MINUTELY") {
-          maxIterations = 10080; // up to 1 week of minutely occurrences
+          // Minutes in the window + 120 min buffer.
+          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(dateFrom), "minutes") + 120);
         }
 
         const start = dayjs(dateFrom);

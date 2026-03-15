@@ -14,6 +14,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
+import { getUserId, getUserTimezoneFromDB } from "../../_utils/calendars/icsCalendarUtils";
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
@@ -104,37 +105,7 @@ class ICSFeedCalendarService implements Calendar {
       .filter((x) => x !== null) as { url: string; vcalendar: ICAL.Component }[];
   };
 
-  /**
-   * getUserTimezoneFromDB() retrieves the timezone of a user from the database.
-   *
-   * @param {number} id - The user's unique identifier.
-   * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
-   */
-  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        timeZone: true,
-      },
-    });
-    return user?.timeZone;
-  };
 
-  /**
-   * getUserId() extracts the user ID from the first calendar in an array of IntegrationCalendars.
-   *
-   * @param {IntegrationCalendar[]} selectedCalendars - An array of IntegrationCalendars.
-   * @returns {number | null} - The user ID associated with the first calendar in the array, or null if the array is empty or the user ID is not found.
-   */
-  getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
-    if (selectedCalendars.length === 0) {
-      return null;
-    }
-    return selectedCalendars[0].userId || null;
-  };
 
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
@@ -142,9 +113,9 @@ class ICSFeedCalendarService implements Calendar {
 
     const calendars = await this.fetchCalendars();
 
-    const userId = this.getUserId(selectedCalendars);
+    const userId = getUserId(selectedCalendars);
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
-    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
+    const userTimeZone = userId ? await getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
     calendars.forEach(({ vcalendar }) => {
