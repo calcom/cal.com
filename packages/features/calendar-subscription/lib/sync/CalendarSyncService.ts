@@ -119,6 +119,7 @@ export class CalendarSyncService {
       await handleCancelBooking({
         userId: booking.userId,
         actionSource: "SYSTEM",
+        impersonatedByUserUuid: null,
         bookingData: {
           uid: booking.uid,
           cancellationReason: "Cancelled on user's calendar",
@@ -210,6 +211,7 @@ export class CalendarSyncService {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          impersonatedByUserUuid: null,
         },
       });
       log.info("Successfully rescheduled booking from calendar sync", { bookingUid });

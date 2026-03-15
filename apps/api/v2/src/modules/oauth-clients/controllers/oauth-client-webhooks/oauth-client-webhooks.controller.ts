@@ -36,6 +36,7 @@ import { OAuthClientGuard } from "../../guards/oauth-client-guard";
   description: "OAuth client secret key",
   required: true,
 })
+@ApiParam({ name: "clientId", type: String, required: true })
 export class OAuthClientWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

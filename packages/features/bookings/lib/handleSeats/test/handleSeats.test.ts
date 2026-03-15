@@ -1976,6 +1976,7 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
           actionSource: "WEBAPP",
         });
 
@@ -2116,6 +2117,7 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
           actionSource: "WEBAPP",
         });
 
@@ -2969,6 +2971,7 @@ describe("handleSeats", () => {
             cancellationReason: "test cancellation reason",
           },
           userId: organizer.id,
+          impersonatedByUserUuid: null,
           actionSource: "WEBAPP",
         });
 

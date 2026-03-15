@@ -1,12 +1,10 @@
-import { useCallback, useState } from "react";
-
-import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
-import { getLocationFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
+import { type EventLocationType, getLocationFromApp } from "@calcom/app-store/locations";
 import type { AppCardApp } from "@calcom/app-store/types";
-import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
-import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
-import { AppSetDefaultLinkDialog } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -15,9 +13,10 @@ import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/compo
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
-import { type RouterOutputs } from "@calcom/trpc/react";
+import type { DefaultConferencingApp } from "@calcom/prisma/zod-utils";
 import type { App } from "@calcom/types/App";
 import { Alert } from "@calcom/ui/components/alert";
+import type { AppListCardProps } from "@calcom/ui/components/app-list-card";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
@@ -28,17 +27,19 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { List } from "@calcom/ui/components/list";
 import { showToast } from "@calcom/ui/components/toast";
+import type { ComponentType, ReactNode } from "react";
+import { useCallback, useState } from "react";
 
 export type HandleDisconnect = (credentialId: number, app: App["slug"], teamId?: number) => void;
 
 interface AppListProps {
   variant?: AppCategories;
-  data: RouterOutputs["viewer"]["apps"]["integrations"];
+  data: ConnectedApps;
   handleDisconnect: HandleDisconnect;
   listClassName?: string;
   appCardClassName?: string;
   appCardMenuClassName?: string;
-  defaultConferencingApp: RouterOutputs["viewer"]["apps"]["getUsersDefaultConferencingApp"];
+  defaultConferencingApp: DefaultConferencingApp | undefined;
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
   handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
@@ -46,6 +47,7 @@ interface AppListProps {
   isEventTypesFetching?: boolean;
   handleConnectDisconnectIntegrationMenuToggle: () => void;
   handleBulkEditDialogToggle: () => void;
+  AppListCardComponent: ComponentType<AppListCardProps & { children?: ReactNode }>;
 }
 
 export const AppList = ({
@@ -63,6 +65,7 @@ export const AppList = ({
   isEventTypesFetching,
   handleConnectDisconnectIntegrationMenuToggle,
   handleBulkEditDialogToggle,
+  AppListCardComponent,
 }: AppListProps) => {
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
@@ -79,7 +82,7 @@ export const AppList = ({
       appSlug === defaultConferencingApp?.appSlug ||
       (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
     return (
-      <AppListCard
+      <AppListCardComponent
         key={item.name}
         description={item.description}
         title={item.name}
@@ -141,7 +144,7 @@ export const AppList = ({
           ) : null
         }>
         <AppSettings slug={item.slug} />
-      </AppListCard>
+      </AppListCardComponent>
     );
   };
 
