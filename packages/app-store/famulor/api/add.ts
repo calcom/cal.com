@@ -11,7 +11,7 @@ const handler: AppDeclarativeHandler = {
   handlerType: "add",
   redirect: {
     newTab: true,
-    url: "https://docs.famulor.io/ai-assistants/cal-com-scheduling",
+    url: "https://docs.famulor.io/en/ai-assistants/cal-com-scheduling",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
