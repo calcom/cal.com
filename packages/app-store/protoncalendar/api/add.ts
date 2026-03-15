@@ -65,30 +65,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: "Server configuration error" });
   }
 
-  const user = await prisma.user.findFirstOrThrow({
-    where: {
-      id: req.session?.user?.id,
-    },
-    select: {
-      id: true,
-      email: true,
-    },
-  });
-
-  const data = {
-    type: appConfig.type,
-    key: symmetricEncrypt(
-      JSON.stringify({ url: trimmedUrl }),
-      encryptionKey
-    ),
-    userId: user.id,
-    teamId: null,
-    appId: appConfig.slug,
-    invalid: false,
-    delegationCredentialId: null,
-  };
-
   try {
+    const user = await prisma.user.findFirstOrThrow({
+      where: {
+        id: req.session?.user?.id,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    const data = {
+      type: appConfig.type,
+      key: symmetricEncrypt(
+        JSON.stringify({ url: trimmedUrl }),
+        encryptionKey
+      ),
+      userId: user.id,
+      teamId: null,
+      appId: appConfig.slug,
+      invalid: false,
+      delegationCredentialId: null,
+    };
+
     const calendarService = BuildCalendarService({
       id: 0,
       ...data,
