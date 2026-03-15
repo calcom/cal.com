@@ -85,7 +85,7 @@ export default function TeamList(props: Props) {
                         : t("consider_consolidating_multi_team_org")
                     }
                     actionButton={{
-                      href: `/settings/organizations/new`,
+                      href: `/onboarding/organization/details?migrate=true`,
                       child: t("set_up_your_organization"),
                       "data-testid": "setup_your_org_action_button",
                     }}

@@ -3096,6 +3096,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3508,6 +3524,22 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3598,7 +3630,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -3655,6 +3687,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3694,6 +3734,14 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3725,13 +3773,11 @@
             }
           },
           {
-            "name": "app",
+            "name": "orgId",
             "required": true,
             "in": "path",
-            "description": "Conferencing application type",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -3771,6 +3817,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3983,6 +4037,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4047,6 +4109,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4104,6 +4174,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4181,6 +4259,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4240,6 +4326,14 @@
           },
           {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4411,6 +4505,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -4478,6 +4580,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4555,6 +4665,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4624,6 +4742,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -6326,6 +6452,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6478,7 +6612,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -6525,6 +6659,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6565,6 +6707,14 @@
           },
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6795,6 +6945,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6948,6 +7106,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -7022,6 +7188,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7079,6 +7253,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7156,6 +7338,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7208,6 +7398,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7270,6 +7468,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7342,6 +7548,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7515,6 +7729,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8032,11 +8254,26 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8079,6 +8316,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8093,7 +8338,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8146,6 +8398,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8160,7 +8420,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8203,11 +8470,34 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOooOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8313,7 +8603,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOoosOutputResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": ["Orgs / Users / OOO"]
@@ -8353,6 +8650,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8422,6 +8727,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8486,6 +8799,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8543,6 +8864,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8615,6 +8944,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8821,6 +9158,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8875,6 +9220,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8928,6 +9281,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -10232,6 +10593,166 @@
           }
         },
         "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/attendees": {
+      "get": {
+        "operationId": "BookingAttendeesController_2024_08_13_getBookingAttendees",
+        "summary": "Get all attendees for a booking",
+        "description": "Retrieve all attendees for a specific booking by its UID.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingAttendeesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      },
+      "post": {
+        "operationId": "BookingAttendeesController_2024_08_13_addAttendee",
+        "summary": "Add an attendee to a booking",
+        "description": "Add a new attendee to an existing booking by its UID.\n\n      **Side effects:**\n      - The booking's attendee list is updated in the database\n      - The calendar event is updated on connected calendars (Google Calendar, Outlook, etc.) to include the new attendee\n      - An email notification is sent to the new attendee with the booking details\n\n      **Permissions:**\n      - The authenticated user must be either the booking organizer, an existing attendee, or have the `booking.update` permission for the team\n\n      <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddAttendeeInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddAttendeeOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/attendees/{attendeeId}": {
+      "get": {
+        "operationId": "BookingAttendeesController_2024_08_13_getBookingAttendee",
+        "summary": "Get a specific attendee for a booking",
+        "description": "Retrieve a specific attendee by their ID for a booking identified by its UID.\n        \n      <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. This header is required as this endpoint does not exist in older API versions.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingAttendeeOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings / Attendees"]
       }
     },
     "/v2/bookings/{bookingUid}/guests": {
@@ -11621,6 +12142,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -11668,6 +12197,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11700,6 +12237,14 @@
           },
           {
             "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12437,6 +12982,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -12483,6 +13036,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -12518,6 +13079,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -12910,6 +13479,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13015,6 +13592,14 @@
           },
           {
             "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13195,6 +13780,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13235,6 +13836,22 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13285,6 +13902,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13333,6 +13958,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13407,6 +14040,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13470,6 +14111,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13516,6 +14165,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13561,6 +14218,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15219,6 +15884,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -15262,6 +15935,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15338,6 +16019,14 @@
               "example": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15369,6 +16058,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15411,6 +16108,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15458,6 +16171,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15493,6 +16222,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15893,6 +16638,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -15933,6 +16686,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -24232,17 +24993,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "teamId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -24254,7 +25038,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "teamId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "teamId", "id", "subscriberUrl", "active"]
       },
       "TeamWebhooksOutputResponseDto": {
         "type": "object",
@@ -24288,7 +25072,7 @@
             "type": "string"
           },
           "triggers": {
-            "type": "string",
+            "type": "array",
             "example": [
               "BOOKING_CREATED",
               "BOOKING_RESCHEDULED",
@@ -24299,28 +25083,32 @@
               "BOOKING_NO_SHOW",
               "BOOKING_REOPENED"
             ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED",
-              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR",
-              "WRONG_ASSIGNMENT_REPORT"
-            ]
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
           },
           "secret": {
             "type": "string"
@@ -24363,7 +25151,7 @@
             "type": "string"
           },
           "triggers": {
-            "type": "string",
+            "type": "array",
             "example": [
               "BOOKING_CREATED",
               "BOOKING_RESCHEDULED",
@@ -24374,28 +25162,32 @@
               "BOOKING_NO_SHOW",
               "BOOKING_REOPENED"
             ],
-            "enum": [
-              "BOOKING_CREATED",
-              "BOOKING_PAYMENT_INITIATED",
-              "BOOKING_PAID",
-              "BOOKING_RESCHEDULED",
-              "BOOKING_REQUESTED",
-              "BOOKING_CANCELLED",
-              "BOOKING_REJECTED",
-              "BOOKING_NO_SHOW_UPDATED",
-              "FORM_SUBMITTED",
-              "MEETING_ENDED",
-              "MEETING_STARTED",
-              "RECORDING_READY",
-              "INSTANT_MEETING",
-              "RECORDING_TRANSCRIPTION_GENERATED",
-              "OOO_CREATED",
-              "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
-              "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
-              "FORM_SUBMITTED_NO_EVENT",
-              "DELEGATION_CREDENTIAL_ERROR",
-              "WRONG_ASSIGNMENT_REPORT"
-            ]
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
           },
           "secret": {
             "type": "string"
@@ -24407,6 +25199,72 @@
             "enum": ["2021-10-20"]
           }
         }
+      },
+      "UserOooOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "The ID of the user.",
+            "example": 2
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "id": {
+            "type": "number",
+            "description": "The ID of the ooo entry.",
+            "example": 2
+          },
+          "uuid": {
+            "type": "string",
+            "description": "The UUID of the ooo entry.",
+            "example": 2
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "reason": {
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"],
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation"
+          }
+        },
+        "required": ["userId", "id", "uuid", "start", "end"]
+      },
+      "UserOoosOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserOooOutputDto"
+            }
+          }
+        },
+        "required": ["status", "data"]
       },
       "CreateOutOfOfficeEntryDto": {
         "type": "object",
@@ -24441,6 +25299,20 @@
           }
         },
         "required": ["start", "end"]
+      },
+      "UserOooOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserOooOutputDto"
+          }
+        },
+        "required": ["status", "data"]
       },
       "UpdateOutOfOfficeEntryDto": {
         "type": "object",
@@ -28672,7 +29544,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
           }
         },
         "required": ["status", "data"]
@@ -29303,11 +30178,6 @@
             "description": "The name of the attendee.",
             "example": "John Doe"
           },
-          "email": {
-            "type": "string",
-            "description": "The email of the attendee.",
-            "example": "john.doe@example.com"
-          },
           "timeZone": {
             "type": "string",
             "description": "The time zone of the attendee.",
@@ -29368,6 +30238,11 @@
             "description": "The preferred language of the attendee. Used for booking confirmation.",
             "example": "it",
             "default": "en"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
           }
         },
         "required": ["name", "timeZone"]
@@ -31491,6 +32366,300 @@
         },
         "required": ["status", "data"]
       },
+      "BookingAttendeeWithId_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "id": {
+            "type": "number",
+            "example": 251
+          }
+        },
+        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id"]
+      },
+      "GetBookingAttendeesOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetBookingAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingAttendeeWithId_2024_08_13"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "AddAttendeeInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the attendee.",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The time zone of the attendee.",
+            "example": "America/New_York"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "description": "The preferred language of the attendee. Used for booking confirmation.",
+            "example": "it",
+            "default": "en"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the attendee.",
+            "example": "john.doe@example.com"
+          }
+        },
+        "required": ["name", "timeZone", "email"]
+      },
+      "BookingAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "displayEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Clean email for display purposes"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "id": {
+            "type": "number",
+            "example": 251
+          },
+          "bookingId": {
+            "type": "number",
+            "example": 313
+          }
+        },
+        "required": ["name", "email", "displayEmail", "timeZone", "absent", "id", "bookingId"]
+      },
+      "AddAttendeeOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingAttendeeOutput_2024_08_13"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "Guest": {
         "type": "object",
         "properties": {
@@ -31905,17 +33074,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "userId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -31927,7 +33119,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "userId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "userId", "id", "subscriberUrl", "active"]
       },
       "UserWebhookOutputResponseDto": {
         "type": "object",
@@ -31968,17 +33160,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "eventTypeId": {
             "type": "number"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -31990,7 +33205,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "eventTypeId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "eventTypeId", "id", "subscriberUrl", "active"]
       },
       "EventTypeWebhookOutputResponseDto": {
         "type": "object",
@@ -32045,17 +33260,40 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "BOOKING_CREATED",
+                "BOOKING_PAYMENT_INITIATED",
+                "BOOKING_PAID",
+                "BOOKING_RESCHEDULED",
+                "BOOKING_REQUESTED",
+                "BOOKING_CANCELLED",
+                "BOOKING_REJECTED",
+                "BOOKING_NO_SHOW_UPDATED",
+                "FORM_SUBMITTED",
+                "MEETING_ENDED",
+                "MEETING_STARTED",
+                "RECORDING_READY",
+                "INSTANT_MEETING",
+                "RECORDING_TRANSCRIPTION_GENERATED",
+                "OOO_CREATED",
+                "AFTER_HOSTS_CAL_VIDEO_NO_SHOW",
+                "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
+                "FORM_SUBMITTED_NO_EVENT",
+                "ROUTING_FORM_FALLBACK_HIT",
+                "DELEGATION_CREDENTIAL_ERROR",
+                "WRONG_ASSIGNMENT_REPORT"
+              ]
+            }
+          },
           "oAuthClientId": {
             "type": "string"
           },
           "id": {
             "type": "number"
-          },
-          "triggers": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           },
           "subscriberUrl": {
             "type": "string"
@@ -32067,7 +33305,7 @@
             "type": "string"
           }
         },
-        "required": ["payloadTemplate", "oAuthClientId", "id", "triggers", "subscriberUrl", "active"]
+        "required": ["payloadTemplate", "triggers", "oAuthClientId", "id", "subscriberUrl", "active"]
       },
       "OAuthClientWebhookOutputResponseDto": {
         "type": "object",
@@ -32628,129 +33866,27 @@
         },
         "required": ["email", "code"]
       },
-      "WorkingHours": {
-        "type": "object",
-        "properties": {
-          "days": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "startTime": {
-            "type": "number"
-          },
-          "endTime": {
-            "type": "number"
-          },
-          "userId": {
-            "type": "number",
-            "nullable": true
-          }
-        },
-        "required": ["days", "startTime", "endTime"]
-      },
-      "AvailabilityModel": {
+      "UserVerifiedEmailOutputData": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "number"
-          },
-          "userId": {
             "type": "number",
-            "nullable": true
+            "description": "The unique identifier for the verified email.",
+            "example": 789
           },
-          "eventTypeId": {
-            "type": "number",
-            "nullable": true
-          },
-          "days": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "startTime": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "endTime": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "date": {
-            "format": "date-time",
+          "email": {
             "type": "string",
-            "nullable": true
+            "description": "The verified email address.",
+            "example": "user@example.com",
+            "format": "email"
           },
-          "scheduleId": {
+          "userId": {
             "type": "number",
-            "nullable": true
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
           }
         },
-        "required": ["id", "days", "startTime", "endTime"]
-      },
-      "ScheduleOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isManaged": {
-            "type": "boolean"
-          },
-          "workingHours": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkingHours"
-            }
-          },
-          "schedule": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AvailabilityModel"
-            }
-          },
-          "availability": {
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "dateOverrides": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "isLastSchedule": {
-            "type": "boolean"
-          },
-          "readOnly": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "isManaged",
-          "workingHours",
-          "schedule",
-          "availability",
-          "timeZone",
-          "isDefault",
-          "isLastSchedule",
-          "readOnly"
-        ]
+        "required": ["id", "email", "userId"]
       },
       "UserVerifiedEmailOutput": {
         "type": "object",
@@ -32761,7 +33897,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
           }
         },
         "required": ["status", "data"]
@@ -32782,6 +33918,28 @@
         },
         "required": ["phone", "code"]
       },
+      "UserVerifiedPhoneOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The verified phone number.",
+            "example": "+37255556666",
+            "format": "phone"
+          },
+          "userId": {
+            "type": "number",
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          }
+        },
+        "required": ["id", "phoneNumber", "userId"]
+      },
       "UserVerifiedPhoneOutput": {
         "type": "object",
         "properties": {
@@ -32791,7 +33949,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
           }
         },
         "required": ["status", "data"]
@@ -32805,7 +33963,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserVerifiedEmailOutputData"
+            }
           }
         },
         "required": ["status", "data"]
@@ -32819,10 +33980,41 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserVerifiedPhoneOutputData"
+            }
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamVerifiedEmailOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "email": {
+            "type": "string",
+            "description": "The verified email address.",
+            "example": "user@example.com",
+            "format": "email"
+          },
+          "teamId": {
+            "type": "number",
+            "description": "The ID of the associated team, if applicable.",
+            "example": 89
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          }
+        },
+        "required": ["id", "email", "teamId"]
       },
       "TeamVerifiedEmailOutput": {
         "type": "object",
@@ -32833,10 +34025,38 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
           }
         },
         "required": ["status", "data"]
+      },
+      "TeamVerifiedPhoneOutputData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "The unique identifier for the verified email.",
+            "example": 789
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The verified phone number.",
+            "example": "+37255556666",
+            "format": "phone"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true,
+            "description": "The ID of the associated user, if applicable.",
+            "example": 45
+          },
+          "teamId": {
+            "type": "number",
+            "description": "The ID of the associated team, if applicable.",
+            "example": 89
+          }
+        },
+        "required": ["id", "phoneNumber", "teamId"]
       },
       "TeamVerifiedPhoneOutput": {
         "type": "object",
@@ -32847,7 +34067,7 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
           }
         },
         "required": ["status", "data"]
@@ -32861,7 +34081,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamVerifiedEmailOutputData"
+            }
           }
         },
         "required": ["status", "data"]
@@ -32875,7 +34098,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamVerifiedPhoneOutputData"
+            }
           }
         },
         "required": ["status", "data"]

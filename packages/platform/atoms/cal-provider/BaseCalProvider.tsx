@@ -5,13 +5,13 @@ import { useCallback } from "react";
 
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { IconSprites } from "@calcom/ui/components/icon";
-import deTranslations from "@calcom/web/public/static/locales/de/common.json";
-import enTranslations from "@calcom/web/public/static/locales/en/common.json";
-import esTranslations from "@calcom/web/public/static/locales/es/common.json";
-import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
-import itTranslations from "@calcom/web/public/static/locales/it/common.json";
-import nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
-import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
+import deTranslations from "@calcom/i18n/locales/de/common.json";
+import enTranslations from "@calcom/i18n/locales/en/common.json";
+import esTranslations from "@calcom/i18n/locales/es/common.json";
+import frTranslations from "@calcom/i18n/locales/fr/common.json";
+import itTranslations from "@calcom/i18n/locales/it/common.json";
+import nlTranslations from "@calcom/i18n/locales/nl/common.json";
+import ptBrTranslations from "@calcom/i18n/locales/pt-BR/common.json";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useMe } from "../hooks/useMe";

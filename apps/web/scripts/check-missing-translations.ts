@@ -1,9 +1,10 @@
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import process from "node:process";
 
 const TEMPLATE_LANGUAGE = "en";
 const SPECIFIC_LOCALES = process.argv.slice(2) || [];
-const LOCALES_PATH = join(__dirname, "../public/static/locales");
+const LOCALES_PATH = join(__dirname, "../../../packages/i18n/locales");
 
 const ALL_LOCALES = readdirSync(LOCALES_PATH);
 
@@ -11,7 +12,7 @@ const templateJsonPath = join(LOCALES_PATH, `${TEMPLATE_LANGUAGE}/common.json`);
 const templateJson: { [key: string]: string } = JSON.parse(readFileSync(templateJsonPath, "utf-8"));
 
 const missingTranslationLocales: string[] = [];
-// If locales are not specified, then check all folders under `public/static/locales`
+// If locales are not specified, then check all folders under the locales directory
 (SPECIFIC_LOCALES.length ? SPECIFIC_LOCALES : ALL_LOCALES).forEach((locale: string) => {
   if (locale === TEMPLATE_LANGUAGE) return;
   if (!ALL_LOCALES.includes(locale)) {

@@ -396,6 +396,7 @@ export const bookingCancelSchema = z.object({
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   skipCancellationReasonValidation: z.boolean().optional(),
+  skipCalendarSyncTaskCancellation: z.boolean().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
@@ -771,6 +772,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  requiresCancellationReason: true,
   allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
@@ -853,6 +855,7 @@ export const allManagedEventTypePropsForZod = {
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
+  requiresCancellationReason: true,
   allowReschedulingCancelledBookings: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingMigrateTeamsBrowserView } from "../../components/onboarding-migrate-teams-browser-view";
 import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { getSuggestedSlug } from "./utils";
 
@@ -37,8 +38,8 @@ type FormValues = z.infer<typeof schema>;
 
 export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateTeamsViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { getQueryString } = useOnboardingQueryParams();
   const { isMigrationFlow, hasTeams, teams, isLoading } = useMigrationFlow();
   const { organizationDetails, organizationBrand, teams: teamsFromStore, setTeams } = useOnboardingStore();
   const orgSlug = organizationDetails.link;
@@ -115,15 +116,11 @@ export const OrganizationMigrateTeamsView = ({ userEmail }: OrganizationMigrateT
 
     setTeams([...teamsBeingMoved, ...existingNewTeams]);
 
-    const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/teams${migrateParam ? `?migrate=${migrateParam}` : ""}`;
-    router.push(nextUrl);
+    router.push(`/onboarding/organization/teams${getQueryString()}`);
   };
 
   const handleSkip = () => {
-    const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/teams${migrateParam ? `?migrate=${migrateParam}` : ""}`;
-    router.push(nextUrl);
+    router.push(`/onboarding/organization/teams${getQueryString()}`);
   };
 
   if (isLoading) {

@@ -15,7 +15,7 @@ import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { EventTypeMetadata, userMetadata } from "@calcom/prisma/zod-utils";
@@ -36,6 +36,7 @@ type EditLocationOptions = {
   } & BookingsProcedureContext;
   input: TEditLocationInputSchema;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 };
 
 type UserMetadata = z.infer<typeof userMetadata>;
@@ -262,7 +263,7 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export async function editLocationHandler({ ctx, input, actionSource }: EditLocationOptions) {
+export async function editLocationHandler({ ctx, input, actionSource, impersonatedByUserUuid }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
@@ -318,6 +319,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   const featuresRepository = getFeaturesRepository();
   const isBookingAuditEnabled = organizationId
     ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
@@ -334,6 +336,7 @@ export async function editLocationHandler({ ctx, input, actionSource }: EditLoca
         new: updatedLocation,
       },
     },
+    context,
     isBookingAuditEnabled,
   });
 

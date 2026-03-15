@@ -2,6 +2,7 @@
 
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -132,7 +133,13 @@ function Field({
             <TextField
               disabled={!!router}
               label={t("identifier_url_parameter")}
-              hint={t("identifier_url_parameter_hint")}
+              hint={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="identifier_url_parameter_hint"
+                  href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
+                />
+              }
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}

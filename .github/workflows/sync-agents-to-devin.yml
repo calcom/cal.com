@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   sync:
+    if: false
     name: Sync to Devin Knowledge
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:

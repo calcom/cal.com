@@ -1,4 +1,3 @@
-// TODO: Fix tests (These test were never running due to the vitest workspace config)
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 
 import type { Request, Response } from "express";
@@ -174,7 +173,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => 
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   const mockT = (key: string, options?: any) => {
     if (key === "event_between_users") {
       return `${options?.eventName} between ${options?.host} and ${options?.attendeeName}`;

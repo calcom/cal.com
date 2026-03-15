@@ -468,6 +468,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        impersonatedByUserUuid: null,
       },
       creationSource: "API_V2",
     });
@@ -497,6 +498,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        impersonatedByUserUuid: null,
       },
       creationSource: "API_V2",
     });
@@ -527,6 +529,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        impersonatedByUserUuid: null,
       },
     });
 
@@ -569,6 +572,7 @@ export class BookingsService_2024_08_13 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -828,6 +832,7 @@ export class BookingsService_2024_08_13 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          impersonatedByUserUuid: null,
         },
       });
       if (!booking.uid) {
@@ -976,6 +981,7 @@ export class BookingsService_2024_08_13 {
       platformCancelUrl: bookingRequest.platformCancelUrl,
       platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
       platformBookingUrl: bookingRequest.platformBookingUrl,
+      impersonatedByUserUuid: null,
     });
 
     if (!res.onlyRemovedAttendee && res.isPlatformManagedUserBooking) {
@@ -1036,6 +1042,7 @@ export class BookingsService_2024_08_13 {
       platformClientParams,
       actor: makeUserActor(userUuid),
       actionSource: "API_V2",
+      impersonatedByUserUuid: null,
     });
 
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
@@ -1242,6 +1249,7 @@ export class BookingsService_2024_08_13 {
         platformClientParams,
         actionSource: "API_V2",
         actor: makeUserActor(requestUser.uuid),
+        impersonatedByUserUuid: null,
       },
     });
 
@@ -1277,6 +1285,7 @@ export class BookingsService_2024_08_13 {
         platformClientParams,
         actionSource: "API_V2",
         actor: makeUserActor(requestUser.uuid),
+        impersonatedByUserUuid: null,
       },
     });
 

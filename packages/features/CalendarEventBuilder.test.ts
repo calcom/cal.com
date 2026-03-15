@@ -10,7 +10,7 @@ vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
   getBookerBaseUrl: vi.fn(async () => "https://cal.com"),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn(async () => vi.fn(() => "translated")),
 }));
 

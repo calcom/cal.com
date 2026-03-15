@@ -1,9 +1,8 @@
 import logger from "@calcom/lib/logger";
-
 import { findMonthlyProrationLineItem } from "../../lib/proration-utils";
 import type { MonthlyProrationService } from "../proration/MonthlyProrationService";
-import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 import type { SeatChangeContext, StripeInvoiceData } from "./ISeatBillingStrategy";
+import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 
 const log = logger.getSubLogger({ prefix: ["MonthlyProrationStrategy"] });
 
@@ -12,6 +11,8 @@ export interface IMonthlyProrationStrategyDeps {
 }
 
 export class MonthlyProrationStrategy extends BaseSeatBillingStrategy {
+  readonly strategyName = "MonthlyProration";
+
   constructor(private readonly deps: IMonthlyProrationStrategyDeps) {
     super();
   }

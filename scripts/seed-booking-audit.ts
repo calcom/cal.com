@@ -61,13 +61,19 @@ function hoursFromNow(hours: number): number {
 async function seedAuditLogsForBooking({
   bookingUid,
   userUuid,
+  userId,
   attendeeId,
   attendeeEmail,
+  eventTypeId,
+  eventTypeLength,
 }: {
   bookingUid: string;
   userUuid: string;
+  userId: number;
   attendeeId: number | undefined;
   attendeeEmail: string;
+  eventTypeId: number;
+  eventTypeLength: number;
 }): Promise<number> {
   const existingLogs = await prisma.bookingAudit.findFirst({
     where: { bookingUid },
@@ -89,7 +95,30 @@ async function seedAuditLogsForBooking({
     attendeeActor = await createAttendeeActor(attendeeId);
   }
 
+  // Create the "rescheduled-to" booking so rescheduledToUid in audit logs points to a real booking
   const rescheduledToUid = uuidv4();
+  const rescheduledStartTime = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days from now (matches RESCHEDULED log's "new" times)
+  const rescheduledEndTime = new Date(rescheduledStartTime.getTime() + eventTypeLength * 60 * 1000);
+
+  await prisma.booking.create({
+    data: {
+      uid: rescheduledToUid,
+      title: "Audit Log Test Booking - Rescheduled",
+      startTime: rescheduledStartTime,
+      endTime: rescheduledEndTime,
+      status: BookingStatus.ACCEPTED,
+      userId,
+      eventTypeId,
+      fromReschedule: bookingUid,
+      attendees: {
+        create: {
+          email: attendeeEmail,
+          name: "James Wilson",
+          timeZone: "UTC",
+        },
+      },
+    },
+  });
 
   const now = Date.now();
   let timestampOffset = 0;
@@ -132,41 +161,6 @@ async function seedAuditLogsForBooking({
       version: 1,
       fields: {
         status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
-      },
-    },
-  });
-
-  auditLogs.push({
-    bookingUid,
-    actorId: (attendeeActor ?? guestActor).id,
-    action: "RESCHEDULE_REQUESTED",
-    type: "RECORD_UPDATED",
-    timestamp: nextTimestamp(),
-    source: "WEBAPP",
-    operationId: uuidv4(),
-    data: {
-      version: 1,
-      fields: {
-        rescheduleReason: "Conflict with another meeting",
-        rescheduledRequestedBy: attendeeEmail,
-      },
-    },
-  });
-
-  auditLogs.push({
-    bookingUid,
-    actorId: userActor.id,
-    action: "RESCHEDULED",
-    type: "RECORD_UPDATED",
-    timestamp: nextTimestamp(),
-    source: "WEBAPP",
-    operationId: uuidv4(),
-    data: {
-      version: 1,
-      fields: {
-        startTime: { old: hoursFromNow(24), new: hoursFromNow(48) },
-        endTime: { old: hoursFromNow(24.5), new: hoursFromNow(48.5) },
-        rescheduledToUid: { old: null, new: rescheduledToUid },
       },
     },
   });
@@ -301,24 +295,6 @@ async function seedAuditLogsForBooking({
 
   auditLogs.push({
     bookingUid,
-    actorId: appActor.id,
-    action: "CANCELLED",
-    type: "RECORD_UPDATED",
-    timestamp: nextTimestamp(),
-    source: "WEBHOOK",
-    operationId: uuidv4(),
-    data: {
-      version: 1,
-      fields: {
-        cancellationReason: "Payment failed - automatic cancellation",
-        cancelledBy: "stripe@app.internal",
-        status: { old: BookingStatus.ACCEPTED, new: BookingStatus.CANCELLED },
-      },
-    },
-  });
-
-  auditLogs.push({
-    bookingUid,
     actorId: userActor.id,
     action: "REJECTED",
     type: "RECORD_UPDATED",
@@ -376,6 +352,59 @@ async function seedAuditLogsForBooking({
     },
   });
 
+  auditLogs.push({
+    bookingUid,
+    actorId: appActor.id,
+    action: "CANCELLED",
+    type: "RECORD_UPDATED",
+    timestamp: nextTimestamp(),
+    source: "WEBHOOK",
+    operationId: uuidv4(),
+    data: {
+      version: 1,
+      fields: {
+        cancellationReason: "Payment failed - automatic cancellation",
+        cancelledBy: "stripe@app.internal",
+        status: { old: BookingStatus.ACCEPTED, new: BookingStatus.CANCELLED },
+      },
+    },
+  });
+
+  auditLogs.push({
+    bookingUid,
+    actorId: (attendeeActor ?? guestActor).id,
+    action: "RESCHEDULE_REQUESTED",
+    type: "RECORD_UPDATED",
+    timestamp: nextTimestamp(),
+    source: "WEBAPP",
+    operationId: uuidv4(),
+    data: {
+      version: 1,
+      fields: {
+        rescheduleReason: "Conflict with another meeting",
+        rescheduledRequestedBy: attendeeEmail,
+      },
+    },
+  });
+
+  auditLogs.push({
+    bookingUid,
+    actorId: userActor.id,
+    action: "RESCHEDULED",
+    type: "RECORD_UPDATED",
+    timestamp: nextTimestamp(),
+    source: "WEBAPP",
+    operationId: uuidv4(),
+    data: {
+      version: 1,
+      fields: {
+        startTime: { old: hoursFromNow(24), new: hoursFromNow(48) },
+        endTime: { old: hoursFromNow(24.5), new: hoursFromNow(48.5) },
+        rescheduledToUid: { old: null, new: rescheduledToUid },
+      },
+    },
+  });
+
   for (const logData of auditLogs) {
     await prisma.bookingAudit.create({ data: logData });
   }
@@ -423,19 +452,7 @@ export default async function seedBookingAuditLogs() {
   });
   console.log("  ✅ Enabled bookings-v3 globally");
 
-  // Enable booking-audit at team level for owner1-acme's organization
   if (organizationId) {
-    await prisma.feature.upsert({
-      where: { slug: "booking-audit" },
-      create: {
-        slug: "booking-audit",
-        enabled: false,
-        description: "Enable booking audit trails - Track all booking actions and changes for organizations",
-        type: "OPERATIONAL",
-      },
-      update: {},
-    });
-
     await prisma.teamFeatures.upsert({
       where: { teamId_featureId: { teamId: organizationId, featureId: "booking-audit" } },
       create: {
@@ -446,7 +463,20 @@ export default async function seedBookingAuditLogs() {
       },
       update: { enabled: true },
     });
+
     console.log(`  ✅ Enabled booking-audit for organization ${organizationId}`);
+
+    await prisma.teamFeatures.upsert({
+      where: { teamId_featureId: { teamId: organizationId, featureId: "bookings-v3" } },
+      create: {
+        teamId: organizationId,
+        featureId: "bookings-v3",
+        enabled: true,
+        assignedBy: "seed-script",
+      },
+      update: { enabled: true },
+    });
+    console.log(`  ✅ Enabled bookings-v3 for organization ${organizationId}`);
   }
 
   // Find an event type for this user to create a booking
@@ -497,19 +527,22 @@ export default async function seedBookingAuditLogs() {
   const count = await seedAuditLogsForBooking({
     bookingUid: booking.uid,
     userUuid: user.uuid,
+    userId: user.id,
     attendeeId: booking.attendees[0]?.id,
     attendeeEmail: booking.attendees[0]?.email ?? "james.wilson@techstart.dev",
+    eventTypeId: eventType.id,
+    eventTypeLength: eventType.length,
   });
 
   console.log(`  ✅ Created ${count} audit log entries`);
-  console.log(`  View logs at: /booking/${booking.uid}/logs`);
+  console.log(`  View logs at: /bookings/upcoming?uid=${booking.uid}&activeSegment=history`);
 
   console.log(`\n📊 Summary:`);
   console.log(`  Booking UID: ${booking.uid}`);
   console.log(`  Total audit log entries created: ${count}`);
-  console.log("  Actions covered: CREATED, ACCEPTED, RESCHEDULE_REQUESTED, RESCHEDULED,");
-  console.log("    LOCATION_CHANGED, ATTENDEE_ADDED, ATTENDEE_REMOVED, REASSIGNMENT (x2),");
-  console.log("    NO_SHOW_UPDATED (x2), CANCELLED, REJECTED, SEAT_BOOKED, SEAT_RESCHEDULED");
+  console.log("  Actions covered: CREATED, ACCEPTED, LOCATION_CHANGED, ATTENDEE_ADDED,");
+  console.log("    ATTENDEE_REMOVED, REASSIGNMENT (x2), NO_SHOW_UPDATED (x2), REJECTED,");
+  console.log("    SEAT_BOOKED, SEAT_RESCHEDULED, CANCELLED, RESCHEDULE_REQUESTED, RESCHEDULED");
   console.log("  Actor types: USER, ATTENDEE, GUEST, SYSTEM, APP");
   console.log("  Sources: WEBAPP, API_V1, API_V2, WEBHOOK, MAGIC_LINK, SYSTEM");
 }

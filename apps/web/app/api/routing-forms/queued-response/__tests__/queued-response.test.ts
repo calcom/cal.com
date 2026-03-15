@@ -42,6 +42,7 @@ const mockQueuedFormResponse = {
     disabled: false,
   },
   chosenRouteId: "mock-chosen-route-id",
+  fallbackAction: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   response: {},
@@ -124,6 +125,57 @@ describe("queuedResponseHandler", () => {
       formResponseId: "mock-form-id",
       message: "Processed",
     });
+  });
+
+  it("should pass fallbackAction to onSubmissionOfFormResponse when present", async () => {
+    const fallbackAction = {
+      type: "eventTypeRedirectUrl" as const,
+      value: "team/fallback-event",
+      eventTypeId: 42,
+    };
+
+    vi.mocked(mockRoutingFormResponseRepository.getQueuedFormResponseFromId).mockResolvedValue({
+      ...mockQueuedFormResponse,
+      fallbackAction,
+    });
+
+    vi.mocked(getSerializableForm).mockResolvedValue({
+      id: "mock-form-id",
+      name: "Test Form",
+      description: "Test Form Description",
+      fields: [],
+      routes: [],
+      userId: 1,
+      teamId: null,
+      position: 1,
+      updatedById: null,
+      disabled: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      settings: {},
+    } as unknown as Awaited<ReturnType<typeof getSerializableForm>>);
+
+    vi.mocked(getResponseToStore).mockReturnValue({} as ReturnType<typeof getResponseToStore>);
+
+    vi.mocked(onSubmissionOfFormResponse).mockResolvedValue(undefined as unknown as Awaited<
+      ReturnType<typeof onSubmissionOfFormResponse>
+    >);
+
+    vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue({
+      id: 1,
+      response: {},
+    } as Awaited<ReturnType<typeof mockRoutingFormResponseRepository.recordFormResponse>>);
+
+    await queuedResponseHandler({
+      queuedFormResponseId: "1",
+      params: {},
+    });
+
+    expect(onSubmissionOfFormResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fallbackAction,
+      })
+    );
   });
 
   it("if no queued form response is found, should return early", async () => {

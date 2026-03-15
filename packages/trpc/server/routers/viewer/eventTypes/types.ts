@@ -21,6 +21,7 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
+
 export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
@@ -165,6 +166,10 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     showOptimizedSlots: z.boolean().nullable().optional(),
     disableCancelling: z.boolean().nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
+    requiresCancellationReason: z
+      .enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"])
+      .nullable()
+      .optional(),
     minimumRescheduleNotice: z.number().min(0).nullable().optional(),
     seatsShowAttendees: z.boolean().nullable().optional(),
     seatsShowAvailabilityCount: z.boolean().nullable().optional(),
