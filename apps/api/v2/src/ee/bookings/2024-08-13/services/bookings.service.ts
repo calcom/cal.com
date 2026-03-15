@@ -780,6 +780,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
+    queryParamsAttendeeEmail = queryParamsAttendeeEmail.toLowerCase();
     // note(Lauris): this is to handle attendees that are managed users - in attendee table their email is one of managed users e.g
     // urdasdqinm+clxyyy21o0003sbk7yw5z6tzg@example.com but if attendeeEmail is passed as urdasdqinm@example.com then we check if user whose
     // access token is used is a managed user and if attendee with passed email has managed user email composed of passed email without oAuth client id +

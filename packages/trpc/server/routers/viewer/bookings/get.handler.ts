@@ -181,7 +181,13 @@ export async function getBookings({
           .select("Booking.createdAt")
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+          .where((eb) =>
+            eb(
+              eb.fn("lower", ["Attendee.email"]),
+              "in",
+              attendeeEmailsFromUserIdsFilter.map((email) => email.toLowerCase())
+            )
+          ),
         tables: ["Booking", "Attendee"],
       });
     }
@@ -198,7 +204,13 @@ export async function getBookings({
           .select("Booking.updatedAt")
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
           .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
-          .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter),
+          .where((eb) =>
+            eb(
+              eb.fn("lower", ["Attendee.email"]),
+              "in",
+              attendeeEmailsFromUserIdsFilter.map((email) => email.toLowerCase())
+            )
+          ),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
     }
@@ -225,7 +237,7 @@ export async function getBookings({
         .select("Booking.createdAt")
         .select("Booking.updatedAt")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
+        .where((eb) => eb(eb.fn("lower", ["Attendee.email"]), "=", user.email?.toLowerCase())),
       tables: ["Booking", "Attendee"],
     });
     // 3. Current user is an attendee via seats reference
@@ -239,7 +251,7 @@ export async function getBookings({
         .select("Booking.updatedAt")
         .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
         .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-        .where("Attendee.email", "=", user.email),
+        .where((eb) => eb(eb.fn("lower", ["Attendee.email"]), "=", user.email?.toLowerCase())),
       tables: ["Booking", "Attendee", "BookingSeat"],
     });
     // 4. Scope depends on `user.orgId`:

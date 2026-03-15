@@ -21,7 +21,7 @@ export function buildWhereClause(userId: number | null, attendeeEmails: string[]
         {
           attendees: {
             some: {
-              email: { in: attendeeEmails },
+              email: { in: attendeeEmails.map((email) => email.toLowerCase()) },
             },
           },
         },
