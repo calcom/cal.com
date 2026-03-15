@@ -140,7 +140,14 @@ class ProtonCalendarService implements Calendar {
       throw new Error(`HTTP ${response.status}: Failed to fetch Proton Calendar ICS feed`);
     }
 
-    const text = await response.text();
+    let text: string;
+    try {
+      text = await response.text();
+    } catch (e) {
+      throw new Error(
+        `Failed to read Proton Calendar ICS response body: ${e instanceof Error ? e.message : String(e)}`
+      );
+    }
     // Propagate parse errors instead of returning null (fail-open).
     // A broken ICS feed must not silently appear as an empty calendar.
     let jcalData;
