@@ -5,7 +5,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { buildEventForTeamEventType } from "../../service/RegularBookingService";
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),
 }));
 
@@ -25,7 +25,7 @@ vi.mock("@calcom/features/CalendarEventBuilder", () => {
       fromEvent: vi.fn().mockImplementation((_evt) => ({
         withDestinationCalendar: withDestinationCalendarSpy,
         withTeam: withTeamSpy,
-        build: vi.fn().mockImplementation(function() {
+        build: vi.fn().mockImplementation(function () {
           return {
             destinationCalendar: [],
             team: {}, // <- you won't use this result anyway

@@ -47,5 +47,4 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
     }
     throw error;
   }
-},
-"/router");
+}, "/router");

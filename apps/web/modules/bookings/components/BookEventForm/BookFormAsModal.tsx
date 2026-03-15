@@ -11,8 +11,8 @@ import { DialogContent } from "@calcom/ui/components/dialog";
 
 import { getDurationFormatted } from "../event-meta/Duration";
 import { FromTime } from "@calcom/features/bookings/Booker/utils/dates";
-import { useEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
+import { useEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
   const { data } = useEvent();

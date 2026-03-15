@@ -6,11 +6,17 @@
   "logo": "icon-dark.svg",
   "url": "https://go.cal.com/retellai",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Retell AI",
   "email": "founders@retellai.com",
   "description": "Supercharge your Call Operations with AI \r",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "externalLink": {
+    "url": "https://go.cal.com/retellai",
+    "newTab": true
+  }
 }

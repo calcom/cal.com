@@ -45,7 +45,9 @@ describe("deleteWatchlistEntryHandler", () => {
     );
 
     vi.mocked(getOrganizationWatchlistOperationsService).mockReturnValue(mockService as never);
-    vi.mocked(WatchlistRepository).mockImplementation(function() { return mockWatchlistRepo as never; });
+    vi.mocked(WatchlistRepository).mockImplementation(function () {
+      return mockWatchlistRepo as never;
+    });
   });
 
   describe("access control", () => {

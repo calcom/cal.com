@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useFilterValue, useColumnFilters, ZDateRangeFilterValue } from "@calcom/features/data-table";
+import { ZDateRangeFilterValue } from "@calcom/features/data-table";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { getDefaultStartDate, getDefaultEndDate } from "@calcom/features/data-table/lib/dateRange";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";

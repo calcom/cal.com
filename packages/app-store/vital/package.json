@@ -6,6 +6,7 @@
   "main": "./index.ts",
   "description": "Connect your health data or wearables to trigger actions on your calendar.",
   "dependencies": {
+    "@calcom/i18n": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@tryvital/vital-node": "1.4.6",
     "queue": "6.0.2"

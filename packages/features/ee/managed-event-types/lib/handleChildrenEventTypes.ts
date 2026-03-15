@@ -3,7 +3,7 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -288,7 +288,8 @@ export default async function handleChildrenEventTypes({
           disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
           disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
           enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
-          enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+          enableAutomaticRecordingForOrganizer:
+            calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
           disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
           disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
           redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
@@ -322,8 +323,8 @@ export default async function handleChildrenEventTypes({
         key === "afterBufferTime"
           ? "afterEventBuffer"
           : key === "beforeBufferTime"
-          ? "beforeEventBuffer"
-          : key;
+            ? "beforeEventBuffer"
+            : key;
       // @ts-expect-error Element implicitly has any type
       acc[mappedKey] = true;
       return acc;
@@ -474,7 +475,8 @@ export default async function handleChildrenEventTypes({
                   enableAutomaticRecordingForOrganizer:
                     calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
                   disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  disableTranscriptionForOrganizer:
+                    calVideoSettings.disableTranscriptionForOrganizer ?? false,
                   redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
                   requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
                   updatedAt: new Date(),
@@ -487,7 +489,8 @@ export default async function handleChildrenEventTypes({
                   enableAutomaticRecordingForOrganizer:
                     calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
                   disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
-                  disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+                  disableTranscriptionForOrganizer:
+                    calVideoSettings.disableTranscriptionForOrganizer ?? false,
                   redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
                   requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
                 },

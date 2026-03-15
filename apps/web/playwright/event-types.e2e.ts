@@ -365,7 +365,7 @@ test.describe("Event Types tests", () => {
         await page.getByTestId(removeButtomId).nth(0).click();
         await page.getByTestId(removeButtomId).nth(0).click();
 
-        // Add Multiple Organizer Phone Number options
+        // Add Multiple Phone Call location options
         await page.getByTestId("location-select").last().click();
         await page.getByTestId("location-select-item-userPhone").click();
 

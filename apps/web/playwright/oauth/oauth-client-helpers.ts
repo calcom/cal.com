@@ -36,7 +36,10 @@ type CreateOAuthClientResult = {
   clientSecret: string;
 };
 
-export async function createPendingOAuthClient(page: Page, input: CreateOAuthClientInput): Promise<CreateOAuthClientResult> {
+export async function createPendingOAuthClient(
+  page: Page,
+  input: CreateOAuthClientInput
+): Promise<CreateOAuthClientResult> {
   await goToDeveloperOAuthSettings(page);
 
   await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
@@ -60,7 +63,9 @@ export async function createPendingOAuthClient(page: Page, input: CreateOAuthCli
   const clientId = ((await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? "").trim();
   expect(clientId.length).toBeGreaterThan(1);
 
-  const clientSecret = ((await page.getByTestId("oauth-client-submitted-client-secret").textContent()) ?? "").trim();
+  const clientSecret = (
+    (await page.getByTestId("oauth-client-submitted-client-secret").textContent()) ?? ""
+  ).trim();
   expect(clientSecret.length).toBeGreaterThan(1);
 
   await page.getByTestId("oauth-client-submitted-done").click();

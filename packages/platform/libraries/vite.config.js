@@ -57,6 +57,7 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        "@calcom/i18n",
         "react",
         "fs",
         "path",
@@ -210,9 +211,6 @@ export default defineConfig({
   resolve: {
     conditions: ["node", "import", "require", "default"],
     alias: {
-      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
-      "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
-      "../server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),

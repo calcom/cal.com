@@ -16,7 +16,7 @@ export default function convertToNewDurationType(
     minutes_days: () => prevValue / MINUTES_IN_DAY,
     hours_minutes: () => prevValue * MINUTES_IN_HOUR,
     hours_hours: () => prevValue,
-    hours_days: () => prevValue * HOURS_IN_DAY,
+    hours_days: () => prevValue / HOURS_IN_DAY,
     days_minutes: () => prevValue * MINUTES_IN_DAY,
     days_hours: () => prevValue * HOURS_IN_DAY,
     days_days: () => prevValue,

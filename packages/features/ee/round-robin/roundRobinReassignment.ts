@@ -13,6 +13,7 @@ import {
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -29,7 +30,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
@@ -294,6 +295,11 @@ export const roundRobinReassignment = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   await bookingEventHandlerService.onReassignment({
     bookingUid: booking.uid,
     actor: makeUserActor(reassignedByUuid),
@@ -317,6 +323,7 @@ export const roundRobinReassignment = async ({
       reassignmentReason: null,
       reassignmentType: "roundRobin",
     },
+    isBookingAuditEnabled,
   });
 
   roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);

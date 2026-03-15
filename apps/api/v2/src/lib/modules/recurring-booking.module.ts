@@ -7,8 +7,10 @@ import { Scope } from "@nestjs/common";
 import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { TaskerService } from "@/lib/services/tasker.service";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
 @Module({
-  imports: [RegularBookingModule],
+  imports: [RegularBookingModule, PrismaWorkerModule],
   providers: [
     RecurringBookingService,
     BookingEventHandlerService,
@@ -24,6 +26,8 @@ import { TaskerService } from "@/lib/services/tasker.service";
     BookingAuditProducerService,
     TaskerService,
     /** Required by BookingEventHandlerService - Ends **/
+    /** Required by RecurringBookingService **/
+    PrismaFeaturesRepository,
   ],
   exports: [RecurringBookingService],
 })

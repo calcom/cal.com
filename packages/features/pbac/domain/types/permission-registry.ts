@@ -36,6 +36,7 @@ export enum CustomAction {
   ReadRecordings = "readRecordings",
   Impersonate = "impersonate",
   EditUsers = "editUsers",
+  PasswordReset = "passwordReset",
   ReadTeamAuditLogs = "readTeamAuditLogs",
   ReadOrgAuditLogs = "readOrgAuditLogs",
 }
@@ -435,6 +436,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_impersonate",
       descriptionI18nKey: "pbac_desc_impersonate_organization_members",
       scope: [Scope.Organization],
+    },
+    [CustomAction.PasswordReset]: {
+      description: "Reset passwords for organization members",
+      category: "org",
+      i18nKey: "pbac_action_password_reset",
+      descriptionI18nKey: "pbac_desc_reset_password_organization_members",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers"],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",

@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
- 
+
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,8 +16,8 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
+import { CheckIcon } from "@coss/ui/icons";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
@@ -66,7 +66,7 @@ function ColumnVisibilityButtonComponent<TData>(
                         "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         isVisible ? "text-emphasis" : "opacity-50 [&_svg]:invisible"
                       )}>
-                      <Icon name="check" className={classNames("h-4 w-4", !isVisible && "invisible")} />
+                      <CheckIcon className={classNames("h-4 w-4", !isVisible && "invisible")} />
                     </div>
                     {column.columnDef.header}
                   </CommandItem>

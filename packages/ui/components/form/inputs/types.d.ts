@@ -6,7 +6,7 @@ export type InputFieldProps<Translations extends Record<string, string> = object
   translations?: Translations;
   label?: React.ReactNode;
   LockedIcon?: React.ReactNode;
-  hint?: string;
+  hint?: React.ReactNode;
   hintErrors?: string[];
   addOnLeading?: React.ReactNode;
   addOnSuffix?: React.ReactNode;

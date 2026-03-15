@@ -10,6 +10,7 @@ export const BookerEmbed = (
   props:
     | {
         routingFormUrl: string;
+        apiUrl?: string;
         bannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
         customClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
         onCreateBookingSuccess?: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingSuccess"];
@@ -30,9 +31,14 @@ export const BookerEmbed = (
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
         organizationId?: number;
+        apiUrl?: string;
         routingFormUrl?: undefined;
       })
-    | (BookerPlatformWrapperAtomPropsForTeam & { organizationId?: number; routingFormUrl?: undefined })
+    | (BookerPlatformWrapperAtomPropsForTeam & {
+        organizationId?: number;
+        apiUrl?: string;
+        routingFormUrl?: undefined;
+      })
 ) => {
   // Use Routing Form Url To Display Correct Booker
   const routingFormUrlProps = useGetRoutingFormUrlProps(props);
@@ -48,14 +54,14 @@ export const BookerEmbed = (
       crmAppSlug,
       ...routingFormSearchParams
     } = routingFormUrlProps;
-    const { onDryRunSuccess, ...rest } = props;
+    const { onDryRunSuccess, apiUrl, ...rest } = props;
     return (
       <CalProvider
         clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
         isEmbed={true}
         organizationId={organizationId}
         options={{
-          apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
+          apiUrl: apiUrl ?? import.meta.env.VITE_BOOKER_EMBED_API_URL,
         }}>
         <BookerPlatformWrapper
           {...(Boolean(routingTeamId)
@@ -90,15 +96,16 @@ export const BookerEmbed = (
 
   // If Not For From Routing, Use Props
   if (props?.routingFormUrl === undefined) {
+    const { apiUrl, ...restProps } = props;
     return (
       <CalProvider
         clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
         isEmbed={true}
         organizationId={props?.organizationId}
         options={{
-          apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
+          apiUrl: apiUrl ?? import.meta.env.VITE_BOOKER_EMBED_API_URL,
         }}>
-        <BookerPlatformWrapper {...props} />
+        <BookerPlatformWrapper {...restProps} />
       </CalProvider>
     );
   }

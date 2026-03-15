@@ -130,7 +130,11 @@ export class WorkflowsRepository {
   ) {
     await updateWorkflow({
       ctx: {
-        user: { ...user, locale: user?.locale ?? "en" },
+        user: {
+          ...user,
+          locale: user?.locale ?? "en",
+          organizationId: user.profiles?.[0]?.organization?.id ?? null,
+        },
         prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
       input: data,
@@ -148,7 +152,11 @@ export class WorkflowsRepository {
   ) {
     await updateWorkflow({
       ctx: {
-        user: { ...user, locale: user?.locale ?? "en" },
+        user: {
+          ...user,
+          locale: user?.locale ?? "en",
+          organizationId: user.profiles?.[0]?.organization?.id ?? null,
+        },
         prisma: this.dbWrite.prisma as unknown as PrismaClient,
       },
       input: data,

@@ -6,7 +6,7 @@ import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
-import { useFlags } from "@calcom/features/flags/hooks";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
@@ -17,6 +17,7 @@ import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
+import { useOnboardingQueryParams } from "../../../hooks/useOnboardingQueryParams";
 import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "../csv-upload-modal";
@@ -41,6 +42,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const { teams } = useOnboardingStore();
   const migratedTeams = teams.filter((team) => team.isBeingMigrated);
   const isMigrationFlow = searchParams?.get("migrate") === "true";
+  const { billingPeriod } = useOnboardingQueryParams();
 
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
@@ -102,7 +104,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const handleContinue = async (data: FormValues) => {
     setInvites(data.invites);
-    await submitOnboarding(store, userEmail, data.invites);
+    await submitOnboarding(store, userEmail, data.invites, { billingPeriod });
   };
 
   const handleBack = () => {
@@ -111,7 +113,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const handleSkip = async () => {
     setInvites([]);
-    await submitOnboarding(store, userEmail, []);
+    await submitOnboarding(store, userEmail, [], { billingPeriod });
   };
 
   const handleGoogleWorkspaceConnect = () => {

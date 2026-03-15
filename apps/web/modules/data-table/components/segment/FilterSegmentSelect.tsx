@@ -1,5 +1,5 @@
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useDataTable } from "@calcom/features/data-table/hooks";
+import { useDataTable } from "~/data-table/hooks";
 import type {
   CombinedFilterSegment,
   FilterSegmentOutput,
@@ -45,6 +45,8 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
   const [segmentToDuplicate, setSegmentToDuplicate] = useState<CombinedFilterSegment | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
+
+  const [open, setOpen] = useState(false);
 
   const submenuItems: SubmenuItem[] = [
     {
@@ -150,12 +152,12 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
 
   return (
     <>
-      <Dropdown>
+      <Dropdown open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
             StartIcon="list-filter"
-            EndIcon="chevron-down"
+            EndIcon={open ? "chevron-up" : "chevron-down"}
             data-testid="filter-segment-select">
             {selectedSegment?.name || (shortLabel ? t("saved") : t("saved_filters"))}
           </Button>
@@ -189,7 +191,11 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                       submenuItems={items}
                       segment={segment}
                       onSelect={() => {
-                        if (selectedSegment && selectedSegment.type === segment.type && selectedSegment.id === segment.id) {
+                        if (
+                          selectedSegment &&
+                          selectedSegment.type === segment.type &&
+                          selectedSegment.id === segment.id
+                        ) {
                           clearAll();
                         } else {
                           if (segment.type === "system") {
@@ -199,9 +205,9 @@ export function FilterSegmentSelect({ shortLabel }: Props = {}) {
                           }
                         }
                       }}>
-                      {selectedSegment && selectedSegment.type === segment.type && selectedSegment.id === segment.id && (
-                        <Icon name="check" className="ml-3 h-4 w-4" />
-                          )}
+                      {selectedSegment &&
+                        selectedSegment.type === segment.type &&
+                        selectedSegment.id === segment.id && <Icon name="check" className="ml-3 h-4 w-4" />}
                       <span className="ml-3">{segment.name}</span>
                     </DropdownItemWithSubmenu>
                   );

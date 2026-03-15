@@ -61,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...data,
         user: { email: user.email },
         delegationCredentialId: null,
+        encryptedKey: null,
       });
       await dav?.listCalendars();
       await prisma.credential.upsert({

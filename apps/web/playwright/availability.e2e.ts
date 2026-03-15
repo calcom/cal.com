@@ -121,7 +121,7 @@ test.describe("Availability", () => {
     await test.step("Can delete a schedule", async () => {
       await page.getByTestId("go-back-button").click();
       await page.locator('[data-testid="schedules"] > li').nth(1).getByTestId("schedule-more").click();
-      await page.locator('[data-testid="delete-schedule"]').click()
+      await page.locator('[data-testid="delete-schedule"]').click();
       await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.delete?batch=1", {
         action: () => page.locator('[data-testid="dialog-confirmation"]').click(),
       });
@@ -148,7 +148,7 @@ test.describe("Availability", () => {
     const copyTimesTo = (await localize("en"))("copy_times_to");
 
     const availTitle = page.getByTestId("availablity-title");
-    await availTitle.locator('xpath=..').locator('span.whitespace-pre').first().click();
+    await availTitle.locator("xpath=..").locator("span.whitespace-pre").first().click();
     await expect(availTitle).toBeEditable();
     // change availability name
     await page.getByTestId("availablity-title").fill("Working Hours test");

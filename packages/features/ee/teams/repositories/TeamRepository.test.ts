@@ -150,6 +150,7 @@ describe("TeamRepository", () => {
           organizationSettings: true,
           isPlatform: true,
         },
+        orderBy: { id: "asc" },
       });
       expect(result).toEqual(mockTeams);
     });

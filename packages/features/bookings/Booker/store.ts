@@ -9,11 +9,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
-import {
-  updateQueryParam,
-  getQueryParam,
-  removeQueryParam,
-} from "./utils/query-param";
+import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 const _iso_3166_1_alpha_2_codes = [
   "ad",
@@ -357,9 +353,7 @@ export type BookerStore = {
    * Multiple Selected Dates and Times
    */
   selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } } | null;
-  setSelectedDatesAndTimes: (selectedDatesAndTimes: {
-    [key: string]: { [key: string]: string[] };
-  }) => void;
+  setSelectedDatesAndTimes: (selectedDatesAndTimes: { [key: string]: { [key: string]: string[] } }) => void;
   /**
    * Multiple duration configuration
    */
@@ -457,10 +451,7 @@ export const createBookerStore = () =>
     setLayout: (layout: BookerLayout) => {
       // If we switch to a large layout and don't have a date selected yet,
       // we selected it here, so week title is rendered properly.
-      if (
-        ["week_view", "column_view"].includes(layout) &&
-        !get().selectedDate
-      ) {
+      if (["week_view", "column_view"].includes(layout) && !get().selectedDate) {
         set({ selectedDate: dayjs().format("YYYY-MM-DD") });
       }
       if (!get().isPlatform || get().allowUpdatingUrlParams) {
@@ -469,11 +460,7 @@ export const createBookerStore = () =>
       return set({ layout });
     },
     selectedDate: getQueryParam("date") || null,
-    setSelectedDate: ({
-      date: selectedDate,
-      omitUpdatingParams = false,
-      preventMonthSwitching = false,
-    }) => {
+    setSelectedDate: ({ date: selectedDate, omitUpdatingParams = false, preventMonthSwitching = false }) => {
       // unset selected date
       if (!selectedDate) {
         removeQueryParam("date");
@@ -483,24 +470,15 @@ export const createBookerStore = () =>
       const currentSelection = dayjs(get().selectedDate);
       const newSelection = dayjs(selectedDate);
       set({ selectedDate });
-      if (
-        !omitUpdatingParams &&
-        (!get().isPlatform || get().allowUpdatingUrlParams)
-      ) {
+      if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
         updateQueryParam("date", selectedDate ?? "");
       }
 
       // Setting month make sure small calendar in fullscreen layouts also updates.
       // preventMonthSwitching is true in monthly view
-      if (
-        !preventMonthSwitching &&
-        newSelection.month() !== currentSelection.month()
-      ) {
+      if (!preventMonthSwitching && newSelection.month() !== currentSelection.month()) {
         set({ month: newSelection.format("YYYY-MM") });
-        if (
-          !omitUpdatingParams &&
-          (!get().isPlatform || get().allowUpdatingUrlParams)
-        ) {
+        if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
           updateQueryParam("month", newSelection.format("YYYY-MM"));
         }
       }
@@ -561,8 +539,7 @@ export const createBookerStore = () =>
       }
       get().setSelectedDate({ date: null });
     },
-    dayCount:
-      BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
+    dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
     setDayCount: (dayCount: number | null) => {
       set({ dayCount });
     },
@@ -644,9 +621,7 @@ export const createBookerStore = () =>
         // Preselect today's date in week / column view, since they use this to show the week title.
         selectedDate:
           selectedDateInStore ||
-          (["week_view", "column_view"].includes(layout)
-            ? dayjs().format("YYYY-MM-DD")
-            : null),
+          (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
         teamMemberEmail,
         crmOwnerRecordType,
         crmAppSlug,
@@ -707,24 +682,14 @@ export const createBookerStore = () =>
       set({ rescheduleUid });
     },
     recurringEventCount: null,
-    setRecurringEventCount: (recurringEventCount: number | null) =>
-      set({ recurringEventCount }),
-    recurringEventCountQueryParam:
-      Number(getQueryParam("recurringEventCount")) || null,
-    setRecurringEventCountQueryParam: (
-      recurringEventCountQueryParam: number | null
-    ) => {
+    setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
+    recurringEventCountQueryParam: Number(getQueryParam("recurringEventCount")) || null,
+    setRecurringEventCountQueryParam: (recurringEventCountQueryParam: number | null) => {
       // Guard: only update state if value is valid (not NaN or null)
-      if (
-        recurringEventCountQueryParam !== null &&
-        !isNaN(recurringEventCountQueryParam)
-      ) {
+      if (recurringEventCountQueryParam !== null && !isNaN(recurringEventCountQueryParam)) {
         set({ recurringEventCountQueryParam });
         if (!get().isPlatform || get().allowUpdatingUrlParams) {
-          updateQueryParam(
-            "recurringEventCount",
-            recurringEventCountQueryParam
-          );
+          updateQueryParam("recurringEventCount", recurringEventCountQueryParam);
         }
       }
       // If invalid, don't update state or URL - just ignore the call
@@ -755,9 +720,7 @@ export const createBookerStore = () =>
     allowUpdatingUrlParams: true,
     defaultPhoneCountry: null,
     isSlotSelectionModalVisible: false,
-    setIsSlotSelectionModalVisible: (
-      isSlotSelectionModalVisible: boolean
-    ) => {
+    setIsSlotSelectionModalVisible: (isSlotSelectionModalVisible: boolean) => {
       set({ isSlotSelectionModalVisible });
     },
   }));

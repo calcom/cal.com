@@ -205,9 +205,8 @@ export async function assertCanCreateOrg({
   errorOnUserAlreadyPartOfOrg?: boolean;
 }) {
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "email-verification"
-  );
+  const emailVerificationEnabled =
+    await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const verifiedUser = emailVerificationEnabled ? !!orgOwner.emailVerified : true;
   if (!verifiedUser) {

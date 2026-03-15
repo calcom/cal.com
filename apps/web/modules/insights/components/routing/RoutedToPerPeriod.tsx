@@ -222,11 +222,14 @@ export function RoutedToPerPeriod() {
     });
 
     return flattenedUsers.map((user) => {
-      const stats = uniquePeriods.reduce((acc, period) => {
-        const key = `${user.id}-${period.toISOString()}`;
-        acc[period.toISOString()] = statsMap.get(key) ?? 0;
-        return acc;
-      }, {} as { [key: string]: number });
+      const stats = uniquePeriods.reduce(
+        (acc, period) => {
+          const key = `${user.id}-${period.toISOString()}`;
+          acc[period.toISOString()] = statsMap.get(key) ?? 0;
+          return acc;
+        },
+        {} as { [key: string]: number }
+      );
 
       return {
         id: user.id,

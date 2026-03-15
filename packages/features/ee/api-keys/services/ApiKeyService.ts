@@ -4,22 +4,24 @@ type Deps = {
   apiKeyRepo: PrismaApiKeyRepository;
 };
 
-type VerifyKeyResult = {
-  valid: true;
-  userId: number;
-  user: {
-    uuid: string;
-    role: string;
-    locked: boolean;
-    email: string;
-  };
-} | {
-  valid: false;
-  error: string;
-}
+type VerifyKeyResult =
+  | {
+      valid: true;
+      userId: number;
+      user: {
+        uuid: string;
+        role: string;
+        locked: boolean;
+        email: string;
+      };
+    }
+  | {
+      valid: false;
+      error: string;
+    };
 
 export class ApiKeyService {
-  constructor(private readonly deps: Deps) { }
+  constructor(private readonly deps: Deps) {}
 
   async verifyKeyByHashedKey(hashedKey: string): Promise<VerifyKeyResult> {
     const apiKey = await this.deps.apiKeyRepo.findByHashedKey(hashedKey);

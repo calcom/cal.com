@@ -182,7 +182,7 @@ test.describe("private links creation and usage", () => {
     await page.waitForURL((url) => {
       return url.searchParams.get("overlayCalendar") === "true";
     });
-  
+
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page

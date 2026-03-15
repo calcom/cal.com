@@ -72,13 +72,12 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
 export const withLicenseRequired =
   <T extends JSX.IntrinsicAttributes>(Component: ComponentType<T>) =>
   // eslint-disable-next-line react/display-name
-  (hocProps: T) =>
-    (
-      <div>
-        <LicenseRequired>
-          <Component {...hocProps} />
-        </LicenseRequired>
-      </div>
-    );
+  (hocProps: T) => (
+    <div>
+      <LicenseRequired>
+        <Component {...hocProps} />
+      </LicenseRequired>
+    </div>
+  );
 
 export default LicenseRequired;

@@ -61,7 +61,7 @@ const EventReservationSchema: FC<EventReservationSchemaInterface> = ({
             ? ({ "@type": "Person", name: organizer.name, email: organizer.email } as Person)
             : undefined,
           attendee: attendees?.map(
-            (person) => ({ "@type": "Person", name: person.name, email: person.email } as Person)
+            (person) => ({ "@type": "Person", name: person.name, email: person.email }) as Person
           ),
           location: location || undefined,
           description: description || undefined,

@@ -190,7 +190,10 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: inputBooking.eventTypeId,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      metadata: inputBooking.metadata || {},
+      metadata: {
+        ...(inputBooking.metadata || {}),
+        ...(platformClientId && { platformClientId }),
+      },
       hasHashedBookingLink: false,
       guests,
       verificationCode: inputBooking.emailVerificationCode,
