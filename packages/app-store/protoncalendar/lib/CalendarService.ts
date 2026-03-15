@@ -289,8 +289,6 @@ class ProtonCalendarService implements Calendar {
         // recurrences (DAILY/WEEKLY/MONTHLY/YEARLY are bounded by day count).
         let maxIterations = 365;
 
-        const start = dayjs(dateFrom);
-        const end = dayjs(dateTo);
         // Seed the iterator back by the event's duration so occurrences that
         // start before dateFrom but still overlap the window are not missed.
         // For example, a 2-day event beginning one day before dateFrom would
