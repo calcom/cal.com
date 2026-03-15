@@ -1,7 +1,7 @@
 import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
 import { BookingAttendeeWithId_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
@@ -139,30 +139,40 @@ export class BookingAttendeesService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const removedAttendee = await this.bookingAttendeesService.removeAttendee({
-      bookingId: booking.id,
-      attendeeId,
-      user: {
-        id: user.id,
-        email: user.email,
-        organizationId: user.organizationId,
-        uuid: user.uuid,
-      },
-      emailsEnabled,
-      actionSource: "API_V2",
-    });
+    try {
+      const removedAttendee = await this.bookingAttendeesService.removeAttendee({
+        bookingId: booking.id,
+        attendeeId,
+        user: {
+          id: user.id,
+          email: user.email,
+          organizationId: user.organizationId,
+          uuid: user.uuid,
+        },
+        emailsEnabled,
+        actionSource: "API_V2",
+      });
 
-    return plainToClass(
-      RemovedAttendeeOutput_2024_08_13,
-      {
-        id: removedAttendee.id,
-        bookingId: removedAttendee.bookingId,
-        name: removedAttendee.name,
-        email: removedAttendee.email,
-        timeZone: removedAttendee.timeZone,
-      },
-      { excludeExtraneousValues: true }
-    );
+      return plainToClass(
+        RemovedAttendeeOutput_2024_08_13,
+        {
+          id: removedAttendee.id,
+          bookingId: removedAttendee.bookingId,
+          name: removedAttendee.name,
+          email: removedAttendee.email,
+          timeZone: removedAttendee.timeZone,
+        },
+        { excludeExtraneousValues: true }
+      );
+    } catch (e) {
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.NotFound) {
+        throw new NotFoundException(e.message);
+      }
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.BadRequest) {
+        throw new BadRequestException(e.message);
+      }
+      throw e;
+    }
   }
 
   private getDisplayEmail(email: string): string {
