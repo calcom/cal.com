@@ -201,8 +201,11 @@ export class BookingAttendeesService {
     await updateCalendarEvent(booking, evt);
 
     if (emailsEnabled) {
-      const removedAttendeePerson = await this.prepareAttendeePerson(attendeeToRemove);
-      await this.sendCancelledEmailToAttendee(evt, removedAttendeePerson);
+      this.prepareAttendeePerson(attendeeToRemove)
+        .then((removedAttendeePerson) =>
+          this.sendCancelledEmailToAttendee(evt, removedAttendeePerson)
+        )
+        .catch((error) => logger.error("Failed to send cancellation email", { error }));
     }
 
     const bookingEventHandlerService = getBookingEventHandlerService();
