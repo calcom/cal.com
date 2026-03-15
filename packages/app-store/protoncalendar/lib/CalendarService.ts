@@ -114,7 +114,7 @@ class ProtonCalendarService implements Calendar {
       // Use redirect:'manual' to intercept any HTTP redirect before it is followed.
       // This lets us validate the destination URL against the allowlist BEFORE
       // sending a request there, preventing redirect-based SSRF attacks.
-      response = await fetch(this.url, { redirect: "manual" });
+      response = await fetch(this.url, { redirect: "manual", signal: AbortSignal.timeout(10_000) });
     } catch (e) {
       throw new Error(`Failed to fetch Proton Calendar ICS feed: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -130,7 +130,7 @@ class ProtonCalendarService implements Calendar {
       validateProtonUrl(resolvedUrl);
       try {
         // Follow at most one hop; reject further redirects.
-        response = await fetch(resolvedUrl, { redirect: "error" });
+        response = await fetch(resolvedUrl, { redirect: "error", signal: AbortSignal.timeout(10_000) });
       } catch (e) {
         throw new Error(
           `Failed to fetch Proton Calendar ICS feed after redirect: ${e instanceof Error ? e.message : String(e)}`
