@@ -12,7 +12,7 @@
   "description": "Accept payments from Iraqi customers via ZainCash, FastPay, and other local Iraqi payment methods. Enable Pay to Book on your events — customers pay before their booking is confirmed. All amounts are in Iraqi Dinar (IQD).",
   "extendsFeature": "EventType",
   "isTemplate": false,
-  "isOAuth": false,
+  "isOAuth": true,
   "__createdUsingCli": true,
   "__template": "event-type-app-card",
   "dirName": "waylpayment"

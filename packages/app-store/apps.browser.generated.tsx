@@ -49,9 +49,9 @@ export const EventTypeAddonMap = {
   ),
   twipla: dynamic(() => import("./twipla/components/EventTypeAppCardInterface")),
   umami: dynamic(() => import("./umami/components/EventTypeAppCardInterface")),
+  waylpayment: dynamic(() => import("./waylpayment/components/EventTypeAppCardInterface")),
   "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
   zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
-  waylpayment: dynamic(() => import("./waylpayment/components/EventTypeAppCardInterface")),
 };
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),

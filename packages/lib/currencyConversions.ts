@@ -3,6 +3,7 @@ const zeroDecimalCurrencies = [
   "CLP",
   "DJF",
   "GNF",
+  "IQD",
   "JPY",
   "KMF",
   "KRW",
