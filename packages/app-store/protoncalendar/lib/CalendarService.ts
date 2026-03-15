@@ -339,20 +339,25 @@ class ProtonCalendarService implements Calendar {
           }
         };
 
+        // Safety ceiling: large enough to cover realistic booking windows
+        // (e.g. 90-day HOURLY with full BYMINUTE×BYSECOND expansion) while
+        // preventing runaway CPU from adversarially dense RRULEs.
+        const MAX_SAFE_ITERATIONS = 500_000;
+
         if (event.getRecurrenceTypes() === "HOURLY") {
           // Hours from iterStart to dateTo + 48 h buffer for DST shifts,
           // multiplied by the full sub-period expansion factor so every occurrence
           // within the window is reachable.
           const hours = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "hours") + 48);
-          maxIterations = hours * getByExpansionFactor("HOURLY");
+          maxIterations = Math.min(hours * getByExpansionFactor("HOURLY"), MAX_SAFE_ITERATIONS);
         } else if (event.getRecurrenceTypes() === "MINUTELY") {
           // Minutes from iterStart to dateTo + 48 h (2 880 min) buffer,
           // multiplied by the BYSECOND expansion factor.
-          // No hard cap: the dynamic budget is already proportional to the actual
-          // occurrence count for this window, so capping it would truncate valid
-          // busy occurrences and cause missed conflicts.
+          // Capped at MAX_SAFE_ITERATIONS to prevent high CPU from dense RRULEs
+          // over large windows; 500k covers realistic use cases (e.g. every-minute
+          // events with per-second sub-periods over a multi-month horizon).
           const minutes = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "minutes") + 2880);
-          maxIterations = minutes * getByExpansionFactor("MINUTELY");
+          maxIterations = Math.min(minutes * getByExpansionFactor("MINUTELY"), MAX_SAFE_ITERATIONS);
         }
 
         const iterator = event.iterator(iterStart);
