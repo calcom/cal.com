@@ -233,26 +233,11 @@ class ProtonCalendarService implements Calendar {
       const tzid: string | undefined =
         tzidFromDtstart || vevent?.getFirstPropertyValue("tzid") || (isUTC ? "UTC" : timezone);
 
-      if (!vcalendar.getFirstSubcomponent("vtimezone")) {
-        const timezoneToUse = tzid || userTimeZone;
-        if (timezoneToUse) {
-          try {
-            const timezoneComp = new ICAL.Component("vtimezone");
-            timezoneComp.addPropertyWithValue("tzid", timezoneToUse);
-            const standard = new ICAL.Component("standard");
-            const tzoffsetfrom = dayjs(event.startDate.toJSDate()).tz(timezoneToUse).format("Z");
-            const tzoffsetto = dayjs(event.endDate.toJSDate()).tz(timezoneToUse).format("Z");
-            standard.addPropertyWithValue("tzoffsetfrom", tzoffsetfrom);
-            standard.addPropertyWithValue("tzoffsetto", tzoffsetto);
-            standard.addPropertyWithValue("dtstart", "1601-01-01T00:00:00");
-            timezoneComp.addSubcomponent(standard);
-            vcalendar.addSubcomponent(timezoneComp);
-          } catch (e) {
-            console.log("error in adding vtimezone", e);
-          }
-        } else {
-          console.error("No timezone found for Proton Calendar event");
-        }
+      if (!vcalendar.getFirstSubcomponent("vtimezone") && !tzid && !userTimeZone) {
+        console.error("No timezone found for Proton Calendar event");
+        // When no VTIMEZONE component exists and tzid is known, DST-correct
+        // conversion uses dayjs.tz() directly in the event-push sections below,
+        // avoiding mis-conversion from a synthetic STANDARD-only vtimezone.
       }
 
       let vtimezone = null;
@@ -281,9 +266,9 @@ class ProtonCalendarService implements Calendar {
         startDate.second = event.startDate.second;
         const iterator = event.iterator(startDate);
         let current: ICAL.Time;
-        let currentEvent;
+        let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
         let currentStart = null;
-        let currentError;
+        let currentError: string | undefined;
 
         while (
           maxIterations > 0 &&
@@ -291,14 +276,16 @@ class ProtonCalendarService implements Calendar {
           (current = iterator.next())
         ) {
           maxIterations -= 1;
+          currentEvent = undefined; // reset to prevent reusing stale data when getOccurrenceDetails throws
           try {
             currentEvent = event.getOccurrenceDetails(current);
           } catch (error) {
             if (error instanceof Error && error.message !== currentError) {
               currentError = error.message;
             }
+            continue;
           }
-          if (!currentEvent) return;
+          if (!currentEvent) continue;
 
           // Skip occurrences cancelled via a STATUS:CANCELLED exception VEVENT.
           // Key includes the series UID to avoid cross-series timestamp collisions.
@@ -310,14 +297,27 @@ class ProtonCalendarService implements Calendar {
             const zone = new ICAL.Timezone(vtimezone);
             currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
             currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
-          }
-          currentStart = dayjs(currentEvent.startDate.toJSDate());
-          if (currentStart.isBetween(start, end) === true) {
-            events.push({
-              start: currentStart.toISOString(),
-              end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
-              title,
-            });
+            currentStart = dayjs(currentEvent.startDate.toJSDate());
+            if (currentStart.isBetween(start, end) === true) {
+              events.push({
+                start: currentStart.toISOString(),
+                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+                title,
+              });
+            }
+          } else {
+            // DST-aware conversion: use dayjs.tz() when no VTIMEZONE component exists,
+            // avoiding the mis-conversion of a synthetic STANDARD-only component.
+            const startISO = tzid
+              ? dayjs.tz(currentEvent.startDate.toString().slice(0, 19), tzid).toISOString()
+              : dayjs(currentEvent.startDate.toJSDate()).toISOString();
+            const endISO = tzid
+              ? dayjs.tz(currentEvent.endDate.toString().slice(0, 19), tzid).toISOString()
+              : dayjs(currentEvent.endDate.toJSDate()).toISOString();
+            currentStart = dayjs(startISO);
+            if (currentStart.isBetween(start, end) === true) {
+              events.push({ start: startISO, end: endISO, title });
+            }
           }
         }
         if (maxIterations <= 0) {
@@ -332,11 +332,25 @@ class ProtonCalendarService implements Calendar {
         event.endDate = event.endDate.convertToZone(zone);
       }
 
-      events.push({
-        start: dayjs(event.startDate.toJSDate()).toISOString(),
-        end: dayjs(event.endDate.toJSDate()).toISOString(),
-        title,
-      });
+      // Compute UTC-correct ISO times: use DST-aware dayjs.tz() when no VTIMEZONE
+      // component is available, falling back to toJSDate() for UTC/floating times.
+      const startISO = vtimezone
+        ? dayjs(event.startDate.toJSDate()).toISOString()
+        : tzid
+          ? dayjs.tz(event.startDate.toString().slice(0, 19), tzid).toISOString()
+          : dayjs(event.startDate.toJSDate()).toISOString();
+      const endISO = vtimezone
+        ? dayjs(event.endDate.toJSDate()).toISOString()
+        : tzid
+          ? dayjs.tz(event.endDate.toString().slice(0, 19), tzid).toISOString()
+          : dayjs(event.endDate.toJSDate()).toISOString();
+
+      // Only include events that overlap with the requested [dateFrom, dateTo] window.
+      if (dayjs(endISO).isBefore(dayjs(dateFrom)) || dayjs(startISO).isAfter(dayjs(dateTo))) {
+        return;
+      }
+
+      events.push({ start: startISO, end: endISO, title });
     });
 
     return Promise.resolve(events);
