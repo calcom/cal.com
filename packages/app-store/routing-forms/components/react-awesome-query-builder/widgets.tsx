@@ -401,7 +401,7 @@ function DateWidget({ value, setValue, timezone, ...remainingProps }: TextLikeCo
     setValue(formattedDate);
   };
 
-  const { timezone: _omit, ...pickerProps } = remainingProps as typeof remainingProps & {
+  const { timezone: _omit, label: _label, ...pickerProps } = remainingProps as typeof remainingProps & {
     timezone?: string | null;
   };
   return (
