@@ -242,12 +242,13 @@ class ProtonCalendarService implements Calendar {
 
       let vtimezone = null;
       if (tzid) {
+        // Per RFC 5545 §3.6.5, TZID must match a VTIMEZONE with the same TZID property.
+        // Do NOT fall back to the first VTIMEZONE when no matching component exists.
         const allVtimezones = vcalendar.getAllSubcomponents("vtimezone");
-        vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid);
+        vtimezone = allVtimezones.find((vtz) => vtz.getFirstPropertyValue("tzid") === tzid) ?? null;
       }
-      if (!vtimezone) {
-        vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
-      }
+      // Floating events (no TZID) have vtimezone=null; the else-branch below
+      // interprets them in userTimeZone as required by RFC 5545 §3.3.5.
 
       applyTravelDuration(event, getTravelDurationInSeconds(vevent));
 
@@ -298,10 +299,13 @@ class ProtonCalendarService implements Calendar {
             currentEvent.startDate = currentEvent.startDate.convertToZone(zone);
             currentEvent.endDate = currentEvent.endDate.convertToZone(zone);
             currentStart = dayjs(currentEvent.startDate.toJSDate());
-            if (currentStart.isBetween(start, end) === true) {
+            const currentEnd = dayjs(currentEvent.endDate.toJSDate());
+            // Use overlap detection: include occurrences that start before the window
+            // end AND end after the window start (matches non-recurring event logic).
+            if (currentStart.isBefore(end) && currentEnd.isAfter(start)) {
               events.push({
                 start: currentStart.toISOString(),
-                end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
+                end: currentEnd.toISOString(),
                 title,
               });
             }
@@ -314,7 +318,8 @@ class ProtonCalendarService implements Calendar {
             const startISO = dayjs.tz(currentEvent.startDate.toString().slice(0, 19), effectiveTzid).toISOString();
             const endISO = dayjs.tz(currentEvent.endDate.toString().slice(0, 19), effectiveTzid).toISOString();
             currentStart = dayjs(startISO);
-            if (currentStart.isBetween(start, end) === true) {
+            // Use overlap detection (same as vtimezone branch and non-recurring path).
+            if (currentStart.isBefore(end) && dayjs(endISO).isAfter(start)) {
               events.push({ start: startISO, end: endISO, title });
             }
           }

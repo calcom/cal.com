@@ -59,6 +59,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const trimmedUrl = url.trim();
 
+  const encryptionKey = process.env.CALENDSO_ENCRYPTION_KEY;
+  if (!encryptionKey) {
+    logger.error("CALENDSO_ENCRYPTION_KEY is not set");
+    return res.status(500).json({ message: "Server configuration error" });
+  }
+
   const user = await prisma.user.findFirstOrThrow({
     where: {
       id: req.session?.user?.id,
@@ -73,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     type: appConfig.type,
     key: symmetricEncrypt(
       JSON.stringify({ url: trimmedUrl }),
-      process.env.CALENDSO_ENCRYPTION_KEY || ""
+      encryptionKey
     ),
     userId: user.id,
     teamId: null,
