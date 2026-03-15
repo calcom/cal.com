@@ -11,7 +11,7 @@ import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 export default function WaylSetup(props: IWaylSetupProps) {
-  const [apiKey, setApiKey] = useState(props.apiKey || "");
+  const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useCompatSearchParams();
@@ -76,7 +76,7 @@ export default function WaylSetup(props: IWaylSetupProps) {
               />
             </div>
             <Button type="submit" loading={loading} disabled={!apiKey || loading}>
-              {props.apiKey ? "Update API Key" : "Connect Wayl"}
+              {props.hasApiKey ? "Update API Key" : "Connect Wayl"}
             </Button>
           </form>
         </div>

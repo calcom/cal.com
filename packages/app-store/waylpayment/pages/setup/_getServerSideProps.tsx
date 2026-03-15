@@ -4,7 +4,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
 export type IWaylSetupProps = {
-  apiKey: string;
+  hasApiKey: boolean;
 };
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -19,7 +19,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     where: { type: "waylpayment_payment", userId: session.user.id },
   });
 
-  const apiKey = (credential?.key as Record<string, string> | null)?.apiKey ?? "";
+  const hasApiKey = !!(credential?.key as Record<string, string> | null)?.encrypted;
 
-  return { props: { apiKey } };
+  return { props: { hasApiKey } };
 };

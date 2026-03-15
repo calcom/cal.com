@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -17,21 +18,30 @@ export interface WaylPaymentData {
   webhookSecret: string;    // per-payment secret used to verify webhook signature
 }
 
-const waylCredentialSchema = {
-  parse(key: unknown): { apiKey: string } | null {
-    if (key && typeof key === "object" && "apiKey" in key && typeof (key as Record<string, unknown>).apiKey === "string") {
-      return { apiKey: (key as Record<string, unknown>).apiKey as string };
+function parseWaylCredential(key: unknown): { apiKey: string } | null {
+  if (!key || typeof key !== "object") return null;
+  const rec = key as Record<string, unknown>;
+  // Encrypted format: { encrypted: "<ciphertext>" }
+  if (typeof rec.encrypted === "string") {
+    try {
+      const decrypted = symmetricDecrypt(rec.encrypted, process.env.CALENDSO_ENCRYPTION_KEY ?? "");
+      const parsed = JSON.parse(decrypted) as unknown;
+      if (parsed && typeof parsed === "object" && "apiKey" in parsed && typeof (parsed as Record<string, unknown>).apiKey === "string") {
+        return { apiKey: (parsed as Record<string, unknown>).apiKey as string };
+      }
+    } catch {
+      return null;
     }
-    return null;
-  },
-};
+  }
+  return null;
+}
 
 class WaylPaymentService implements IAbstractPaymentService {
   private client: WaylClient | null = null;
   private credentials: { apiKey: string } | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    this.credentials = waylCredentialSchema.parse(credentials.key);
+    this.credentials = parseWaylCredential(credentials.key);
     if (this.credentials) {
       this.client = new WaylClient(this.credentials.apiKey);
     }

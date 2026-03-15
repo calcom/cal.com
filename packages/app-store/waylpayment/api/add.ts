@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwIfNotHaveAdminAccessToTeam";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
@@ -72,9 +73,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "Credential not found." });
     }
 
+    const encrypted = symmetricEncrypt(
+      JSON.stringify({ apiKey }),
+      process.env.CALENDSO_ENCRYPTION_KEY ?? ""
+    );
+
     await prisma.credential.update({
       where: { id: credentialId },
-      data: { key: { apiKey } },
+      data: { key: { encrypted } },
     });
 
     return res.status(200).json({ url: "/apps/installed/payment" });

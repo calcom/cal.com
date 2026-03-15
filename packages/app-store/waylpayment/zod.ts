@@ -12,5 +12,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
 );
 
 export const appKeysSchema = z.object({
-  apiKey: z.string().min(1),
+  encrypted: z.string().min(1),
 });
