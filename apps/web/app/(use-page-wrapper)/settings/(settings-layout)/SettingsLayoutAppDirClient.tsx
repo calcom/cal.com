@@ -634,12 +634,12 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     </div>
                     {}
                     {!team.parentId && (
-  <SidebarLogo
-    src={getPlaceholderAvatar(team.logoUrl, team.name)}
-    alt={team.name || "Team logo"}
-    className="self-start ltr:mr-2 rtl:ml-2 md:mt-0"
-  />
-)}
+                        <SidebarLogo
+                          src={getPlaceholderAvatar(team.logoUrl, team.name)}
+                          alt={team.name || "Team logo"}
+                          className="self-start ltr:mr-2 rtl:ml-2 md:mt-0"
+                        />
+                    )}
                     <p className="w-1/2 truncate leading-normal">{team.name}</p>
                     {!team.accepted && (
                       <Badge className="ms-3" variant="orange">
@@ -824,10 +824,10 @@ const SettingsSidebarContainer = ({
                       {}
                       {!tab.icon && tab?.avatar && (
                         <SidebarLogo
-  src={tab?.avatar}
-  alt={tab.name || "Organization logo"}
-  className=" ltr:mr-3 rtl:ml-3"
-/>
+                            src={tab?.avatar}
+                            alt={tab.name || "Organization logo"}
+                            className=" ltr:mr-3 rtl:ml-3"
+                          />
                       )}
                       <Skeleton
                         title={tab.name}
@@ -978,10 +978,10 @@ const SettingsSidebarContainer = ({
                                   {}
                                   {!otherTeam.parentId && (
                                     <SidebarLogo
-  src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-  alt={otherTeam.name || "Team logo"}
-  className="self-start  ltr:mr-2 rtl:ml-2 md:mt-0"
-/>
+                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
+                                      alt={otherTeam.name || "Team logo"}
+                                      className="self-start  ltr:mr-2 rtl:ml-2 md:mt-0"
+                                    />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </button>
