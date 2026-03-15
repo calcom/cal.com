@@ -19,8 +19,8 @@ export default function WaylSetup(props: IWaylSetupProps) {
 
   const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "waylpayment" });
   const [waylCredentials] = integrations.data?.items || [];
-  const [credentialId] = waylCredentials?.userCredentialIds ?? [-1];
-  const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
+  const [credentialId] = waylCredentials?.userCredentialIds ?? [];
+  const showContent = !!integrations.data && integrations.isSuccess && !!credentialId && credentialId > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

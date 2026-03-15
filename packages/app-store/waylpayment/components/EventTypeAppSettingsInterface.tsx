@@ -41,9 +41,12 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             placeholder="e.g. 25000"
             disabled={disabled}
             onChange={(e) => {
-              setAppData("price", parseInt(e.target.value, 10) || 0);
+              // Store in smallest unit (×100) to match Cal.com's convention.
+              // IQD has 3 official decimal places but is used in whole dinars
+              // in practice; we store dinar-value × 100 and convert back on display.
+              setAppData("price", (parseInt(e.target.value, 10) || 0) * 100);
             }}
-            value={price > 0 ? price : undefined}
+            value={price > 0 ? Math.round(price / 100) : undefined}
           />
         </div>
       )}

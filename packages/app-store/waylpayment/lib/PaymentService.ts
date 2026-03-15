@@ -81,14 +81,18 @@ class WaylPaymentService implements IAbstractPaymentService {
 
     const title = eventTitle || booking.title;
 
+    // payment.amount is stored in Cal.com's smallest-unit convention (dinars × 100).
+    // Wayl expects whole IQD dinars, so divide by 100.
+    const amountInDinars = Math.round(payment.amount / 100);
+
     const waylLink = await this.client.createLink({
       referenceId: booking.uid,
-      total: payment.amount,
+      total: amountInDinars,
       currency: "IQD",
       lineItem: [
         {
           label: title,
-          amount: payment.amount,
+          amount: amountInDinars,
           type: "increase",
         },
       ],
