@@ -28,13 +28,25 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import Image from "next/image";
+import { Avatar } from "@calcom/ui/components/avatar";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type { ComponentProps } from "react";
 import React, { useEffect, useMemo, useState } from "react";
 import Shell from "~/shell/Shell";
+
+function SidebarLogo({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  return <Avatar size="xs" imageSrc={src} alt={alt} className={className} />;
+}
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -622,14 +634,12 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     </div>
                     {}
                     {!team.parentId && (
-                      <Image
-                        src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        width={16}
-                        height={16}
-                        className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                        alt={team.name || "Team logo"}
-                      />
-                    )}
+  <SidebarLogo
+    src={getPlaceholderAvatar(team.logoUrl, team.name)}
+    alt={team.name || "Team logo"}
+    className="self-start ltr:mr-2 rtl:ml-2 md:mt-0"
+  />
+)}
                     <p className="w-1/2 truncate leading-normal">{team.name}</p>
                     {!team.accepted && (
                       <Badge className="ms-3" variant="orange">
@@ -813,13 +823,11 @@ const SettingsSidebarContainer = ({
                       )}
                       {}
                       {!tab.icon && tab?.avatar && (
-                        <Image
-                          width={16}
-                          height={16}
-                          className="rounded-full ltr:mr-3 rtl:ml-3"
-                          src={tab?.avatar}
-                          alt="Organization Logo"
-                        />
+                        <SidebarLogo
+  src={tab?.avatar}
+  alt={tab.name || "Organization logo"}
+  className=" ltr:mr-3 rtl:ml-3"
+/>
                       )}
                       <Skeleton
                         title={tab.name}
@@ -969,13 +977,11 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {}
                                   {!otherTeam.parentId && (
-                                    <Image
-                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      width={16}
-                                      height={16}
-                                      className="self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                      alt={otherTeam.name || "Team logo"}
-                                    />
+                                    <SidebarLogo
+  src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
+  alt={otherTeam.name || "Team logo"}
+  className="self-start  ltr:mr-2 rtl:ml-2 md:mt-0"
+/>
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </button>
