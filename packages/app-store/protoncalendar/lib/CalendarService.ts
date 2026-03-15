@@ -308,12 +308,11 @@ class ProtonCalendarService implements Calendar {
           } else {
             // DST-aware conversion: use dayjs.tz() when no VTIMEZONE component exists,
             // avoiding the mis-conversion of a synthetic STANDARD-only component.
-            const startISO = tzid
-              ? dayjs.tz(currentEvent.startDate.toString().slice(0, 19), tzid).toISOString()
-              : dayjs(currentEvent.startDate.toJSDate()).toISOString();
-            const endISO = tzid
-              ? dayjs.tz(currentEvent.endDate.toString().slice(0, 19), tzid).toISOString()
-              : dayjs(currentEvent.endDate.toJSDate()).toISOString();
+            // For floating events (no TZID), interpret in the calendar owner's timezone
+            // rather than the server's runtime-local timezone.
+            const effectiveTzid = tzid ?? userTimeZone;
+            const startISO = dayjs.tz(currentEvent.startDate.toString().slice(0, 19), effectiveTzid).toISOString();
+            const endISO = dayjs.tz(currentEvent.endDate.toString().slice(0, 19), effectiveTzid).toISOString();
             currentStart = dayjs(startISO);
             if (currentStart.isBetween(start, end) === true) {
               events.push({ start: startISO, end: endISO, title });
@@ -333,17 +332,15 @@ class ProtonCalendarService implements Calendar {
       }
 
       // Compute UTC-correct ISO times: use DST-aware dayjs.tz() when no VTIMEZONE
-      // component is available, falling back to toJSDate() for UTC/floating times.
+      // component is available. For floating events (no TZID), interpret in the
+      // calendar owner's timezone (userTimeZone) rather than the runtime-local timezone.
+      const effectiveTzid = tzid ?? userTimeZone;
       const startISO = vtimezone
         ? dayjs(event.startDate.toJSDate()).toISOString()
-        : tzid
-          ? dayjs.tz(event.startDate.toString().slice(0, 19), tzid).toISOString()
-          : dayjs(event.startDate.toJSDate()).toISOString();
+        : dayjs.tz(event.startDate.toString().slice(0, 19), effectiveTzid).toISOString();
       const endISO = vtimezone
         ? dayjs(event.endDate.toJSDate()).toISOString()
-        : tzid
-          ? dayjs.tz(event.endDate.toString().slice(0, 19), tzid).toISOString()
-          : dayjs(event.endDate.toJSDate()).toISOString();
+        : dayjs.tz(event.endDate.toString().slice(0, 19), effectiveTzid).toISOString();
 
       // Only include events that overlap with the requested [dateFrom, dateTo] window.
       if (dayjs(endISO).isBefore(dayjs(dateFrom)) || dayjs(startISO).isAfter(dayjs(dateTo))) {
