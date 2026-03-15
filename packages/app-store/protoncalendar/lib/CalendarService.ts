@@ -288,13 +288,6 @@ class ProtonCalendarService implements Calendar {
         // while a fixed 365-occurrence guard still protects non-HOURLY/MINUTELY
         // recurrences (DAILY/WEEKLY/MONTHLY/YEARLY are bounded by day count).
         let maxIterations = 365;
-        if (event.getRecurrenceTypes() === "HOURLY") {
-          // Hours in the window + 48 h buffer for DST shifts and seeding lookback.
-          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(dateFrom), "hours") + 48);
-        } else if (event.getRecurrenceTypes() === "MINUTELY") {
-          // Minutes in the window + 120 min buffer.
-          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(dateFrom), "minutes") + 120);
-        }
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
@@ -311,6 +304,21 @@ class ProtonCalendarService implements Calendar {
         // Don't seed before the series DTSTART — that wastes iterations on a
         // period where no occurrences can exist.
         const iterStart = seedDate.compare(event.startDate) < 0 ? event.startDate.clone() : seedDate;
+
+        // Calculate the iteration cap AFTER iterStart is known so the full span
+        // from iterStart → dateTo is covered. For HOURLY/MINUTELY events the
+        // iterator must traverse every occurrence from iterStart (which may be
+        // well before dateFrom when looking back for overlapping occurrences)
+        // all the way to dateTo. Using dateFrom→dateTo would under-count and
+        // exhaust the budget before the iterator reaches the query window.
+        if (event.getRecurrenceTypes() === "HOURLY") {
+          // Hours from iterStart to dateTo + 48 h buffer for DST shifts.
+          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "hours") + 48);
+        } else if (event.getRecurrenceTypes() === "MINUTELY") {
+          // Minutes from iterStart to dateTo + 48 h (2 880 min) buffer.
+          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "minutes") + 2880);
+        }
+
         const iterator = event.iterator(iterStart);
         let current: ICAL.Time;
         let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
