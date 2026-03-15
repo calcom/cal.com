@@ -277,6 +277,160 @@ describe("CalendarSyncService", () => {
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     });
 
+    test("should resolve correct recurring instance using originalStartDate and cancel it", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-01T10:00:00Z"),
+      };
+
+      const booking5 = {
+        ...mockBooking,
+        id: 5,
+        uid: "booking-5-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      const cancelEvent: CalendarSubscriptionEventItem = {
+        ...mockCancelledEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        start: new Date("2023-12-29T10:00:00Z"),
+        originalStartDate: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking)
+        .mockResolvedValueOnce(booking5);
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 5, uid: "booking-5-uid" });
+
+      await service.cancelBooking(cancelEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).toHaveBeenCalledWith({
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+      });
+      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+        bookingUid: "booking-5-uid",
+      });
+      expect(mockHandleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({ uid: "booking-5-uid" }),
+        })
+      );
+    });
+
+    test("should fall back to event.start when originalStartDate is null for recurring cancel", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+      };
+
+      const booking3 = {
+        ...mockBooking,
+        id: 3,
+        uid: "booking-3-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-15T10:00:00Z"),
+      };
+
+      const cancelEvent: CalendarSubscriptionEventItem = {
+        ...mockCancelledEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        start: new Date("2023-12-15T10:00:00Z"),
+        originalStartDate: null,
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking)
+        .mockResolvedValueOnce(booking3);
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 3, uid: "booking-3-uid" });
+
+      await service.cancelBooking(cancelEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).toHaveBeenCalledWith({
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-15T10:00:00Z"),
+      });
+      expect(mockHandleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({ uid: "booking-3-uid" }),
+        })
+      );
+    });
+
+    test("should follow reschedule chain when cancelling a rescheduled recurring instance", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+      };
+
+      const booking5 = {
+        ...mockBooking,
+        id: 5,
+        uid: "booking-5-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+        rescheduled: true,
+      };
+
+      const booking5Prime = {
+        ...mockBooking,
+        id: 50,
+        uid: "booking-5-prime-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T14:00:00Z"),
+      };
+
+      const cancelEvent: CalendarSubscriptionEventItem = {
+        ...mockCancelledEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        originalStartDate: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking)
+        .mockResolvedValueOnce(booking5);
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 5, uid: "booking-5-uid" });
+      mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(booking5Prime);
+
+      await service.cancelBooking(cancelEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findLatestBookingInRescheduleChain).toHaveBeenCalledWith({
+        bookingUid: "booking-5-uid",
+      });
+      expect(mockHandleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({ uid: "booking-5-prime-uid" }),
+        })
+      );
+    });
+
+    test("should skip recurring resolution for non-recurring bookings", async () => {
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+
+      await service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).not.toHaveBeenCalled();
+      expect(mockHandleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({ uid: mockBooking.uid }),
+        })
+      );
+    });
+
     test("should handle cancellation errors gracefully without throwing", async () => {
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
       mockHandleCancelBooking.mockRejectedValue(new Error("Cancellation failed"));
@@ -517,6 +671,55 @@ describe("CalendarSyncService", () => {
 
       expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
+    });
+
+    test("should resolve correct recurring instance using originalStartDate and reschedule from it", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-01T10:00:00Z"),
+      };
+
+      const booking5 = {
+        ...mockBooking,
+        id: 5,
+        uid: "booking-5-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      // Instance 5 was moved from 10am to 2pm
+      const rescheduleEvent: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        start: new Date("2023-12-29T14:00:00Z"),
+        end: new Date("2023-12-29T15:00:00Z"),
+        originalStartDate: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking)
+        .mockResolvedValueOnce(booking5);
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 5, uid: "booking-5-uid" });
+
+      await service.rescheduleBooking(rescheduleEvent, mockSelectedCalendar.userId);
+
+      expect(mockBookingRepository.findByRecurringEventIdAndStartTime).toHaveBeenCalledWith({
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+      });
+      expect(mockCreateBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({
+            rescheduleUid: "booking-5-uid",
+            start: "2023-12-29T14:00:00.000Z",
+          }),
+        })
+      );
     });
 
     test("should skip reschedule when event is a different instance in a recurring series", async () => {

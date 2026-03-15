@@ -86,10 +86,48 @@ export class CalendarSyncService {
     }
 
     try {
-      const booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+      let booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
       if (!booking) {
         log.debug("Unable to sync, booking not found in database", { bookingUid });
         return;
+      }
+
+      // For recurring bookings, all instances share the same iCalUID (from booking 1).
+      // Use the event's time to resolve the correct instance that was actually cancelled.
+      if (booking.recurringEventId) {
+        const instanceStartTime = event.originalStartDate ?? event.start;
+        if (instanceStartTime) {
+          const correctInstance = await this.deps.bookingRepository.findByRecurringEventIdAndStartTime({
+            recurringEventId: booking.recurringEventId,
+            startTime: instanceStartTime,
+          });
+          if (correctInstance && correctInstance.uid !== booking.uid) {
+            const resolvedBooking = await this.deps.bookingRepository.findBookingByUidWithEventType({
+              bookingUid: correctInstance.uid,
+            });
+            if (resolvedBooking) {
+              log.debug("Resolved recurring instance for cancellation", {
+                originalUid: bookingUid,
+                resolvedUid: resolvedBooking.uid,
+              });
+              booking = resolvedBooking;
+            }
+          }
+        }
+      }
+
+      // Follow the reschedule chain to find the latest active booking
+      if (booking.rescheduled) {
+        const latestBooking = await this.deps.bookingRepository.findLatestBookingInRescheduleChain({
+          bookingUid: booking.uid,
+        });
+        if (latestBooking) {
+          log.debug("Resolved reschedule chain to latest booking for cancellation", {
+            originalUid: booking.uid,
+            latestUid: latestBooking.uid,
+          });
+          booking = latestBooking;
+        }
       }
 
       if (booking.userId !== calendarUserId) {
@@ -168,6 +206,27 @@ export class CalendarSyncService {
         return;
       }
 
+      // For recurring bookings, all instances share the same iCalUID (from booking 1).
+      // Use originalStartDate to resolve the correct instance that was modified.
+      if (booking.recurringEventId && event.originalStartDate) {
+        const correctInstance = await this.deps.bookingRepository.findByRecurringEventIdAndStartTime({
+          recurringEventId: booking.recurringEventId,
+          startTime: event.originalStartDate,
+        });
+        if (correctInstance) {
+          const resolvedBooking = await this.deps.bookingRepository.findBookingByUidWithEventType({
+            bookingUid: correctInstance.uid,
+          });
+          if (resolvedBooking) {
+            log.debug("Resolved recurring instance for reschedule", {
+              originalUid: bookingUid,
+              resolvedUid: resolvedBooking.uid,
+            });
+            booking = resolvedBooking;
+          }
+        }
+      }
+
       // The iCalUID references the original booking, but it may have been rescheduled already.
       // Follow the reschedule chain to find the latest active booking so we compare
       // against the correct startTime and reschedule from the right booking.
@@ -209,13 +268,10 @@ export class CalendarSyncService {
         return;
       }
 
-      // For recurring bookings, all Google Calendar instances of a recurring event share the same
-      // iCalUID (from the first booking). When webhook notifications arrive, the sync service
-      // resolves each instance to the first booking's UID. Since later instances have different
-      // start times, hasStartTimeChanged returns true and incorrectly triggers a reschedule.
-      // To prevent this, check if another booking in the same recurring series already exists
-      // at the event's start time — if so, this is just a different instance, not a real reschedule.
-      if (booking.recurringEventId && event.start) {
+      // Fallback for recurring bookings when originalStartDate is unavailable.
+      // All instances share the same iCalUID. Without originalStartDate, check if another
+      // booking in the series exists at the event's start time to avoid false reschedules.
+      if (booking.recurringEventId && event.start && !event.originalStartDate) {
         const existingBookingAtEventTime =
           await this.deps.bookingRepository.findByRecurringEventIdAndStartTime({
             recurringEventId: booking.recurringEventId,
