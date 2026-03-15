@@ -215,12 +215,47 @@ class ProtonCalendarService implements Calendar {
       }
     });
 
+    // Build a map of non-cancelled exception VEVENTs (those with RECURRENCE-ID) by UID.
+    // These represent modified occurrences in a recurring series. We must relate them to
+    // the master event so the iterator substitutes modified times/details during expansion,
+    // rather than treating them as independent events (which causes duplicates).
+    const exceptionsByUID = new Map<string, ICAL.Component[]>();
+    const masterUIDs = new Set<string>();
+    vevents.forEach((vevent) => {
+      const status = vevent.getFirstPropertyValue("status") as string | null;
+      if (status && String(status).toUpperCase() === "CANCELLED") return;
+      const recurrenceId = vevent.getFirstPropertyValue("recurrence-id") as ICAL.Time | null;
+      const uid = (vevent.getFirstPropertyValue("uid") as string | null) ?? "";
+      if (recurrenceId) {
+        if (!exceptionsByUID.has(uid)) exceptionsByUID.set(uid, []);
+        exceptionsByUID.get(uid)!.push(vevent);
+      } else {
+        masterUIDs.add(uid);
+      }
+    });
+
     vevents.forEach((vevent) => {
       // Skip cancelled events (Proton marks cancelled recurring instances with STATUS:CANCELLED)
       const status = vevent.getFirstPropertyValue("status") as string | null;
       if (status && String(status).toUpperCase() === "CANCELLED") return;
 
+      // Skip exception VEVENTs (those with RECURRENCE-ID) when the master VEVENT is present.
+      // They are related to the master event below and handled by the iterator automatically.
+      const recurrenceId = vevent.getFirstPropertyValue("recurrence-id") as ICAL.Time | null;
+      if (recurrenceId) {
+        const uid = (vevent.getFirstPropertyValue("uid") as string | null) ?? "";
+        if (masterUIDs.has(uid)) return;
+      }
+
       const event = new ICAL.Event(vevent);
+
+      // Relate non-cancelled exception VEVENTs (modified occurrences) to this master event
+      // so the recurrence iterator correctly substitutes their modified times/details.
+      const uid = (vevent.getFirstPropertyValue("uid") as string | null) ?? "";
+      for (const exVevent of exceptionsByUID.get(uid) ?? []) {
+        try { event.relateException(new ICAL.Event(exVevent)); } catch { /* ignore malformed */ }
+      }
+
       const title = String(vevent.getFirstPropertyValue("summary") ?? "");
       const dtstartProperty = vevent.getFirstProperty("dtstart");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -261,11 +296,20 @@ class ProtonCalendarService implements Calendar {
 
         const start = dayjs(dateFrom);
         const end = dayjs(dateTo);
-        const startDate = ICAL.Time.fromDateTimeString(startISOString);
-        startDate.hour = event.startDate.hour;
-        startDate.minute = event.startDate.minute;
-        startDate.second = event.startDate.second;
-        const iterator = event.iterator(startDate);
+        // Seed the iterator back by the event's duration so occurrences that
+        // start before dateFrom but still overlap the window are not missed.
+        // For example, a 2-day event beginning one day before dateFrom would
+        // be skipped if we seeded at dateFrom.
+        const seedDate = ICAL.Time.fromDateTimeString(startISOString);
+        if (event.duration && event.duration.toSeconds() > 0) {
+          const lookback = event.duration.clone();
+          lookback.isNegative = true;
+          seedDate.addDuration(lookback);
+        }
+        // Don't seed before the series DTSTART — that wastes iterations on a
+        // period where no occurrences can exist.
+        const iterStart = seedDate.compare(event.startDate) < 0 ? event.startDate.clone() : seedDate;
+        const iterator = event.iterator(iterStart);
         let current: ICAL.Time;
         let currentEvent: ReturnType<typeof event.getOccurrenceDetails> | undefined;
         let currentStart = null;
@@ -347,8 +391,10 @@ class ProtonCalendarService implements Calendar {
         ? dayjs(event.endDate.toJSDate()).toISOString()
         : dayjs.tz(event.endDate.toString().slice(0, 19), effectiveTzid).toISOString();
 
-      // Only include events that overlap with the requested [dateFrom, dateTo] window.
-      if (dayjs(endISO).isBefore(dayjs(dateFrom)) || dayjs(startISO).isAfter(dayjs(dateTo))) {
+      // Only include events that strictly overlap [dateFrom, dateTo].
+      // Use exclusive boundaries: end > dateFrom AND start < dateTo.
+      // Events that end exactly at dateFrom or start exactly at dateTo are NOT busy.
+      if (!dayjs(endISO).isAfter(dayjs(dateFrom)) || !dayjs(startISO).isBefore(dayjs(dateTo))) {
         return;
       }
 

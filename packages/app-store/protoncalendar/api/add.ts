@@ -103,7 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data,
     });
   } catch (e) {
-    logger.error("Could not add Proton Calendar ICS feed", e);
+    // Redact the ICS feed URL from logs — it may contain auth tokens.
+    const rawMessage = e instanceof Error ? e.message : String(e);
+    const safeMessage = rawMessage.replace(/https?:\/\/[^\s)]+/g, "[URL]");
+    logger.error("Could not add Proton Calendar ICS feed", { reason: safeMessage });
     const errorMessage = e instanceof Error ? e.message : "Unknown error";
     // Surface friendly messages for auth errors
     if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
