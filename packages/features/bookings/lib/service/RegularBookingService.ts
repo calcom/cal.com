@@ -753,16 +753,20 @@ async function handler(
   // Allow callers to force-confirm a booking even when the event type requires confirmation.
   // When forceConfirm is true, the booking is created as ACCEPTED regardless of requiresConfirmation.
   // Security Fix: Only the event type owner or an admin can use the forceConfirm flag.
-  const isOwner = !!(userId && (eventType.userId === userId || eventType.users?.some((u) => u.id === userId)));
-  let callerIsOwnerOrAdmin = isOwner;
-  if (!callerIsOwnerOrAdmin && userId) {
-    const caller = await deps.prismaClient.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
-    callerIsOwnerOrAdmin = caller?.role === UserPermissionRole.ADMIN;
+  if (forceConfirm) {
+    const isOwner = !!(userId && (eventType.userId === userId || eventType.users?.some((u) => u.id === userId)));
+    let callerIsOwnerOrAdmin = isOwner;
+    if (!callerIsOwnerOrAdmin && userId) {
+      const caller = await deps.prismaClient.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+      callerIsOwnerOrAdmin = caller?.role === UserPermissionRole.ADMIN;
+    }
+    if (!callerIsOwnerOrAdmin) forceConfirm = false;
   }
-  const isConfirmedByDefault = isConfirmedByDefaultFromFlags || (!!forceConfirm && callerIsOwnerOrAdmin);
+
+  const isConfirmedByDefault = isConfirmedByDefaultFromFlags || !!forceConfirm;
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
   if (
