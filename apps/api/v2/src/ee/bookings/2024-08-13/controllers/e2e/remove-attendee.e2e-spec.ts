@@ -240,6 +240,13 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
       testSetup.secondaryAttendeeId = secondaryAttendee.id;
     });
 
+    async function getAttendeeCountByBookingUid(bookingUid: string): Promise<number> {
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+      if (!booking) throw new Error(`Booking ${bookingUid} not found`);
+      const attendees = await bookingsRepositoryFixture.getAttendeesByBookingId(booking.id);
+      return attendees.length;
+    }
+
     describe("Authentication", () => {
       it("should return 401 when removing attendee without authentication", async () => {
         const removeAttendeeResponse = await request(app.getHttpServer())
@@ -247,6 +254,9 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
         expect(removeAttendeeResponse.status).toBe(401);
+
+        const attendeeCount = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCount).toEqual(2);
       });
     });
 
@@ -257,6 +267,9 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
           .expect(403);
+
+        const attendeeCount = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCount).toEqual(2);
       });
     });
 
@@ -269,6 +282,9 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
 
         expect(removeAttendeeResponse.status).toEqual(400);
         expect(removeAttendeeResponse.body.status).toEqual(ERROR_STATUS);
+
+        const attendeeCount = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCount).toEqual(2);
       });
 
       it("should return 404 when trying to remove non-existent attendee", async () => {
@@ -280,6 +296,9 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
 
         expect(removeAttendeeResponse.status).toEqual(404);
+
+        const attendeeCount = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCount).toEqual(2);
       });
 
       it("should return 404 when booking does not exist", async () => {
@@ -291,12 +310,18 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
 
         expect(removeAttendeeResponse.status).toEqual(404);
+
+        const attendeeCount = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCount).toEqual(2);
       });
     });
 
     describe("Success cases", () => {
       it("should allow organizer to remove secondary attendee", async () => {
         attendeeCancelledEmailSpy.mockClear();
+
+        const attendeeCountBefore = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCountBefore).toEqual(2);
 
         const removeAttendeeResponse = await request(app.getHttpServer())
           .delete(`/v2/bookings/${testSetup.bookingUid}/attendees/${testSetup.secondaryAttendeeId}`)
@@ -311,6 +336,15 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
         expect(removeAttendeeResponseBody.data.email).toEqual("secondary.guest@example.com");
         expect(removeAttendeeResponseBody.data.name).toEqual("Secondary Guest");
         expect(removeAttendeeResponseBody.data.timeZone).toEqual("America/New_York");
+
+        // Verify attendee was removed from DB
+        const attendeeCountAfter = await getAttendeeCountByBookingUid(testSetup.bookingUid);
+        expect(attendeeCountAfter).toEqual(1);
+
+        // Verify the remaining attendee is the primary one
+        const booking = await bookingsRepositoryFixture.getByUid(testSetup.bookingUid);
+        const remainingAttendees = await bookingsRepositoryFixture.getAttendeesByBookingId(booking!.id);
+        expect(remainingAttendees[0].email).toEqual("primary.attendee@gmail.com");
 
         // Verify email was sent
         expect(attendeeCancelledEmailSpy).toHaveBeenCalled();
@@ -448,6 +482,12 @@ describe("Bookings Endpoints 2024-08-13 remove attendee", () => {
 
       expect(removeAttendeeResponseBody.status).toEqual(SUCCESS_STATUS);
       expect(removeAttendeeResponseBody.data.email).toEqual("no-email.secondary@example.com");
+
+      // Verify attendee was removed from DB
+      const booking = await bookingsRepositoryFixture.getByUid(emailsDisabledSetup.bookingUid);
+      const remainingAttendees = await bookingsRepositoryFixture.getAttendeesByBookingId(booking!.id);
+      expect(remainingAttendees).toHaveLength(1);
+      expect(remainingAttendees[0].email).toEqual("no.email.primary@gmail.com");
 
       // Verify email was NOT sent
       expect(attendeeCancelledEmailSpy).not.toHaveBeenCalled();
