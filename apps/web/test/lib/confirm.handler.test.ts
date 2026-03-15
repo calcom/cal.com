@@ -131,6 +131,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor: makeUserActor(ctx.user.uuid),
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -230,6 +231,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -357,6 +359,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -467,6 +470,7 @@ describe("confirmHandler", () => {
           emailsEnabled: false,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -592,6 +596,7 @@ describe("confirmHandler", () => {
           emailsEnabled: false,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
