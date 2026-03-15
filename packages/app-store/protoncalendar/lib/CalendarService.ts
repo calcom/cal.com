@@ -309,12 +309,39 @@ class ProtonCalendarService implements Calendar {
         // well before dateFrom when looking back for overlapping occurrences)
         // all the way to dateTo. Using dateFrom→dateTo would under-count and
         // exhaust the budget before the iterator reaches the query window.
+        // Hard cap prevents runaway iteration on very long spans (DoS protection).
+        const MAX_RECURRENCE_ITERATIONS = 100_000;
+
+        // Return the number of occurrences generated per frequency period by
+        // BYMINUTE (for HOURLY) or BYSECOND (for MINUTELY) expansion rules.
+        // Without this, a rule like FREQ=HOURLY;BYMINUTE=0,15,30,45 produces
+        // 4 occurrences per hour but the plain-hours budget only allows 1,
+        // causing the iterator to stop early and miss conflict windows.
+        const getByExpansionFactor = (freq: "HOURLY" | "MINUTELY"): number => {
+          try {
+            const rrule = event.component.getFirstPropertyValue("rrule") as ICAL.Recur;
+            const json = rrule?.toJSON?.();
+            if (!json) return 1;
+            const raw = freq === "HOURLY" ? json.byminute : json.bysecond;
+            if (!raw) return 1;
+            const vals = Array.isArray(raw) ? raw : [raw];
+            return Math.max(1, vals.length);
+          } catch {
+            return 1;
+          }
+        };
+
         if (event.getRecurrenceTypes() === "HOURLY") {
-          // Hours from iterStart to dateTo + 48 h buffer for DST shifts.
-          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "hours") + 48);
+          // Hours from iterStart to dateTo + 48 h buffer for DST shifts,
+          // multiplied by the BYMINUTE expansion factor so every occurrence
+          // within the window is reachable.
+          const hours = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "hours") + 48);
+          maxIterations = Math.min(hours * getByExpansionFactor("HOURLY"), MAX_RECURRENCE_ITERATIONS);
         } else if (event.getRecurrenceTypes() === "MINUTELY") {
-          // Minutes from iterStart to dateTo + 48 h (2 880 min) buffer.
-          maxIterations = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "minutes") + 2880);
+          // Minutes from iterStart to dateTo + 48 h (2 880 min) buffer,
+          // multiplied by the BYSECOND expansion factor.
+          const minutes = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "minutes") + 2880);
+          maxIterations = Math.min(minutes * getByExpansionFactor("MINUTELY"), MAX_RECURRENCE_ITERATIONS);
         }
 
         const iterator = event.iterator(iterStart);
