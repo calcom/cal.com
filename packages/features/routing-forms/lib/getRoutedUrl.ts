@@ -4,7 +4,7 @@ import { stringify } from "node:querystring";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getSerializableFormWithoutTeamMembers } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
@@ -127,7 +127,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   }
 
   const getSerializableFormStart = performance.now();
-  const serializableForm = await getSerializableForm({
+  const serializableForm = await getSerializableFormWithoutTeamMembers({
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
   timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;

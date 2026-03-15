@@ -127,10 +127,13 @@ function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: numb
  */
 export async function _onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & {
-      user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
-      userWithEmails?: string[];
-    },
+    Omit<
+      SerializableForm<App_RoutingForms_Form> & {
+        user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
+        userWithEmails?: string[];
+      },
+      "teamMembers"
+    >,
     "fields"
   >,
   response: FormResponse,
@@ -329,18 +332,21 @@ export async function _onFormSubmission(
 }
 export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
-export type TargetRoutingFormForResponse= SerializableForm<
-  App_RoutingForms_Form & {
-    user: {
-      id: number;
-      email: string;
-      timeFormat: number | null;
-      locale: string | null;
-    };
-    team: {
-      parentId: number | null;
-    } | null;
-  }
+export type TargetRoutingFormForResponse = Omit<
+  SerializableForm<
+    App_RoutingForms_Form & {
+      user: {
+        id: number;
+        email: string;
+        timeFormat: number | null;
+        locale: string | null;
+      };
+      team: {
+        parentId: number | null;
+      } | null;
+    }
+  >,
+  "teamMembers"
 >;
 
 /**

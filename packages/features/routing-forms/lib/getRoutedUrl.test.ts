@@ -3,7 +3,7 @@ import "@calcom/lib/__mocks__/logger";
 import { createHash } from "node:crypto";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getSerializableFormWithoutTeamMembers } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -132,7 +132,7 @@ describe("getRoutedUrl", () => {
       });
     }
     vi.mocked(isAuthorizedToViewFormOnOrgDomain).mockReturnValue(true);
-    vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
+    vi.mocked(getSerializableFormWithoutTeamMembers).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);
     vi.mocked(handleResponse).mockResolvedValue({
       teamMembersMatchingAttributeLogic: null,
@@ -193,7 +193,7 @@ describe("getRoutedUrl", () => {
     vi.mocked(PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg).mockResolvedValue(
       mockForm as never
     );
-    vi.mocked(getSerializableForm).mockResolvedValue(mockSerializableForm as never);
+    vi.mocked(getSerializableFormWithoutTeamMembers).mockResolvedValue(mockSerializableForm as never);
     vi.mocked(findMatchingRoute).mockReturnValue(null);
 
     const context = mockContext({});

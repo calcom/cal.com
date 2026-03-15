@@ -19,12 +19,22 @@ const log = logger.getSubLogger({ prefix: ["getSerializableForm"] });
 /**
  * Doesn't have deleted fields by default
  */
+export async function getSerializableFormWithoutTeamMembers<TForm extends App_RoutingForms_Form>(args: {
+  form: TForm;
+  withDeletedFields?: boolean;
+}): Promise<Omit<SerializableForm<TForm>, "teamMembers">> {
+  const { teamMembers: _, ...rest } = await getSerializableForm({ ...args, withTeamMembers: false });
+  return rest;
+}
+
 export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   form,
   withDeletedFields = false,
+  withTeamMembers = true,
 }: {
   form: TForm;
   withDeletedFields?: boolean;
+  withTeamMembers?: boolean;
 }) {
   const prisma = (await import("@calcom/prisma")).default;
   const routesParsed = zodRoutes.safeParse(form.routes);
@@ -67,7 +77,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   const finalFields = fields.map((field) => getFieldWithOptions(field));
 
   let teamMembers: SerializableFormTeamMembers[] = [];
-  if (form.teamId) {
+  if (withTeamMembers && form.teamId) {
     teamMembers = await prisma.user.findMany({
       where: {
         teams: {
@@ -123,7 +133,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
           throw new Error(`Form - ${route.id}, being used as router, not found`);
         }
 
-        const parsedRouter = await getSerializableForm({ form: router });
+        const parsedRouter = await getSerializableForm({ form: router, withTeamMembers });
 
         routers.push({
           name: parsedRouter.name,
