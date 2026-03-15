@@ -19,6 +19,10 @@ vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
   onEventTypeChange: vi.fn(),
 }));
 
+vi.mock("@calcom/app-store/_utils/getDefaultLocations", () => ({
+  getDefaultLocations: vi.fn().mockResolvedValue([]),
+}));
+
 describe("createHandler", () => {
   type CreateHandlerInput = Parameters<typeof createHandler>[0];
 
