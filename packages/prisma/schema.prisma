@@ -2172,16 +2172,87 @@ model UserHolidaySettings {
 }
 
 model UserAbuseScore {
-  id             Int       @id @default(autoincrement())
-  userId         Int       @unique
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  score          Int       @default(0)
+  id             Int               @id @default(autoincrement())
+  userId         Int               @unique
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score          Int               @default(0)
   abuseData      Json?
+  signals        UserAbuseSignal[]
   lastAnalyzedAt DateTime?
   lockedAt       DateTime?
   lockedReason   String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([lockedAt])
+}
+
+model AbuseRuleGroup {
+  id          String               @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  matchAll    Boolean              @default(true)
+  weight      Int
+  autoLock    Boolean              @default(false)
+  enabled     Boolean              @default(true)
+  description String?
+  conditions  AbuseRuleCondition[]
+  createdById Int?
+  updatedById Int?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model AbuseRuleCondition {
+  id        String         @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  groupId   String         @db.Uuid
+  group     AbuseRuleGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  field     String
+  operator  String
+  value     String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([groupId])
+}
+
+model AbuseScoringConfig {
+  id                   Int      @id @default(1)
+  alertThreshold       Int      @default(50)
+  lockThreshold        Int      @default(80)
+  monitoringWindowDays Int      @default(7)
+  updatedById          Int?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+enum AbuseRuleAuditAction {
+  CREATED @map("created")
+  UPDATED @map("updated")
+  DELETED @map("deleted")
+}
+
+model AbuseRuleAudit {
+  id          String               @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  ruleGroupId String?              @db.Uuid
+  action      AbuseRuleAuditAction
+  details     String?
+  createdById Int?
+  createdAt   DateTime             @default(now())
+
+  @@index([ruleGroupId])
+  @@index([createdById])
+}
+
+model UserAbuseSignal {
+  id           String         @id @default(dbgenerated("uuidv7()")) @db.Uuid
+  abuseScoreId Int
+  abuseScore   UserAbuseScore @relation(fields: [abuseScoreId], references: [id], onDelete: Cascade)
+  type         String
+  weight       Int
+  context      String
+  createdAt    DateTime       @default(now())
+
+  @@unique([abuseScoreId, type])
+  @@index([abuseScoreId])
 }
 
 // Holiday cache for Google Calendar public holidays
