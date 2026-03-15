@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../../../types/ical.d.ts"/>
 
+import crypto from "node:crypto";
 import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -14,6 +15,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
+import { getUserTimezoneFromDB, getUserId } from "../../_utils/calendars/icsCalendarUtils";
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
@@ -168,20 +170,6 @@ class ProtonCalendarService implements Calendar {
     };
   };
 
-  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { timeZone: true },
-    });
-    return user?.timeZone;
-  };
-
-  getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
-    if (selectedCalendars.length === 0) return null;
-    return selectedCalendars[0].userId || null;
-  };
-
   async getAvailability(params: GetAvailabilityParams): Promise<EventBusyDate[]> {
     const { dateFrom, dateTo, selectedCalendars } = params;
     const startISOString = new Date(dateFrom).toISOString();
@@ -190,8 +178,8 @@ class ProtonCalendarService implements Calendar {
     if (!calendarData) return [];
 
     const { vcalendar } = calendarData;
-    const userId = this.getUserId(selectedCalendars);
-    const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
+    const userId = getUserId(selectedCalendars);
+    const userTimeZone = userId ? await getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
     const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -288,10 +276,18 @@ class ProtonCalendarService implements Calendar {
       applyTravelDuration(event, getTravelDurationInSeconds(vevent));
 
       if (event.isRecurring()) {
-        let maxIterations = 365;
-        if (["HOURLY", "SECONDLY", "MINUTELY"].includes(event.getRecurrenceTypes())) {
-          console.error(`Won't handle [${event.getRecurrenceTypes()}] recurrence in Proton Calendar`);
+        // SECONDLY events are impractical to iterate (86 400/day) — skip them.
+        // HOURLY and MINUTELY are valid busy-time contributors; increase the
+        // iteration cap so the window is fully covered without blowing the guard.
+        if (event.getRecurrenceTypes() === "SECONDLY") {
+          console.error("Won't handle SECONDLY recurrence in Proton Calendar");
           return;
+        }
+        let maxIterations = 365;
+        if (event.getRecurrenceTypes() === "HOURLY") {
+          maxIterations = 8760; // up to 1 year of hourly occurrences
+        } else if (event.getRecurrenceTypes() === "MINUTELY") {
+          maxIterations = 10080; // up to 1 week of minutely occurrences
         }
 
         const start = dayjs(dateFrom);
@@ -410,11 +406,15 @@ class ProtonCalendarService implements Calendar {
 
     const { url, vcalendar } = calendarData;
     const name: string = vcalendar.getFirstPropertyValue("x-wr-calname") ?? "Proton Calendar";
+    // Hash the ICS URL to derive a stable, opaque external ID.
+    // The raw URL is a Proton sharing secret that must not be stored or
+    // displayed in plain text via API/UI flows that expose externalId.
+    const feedId = crypto.createHash("sha256").update(url).digest("hex").slice(0, 32);
     return [
       {
         name,
         readOnly: true,
-        externalId: url,
+        externalId: `proton-${feedId}`,
         integration: this.integrationName,
       },
     ];
