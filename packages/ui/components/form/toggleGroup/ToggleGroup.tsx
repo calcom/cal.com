@@ -1,9 +1,7 @@
-import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
-import type { ReactNode } from "react";
-import { useState } from "react";
-
 import classNames from "@calcom/ui/classNames";
-
+import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
+import type { ReactElement, ReactNode } from "react";
+import { useState } from "react";
 import { Tooltip } from "../../tooltip/Tooltip";
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
@@ -24,7 +22,7 @@ const OptionalTooltipWrapper = ({
   children,
   tooltipText,
 }: {
-  children: ReactNode;
+  children: ReactElement;
   tooltipText?: ReactNode;
 }) => {
   if (tooltipText) {

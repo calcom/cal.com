@@ -6,7 +6,7 @@ import type React from "react";
 import type { ReactNode } from "react";
 import { Tooltip } from "../../tooltip";
 
-const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
+const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactElement }) => {
   if (!tooltip) {
     return <>{children}</>;
   }
