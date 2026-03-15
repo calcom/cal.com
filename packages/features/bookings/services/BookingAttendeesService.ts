@@ -199,34 +199,13 @@ export class BookingAttendeesService {
     actionSource,
   }: RemoveAttendeeInput): Promise<RemovedAttendee> {
     const booking = await getBooking(bookingId);
-
     await validateUserPermissions(booking, user);
 
-    const attendeeToRemove = booking.attendees.find(
-      (attendee) => attendee.id === attendeeId
+    const attendeeToRemove = this.findAndValidateAttendee(booking, attendeeId);
+    const remainingAttendees = booking.attendees.filter(
+      (a) => a.id !== attendeeId
     );
-
-    if (!attendeeToRemove) {
-      throw ErrorWithCode.Factory.NotFound("attendee_not_found");
-    }
-
-    const sortedAttendees = [...booking.attendees].sort((a, b) => a.id - b.id);
-    const primaryAttendee = sortedAttendees[0];
-
-    if (primaryAttendee && attendeeToRemove.id === primaryAttendee.id) {
-      throw ErrorWithCode.Factory.BadRequest("cannot_remove_primary_attendee");
-    }
-
-    const organizer = await getOrganizerData(booking.userId);
-
-    const attendeesList = await prepareAttendeesList(
-      booking.attendees.filter((a) => a.id !== attendeeId)
-    );
-    const evt = await buildCalendarEvent(booking, organizer, attendeesList);
-    const removedAttendeePerson = await this.prepareAttendeePerson(
-      attendeeToRemove
-    );
-
+    const attendeesList = await prepareAttendeesList(remainingAttendees);
     await this.removeAttendeeFromBooking(
       bookingId,
       attendeeId,
@@ -234,10 +213,16 @@ export class BookingAttendeesService {
       booking
     );
 
+    const organizer = await getOrganizerData(booking.userId);
+
+    const evt = await buildCalendarEvent(booking, organizer, attendeesList);
     await updateCalendarEvent(booking, evt);
 
     if (emailsEnabled) {
-      await this.sendCancelledEmailToAttendee(evt, removedAttendeePerson);
+      this.prepareAttendeePerson(attendeeToRemove).then(
+        (removedAttendeePerson) =>
+          this.sendCancelledEmailToAttendee(evt, removedAttendeePerson)
+      );
     }
 
     const bookingEventHandlerService = getBookingEventHandlerService();
@@ -250,11 +235,6 @@ export class BookingAttendeesService {
         )
       : false;
 
-    const oldAttendeeEmails = booking.attendees.map((a) => a.email);
-    const newAttendeeEmails = booking.attendees
-      .filter((a) => a.id !== attendeeId)
-      .map((a) => a.email);
-
     await bookingEventHandlerService.onAttendeeRemoved({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
@@ -262,8 +242,8 @@ export class BookingAttendeesService {
       source: actionSource,
       auditData: {
         attendees: {
-          old: oldAttendeeEmails,
-          new: newAttendeeEmails,
+          old: booking.attendees.map((a) => a.email),
+          new: remainingAttendees.map((a) => a.email),
         },
       },
       isBookingAuditEnabled,
@@ -276,6 +256,26 @@ export class BookingAttendeesService {
       email: attendeeToRemove.email,
       timeZone: attendeeToRemove.timeZone,
     };
+  }
+
+  private findAndValidateAttendee(
+    booking: Booking,
+    attendeeId: number
+  ): Booking["attendees"][number] {
+    const attendee = booking.attendees.find((a) => a.id === attendeeId);
+
+    if (!attendee) {
+      throw ErrorWithCode.Factory.NotFound("attendee_not_found");
+    }
+
+    const sortedAttendees = [...booking.attendees].sort((a, b) => a.id - b.id);
+    const primaryAttendee = sortedAttendees[0];
+
+    if (primaryAttendee && attendee.id === primaryAttendee.id) {
+      throw ErrorWithCode.Factory.BadRequest("cannot_remove_primary_attendee");
+    }
+
+    return attendee;
   }
 
   private async sendAttendeeNotification(
