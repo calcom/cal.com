@@ -13,7 +13,7 @@
   "categories": ["automation"],
   "publisher": "Famulor",
   "email": "support@famulor.io",
-  "description": "Enable your AI assistant to seamlessly schedule meetings and appointments using [Cal.com](https://cal.com) integration. Famulor.io AI assistants can check availability and book meetings directly during calls.",
+  "description": "AI voice agents with seamless Cal.com scheduling integration.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "link-as-an-app"
