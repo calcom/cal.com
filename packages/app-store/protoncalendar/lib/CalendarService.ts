@@ -15,27 +15,12 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
-import { getUserTimezoneFromDB, getUserId } from "../../_utils/calendars/icsCalendarUtils";
-
-// for Apple's Travel Time feature only (for now)
-const getTravelDurationInSeconds = (vevent: ICAL.Component) => {
-  const travelDuration: ICAL.Duration = vevent.getFirstPropertyValue("x-apple-travel-duration");
-  if (!travelDuration) return 0;
-
-  try {
-    const travelSeconds = travelDuration.toSeconds();
-    if (!Number.isInteger(travelSeconds)) return 0;
-    return travelSeconds;
-  } catch {
-    return 0;
-  }
-};
-
-const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
-  if (seconds <= 0) return event;
-  event.startDate.second -= seconds;
-  return event;
-};
+import {
+  getUserTimezoneFromDB,
+  getUserId,
+  getTravelDurationInSeconds,
+  applyTravelDuration,
+} from "../../_utils/calendars/icsCalendarUtils";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
