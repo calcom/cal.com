@@ -36,17 +36,7 @@ import type { ComponentProps } from "react";
 import React, { useEffect, useMemo, useState } from "react";
 import Shell from "~/shell/Shell";
 
-function SidebarLogo({
-  src,
-  alt,
-  className,
-}: {
-  src: string;
-  alt: string;
-  className?: string;
-}) {
-  return <Avatar size="xs" imageSrc={src} alt={alt} className={className} />;
-}
+
 
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
@@ -634,12 +624,13 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     </div>
                     {}
                     {!team.parentId && (
-                        <SidebarLogo
-                          src={getPlaceholderAvatar(team.logoUrl, team.name)}
+                        <Avatar
+                          size="xs"
+                          imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                           alt={team.name || "Team logo"}
                           className="self-start ltr:mr-2 rtl:ml-2 md:mt-0"
                         />
-                    )}
+                      )}
                     <p className="w-1/2 truncate leading-normal">{team.name}</p>
                     {!team.accepted && (
                       <Badge className="ms-3" variant="orange">
@@ -822,12 +813,13 @@ const SettingsSidebarContainer = ({
                         />
                       )}
                       {}
-                      {!tab.icon && tab?.avatar && (
-                        <SidebarLogo
-                            src={tab?.avatar}
-                            alt={tab.name || "Organization logo"}
-                            className=" ltr:mr-3 rtl:ml-3"
-                          />
+                     {!tab.icon && tab?.avatar && (
+                        <Avatar
+                          size="xs"
+                          imageSrc={tab.avatar}
+                          alt={tab.name || "Organization logo"}
+                          className="ltr:mr-3 rtl:ml-3"
+                        />
                       )}
                       <Skeleton
                         title={tab.name}
@@ -976,13 +968,14 @@ const SettingsSidebarContainer = ({
                                     )}
                                   </div>
                                   {}
-                                  {!otherTeam.parentId && (
-                                    <SidebarLogo
-                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      alt={otherTeam.name || "Team logo"}
-                                      className="self-start  ltr:mr-2 rtl:ml-2 md:mt-0"
-                                    />
-                                  )}
+                                    {!otherTeam.parentId && (
+                                      <Avatar
+                                        size="xs"
+                                        imageSrc={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
+                                        alt={otherTeam.name || "Team logo"}
+                                        className="self-start ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      />
+                                    )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
                                 </button>
                               </CollapsibleTrigger>
