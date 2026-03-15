@@ -2660,7 +2660,7 @@
   "three_months": "3 місяці",
   "one_year": "1 рік",
   "team_invite_received": "Вас запрошено приєднатися до команди «{{teamName}}»",
-  "currency_string": "{{сума, валюта}}",
+  "currency_string": "{{amount, currency}}",
   "charge_card_dialog_body": "Ви збираєтеся стягнути з учасника плату в сумі {{amount, currency}}. Продовжити?",
   "charge_attendee": "Стягнути з учасника {{amount, currency}}",
   "payment_app_commission": "Вимагати оплату в сумі ({{paymentFeePercentage}}% + комісія за трансакцію в розмірі {{fee, currency}})",
