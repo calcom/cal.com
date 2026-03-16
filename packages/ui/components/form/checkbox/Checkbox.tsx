@@ -22,14 +22,19 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   descriptionAsSafeHtml?: string;
 };
 
+type CheckboxVariant = "default" | "largeSquare";
+
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
+    variant?: CheckboxVariant;
+  }
+>(({ className, variant = "default", ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
     className={classNames(
-      "border-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer h-4 w-4 shrink-0 rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      "border-brand-default data-[state=checked]:border-brand-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer shrink-0 border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      variant === "largeSquare" ? "h-5 w-5 rounded-none" : "h-4 w-4 rounded-[4px]",
       className
     )}
     {...props}>

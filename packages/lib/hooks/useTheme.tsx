@@ -1,7 +1,7 @@
 import { useTheme as useNextTheme } from "next-themes";
 import { useEffect } from "react";
 
-import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
+import { useEmbedTheme } from "@calid/embed-runtime/embed-iframe";
 import { localStorage } from "@calcom/lib/webstorage";
 
 /**

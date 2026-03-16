@@ -19,7 +19,7 @@ import type { Dispatch, SetStateAction } from "react";
 import React, { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";

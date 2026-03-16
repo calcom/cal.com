@@ -1,5 +1,6 @@
 "use client";
 
+import "./sdk-event";
 import { initFrameBridge, frameActions } from "./iframe/bridge";
 import type { UiOptions, EmbedConfig, BookerEmbedState, SlotQueryStatus } from "./types/shared";
 
@@ -24,6 +25,16 @@ export {
 } from "./iframe/bridge";
 
 export { iframeState as embedStore } from "./iframe/state-store";
+export {
+  createPostMessageRouter,
+  parsePostMessage,
+  sendPostMessage,
+} from "./bus/post-message";
+export type {
+  PostMessageEnvelope,
+  PostMessageHandlers,
+  PostMessageType,
+} from "./bus/post-message";
 
 initFrameBridge();
 

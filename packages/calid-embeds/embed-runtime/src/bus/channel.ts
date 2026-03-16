@@ -54,6 +54,42 @@ type EventMap = {
     actionValue: string;
   };
   navigatedToBooker: Record<string, never>;
+  routing_form_change: {
+    fields: Record<
+      string,
+      {
+        value: number | string | string[];
+        label: string;
+        identifier?: string;
+      }
+    >;
+    lastChangedField: {
+      id: string;
+      identifier: string;
+      label: string;
+      type: string;
+      value: unknown;
+    };
+  };
+  form_submission: {
+    submissionId: string;
+    formId: string;
+    response: Record<
+      string,
+      {
+        value: number | string | string[];
+        label: string;
+        identifier?: string;
+      }
+    >;
+    chosenRouteId?: string;
+    redirectUrl?: string | null;
+    formResponseId?: number | null;
+    queuedFormResponseId?: number | null;
+  };
+  set_calendar_event_type: { eventType: string; fieldIdentifier?: string };
+  set_field_value: { fieldIdentifier: string; value: number | string | string[] };
+  booking_acknowledgement: { submissionId: string; redirect_url?: string };
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;

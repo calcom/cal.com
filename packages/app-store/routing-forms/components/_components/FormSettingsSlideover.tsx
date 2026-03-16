@@ -44,6 +44,8 @@ export const FormSettingsSlideover = ({
       sendUpdatesTo: hookForm.getValues("settings.sendUpdatesTo") || [],
       sendToAll: hookForm.getValues("settings.sendToAll") || false,
       emailOwnerOnSubmission: hookForm.getValues("settings.emailOwnerOnSubmission") || false,
+      waitForBookingAcknowledgement:
+        hookForm.getValues("settings.waitForBookingAcknowledgement") || false,
     },
   });
 
@@ -55,6 +57,10 @@ export const FormSettingsSlideover = ({
     hookForm.setValue("settings.sendUpdatesTo", initialValues.settings.sendUpdatesTo);
     hookForm.setValue("settings.sendToAll", initialValues.settings.sendToAll);
     hookForm.setValue("settings.emailOwnerOnSubmission", initialValues.settings.emailOwnerOnSubmission);
+    hookForm.setValue(
+      "settings.waitForBookingAcknowledgement",
+      initialValues.settings.waitForBookingAcknowledgement
+    );
     onOpenChange(false);
   };
 
@@ -135,6 +141,28 @@ export const FormSettingsSlideover = ({
                 }}
               />
             )}
+          </div>
+
+          <div className="mt-6 flex items-center justify-between gap-2">
+            <label
+              htmlFor="waitForBookingAcknowledgement"
+              className="text-default text-sm font-medium leading-none">
+              Wait for booking acknowledgement before redirect (embed only)
+            </label>
+            <Controller
+              name="settings.waitForBookingAcknowledgement"
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <Switch
+                    size="sm"
+                    id="waitForBookingAcknowledgement"
+                    checked={!!value}
+                    onCheckedChange={(val) => onChange(!!val)}
+                  />
+                );
+              }}
+            />
           </div>
 
           {form.routers.length ? (

@@ -1,4 +1,4 @@
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";

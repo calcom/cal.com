@@ -1,4 +1,5 @@
 import { EventChannel } from "./bus/channel";
+import { createPostMessageRouter, sendPostMessage, type PostMessageEnvelope } from "./bus/post-message";
 import type { EventEnvelope, EventRegistry } from "./bus/channel";
 import { SLOT_STALE_DURATION, IFRAME_FORCE_RELOAD_DURATION, PRERENDER_COOLDOWN_DURATION } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
@@ -40,7 +41,7 @@ customElements.define("cal-inline", Inline);
 
 declare module "*.css" {}
 
-type AppConfig = { calOrigin: string; debug?: boolean; uiDebug?: boolean };
+type AppConfig = { calOrigin: string; debug?: boolean; uiDebug?: boolean; postMessageOrigins?: string[] };
 type ModalElement = Element & { uid?: string };
 
 type SnapshotData = {
@@ -166,6 +167,7 @@ export class Cal {
   calLink: string | null = null;
   embedConfig: EmbedConfig | null = null;
   embedRenderStartTime: number | null = null;
+  postMessageRouter?: ReturnType<typeof createPostMessageRouter>;
 
   static actionBuses: Record<string, EventChannel> = {};
 
@@ -273,6 +275,11 @@ export class Cal {
     this.iframe.contentWindow?.postMessage({ originator: "CAL", method: msg.method, arg: msg.arg }, "*");
   }
 
+  forwardPostMessageToIframe(msg: PostMessageEnvelope): void {
+    if (!this.iframe) return;
+    sendPostMessage(this.iframe.contentWindow as Window, msg, "*");
+  }
+
   constructor(ns: string, q: Queue) {
     console.log("WEBAPPURL: ", WEBAPP_URL);
     this.__config = { calOrigin: WEBAPP_URL };
@@ -281,6 +288,17 @@ export class Cal {
     this.actionManager = new EventChannel(ns);
     Cal.actionBuses = Cal.actionBuses || {};
     Cal.actionBuses[ns] = this.actionManager;
+
+    this.postMessageRouter = createPostMessageRouter({
+      namespace: ns,
+      allowedOrigins: this.__config.postMessageOrigins,
+      handlers: {
+        set_calendar_event_type: (msg) => this.forwardPostMessageToIframe(msg),
+        set_field_value: (msg) => this.forwardPostMessageToIframe(msg),
+        booking_acknowledgement: (msg) => this.forwardPostMessageToIframe(msg),
+      },
+    });
+    this.postMessageRouter.attach();
 
     this.drainQueue(q);
     this.wireListeners();

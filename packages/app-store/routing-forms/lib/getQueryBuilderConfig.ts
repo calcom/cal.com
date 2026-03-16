@@ -46,9 +46,16 @@ export type AttributesQueryBuilderConfigWithRaqbFields = ReturnType<
 
 export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fields">, forReporting = false) {
   const fields: RaqbConfigFields = {};
+  const isSelectLikeField = (type: string) => type === "select" || type === "radio";
+  const isMultiSelectLikeField = (type: string) => type === "multiselect" || type === "checkbox";
+
   form.fields?.forEach((field) => {
     if ("routerField" in field) {
       field = field.routerField;
+    }
+    // Skip layout-only and unsupported fields (UI-only)
+    if (field.type === "divider" || field.type === "heading" || field.type === "paragraph") {
+      return;
     }
     // We can assert the type because otherwise we throw 'Unsupported field type' error
     const fieldType = field.type as (typeof FieldTypes)[number]["value"];
@@ -64,11 +71,15 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
         valueSources: ["value"],
         fieldSettings: {
           // IMPORTANT: listValues must be undefined for non-select/multiselect fields otherwise RAQB doesn't like it. It ends up considering all the text values as per the listValues too which could be empty as well making all values invalid
-          listValues: fieldType === "select" || fieldType === "multiselect" ? options : undefined,
+          listValues: isSelectLikeField(fieldType)
+            ? options
+            : isMultiSelectLikeField(fieldType)
+            ? options
+            : fieldType === "boolean"
+            ? [{ value: "true", title: "Checked" }]
+            : undefined,
         },
       };
-    } else {
-      throw new Error(`Unsupported field type:${field.type}`);
     }
   });
 
