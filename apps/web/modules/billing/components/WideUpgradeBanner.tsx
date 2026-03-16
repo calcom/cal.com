@@ -1,5 +1,6 @@
 "use client";
 
+import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Icon } from "@calcom/ui/components/icon";
@@ -8,7 +9,6 @@ import { Button } from "@coss/ui/components/button";
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
-import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
 import { useState } from "react";
 import type { UpgradeTarget } from "./types";
 
@@ -45,7 +45,8 @@ export type WideUpgradeBannerProps = {
   subtitle: string;
   target: UpgradeTarget;
   size?: "md" | "sm";
-  image: {
+  dismissible?: boolean;
+  image?: {
     src: string;
     width: number;
     height: number;
@@ -64,39 +65,42 @@ export function WideUpgradeBanner({
   subtitle,
   target,
   size = "md",
+  dismissible = true,
   image,
   learnMoreButton,
   children,
 }: WideUpgradeBannerProps) {
   const { t } = useLocale();
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(!dismissible);
   useClientOnly(() => {
-    setVisible(!isDismissed(tracking));
+    if (dismissible) {
+      setVisible(!isDismissed(tracking));
+    }
   });
 
   if (!visible) return null;
 
   return (
     <div className="relative flex w-full overflow-hidden rounded-xl bg-muted border-muted border">
-      <Button
-        variant="ghost"
-        className="absolute right-2 top-2 z-10"
-        onClick={() => {
-          dismiss(tracking);
-          setVisible(false);
-          posthog.capture("large_upgrade_banner_dismissed", { source: tracking, target });
-        }}>
-        {/* This button goes on top of the image, so it's better to force this color */}
-        <Icon name="x" className="h-4 w-4 text-gray-700" />
-      </Button>
+      {dismissible && (
+        <Button
+          variant="ghost"
+          className="absolute right-2 top-2 z-10"
+          onClick={() => {
+            dismiss(tracking);
+            setVisible(false);
+            posthog.capture("large_upgrade_banner_dismissed", { source: tracking, target });
+          }}>
+          {/* This button goes on top of the image, so it's better to force this color */}
+          <Icon name="x" className="h-4 w-4 text-gray-700" />
+        </Button>
+      )}
       {/* Left Content */}
       <div className="flex flex-1 flex-col p-6">
         {size === "sm" ? (
           <div className="flex items-start gap-1.5">
             <h2 className="font-cal text-base font-semibold leading-none text-default">{title}</h2>
-            <div className="relative -top-1">
-              {target === "team" ? <TeamBadge /> : <OrgBadge />}
-            </div>
+            <div className="relative -top-1">{target === "team" ? <TeamBadge /> : <OrgBadge />}</div>
           </div>
         ) : (
           <div>
@@ -135,15 +139,12 @@ export function WideUpgradeBanner({
       </div>
 
       {/* Right Content - Image */}
-      <div
-        className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? " max-w-64" : " max-w-[520px]"}`}>
-        <Image
-          src={image.src}
-          alt={title}
-          fill
-          className="object-cover object-left"
-        />
-      </div>
+      {image && (
+        <div
+          className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? " max-w-64" : " max-w-[520px]"}`}>
+          <Image src={image.src} alt={title} fill className="object-cover object-left" />
+        </div>
+      )}
     </div>
   );
 }

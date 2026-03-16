@@ -10,12 +10,14 @@ import { FilterSearchField, Select } from "@calcom/ui/components/form";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { WideUpgradeBannerForBookingAudit } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForBookingAudit";
 import { format, formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useState } from "react";
 
 interface BookingHistoryProps {
   bookingUid: string;
+  isOrgUser?: boolean;
 }
 
 type TranslationComponent = {
@@ -30,14 +32,14 @@ type TranslationWithParams = {
 };
 
 type DisplayFieldValue =
-    | { type: "translationKey"; valueKey: string }
-    | { type: "rawValue"; value: string }
-    | { type: "rawValues"; values: string[] }
-    | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
+  | { type: "translationKey"; valueKey: string }
+  | { type: "rawValue"; value: string }
+  | { type: "rawValues"; values: string[] }
+  | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
 
 type DisplayField = {
-    labelKey: string;
-    fieldValue: DisplayFieldValue;
+  labelKey: string;
+  fieldValue: DisplayFieldValue;
 };
 
 type AuditLog = {
@@ -333,15 +335,15 @@ function BookingLogsTimeline({ logs }: BookingLogsTimelineProps) {
                       {/* Render displayFields if available, otherwise show type */}
                       {log.displayFields && log.displayFields.length > 0
                         ? log.displayFields.map((field, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
-                            <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
-                            <span className="font-medium">
-                              <DisplayFieldValueComponent fieldValue={field.fieldValue} />
-                            </span>
-                          </div>
-                        ))
+                            <div
+                              key={idx}
+                              className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
+                              <span className="font-medium text-emphasis w-[140px]">{t(field.labelKey)}</span>
+                              <span className="font-medium">
+                                <DisplayFieldValueComponent fieldValue={field.fieldValue} />
+                              </span>
+                            </div>
+                          ))
                         : null}
                       <div className="flex items-start gap-2 py-2 border-b px-3 border-subtle">
                         <span className="font-medium text-emphasis w-[140px]">{t("actor")}</span>
@@ -461,7 +463,15 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
   return { filteredLogs, actorOptions };
 }
 
-export function BookingHistory({ bookingUid }: BookingHistoryProps) {
+export function BookingHistory({ bookingUid, isOrgUser = false }: BookingHistoryProps) {
+  if (!isOrgUser) {
+    return <WideUpgradeBannerForBookingAudit />;
+  }
+
+  return <BookingHistoryContent bookingUid={bookingUid} />;
+}
+
+function BookingHistoryContent({ bookingUid }: { bookingUid: string }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [actorFilter, setActorFilter] = useState<string | null>(null);
   const { t } = useLocale();
