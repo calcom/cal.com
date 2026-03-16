@@ -79,7 +79,7 @@ const Page = async ({ params }: PageProps) => {
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
         bookingAuditEnabled={bookingAuditEnabled}
-        isOrgUser={session.user.org?.id != null}
+        isOrgUser={session.user.profile?.organizationId != null}
       />
     </ShellMainAppDir>
   );
