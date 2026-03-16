@@ -5,8 +5,10 @@ import { test } from "../lib/fixtures";
 test.afterEach(({ users }) => users.deleteAll());
 
 test("Can delete user account", async ({ page, users }) => {
+  const deletionPassword = "Deleteme1";
   const user = await users.create({
     username: "delete-me",
+    password: deletionPassword,
   });
   await user.apiLogin();
   await page.goto(`/settings/my-account/profile`);
@@ -18,7 +20,7 @@ test("Can delete user account", async ({ page, users }) => {
   expect(user.username).toBeTruthy();
 
   const $passwordField = page.locator("[data-testid=password]");
-  await $passwordField.fill(String(user.username));
+  await $passwordField.fill(deletionPassword);
 
   await Promise.all([
     page.waitForURL((url) => url.pathname === "/auth/logout"),
