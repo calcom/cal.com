@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -15,6 +15,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingMigrateMembersBrowserView } from "../../components/onboarding-migrate-members-browser-view";
 import { useMigrationFlow } from "../../hooks/useMigrationFlow";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
@@ -25,8 +26,8 @@ type OrganizationMigrateMembersViewProps = {
 
 export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrateMembersViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { getQueryString } = useOnboardingQueryParams();
   const { isLoading: isMigrationFlowLoading } = useMigrationFlow();
   const { teams, organizationBrand, organizationDetails, setMigratedMembers } = useOnboardingStore();
 
@@ -56,9 +57,7 @@ export const OrganizationMigrateMembersView = ({ userEmail }: OrganizationMigrat
 
     setMigratedMembers(migratedMembersData);
 
-    const migrateParam = searchParams?.get("migrate");
-    const nextUrl = `/onboarding/organization/invite/email${migrateParam ? `?migrate=${migrateParam}` : ""}`;
-    router.push(nextUrl);
+    router.push(`/onboarding/organization/invite/email${getQueryString()}`);
   };
 
   if (isLoading) {

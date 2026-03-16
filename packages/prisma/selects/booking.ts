@@ -13,36 +13,6 @@ export const bookingMinimalSelect = {
   createdAt: true,
 } satisfies Prisma.BookingSelect;
 
-export const bookingAuthorizationCheckSelect = {
-  userId: true,
-  eventType: {
-    select: {
-      teamId: true,
-      users: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
-      hosts: {
-        select: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  },
-  attendees: {
-    select: {
-      email: true,
-    },
-  },
-} satisfies Prisma.BookingSelect;
-
 export const bookingDetailsSelect = {
   uid: true,
   rescheduled: true,

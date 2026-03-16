@@ -17,17 +17,20 @@ test.describe("Teams", () => {
     const org = await orgs.create({
       name: "TestOrg",
     });
-    const user = await users.create({
-      organizationId: org.id,
-      roleInOrganization: MembershipRole.ADMIN,
-    });
+    const user = await users.create(
+      {
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.ADMIN,
+      },
+      { hasTeam: true }
+    );
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.apiLogin();
     await page.goto("/teams");
 
     await test.step("Can create team", async () => {
-      // Click text=Create Team
-      await page.locator("text=Create a new Team").click();
+      // Click the new team button
+      await page.locator("[data-testid=new-team-btn]").click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(`${user.username}'s Team`);
