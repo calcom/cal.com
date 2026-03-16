@@ -39,7 +39,7 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <ShellMainAppDir heading={t("booking_history")} subtitle={t("booking_history_description")}>
-      <BookingHistoryPage bookingUid={bookingUid} />
+      <BookingHistoryPage bookingUid={bookingUid} isOrgUser={session.user.organizationId != null} />
     </ShellMainAppDir>
   );
 };
