@@ -6990,6 +6990,7 @@ checksums:
     you: db2a4a796b70cc1430d1b21f6ffb6dcb
     or_continue_with: 11a7be95ef4cd680f510166b4d348c7f
     resend_email: 3c9f0e90dcc03701c3ec012209b2b952
+    use_different_email: e8ae4981a38f92132bde55f395e3756a
     member_already_invited: ee68f565c2f0ec8e0d77d1a711ce7770
     already_in_use_error: 9b4e1df158c384fc9904ccfcc0293b60
     enter_email_or_username: 2085b45a058a4ab7001181f0ea3ad0f1
@@ -7228,6 +7229,7 @@ checksums:
     sso_oidc_configuration_title: a06e997624b6596fd9ea25bcf97cf9e9
     sso_oidc_configuration_description: 2bfc7bd6f920baa5f4f84ba29c8460c6
     sso_oidc_callback_copied: 0b77f662230d92f92e69ebb0aace825a
+    sso_oidc_well_known_url: b60474834e9ca6ad4a1254b34e62b11c
     sso_saml_heading: 179da7c86f4fa8770b972a66769192c0
     sso_saml_description: 2fff5d48a16c3cc64742145efdd8c74a
     sso_saml_configuration_title: 48b9a1b883db2584f9ee03394f2094fa
@@ -9043,6 +9045,29 @@ checksums:
     reports_dismissed_with_errors: 34126ab965486a7ec3c51795e748f175
     remove_entries_from_system_blocklist: 3297ceb4fd80e6ed660ee98c3f78f325
     remove_entries_confirm: 06daa14fa125da52f0fae047c81b1f47
+    global_watchlist_scope_warning: a0efa172af7ddce305fab8861770a8e2
+    confirm_add_to_system_blocklist: 6a4a518b6d8d6a0676fd675660fbe30b
+    confirm_add_to_system_blocklist_description: 1e4afd455f59f9ab2d8e3eeb0bd5d6f3
+    check_impact: f7becdc8f30a59da6e9b55fbe40cc6b7
+    blast_radius: bccc2a8877d5e21a3e8c31c280e37170
+    review_impact_before_adding: 0cef2bccf5214808aa8aa30cb467ebb7
+    confirm_and_add_to_blocklist: 1d7df5ffa6444876365fc0d26529bc01
+    top_affected_organizations: d10a4db214dab3b3ed69f61eae6e1da2
+    and_count_more_organizations: 76a7f83b921a74236ebc163a391a5bab
+    booking_activity_last_30_days: 66da9a21b24b32a7b33b81486e269c7d
+    total_bookings: dd1b02a6128b64e65eca5d79c9375093
+    last_7_days: 3631df3109bfecfe358ba15dcf8bd6f5
+    distinct_hosts: 82b8d0ded407a04775f3285b17334b00
+    cancelled_or_rejected: 9e94eb39526c9b71b66825bc844b89d8
+    existing_signals: 27a01fba0380aa1842db73897f90e7bb
+    booking_reports_filed: e813a28dffdf45f3451614b059a03c78
+    spam_count: 6eb920ed7e23c8690fe90bce3ce01b61
+    dont_know_person_count: d3f8e161b893eb11fc0bf4bcaa8acd93
+    orgs_already_blocked_this: 68667e2bce77b41def3092904a070e86
+    no_matching_activity_last_30_days: abc155fea2aae786cb405a32e3f0ec9b
+    no_spam_signals_warning_title: bc613ddf9008d6f8c41c4cb3df635b65
+    no_spam_signals_warning_description: 3e90015f55ad15f08c7d2efea0e0fc7f
+    no_impact_data_available: 62ff366061d188bd8e9d7c6d796c322a
     dismiss_reports_title: 68ab822b1d6268ad0b0de668e1c1190a
     dismiss_reports_confirm: a3bee6c2b2245361bf6060ab03c6d08a
     onboarding_org_details_title: d8e754715f8ff6e59492e27c466f9ca9
@@ -9186,6 +9211,8 @@ checksums:
     saved: 6554b923011266821d74e06e013a40e6
     booking_history: 641f865aa1adaf7c32c7afad2295d642
     booking_history_description: 3c31ae749b7267090d5bee01c0cdc83b
+    booking_history_requires_organization: bbdcf8a57b745c9088b4119e6458ba41
+    booking_history_upgrade_description: 6bad50579208d136995a2298fa38b725
     enable_custom_host_locations: 09157ebf4b131969751f6d937914d370
     enable_custom_host_locations_description: d887d25b6069ea5bb728e005f3afd7cc
     custom_host_locations_no_saved_hosts_title: 452502e62ad71488e8228757f52ef966
@@ -9312,7 +9339,6 @@ checksums:
     invoice_status_uncollectible: 528fcd330fd16f163e35fa6dfeeecc9a
     no_invoices_in_date_range: 4a63b8eafae7dac45e6df121d0330754
     view_and_download_invoices: 0df43c567ab2f1e0bb519228f9904625
-    last_7_days: 3631df3109bfecfe358ba15dcf8bd6f5
     last_30_days: a738894cfc5e592052f1e16787744568
     last_3_months: d8c1265a5403a1f720be23aaf88da301
     last_6_months: 1be27ca36359a3a8131f2408827f0f69
@@ -9486,3 +9512,4 @@ checksums:
     resubscribe: 9095e0490bef5b5a2225bc8c706b0cb4
     discount_25: 77c80a2de4c93c1cac32a8ffbcf8196d
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
+    pbac_resource_blocklist: 17845897553ffa9b8d09b57e295ed5c7
