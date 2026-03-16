@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { BookingAuditErrorCode } from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
+import { BookingAuditErrorCode } from "@calcom/features/booking-audit/lib/BookingAuditErrorCode";
 
 // Mock useLocale
 vi.mock("@calcom/lib/hooks/useLocale", () => ({

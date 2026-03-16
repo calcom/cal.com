@@ -1,7 +1,7 @@
 "use client";
 
 import type { AuditActorType } from "@calcom/features/booking-audit/lib/repository/IAuditActorRepository";
-import { BookingAuditErrorCode } from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
+import { BookingAuditErrorCode } from "@calcom/features/booking-audit/lib/BookingAuditErrorCode";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

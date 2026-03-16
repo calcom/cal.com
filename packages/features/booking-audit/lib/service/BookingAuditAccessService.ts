@@ -5,13 +5,9 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-export enum BookingAuditErrorCode {
-  ORGANIZATION_ID_REQUIRED = "ORGANIZATION_ID_REQUIRED",
-  BOOKING_NOT_FOUND_OR_PERMISSION_DENIED = "BOOKING_NOT_FOUND_OR_PERMISSION_DENIED",
-  BOOKING_HAS_NO_OWNER = "BOOKING_HAS_NO_OWNER",
-  OWNER_NOT_IN_ORGANIZATION = "OWNER_NOT_IN_ORGANIZATION",
-  ORG_MEMBER_PERMISSION_DENIED = "ORG_MEMBER_PERMISSION_DENIED",
-}
+import { BookingAuditErrorCode } from "../BookingAuditErrorCode";
+
+export { BookingAuditErrorCode };
 
 interface BookingAuditAccessServiceDeps {
   bookingRepository: BookingRepository;
