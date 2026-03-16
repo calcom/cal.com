@@ -15,9 +15,26 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/app-store/delegationCredential", () => ({
-  enrichHostsWithDelegationCredentials: vi.fn(),
-  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  enrichHostsWithDelegationCredentials: vi.fn().mockImplementation(({ hosts }) => hosts),
+  enrichUsersWithDelegationCredentials: vi.fn().mockImplementation(({ users }) => users),
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationCredentials: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId: vi.fn().mockImplementation(({ user }) => user),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue({ credentials: [] }),
+  getUsersCredentials: vi.fn().mockResolvedValue({ credentials: [] }),
   getCredentialForSelectedCalendar: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegatedCalendarCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppType: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppSlug: vi.fn().mockResolvedValue([]),
+  buildAllCredentials: vi.fn().mockImplementation(({ existingCredentials }) => existingCredentials || []),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+  getDelegationCredentialOrRegularCredential: vi.fn(),
+  getFirstDelegationConferencingCredential: vi.fn(),
+  getFirstDelegationConferencingCredentialAppLocation: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  assertSuccessfullyConfiguredInWorkspace: vi.fn(),
 }));
 
 vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
