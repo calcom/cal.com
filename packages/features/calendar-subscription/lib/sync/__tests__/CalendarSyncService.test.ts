@@ -418,6 +418,32 @@ describe("CalendarSyncService", () => {
       );
     });
 
+    test("should skip cancellation when instance resolution fails due to time mismatch", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-01T09:30:00Z"),
+      };
+
+      // Google reports a different time (30-min offset) — instance resolution fails
+      const cancelEvent: CalendarSubscriptionEventItem = {
+        ...mockCancelledEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        start: new Date("2023-12-08T10:00:00Z"),
+        originalStartDate: new Date("2023-12-08T10:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      // Instance resolution fails — no booking found at Google's reported time
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
+
+      await service.cancelBooking(cancelEvent, mockSelectedCalendar.userId);
+
+      // Should NOT cancel booking 1 — it's the wrong instance
+      expect(mockHandleCancelBooking).not.toHaveBeenCalled();
+    });
+
     test("should skip recurring resolution for non-recurring bookings", async () => {
       mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
 
@@ -720,6 +746,156 @@ describe("CalendarSyncService", () => {
           }),
         })
       );
+    });
+
+    test("should follow reschedule chain using resolved instance uid (not original iCalUID)", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        uid: "booking-1-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-01T10:00:00Z"),
+      };
+
+      const booking5 = {
+        ...mockBooking,
+        id: 5,
+        uid: "booking-5-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T10:00:00Z"),
+        rescheduled: true,
+      };
+
+      const booking5Prime = {
+        ...mockBooking,
+        id: 50,
+        uid: "booking-5-prime-uid",
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-29T14:00:00Z"),
+      };
+
+      // Instance 5 was previously rescheduled; now moved again to 4pm
+      const rescheduleEvent: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        iCalUID: "booking-1-uid@cal.com",
+        start: new Date("2023-12-29T16:00:00Z"),
+        end: new Date("2023-12-29T17:00:00Z"),
+        originalStartDate: new Date("2023-12-29T10:00:00Z"),
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking) // initial lookup via iCalUID
+        .mockResolvedValueOnce(booking5); // resolved instance
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 5, uid: "booking-5-uid" });
+      mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(booking5Prime);
+
+      await service.rescheduleBooking(rescheduleEvent, mockSelectedCalendar.userId);
+
+      // Should follow the chain from booking-5-uid (resolved instance), NOT booking-1-uid
+      expect(mockBookingRepository.findLatestBookingInRescheduleChain).toHaveBeenCalledWith({
+        bookingUid: "booking-5-uid",
+      });
+      expect(mockCreateBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingData: expect.objectContaining({
+            rescheduleUid: "booking-5-prime-uid",
+            start: "2023-12-29T16:00:00.000Z",
+          }),
+        })
+      );
+    });
+
+    test("should skip reschedule for unmodified recurring instance (originalStartDate === start)", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        recurringEventId: "recurring-event-id-123",
+        // DB has a slightly different time due to timezone conversion discrepancy
+        startTime: new Date("2023-12-08T09:30:00Z"),
+      };
+
+      // Google reports the instance at a different time than the DB, but originalStartDate === start
+      // (the instance hasn't been moved by the user)
+      const unmodifiedInstance: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-08T10:00:00Z"),
+        end: new Date("2023-12-08T11:00:00Z"),
+        originalStartDate: new Date("2023-12-08T10:00:00Z"),
+        recurringEventId: "gcal-recurring-id",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+
+      await service.rescheduleBooking(unmodifiedInstance, mockSelectedCalendar.userId);
+
+      // Should NOT reschedule — the instance wasn't moved by the user
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+    });
+
+    test("should still update booking fields when skipping reschedule for unmodified recurring instance", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        recurringEventId: "recurring-event-id-123",
+        description: "Original description",
+        // DB has a slightly different time due to timezone conversion discrepancy
+        startTime: new Date("2023-12-08T09:30:00Z"),
+      };
+
+      // Google reports the instance at a different time than the DB, but originalStartDate === start
+      // User changed the description only (not the time)
+      const descriptionChangedInstance: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-08T10:00:00Z"),
+        end: new Date("2023-12-08T11:00:00Z"),
+        originalStartDate: new Date("2023-12-08T10:00:00Z"),
+        recurringEventId: "gcal-recurring-id",
+        description: "Updated description from GCal",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+
+      await service.rescheduleBooking(descriptionChangedInstance, mockSelectedCalendar.userId);
+
+      // Should NOT reschedule — the instance wasn't moved
+      expect(mockCreateBooking).not.toHaveBeenCalled();
+      // But SHOULD update the description field
+      expect(mockBookingRepository.update).toHaveBeenCalledWith({
+        where: { uid: recurringBooking.uid },
+        data: expect.objectContaining({
+          description: "Updated description from GCal",
+        }),
+      });
+    });
+
+    test("should allow reschedule for recurring instance when originalStartDate !== start (user moved it)", async () => {
+      const recurringBooking = {
+        ...mockBooking,
+        recurringEventId: "recurring-event-id-123",
+        startTime: new Date("2023-12-08T10:00:00Z"),
+      };
+
+      // User dragged the instance from 10am to 2pm in Google Calendar
+      const movedInstance: CalendarSubscriptionEventItem = {
+        ...mockCalComEvent,
+        start: new Date("2023-12-08T14:00:00Z"),
+        end: new Date("2023-12-08T15:00:00Z"),
+        originalStartDate: new Date("2023-12-08T10:00:00Z"),
+        recurringEventId: "gcal-recurring-id",
+      };
+
+      mockBookingRepository.findBookingByUidWithEventType = vi
+        .fn()
+        .mockResolvedValueOnce(recurringBooking)
+        .mockResolvedValueOnce(recurringBooking);
+      mockBookingRepository.findByRecurringEventIdAndStartTime = vi
+        .fn()
+        .mockResolvedValue({ id: 1, uid: recurringBooking.uid });
+
+      await service.rescheduleBooking(movedInstance, mockSelectedCalendar.userId);
+
+      // Should reschedule — the user actually moved the instance
+      expect(mockCreateBooking).toHaveBeenCalled();
     });
 
     test("should skip reschedule when event is a different instance in a recurring series", async () => {

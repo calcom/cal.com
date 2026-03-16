@@ -6,6 +6,7 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { metrics } from "@sentry/nextjs";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSyncService"] });
@@ -116,6 +117,25 @@ export class CalendarSyncService {
         }
       }
 
+      // If instance resolution didn't change the booking (still booking 1) but the event
+      // refers to a different instance (originalStartDate or start differs from booking's time),
+      // bail out to avoid cancelling the wrong booking.
+      if (booking.recurringEventId && booking.uid === bookingUid) {
+        const instanceStartTime = event.originalStartDate ?? event.start;
+        if (instanceStartTime && instanceStartTime.getTime() !== booking.startTime.getTime()) {
+          log.debug("Skipping cancellation, could not resolve correct recurring instance", {
+            bookingUid,
+            recurringEventId: booking.recurringEventId,
+            instanceStartTime: instanceStartTime.toISOString(),
+            bookingStartTime: booking.startTime.toISOString(),
+          });
+          metrics.count("calendar.sync.cancelBooking.calls", 1, {
+            attributes: { status: "skipped", reason: "unresolved_recurring_instance" },
+          });
+          return;
+        }
+      }
+
       // Follow the reschedule chain to find the latest active booking
       if (booking.rescheduled) {
         const latestBooking = await this.deps.bookingRepository.findLatestBookingInRescheduleChain({
@@ -128,6 +148,14 @@ export class CalendarSyncService {
           });
           booking = latestBooking;
         }
+      }
+
+      if (booking.status === BookingStatus.CANCELLED) {
+        log.debug("Skipping cancellation, booking is already cancelled", { bookingUid: booking.uid });
+        metrics.count("calendar.sync.cancelBooking.calls", 1, {
+          attributes: { status: "skipped", reason: "already_cancelled" },
+        });
+        return;
       }
 
       if (booking.userId !== calendarUserId) {
@@ -232,15 +260,23 @@ export class CalendarSyncService {
       // against the correct startTime and reschedule from the right booking.
       if (booking.rescheduled) {
         const latestBooking = await this.deps.bookingRepository.findLatestBookingInRescheduleChain({
-          bookingUid,
+          bookingUid: booking.uid,
         });
         if (latestBooking) {
           log.debug("Resolved reschedule chain to latest booking", {
-            originalUid: bookingUid,
+            originalUid: booking.uid,
             latestUid: latestBooking.uid,
           });
           booking = latestBooking;
         }
+      }
+
+      if (booking.status === BookingStatus.CANCELLED) {
+        log.debug("Skipping reschedule, booking is already cancelled", { bookingUid: booking.uid });
+        metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+          attributes: { status: "skipped", reason: "already_cancelled" },
+        });
+        return;
       }
 
       if (booking.userId !== calendarUserId) {
@@ -264,6 +300,30 @@ export class CalendarSyncService {
       }
 
       if (!hasStartTimeChanged(booking, event)) {
+        await this.updateBookingFields(booking, event);
+        return;
+      }
+
+      // For recurring bookings, if Google reports the instance hasn't moved
+      // (originalStartDate === start), this is an unmodified instance — not a real reschedule.
+      // This can happen when hasStartTimeChanged fires due to a time discrepancy between the
+      // DB booking time and what Google Calendar reports, even though the user never moved it.
+      // The user may still have changed description/location, so update fields before skipping.
+      if (
+        booking.recurringEventId &&
+        event.originalStartDate &&
+        event.start &&
+        event.originalStartDate.getTime() === event.start.getTime()
+      ) {
+        log.debug("Skipping reschedule for unmodified recurring instance", {
+          bookingUid,
+          recurringEventId: booking.recurringEventId,
+          eventStart: event.start.toISOString(),
+        });
+        metrics.count("calendar.sync.rescheduleBooking.calls", 1, {
+          attributes: { status: "skipped", reason: "unmodified_recurring_instance" },
+        });
+        // Still sync field changes (description, location, title) even though time didn't move
         await this.updateBookingFields(booking, event);
         return;
       }
