@@ -1,10 +1,9 @@
 import { createHmac } from "node:crypto";
-
+import process from "node:process";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
+import type { WebhookDeliveryResult, WebhookSubscriber } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
-import type { ITasker, ILogger } from "../interface/infrastructure";
+import type { ILogger, ITasker } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
 
 export class WebhookService implements IWebhookService {
@@ -23,23 +22,24 @@ export class WebhookService implements IWebhookService {
     payload: WebhookPayload,
     subscriber: WebhookSubscriber
   ): Promise<WebhookDeliveryResult> {
-    try {
-      // TODO: Ideally we should inject this flag as well. Would be awesome when we would be able to unit test without mocking env variables too. Also with trigger.dev, this would be further worked on, so we can leave this as is for now
-      if (process.env.TASKER_ENABLE_WEBHOOKS === "1") {
+    // TODO: Ideally we should inject this flag as well. Would be awesome when we would be able to unit test without mocking env variables too. Also with trigger.dev, this would be further worked on, so we can leave this as is for now
+    if (process.env.TASKER_ENABLE_WEBHOOKS === "1") {
+      try {
         return await this.scheduleWebhook(trigger, payload, subscriber);
-      } else {
-        return await this.sendWebhookDirectly(trigger, payload, subscriber);
+      } catch (error) {
+        return {
+          ok: false,
+          status: 0,
+          message: error instanceof Error ? error.message : String(error),
+          duration: 0,
+          subscriberUrl: subscriber.subscriberUrl,
+          webhookId: subscriber.id,
+        };
       }
-    } catch (error) {
-      return {
-        ok: false,
-        status: 0,
-        message: error instanceof Error ? error.message : String(error),
-        duration: 0,
-        subscriberUrl: subscriber.subscriberUrl,
-        webhookId: subscriber.id,
-      };
     }
+
+    // When sending directly, propagate errors so callers can handle them
+    return await this.sendWebhookDirectly(trigger, payload, subscriber);
   }
 
   private async scheduleWebhook(
@@ -95,21 +95,34 @@ export class WebhookService implements IWebhookService {
       ? createHmac("sha256", subscriber.secret).update(body).digest("hex")
       : "no-secret-provided";
 
-    const response = await fetch(subscriberUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        "X-Cal-Signature-256": signature,
-        "X-Cal-Webhook-Version": subscriber.version,
-      },
-      redirect: "manual",
-      body,
-    });
+    let response: Response;
+    try {
+      response = await fetch(subscriberUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": contentType,
+          "X-Cal-Signature-256": signature,
+          "X-Cal-Webhook-Version": subscriber.version,
+        },
+        redirect: "manual",
+        body,
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
 
     const responseText = await response.text();
 
+    if (!response.ok) {
+      throw new Error(
+        `Webhook POST to ${subscriberUrl} failed with status ${response.status}: ${responseText}`
+      );
+    }
+
     return {
-      ok: response.ok,
+      ok: true,
       status: response.status,
       message: responseText || undefined,
       duration: 0,

@@ -1,12 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import process from "node:process";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WebhookSubscriber } from "../dto/types";
-import { IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
+import type { WebhookPayload } from "../factory/types";
+import { type IWebhookRepository, WebhookVersion } from "../interface/IWebhookRepository";
+import type { ILogger, ITasker } from "../interface/infrastructure";
 import { WebhookService } from "./WebhookService";
-import { ILogger, ITasker } from "../interface/infrastructure";
-import { WebhookPayload } from "../factory/types";
 
 describe("WebhookService", () => {
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -70,6 +69,96 @@ describe("WebhookService", () => {
     vi.unstubAllGlobals();
   });
 
+  describe("error handling in sendWebhookDirectly", () => {
+    const subscriber: WebhookSubscriber = {
+      id: "webhook-1",
+      subscriberUrl: "https://example.com/webhook",
+      payloadTemplate: null,
+      appId: null,
+      secret: "test-secret",
+      eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+      version: WebhookVersion.V_2021_10_20,
+    };
+
+    const payload = {
+      createdAt: new Date().toISOString(),
+      payload: { test: "data", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED },
+    } as unknown as WebhookPayload;
+
+    it("should throw on network errors when sending directly", async () => {
+      mockFetch.mockRejectedValue(new TypeError("fetch failed"));
+
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
+
+      await expect(
+        service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber])
+      ).resolves.not.toThrow();
+
+      // The error is caught by processWebhooks via Promise.allSettled, but it should have been thrown by sendWebhook
+      const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Error sending webhook",
+        expect.objectContaining({
+          error: expect.stringContaining("Failed to send webhook to https://example.com/webhook"),
+        })
+      );
+    });
+
+    it("should throw on non-OK HTTP responses when sending directly", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: vi.fn().mockResolvedValue("Internal Server Error"),
+      });
+
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Error sending webhook",
+        expect.objectContaining({
+          error: expect.stringContaining(
+            "Webhook POST to https://example.com/webhook failed with status 500"
+          ),
+        })
+      );
+    });
+
+    it("should return error object instead of throwing when TASKER_ENABLE_WEBHOOKS is '1'", async () => {
+      process.env.TASKER_ENABLE_WEBHOOKS = "1";
+      mockTasker.create.mockRejectedValue(new Error("Tasker failed"));
+
+      const service = new WebhookService(
+        mockRepository as unknown as IWebhookRepository,
+        mockTasker as unknown as ITasker,
+        mockLogger as unknown as ILogger
+      );
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      // When TASKER_ENABLE_WEBHOOKS is '1', errors are caught and returned as result objects
+      // so processWebhooks logs via the 'Webhook failed' path, not 'Error sending webhook'
+      const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Webhook failed",
+        expect.objectContaining({
+          error: "Tasker failed",
+          statusCode: 0,
+        })
+      );
+    });
+  });
+
   describe("X-Cal-Webhook-Version header", () => {
     it("should include X-Cal-Webhook-Version header when sending webhook directly", async () => {
       const service = new WebhookService(
@@ -88,7 +177,7 @@ describe("WebhookService", () => {
         version: WebhookVersion.V_2021_10_20,
       };
 
-      const payload = {
+      const payload: WebhookPayload = {
         createdAt: new Date().toISOString(),
         payload: { test: "data", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED },
       } as unknown as WebhookPayload;
