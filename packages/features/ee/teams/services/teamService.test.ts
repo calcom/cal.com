@@ -29,12 +29,6 @@ vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
   SeatChangeTrackingService: MockSeatChangeTrackingService,
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const mockTeamBilling = {
   cancel: vi.fn(),
   updateQuantity: vi.fn(),

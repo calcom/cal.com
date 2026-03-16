@@ -7,6 +7,7 @@ import {
   getScenarioData,
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getBatchProcessorJobAccessLink, getRoomNameFromRecordingId } from "@calcom/app-store/dailyvideo/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -78,12 +79,6 @@ vi.mock("app/api/defaultResponderForAppDir", () => {
     defaultResponderForAppDir: vi.fn(),
   };
 });
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD = {
   version: "1.1.0",
   type: "batch-processor.job-finished",

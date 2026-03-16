@@ -23,12 +23,6 @@ vi.mock("./scanWorkflowBody", async (importActual) => {
     iffyScanBody: vi.fn(),
   };
 });
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const mockWorkflowStep = {
   id: 1,
   reminderBody: "Test reminder body",

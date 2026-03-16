@@ -4,12 +4,6 @@ import { triggerFormSubmittedNoEventWebhook } from "@calcom/features/tasker/task
 import type { Webhook } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 function expectFormSubmittedNoEventWebhookToBeCalled(
   payload: ResponseData & {
     webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate" | "secret">;

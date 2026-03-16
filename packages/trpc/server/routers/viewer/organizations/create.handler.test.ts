@@ -20,12 +20,6 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
 vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
   sendEmailVerification: vi.fn().mockResolvedValue(undefined),
 }));

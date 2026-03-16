@@ -15,12 +15,6 @@ const mockRoutingFormResponseRepository = {
 vi.mock("@calcom/app-store/routing-forms/lib/getSerializableForm");
 vi.mock("@calcom/app-store/routing-forms/lib/getResponseToStore");
 vi.mock("@calcom/app-store/routing-forms/lib/formSubmissionUtils");
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const mockQueuedFormResponse = {
   id: "1",
   formId: "mock-form-id",

@@ -6,12 +6,6 @@ import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/ev
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { beforeEach, describe, expect, test } from "vitest";
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const testUser = {
   email: "test@test.com",
   username: "test-user",

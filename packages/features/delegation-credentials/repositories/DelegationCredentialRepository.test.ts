@@ -1,9 +1,6 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DelegationCredentialRepository } from "./DelegationCredentialRepository";
 
 const mockOrganizationRepository = {
@@ -14,14 +11,10 @@ vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container",
   getOrganizationRepository: () => mockOrganizationRepository,
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  prisma: {},
-}));
-
 // Mock service account key functions
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const actual = await importOriginal<typeof import("@calcom/lib/crypto")>();
   return {
     ...actual,

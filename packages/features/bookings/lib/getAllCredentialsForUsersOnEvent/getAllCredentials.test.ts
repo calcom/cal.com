@@ -16,12 +16,6 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => {
     }),
   };
 });
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 describe("getAllCredentialsIncludeServiceAccountKey", () => {
   test("Get an individual's credentials", async () => {
     const mockEnrichUserWithItsProfile = vi.fn().mockReturnValue({

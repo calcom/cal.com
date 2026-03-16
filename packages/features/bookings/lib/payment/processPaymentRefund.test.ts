@@ -16,12 +16,6 @@ vi.mock("@calcom/app-store/_utils/payments/getPaymentAppData", () => ({
 vi.mock("./handlePaymentRefund", () => ({
   handlePaymentRefund: vi.fn(),
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const mockedGetPaymentAppData = vi.mocked(getPaymentAppData);
 
 describe("processPaymentRefund", () => {

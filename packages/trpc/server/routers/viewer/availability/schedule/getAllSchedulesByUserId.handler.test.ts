@@ -17,12 +17,6 @@ vi.mock("@calcom/features/schedules/repositories/ScheduleRepository", () => ({
     };
   }),
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 
 const mockHasReadPermissions = vi.mocked(hasReadPermissionsForUserId);

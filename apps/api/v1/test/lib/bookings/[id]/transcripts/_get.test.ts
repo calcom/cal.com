@@ -23,12 +23,6 @@ vi.mock("~/lib/utils/retrieveScopedAccessibleUsers", () => {
     getAccessibleUsers: vi.fn(),
   };
 });
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 afterEach(() => {
   vi.resetAllMocks();
 });

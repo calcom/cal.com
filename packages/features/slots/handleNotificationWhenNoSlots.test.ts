@@ -30,12 +30,6 @@ vi.mock("@calcom/emails/organization-email-service", () => ({
   })),
   sendOrganizationAdminNoSlotsNotification: vi.fn(),
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 vi.spyOn(CalcomEmails, "sendOrganizationAdminNoSlotsNotification");
 
 describe("(Orgs) Send admin notifications when a user has no availability", () => {

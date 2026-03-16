@@ -24,12 +24,6 @@ vi.mock("@calcom/lib/logger", () => ({
     error: vi.fn(),
   },
 }));
-
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockShouldTriggerFormSubmittedNoEvent = vi.mocked(shouldTriggerFormSubmittedNoEvent);
 
