@@ -51,7 +51,7 @@ export function enrichFieldWithUIConfig(rawField: Record<string, any>): BuilderF
   if (existingUIConfig.radioVariant || type === "radio") {
     defaults.radioVariant = existingUIConfig.radioVariant ?? "default";
   }
-  if (existingUIConfig.datePickerVariant && type === "date") {
+  if (existingUIConfig.datePickerVariant && (type === "date" || type === "calendar")) {
     defaults.datePickerVariant = existingUIConfig.datePickerVariant;
   }
   if ((existingUIConfig as { hideLabel?: boolean }).hideLabel) {

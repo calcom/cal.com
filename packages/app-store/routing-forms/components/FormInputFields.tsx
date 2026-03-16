@@ -356,6 +356,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 formContext={calendarFormContext ?? {}}
                 disabled={isDisabled}
                 fieldStyle={fieldStyle}
+                datePickerVariant={field.uiConfig?.datePickerVariant ?? "default"}
                 accentColor={accentColor}
                 secondaryColor={secondaryColor}
               />

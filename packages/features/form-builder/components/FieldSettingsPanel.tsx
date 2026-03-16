@@ -411,7 +411,7 @@ function FieldTab({
             </div>
           )}
 
-          {field.type === "date" && (
+          {(field.type === "date" || field.type === "calendar") && (
             <div className="space-y-1">
               <FieldLabel>{t("form_builder_date_picker_variant")}</FieldLabel>
               <SegmentedControl

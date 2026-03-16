@@ -22,6 +22,7 @@ type CalendarFieldControllerProps = {
   formContext: EventTypeContext;
   disabled?: boolean;
   fieldStyle?: "default" | "underline";
+  datePickerVariant?: "default" | "compact";
   accentColor?: string;
   secondaryColor?: string;
 };
@@ -34,6 +35,7 @@ export default function CalendarFieldController({
   formContext,
   disabled,
   fieldStyle,
+  datePickerVariant = "default",
   accentColor,
   secondaryColor,
 }: CalendarFieldControllerProps) {
@@ -148,6 +150,7 @@ export default function CalendarFieldController({
           loading={isLoading}
           accentColor={accentColor}
           variant={inputVariant}
+          calendarVariant={datePickerVariant}
           underlineColor={underlineColor}
           placeholder={field.placeholder || "Pick a date"}
         />

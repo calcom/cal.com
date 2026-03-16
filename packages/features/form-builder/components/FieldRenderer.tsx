@@ -152,6 +152,7 @@ export function FieldRenderer({
           formContext={{}}
           disabled
           fieldStyle={fieldStyle}
+          datePickerVariant={uiConfig.datePickerVariant ?? "default"}
           accentColor={accentColor}
           secondaryColor={secondaryColor}
         />
