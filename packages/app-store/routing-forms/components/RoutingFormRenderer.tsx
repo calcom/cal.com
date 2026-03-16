@@ -1,5 +1,6 @@
 "use client";
 
+import { useIsEmbed, useEmbedType } from "@calid/embed-runtime/embed-iframe";
 import { Button } from "@calid/features/ui/components/button";
 import type { Dispatch, SetStateAction, CSSProperties } from "react";
 
@@ -57,6 +58,11 @@ export default function RoutingFormRenderer({
   const { header, style, submitButton } = formConfig;
   const background = style.background;
 
+  const isEmbed = useIsEmbed();
+  const embedType = useEmbedType(); // "inline" | "modal" | null
+
+  const isInlineEmbed = embedType === "inline";
+
   const backgroundStyle: CSSProperties =
     background.type === "color"
       ? { backgroundColor: background.color || "transparent" }
@@ -98,6 +104,38 @@ export default function RoutingFormRenderer({
     ...(submitButton.textColor ? { color: submitButton.textColor } : {}),
   };
 
+  const headerElement = () => {
+    return (
+      <div
+        style={{
+          textAlign: header.alignment,
+          paddingTop: `${header.spacingBottom}px`,
+          marginBottom: `${header.spacingBottom}px`,
+        }}>
+        {header.title && (
+          <h2
+            className="text-default mb-1 text-xl font-bold"
+            style={{
+              fontSize: `${header.titleSize}px`,
+              color: header.titleColor || undefined,
+            }}>
+            {header.title}
+          </h2>
+        )}
+        {header.subtitle && (
+          <p
+            className="text-muted text-sm"
+            style={{
+              fontSize: `${header.subtitleSize}px`,
+              color: header.subtitleColor || undefined,
+            }}>
+            {header.subtitle}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   const btnAlignClass =
     submitButton.alignment === "right"
       ? "justify-end"
@@ -107,14 +145,12 @@ export default function RoutingFormRenderer({
 
   return (
     // Outer wrapper: full-bleed background, no padding so image/color covers entire area
-    <div
-      className={className ? `relative w-full ${className}` : "relative w-full"}
-      style={backgroundStyle}
-    >
+    <div className={className ? `relative w-full ${className}` : "relative w-full"} style={backgroundStyle}>
+      <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
       {/* Image overlay */}
       {background.type === "image" && background.imageUrl && background.overlayOpacity > 0 && (
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: `rgba(0,0,0,${background.overlayOpacity})` }}
         />
       )}
@@ -122,7 +158,7 @@ export default function RoutingFormRenderer({
       {/* Image blur */}
       {background.type === "image" && background.imageUrl && background.blur > 0 && (
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="pointer-events-none absolute inset-0"
           style={{ backdropFilter: `blur(${background.blur}px)` }}
         />
       )}
@@ -141,56 +177,25 @@ export default function RoutingFormRenderer({
           paddingBottom: `${layoutPaddingY + headerBlockHeight}px`,
           paddingLeft: `${layoutPaddingX}px`,
           paddingRight: `${layoutPaddingX}px`,
-        }}
-      >
+        }}>
         <div className="w-full" style={contentStyle}>
-          {hasHeader && (
-            <div
-              style={{
-                textAlign: header.alignment,
-                paddingTop: `${header.spacingBottom}px`,
-                marginBottom: `${header.spacingBottom}px`,
-              }}
-            >
-              {header.title && (
-                <h2
-                  className="text-xl font-bold text-default mb-1"
-                  style={{
-                    fontSize: `${header.titleSize}px`,
-                    color: header.titleColor || undefined,
-                  }}
-                >
-                  {header.title}
-                </h2>
-              )}
-              {header.subtitle && (
-                <p
-                  className="text-sm text-muted"
-                  style={{
-                    fontSize: `${header.subtitleSize}px`,
-                    color: header.subtitleColor || undefined,
-                  }}
-                >
-                  {header.subtitle}
-                </p>
-              )}
-            </div>
-          )}
+          {hasHeader && (!isEmbed || isInlineEmbed) && headerElement()}
 
-          <div className="bg-default border border-default shadow-md" style={cardStyle}>
-          <FormInputFields
-            form={form}
-            response={response}
-            setResponse={setResponse}
-            disabledFields={disabledFields}
-            fieldStyle={style.fieldStyle}
-            showErrors={showErrors}
-            accentColor={style.accentColor}
-            secondaryColor={style.secondaryColor}
-            calendarEventType={calendarEventType}
-            calendarFormContext={calendarFormContext}
-            onFieldChange={onFieldChange}
-          />
+          <div className="bg-default border-default border shadow-md" style={cardStyle}>
+            {hasHeader && isEmbed && !isInlineEmbed && headerElement()}
+            <FormInputFields
+              form={form}
+              response={response}
+              setResponse={setResponse}
+              disabledFields={disabledFields}
+              fieldStyle={style.fieldStyle}
+              showErrors={showErrors}
+              accentColor={style.accentColor}
+              secondaryColor={style.secondaryColor}
+              calendarEventType={calendarEventType}
+              calendarFormContext={calendarFormContext}
+              onFieldChange={onFieldChange}
+            />
 
             {!hideSubmit && (
               <div className={`flex pt-4 ${btnAlignClass}`}>
@@ -202,8 +207,7 @@ export default function RoutingFormRenderer({
                   style={btnStyle}
                   className={`${
                     submitButton.width === "full" ? "w-full justify-center" : "px-8"
-                  } h-10 text-sm font-medium mx-3`}
-                >
+                  } mx-3 h-10 text-sm font-medium`}>
                   {submitButton.text || submitLabel || "Submit"}
                 </Button>
               </div>

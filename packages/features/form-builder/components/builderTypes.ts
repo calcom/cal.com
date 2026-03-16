@@ -52,7 +52,7 @@ export interface BuilderField {
 // ─── UI field type enum ────────────────────────────────────────────────────────
 export type UIFieldType =
   | "text" | "textarea" | "number" | "email" | "phone"
-  | "address" | "url" | "multiemail" | "attachment" | "date" | "time" | "calendar"
+  | "address" | "url" | "date" | "calendar"
   | "select" | "multiselect" | "radio" | "checkbox" | "boolean"
   | "divider" | "heading" | "paragraph";
 
@@ -82,7 +82,6 @@ export const FIELD_LIBRARY_CONFIG: FieldLibraryEntry[] = [
   { type: "phone",       label: "Phone",          icon: "Phone",       category: "input" },
   { type: "address",     label: "Address",        icon: "MapPin",      category: "input" },
   { type: "url",         label: "URL",            icon: "Link",        category: "input" },
-  { type: "multiemail",  label: "Multi Email",    icon: "MailPlus",    category: "input" },
   { type: "date",        label: "Date",           icon: "Calendar",    category: "input" },
   { type: "calendar",    label: "Calendar",       icon: "CalendarDays", category: "input" },
   { type: "select",      label: "Dropdown",       icon: "ChevronDown", category: "selection" },

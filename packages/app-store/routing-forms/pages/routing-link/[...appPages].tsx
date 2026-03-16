@@ -350,7 +350,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   return (
     <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
-      <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
 
       {!customPageMessage ? (
         <>

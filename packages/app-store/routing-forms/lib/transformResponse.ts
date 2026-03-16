@@ -3,6 +3,9 @@ import type { z } from "zod";
 import type { Field, FormResponse } from "../types/types";
 import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 
+const isSingleSelectLike = (type: string) => type === "select" || type === "radio";
+const isMultiSelectLike = (type: string) => type === "multiselect" || type === "checkbox";
+
 /**
  * It takes care of correctly transforming the input to label or id depending on various cases
  * - It allows us to prefill with ID or Label
@@ -78,7 +81,7 @@ export function getDisplayValueForValue({
   if (!value) {
     return undefined;
   }
-  if (field.type !== "select" && field.type !== "multiselect") {
+  if (!isSingleSelectLike(field.type) && !isMultiSelectLike(field.type)) {
     return undefined;
   }
   const valueArray =
@@ -89,7 +92,7 @@ export function getDisplayValueForValue({
   const resolved = valueArray.map((idOrLabel) =>
     resolveOptionLabel({ field, idOrLabel: String(idOrLabel).trim() })
   );
-  return field.type === "select" ? resolved[0] : resolved;
+  return isSingleSelectLike(field.type) ? resolved[0] : resolved;
 }
 
 function resolveOptionId({
@@ -118,7 +121,7 @@ export function getOptionIdForValue({
   if (!value) {
     return undefined;
   }
-  if (field.type !== "select" && field.type !== "multiselect") {
+  if (!isSingleSelectLike(field.type) && !isMultiSelectLike(field.type)) {
     return undefined;
   }
   const valueArray =
@@ -127,7 +130,7 @@ export function getOptionIdForValue({
     return undefined;
   }
   const resolved = valueArray.map((idOrLabel) => resolveOptionId({ field, idOrLabel: String(idOrLabel).trim() }));
-  return field.type === "select" ? resolved[0] : resolved;
+  return isSingleSelectLike(field.type) ? resolved[0] : resolved;
 }
 
 export function getFieldResponseForJsonLogic({
@@ -147,7 +150,7 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
-  if (field.type === "multiselect") {
+  if (isMultiSelectLike(field.type)) {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
@@ -158,7 +161,7 @@ export function getFieldResponseForJsonLogic({
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  if (isSingleSelectLike(field.type)) {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array

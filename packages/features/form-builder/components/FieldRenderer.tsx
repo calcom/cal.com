@@ -93,7 +93,6 @@ export function FieldRenderer({
     }
 
     case "email":
-    case "multiemail":
       return (
         <TextField
           type="email"
@@ -141,11 +140,6 @@ export function FieldRenderer({
           placeholder={field.placeholder || t("form_builder_pick_a_date")}
           variant={uiConfig.datePickerVariant ?? "default"}
         />
-      );
-
-    case "time":
-      return (
-        <TextField type="time" disabled variant={inputVariant} size={inputSize} style={underlineStyle} />
       );
 
     case "calendar":

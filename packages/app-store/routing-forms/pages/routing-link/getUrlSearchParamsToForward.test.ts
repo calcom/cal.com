@@ -239,6 +239,52 @@ describe("getUrlSearchParamsToForward", () => {
     expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual(expectedParams);
   });
 
+  it("should handle radio and checkbox fields like select and multiselect", () => {
+    const radioFieldId = uuidv4();
+    const checkboxFieldId = uuidv4();
+    const formResponse = {
+      [radioFieldId]: { value: "r1" },
+      [checkboxFieldId]: { value: ["c1", "c2"] },
+    };
+
+    const fields = [
+      {
+        id: radioFieldId,
+        label: "Radio Field",
+        type: "radio",
+        options: [
+          { id: "r1", label: "Choice 1" },
+          { id: "r2", label: "Choice 2" },
+        ],
+      },
+      {
+        id: checkboxFieldId,
+        label: "Checkbox Field",
+        type: "checkbox",
+        options: [
+          { id: "c1", label: "Option 1" },
+          { id: "c2", label: "Option 2" },
+        ],
+      },
+    ];
+
+    const result = getUrlSearchParamsToForward({
+      formResponse,
+      fields,
+      searchParams: new URLSearchParams(),
+      teamMembersMatchingAttributeLogic: null,
+      formResponseId: 1,
+      queuedFormResponseId: null,
+      attributeRoutingConfig: null,
+    });
+
+    expect(fromEntriesWithDuplicateKeys(result.entries())).toEqual({
+      "Radio Field": "Choice 1",
+      "Checkbox Field": ["Option 1", "Option 2"],
+      "cal.routingFormResponseId": "1",
+    });
+  });
+
   it("should add cal.skipContactOwner when attributeRoutingConfig.skipContactOwner is true", () => {
     const field1Id = uuidv4();
     const field2Id = uuidv4();
