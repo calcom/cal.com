@@ -20,11 +20,9 @@ vi.mock("@calcom/emails/templates/attendee-cancelled-email", () => ({
 }));
 
 const mockOnAttendeeRemoved = vi.fn().mockResolvedValue(undefined);
-const mockOnAttendeeAdded = vi.fn().mockResolvedValue(undefined);
 
 const mockBookingEventHandlerService = {
   onAttendeeRemoved: mockOnAttendeeRemoved,
-  onAttendeeAdded: mockOnAttendeeAdded,
 };
 
 const mockFeaturesRepository = {
@@ -40,22 +38,21 @@ vi.mock("@calcom/trpc/server/routers/viewer/bookings/addGuests.handler", async (
   };
 });
 
-import type { BookingAttendeesServiceDeps } from "./BookingAttendeesService";
-import { BookingAttendeesService } from "./BookingAttendeesService";
+import type { BookingAttendeesRemoveServiceDeps } from "./BookingAttendeesRemoveService";
+import { BookingAttendeesRemoveService } from "./BookingAttendeesRemoveService";
 
 const createdBookingIds: number[] = [];
 const createdUserIds: number[] = [];
 const createdEventTypeIds: number[] = [];
 
-describe("BookingAttendeesService.removeAttendee (Integration Tests)", () => {
+describe("BookingAttendeesRemoveService.removeAttendee (Integration Tests)", () => {
   const timestamp = Date.now();
   const bookingRepo = new BookingRepository(prisma);
-  const service = new BookingAttendeesService({
+  const service = new BookingAttendeesRemoveService({
     bookingEventHandlerService: mockBookingEventHandlerService,
     featuresRepository: mockFeaturesRepository,
     bookingAttendeeRepository: new PrismaBookingAttendeeRepository(prisma),
-    bookingRepository: bookingRepo,
-  } as unknown as BookingAttendeesServiceDeps);
+  } as unknown as BookingAttendeesRemoveServiceDeps);
 
   let organizerId: number;
   let bookingId: number;

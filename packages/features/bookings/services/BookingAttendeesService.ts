@@ -1,18 +1,14 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import type { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
+import type { BookingAttendeesRemoveService } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getTranslation } from "@calcom/i18n/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
-import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
   buildCalendarEvent,
@@ -26,7 +22,7 @@ import {
   validateUserPermissions,
 } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import type { TAddGuestsInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.schema";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 type Attendee = TAddGuestsInputSchema["guests"][number];
 
@@ -56,19 +52,11 @@ type RemoveAttendeeInput = {
   actionSource: ActionSource;
 };
 
-export type RemovedAttendee = {
-  id: number;
-  bookingId: number;
-  name: string;
-  email: string;
-  timeZone: string;
-};
-
 export type BookingAttendeesServiceDeps = {
   bookingEventHandlerService: BookingEventHandlerService;
   featuresRepository: FeaturesRepository;
-  bookingAttendeeRepository: PrismaBookingAttendeeRepository;
   bookingRepository: BookingRepository;
+  bookingAttendeesRemoveService: BookingAttendeesRemoveService;
 };
 
 export class BookingAttendeesService {
@@ -185,77 +173,8 @@ export class BookingAttendeesService {
     };
   }
 
-  async removeAttendee({
-    bookingId,
-    attendeeId,
-    user,
-    emailsEnabled = true,
-    actionSource,
-  }: RemoveAttendeeInput): Promise<RemovedAttendee> {
-    const booking = await getBooking(bookingId);
-    await validateUserPermissions(booking, user);
-
-    const attendeeToRemove = this.findAndValidateAttendee(booking, attendeeId);
-    const remainingAttendees = booking.attendees.filter((a) => a.id !== attendeeId);
-    const attendeesList = await prepareAttendeesList(remainingAttendees);
-    await this.removeAttendeeFromBooking(bookingId, attendeeId, attendeeToRemove.email, booking);
-
-    const organizer = await getOrganizerData(booking.userId);
-
-    const evt = await buildCalendarEvent(booking, organizer, attendeesList);
-    await updateCalendarEvent(booking, evt);
-
-    if (emailsEnabled) {
-      // Fire-and-forget: the attendee is already removed and calendar updated,
-      // so email work should not block the response or fail the request.
-      void this.prepareAttendeePerson(attendeeToRemove)
-        .then((removedAttendeePerson) => this.sendCancelledEmailToAttendee(evt, removedAttendeePerson))
-        .catch((error) => logger.error("Failed to send cancellation email to removed attendee", { error }));
-    }
-
-    const organizationId = user.organizationId ?? null;
-    const isBookingAuditEnabled = organizationId
-      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
-      : false;
-
-    await this.deps.bookingEventHandlerService.onAttendeeRemoved({
-      bookingUid: booking.uid,
-      actor: makeUserActor(user.uuid),
-      organizationId,
-      source: actionSource,
-      auditData: {
-        attendees: {
-          old: booking.attendees.map((a) => a.email),
-          new: remainingAttendees.map((a) => a.email),
-        },
-      },
-      isBookingAuditEnabled,
-    });
-
-    return {
-      id: attendeeToRemove.id,
-      bookingId: booking.id,
-      name: attendeeToRemove.name,
-      email: attendeeToRemove.email,
-      timeZone: attendeeToRemove.timeZone,
-    };
-  }
-
-  private findAndValidateAttendee(booking: Booking, attendeeId: number): Booking["attendees"][number] {
-    const attendee = booking.attendees.find((a) => a.id === attendeeId);
-
-    if (!attendee) {
-      throw ErrorWithCode.Factory.NotFound("attendee_not_found");
-    }
-
-    const sortedAttendees = [...booking.attendees].sort((a, b) => a.id - b.id);
-    const primaryAttendee = sortedAttendees[0];
-
-    if (primaryAttendee && attendee.id === primaryAttendee.id) {
-      throw ErrorWithCode.Factory.BadRequest("cannot_remove_primary_attendee");
-    }
-
-    return attendee;
+  async removeAttendee(input: RemoveAttendeeInput) {
+    return this.deps.bookingAttendeesRemoveService.removeAttendee(input);
   }
 
   private async sendAttendeeNotification(
@@ -276,46 +195,6 @@ export class BookingAttendeesService {
       newGuests: [attendeeEmail],
     });
   }
-
-  private async removeAttendeeFromBooking(
-    bookingId: number,
-    attendeeId: number,
-    attendeeEmail: string,
-    booking: Booking
-  ): Promise<void> {
-    const bookingResponses = booking.responses as BookingResponses;
-    const baseEmailToRemove = extractBaseEmail(attendeeEmail).toLowerCase();
-
-    const updatedGuests = (bookingResponses?.guests || []).filter((guestEmail: string) => {
-      return extractBaseEmail(guestEmail).toLowerCase() !== baseEmailToRemove;
-    });
-
-    await this.deps.bookingAttendeeRepository.deleteByIdAndUpdateBookingResponses(attendeeId, bookingId, {
-      ...bookingResponses,
-      guests: updatedGuests,
-    });
-  }
-
-  private async prepareAttendeePerson(attendee: Booking["attendees"][number]): Promise<Person> {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      language: {
-        translate: await getTranslation(attendee.locale ?? "en", "common"),
-        locale: attendee.locale ?? "en",
-      },
-    };
-  }
-
-  private async sendCancelledEmailToAttendee(evt: CalendarEvent, attendee: Person): Promise<void> {
-    try {
-      const email = new AttendeeCancelledEmail(evt, attendee);
-      await email.sendEmail();
-    } catch (error) {
-      logger.error("Failed to send cancellation email to removed attendee", {
-        error,
-      });
-    }
-  }
 }
+
+export type { RemovedAttendee } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
