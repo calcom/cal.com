@@ -3139,6 +3139,8 @@
   "redirect_to": "Redirect to",
   "having_trouble_finding_time": "Having trouble finding a time?",
   "show_more": "Show more",
+  "collapse_submenu": "Collapse submenu",
+  "expand_submenu": "Expand submenu",
   "signup_with_google": "Sign up with Google",
   "signup_with_microsoft": "Sign up with Microsoft",
   "signin_with_microsoft": "Sign in with Microsoft",

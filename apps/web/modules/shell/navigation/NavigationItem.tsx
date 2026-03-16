@@ -151,16 +151,14 @@ export const NavigationItem: React.FC<{
               data-test-id={item.name}
               aria-label={t(item.name)}
               aria-current={current ? "page" : undefined}
-              onClick={(e) => {
+              onClick={() => {
                 if (isTablet && hasChildren) {
-                  e.preventDefault();
                   setIsTooltipOpen(!isTooltipOpen);
-                } else {
-                  if (!isExpanded) {
-                    setIsExpanded(true);
-                  }
-                  trackNavigationClick(item.name);
                 }
+                if (!isExpanded) {
+                  setIsExpanded(true);
+                }
+                trackNavigationClick(item.name);
               }}
               className={classNames(
                 "todesktop:py-[7px] text-default group relative flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
@@ -203,7 +201,7 @@ export const NavigationItem: React.FC<{
             {shouldShowChevron && (
               <button
                 type="button"
-                aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
+                aria-label={isExpanded ? t("collapse_submenu") : t("expand_submenu")}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
@@ -361,7 +359,7 @@ export const MobileNavigationMoreItem: React.FC<{
             </Link>
             <button
               type="button"
-              aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
+              aria-label={isExpanded ? t("collapse_submenu") : t("expand_submenu")}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
