@@ -346,21 +346,6 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             );
           }
 
-          if (field.type === "time") {
-            return (
-              <TextField
-                type="time"
-                value={String(currentValue)}
-                disabled={isDisabled}
-                variant={inputVariant}
-                size={inputSize}
-                style={underlineStyle}
-                onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
-                onChange={(e) => updateResponse(e.target.value)}
-              />
-            );
-          }
-
           if (field.type === "calendar") {
             return (
               <CalendarFieldController

@@ -3,29 +3,16 @@
  *
  * Center panel — the visual form canvas.
  *
- * Half/Full width layout:
- *   Uses a CSS grid (grid-cols-2). Each field occupies either 1 or 2 columns.
- *   "full" fields (layout=full OR layout-only types) always span 2 cols.
- *   "half" fields occupy 1 col — two half fields can sit side by side in the
- *   same grid row automatically via CSS grid's auto-placement.
- *   This is simpler and more correct than the manual row-building approach.
- *
- * Styling matches the new UI prototype:
- *   - Scrollable grey background
- *   - Centered white card with drop shadow
- *   - Optional header above card (driven by formConfig)
- *   - Field cards with hover/selected border states
- *   - Floating toolbar on hover/select
- *
  * All structural mutations go through callback props → useFieldArray in parent.
- * This component is purely presentational.
  */
-import React, { CSSProperties, useRef, useState } from "react";
 import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown } from "lucide-react";
+import React, { CSSProperties, useRef, useState } from "react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { FieldRenderer } from "./FieldRenderer";
 import type { BuilderField, FormLevelConfig } from "./builderTypes";
 import { LAYOUT_ONLY_TYPES, resolveFormFontStyle } from "./builderTypes";
-import { FieldRenderer } from "./FieldRenderer";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 interface FormCanvasProps {
   fields: BuilderField[];
@@ -55,7 +42,7 @@ function InsertZone({
   return (
     <div
       className={`${className ?? ""} transition-all duration-150 ${
-        over ? "h-10 rounded-lg bg-brand/10 border-2 border-dashed border-brand" : "h-2"
+        over ? "bg-brand/10 border-brand h-10 rounded-lg border-2 border-dashed" : "h-2"
       }`}
       onDragOver={(e) => {
         e.preventDefault();
@@ -122,56 +109,28 @@ function FieldCard({
   const hideLabel = labelText.length === 0;
   const validation = field.uiConfig?.validation;
   // For underline style, skip the block label — FieldRenderer shows it inline
-  const showBlockLabel =
-    !isLayout && fieldStyle !== "underline" && !hideLabel;
-  const showInlineLabel =
-    fieldStyle === "underline" && !isLayout && !hideLabel;
+  const showBlockLabel = !isLayout && fieldStyle !== "underline" && !hideLabel;
+  const showInlineLabel = fieldStyle === "underline" && !isLayout && !hideLabel;
 
-  const requiredMessage =
-    validation?.requiredMessage?.trim() || t("form_builder_required_message_default");
-  const invalidEmailMessage =
-    validation?.invalidEmailMessage?.trim() || t("form_builder_invalid_email_default");
-  const invalidPhoneMessage =
-    validation?.invalidPhoneMessage?.trim() || t("form_builder_invalid_phone_default");
+  const requiredMessage = t("error_required_field");
+  const invalidEmailMessage = t("enter_valid_email");
+  const invalidPhoneMessage = t("invalid_phone_number");
 
-  const legacyValidation = validation as
-    | {
-        showRequiredError?: boolean;
-        showInvalidEmailError?: boolean;
-        showInvalidPhoneError?: boolean;
-      }
-    | undefined;
-  const hasLegacyFlags =
-    !!legacyValidation &&
-    ("showRequiredError" in legacyValidation ||
-      "showInvalidEmailError" in legacyValidation ||
-      "showInvalidPhoneError" in legacyValidation);
+  
+  // const showRequired = true;
 
-  const showRequired = hasLegacyFlags
-    ? !!legacyValidation?.showRequiredError
-    : !!validation?.requiredMessage?.trim();
-  const showInvalidEmail = hasLegacyFlags
-    ? !!legacyValidation?.showInvalidEmailError
-    : !!validation?.invalidEmailMessage?.trim();
-  const showInvalidPhone = hasLegacyFlags
-    ? !!legacyValidation?.showInvalidPhoneError
-    : !!validation?.invalidPhoneMessage?.trim();
-
-  const errorMessage =
-    showRequired
-      ? requiredMessage
-      : field.type === "email" && showInvalidEmail
-      ? invalidEmailMessage
-      : field.type === "phone" && showInvalidPhone
-      ? invalidPhoneMessage
-      : null;
+  // const errorMessage = showRequired
+  //   ? requiredMessage
+  //   : field.type === "email"
+  //   ? invalidEmailMessage
+  //   : field.type === "phone"
+  //   ? invalidPhoneMessage
+  //   : null;
 
   return (
     <div
-      className={`relative group cursor-pointer rounded-lg border-2 p-3 transition-all duration-150 select-none ${
-        isSelected
-          ? "border-brand bg-brand/5 shadow-sm"
-          : "border-transparent hover:border-default"
+      className={`group relative cursor-pointer select-none rounded-lg border-2 p-3 transition-all duration-150 ${
+        isSelected ? "border-brand bg-brand/5 shadow-sm" : "hover:border-default border-transparent"
       }`}
       onClick={(e) => {
         e.stopPropagation();
@@ -179,40 +138,35 @@ function FieldCard({
       }}
       draggable
       onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
+      onDragEnd={onDragEnd}>
       {/* Floating toolbar */}
       <div
-        className={`absolute -top-3.5 right-2 z-10 flex items-center gap-0.5 rounded-md border border-default bg-default px-1 py-0.5 shadow-sm transition-opacity ${
+        className={`border-default bg-default absolute -top-3.5 right-2 z-10 flex items-center gap-0.5 rounded-md border px-1 py-0.5 shadow-sm transition-opacity ${
           isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
-        onClick={(e) => e.stopPropagation()}
-      >
+        onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           title={t("form_builder_drag_to_reorder")}
           draggable
           onDragStart={onDragStart}
-          className="cursor-grab rounded p-1 hover:bg-subtle active:cursor-grabbing"
-        >
-          <GripVertical className="h-3 w-3 text-muted" />
+          className="hover:bg-subtle cursor-grab rounded p-1 active:cursor-grabbing">
+          <GripVertical className="text-muted h-3 w-3" />
         </button>
         <button
           type="button"
           title={t("duplicate")}
           onClick={onDuplicate}
-          className="rounded p-1 hover:bg-subtle"
-        >
-          <Copy className="h-3 w-3 text-muted" />
+          className="hover:bg-subtle rounded p-1">
+          <Copy className="text-muted h-3 w-3" />
         </button>
         {index > 0 && (
           <button
             type="button"
             title={t("form_builder_move_up")}
             onClick={onMoveUp}
-            className="rounded p-1 hover:bg-subtle"
-          >
-            <ChevronUp className="h-3 w-3 text-muted" />
+            className="hover:bg-subtle rounded p-1">
+            <ChevronUp className="text-muted h-3 w-3" />
           </button>
         )}
         {index < total - 1 && (
@@ -220,38 +174,32 @@ function FieldCard({
             type="button"
             title={t("form_builder_move_down")}
             onClick={onMoveDown}
-            className="rounded p-1 hover:bg-subtle"
-          >
-            <ChevronDown className="h-3 w-3 text-muted" />
+            className="hover:bg-subtle rounded p-1">
+            <ChevronDown className="text-muted h-3 w-3" />
           </button>
         )}
         <button
           type="button"
           title={t("delete")}
           onClick={onDelete}
-          className="rounded p-1 hover:bg-error/10"
-        >
-          <Trash2 className="h-3 w-3 text-error" />
+          className="hover:bg-error/10 rounded p-1">
+          <Trash2 className="text-error h-3 w-3" />
         </button>
       </div>
 
       {/* Label (default style, non-layout fields) */}
       {showBlockLabel && (
-        <label className="mb-1.5 block text-sm font-medium text-default pointer-events-none">
-          {labelText || (
-            <span className="italic text-muted">{t("untitled")}</span>
-          )}
-          {field.required && (
-            <span className="ml-0.5 text-error">*</span>
-          )}
+        <label className="text-default pointer-events-none mb-1.5 block text-sm font-medium">
+          {labelText || <span className="text-muted italic">{t("untitled")}</span>}
+          {field.required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
 
       {/* For underline style, show label above input */}
       {showInlineLabel && (
-        <label className="mb-0.5 block text-xs font-medium text-default pointer-events-none">
-          {labelText || <span className="italic text-muted">{t("untitled")}</span>}
-          {field.required && <span className="ml-0.5 text-error">*</span>}
+        <label className="text-default pointer-events-none mb-0.5 block text-xs font-medium">
+          {labelText || <span className="text-muted italic">{t("untitled")}</span>}
+          {field.required && <span className="text-error ml-0.5">*</span>}
         </label>
       )}
 
@@ -263,16 +211,10 @@ function FieldCard({
       />
 
       {field.uiConfig?.helpText && (
-        <p className="mt-1.5 text-xs text-muted pointer-events-none">
-          {field.uiConfig.helpText}
-        </p>
+        <p className="text-muted pointer-events-none mt-1.5 text-xs">{field.uiConfig.helpText}</p>
       )}
 
-      {errorMessage && (
-        <p className="mt-1.5 text-xs text-error pointer-events-none">
-          {errorMessage}
-        </p>
-      )}
+      {/* {errorMessage && <p className="text-error pointer-events-none mt-1.5 text-xs">{errorMessage}</p>} */}
     </div>
   );
 }
@@ -391,9 +333,7 @@ export function FormCanvas({
   const updateHoverFromPointer = (e: React.DragEvent) => {
     const grid = gridRef.current;
     if (!grid) return;
-    const nodes = Array.from(
-      grid.querySelectorAll<HTMLElement>("[data-field-index]")
-    );
+    const nodes = Array.from(grid.querySelectorAll<HTMLElement>("[data-field-index]"));
     if (nodes.length === 0) return;
     const y = e.clientY;
     for (const node of nodes) {
@@ -424,238 +364,205 @@ export function FormCanvas({
 
   return (
     <div
-      className="relative h-full overflow-y-auto bg-subtle"
+      className="bg-subtle relative h-full overflow-y-auto"
       onClick={() => onSelectField(null)}
       onDragOver={(e) => {
         e.preventDefault();
         setCanvasOver(true);
       }}
       onDragLeave={() => setCanvasOver(false)}
-      onDrop={handleCanvasDrop}
-    >
+      onDrop={handleCanvasDrop}>
       <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
-      <div
-        className="relative"
-        style={{ ...backgroundStyle, padding: `${layoutPadding}px` }}
-      >
+      <div className="relative" style={{ ...backgroundStyle, padding: `${layoutPadding}px` }}>
         {background.type === "image" && background.imageUrl && background.overlayOpacity > 0 && (
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none absolute inset-0"
             style={{ backgroundColor: `rgba(0,0,0,${background.overlayOpacity})` }}
           />
         )}
         {background.type === "image" && background.imageUrl && background.blur > 0 && (
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none absolute inset-0"
             style={{ backdropFilter: `blur(${background.blur}px)` }}
           />
         )}
-        <div className="relative flex w-full items-start justify-center">
+        <div className="relative  flex w-full items-start justify-center">
           <div className="w-full" style={contentStyle}>
-
-          {/* ── Header (above card) ── */}
-          {(header.title || header.subtitle) && (
-            <div
-              className=""
-              style={{
-                textAlign: header.alignment,
-                paddingTop: `${header.spacingBottom}px`,
-                marginBottom: `${header.spacingBottom}px`,
-              }}
-            >
-              {header.title && (
-                <h2
-                  className="text-xl font-bold text-default mb-1"
-                  style={{
-                    fontSize: `${header.titleSize}px`,
-                    color: header.titleColor || undefined,
-                  }}
-                >
-                  {header.title}
-                </h2>
-              )}
-              {header.subtitle && (
-                <p
-                  className="text-sm text-muted"
-                  style={{
-                    fontSize: `${header.subtitleSize}px`,
-                    color: header.subtitleColor || undefined,
-                  }}
-                >
-                  {header.subtitle}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* ── Form card ── */}
-          <div
-            className="bg-default border border-default shadow-md"
-            style={cardStyle}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {fields.length === 0 ? (
+            {/* ── Header (above card) ── */}
+            {(header.title || header.subtitle) && (
               <div
-                className={`flex min-h-[240px] flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
-                  canvasOver
-                    ? "border-brand bg-brand/5"
-                    : "border-default"
-                }`}
-              >
-                <p className="text-sm font-medium text-muted">
-                  {canvasOver
-                    ? t("form_builder_drop_to_add_field")
-                    : t("form_builder_drag_fields_here_or_click")}
-                </p>
-                <p className="mt-1 text-xs text-muted/60">
-                  {t("form_builder_form_will_appear_here")}
-                </p>
+                className=""
+                style={{
+                  textAlign: header.alignment,
+                  paddingTop: `${header.spacingBottom}px`,
+                  marginBottom: `${header.spacingBottom}px`,
+                }}>
+                {header.title && (
+                  <h2
+                    className="text-default mb-1 text-xl font-bold"
+                    style={{
+                      fontSize: `${header.titleSize}px`,
+                      color: header.titleColor || undefined,
+                    }}>
+                    {header.title}
+                  </h2>
+                )}
+                {header.subtitle && (
+                  <p
+                    className="text-muted text-sm"
+                    style={{
+                      fontSize: `${header.subtitleSize}px`,
+                      color: header.subtitleColor || undefined,
+                    }}>
+                    {header.subtitle}
+                  </p>
+                )}
               </div>
-            ) : (
-              <div className="space-y-0">
-                {/* Top insert zone */}
-                <InsertZone
-                  className="col-span-1 sm:col-span-2"
-                  onDrop={(type, fromIdx) =>
-                    handleInsertZoneDrop(type, fromIdx, 0)
-                  }
-                  onHover={() => setHover(0)}
-                  onHandledDrop={() => {
-                    dropHandledRef.current = true;
-                    setTimeout(() => {
-                      dropHandledRef.current = false;
-                    }, 0);
-                  }}
-                />
+            )}
 
-                {/*
+            {/* ── Form card ── */}
+            <div
+              className="bg-default  dark:bg-muted  border-default border shadow-md"
+              style={cardStyle}
+              onClick={(e) => e.stopPropagation()}>
+              {fields.length === 0 ? (
+                <div
+                  className={`flex min-h-[240px] flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
+                    canvasOver ? "border-brand bg-brand/5" : "border-default"
+                  }`}>
+                  <p className="text-muted text-sm font-medium">
+                    {canvasOver
+                      ? t("form_builder_drop_to_add_field")
+                      : t("form_builder_drag_fields_here_or_click")}
+                  </p>
+                  <p className="text-muted/60 mt-1 text-xs">{t("form_builder_form_will_appear_here")}</p>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {/* Top insert zone */}
+                  <InsertZone
+                    className="col-span-1 sm:col-span-2"
+                    onDrop={(type, fromIdx) => handleInsertZoneDrop(type, fromIdx, 0)}
+                    onHover={() => setHover(0)}
+                    onHandledDrop={() => {
+                      dropHandledRef.current = true;
+                      setTimeout(() => {
+                        dropHandledRef.current = false;
+                      }, 0);
+                    }}
+                  />
+
+                  {/*
                   CSS grid with 2 columns.
                   Full-width fields span both columns (col-span-2).
                   Half-width fields occupy 1 column — CSS grid auto-places them.
                   This is the correct implementation of half/full width.
                 */}
-                <div
-                  ref={gridRef}
-                  className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    updateHoverFromPointer(e);
-                  }}
-                >
-                  {(() => {
-                    const items: React.ReactNode[] = [];
+                  <div
+                    ref={gridRef}
+                    className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      updateHoverFromPointer(e);
+                    }}>
+                    {(() => {
+                      const items: React.ReactNode[] = [];
                       const placeholder =
-                      draggingIndex !== null ? (
-                        <div className="col-span-1 sm:col-span-2 h-10 rounded-lg border-2 border-dashed border-brand bg-brand/10" />
-                      ) : null;
+                        draggingIndex !== null ? (
+                          <div className="border-brand bg-brand/10 col-span-1 h-10 rounded-lg border-2 border-dashed sm:col-span-2" />
+                        ) : null;
 
-                    fields.forEach((field, index) => {
-                      const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
-                      const isFull =
-                        isLayout || (field.uiConfig?.layout ?? "full") === "full";
+                      fields.forEach((field, index) => {
+                        const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
+                        const isFull = isLayout || (field.uiConfig?.layout ?? "full") === "full";
 
-                      if (placeholder && hoverIndex === index) {
+                        if (placeholder && hoverIndex === index) {
+                          items.push(
+                            <React.Fragment key={`placeholder-${index}`}>{placeholder}</React.Fragment>
+                          );
+                        }
+
                         items.push(
-                          <React.Fragment key={`placeholder-${index}`}>
-                            {placeholder}
-                          </React.Fragment>
+                          <div
+                            key={field.id}
+                            data-field-index={index}
+                            className={`${isFull ? "col-span-1 sm:col-span-2" : "col-span-1"} flex flex-col`}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              updateHoverFromPointer(e);
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleCanvasDrop(e);
+                            }}>
+                            <FieldCard
+                              field={field}
+                              index={index}
+                              total={fields.length}
+                              isSelected={selectedFieldIndex === index}
+                              fieldStyle={fieldStyle}
+                              accentColor={formConfig.style.accentColor}
+                              secondaryColor={formConfig.style.secondaryColor}
+                              onSelect={() => onSelectField(index)}
+                              onDelete={() => onDelete(index)}
+                              onDuplicate={() => onDuplicate(index)}
+                              onMoveUp={() => onReorder(index, index - 1)}
+                              onMoveDown={() => onReorder(index, index + 1)}
+                              onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = "move";
+                                e.dataTransfer.setData("builder/fieldIndex", String(index));
+                                e.stopPropagation();
+                                setDraggingIndex(index);
+                                lastHoverIndexRef.current = null;
+                              }}
+                              onDragEnd={() => {
+                                setDraggingIndex(null);
+                                setHoverIndex(null);
+                                lastHoverIndexRef.current = null;
+                              }}
+                            />
+
+                            {/* Insert zone after each field (does not consume a grid cell) */}
+                            <InsertZone
+                              className="mt-2"
+                              onDrop={(type, fromIdx) => handleInsertZoneDrop(type, fromIdx, index + 1)}
+                              onHover={() => setHover(index + 1)}
+                              onHandledDrop={() => {
+                                dropHandledRef.current = true;
+                                setTimeout(() => {
+                                  dropHandledRef.current = false;
+                                }, 0);
+                              }}
+                            />
+                          </div>
                         );
+                      });
+
+                      if (placeholder && hoverIndex === fields.length) {
+                        items.push(<React.Fragment key="placeholder-end">{placeholder}</React.Fragment>);
                       }
 
-                      items.push(
-                        <div
-                          key={field.id}
-                          data-field-index={index}
-                          className={`${
-                            isFull ? "col-span-1 sm:col-span-2" : "col-span-1"
-                          } flex flex-col`}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            updateHoverFromPointer(e);
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleCanvasDrop(e);
-                          }}
-                        >
-                          <FieldCard
-                            field={field}
-                            index={index}
-                            total={fields.length}
-                            isSelected={selectedFieldIndex === index}
-                            fieldStyle={fieldStyle}
-                            accentColor={formConfig.style.accentColor}
-                            secondaryColor={formConfig.style.secondaryColor}
-                            onSelect={() => onSelectField(index)}
-                            onDelete={() => onDelete(index)}
-                            onDuplicate={() => onDuplicate(index)}
-                            onMoveUp={() => onReorder(index, index - 1)}
-                            onMoveDown={() => onReorder(index, index + 1)}
-                            onDragStart={(e) => {
-                              e.dataTransfer.effectAllowed = "move";
-                              e.dataTransfer.setData(
-                                "builder/fieldIndex",
-                                String(index)
-                              );
-                              e.stopPropagation();
-                              setDraggingIndex(index);
-                              lastHoverIndexRef.current = null;
-                            }}
-                            onDragEnd={() => {
-                              setDraggingIndex(null);
-                              setHoverIndex(null);
-                              lastHoverIndexRef.current = null;
-                            }}
-                          />
+                      return items;
+                    })()}
+                  </div>
 
-                          {/* Insert zone after each field (does not consume a grid cell) */}
-                          <InsertZone
-                            className="mt-2"
-                            onDrop={(type, fromIdx) =>
-                              handleInsertZoneDrop(type, fromIdx, index + 1)
-                            }
-                            onHover={() => setHover(index + 1)}
-                            onHandledDrop={() => {
-                              dropHandledRef.current = true;
-                              setTimeout(() => {
-                                dropHandledRef.current = false;
-                              }, 0);
-                            }}
-                          />
-                        </div>
-                      );
-                    });
-
-                    if (placeholder && hoverIndex === fields.length) {
-                      items.push(
-                        <React.Fragment key="placeholder-end">
-                          {placeholder}
-                        </React.Fragment>
-                      );
-                    }
-
-                    return items;
-                  })()}
+                  {/* Submit button */}
+                  <div className={`flex pt-4 ${btnAlignClass}`}>
+                    <button
+                      type="button"
+                      style={btnStyle}
+                      className={`${
+                        submitButton.width === "full" ? "w-full" : "px-8"
+                      } bg-emphasis text-inverted pointer-events-none h-10 rounded-md text-sm font-medium opacity-80 transition-opacity`}>
+                      {submitButton.text || t("submit")}
+                    </button>
+                  </div>
                 </div>
-
-                {/* Submit button */}
-                <div className={`flex pt-4 ${btnAlignClass}`}>
-                  <button
-                    type="button"
-                    style={btnStyle}
-                    className={`${
-                      submitButton.width === "full" ? "w-full" : "px-8"
-                    } h-10 text-sm font-medium bg-emphasis text-inverted rounded-md transition-opacity opacity-80 pointer-events-none`}
-                  >
-                    {submitButton.text || t("submit")}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

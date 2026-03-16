@@ -181,7 +181,7 @@ export default function RoutingFormRenderer({
         <div className="w-full" style={contentStyle}>
           {hasHeader && (!isEmbed || isInlineEmbed) && headerElement()}
 
-          <div className="bg-default border-default border shadow-md" style={cardStyle}>
+          <div className="dark:bg-muted bg-default border-default border shadow-md" style={cardStyle}>
             {hasHeader && isEmbed && !isInlineEmbed && headerElement()}
             <FormInputFields
               form={form}

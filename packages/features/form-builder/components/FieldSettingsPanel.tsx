@@ -2,15 +2,8 @@
  * FieldSettingsPanel.tsx
  *
  * Right panel with four tabs: Field | Header | Style | Submit
- *
- * CRITICAL: All field edits call onUpdate/onUpdateUIConfig which write directly
- * to hookForm via setValue. This component owns NO field data — it is purely
- * controlled. The parent (FormBuilderPage) passes the live field derived from
- * hookForm.watch("fields")[selectedIndex].
- *
- * Input: @calid/features/ui/components/input/input — controlled, requires value + onChange
- * Switch: @calid/features/ui/components/switch/switch — Radix, uses checked + onCheckedChange
  */
+
 import React, { useState } from "react";
 import { Trash2, Copy, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@calid/features/ui/components/input/input";
@@ -83,7 +76,7 @@ function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-0.5 p-0.5 bg-subtle rounded-md">
+    <div className="flex gap-0.5 p-0.5 bg-subtle border rounded-md">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -91,7 +84,7 @@ function SegmentedControl<T extends string>({
           onClick={() => onChange(opt.value)}
           className={`flex-1 rounded py-1.5 text-xs font-medium transition-all ${
             value === opt.value
-              ? "bg-default text-default shadow-sm"
+              ? "bg-default dark:bg-muted text-default shadow-sm"
               : "text-muted hover:text-default"
           }`}
         >
@@ -272,7 +265,7 @@ function OptionsEditor({
         className="flex w-full items-center justify-center gap-1.5 rounded border border-dashed border-default py-1.5 text-xs text-muted hover:bg-subtle hover:text-default transition-colors"
       >
         <Plus className="h-3 w-3" />
-        {t("form_builder_add_option")}
+        {t("add_an_option")}
       </button>
     </div>
   );
@@ -389,7 +382,7 @@ function FieldTab({
           {/* Identifier */}
           <div className="space-y-1">
             <FieldLabel>
-              {t("form_builder_identifier")}
+              {t("identifier")}
             </FieldLabel>
             <Input
               value={field.identifier ?? ""}
@@ -398,7 +391,6 @@ function FieldTab({
                 const normalized = labelToIdentifier(next);
                 onUpdate({ identifier: normalized || undefined });
               }}
-              placeholder={t("form_builder_auto_from_label")}
               className="h-8 text-xs font-mono"
             />
           </div>
@@ -413,7 +405,7 @@ function FieldTab({
                   const next = e.target.value;
                   onUpdate({ placeholder: next.trim().length ? next : undefined });
                 }}
-                placeholder={t("form_builder_placeholder_text")}
+                placeholder={t("placeholder")}
                 className="h-8 text-sm"
               />
             </div>
@@ -518,7 +510,7 @@ function FieldTab({
                 />
               </div>
               <div className="space-y-1">
-                <FieldLabel>{t("form_builder_option_layout")}</FieldLabel>
+                <FieldLabel>{t("layout")}</FieldLabel>
                 <SegmentedControl
                   value={
                     field.type === "checkbox"
@@ -683,7 +675,6 @@ function StyleTab({
   const selectedBackground = backgroundOptions.find((opt) => opt.value === background.type) ?? null;
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
-      <SectionTitle>{t("form_builder_field_appearance")}</SectionTitle>
       <div className="space-y-1">
         <FieldLabel>{t("form_builder_font_family")}</FieldLabel>
         <Select
