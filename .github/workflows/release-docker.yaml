@@ -101,7 +101,6 @@ jobs:
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
           push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
-          use-as-latest: "false"
 
       - name: Notify Slack on Success
         if: success()
