@@ -4558,6 +4558,7 @@
   "booking_history": "Bookinghistorik",
   "booking_history_description": "Se historikken over handlinger udført på denne booking",
   "booking_history_requires_organization": "Bookinghistorik kræver en organisation",
+  "booking_history_upgrade_description": "Opgrader til en organisationsplan for at få adgang til detaljerede bookinglogfiler og historik.",
   "enable_custom_host_locations": "Aktivér brugerdefinerede værtslokationer",
   "enable_custom_host_locations_description": "Tillad hver vært at have deres egen mødelokation",
   "custom_host_locations_no_saved_hosts_title": "Tilføj og gem værter, før du konfigurerer værtslokationer",
