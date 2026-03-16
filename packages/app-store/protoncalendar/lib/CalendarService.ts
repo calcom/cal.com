@@ -174,6 +174,9 @@ class ProtonCalendarService implements Calendar {
     const userTimeZone = userId ? await getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
 
+    const start = dayjs(dateFrom);
+    const end = dayjs(dateTo);
+
     const vevents = vcalendar.getAllSubcomponents("vevent");
 
     // First pass: collect RECURRENCE-IDs of cancelled exception VEVENTs.
