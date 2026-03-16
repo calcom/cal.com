@@ -40,6 +40,7 @@ import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
 import { viewerTeamsRouter } from "./teams/_router";
 import { travelSchedulesRouter } from "./travelSchedules/_router";
+import { unifiedCalendarRouter } from "./unifiedCalendar/_router";
 import { webhookRouter } from "./webhook/_router";
 import { whatsappBusinessRouter } from "./whatsappBusiness/_router";
 import { workflowsRouter } from "./workflows/_router";
@@ -88,6 +89,7 @@ export const viewerRouter = router({
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
+  unifiedCalendar: unifiedCalendarRouter,
   calidTeams: calIdTeamsRouter,
   appWhatsappBusiness: app_whatsappBusiness,
 });

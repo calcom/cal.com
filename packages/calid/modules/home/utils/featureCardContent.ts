@@ -11,10 +11,9 @@ export type Feature = {
 
 export const newFeatureCardContent: Feature[] = [
   {
-    icon: "message-circle",
-    title: "WhatsApp Business",
-    description: "Connect your WhatsApp Business to message bookers using your own templates.",
-    pageSlug: "/apps/whatsapp-business",
+    icon: "workflow",
+    title: "Worflow Status",
+    description: "See the status of your bookings workflows in real-time.",
     isNew: true,
   },
   {
@@ -33,15 +32,10 @@ export const newFeatureCardContent: Feature[] = [
 
 export const featureCardContent: Feature[] = [
   {
-    icon: "credit-card",
-    title: "Razorpay Integration",
-    description: "Collect payments from your bookers using Razorpay.",
-    pageSlug: "/apps/razorpay",
-  },
-  {
-    icon: "paperclip",
-    title: "Attachments",
-    description: "Allow your bookers to upload attachments to their bookings.",
+    icon: "download",
+    title: "Import from Calendly",
+    description: "Import your Calendly events and bookings to Cal ID.",
+    pageSlug: "/settings/others/import",
   },
   {
     icon: "paintbrush",
@@ -50,10 +44,9 @@ export const featureCardContent: Feature[] = [
     pageSlug: "/settings/my-account/custom-branding",
   },
   {
-    icon: "download",
-    title: "Import from Calendly",
-    description: "Import your Calendly events and bookings to Cal ID.",
-    pageSlug: "/settings/others/import",
+    icon: "paperclip",
+    title: "Attachments",
+    description: "Allow your bookers to upload attachments to their bookings.",
   },
   {
     icon: "shield",

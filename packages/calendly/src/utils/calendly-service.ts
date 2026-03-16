@@ -1,7 +1,7 @@
 import type { AxiosInstance, AxiosResponse } from "axios";
 import axios from "axios";
+import type { Context } from "inngest";
 import { NonRetriableError, RetryAfterError } from "inngest";
-import type { createStepTools } from "inngest/components/InngestStepTools";
 
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import prisma from "@calcom/prisma";
@@ -123,7 +123,7 @@ export default class CalendlyAPIService {
     title: string;
     url: string;
     fnName: string;
-    step: ReturnType<typeof createStepTools>;
+    step: Context["step"];
   }) {
     const res = await step.run(title, async () => {
       try {
@@ -178,7 +178,7 @@ export default class CalendlyAPIService {
   }: {
     userUri: string;
     active: boolean;
-    step: ReturnType<typeof createStepTools>;
+    step: Context["step"];
   }): Promise<CalendlyEventType[]> => {
     try {
       const queryParams = `user=${userUri}`;
@@ -232,7 +232,7 @@ export default class CalendlyAPIService {
     status?: string;
     maxStartTime?: string;
     minStartTime?: string;
-    step: ReturnType<typeof createStepTools>;
+    step: Context["step"];
     next_page?: string;
   }): Promise<{
     events: CalendlyScheduledEvent[];
@@ -302,7 +302,7 @@ export default class CalendlyAPIService {
   }: {
     uuids: string[];
     batch: number;
-    step: ReturnType<typeof createStepTools>;
+    step: Context["step"];
   }): Promise<{ uuid: string; invitees: CalendlyScheduledEventInvitee[] }[]> => {
     const data = await step.run(`Fetch invitees for bookings batch - ${batch}`, async () => {
       const count = 99;
@@ -364,7 +364,7 @@ export default class CalendlyAPIService {
     step,
   }: {
     userUri: string;
-    step: ReturnType<typeof createStepTools>;
+    step: Context["step"];
   }): Promise<CalendlyUserAvailabilitySchedules[]> => {
     try {
       const url = `/user_availability_schedules?user=${userUri}`;

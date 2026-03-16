@@ -32,6 +32,7 @@ export const ENDPOINTS = [
   "teams",
   "organizations",
   "travelSchedules",
+  "unifiedCalendar",
   "users",
   "viewer",
   "webhook",

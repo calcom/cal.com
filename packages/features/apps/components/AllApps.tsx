@@ -55,6 +55,7 @@ type AllAppsPropsType = {
   searchText?: string;
   categories: string[];
   userAdminTeams?: UserAdminTeams;
+  selectedCategory?: string | null;
 };
 
 interface CategoryTabProps {
@@ -152,24 +153,32 @@ function AppsSearch({ onChange }: { onChange: ChangeEventHandler<HTMLInputElemen
   );
 }
 
-export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) {
+export function AllApps({ apps, categories, userAdminTeams, selectedCategory }: AllAppsPropsType) {
   const { t } = useLocale();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
       category && typeof category === "string" && categories.includes(category) ? category : null;
-    setSelectedCategory(validCategory);
+    setActiveCategory(validCategory);
   };
+
+  useEffect(() => {
+    const validCategory =
+      selectedCategory && typeof selectedCategory === "string" && categories.includes(selectedCategory)
+        ? selectedCategory
+        : null;
+    setActiveCategory(validCategory);
+  }, [selectedCategory, categories]);
 
   const filteredApps = apps
     .filter((app) =>
-      selectedCategory !== null
+      activeCategory !== null
         ? app.categories
-          ? app.categories.includes(selectedCategory as AppCategories)
-          : app.category === selectedCategory
+          ? app.categories.includes(activeCategory as AppCategories)
+          : app.category === activeCategory
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
@@ -199,7 +208,7 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
       <div className="mb-4 flex items-center justify-between gap-4">
         <AppsSearch onChange={(e) => setSearchText(e.target.value)} />
         <CategoryTab
-          selectedCategory={selectedCategory}
+          selectedCategory={activeCategory}
           categories={categories}
           onCategoryChange={handleCategoryChange}
         />

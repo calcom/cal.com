@@ -15,7 +15,8 @@ checksums:
     configure_your_webhook: 06d812c96c4044447ef7f5daccfaff0c
     select_whatsapp_template: fe2229611d56bcd4e4c368bc9a6a5ddd
     workflow_status: 397e1a0d0cc711f24a5890192399c29e
-    workflow_reminders: afd5d3684ba7c3aa74712e4dfb439281
+    select_attendee_for_their_workflow_status: 53b11c18795b55ef3410705328b61924
+    workflow_status_description: 1a6d08787724e6195c036354f0acedc3
     pw_check_least_char: 142d03d1e2ad95e34ca82bb7f4b3f0ef
     pw_check_mix_case: b66a6c17ec847027bcd25b861f97ddf4
     pw_check_number: 4394176451bc12fb0caafc71c63de0b7
@@ -94,7 +95,7 @@ checksums:
     view: 36a9b5e3dc153c036d320460d72a03c3
     calendly_import: 7b8033e9fa1391119622e24e3622b5e9
     calendly_authorized: 33b06154fbb28483aa9bac05236d7809
-    notify_calendly_import: b2cf371e257b9d2e666de12391c75d4b
+    notify_calendly_import: 1c0acf89aa91c350afcf62b06b335b9d
     schedule: a75428cb811bc50150cecde090a3a0d5
     choose_a_meeting_type: 6081a8e3db8b82f632d8434c186095b4
     choose_a_team_member: a8910554dcd2ca1e579ddbb397ae4193

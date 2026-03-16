@@ -1,15 +1,5 @@
 import type { BaseJob } from "../baseJobType";
 
-export type CalendarProvider = "google" | "outlook" | "apple" | "zoho";
-
-export interface CalendarSyncJobData extends BaseJob {
-  userId: string;
-  provider: CalendarProvider;
-  syncType: "initial" | "incremental" | "webhook";
-  cursor?: string; // delta token / sync token
-  triggeredAt: string;
-}
-
 export interface BookingExportJobData extends BaseJob {
   user: {
     id: number;
@@ -45,4 +35,39 @@ export interface CalendlyImportJobData extends BaseJob {
   };
 }
 
-export type DataSyncJob = CalendarSyncJobData | BookingExportJobData | CalendlyImportJobData;
+export interface CalendarSyncJobData extends BaseJob {
+  action?: "deltaSync" | "initialSync" | "renewSubscription" | "disableCalendarSync";
+  calendarId?: number;
+  reason?: "webhook" | "scheduled" | "manual";
+  disableReason?: "user" | "admin" | "system";
+  syncDisabledReason?: "USER_DISCONNECTED" | "USER_TOGGLED_OFF" | "SUBSCRIPTION_RENEWAL_FAILED";
+  provider?: "google" | "outlook";
+  credentialId?: number;
+  providerCalendarId?: string;
+  receivedAt?: string;
+  subscriptionId?: string | null;
+  resourceId?: string | null;
+
+  // Legacy fields retained for compatibility with existing producers.
+  userId?: number | string;
+  syncType?: "full" | "delta";
+  cursor?: string;
+}
+
+export interface DeltaSyncWebhookJobData extends BaseJob {
+  action: "deltaSync";
+  calendarId: number;
+  reason: "webhook";
+  provider: "google" | "outlook";
+  credentialId: number;
+  providerCalendarId: string;
+  receivedAt: string;
+  subscriptionId?: string | null;
+  resourceId?: string | null;
+}
+
+export type DataSyncJob =
+  | BookingExportJobData
+  | CalendlyImportJobData
+  | CalendarSyncJobData
+  | DeltaSyncWebhookJobData;

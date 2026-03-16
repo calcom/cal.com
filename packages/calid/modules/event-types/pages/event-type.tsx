@@ -495,7 +495,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   return (
     <Shell heading={t("edit_event")} subtitle={t("edit_event_subtitle")} backPath="/event-types" CTA={cta}>
-      <div className="bg-background min-h-screen px-2 lg:px-0">
+      <div className="bg-default min-h-screen px-2 lg:px-0">
         {/* Horizontal tabs */}
         <HorizontalTabs
           tabs={availableTabs.map((tab) => ({
@@ -512,7 +512,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         />
 
         {/* Content */}
-        <div className="bg-background pb-4">
+        <div className="bg-default pb-4">
           <div className="mx-auto max-w-none">
             <Form
               form={form}
