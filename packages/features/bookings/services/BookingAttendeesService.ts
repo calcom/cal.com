@@ -206,12 +206,11 @@ export class BookingAttendeesService {
     await updateCalendarEvent(booking, evt);
 
     if (emailsEnabled) {
-      try {
-        const removedAttendeePerson = await this.prepareAttendeePerson(attendeeToRemove);
-        await this.sendCancelledEmailToAttendee(evt, removedAttendeePerson);
-      } catch (error) {
-        logger.error("Failed to send cancellation email to removed attendee", { error });
-      }
+      // Fire-and-forget: the attendee is already removed and calendar updated,
+      // so email work should not block the response or fail the request.
+      void this.prepareAttendeePerson(attendeeToRemove)
+        .then((removedAttendeePerson) => this.sendCancelledEmailToAttendee(evt, removedAttendeePerson))
+        .catch((error) => logger.error("Failed to send cancellation email to removed attendee", { error }));
     }
 
     const organizationId = user.organizationId ?? null;
