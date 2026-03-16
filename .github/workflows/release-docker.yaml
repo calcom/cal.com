@@ -92,7 +92,7 @@ jobs:
         uses: ./.github/actions/docker-build-and-test
         with:
           platform: "linux/amd64"
-          platform-suffix: ""
+          platform-suffix: "-amd64"
           dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
           dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -101,7 +101,7 @@ jobs:
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
           push-image: ${{ (github.event_name == 'push' || inputs.PUSH_IMAGE) && 'true' || 'false' }}
-          use-as-latest: "true"
+          use-as-latest: "false"
 
       - name: Notify Slack on Success
         if: success()
@@ -203,7 +203,7 @@ jobs:
           )
 
           for registry in "${REGISTRIES[@]}"; do
-            amd64_image="$registry:$RELEASE_TAG"
+            amd64_image="$registry:$RELEASE_TAG-amd64"
             arm64_image="$registry:$RELEASE_TAG-arm"
 
             echo "Creating manifest for $registry:$RELEASE_TAG"
