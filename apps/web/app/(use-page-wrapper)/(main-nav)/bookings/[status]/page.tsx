@@ -64,6 +64,7 @@ const Page = async ({ params }: PageProps) => {
   ]);
 
   const bookingsV3Enabled = featureStates["bookings-v3"]?.effectiveEnabled ?? false;
+  const isOrgUser = session.user.org?.id != null;
 
   return (
     <ShellMainAppDir
@@ -79,6 +80,7 @@ const Page = async ({ params }: PageProps) => {
         permissions={{ canReadOthersBookings }}
         bookingsV3Enabled={bookingsV3Enabled}
         bookingAuditEnabled={bookingAuditEnabled}
+        isOrgUser={isOrgUser}
       />
     </ShellMainAppDir>
   );

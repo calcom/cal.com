@@ -4557,6 +4557,8 @@
   "saved": "Saved",
   "booking_history": "Booking history",
   "booking_history_description": "View the history of actions performed on this booking",
+  "booking_history_requires_organization": "Booking history requires an organization",
+  "booking_history_upgrade_description": "Upgrade to an organization plan to access detailed booking audit logs and history.",
   "enable_custom_host_locations": "Enable custom host locations",
   "enable_custom_host_locations_description": "Allow each host to have their own meeting location",
   "custom_host_locations_no_saved_hosts_title": "Add and save hosts before configuring host locations",

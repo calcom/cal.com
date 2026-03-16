@@ -1,8 +1,6 @@
 "use client";
 
 import dayjs from "@calcom/dayjs";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -22,6 +20,8 @@ import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues"
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
 import { useSwitchToCorrectStatusTab } from "~/bookings/hooks/useSwitchToCorrectStatusTab";
 import { DataTableFilters, DataTableSegment } from "~/data-table/components";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useDisplayedFilterCount } from "~/data-table/hooks/useDisplayedFilterCount";
 import {
   BookingDetailsSheetStoreProvider,
   useBookingDetailsSheetStore,
@@ -66,6 +66,7 @@ interface BookingListContainerProps {
   };
   bookingsV3Enabled: boolean;
   bookingAuditEnabled: boolean;
+  isOrgUser: boolean;
 }
 
 interface BookingListInnerProps extends BookingListContainerProps {
@@ -83,6 +84,7 @@ function BookingListInner({
   bookings,
   bookingsV3Enabled,
   bookingAuditEnabled,
+  isOrgUser,
   data,
   isPending,
   hasError,
@@ -225,6 +227,7 @@ function BookingListInner({
           userId={user?.id}
           userEmail={user?.email}
           bookingAuditEnabled={bookingAuditEnabled}
+          isOrgUser={isOrgUser}
         />
       )}
     </>

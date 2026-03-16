@@ -45,7 +45,7 @@ const SegmentedControl = function <T extends string>({
                             key={itemValue}
                             htmlFor={inputId}
                             className={classNames(
-                                "inline-flex h-fit w-full items-center justify-center whitespace-nowrap rounded-lg p-1 text-md font-medium leading-none transition md:mb-0",
+                                "inline-flex h-fit w-full items-center justify-center whitespace-nowrap rounded-lg p-1 text-sm font-medium leading-none transition md:mb-0",
                                 "not-disabled:hover:shadow-outline-gray-hover not-disabled:active:shadow-outline-gray-active",
                                 isActive
                                     ? "bg-default text-emphasis shadow-outline-gray-rested ring-inset ring-subtle"

@@ -58,6 +58,7 @@ interface BookingDetailsSheetProps {
   userId?: number;
   userEmail?: string;
   bookingAuditEnabled?: boolean;
+  isOrgUser?: boolean;
 }
 
 export function BookingDetailsSheet({
@@ -66,6 +67,7 @@ export function BookingDetailsSheet({
   userId,
   userEmail,
   bookingAuditEnabled = false,
+  isOrgUser = false,
 }: BookingDetailsSheetProps) {
   const { resolvedBooking, bookingDetails } = useResolvedBooking();
 
@@ -81,6 +83,7 @@ export function BookingDetailsSheet({
         userId={userId}
         userEmail={userEmail}
         bookingAuditEnabled={bookingAuditEnabled}
+        isOrgUser={isOrgUser}
       />
     </BookingActionsStoreProvider>
   );
@@ -106,6 +109,7 @@ interface BookingDetailsSheetInnerProps {
   userId?: number;
   userEmail?: string;
   bookingAuditEnabled?: boolean;
+  isOrgUser?: boolean;
 }
 
 function useActiveSegment(bookingAuditEnabled: boolean) {
@@ -147,6 +151,7 @@ function BookingDetailsSheetInner({
   userId,
   userEmail,
   bookingAuditEnabled = false,
+  isOrgUser = false,
 }: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
   const [activeSegment, setActiveSegment] = useActiveSegment(bookingAuditEnabled);
@@ -405,7 +410,7 @@ function BookingDetailsSheetInner({
             )}
 
             {bookingAuditEnabled && activeSegment === "history" && (
-              <BookingHistory bookingUid={booking.uid} />
+              <BookingHistory bookingUid={booking.uid} isOrgUser={isOrgUser} />
             )}
           </div>
         </SheetBody>

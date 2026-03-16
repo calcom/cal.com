@@ -35,6 +35,8 @@ interface BookingCalendarContainerProps {
     canReadOthersBookings: boolean;
   };
   bookingsV3Enabled: boolean;
+  bookingAuditEnabled: boolean;
+  isOrgUser: boolean;
 }
 
 interface BookingCalendarInnerProps extends BookingCalendarContainerProps {
@@ -56,6 +58,8 @@ function BookingCalendarInner({
   status,
   permissions,
   bookingsV3Enabled,
+  bookingAuditEnabled,
+  isOrgUser,
   data,
   allowedFilterIds,
   hasError,
@@ -161,6 +165,8 @@ function BookingCalendarInner({
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         userId={user?.id}
         userEmail={user?.email}
+        bookingAuditEnabled={bookingAuditEnabled}
+        isOrgUser={isOrgUser}
       />
     </>
   );
