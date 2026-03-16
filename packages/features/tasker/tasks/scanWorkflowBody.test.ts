@@ -1,11 +1,8 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { lockUser, LockReason } from "@calcom/features/ee/api-keys/lib/autoLock";
+import { LockReason, lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
-
-import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { iffyScanBody, scanWorkflowBody } from "./scanWorkflowBody";
 
 vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
   const actual = await importActual<typeof import("@calcom/features/ee/api-keys/lib/autoLock")>();
@@ -26,6 +23,11 @@ vi.mock("./scanWorkflowBody", async (importActual) => {
     iffyScanBody: vi.fn(),
   };
 });
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 
 const mockWorkflowStep = {
   id: 1,

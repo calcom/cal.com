@@ -1,15 +1,11 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/features/conferencing/lib/videoClient";
+import { buildBooking } from "@calcom/lib/test/builder";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, afterEach } from "vitest";
-
-import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/features/conferencing/lib/videoClient";
-import { buildBooking } from "@calcom/lib/test/builder";
-
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
-
 import authMiddleware from "../../../../../pages/api/bookings/[id]/_auth-middleware";
 import handler from "../../../../../pages/api/bookings/[id]/transcripts/_get";
 
@@ -27,6 +23,11 @@ vi.mock("~/lib/utils/retrieveScopedAccessibleUsers", () => {
     getAccessibleUsers: vi.fn(),
   };
 });
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 
 afterEach(() => {
   vi.resetAllMocks();

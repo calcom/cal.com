@@ -1,9 +1,18 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, test, vi, expect, beforeEach } from "vitest";
-
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CreationSource } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
 
 vi.mock("@calcom/i18n/server", () => {
   return {
