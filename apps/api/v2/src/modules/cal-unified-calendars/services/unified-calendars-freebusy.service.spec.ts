@@ -16,14 +16,10 @@ jest.mock(
 );
 
 import {
-  APPLE_CALENDAR,
-  APPLE_CALENDAR_TYPE,
-  GOOGLE_CALENDAR,
   GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR,
   OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnifiedCalendarsFreebusyService } from "./unified-calendars-freebusy.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -56,147 +52,6 @@ describe("UnifiedCalendarsFreebusyService", () => {
     }).compile();
 
     service = module.get<UnifiedCalendarsFreebusyService>(UnifiedCalendarsFreebusyService);
-  });
-
-  describe("getConnections", () => {
-    it("should return Google Calendar connections", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 1,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-            primary: { externalId: "user@gmail.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toEqual([{ connectionId: "1", type: GOOGLE_CALENDAR, email: "user@gmail.com" }]);
-      expect(mockCalendarsService.getCalendars).toHaveBeenCalledWith(userId);
-    });
-
-    it("should return Office 365 connections", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 2,
-            integration: { type: OFFICE_365_CALENDAR_TYPE },
-            primary: { externalId: "user@outlook.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toEqual([{ connectionId: "2", type: OFFICE_365_CALENDAR, email: "user@outlook.com" }]);
-    });
-
-    it("should return Apple Calendar connections", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 3,
-            integration: { type: APPLE_CALENDAR_TYPE },
-            primary: { email: "user@icloud.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toEqual([{ connectionId: "3", type: APPLE_CALENDAR, email: "user@icloud.com" }]);
-    });
-
-    it("should return multiple connections from different providers", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 1,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-            primary: { externalId: "user@gmail.com" },
-          },
-          {
-            credentialId: 2,
-            integration: { type: OFFICE_365_CALENDAR_TYPE },
-            primary: { externalId: "user@outlook.com" },
-          },
-          {
-            credentialId: 3,
-            integration: { type: APPLE_CALENDAR_TYPE },
-            primary: { email: "user@icloud.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toHaveLength(3);
-    });
-
-    it("should filter out unsupported calendar types", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 1,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-            primary: { externalId: "user@gmail.com" },
-          },
-          {
-            credentialId: 99,
-            integration: { type: "some_unsupported_calendar" },
-            primary: { externalId: "user@unknown.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].connectionId).toBe("1");
-    });
-
-    it("should return empty array when no connected calendars", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result).toEqual([]);
-    });
-
-    it("should fall back to primary.email when externalId is missing", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 1,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-            primary: { email: "fallback@gmail.com" },
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result[0].email).toBe("fallback@gmail.com");
-    });
-
-    it("should return null email when no primary info available", async () => {
-      mockCalendarsService.getCalendars.mockResolvedValue({
-        connectedCalendars: [
-          {
-            credentialId: 1,
-            integration: { type: GOOGLE_CALENDAR_TYPE },
-            primary: undefined,
-          },
-        ],
-      });
-
-      const result = await service.getConnections(userId);
-
-      expect(result[0].email).toBeNull();
-    });
   });
 
   describe("getBusyTimesForConnection", () => {

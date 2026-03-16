@@ -1,6 +1,5 @@
 import { GOOGLE_CALENDAR, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -29,9 +28,8 @@ import {
   ListUnifiedCalendarEventsOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 import { ListConnectionsOutput } from "@/modules/cal-unified-calendars/outputs/list-connections.output";
-import { GoogleCalendarEventOutputPipe } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
-import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
-import { UnifiedCalendarsFreebusyService } from "@/modules/cal-unified-calendars/services/unified-calendars-freebusy.service";
+import { ParseConnectionIdPipe } from "@/modules/cal-unified-calendars/pipes/parse-connection-id.pipe";
+import { UnifiedCalendarService } from "@/modules/cal-unified-calendars/services/unified-calendar.service";
 
 const UNIFIED_CALENDAR_PARAM = ["google", "office365", "apple"] as const;
 
@@ -41,10 +39,7 @@ const UNIFIED_CALENDAR_PARAM = ["google", "office365", "apple"] as const;
 })
 @DocsTags("Cal Unified Calendars")
 export class CalUnifiedCalendarsController {
-  constructor(
-    private readonly googleCalendarService: GoogleCalendarService,
-    private readonly freebusyService: UnifiedCalendarsFreebusyService
-  ) {}
+  constructor(private readonly unifiedCalendarService: UnifiedCalendarService) {}
 
   @Get("connections")
   @HttpCode(HttpStatus.OK)
@@ -56,7 +51,7 @@ export class CalUnifiedCalendarsController {
       "Returns all calendar connections for the authenticated user (Google, Office 365, Apple). Use connectionId in connection-scoped endpoints. Note: Event CRUD (list/create/get/update/delete events) is currently only supported for Google Calendar connections; other types will return 400.",
   })
   async listConnections(@GetUser("id") userId: number): Promise<ListConnectionsOutput> {
-    const connections = await this.freebusyService.getConnections(userId);
+    const connections = await this.unifiedCalendarService.getConnections(userId);
     // Defense-in-depth: only forward the public fields so that any future service
     // regression that accidentally includes credential.key cannot leak to the client.
     const safeConnections = connections.map(({ connectionId, type, email }) => ({ connectionId, type, email }));
@@ -85,25 +80,19 @@ export class CalUnifiedCalendarsController {
   @ApiQuery({ name: "timeZone", required: false, type: String })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async listConnectionEvents(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @GetUser("id") userId: number,
     @Query() query: ListUnifiedCalendarEventsInput
   ): Promise<ListUnifiedCalendarEventsOutput> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
     const timeMin = query.from.includes("T") ? query.from : `${query.from}T00:00:00.000Z`;
     const timeMax = query.to.includes("T") ? query.to : `${query.to}T23:59:59.999Z`;
-    const events = await this.googleCalendarService.listEventsForUserByConnectionId(
+    const data = await this.unifiedCalendarService.listConnectionEvents(
       userId,
       credentialId,
       query.calendarId ?? "primary",
       timeMin,
       timeMax
     );
-    const pipe = new GoogleCalendarEventOutputPipe();
-    const data = events.map((e) => pipe.transform(e));
     return { status: SUCCESS_STATUS, data };
   }
 
@@ -119,23 +108,18 @@ export class CalUnifiedCalendarsController {
   })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async createConnectionEvent(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @GetUser("id") userId: number,
     @Body() body: CreateUnifiedCalendarEventInput,
     @Query("calendarId") calendarId?: string
   ): Promise<GetUnifiedCalendarEventOutput> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
-    const event = await this.googleCalendarService.createEventForUserByConnectionId(
+    const data = await this.unifiedCalendarService.createConnectionEvent(
       userId,
       credentialId,
       calendarId ?? "primary",
       body
     );
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
-    return { status: SUCCESS_STATUS, data: transformedEvent };
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -151,23 +135,18 @@ export class CalUnifiedCalendarsController {
   })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async getConnectionEvent(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @Param("eventId") eventId: string,
     @GetUser("id") userId: number,
     @Query("calendarId") calendarId?: string
   ): Promise<GetUnifiedCalendarEventOutput> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
-    const event = await this.googleCalendarService.getEventByConnectionId(
+    const data = await this.unifiedCalendarService.getConnectionEvent(
       userId,
       credentialId,
       calendarId ?? "primary",
       eventId
     );
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
-    return { status: SUCCESS_STATUS, data: transformedEvent };
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -183,25 +162,20 @@ export class CalUnifiedCalendarsController {
   })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async updateConnectionEvent(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @Param("eventId") eventId: string,
     @GetUser("id") userId: number,
     @Body() updateData: UpdateUnifiedCalendarEventInput,
     @Query("calendarId") calendarId?: string
   ): Promise<GetUnifiedCalendarEventOutput> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
-    const updatedEvent = await this.googleCalendarService.updateEventByConnectionId(
+    const data = await this.unifiedCalendarService.updateConnectionEvent(
       userId,
       credentialId,
       calendarId ?? "primary",
       eventId,
       updateData
     );
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(updatedEvent);
-    return { status: SUCCESS_STATUS, data: transformedEvent };
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -217,21 +191,12 @@ export class CalUnifiedCalendarsController {
   })
   @ApiQuery({ name: "calendarId", required: false, type: String })
   async deleteConnectionEvent(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @Param("eventId") eventId: string,
     @GetUser("id") userId: number,
     @Query("calendarId") calendarId?: string
   ): Promise<void> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
-    await this.googleCalendarService.deleteEventForUserByConnectionId(
-      userId,
-      credentialId,
-      calendarId ?? "primary",
-      eventId
-    );
+    await this.unifiedCalendarService.deleteConnectionEvent(userId, credentialId, calendarId ?? "primary", eventId);
   }
 
   @ApiParam({ name: "connectionId", type: String })
@@ -247,23 +212,19 @@ export class CalUnifiedCalendarsController {
   @ApiQuery({ name: "to", required: true, type: String })
   @ApiQuery({ name: "timeZone", required: false, type: String })
   async getConnectionFreeBusy(
-    @Param("connectionId") connectionId: string,
+    @Param("connectionId", ParseConnectionIdPipe) credentialId: number,
     @GetUser("id") userId: number,
     @Query() query: FreebusyUnifiedInput
   ): Promise<GetBusyTimesOutput> {
-    const credentialId = parseInt(connectionId, 10);
-    if (Number.isNaN(credentialId)) {
-      throw new BadRequestException("Invalid connectionId");
-    }
     const timezone = query.timeZone ?? "UTC";
-    const busyTimes = await this.freebusyService.getBusyTimesForConnection(
+    const data = await this.unifiedCalendarService.getConnectionFreeBusy(
       userId,
       credentialId,
       query.from,
       query.to,
       timezone
     );
-    return { status: SUCCESS_STATUS, data: busyTimes };
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({
@@ -277,47 +238,21 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
-  @Get("/:calendar/event/:eventUid")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({
-    summary: "Get meeting details from calendar (deprecated path)",
-    description:
-      "Deprecated: use /events/ (plural) instead. Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
-  })
-  async getCalendarEventDetails(
-    @Param("calendar") calendar: string,
-    @Param("eventUid") eventUid: string
-  ): Promise<GetUnifiedCalendarEventOutput> {
-    return this.handleGetCalendarEvent(calendar, eventUid);
-  }
-
-  @ApiParam({
-    name: "calendar",
-    enum: [GOOGLE_CALENDAR],
-    type: String,
-  })
-  @ApiParam({
-    name: "eventUid",
-    description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
-    type: String,
-  })
-  @Get("/:calendar/events/:eventUid")
+  @Get(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get meeting details from calendar",
     description:
-      "Returns detailed information about a meeting including attendance metrics. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+      "Returns detailed information about a meeting including attendance metrics. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
   })
-  async getCalendarEventDetailsPlural(
+  async getCalendarEventDetails(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string
   ): Promise<GetUnifiedCalendarEventOutput> {
-    return this.handleGetCalendarEvent(calendar, eventUid);
+    const data = await this.unifiedCalendarService.getEventDetails(calendar, eventUid);
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({
@@ -331,49 +266,22 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
-  @Patch("/:calendar/events/:eventUid")
+  @Patch(["/:calendar/events/:eventUid", "/:calendar/event/:eventUid"])
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Update meeting details in calendar",
     description:
-      "Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+      "Updates event information in the specified calendar provider. The singular /event/ path is deprecated \u2014 use /events/ (plural) instead. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
   })
   async updateCalendarEvent(
     @Param("calendar") calendar: string,
     @Param("eventUid") eventUid: string,
     @Body() updateData: UpdateUnifiedCalendarEventInput
   ): Promise<GetUnifiedCalendarEventOutput> {
-    return this.handleUpdateCalendarEvent(calendar, eventUid, updateData);
-  }
-
-  @ApiParam({
-    name: "calendar",
-    enum: [GOOGLE_CALENDAR],
-    type: String,
-  })
-  @ApiParam({
-    name: "eventUid",
-    description:
-      "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
-    type: String,
-  })
-  @Patch("/:calendar/event/:eventUid")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(ApiAuthGuard, PermissionsGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({
-    summary: "Update meeting details in calendar (deprecated path)",
-    description:
-      "Deprecated: use /events/ (plural) instead. Updates event information in the specified calendar provider. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
-  })
-  async updateCalendarEventDeprecated(
-    @Param("calendar") calendar: string,
-    @Param("eventUid") eventUid: string,
-    @Body() updateData: UpdateUnifiedCalendarEventInput
-  ): Promise<GetUnifiedCalendarEventOutput> {
-    return this.handleUpdateCalendarEvent(calendar, eventUid, updateData);
+    const data = await this.unifiedCalendarService.updateEventDetails(calendar, eventUid, updateData);
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
@@ -395,21 +303,15 @@ export class CalUnifiedCalendarsController {
     @GetUser("id") userId: number,
     @Query() query: ListUnifiedCalendarEventsInput
   ): Promise<ListUnifiedCalendarEventsOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException(
-        "List events is currently only available for Google Calendar. Office 365 and Apple support is coming soon."
-      );
-    }
     const timeMin = query.from.includes("T") ? query.from : `${query.from}T00:00:00.000Z`;
     const timeMax = query.to.includes("T") ? query.to : `${query.to}T23:59:59.999Z`;
-    const events = await this.googleCalendarService.listEventsForUser(
+    const data = await this.unifiedCalendarService.listEvents(
+      calendar,
       userId,
       query.calendarId ?? "primary",
       timeMin,
       timeMax
     );
-    const pipe = new GoogleCalendarEventOutputPipe();
-    const data = events.map((e) => pipe.transform(e));
     return { status: SUCCESS_STATUS, data };
   }
 
@@ -428,14 +330,8 @@ export class CalUnifiedCalendarsController {
     @GetUser("id") userId: number,
     @Body() body: CreateUnifiedCalendarEventInput
   ): Promise<GetUnifiedCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException(
-        "Create event is currently only available for Google Calendar. Office 365 and Apple support is coming soon."
-      );
-    }
-    const event = await this.googleCalendarService.createEventForUser(userId, "primary", body);
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(event);
-    return { status: SUCCESS_STATUS, data: transformedEvent };
+    const data = await this.unifiedCalendarService.createEvent(calendar, userId, "primary", body);
+    return { status: SUCCESS_STATUS, data };
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
@@ -458,12 +354,7 @@ export class CalUnifiedCalendarsController {
     @Param("eventUid") eventUid: string,
     @GetUser("id") userId: number
   ): Promise<void> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException(
-        "Delete event is currently only available for Google Calendar. Office 365 and Apple support is coming soon."
-      );
-    }
-    await this.googleCalendarService.deleteEventForUser(userId, "primary", eventUid);
+    await this.unifiedCalendarService.deleteEvent(calendar, userId, "primary", eventUid);
   }
 
   @ApiParam({ name: "calendar", enum: UNIFIED_CALENDAR_PARAM, type: String })
@@ -484,53 +375,8 @@ export class CalUnifiedCalendarsController {
     @GetUser("id") userId: number,
     @Query() query: FreebusyUnifiedInput
   ): Promise<GetBusyTimesOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException(
-        "Free/busy is currently only available for Google Calendar. Office 365 and Apple support is coming soon."
-      );
-    }
     const timezone = query.timeZone ?? "UTC";
-    const busyTimes = await this.freebusyService.getBusyTimesForGoogleCalendars(
-      userId,
-      query.from,
-      query.to,
-      timezone
-    );
-    return { status: SUCCESS_STATUS, data: busyTimes };
-  }
-
-  private async handleGetCalendarEvent(
-    calendar: string,
-    eventUid: string
-  ): Promise<GetUnifiedCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException("Meeting details are currently only available for Google Calendar");
-    }
-
-    const eventDetails = await this.googleCalendarService.getEventDetails(eventUid);
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(eventDetails);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: transformedEvent,
-    };
-  }
-
-  private async handleUpdateCalendarEvent(
-    calendar: string,
-    eventUid: string,
-    updateData: UpdateUnifiedCalendarEventInput
-  ): Promise<GetUnifiedCalendarEventOutput> {
-    if (calendar !== GOOGLE_CALENDAR) {
-      throw new BadRequestException("Event updates are currently only available for Google Calendar");
-    }
-
-    const updatedEvent = await this.googleCalendarService.updateEventDetails(eventUid, updateData);
-    const transformedEvent = new GoogleCalendarEventOutputPipe().transform(updatedEvent);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: transformedEvent,
-    };
+    const data = await this.unifiedCalendarService.getFreeBusy(calendar, userId, query.from, query.to, timezone);
+    return { status: SUCCESS_STATUS, data };
   }
 }

@@ -7,6 +7,7 @@ import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gc
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CalUnifiedCalendarsController } from "@/modules/cal-unified-calendars/controllers/cal-unified-calendars.controller";
 import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
+import { UnifiedCalendarService } from "@/modules/cal-unified-calendars/services/unified-calendar.service";
 import { UnifiedCalendarsFreebusyService } from "@/modules/cal-unified-calendars/services/unified-calendars-freebusy.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
@@ -21,6 +22,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
   providers: [
     GCalService,
     GoogleCalendarService,
+    UnifiedCalendarService,
     UnifiedCalendarsFreebusyService,
     AppsRepository,
     BookingReferencesRepository_2024_08_13,

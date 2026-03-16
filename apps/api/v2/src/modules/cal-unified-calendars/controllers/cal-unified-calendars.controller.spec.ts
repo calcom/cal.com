@@ -1,9 +1,9 @@
 /**
- * Virtual mocks are required because GoogleCalendarService and CalendarsService
- * (imported transitively for DI token resolution) have runtime imports from
- * @calcom/platform-libraries and @calcom/platform-libraries/app-store whose
- * transitive dependencies (prisma, DB, Google APIs) cannot be resolved in Jest.
- * Both services are fully mocked via useValue so these packages are never executed.
+ * Virtual mocks are required because UnifiedCalendarService (imported transitively
+ * for DI token resolution) has runtime imports from @calcom/platform-libraries and
+ * @calcom/platform-libraries/app-store whose transitive dependencies (prisma, DB,
+ * Google APIs) cannot be resolved in Jest.
+ * The service is fully mocked via useValue so these packages are never executed.
  */
 jest.mock(
   "@calcom/platform-libraries/app-store",
@@ -31,42 +31,34 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { CalUnifiedCalendarsController } from "./cal-unified-calendars.controller";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
-import { UnifiedCalendarsFreebusyService } from "@/modules/cal-unified-calendars/services/unified-calendars-freebusy.service";
+import { UnifiedCalendarService } from "@/modules/cal-unified-calendars/services/unified-calendar.service";
 
 describe("CalUnifiedCalendarsController", () => {
   let controller: CalUnifiedCalendarsController;
-  let mockGoogleCalendarService: Record<string, jest.Mock>;
-  let mockFreebusyService: Record<string, jest.Mock>;
+  let mockUnifiedCalendarService: Record<string, jest.Mock>;
 
   const userId = 42;
 
   beforeEach(async () => {
-    mockGoogleCalendarService = {
+    mockUnifiedCalendarService = {
+      getConnections: jest.fn(),
       getEventDetails: jest.fn(),
       updateEventDetails: jest.fn(),
-      listEventsForUser: jest.fn(),
-      createEventForUser: jest.fn(),
-      deleteEventForUser: jest.fn(),
-      listEventsForUserByConnectionId: jest.fn(),
-      createEventForUserByConnectionId: jest.fn(),
-      getEventByConnectionId: jest.fn(),
-      updateEventByConnectionId: jest.fn(),
-      deleteEventForUserByConnectionId: jest.fn(),
-    };
-
-    mockFreebusyService = {
-      getConnections: jest.fn(),
-      getBusyTimesForConnection: jest.fn(),
-      getBusyTimesForGoogleCalendars: jest.fn(),
+      listEvents: jest.fn(),
+      createEvent: jest.fn(),
+      deleteEvent: jest.fn(),
+      getFreeBusy: jest.fn(),
+      listConnectionEvents: jest.fn(),
+      createConnectionEvent: jest.fn(),
+      getConnectionEvent: jest.fn(),
+      updateConnectionEvent: jest.fn(),
+      deleteConnectionEvent: jest.fn(),
+      getConnectionFreeBusy: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CalUnifiedCalendarsController],
-      providers: [
-        { provide: GoogleCalendarService, useValue: mockGoogleCalendarService },
-        { provide: UnifiedCalendarsFreebusyService, useValue: mockFreebusyService },
-      ],
+      providers: [{ provide: UnifiedCalendarService, useValue: mockUnifiedCalendarService }],
     })
       .overrideGuard(ApiAuthGuard)
       .useValue({ canActivate: () => true })
@@ -78,22 +70,22 @@ describe("CalUnifiedCalendarsController", () => {
   });
 
   describe("listConnections", () => {
-    it("should return connections from freebusy service", async () => {
+    it("should return connections from unified calendar service", async () => {
       const connections = [
         { connectionId: "1", type: "google" as const, email: "user@gmail.com" },
         { connectionId: "2", type: "office365" as const, email: "user@outlook.com" },
       ];
-      mockFreebusyService.getConnections.mockResolvedValue(connections);
+      mockUnifiedCalendarService.getConnections.mockResolvedValue(connections);
 
       const result = await controller.listConnections(userId);
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data.connections).toEqual(connections);
-      expect(mockFreebusyService.getConnections).toHaveBeenCalledWith(userId);
+      expect(mockUnifiedCalendarService.getConnections).toHaveBeenCalledWith(userId);
     });
 
     it("should return empty connections array when user has no calendars", async () => {
-      mockFreebusyService.getConnections.mockResolvedValue([]);
+      mockUnifiedCalendarService.getConnections.mockResolvedValue([]);
 
       const result = await controller.listConnections(userId);
 
@@ -102,9 +94,6 @@ describe("CalUnifiedCalendarsController", () => {
     });
 
     it("should strip credential key even if service accidentally includes it (defense-in-depth)", async () => {
-      // The controller destructures only { connectionId, type, email } from each connection,
-      // so even if the service layer has a regression that leaks credential.key, the
-      // controller response will never contain it.
       const connectionsWithKey = [
         {
           connectionId: "1",
@@ -113,47 +102,44 @@ describe("CalUnifiedCalendarsController", () => {
           key: { access_token: "SECRET_TOKEN", refresh_token: "SECRET_REFRESH" },
         },
       ];
-      mockFreebusyService.getConnections.mockResolvedValue(connectionsWithKey);
+      mockUnifiedCalendarService.getConnections.mockResolvedValue(connectionsWithKey);
 
       const result = await controller.listConnections(userId);
       const conn = result.data.connections[0];
       const serialized = JSON.stringify(result);
 
-      // Core fields are present
       expect(conn).toHaveProperty("connectionId", "1");
       expect(conn).toHaveProperty("type", "google");
       expect(conn).toHaveProperty("email", "user@gmail.com");
-      // key is stripped by the controller's destructuring — this is the key assertion
       expect(conn).not.toHaveProperty("key");
       expect(serialized).not.toContain("SECRET_TOKEN");
       expect(serialized).not.toContain("SECRET_REFRESH");
-      // Only the 3 safe fields exist
       expect(Object.keys(conn)).toEqual(["connectionId", "type", "email"]);
     });
   });
 
   describe("listConnectionEvents", () => {
     it("should list events for a valid connection", async () => {
-      const mockEvents = [
+      const transformedEvents = [
         {
-          id: "event-1",
+          eventId: "event-1",
           status: "confirmed",
-          summary: "Meeting",
-          start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-          end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-          organizer: { email: "user@gmail.com" },
+          title: "Meeting",
+          start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+          end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
         },
       ];
-      mockGoogleCalendarService.listEventsForUserByConnectionId.mockResolvedValue(mockEvents);
+      mockUnifiedCalendarService.listConnectionEvents.mockResolvedValue(transformedEvents);
 
-      const result = await controller.listConnectionEvents("10", userId, {
+      // ParseConnectionIdPipe transforms string "10" to number 10 before it reaches the controller
+      const result = await controller.listConnectionEvents(10, userId, {
         from: "2024-01-01",
         to: "2024-01-31",
       });
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toHaveLength(1);
-      expect(mockGoogleCalendarService.listEventsForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.listConnectionEvents).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
@@ -162,24 +148,15 @@ describe("CalUnifiedCalendarsController", () => {
       );
     });
 
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(
-        controller.listConnectionEvents("invalid", userId, {
-          from: "2024-01-01",
-          to: "2024-01-31",
-        })
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it("should pass ISO datetime strings directly without modification", async () => {
-      mockGoogleCalendarService.listEventsForUserByConnectionId.mockResolvedValue([]);
+      mockUnifiedCalendarService.listConnectionEvents.mockResolvedValue([]);
 
-      await controller.listConnectionEvents("10", userId, {
+      await controller.listConnectionEvents(10, userId, {
         from: "2024-01-01T09:00:00Z",
         to: "2024-01-31T17:00:00Z",
       });
 
-      expect(mockGoogleCalendarService.listEventsForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.listConnectionEvents).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
@@ -189,15 +166,15 @@ describe("CalUnifiedCalendarsController", () => {
     });
 
     it("should use provided calendarId when specified", async () => {
-      mockGoogleCalendarService.listEventsForUserByConnectionId.mockResolvedValue([]);
+      mockUnifiedCalendarService.listConnectionEvents.mockResolvedValue([]);
 
-      await controller.listConnectionEvents("10", userId, {
+      await controller.listConnectionEvents(10, userId, {
         from: "2024-01-01",
         to: "2024-01-31",
         calendarId: "custom@group.calendar.google.com",
       });
 
-      expect(mockGoogleCalendarService.listEventsForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.listConnectionEvents).toHaveBeenCalledWith(
         userId,
         10,
         "custom@group.calendar.google.com",
@@ -215,21 +192,20 @@ describe("CalUnifiedCalendarsController", () => {
     };
 
     it("should create event for a valid connection", async () => {
-      const mockEvent = {
-        id: "new-event-id",
+      const transformedEvent = {
+        eventId: "new-event-id",
         status: "confirmed",
-        summary: "New Event",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
-        organizer: { email: "user@gmail.com" },
+        title: "New Event",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
       };
-      mockGoogleCalendarService.createEventForUserByConnectionId.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.createConnectionEvent.mockResolvedValue(transformedEvent);
 
-      const result = await controller.createConnectionEvent("10", userId, body);
+      const result = await controller.createConnectionEvent(10, userId, body);
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toBeDefined();
-      expect(mockGoogleCalendarService.createEventForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.createConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
@@ -237,26 +213,19 @@ describe("CalUnifiedCalendarsController", () => {
       );
     });
 
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(controller.createConnectionEvent("abc", userId, body)).rejects.toThrow(
-        BadRequestException
-      );
-    });
-
     it("should use custom calendarId when provided", async () => {
-      const mockEvent = {
-        id: "new-event-id",
+      const transformedEvent = {
+        eventId: "new-event-id",
         status: "confirmed",
-        summary: "New Event",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
-        organizer: { email: "user@gmail.com" },
+        title: "New Event",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
       };
-      mockGoogleCalendarService.createEventForUserByConnectionId.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.createConnectionEvent.mockResolvedValue(transformedEvent);
 
-      await controller.createConnectionEvent("10", userId, body, "custom@group.calendar.google.com");
+      await controller.createConnectionEvent(10, userId, body, "custom@group.calendar.google.com");
 
-      expect(mockGoogleCalendarService.createEventForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.createConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "custom@group.calendar.google.com",
@@ -267,20 +236,19 @@ describe("CalUnifiedCalendarsController", () => {
 
   describe("getConnectionEvent", () => {
     it("should get a single event by ID", async () => {
-      const mockEvent = {
-        id: "event-1",
+      const transformedEvent = {
+        eventId: "event-1",
         status: "confirmed",
-        summary: "Test",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        organizer: { email: "user@gmail.com" },
+        title: "Test",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
       };
-      mockGoogleCalendarService.getEventByConnectionId.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.getConnectionEvent.mockResolvedValue(transformedEvent);
 
-      const result = await controller.getConnectionEvent("10", "event-1", userId);
+      const result = await controller.getConnectionEvent(10, "event-1", userId);
 
       expect(result.status).toBe(SUCCESS_STATUS);
-      expect(mockGoogleCalendarService.getEventByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
@@ -288,71 +256,39 @@ describe("CalUnifiedCalendarsController", () => {
       );
     });
 
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(controller.getConnectionEvent("bad", "event-1", userId)).rejects.toThrow(
-        BadRequestException
-      );
-    });
-
     it("should use custom calendarId when provided", async () => {
-      mockGoogleCalendarService.getEventByConnectionId.mockResolvedValue({
-        id: "e",
-        start: { dateTime: "2024-01-15T10:00:00Z" },
-        end: { dateTime: "2024-01-15T11:00:00Z" },
-        organizer: { email: "user@gmail.com" },
+      mockUnifiedCalendarService.getConnectionEvent.mockResolvedValue({
+        eventId: "e",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
       });
 
-      await controller.getConnectionEvent("10", "event-1", userId, "custom@calendar");
+      await controller.getConnectionEvent(10, "event-1", userId, "custom@calendar");
 
-      expect(mockGoogleCalendarService.getEventByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "custom@calendar",
         "event-1"
       );
     });
-
-    it("should strip extra fields via output pipe — credential key does not leak", async () => {
-      // GoogleCalendarEventOutputPipe.transform() picks only known fields from the
-      // Google Calendar API response. If the upstream service ever returned a raw
-      // response that included credential.key, the pipe should strip it.
-      const mockEventWithKey = {
-        id: "event-1",
-        status: "confirmed",
-        summary: "Test",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        organizer: { email: "user@gmail.com" },
-        key: { access_token: "SECRET_TOKEN", refresh_token: "SECRET_REFRESH" },
-      };
-      mockGoogleCalendarService.getEventByConnectionId.mockResolvedValue(mockEventWithKey);
-
-      const result = await controller.getConnectionEvent("10", "event-1", userId);
-
-      // The output pipe transforms into a defined shape — verify credential material is gone
-      const serialized = JSON.stringify(result);
-      expect(serialized).not.toContain("SECRET_TOKEN");
-      expect(serialized).not.toContain("SECRET_REFRESH");
-      expect(result.data).not.toHaveProperty("key");
-    });
   });
 
   describe("updateConnectionEvent", () => {
     it("should update event for a valid connection", async () => {
       const updateData = { title: "Updated Title" };
-      const mockEvent = {
-        id: "event-1",
-        summary: "Updated Title",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        organizer: { email: "user@gmail.com" },
+      const transformedEvent = {
+        eventId: "event-1",
+        title: "Updated Title",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
       };
-      mockGoogleCalendarService.updateEventByConnectionId.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.updateConnectionEvent.mockResolvedValue(transformedEvent);
 
-      const result = await controller.updateConnectionEvent("10", "event-1", userId, updateData);
+      const result = await controller.updateConnectionEvent(10, "event-1", userId, updateData);
 
       expect(result.status).toBe(SUCCESS_STATUS);
-      expect(mockGoogleCalendarService.updateEventByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.updateConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
@@ -360,31 +296,19 @@ describe("CalUnifiedCalendarsController", () => {
         updateData
       );
     });
-
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(
-        controller.updateConnectionEvent("NaN", "event-1", userId, { title: "t" })
-      ).rejects.toThrow(BadRequestException);
-    });
   });
 
   describe("deleteConnectionEvent", () => {
     it("should delete event for a valid connection", async () => {
-      mockGoogleCalendarService.deleteEventForUserByConnectionId.mockResolvedValue(undefined);
+      mockUnifiedCalendarService.deleteConnectionEvent.mockResolvedValue(undefined);
 
-      await controller.deleteConnectionEvent("10", "event-1", userId);
+      await controller.deleteConnectionEvent(10, "event-1", userId);
 
-      expect(mockGoogleCalendarService.deleteEventForUserByConnectionId).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.deleteConnectionEvent).toHaveBeenCalledWith(
         userId,
         10,
         "primary",
         "event-1"
-      );
-    });
-
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(controller.deleteConnectionEvent("x", "event-1", userId)).rejects.toThrow(
-        BadRequestException
       );
     });
   });
@@ -392,9 +316,9 @@ describe("CalUnifiedCalendarsController", () => {
   describe("getConnectionFreeBusy", () => {
     it("should return busy times for a connection", async () => {
       const busyData = [{ start: new Date("2024-01-15T10:00:00Z"), end: new Date("2024-01-15T11:00:00Z") }];
-      mockFreebusyService.getBusyTimesForConnection.mockResolvedValue(busyData);
+      mockUnifiedCalendarService.getConnectionFreeBusy.mockResolvedValue(busyData);
 
-      const result = await controller.getConnectionFreeBusy("10", userId, {
+      const result = await controller.getConnectionFreeBusy(10, userId, {
         from: "2024-01-01T00:00:00Z",
         to: "2024-01-31T23:59:59Z",
         timeZone: "America/New_York",
@@ -402,7 +326,7 @@ describe("CalUnifiedCalendarsController", () => {
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toEqual(busyData);
-      expect(mockFreebusyService.getBusyTimesForConnection).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getConnectionFreeBusy).toHaveBeenCalledWith(
         userId,
         10,
         "2024-01-01T00:00:00Z",
@@ -412,14 +336,14 @@ describe("CalUnifiedCalendarsController", () => {
     });
 
     it("should default timezone to UTC when not provided", async () => {
-      mockFreebusyService.getBusyTimesForConnection.mockResolvedValue([]);
+      mockUnifiedCalendarService.getConnectionFreeBusy.mockResolvedValue([]);
 
-      await controller.getConnectionFreeBusy("10", userId, {
+      await controller.getConnectionFreeBusy(10, userId, {
         from: "2024-01-01T00:00:00Z",
         to: "2024-01-31T23:59:59Z",
       });
 
-      expect(mockFreebusyService.getBusyTimesForConnection).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getConnectionFreeBusy).toHaveBeenCalledWith(
         userId,
         10,
         "2024-01-01T00:00:00Z",
@@ -427,71 +351,72 @@ describe("CalUnifiedCalendarsController", () => {
         "UTC"
       );
     });
-
-    it("should throw BadRequestException for invalid connectionId", async () => {
-      await expect(
-        controller.getConnectionFreeBusy("bad", userId, {
-          from: "2024-01-01",
-          to: "2024-01-31",
-        })
-      ).rejects.toThrow(BadRequestException);
-    });
   });
 
-  describe("getCalendarEventDetails (legacy)", () => {
+  describe("getCalendarEventDetails (user-scoped)", () => {
     it("should return event details for Google Calendar", async () => {
-      const mockEvent = {
-        id: "event-uid",
+      const transformedEvent = {
+        eventId: "event-uid",
         status: "confirmed",
-        summary: "Test Meeting",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        organizer: { email: "user@gmail.com" },
+        title: "Test Meeting",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
       };
-      mockGoogleCalendarService.getEventDetails.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.getEventDetails.mockResolvedValue(transformedEvent);
 
       const result = await controller.getCalendarEventDetails(GOOGLE_CALENDAR, "event-uid");
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toBeDefined();
-      expect(mockGoogleCalendarService.getEventDetails).toHaveBeenCalledWith("event-uid");
+      expect(mockUnifiedCalendarService.getEventDetails).toHaveBeenCalledWith(GOOGLE_CALENDAR, "event-uid");
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.getEventDetails.mockRejectedValue(
+        new BadRequestException("Meeting details is currently only available for Google Calendar.")
+      );
+
       await expect(controller.getCalendarEventDetails("office365", "event-uid")).rejects.toThrow(
         BadRequestException
       );
     });
   });
 
-  describe("updateCalendarEvent (legacy)", () => {
+  describe("updateCalendarEvent (user-scoped)", () => {
     it("should update event for Google Calendar", async () => {
       const updateData = { title: "Updated" };
-      const mockEvent = {
-        id: "event-uid",
-        summary: "Updated",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        organizer: { email: "user@gmail.com" },
+      const transformedEvent = {
+        eventId: "event-uid",
+        title: "Updated",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "UTC" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "UTC" },
       };
-      mockGoogleCalendarService.updateEventDetails.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.updateEventDetails.mockResolvedValue(transformedEvent);
 
       const result = await controller.updateCalendarEvent(GOOGLE_CALENDAR, "event-uid", updateData);
 
       expect(result.status).toBe(SUCCESS_STATUS);
-      expect(mockGoogleCalendarService.updateEventDetails).toHaveBeenCalledWith("event-uid", updateData);
+      expect(mockUnifiedCalendarService.updateEventDetails).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
+        "event-uid",
+        updateData
+      );
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.updateEventDetails.mockRejectedValue(
+        new BadRequestException("Event updates is currently only available for Google Calendar.")
+      );
+
       await expect(controller.updateCalendarEvent("office365", "event-uid", { title: "t" })).rejects.toThrow(
         BadRequestException
       );
     });
   });
 
-  describe("listCalendarEvents (legacy)", () => {
+  describe("listCalendarEvents (user-scoped)", () => {
     it("should list events for Google Calendar", async () => {
-      mockGoogleCalendarService.listEventsForUser.mockResolvedValue([]);
+      mockUnifiedCalendarService.listEvents.mockResolvedValue([]);
 
       const result = await controller.listCalendarEvents(GOOGLE_CALENDAR, userId, {
         from: "2024-01-01",
@@ -502,7 +427,11 @@ describe("CalUnifiedCalendarsController", () => {
       expect(result.data).toEqual([]);
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.listEvents.mockRejectedValue(
+        new BadRequestException("List events is currently only available for Google Calendar.")
+      );
+
       await expect(
         controller.listCalendarEvents("office365", userId, {
           from: "2024-01-01",
@@ -512,7 +441,7 @@ describe("CalUnifiedCalendarsController", () => {
     });
   });
 
-  describe("createCalendarEvent (legacy)", () => {
+  describe("createCalendarEvent (user-scoped)", () => {
     const body = {
       title: "New Event",
       start: { time: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
@@ -520,52 +449,65 @@ describe("CalUnifiedCalendarsController", () => {
     };
 
     it("should create event for Google Calendar", async () => {
-      const mockEvent = {
-        id: "new-id",
-        summary: "New Event",
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
-        organizer: { email: "user@gmail.com" },
+      const transformedEvent = {
+        eventId: "new-id",
+        title: "New Event",
+        start: { time: "2024-01-15T10:00:00Z", timeZone: "America/New_York" },
+        end: { time: "2024-01-15T11:00:00Z", timeZone: "America/New_York" },
       };
-      mockGoogleCalendarService.createEventForUser.mockResolvedValue(mockEvent);
+      mockUnifiedCalendarService.createEvent.mockResolvedValue(transformedEvent);
 
       const result = await controller.createCalendarEvent(GOOGLE_CALENDAR, userId, body);
 
       expect(result.status).toBe(SUCCESS_STATUS);
-      expect(mockGoogleCalendarService.createEventForUser).toHaveBeenCalledWith(userId, "primary", body);
+      expect(mockUnifiedCalendarService.createEvent).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
+        userId,
+        "primary",
+        body
+      );
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.createEvent.mockRejectedValue(
+        new BadRequestException("Create event is currently only available for Google Calendar.")
+      );
+
       await expect(controller.createCalendarEvent("apple", userId, body)).rejects.toThrow(
         BadRequestException
       );
     });
   });
 
-  describe("deleteCalendarEvent (legacy)", () => {
+  describe("deleteCalendarEvent (user-scoped)", () => {
     it("should delete event for Google Calendar", async () => {
-      mockGoogleCalendarService.deleteEventForUser.mockResolvedValue(undefined);
+      mockUnifiedCalendarService.deleteEvent.mockResolvedValue(undefined);
 
       await controller.deleteCalendarEvent(GOOGLE_CALENDAR, "event-uid", userId);
 
-      expect(mockGoogleCalendarService.deleteEventForUser).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.deleteEvent).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
         userId,
         "primary",
         "event-uid"
       );
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.deleteEvent.mockRejectedValue(
+        new BadRequestException("Delete event is currently only available for Google Calendar.")
+      );
+
       await expect(controller.deleteCalendarEvent("office365", "event-uid", userId)).rejects.toThrow(
         BadRequestException
       );
     });
   });
 
-  describe("getFreeBusy (legacy)", () => {
+  describe("getFreeBusy (user-scoped)", () => {
     it("should return busy times for Google Calendar", async () => {
       const busyData = [{ start: new Date(), end: new Date() }];
-      mockFreebusyService.getBusyTimesForGoogleCalendars.mockResolvedValue(busyData);
+      mockUnifiedCalendarService.getFreeBusy.mockResolvedValue(busyData);
 
       const result = await controller.getFreeBusy(GOOGLE_CALENDAR, userId, {
         from: "2024-01-01T00:00:00Z",
@@ -575,7 +517,8 @@ describe("CalUnifiedCalendarsController", () => {
 
       expect(result.status).toBe(SUCCESS_STATUS);
       expect(result.data).toEqual(busyData);
-      expect(mockFreebusyService.getBusyTimesForGoogleCalendars).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getFreeBusy).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
         userId,
         "2024-01-01T00:00:00Z",
         "2024-01-31T23:59:59Z",
@@ -584,14 +527,15 @@ describe("CalUnifiedCalendarsController", () => {
     });
 
     it("should default timezone to UTC when not provided", async () => {
-      mockFreebusyService.getBusyTimesForGoogleCalendars.mockResolvedValue([]);
+      mockUnifiedCalendarService.getFreeBusy.mockResolvedValue([]);
 
       await controller.getFreeBusy(GOOGLE_CALENDAR, userId, {
         from: "2024-01-01T00:00:00Z",
         to: "2024-01-31T23:59:59Z",
       });
 
-      expect(mockFreebusyService.getBusyTimesForGoogleCalendars).toHaveBeenCalledWith(
+      expect(mockUnifiedCalendarService.getFreeBusy).toHaveBeenCalledWith(
+        GOOGLE_CALENDAR,
         userId,
         "2024-01-01T00:00:00Z",
         "2024-01-31T23:59:59Z",
@@ -599,7 +543,11 @@ describe("CalUnifiedCalendarsController", () => {
       );
     });
 
-    it("should throw BadRequestException for non-Google calendar", async () => {
+    it("should propagate BadRequestException for non-Google calendar", async () => {
+      mockUnifiedCalendarService.getFreeBusy.mockRejectedValue(
+        new BadRequestException("Free/busy is currently only available for Google Calendar.")
+      );
+
       await expect(
         controller.getFreeBusy("office365", userId, {
           from: "2024-01-01",

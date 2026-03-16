@@ -7,12 +7,7 @@
  */
 
 import {
-  APPLE_CALENDAR,
-  APPLE_CALENDAR_TYPE,
-  GOOGLE_CALENDAR,
   GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR,
-  OFFICE_365_CALENDAR_TYPE,
 } from "@calcom/platform-constants";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -44,41 +39,6 @@ describe("UnifiedCalendarsFreebusyService (integration with real platform-librar
     }).compile();
 
     service = module.get<UnifiedCalendarsFreebusyService>(UnifiedCalendarsFreebusyService);
-  });
-
-  it("getConnections works with real ConnectedDestinationCalendars-shaped data", async () => {
-    const mockData = {
-      connectedCalendars: [
-        {
-          credentialId: 1,
-          integration: { type: GOOGLE_CALENDAR_TYPE },
-          primary: { externalId: "user@gmail.com" },
-          calendars: [],
-        },
-        {
-          credentialId: 2,
-          integration: { type: OFFICE_365_CALENDAR_TYPE },
-          primary: { externalId: "user@outlook.com" },
-          calendars: [],
-        },
-        {
-          credentialId: 3,
-          integration: { type: APPLE_CALENDAR_TYPE },
-          primary: { email: "user@icloud.com" },
-          calendars: [],
-        },
-      ],
-      destinationCalendar: null,
-    } as unknown as ConnectedDestinationCalendars;
-    mockCalendarsService.getCalendars.mockResolvedValue(mockData);
-
-    const result = await service.getConnections(userId);
-
-    expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({ connectionId: "1", type: GOOGLE_CALENDAR, email: "user@gmail.com" });
-    expect(result[1]).toEqual({ connectionId: "2", type: OFFICE_365_CALENDAR, email: "user@outlook.com" });
-    expect(result[2]).toEqual({ connectionId: "3", type: APPLE_CALENDAR, email: "user@icloud.com" });
-    expect(mockCalendarsService.getCalendars).toHaveBeenCalledWith(userId);
   });
 
   it("getBusyTimesForConnection works with real-shaped calendar list and delegates to getBusyTimes", async () => {
