@@ -1,18 +1,17 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import posthog from "posthog-js";
-import React, { Fragment, useState, useEffect } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { sessionStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import posthog from "posthog-js";
+import type React from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useShouldDisplayNavigationItem } from "./useShouldDisplayNavigationItem";
 
 const usePersistedExpansionState = (itemName: string) => {
@@ -145,62 +144,75 @@ export const NavigationItem: React.FC<{
             )
           }
           className="lg:hidden">
-          <button
-            data-test-id={item.name}
-            aria-label={t(item.name)}
-            aria-expanded={isExpanded}
-            aria-current={current ? "page" : undefined}
-            onClick={() => {
-              if (isTablet && hasChildren) {
-                setIsTooltipOpen(!isTooltipOpen);
-              } else {
-                setIsExpanded(!isExpanded);
-              }
-            }}
-            className={classNames(
-              "todesktop:py-[7px] text-default group relative flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-              "aria-[aria-current='page']:bg-transparent!",
-              "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
-              "md:justify-center lg:justify-start",
-              isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                : ""
-            )}>
-            {item.icon && (
-              <div className="relative">
-                <Icon
-                  name={item.isLoading ? "rotate-cw" : item.icon}
-                  className={classNames(
-                    "todesktop:!text-blue-500 h-4 w-4 shrink-0 lg:ltr:mr-2 lg:rtl:ml-2",
-                    item.isLoading && "animate-spin"
-                  )}
-                  aria-hidden="true"
-                />
-                {shouldShowChevron && (
+          <div
+            className={classNames("mt-0.5 flex w-full items-center", "md:justify-center lg:justify-start")}>
+            <Link
+              href={item.href}
+              data-test-id={item.name}
+              aria-label={t(item.name)}
+              aria-current={current ? "page" : undefined}
+              onClick={(e) => {
+                if (isTablet && hasChildren) {
+                  e.preventDefault();
+                  setIsTooltipOpen(!isTooltipOpen);
+                } else {
+                  if (!isExpanded) {
+                    setIsExpanded(true);
+                  }
+                  trackNavigationClick(item.name);
+                }
+              }}
+              className={classNames(
+                "todesktop:py-[7px] text-default group relative flex min-w-0 flex-1 items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+                "aria-[aria-current='page']:bg-transparent!",
+                "[&[aria-current='page']]:text-emphasis text-sm",
+                "md:justify-center lg:justify-start",
+                isLocaleReady
+                  ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                  : ""
+              )}>
+              {item.icon && (
+                <div className="relative">
                   <Icon
-                    name={isExpanded ? "chevron-up" : "chevron-down"}
-                    className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-subtle p-0.5 lg:hidden"
+                    name={item.isLoading ? "rotate-cw" : item.icon}
+                    className={classNames(
+                      "todesktop:!text-blue-500 h-4 w-4 shrink-0 lg:ltr:mr-2 lg:rtl:ml-2",
+                      item.isLoading && "animate-spin"
+                    )}
+                    aria-hidden="true"
                   />
-                )}
-              </div>
-            )}
-            {isLocaleReady ? (
-              <span
-                className="hidden w-full justify-between truncate text-ellipsis lg:flex"
-                data-testid={`${item.name}-test`}>
-                {t(item.name)}
-                {item.badge && item.badge}
-              </span>
-            ) : (
-              <SkeletonText className="h-[20px] w-full" />
-            )}
+                  {shouldShowChevron && (
+                    <Icon
+                      name={isExpanded ? "chevron-up" : "chevron-down"}
+                      className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-subtle p-0.5 lg:hidden"
+                    />
+                  )}
+                </div>
+              )}
+              {isLocaleReady ? (
+                <span
+                  className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+                  data-testid={`${item.name}-test`}>
+                  {t(item.name)}
+                  {item.badge && item.badge}
+                </span>
+              ) : (
+                <SkeletonText className="h-[20px] w-full" />
+              )}
+            </Link>
             {shouldShowChevron && (
-              <Icon
-                name={isExpanded ? "chevron-up" : "chevron-down"}
-                className="ml-auto hidden h-4 w-4 lg:block"
-              />
+              <button
+                type="button"
+                aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="text-default hover:bg-subtle hidden h-6 w-6 shrink-0 items-center justify-center rounded-md transition lg:flex">
+                <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="h-4 w-4" />
+              </button>
             )}
-          </button>
+          </div>
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
@@ -330,17 +342,34 @@ export const MobileNavigationMoreItem: React.FC<{
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
       {hasChildren ? (
         <>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
-            <span className="text-default flex items-center font-semibold">
-              {item.icon && (
-                <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
-              )}
-              {isLocaleReady ? t(item.name) : <SkeletonText />}
-            </span>
-            <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="text-subtle h-5 w-5" />
-          </button>
+          <div className="hover:bg-subtle flex w-full items-center justify-between text-left transition">
+            <Link
+              href={item.href}
+              onClick={() => {
+                if (!isExpanded) {
+                  setIsExpanded(true);
+                }
+                trackNavigationClick(item.name);
+              }}
+              className="flex min-w-0 flex-1 items-center p-5">
+              <span className="text-default flex items-center font-semibold">
+                {item.icon && (
+                  <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+                )}
+                {isLocaleReady ? t(item.name) : <SkeletonText />}
+              </span>
+            </Link>
+            <button
+              type="button"
+              aria-label={isExpanded ? "Collapse submenu" : "Expand submenu"}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="flex h-full items-center p-5 pl-0">
+              <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="text-subtle h-5 w-5" />
+            </button>
+          </div>
           <div
             className={classNames(
               "grid transition-all duration-300 ease-in-out",
