@@ -38,6 +38,7 @@ const initialData: AppFlags = {
   "abuse-scoring": false,
   "dunning-enforcement": false,
   "signup-watchlist-review": false,
+  "sink-shortener": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
