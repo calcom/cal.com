@@ -1068,8 +1068,9 @@ type SettingsLayoutProps = {
 function SettingsLayoutAppDirClient({ children, teamFeatures, permissions, ...rest }: SettingsLayoutProps) {
   const pathname = usePathname();
   const isFullWidthPage =
-    pathname?.includes("/settings/teams/") &&
-    (pathname?.includes("/attributes") || pathname?.includes("/roles"));
+    (pathname?.includes("/settings/teams/") &&
+      (pathname?.includes("/attributes") || pathname?.includes("/roles"))) ||
+    pathname?.startsWith("/settings/admin/playground");
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
 

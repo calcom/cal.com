@@ -13,11 +13,7 @@ export function WideUpgradeBannerForMembers() {
       subtitle={t("upgrade_banner_team_attributes_subtitle")}
       target="organization"
       button={t("try_for_free")}
-      image={{
-        src: "/upgrade/large_members.png",
-        width: 1010,
-        height: 340,
-      }}
+      image="/upgrade/large_members.png"
       learnMoreButton={{
         text: t("learn_more"),
         href: "https://cal.com/help/routing/routing-with-attributes",

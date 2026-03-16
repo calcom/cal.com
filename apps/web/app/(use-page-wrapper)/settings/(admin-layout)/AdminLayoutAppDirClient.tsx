@@ -17,9 +17,10 @@ export default function AdminLayoutAppDirClient({ children }: AdminLayoutProps) 
   const pathname = usePathname();
 
   const isAppsPage = pathname?.startsWith("/settings/admin/apps");
+  const isPlaygroundPage = pathname?.startsWith("/settings/admin/playground");
   return (
-    <div className="divide-subtle bg-default mx-auto flex max-w-4xl flex-row divide-y">
-      <div className={isAppsPage ? "min-w-0 w-full" : "*:flex-1 flex flex-1"}>
+    <div className={`divide-subtle bg-default mx-auto flex flex-row divide-y ${isPlaygroundPage ? "w-full" : "max-w-4xl"}`}>
+      <div className={isAppsPage || isPlaygroundPage ? "min-w-0 w-full" : "*:flex-1 flex flex-1"}>
         <ErrorBoundary>{children}</ErrorBoundary>
       </div>
     </div>

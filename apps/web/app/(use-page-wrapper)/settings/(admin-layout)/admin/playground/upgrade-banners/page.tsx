@@ -84,22 +84,58 @@ export default function UpgradeBannersPlayground() {
           Full-width banner with button below text and image on the right. Used for prominent upsells.
         </p>
 
-        <WideUpgradeBanner
-          tracking="playground.wide-md"
-          title="Route meetings based on team member attributes"
-          subtitle="Define attributes like role, region, or specialty and use them to route bookings to the right people automatically."
-          target="organization"
-          button={t("try_for_free")}
-          image={{
-            src: "/upgrade/large_members.png",
-            width: 1010,
-            height: 340,
-          }}
-          learnMoreButton={{
-            text: t("learn_more"),
-            href: "https://cal.com/help/routing/routing-with-attributes",
-          }}
-        />
+        <div className="space-y-4">
+          <h3 className="text-default text-sm font-medium">Dismissible with image (default)</h3>
+          <WideUpgradeBanner
+            tracking="playground.wide-md-dismissible"
+            title="Route meetings based on team member attributes"
+            subtitle="Define attributes like role, region, or specialty and use them to route bookings to the right people automatically."
+            target="organization"
+            button={t("try_for_free")}
+            image="/upgrade/large_members.png"
+            learnMoreButton={{
+              text: t("learn_more"),
+              href: "https://cal.com/help/routing/routing-with-attributes",
+            }}
+          />
+
+          <h3 className="text-default text-sm font-medium">Non-dismissible with image</h3>
+          <WideUpgradeBanner
+            tracking="playground.wide-md-non-dismissible"
+            title="Route meetings based on team member attributes"
+            subtitle="Define attributes like role, region, or specialty and use them to route bookings to the right people automatically."
+            target="organization"
+            button={t("try_for_free")}
+            dismissible={false}
+            image="/upgrade/large_members.png"
+            learnMoreButton={{
+              text: t("learn_more"),
+              href: "https://cal.com/help/routing/routing-with-attributes",
+            }}
+          />
+
+          <h3 className="text-default text-sm font-medium">Team target with image</h3>
+          <WideUpgradeBanner
+            tracking="playground.wide-md-team"
+            title="Access meeting recordings"
+            subtitle="Download and review recordings of your Cal Video meetings."
+            target="team"
+            button={t("try_for_free")}
+            dismissible={false}
+            image="/upgrade/large_members.png"
+          />
+
+          <h3 className="text-default text-sm font-medium">Without badge, with image</h3>
+          <WideUpgradeBanner
+            tracking="playground.wide-md-no-badge"
+            title="It looks like you're on a work email"
+            subtitle="Organize events across your team and make sure every meeting lands with the right person."
+            target="organization"
+            button={t("try_for_free")}
+            showBadge={false}
+            image="/upgrade/large_members.png"
+          />
+        </div>
       </section>
 
       {/* Full Screen Upgrade Banner - links to sub-pages */}

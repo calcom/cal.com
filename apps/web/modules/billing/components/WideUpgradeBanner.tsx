@@ -47,11 +47,7 @@ export type WideUpgradeBannerProps = {
   target: UpgradeTarget;
   size?: "md" | "sm";
   button?: string | React.ReactNode;
-  image?: {
-    src: string;
-    width: number;
-    height: number;
-  };
+  image?: string;
   learnMoreButton?: {
     text: string;
     href?: string;
@@ -96,11 +92,11 @@ export function WideUpgradeBanner({
     );
 
   return (
-    <div className="relative flex w-full items-center overflow-hidden rounded-xl bg-muted border-muted border">
+    <div className="@container relative flex w-full items-center overflow-hidden rounded-xl bg-muted border-muted border">
       {dismissible && (
         <Button
           variant="ghost"
-          className="absolute right-2 top-2 z-10"
+          className="absolute right-2 top-2 z-10 px-1.5"
           onClick={() => {
             dismiss(tracking);
             setVisible(false);
@@ -110,7 +106,7 @@ export function WideUpgradeBanner({
         </Button>
       )}
       {/* Left Content */}
-      <div className={`flex flex-1 flex-col p-6${isSmall ? " pr-0" : ""}`}>
+      <div className={`flex flex-1 flex-col py-5 px-6${isSmall ? " pr-0" : ""}`}>
         {isSmall ? (
           <div className="flex items-center gap-1.5">
             <h2 className="font-cal text-sm font-semibold leading-none text-default">{title}</h2>
@@ -122,11 +118,11 @@ export function WideUpgradeBanner({
             <h2 className="mt-1 font-cal text-lg font-semibold leading-none text-default">{title}</h2>
           </div>
         )}
-        {subtitle && <p className={`${isSmall ? "mt-1" : "mt-2"} text-sm font-normal text-subtle`}>{subtitle}</p>}
+        {subtitle && <p className={`mt-1 text-sm font-normal text-subtle`}>{subtitle}</p>}
 
         {/* Buttons - only shown below text for md size */}
         {!isSmall && (
-          <div className="mt-9 flex items-center gap-2">
+          <div className="mt-5 flex items-center gap-2">
             {upgradeButton}
             {learnMoreButton &&
               (learnMoreButton.href ? (
@@ -159,13 +155,12 @@ export function WideUpgradeBanner({
         <div className={`shrink-0 p-6 pl-4${dismissible ? " pr-6 mt-5" : ""}`}>{upgradeButton}</div>
       ) : (
         image && (
-          <div className="relative hidden w-1/2 max-w-[520px] overflow-hidden md:block">
+          <div className="relative hidden w-1/2 max-w-[520px] self-stretch overflow-hidden md:block">
             <Image
-              src={image.src}
+              src={image}
               alt={title}
-              width={image.width}
-              height={image.height}
-              className="h-full w-full object-cover object-left"
+              fill
+              className="object-cover object-left-bottom @[1040px]:object-contain"
             />
           </div>
         )
