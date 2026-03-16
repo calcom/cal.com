@@ -1,17 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+  DialogTrigger,
+} from "@coss/ui/components/dialog";
+import { Field, FieldControl, FieldError } from "@coss/ui/components/field";
+import { Form } from "@coss/ui/components/form";
+import { Textarea } from "@coss/ui/components/textarea";
+import { toastManager } from "@coss/ui/components/toast";
+import {
+  ListItem,
+  ListItemActions,
+  ListItemContent,
+  ListItemDescription,
+  ListItemHeader,
+  ListItemTitle,
+} from "@coss/ui/shared/list-item";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 interface FormValues {
   metadata: string;
@@ -25,111 +42,98 @@ export default function SAMLConnection({
   connection: SSOConnection | null;
 }) {
   const { t } = useLocale();
-  const [openModal, setOpenModal] = useState(false);
-
-  return (
-    <div>
-      <div className="flex flex-col sm:flex-row">
-        <div>
-          <h2 className="font-medium">{t("sso_saml_heading")}</h2>
-          <p className="text-default text-sm font-normal leading-6 dark:text-gray-300">
-            {t("sso_saml_description")}
-          </p>
-        </div>
-        {!connection && (
-          <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
-            <Button color="secondary" onClick={() => setOpenModal(true)}>
-              Configure
-            </Button>
-          </div>
-        )}
-      </div>
-      <CreateConnectionDialog teamId={teamId} openModal={openModal} setOpenModal={setOpenModal} />
-    </div>
-  );
-}
-
-const CreateConnectionDialog = ({
-  teamId,
-  openModal,
-  setOpenModal,
-}: {
-  teamId: number | null;
-  openModal: boolean;
-  setOpenModal: (open: boolean) => void;
-}) => {
-  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
   const form = useForm<FormValues>();
 
   const mutation = trpc.viewer.saml.update.useMutation({
     async onSuccess() {
-      showToast(
-        t("sso_connection_created_successfully", {
-          connectionType: "SAML",
-        }),
-        "success"
-      );
-      setOpenModal(false);
+      toastManager.add({
+        title: t("sso_connection_created_successfully", { connectionType: "SAML" }),
+        type: "success",
+      });
+      setOpen(false);
       await utils.viewer.saml.get.invalidate();
     },
     onError: (err) => {
-      showToast(err.message, "error");
+      toastManager.add({ title: err.message, type: "error" });
     },
   });
 
   return (
-    <Dialog open={openModal} onOpenChange={setOpenModal}>
-      <DialogContent type="creation">
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            mutation.mutate({
-              teamId,
-              encodedRawMetadata: Buffer.from(values.metadata).toString("base64"),
-            });
-          }}>
-          <div className="mb-1">
-            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
-              {t("sso_saml_configuration_title")}
-            </h2>
-            <p className="text-subtle mb-5 mt-1 text-sm">{t("sso_saml_configuration_description")}</p>
-          </div>
-          <Controller
-            control={form.control}
-            name="metadata"
-            render={({ field: { value } }) => (
-              <div>
-                <TextArea
-                  data-testid="saml_config"
-                  name="metadata"
-                  value={value}
-                  className="h-40"
-                  required={true}
-                  placeholder={t("saml_configuration_placeholder")}
-                  onChange={(e) => {
-                    form.setValue("metadata", e?.target.value);
-                  }}
-                />
-              </div>
-            )}
-          />
-          <DialogFooter showDivider className="mt-10">
-            <Button
-              type="button"
-              color="secondary"
-              onClick={() => {
-                setOpenModal(false);
-              }}
-              tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" loading={form.formState.isSubmitting}>
-              {t("save")}
-            </Button>
-          </DialogFooter>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <ListItem className="max-[400px]:*:flex-col max-[400px]:*:items-start">
+      <ListItemContent>
+        <ListItemHeader>
+          <ListItemTitle>{t("sso_saml_heading")}</ListItemTitle>
+          <ListItemDescription>{t("sso_saml_description")}</ListItemDescription>
+        </ListItemHeader>
+      </ListItemContent>
+      {!connection && (
+        <ListItemActions>
+          <Dialog
+            open={open}
+            onOpenChange={setOpen}
+            onOpenChangeComplete={(open) => {
+              if (!open) form.reset();
+            }}>
+            <DialogTrigger render={<Button variant="outline">{t("configure")}</Button>} />
+            <DialogPopup>
+              <Form
+                className="contents"
+                onSubmit={form.handleSubmit((values) => {
+                  mutation.mutate({
+                    teamId,
+                    encodedRawMetadata: Buffer.from(values.metadata).toString("base64"),
+                  });
+                })}>
+                <DialogHeader>
+                  <DialogTitle>{t("sso_saml_configuration_title")}</DialogTitle>
+                  <DialogDescription>{t("sso_saml_configuration_description")}</DialogDescription>
+                </DialogHeader>
+                <DialogPanel>
+                  <Controller
+                    control={form.control}
+                    name="metadata"
+                    rules={{ required: t("field_required") }}
+                    render={({
+                      field: { ref, name, value, onBlur, onChange },
+                      fieldState: { invalid, error },
+                    }) => (
+                      <Field name={name} invalid={invalid}>
+                        <FieldControl
+                          render={<Textarea rows={6} className="*:field-sizing-fixed *:min-h-0" />}
+                          ref={ref}
+                          id={name}
+                          name={name}
+                          data-testid="saml_config"
+                          placeholder={t("saml_configuration_placeholder")}
+                          value={value ?? ""}
+                          onBlur={onBlur}
+                          onChange={(e) => onChange(e.target.value)}      
+                          aria-label={t("saml_configuration_placeholder")}                      
+                        />
+                        <FieldError match={!!error}>{error?.message}</FieldError>
+                      </Field>
+                    )}
+                  />
+                </DialogPanel>
+                <DialogFooter>
+                  <DialogClose
+                    render={
+                      <Button variant="ghost">
+                        {t("cancel")}
+                      </Button>
+                    }
+                  />
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {t("save")}
+                  </Button>
+                </DialogFooter>
+              </Form>
+            </DialogPopup>
+          </Dialog>
+        </ListItemActions>
+      )}
+    </ListItem>
   );
-};
+}

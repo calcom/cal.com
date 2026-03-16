@@ -1,16 +1,24 @@
 "use client";
 
 import type { SSOConnection } from "@calcom/ee/sso/lib/saml";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Label } from "@calcom/ui/components/form";
-import { ClipboardIcon } from "@coss/ui/icons";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPopup,
+  DialogTitle,
+  DialogTrigger,
+} from "@coss/ui/components/dialog";
+import { Label } from "@coss/ui/components/label";
+import { toastManager } from "@coss/ui/components/toast";
+import { CopyableField } from "@coss/ui/shared/copyable-field";
+import { useState } from "react";
 
 export default function ConnectionInfo({
   teamId,
@@ -24,15 +32,15 @@ export default function ConnectionInfo({
 
   const connectionType = connection.type.toUpperCase();
 
-  // Delete SSO connection
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const mutation = trpc.viewer.saml.delete.useMutation({
     async onSuccess() {
-      showToast(
-        t("sso_connection_deleted_successfully", {
-          connectionType,
-        }),
-        "success"
-      );
+      toastManager.add({
+        title: t("sso_connection_deleted_successfully", { connectionType }),
+        type: "success",
+      });
+      setDeleteDialogOpen(false);
       await utils.viewer.saml.get.invalidate();
     },
   });
@@ -44,32 +52,45 @@ export default function ConnectionInfo({
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {connection.type === "saml" ? (
         <SAMLInfo acsUrl={connection.acsUrl} entityId={connection.entityId} />
       ) : (
         <OIDCInfo callbackUrl={connection.callbackUrl} />
       )}
-      <hr className="border-subtle my-6" />
-      <div className="flex flex-col stack-y-3">
-        <Label>{t("danger_zone")}</Label>
-        <Dialog>
-          <div>
-            <DialogTrigger asChild>
+      <div className="flex flex-col gap-2">
+        <Label render={<div />}>{t("danger_zone")}</Label>
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogTrigger
+            render={
               <Button
-                color="destructive"
+                variant="destructive-outline"
+                className="w-fit"
                 data-testid={`delete-${connectionType === "OIDC" ? "oidc" : "saml"}-sso-connection`}>
                 {t("delete_sso_configuration", { connectionType })}
               </Button>
-            </DialogTrigger>
-          </div>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t("delete_sso_configuration", { connectionType })}
-            confirmBtnText={t("delete_sso_configuration_confirmation", { connectionType })}
-            onConfirm={deleteConnection}>
-            {t("delete_sso_configuration_confirmation_description", { appName: APP_NAME, connectionType })}
-          </ConfirmationDialogContent>
+            }
+          />
+          <DialogPopup showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle>{t("delete_sso_configuration", { connectionType })}</DialogTitle>
+              <DialogDescription>
+                {t("delete_sso_configuration_confirmation_description", {
+                  appName: APP_NAME,
+                  connectionType,
+                })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
+              <DialogClose
+                render={<Button variant="destructive" />}
+                onClick={deleteConnection}
+                data-testid="dialog-confirmation">
+                {t("delete_sso_configuration_confirmation", { connectionType })}
+              </DialogClose>
+            </DialogFooter>
+          </DialogPopup>
         </Dialog>
       </div>
     </div>
@@ -85,51 +106,21 @@ const SAMLInfo = ({ acsUrl, entityId }: { acsUrl: string | null; entityId: strin
   }
 
   return (
-    <div className="stack-y-6">
-      <div className="flex flex-col">
-        <div className="flex">
-          <Label>ACS URL</Label>
-        </div>
-        <div className="flex">
-          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
-            {acsUrl}
-          </code>
-          <Tooltip side="top" content={t("copy_to_clipboard")}>
-            <Button
-              onClick={() => {
-                navigator.clipboard.writeText(acsUrl);
-                showToast(t("sso_saml_acsurl_copied"), "success");
-              }}
-              type="button"
-              className="rounded-l-none py-[19px] text-base ">
-              <ClipboardIcon className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
-              {t("copy")}
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-      <div className="flex flex-col">
-        <div className="flex">
-          <Label>Entity ID</Label>
-        </div>
-        <div className="flex">
-          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
-            {entityId}
-          </code>
-          <Tooltip side="top" content={t("copy_to_clipboard")}>
-            <Button
-              onClick={() => {
-                navigator.clipboard.writeText(entityId);
-                showToast(t("sso_saml_entityid_copied"), "success");
-              }}
-              type="button"
-              className="rounded-l-none py-[19px] text-base ">
-              <ClipboardIcon className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
-              {t("copy")}
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      <CopyableField
+        label="ACS URL"
+        value={acsUrl}
+        monospace
+        copyTooltip={t("copy_to_clipboard")}
+        copiedTooltip={t("sso_saml_acsurl_copied")}
+      />
+      <CopyableField
+        label="Entity ID"
+        value={entityId}
+        monospace
+        copyTooltip={t("copy_to_clipboard")}
+        copiedTooltip={t("sso_saml_entityid_copied")}
+      />
     </div>
   );
 };
@@ -143,29 +134,12 @@ const OIDCInfo = ({ callbackUrl }: { callbackUrl: string | null }) => {
   }
 
   return (
-    <div>
-      <div className="flex flex-col">
-        <div className="flex">
-          <Label>Callback URL</Label>
-        </div>
-        <div className="flex">
-          <code className="bg-subtle text-default flex w-full items-center truncate rounded rounded-r-none pl-2 font-mono">
-            {callbackUrl}
-          </code>
-          <Tooltip side="top" content={t("copy_to_clipboard")}>
-            <Button
-              onClick={() => {
-                navigator.clipboard.writeText(callbackUrl);
-                showToast(t("sso_oidc_callback_copied"), "success");
-              }}
-              type="button"
-              className="rounded-l-none py-[19px] text-base ">
-              <ClipboardIcon className="text-muted h-5 w-5 ltr:mr-2 rtl:ml-2" />
-              {t("copy")}
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-    </div>
+    <CopyableField
+      label="Callback URL"
+      value={callbackUrl}
+      monospace
+      copyTooltip={t("copy_to_clipboard")}
+      copiedTooltip={t("sso_oidc_callback_copied")}
+    />
   );
 };

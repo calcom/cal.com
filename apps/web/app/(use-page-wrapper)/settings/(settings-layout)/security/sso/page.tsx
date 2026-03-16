@@ -1,8 +1,8 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
+
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import SAMLSSO from "~/ee/sso/views/user-sso-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,12 +17,14 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader
-      title={t("sso_configuration")}
-      description={t("sso_configuration_description")}
-      borderInShellHeader={true}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("sso_configuration")}>
+          <AppHeaderDescription>{t("sso_configuration_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <SAMLSSO />
-    </SettingsHeader>
+    </div>
   );
 };
 

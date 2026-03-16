@@ -2575,6 +2575,7 @@
   "sso_oidc_configuration_title": "OIDC configuration",
   "sso_oidc_configuration_description": "Configure OIDC connection to your identity provider. You can find the required information in your identity provider.",
   "sso_oidc_callback_copied": "Callback URL copied",
+  "sso_oidc_well_known_url": "Well-Known URL",
   "sso_saml_heading": "SSO with SAML",
   "sso_saml_description": "Configure SAML SSO with Identity Provider of your choice.",
   "sso_saml_configuration_title": "SAML configuration",
