@@ -171,6 +171,16 @@ export class WebhookTaskConsumer {
     };
 
     const bookingPayload = payload as BookingWebhookTaskPayload;
+    const tracking = booking.tracking
+      ? {
+          utm_source: booking.tracking.utm_source,
+          utm_medium: booking.tracking.utm_medium,
+          utm_campaign: booking.tracking.utm_campaign,
+          utm_term: booking.tracking.utm_term,
+          utm_content: booking.tracking.utm_content,
+        }
+      : null;
+
     const baseDTO = {
       createdAt: timestamp,
       bookingId: booking.id,
@@ -190,6 +200,7 @@ export class WebhookTaskConsumer {
         iCalSequence: booking.iCalSequence,
         // Raw assignmentReason from DB for legacy format [{ reasonEnum, reasonString }]
         assignmentReason: booking.assignmentReason,
+        tracking,
       },
     };
 

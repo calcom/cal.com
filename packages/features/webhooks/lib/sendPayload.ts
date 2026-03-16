@@ -269,13 +269,6 @@ const sendPayload = async (
     }
   }
 
-  let utm: Tracking | undefined;
-  if (isEventPayload(data) && data.tracking) {
-    const { tracking: _tracking, ...rest } = data;
-    utm = _tracking ?? undefined;
-    data = rest as typeof data;
-  }
-
   if (body === undefined) {
     if (
       template &&
@@ -284,13 +277,12 @@ const sendPayload = async (
         isNoShowPayload(data) ||
         isDelegationCredentialErrorPayload(data))
     ) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt, ...(utm && { utm }) }, contentType);
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
     } else {
       body = JSON.stringify({
         triggerEvent: triggerEvent,
         createdAt: createdAt,
         payload: data,
-        ...(utm && { utm }),
       });
     }
   }

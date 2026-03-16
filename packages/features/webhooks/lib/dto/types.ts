@@ -4,6 +4,14 @@ import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
 
+export type TrackingData = {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_term?: string | null;
+  utm_content?: string | null;
+};
+
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
   createdAt: string;
@@ -27,6 +35,7 @@ export interface BookingCreatedDTO extends BaseEventDTO {
     userId: number | null;
     startTime: Date;
     smsReminderNumber?: string | null;
+    tracking?: TrackingData | null;
   };
   status: "ACCEPTED" | "PENDING";
   metadata?: Record<string, unknown>;
@@ -50,6 +59,7 @@ export interface BookingCancelledDTO extends BaseEventDTO {
     userId: number | null;
     smsReminderNumber?: string | null;
     iCalSequence?: number | null;
+    tracking?: TrackingData | null;
   };
   cancelledBy?: string;
   cancellationReason?: string;
@@ -67,6 +77,7 @@ export interface BookingRejectedDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    tracking?: TrackingData | null;
   };
   status: string;
 }
@@ -81,6 +92,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    tracking?: TrackingData | null;
   };
   metadata?: Record<string, unknown>;
 }
@@ -96,6 +108,7 @@ export interface BookingRescheduledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    tracking?: TrackingData | null;
   };
   rescheduleId?: number;
   rescheduleUid?: string;
@@ -114,6 +127,7 @@ export interface BookingPaidDTO extends BaseEventDTO {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    tracking?: TrackingData | null;
   };
   paymentId?: number;
   paymentData?: Record<string, unknown>;
@@ -129,6 +143,7 @@ export interface BookingPaymentInitiatedDTO extends BaseEventDTO {
     id: number;
     eventTypeId: number | null;
     userId: number | null;
+    tracking?: TrackingData | null;
   };
   paymentId?: number;
   paymentData?: Record<string, unknown>;

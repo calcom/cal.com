@@ -1,7 +1,7 @@
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
+import type { BookingWebhookEventDTO, EventTypeInfo, TrackingData } from "../../dto/types";
 import type { WebhookPayload } from "../types";
 import type { IBookingPayloadBuilder } from "../versioned/PayloadBuilderFactory";
 
@@ -41,6 +41,7 @@ export interface BookingPayloadParams<T extends keyof BookingExtraDataMap> {
     smsReminderNumber?: string | null;
     // Raw assignmentReason from DB for legacy webhook format [{ reasonEnum, reasonString }]
     assignmentReason?: { reasonEnum: string; reasonString: string }[];
+    tracking?: TrackingData | null;
   };
   eventType: EventTypeInfo;
   evt: CalendarEvent;

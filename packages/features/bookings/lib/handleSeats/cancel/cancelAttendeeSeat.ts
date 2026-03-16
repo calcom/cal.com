@@ -167,6 +167,15 @@ async function cancelAttendeeSeat(
     status: "CANCELLED",
     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
     requestReschedule: false,
+    ...(bookingToDelete.tracking && {
+      tracking: {
+        utm_source: bookingToDelete.tracking.utm_source,
+        utm_medium: bookingToDelete.tracking.utm_medium,
+        utm_campaign: bookingToDelete.tracking.utm_campaign,
+        utm_term: bookingToDelete.tracking.utm_term,
+        utm_content: bookingToDelete.tracking.utm_content,
+      },
+    }),
   };
 
   const promises = webhooks.map((webhook) =>

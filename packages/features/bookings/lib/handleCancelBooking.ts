@@ -428,6 +428,15 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
       cancelledBy: cancelledBy,
       requestReschedule: false,
+      ...(bookingToDelete.tracking && {
+        tracking: {
+          utm_source: bookingToDelete.tracking.utm_source,
+          utm_medium: bookingToDelete.tracking.utm_medium,
+          utm_campaign: bookingToDelete.tracking.utm_campaign,
+          utm_term: bookingToDelete.tracking.utm_term,
+          utm_content: bookingToDelete.tracking.utm_content,
+        },
+      }),
     }).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,

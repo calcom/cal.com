@@ -228,6 +228,15 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
       description: params.evt.description ?? params.evt.additionalNotes ?? "",
       assignmentReason: params.booking.assignmentReason ?? null,
       destinationCalendar: params.evt.destinationCalendar ?? null,
+      ...(params.booking.tracking && {
+        tracking: {
+          utm_source: params.booking.tracking.utm_source,
+          utm_medium: params.booking.tracking.utm_medium,
+          utm_campaign: params.booking.tracking.utm_campaign,
+          utm_term: params.booking.tracking.utm_term,
+          utm_content: params.booking.tracking.utm_content,
+        },
+      }),
       ...(params.extra || {}),
     };
 

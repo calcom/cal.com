@@ -362,6 +362,15 @@ const selectStatementToGetBookingForCalEventBuilder = {
     },
     take: 1,
   },
+  tracking: {
+    select: {
+      utm_source: true,
+      utm_medium: true,
+      utm_campaign: true,
+      utm_term: true,
+      utm_content: true,
+    },
+  },
 };
 
 export class BookingRepository implements IBookingRepository {
@@ -1871,6 +1880,15 @@ export class BookingRepository implements IBookingRepository {
         responses: true,
         iCalUID: true,
         iCalSequence: true,
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
   }
