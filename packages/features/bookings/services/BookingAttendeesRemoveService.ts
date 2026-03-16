@@ -1,6 +1,7 @@
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -26,6 +27,7 @@ type RemoveAttendeeInput = {
   user: TUser;
   emailsEnabled?: boolean;
   actionSource: ActionSource;
+  impersonatedByUserUuid?: string | null;
 };
 
 export type RemovedAttendee = {
@@ -51,6 +53,7 @@ export class BookingAttendeesRemoveService {
     user,
     emailsEnabled = true,
     actionSource,
+    impersonatedByUserUuid,
   }: RemoveAttendeeInput): Promise<RemovedAttendee> {
     const booking = await getBooking(bookingId);
     await validateUserPermissions(booking, user);
@@ -76,6 +79,10 @@ export class BookingAttendeesRemoveService {
       ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
+    const auditContext: BookingAuditContext | undefined = impersonatedByUserUuid
+      ? { impersonatedBy: impersonatedByUserUuid }
+      : undefined;
+
     await this.deps.bookingEventHandlerService.onAttendeeRemoved({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
@@ -87,6 +94,7 @@ export class BookingAttendeesRemoveService {
           new: remainingAttendees.map((a) => a.email),
         },
       },
+      context: auditContext,
       isBookingAuditEnabled,
     });
 
