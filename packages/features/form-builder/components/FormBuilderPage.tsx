@@ -19,12 +19,13 @@
 import React, { useState, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useFieldArray } from "react-hook-form";
+
+import type { RoutingFormWithResponseCount } from "../../types/types";
 import { FieldLibrary } from "./FieldLibrary";
-import { FormCanvas } from "./FormCanvas";
 import { FieldSettingsPanel } from "./FieldSettingsPanel";
+import { FormCanvas } from "./FormCanvas";
 import type { BuilderField, UIFieldType, FormLevelConfig } from "./builderTypes";
 import { createBuilderField, resolveFormConfig } from "./builderTypes";
-import type { RoutingFormWithResponseCount } from "../../types/types";
 
 interface FormBuilderPageProps {
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
@@ -102,8 +103,7 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     (index: number) => {
       remove(index);
       if (selectedIndex === index) setSelectedIndex(null);
-      else if (selectedIndex !== null && selectedIndex > index)
-        setSelectedIndex(selectedIndex - 1);
+      else if (selectedIndex !== null && selectedIndex > index) setSelectedIndex(selectedIndex - 1);
     },
     [remove, selectedIndex]
   );

@@ -389,8 +389,7 @@ function FieldTab({
           {/* Identifier */}
           <div className="space-y-1">
             <FieldLabel>
-              {t("form_builder_identifier")}{" "}
-              <span className="font-normal text-muted">({t("form_builder_routing")})</span>
+              {t("form_builder_identifier")}
             </FieldLabel>
             <Input
               value={field.identifier ?? ""}
@@ -402,7 +401,6 @@ function FieldTab({
               placeholder={t("form_builder_auto_from_label")}
               className="h-8 text-xs font-mono"
             />
-            <p className="text-[10px] text-muted">Embed integrations use identifier <code>event_type</code>.</p>
           </div>
 
           {/* Placeholder */}
@@ -947,7 +945,7 @@ export function FieldSettingsPanel({
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 py-2.5 text-[11px] font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? "border-brand text-brand"
+                  ? "border-brand text-default"
                   : "border-transparent text-muted hover:text-default"
               }`}
             >

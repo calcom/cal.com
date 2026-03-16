@@ -20,7 +20,7 @@
  * All structural mutations go through callback props → useFieldArray in parent.
  * This component is purely presentational.
  */
-import React, { useRef, useState } from "react";
+import React, { CSSProperties, useRef, useState } from "react";
 import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown } from "lucide-react";
 import type { BuilderField, FormLevelConfig } from "./builderTypes";
 import { LAYOUT_ONLY_TYPES, resolveFormFontStyle } from "./builderTypes";
@@ -433,8 +433,9 @@ export function FormCanvas({
       onDragLeave={() => setCanvasOver(false)}
       onDrop={handleCanvasDrop}
     >
+      <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
       <div
-        className="relative min-h-full"
+        className="relative"
         style={{ ...backgroundStyle, padding: `${layoutPadding}px` }}
       >
         {background.type === "image" && background.imageUrl && background.overlayOpacity > 0 && (
@@ -449,7 +450,7 @@ export function FormCanvas({
             style={{ backdropFilter: `blur(${background.blur}px)` }}
           />
         )}
-        <div className="relative flex min-h-full w-full items-start justify-center">
+        <div className="relative flex w-full items-start justify-center">
           <div className="w-full" style={contentStyle}>
 
           {/* ── Header (above card) ── */}

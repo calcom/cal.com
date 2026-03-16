@@ -202,7 +202,7 @@ export default function RoutingFormRenderer({
                   style={btnStyle}
                   className={`${
                     submitButton.width === "full" ? "w-full justify-center" : "px-8"
-                  } h-10 text-sm font-medium mx-4`}
+                  } h-10 text-sm font-medium mx-3`}
                 >
                   {submitButton.text || submitLabel || "Submit"}
                 </Button>

@@ -64,7 +64,7 @@ export default function ExtendedDatePicker({
                 classNames(
                   inputStyles({ size: "md", variant: "underline" }),
                   "bg-transparent hover:bg-transparent active:bg-transparent px-0 rounded-none focus-visible:ring-0 focus-visible:shadow-none hover:shadow-none active:shadow-none",
-                  isUnderlineDisabled && "disabled:opacity-100 disabled:text-default"
+                  isUnderlineDisabled && "disabled:shadow-none disabled:opacity-100 disabled:text-default"
                 )
             )}
             style={underlineStyle}

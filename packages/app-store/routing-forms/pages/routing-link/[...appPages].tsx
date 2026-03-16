@@ -363,7 +363,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               submitLoading={responseMutation.isPending}
               submitDisabled={responseMutation.isPending}
               showErrors={showErrors}
-              className="min-h-screen w-full"
+              className="w-full"
               calendarEventType={calendarEventType}
               calendarFormContext={calendarFormContext}
               onFieldChange={handleFieldChange}

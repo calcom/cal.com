@@ -5,17 +5,19 @@
  * Maps BuilderField.type → appropriate HTML preview element.
  * Supports both "default" (bordered inputs) and "underline" field styles.
  */
-import React from "react";
-import type { BuilderField, UIFieldConfig } from "./builderTypes";
-import { toUIOptions } from "./builderTypes";
+import { cn } from "@calid/features/lib/cn";
 import { TextField, inputStyles } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
-import { SelectWithValidation, Checkbox, DatePicker } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
-import { cn } from "@calid/features/lib/cn";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RadioGroup, RadioField } from "@calid/features/ui/components/radio-group";
+import React from "react";
+
 import CalendarFieldController from "@calcom/app-store/routing-forms/components/CalendarFieldController";
 import type { Field as RoutingFormField } from "@calcom/app-store/routing-forms/types/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SelectWithValidation, Checkbox, DatePicker } from "@calcom/ui/components/form";
+
+import type { BuilderField, UIFieldConfig } from "./builderTypes";
+import { toUIOptions } from "./builderTypes";
 
 type FieldStyle = "default" | "underline";
 
@@ -35,8 +37,7 @@ export function FieldRenderer({
   const { t } = useLocale();
   const isUnderline = fieldStyle === "underline";
   const options = toUIOptions(field.options);
-  const placeholder =
-    field.placeholder || t("form_builder_enter_field_type", { fieldType: field.type });
+  const placeholder = field.placeholder || t("form_builder_enter_field_type", { fieldType: field.type });
   const uiConfig: UIFieldConfig = field.uiConfig ?? {};
   const legacyHideLabel = (uiConfig as { hideLabel?: boolean }).hideLabel;
   const labelText = legacyHideLabel ? "" : field.label.trim();
@@ -78,8 +79,7 @@ export function FieldRenderer({
     case "number":
     case "url":
     case "address": {
-      const inputType =
-        field.type === "number" ? "number" : field.type === "url" ? "url" : "text";
+      const inputType = field.type === "number" ? "number" : field.type === "url" ? "url" : "text";
       return (
         <TextField
           type={inputType}
@@ -145,13 +145,7 @@ export function FieldRenderer({
 
     case "time":
       return (
-        <TextField
-          type="time"
-          disabled
-          variant={inputVariant}
-          size={inputSize}
-          style={underlineStyle}
-        />
+        <TextField type="time" disabled variant={inputVariant} size={inputSize} style={underlineStyle} />
       );
 
     case "calendar":
@@ -202,19 +196,16 @@ export function FieldRenderer({
     case "radio":
       return (
         <RadioGroup disabled value="">
-          <div
-            className={
-              uiConfig.radioDirection === "row"
-                ? "flex flex-wrap gap-x-5 gap-y-2"
-                : "space-y-2"
-            }
-          >
+          <div className={uiConfig.radioDirection === "row" ? "flex flex-wrap gap-x-5 gap-y-2" : "space-y-2"}>
             {options.map((o, i) => (
               <RadioField
                 key={i}
                 id={`${field.id}-radio-${i}`}
                 label={o}
                 value={o}
+                disabled
+                accentColor={accentColor}
+                secondaryColor={secondaryColor}
                 variant={uiConfig.radioVariant ?? "default"}
               />
             ))}
@@ -228,7 +219,7 @@ export function FieldRenderer({
       return (
         <div className={dir === "row" ? "flex flex-wrap gap-x-5 gap-y-2" : "space-y-2"}>
           {options.map((o, i) => (
-            <label key={i} className="flex items-center gap-2 text-sm text-foreground">
+            <label key={i} className="text-foreground flex items-center gap-2 text-sm">
               <Checkbox
                 checked={false}
                 disabled
@@ -245,18 +236,14 @@ export function FieldRenderer({
     case "boolean": {
       const variant = uiConfig.checkboxVariant ?? "default";
       return (
-        <label className="flex items-center gap-2 text-sm text-foreground">
+        <label className="text-foreground flex items-center gap-2 text-sm">
           <Checkbox
             checked={false}
             disabled
             variant={variant}
             style={secondaryColor ? { borderColor: secondaryColor } : undefined}
           />
-          {!hideLabel && (
-            <span className="text-muted-foreground">
-              {labelText || t("confirm")}
-            </span>
-          )}
+          {!hideLabel && <span className="text-muted-foreground">{labelText || t("confirm")}</span>}
         </label>
       );
     }
@@ -267,21 +254,19 @@ export function FieldRenderer({
 
     case "heading":
       return (
-        <h3 className="text-base font-semibold text-foreground">
+        <h3 className="text-foreground text-base font-semibold">
           {layoutContent || t("form_builder_heading")}
         </h3>
       );
 
     case "paragraph":
       return (
-        <p className="text-sm text-muted-foreground">
-          {layoutContent || t("form_builder_paragraph_text")}
-        </p>
+        <p className="text-muted-foreground text-sm">{layoutContent || t("form_builder_paragraph_text")}</p>
       );
 
     default:
       return (
-        <div className="rounded border border-dashed border-border p-2 text-xs text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded border border-dashed p-2 text-xs">
           {t("form_builder_unknown_field_type", { fieldType: field.type })}
         </div>
       );

@@ -84,7 +84,6 @@ export const FIELD_LIBRARY_CONFIG: FieldLibraryEntry[] = [
   { type: "url",         label: "URL",            icon: "Link",        category: "input" },
   { type: "multiemail",  label: "Multi Email",    icon: "MailPlus",    category: "input" },
   { type: "date",        label: "Date",           icon: "Calendar",    category: "input" },
-  { type: "time",        label: "Time",           icon: "Clock",       category: "input" },
   { type: "calendar",    label: "Calendar",       icon: "CalendarDays", category: "input" },
   { type: "select",      label: "Dropdown",       icon: "ChevronDown", category: "selection" },
   { type: "multiselect", label: "Multi Select",   icon: "ListChecks",  category: "selection" },
@@ -222,19 +221,10 @@ export type FormFontOption = {
 
 export const FORM_FONT_OPTIONS: FormFontOption[] = [
   {
-    label: "Inter",
-    value: "Inter",
-    style: {
-      fontFamily: "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
-      fontStyle: "normal",
-      fontWeight: 400,
-    },
-  },
-  {
     label: "Roboto",
     value: "Roboto",
     style: {
-      fontFamily: "Roboto, system-ui, -apple-system, Segoe UI, sans-serif",
+      fontFamily: "\"roboto\", sans-serif",
       fontStyle: "normal",
       fontWeight: 400,
     },
@@ -243,16 +233,16 @@ export const FORM_FONT_OPTIONS: FormFontOption[] = [
     label: "Poppins",
     value: "Poppins",
     style: {
-      fontFamily: "Poppins, system-ui, -apple-system, Segoe UI, sans-serif",
+      fontFamily: "\"poppins\", sans-serif",
       fontStyle: "normal",
-      fontWeight: 400,
+      fontWeight: 100,
     },
   },
   {
     label: "Montserrat",
     value: "Montserrat",
     style: {
-      fontFamily: "Montserrat, system-ui, -apple-system, Segoe UI, sans-serif",
+      fontFamily: "\"montserrat\", sans-serif",
       fontStyle: "normal",
       fontWeight: 400,
     },
@@ -261,34 +251,7 @@ export const FORM_FONT_OPTIONS: FormFontOption[] = [
     label: "Source Sans 3",
     value: "Source Sans 3",
     style: {
-      fontFamily: "\"Source Sans 3\", system-ui, -apple-system, Segoe UI, sans-serif",
-      fontStyle: "normal",
-      fontWeight: 400,
-    },
-  },
-  {
-    label: "IBM Plex Sans",
-    value: "IBM Plex Sans",
-    style: {
-      fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, Segoe UI, sans-serif",
-      fontStyle: "normal",
-      fontWeight: 400,
-    },
-  },
-  {
-    label: "Lora",
-    value: "Lora",
-    style: {
-      fontFamily: "Lora, Georgia, serif",
-      fontStyle: "normal",
-      fontWeight: 400,
-    },
-  },
-  {
-    label: "Merriweather",
-    value: "Merriweather",
-    style: {
-      fontFamily: "Merriweather, Georgia, serif",
+      fontFamily: "\"source-sans-3\", sans-serif",
       fontStyle: "normal",
       fontWeight: 400,
     },
@@ -314,10 +277,11 @@ export function resolveFormFontStyle(label: string): FormFontStyle {
 // ─── Utilities ─────────────────────────────────────────────────────────────────
 
 export function labelToIdentifier(label: string): string {
-  return label
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-zA-Z0-9_]/g, "");
+  return label;
+  // return label
+  //   .trim()
+  //   .replace(/\s+/g, "_")
+  //   .replace(/[^a-zA-Z0-9_]/g, "");
 }
 
 export function toBackendOptions(labels: string[]): BackendOption[] {

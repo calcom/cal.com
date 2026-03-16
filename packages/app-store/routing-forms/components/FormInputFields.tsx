@@ -1,16 +1,16 @@
+import { cn } from "@calid/features/lib/cn";
+import { TextField, inputStyles } from "@calid/features/ui/components/input/input";
+import { RadioGroup, RadioField } from "@calid/features/ui/components/radio-group";
 import type { App_RoutingForms_Form } from "@prisma/client";
+import { format } from "date-fns";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { Checkbox, DatePicker } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
-import { TextField, inputStyles } from "@calid/features/ui/components/input/input";
-import { cn } from "@calid/features/lib/cn";
-import { format } from "date-fns";
-
+import { validatePhoneInput } from "@calcom/features/bookings/lib/handleNewBooking/handleCustomInputs";
 import type { FormLevelConfig } from "@calcom/features/form-builder/components/builderTypes";
 import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/builderTypes";
+import { Checkbox, DatePicker } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
@@ -18,11 +18,10 @@ import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic, getOptionIdForValue } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
-import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 import CalendarFieldController from "./CalendarFieldController";
+import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 const emailRegex = /^\S+@\S+\.\S+$/;
-const phoneRegex = /^\+?[0-9\s\-()]{7,}$/;
 
 const isEmptyValue = (value: unknown) => {
   if (value === undefined || value === null) return true;
@@ -46,8 +45,13 @@ export const getValidationErrorMessage = (field: any, value: unknown) => {
     if (field.type === "email" && !emailRegex.test(String(value))) {
       return "Please enter valid email address";
     }
-    if (field.type === "phone" && !phoneRegex.test(String(value))) {
-      return "Please enter valid phone number";
+    if (field.type === "phone") {
+      try {
+        validatePhoneInput(String(value), "Invalid phone number");
+        return null;
+      } catch (e) {
+        return "Please enter valid phone number";
+      }
     }
     if (field.type === "textarea" && minChars) {
       const length = String(value).trim().length;
@@ -171,21 +175,14 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (isLayout) {
           const layoutContent = field.uiConfig?.content ?? field.label;
           return (
-            <div
-              key={field.id}
-              className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
-            >
+            <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
               <div className="rounded-lg border-2 border-transparent p-3">
                 {field.type === "divider" && <hr className="border-border my-1" />}
                 {field.type === "heading" && (
-                  <h3 className="text-base font-semibold text-foreground">
-                    {layoutContent || "Heading"}
-                  </h3>
+                  <h3 className="text-foreground text-base font-semibold">{layoutContent || "Heading"}</h3>
                 )}
                 {field.type === "paragraph" && (
-                  <p className="text-sm text-muted-foreground">
-                    {layoutContent || "Paragraph text"}
-                  </p>
+                  <p className="text-muted-foreground text-sm">{layoutContent || "Paragraph text"}</p>
                 )}
               </div>
             </div>
@@ -250,22 +247,20 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 disabled={isDisabled}
                 value={String(currentValue)}
                 onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
-                onValueChange={(val) => updateResponse(val)}
-              >
+                onValueChange={(val) => updateResponse(val)}>
                 <div
                   className={
-                    field.uiConfig?.radioDirection === "row"
-                      ? "flex flex-wrap gap-x-5 gap-y-2"
-                      : "space-y-2"
-                  }
-                >
+                    field.uiConfig?.radioDirection === "row" ? "flex flex-wrap gap-x-5 gap-y-2" : "space-y-2"
+                  }>
                   {options.map((o, i) => (
                     <RadioField
                       key={i}
                       id={`${field.id}-radio-${i}`}
                       label={o.title}
                       value={String(o.value)}
+                      disabled={isDisabled}
                       accentColor={accentColor}
+                      secondaryColor={secondaryColor}
                       variant={radioVariant}
                     />
                   ))}
@@ -276,22 +271,18 @@ export default function FormInputFields(props: FormInputFieldsProps) {
 
           if (field.type === "checkbox") {
             const options = getUIOptionsForSelect(field);
-            const selected =
-              Array.isArray(currentValue) ? currentValue.map(String) : [];
+            const selected = Array.isArray(currentValue) ? currentValue.map(String) : [];
             const checkboxVariant = field.uiConfig?.checkboxVariant ?? "default";
             return (
               <div
                 className={
-                  field.uiConfig?.checkboxDirection === "row"
-                    ? "flex flex-wrap gap-x-5 gap-y-2"
-                    : "space-y-2"
-                }
-              >
+                  field.uiConfig?.checkboxDirection === "row" ? "flex flex-wrap gap-x-5 gap-y-2" : "space-y-2"
+                }>
                 {options.map((o, i) => {
                   const value = String(o.value);
                   const checked = selected.includes(value);
                   return (
-                    <label key={i} className="flex items-center gap-2 text-sm text-foreground">
+                    <label key={i} className="text-foreground flex items-center gap-2 text-sm">
                       <Checkbox
                         disabled={isDisabled}
                         checked={checked}
@@ -318,7 +309,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             const checked = String(currentValue) === "true";
             const checkboxVariant = field.uiConfig?.checkboxVariant ?? "default";
             return (
-              <label className="flex items-center gap-2 text-sm text-foreground">
+              <label className="text-foreground flex items-center gap-2 text-sm">
                 <Checkbox
                   disabled={isDisabled}
                   checked={checked}
@@ -336,8 +327,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
           if (field.type === "date") {
             const rawDate = currentValue ? String(currentValue) : "";
             const parsedDate = rawDate ? new Date(rawDate) : null;
-            const dateValue =
-              parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+            const dateValue = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
             return (
               <DatePicker
                 date={dateValue as Date}
@@ -393,27 +383,19 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const customField = renderCustomField();
         if (customField) {
           return (
-            <div
-              key={field.id}
-              className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
-            >
+            <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
               <div className="rounded-lg border-2 border-transparent p-3">
                 {!hideLabel && (
-                  <label
-                    id={`field-label-${field.id}`}
-                    className={labelClassName}
-                  >
+                  <label id={`field-label-${field.id}`} className={labelClassName}>
                     {labelText}
-                    {field.required && <span className="ml-0.5 text-error">*</span>}
+                    {field.required && <span className="text-error ml-0.5">*</span>}
                   </label>
                 )}
                 {customField}
                 {field.uiConfig?.helpText && (
-                  <p className="mt-1.5 text-xs text-muted">{field.uiConfig.helpText}</p>
+                  <p className="text-muted mt-1.5 text-xs">{field.uiConfig.helpText}</p>
                 )}
-                {showError && errorMessage && (
-                  <p className="mt-1.5 text-xs text-error">{errorMessage}</p>
-                )}
+                {showError && errorMessage && <p className="text-error mt-1.5 text-xs">{errorMessage}</p>}
               </div>
             </div>
           );
@@ -427,24 +409,20 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const options = getUIOptionsForSelect(field);
         const widgetPlaceholder =
           field.placeholder ??
-          (widget as {
-            valuePlaceholder?: string;
-          }).valuePlaceholder ??
+          (
+            widget as {
+              valuePlaceholder?: string;
+            }
+          ).valuePlaceholder ??
           "";
 
         return (
-          <div
-            key={field.id}
-            className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}
-          >
+          <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
             <div className="rounded-lg border-2 border-transparent p-3">
               {!hideLabel && (
-                <label
-                  id={`field-label-${field.id}`}
-                  className={labelClassName}
-                >
+                <label id={`field-label-${field.id}`} className={labelClassName}>
                   {labelText}
-                  {field.required && <span className="ml-0.5 text-error">*</span>}
+                  {field.required && <span className="text-error ml-0.5">*</span>}
                 </label>
               )}
               <Component
@@ -467,11 +445,9 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 }}
               />
               {field.uiConfig?.helpText && (
-                <p className="mt-1.5 text-xs text-muted">{field.uiConfig.helpText}</p>
+                <p className="text-muted mt-1.5 text-xs">{field.uiConfig.helpText}</p>
               )}
-              {showError && errorMessage && (
-                <p className="mt-1.5 text-xs text-error">{errorMessage}</p>
-              )}
+              {showError && errorMessage && <p className="text-error mt-1.5 text-xs">{errorMessage}</p>}
             </div>
           </div>
         );
