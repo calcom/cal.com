@@ -1,11 +1,10 @@
-import { createHmac } from "node:crypto";
-
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
-import type { WebhookSubscriber, WebhookDeliveryResult } from "../dto/types";
+import type { WebhookDeliveryResult, WebhookSubscriber } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
-import type { ITasker, ILogger } from "../interface/infrastructure";
+import type { ILogger, ITasker } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
+import type { WebhookPayloadType } from "../sendPayload";
+import sendPayload from "../sendPayload";
 
 export class WebhookService implements IWebhookService {
   private readonly log: ILogger;
@@ -77,55 +76,25 @@ export class WebhookService implements IWebhookService {
     payload: WebhookPayload,
     subscriber: WebhookSubscriber
   ): Promise<WebhookDeliveryResult> {
-    const { subscriberUrl, payloadTemplate } = subscriber;
+    const { subscriberUrl } = subscriber;
     if (!subscriberUrl) throw new Error("Missing subscriber URL");
 
-    const contentType =
-      !payloadTemplate || this.isJsonTemplate(payloadTemplate)
-        ? "application/json"
-        : "application/x-www-form-urlencoded";
-
-    const body = JSON.stringify({
-      triggerEvent: trigger,
-      createdAt: payload.createdAt,
-      payload: payload.payload,
-    });
-
-    const signature = subscriber.secret
-      ? createHmac("sha256", subscriber.secret).update(body).digest("hex")
-      : "no-secret-provided";
-
-    const response = await fetch(subscriberUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        "X-Cal-Signature-256": signature,
-        "X-Cal-Webhook-Version": subscriber.version,
-      },
-      redirect: "manual",
-      body,
-    });
-
-    const responseText = await response.text();
+    const result = await sendPayload(
+      subscriber.secret,
+      trigger,
+      payload.createdAt,
+      subscriber,
+      payload.payload as WebhookPayloadType
+    );
 
     return {
-      ok: response.ok,
-      status: response.status,
-      message: responseText || undefined,
+      ok: result.ok,
+      status: result.status,
+      message: result.message,
       duration: 0,
-      subscriberUrl: subscriberUrl,
+      subscriberUrl,
       webhookId: subscriber.id,
     };
-  }
-
-  private isJsonTemplate(template: string | null): boolean {
-    if (!template) return true;
-    try {
-      JSON.parse(template);
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   async getSubscribers(options: Parameters<IWebhookRepository["getSubscribers"]>[0]) {

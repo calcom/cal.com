@@ -86,7 +86,7 @@ describe("triggerDelegationCredentialErrorWebhook", () => {
     ];
     const mockRepo = { findByOrgIdAndTrigger: vi.fn().mockResolvedValue(webhooks) };
     vi.mocked(getWebhookFeature).mockReturnValue({ repository: mockRepo } as never);
-    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200 });
+    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200, message: undefined });
 
     await triggerDelegationCredentialErrorWebhook(baseParams);
 
@@ -119,7 +119,7 @@ describe("triggerDelegationCredentialErrorWebhook", () => {
 
     vi.mocked(sendPayload)
       .mockRejectedValueOnce(new Error("Network error"))
-      .mockResolvedValueOnce({ ok: true, status: 200 });
+      .mockResolvedValueOnce({ ok: true, status: 200, message: undefined });
 
     await triggerDelegationCredentialErrorWebhook(baseParams);
 
@@ -141,7 +141,7 @@ describe("triggerDelegationCredentialErrorWebhook", () => {
     const webhooks = [{ id: "wh-1", subscriberUrl: "https://hook1.com", secret: null }];
     const mockRepo = { findByOrgIdAndTrigger: vi.fn().mockResolvedValue(webhooks) };
     vi.mocked(getWebhookFeature).mockReturnValue({ repository: mockRepo } as never);
-    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200 });
+    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200, message: undefined });
 
     await triggerDelegationCredentialErrorWebhook(baseParams);
 
@@ -160,7 +160,7 @@ describe("triggerDelegationCredentialErrorWebhook", () => {
     const webhooks = [{ id: "wh-1", subscriberUrl: "https://hook1.com", secret: null }];
     const mockRepo = { findByOrgIdAndTrigger: vi.fn().mockResolvedValue(webhooks) };
     vi.mocked(getWebhookFeature).mockReturnValue({ repository: mockRepo } as never);
-    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200 });
+    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200, message: undefined });
 
     await triggerDelegationCredentialErrorWebhook(baseParams);
 

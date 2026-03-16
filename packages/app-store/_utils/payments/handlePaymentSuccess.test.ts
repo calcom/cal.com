@@ -258,7 +258,7 @@ describe("handlePaymentSuccess", () => {
 
     // Mock webhook functions
     vi.mocked(getWebhooks).mockResolvedValue([mockWebhookSubscriber]);
-    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200 });
+    vi.mocked(sendPayload).mockResolvedValue({ ok: true, status: 200, message: undefined });
 
     // Mock workflow functions
     vi.mocked(getAllWorkflowsFromEventType).mockResolvedValue([mockWorkflow]);

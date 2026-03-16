@@ -344,9 +344,12 @@ const _sendPayload = async (
     body,
   });
 
+  const responseText = typeof response.text === "function" ? await response.text() : "";
+
   return {
     ok: response.ok,
     status: response.status,
+    message: responseText || undefined,
   };
 };
 

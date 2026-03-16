@@ -710,6 +710,94 @@ describe("WebhookService", () => {
     });
   });
 
+  describe("sendWebhookDirectly uses sendPayload (Zapier fix)", () => {
+    it("should send flattened payload format for Zapier subscribers with event payload", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ appId: "zapier" });
+      const eventPayload = {
+        uid: "booking-uid-123",
+        title: "Test Meeting",
+        startTime: "2024-03-15T10:00:00Z",
+        endTime: "2024-03-15T11:00:00Z",
+        organizer: {
+          email: "organizer@example.com",
+          name: "Organizer",
+          timeZone: "UTC",
+          username: "organizer",
+          usernameInOrg: null,
+          locale: "en",
+          language: { locale: "en", translate: (key: string) => key },
+        },
+        attendees: [],
+        type: "test-event",
+        description: "",
+        status: "ACCEPTED",
+        eventTitle: "30 Min Meeting",
+        eventDescription: null,
+        requiresConfirmation: null,
+        price: 0,
+        currency: "usd",
+        length: 30,
+      };
+      const payload = createPayload({
+        payload: eventPayload,
+      });
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.uid).toBe("booking-uid-123");
+      expect(body.title).toBe("Test Meeting");
+      expect(body.eventType).toEqual({
+        title: "30 Min Meeting",
+        description: null,
+        requiresConfirmation: null,
+        price: 0,
+        currency: "usd",
+        length: 30,
+      });
+      expect(body.user).toBeDefined();
+      expect(body.triggerEvent).toBeUndefined();
+      expect(body.payload).toBeUndefined();
+    });
+
+    it("should send wrapped payload format for non-Zapier subscribers", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ appId: null });
+      const payload = createPayload();
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CREATED);
+      expect(body.createdAt).toBeDefined();
+      expect(body.payload).toEqual(
+        expect.objectContaining({ test: "data", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED })
+      );
+    });
+
+    it("should include response message in delivery result when fetch returns error body", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        text: vi.fn().mockResolvedValue("Bad Gateway"),
+      });
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload();
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      expect(subLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining("Webhook failed"),
+        expect.objectContaining({ statusCode: 502 })
+      );
+    });
+  });
+
   describe("isJsonTemplate (via sendWebhookDirectly)", () => {
     it("should use JSON content type when template is null", async () => {
       const service = createService();
