@@ -928,11 +928,10 @@ export class UserRepository {
       organizationId: number | null;
       creationSource: CreationSource;
       locked: boolean;
-      abuseScore?: { score: number; abuseData: Prisma.InputJsonValue };
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, locked, hashedPassword, abuseScore, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
 
     logger.info("create user", {
       email,
@@ -979,14 +978,6 @@ export class UserRepository {
               },
             }
           : {}),
-        ...(abuseScore && {
-          userAbuseScore: {
-            create: {
-              score: abuseScore.score,
-              abuseData: abuseScore.abuseData,
-            },
-          },
-        }),
         ...rest,
       },
     });

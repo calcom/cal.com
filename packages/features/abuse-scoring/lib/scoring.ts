@@ -1,170 +1,222 @@
-import type { UserForScoringDto } from "../dto/scoring.dto";
-import type { AbuseSignal } from "../types";
-import { ABUSE_SIGNAL_CAPS, ABUSE_WEIGHTS, MS_PER_DAY, SIGNUP_FLAG_CAP } from "./constants";
+import type { AbuseRuleGroupDto, UserForScoringDto } from "../dto/scoring.dto";
+import type { RuleEvalResult, UserMetrics } from "../types";
+import type { AbuseRuleField, VelocityUnit } from "./constants";
+import { ARRAY_FIELDS, DOMAIN_FIELDS, MS_PER_DAY, NUMERIC_FIELDS, VELOCITY_FIELDS } from "./constants";
 
-interface ScoreResult {
-  score: number;
-  signals: AbuseSignal[];
+/**
+ * Extracts derived metrics from user data for rule evaluation.
+ * Pure function — no DB queries, no side effects.
+ */
+export function extractMetrics(user: UserForScoringDto): UserMetrics {
+  const eventTypes = user.eventTypes ?? [];
+  const bookings = user.bookings ?? [];
+
+  // Booking velocity: peak bookings per hour and per minute
+  const last24h = bookings.filter((b) => Date.now() - b.createdAt.getTime() < MS_PER_DAY);
+  const hourBuckets = new Map<number, number>();
+  const minuteBuckets = new Map<number, number>();
+  for (const b of last24h) {
+    const ts = b.createdAt.getTime();
+    const hour = Math.floor(ts / 3_600_000);
+    const minute = Math.floor(ts / 60_000);
+    hourBuckets.set(hour, (hourBuckets.get(hour) ?? 0) + 1);
+    minuteBuckets.set(minute, (minuteBuckets.get(minute) ?? 0) + 1);
+  }
+  const bookingVelocityPerHour = Math.max(...Array.from(hourBuckets.values()), 0);
+  const bookingVelocityPerMinute = Math.max(...Array.from(minuteBuckets.values()), 0);
+
+  // Self-booking: on own EventType OR as attendee of own booking
+  const selfHosted = bookings.filter((b) => b.eventType?.userId === user.id);
+  const selfAttendee = bookings.filter((b) =>
+    b.attendees?.some((a) => a.email.toLowerCase() === user.email.toLowerCase())
+  );
+  const selfBookingCount = Math.max(selfHosted.length, selfAttendee.length);
+
+  // Extract text from booking responses JSON
+  const bookingResponseTexts: string[] = [];
+  for (const b of bookings) {
+    if (!b.responses) continue;
+    const responses = b.responses as Record<string, unknown>;
+    for (const val of Object.values(responses)) {
+      if (typeof val === "string" && val.trim()) {
+        bookingResponseTexts.push(val.toLowerCase());
+      }
+    }
+  }
+
+  return {
+    eventTypeTitles: eventTypes.map((et) => et.title.toLowerCase()),
+    eventTypeDescriptions: eventTypes.map((et) => et.description?.toLowerCase()).filter(Boolean) as string[],
+    redirectUrls: eventTypes
+      .map((et) => et.successRedirectUrl?.toLowerCase())
+      .filter(Boolean) as string[],
+    cancellationReasons: bookings
+      .map((b) => b.cancellationReason?.toLowerCase())
+      .filter(Boolean) as string[],
+    bookingLocations: bookings.map((b) => b.location?.toLowerCase()).filter(Boolean) as string[],
+    bookingResponses: bookingResponseTexts,
+    username: (user.username ?? "").toLowerCase(),
+    signupEmailDomain: user.email.split("@")[1]?.toLowerCase() ?? "",
+    signupName: (user.name ?? user.username ?? "").toLowerCase(),
+    bookingVelocity: { hour: bookingVelocityPerHour, min: bookingVelocityPerMinute },
+    selfBookingCount,
+  };
+}
+
+function getFieldValues(metrics: UserMetrics, field: AbuseRuleField): string[] {
+  switch (field) {
+    case "EVENT_TYPE_TITLE":
+      return metrics.eventTypeTitles;
+    case "EVENT_TYPE_DESCRIPTION":
+      return metrics.eventTypeDescriptions;
+    case "REDIRECT_URL":
+      return metrics.redirectUrls;
+    case "CANCELLATION_REASON":
+      return metrics.cancellationReasons;
+    case "BOOKING_LOCATION":
+      return metrics.bookingLocations;
+    case "BOOKING_RESPONSES":
+      return metrics.bookingResponses;
+    case "USERNAME":
+      return [metrics.username];
+    case "SIGNUP_EMAIL_DOMAIN":
+      return [metrics.signupEmailDomain];
+    case "SIGNUP_NAME":
+      return [metrics.signupName];
+    case "BOOKING_VELOCITY":
+      // Velocity values are resolved in matchesVelocity, not here
+      return [];
+    case "SELF_BOOKING_COUNT":
+      return [String(metrics.selfBookingCount)];
+  }
 }
 
 /**
- * Pure scoring function — no DB queries, no side effects.
- * @param user - Zod-validated DTO from repository
- * @param maliciousDomains - Set of lowercase domains from REDIRECT_DOMAIN Watchlist
- * @param spamKeywords - Lowercased SPAM_KEYWORD values from Watchlist
+ * Matches a domain value against a pattern that supports wildcard prefixes.
+ * - Exact: "cal.com" matches only "cal.com"
+ * - Wildcard: "*.cal.com" matches "app.cal.com", "sub.app.cal.com", but not "cal.com"
  */
-export function calculateScore(
-  user: UserForScoringDto,
-  maliciousDomains: Set<string>,
-  spamKeywords: string[]
-): ScoreResult {
-  const signals: AbuseSignal[] = [];
-  const now = new Date().toISOString();
+function matchesDomain(fieldValue: string, pattern: string): boolean {
+  let domain = fieldValue.toLowerCase();
+  let extractedFromUrl = false;
+  if (domain.includes("://")) {
+    try {
+      domain = new URL(domain).hostname;
+      extractedFromUrl = true;
+    } catch {
+      return false;
+    }
+  }
 
-  // ── Signup signals ──
-  const flagCount = user.abuseData?.flags?.length ?? 0;
-  if (flagCount > 0) {
-    signals.push({
-      type: "signup_flags",
-      weight: Math.min(flagCount * ABUSE_WEIGHTS.signupFlag, SIGNUP_FLAG_CAP),
-      context: `${flagCount} pattern(s) matched at signup`,
-      at: now,
+  const normalizedPattern = pattern.toLowerCase();
+
+  if (normalizedPattern.startsWith("*.")) {
+    const baseDomain = normalizedPattern.slice(2);
+    // When extracted from a URL, also match the base domain itself
+    // (e.g. "*.bit.ly" matches "https://bit.ly/abc" since hostname is "bit.ly")
+    if (extractedFromUrl && domain === baseDomain) return true;
+    return domain.endsWith(`.${baseDomain}`);
+  }
+
+  return domain === normalizedPattern;
+}
+
+/**
+ * Matches a compound velocity condition (e.g. "50/hour", "5/min") against
+ * pre-computed velocity metrics. Returns false for malformed values.
+ */
+function matchesVelocity(metrics: UserMetrics, conditionValue: string): boolean {
+  const separatorIndex = conditionValue.indexOf("/");
+  if (separatorIndex === -1) return false;
+
+  const threshold = Number(conditionValue.slice(0, separatorIndex));
+  if (Number.isNaN(threshold)) return false;
+
+  const unit = conditionValue.slice(separatorIndex + 1) as VelocityUnit;
+
+  if (!(unit in metrics.bookingVelocity)) return false;
+
+  return metrics.bookingVelocity[unit] > threshold;
+}
+
+function matchesCondition(
+  metrics: UserMetrics,
+  fieldValues: string[],
+  operator: string,
+  conditionValue: string,
+  field: string
+): boolean {
+  const typedField = field as AbuseRuleField;
+  const isNumeric = NUMERIC_FIELDS.has(typedField);
+  const isArray = ARRAY_FIELDS.has(typedField);
+  const isDomain = DOMAIN_FIELDS.has(typedField);
+  const isVelocity = VELOCITY_FIELDS.has(typedField);
+
+  if (isVelocity && operator === "GREATER_THAN") {
+    return matchesVelocity(metrics, conditionValue);
+  }
+
+  const lowerValue = conditionValue.toLowerCase();
+
+  const check = (fv: string): boolean => {
+    if (isNumeric && operator === "GREATER_THAN") {
+      return Number(fv) > Number(conditionValue);
+    }
+    if (operator === "MATCHES_DOMAIN" && isDomain) {
+      return matchesDomain(fv, conditionValue);
+    }
+    const lowerFv = fv.toLowerCase();
+    if (operator === "CONTAINS") return lowerFv.includes(lowerValue);
+    if (operator === "EXACT") return lowerFv === lowerValue;
+    return false;
+  };
+
+  if (isArray) return fieldValues.some(check);
+  return fieldValues.length > 0 && check(fieldValues[0]);
+}
+
+/**
+ * Evaluates rules against user metrics. Pure function.
+ * Returns score (capped at 100), matched rules, and auto-lock decision.
+ */
+export function evaluateRules(
+  metrics: UserMetrics,
+  rules: AbuseRuleGroupDto[]
+): RuleEvalResult {
+  const matchedRules: RuleEvalResult["matchedRules"] = [];
+  let shouldAutoLock = false;
+  let autoLockRule: RuleEvalResult["autoLockRule"];
+
+  for (const rule of rules) {
+    if (rule.conditions.length === 0) continue;
+
+    const conditionResults = rule.conditions.map((c) => {
+      const fieldValues = getFieldValues(metrics, c.field);
+      return matchesCondition(metrics, fieldValues, c.operator, c.value, c.field);
     });
-  }
 
-  // ── Redirect signals (domain-list based, not "all external") ──
-  const eventTypes = user.eventTypes ?? [];
-  const redirectUrls = eventTypes
-    .map((et) => ({ url: et.successRedirectUrl, forwardParams: et.forwardParamsSuccessRedirect, id: et.id }))
-    .filter((r): r is { url: string; forwardParams: boolean | null; id: number } => Boolean(r.url));
+    const groupMatches = rule.matchAll
+      ? conditionResults.every(Boolean)
+      : conditionResults.some(Boolean);
 
-  if (redirectUrls.length > 0 && maliciousDomains.size > 0) {
-    const matchedDomains: string[] = [];
-    let hasForwardParams = false;
-
-    for (const r of redirectUrls) {
-      try {
-        const domain = new URL(r.url).hostname.toLowerCase();
-        if (maliciousDomains.has(domain)) {
-          matchedDomains.push(domain);
-          if (r.forwardParams) hasForwardParams = true;
-        }
-      } catch {
-        // Invalid URL — skip
-      }
-    }
-
-    const uniqueDomains = Array.from(new Set(matchedDomains));
-    if (uniqueDomains.length > 0) {
-      signals.push({
-        type: "redirect_malicious",
-        weight: ABUSE_WEIGHTS.redirectMalicious,
-        context: `${uniqueDomains.join(", ")} (${matchedDomains.length} EventType(s))`,
-        at: now,
+    if (groupMatches) {
+      matchedRules.push({
+        groupId: rule.id,
+        weight: rule.weight,
+        description: rule.description ?? "",
       });
 
-      if (hasForwardParams) {
-        signals.push({
-          type: "forward_params_enabled",
-          weight: ABUSE_WEIGHTS.forwardParams,
-          context: "Forward params with malicious redirect",
-          at: now,
-        });
+      if (rule.autoLock) {
+        shouldAutoLock = true;
+        autoLockRule = { groupId: rule.id, description: rule.description ?? "" };
       }
     }
   }
-
-  // ── Content spam signals (title only — description/username/booking metadata are future vectors) ──
-  if (eventTypes.length > 0 && spamKeywords.length > 0) {
-    const matched: string[] = [];
-    for (const et of eventTypes) {
-      const title = et.title.toLowerCase();
-      for (const kw of spamKeywords) {
-        if (title.includes(kw)) matched.push(kw);
-      }
-    }
-    const unique = Array.from(new Set(matched));
-    if (unique.length > 0) {
-      signals.push({
-        type: "content_spam",
-        weight: ABUSE_WEIGHTS.contentSpam,
-        context: `${unique.join(", ")} in ${eventTypes.length} EventType(s)`,
-        at: now,
-      });
-    }
-  }
-
-  // ── Booking velocity signals ──
-  const bookings = user.bookings ?? [];
-  if (bookings.length > 0) {
-    const last24h = bookings.filter((b) => Date.now() - b.createdAt.getTime() < MS_PER_DAY);
-
-    const hourBuckets = new Map<number, number>();
-    for (const b of last24h) {
-      const hour = Math.floor(b.createdAt.getTime() / 3600000);
-      hourBuckets.set(hour, (hourBuckets.get(hour) ?? 0) + 1);
-    }
-    const peakPerHour = Math.max(...Array.from(hourBuckets.values()), 0);
-
-    if (peakPerHour > 50) {
-      signals.push({
-        type: "high_booking_velocity",
-        weight: ABUSE_WEIGHTS.highBookingVelocity,
-        context: `${peakPerHour} bookings in peak hour`,
-        at: now,
-      });
-    } else if (peakPerHour > 20) {
-      signals.push({
-        type: "elevated_booking_velocity",
-        weight: ABUSE_WEIGHTS.elevatedBookingVelocity,
-        context: `${peakPerHour} bookings in peak hour`,
-        at: now,
-      });
-    }
-
-    // Self-booking: on own EventType OR as attendee of own booking
-    const selfHosted = bookings.filter((b) => b.eventType?.userId === user.id);
-    const selfAttendee = bookings.filter((b) =>
-      b.attendees?.some((a) => a.email.toLowerCase() === user.email.toLowerCase())
-    );
-    const selfBookingCount = Math.max(selfHosted.length, selfAttendee.length);
-
-    if (selfBookingCount > 5) {
-      signals.push({
-        type: "self_booking_pattern",
-        weight: ABUSE_WEIGHTS.selfBookingPattern,
-        context: `${selfBookingCount} self-bookings`,
-        at: now,
-      });
-    }
-  }
-
-  // ── Deduplicate by type: apply caps ──
-  const cappedSignals = applySignalCaps(signals);
 
   const score = Math.min(
-    cappedSignals.reduce((sum, s) => sum + s.weight, 0),
+    matchedRules.reduce((sum, r) => sum + r.weight, 0),
     100
   );
 
-  return { score, signals: cappedSignals };
-}
-
-/**
- * If the same signal type appears multiple times, keep only the first
- * occurrence and cap its weight to the defined maximum.
- * Signals without a cap pass through unchanged.
- */
-function applySignalCaps(signals: AbuseSignal[]): AbuseSignal[] {
-  const seen = new Map<string, AbuseSignal>();
-
-  for (const signal of signals) {
-    const existing = seen.get(signal.type);
-    if (!existing) {
-      const cap = ABUSE_SIGNAL_CAPS[signal.type];
-      seen.set(signal.type, cap != null ? { ...signal, weight: Math.min(signal.weight, cap) } : signal);
-    }
-  }
-
-  return Array.from(seen.values());
+  return { score, matchedRules, shouldAutoLock, autoLockRule };
 }

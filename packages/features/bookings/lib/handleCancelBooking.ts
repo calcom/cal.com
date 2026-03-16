@@ -726,6 +726,14 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   } catch (error) {
     log.error("Error deleting event", error);
   }
+
+  // Gate 4: abuse scoring — async, fail-open
+  if (bookingToDelete.userId) {
+    import("@calcom/features/abuse-scoring/lib/hooks")
+      .then(({ onBookingCancelled }) => onBookingCancelled(bookingToDelete.userId!))
+      .catch((err) => log.error("abuse-scoring: onBookingCancelled failed", err));
+  }
+
   return {
     success: true,
     message: "Booking successfully cancelled.",

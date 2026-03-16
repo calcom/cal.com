@@ -1,14 +1,32 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import type { UserForScoringDto } from "../dto/scoring.dto";
-import { ABUSE_WEIGHTS, SIGNUP_FLAG_CAP } from "../lib/constants";
-import { calculateScore } from "../lib/scoring";
+import type { AbuseRuleGroupDto, UserForScoringDto } from "../dto/scoring.dto";
+import { evaluateRules, extractMetrics } from "../lib/scoring";
+
+/** Generates a deterministic UUID v7-shaped string from a number, for readable test fixtures. */
+function uuid(n: number): string {
+  return `019577a0-0000-7000-8000-${String(n).padStart(12, "0")}`;
+}
+
+type BookingOverride = Partial<UserForScoringDto["bookings"][number]> & { createdAt: Date };
+
+function buildBooking(overrides: BookingOverride): UserForScoringDto["bookings"][number] {
+  return {
+    cancellationReason: null,
+    location: null,
+    responses: null,
+    eventType: null,
+    attendees: [{ email: "other@example.com" }],
+    ...overrides,
+  };
+}
 
 function buildUser(overrides: Partial<UserForScoringDto> = {}): UserForScoringDto {
   return {
     id: 1,
     email: "test@example.com",
-    abuseData: null,
+    name: null,
+    username: null,
     locked: false,
     abuseScore: 0,
     eventTypes: [],
@@ -17,277 +35,606 @@ function buildUser(overrides: Partial<UserForScoringDto> = {}): UserForScoringDt
   };
 }
 
-function buildAbuseData(flagCount: number) {
+function buildRule(overrides: Partial<AbuseRuleGroupDto> = {}): AbuseRuleGroupDto {
   return {
-    flags: Array.from({ length: flagCount }, (_, i) => ({
-      type: "suspicious_domain" as const,
-      domain: `tempmail${i}.org`,
-      at: "2026-02-10T14:30:00Z",
-    })),
-    signals: [],
-    lastAnalyzedAt: null,
+    id: uuid(1),
+    matchAll: true,
+    weight: 25,
+    autoLock: false,
+    description: "test rule",
+    conditions: [],
+    ...overrides,
   };
 }
 
-describe("calculateScore", () => {
-  const emptyDomains = new Set<string>();
-  const emptyKeywords: string[] = [];
+// ── extractMetrics ──
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+describe("extractMetrics", () => {
+  it("returns zeroed metrics for user with no activity", () => {
+    const metrics = extractMetrics(buildUser());
+    expect(metrics.eventTypeTitles).toHaveLength(0);
+    expect(metrics.eventTypeDescriptions).toHaveLength(0);
+    expect(metrics.redirectUrls).toHaveLength(0);
+    expect(metrics.signupEmailDomain).toBe("example.com");
+    expect(metrics.signupName).toBe("");
+    expect(metrics.bookingVelocity.hour).toBe(0);
+    expect(metrics.bookingVelocity.min).toBe(0);
+    expect(metrics.selfBookingCount).toBe(0);
   });
 
-  it("returns zero for user with no flags and no activity", () => {
-    const user = buildUser();
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
+  it("lowercases event type titles", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "Free Bitcoin MEETING", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    expect(metrics.eventTypeTitles).toEqual(["free bitcoin meeting"]);
+  });
+
+  it("lowercases descriptions and filters nulls", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: "Some Desc", successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+        { id: 2, userId: 1, title: "B", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    expect(metrics.eventTypeDescriptions).toEqual(["some desc"]);
+  });
+
+  it("extracts redirect URLs lowercased and filters nulls", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "https://Phishing.COM/Hook", forwardParamsSuccessRedirect: false },
+        { id: 2, userId: 1, title: "B", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    expect(metrics.redirectUrls).toEqual(["https://phishing.com/hook"]);
+  });
+
+  it("extracts email domain", () => {
+    const metrics = extractMetrics(buildUser({ email: "bot@TempMail.org" }));
+    expect(metrics.signupEmailDomain).toBe("tempmail.org");
+  });
+
+  it("uses name then username for signupName", () => {
+    expect(extractMetrics(buildUser({ name: "John", username: "johnny" })).signupName).toBe("john");
+    expect(extractMetrics(buildUser({ name: null, username: "Johnny" })).signupName).toBe("johnny");
+    expect(extractMetrics(buildUser({ name: null, username: null })).signupName).toBe("");
+  });
+
+  it("extracts cancellation reasons and filters nulls", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({ createdAt: new Date(now), cancellationReason: "Auto-Debit $499 Norton" }),
+      buildBooking({ createdAt: new Date(now - 1000), cancellationReason: null }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.cancellationReasons).toEqual(["auto-debit $499 norton"]);
+  });
+
+  it("extracts booking locations and filters nulls", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({ createdAt: new Date(now), location: "https://telegra.ph/crypto-bonus" }),
+      buildBooking({ createdAt: new Date(now - 1000), location: null }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.bookingLocations).toEqual(["https://telegra.ph/crypto-bonus"]);
+  });
+
+  it("extracts string values from booking responses JSON", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({
+        createdAt: new Date(now),
+        responses: { notes: "Visit telegra.ph/free-bitcoin", phone: "+1234567890" },
+      }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.bookingResponses).toContain("visit telegra.ph/free-bitcoin");
+    expect(metrics.bookingResponses).toContain("+1234567890");
+  });
+
+  it("handles null and non-string responses gracefully", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({ createdAt: new Date(now), responses: null }),
+      buildBooking({ createdAt: new Date(now - 1000), responses: { count: 42, flag: true, note: "spam" } }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.bookingResponses).toEqual(["spam"]);
+  });
+
+  it("extracts username", () => {
+    expect(extractMetrics(buildUser({ username: "Btc-Support" })).username).toBe("btc-support");
+    expect(extractMetrics(buildUser({ username: null })).username).toBe("");
+  });
+
+  it("computes peak hourly booking velocity", () => {
+    const hourStart = Math.floor(Date.now() / 3600000) * 3600000;
+    const base = hourStart + 30 * 60_000;
+    const bookings = Array.from({ length: 25 }, (_, i) =>
+      buildBooking({ createdAt: new Date(base - i * 60_000) })
+    );
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.bookingVelocity.hour).toBe(25);
+  });
+
+  it("computes peak per-minute booking velocity", () => {
+    const now = Date.now();
+    const minuteStart = Math.floor(now / 60_000) * 60_000;
+    const bookings = Array.from({ length: 8 }, (_, i) =>
+      buildBooking({ createdAt: new Date(minuteStart + i * 1000) })
+    );
+    const metrics = extractMetrics(buildUser({ bookings }));
+    expect(metrics.bookingVelocity.min).toBe(8);
+  });
+
+  it("computes self-booking count from self-hosted bookings", () => {
+    const now = Date.now();
+    const bookings = Array.from({ length: 8 }, (_, i) =>
+      buildBooking({ createdAt: new Date(now - i * 3_600_000), eventType: { userId: 1 } })
+    );
+    const metrics = extractMetrics(buildUser({ id: 1, bookings }));
+    expect(metrics.selfBookingCount).toBe(8);
+  });
+
+  it("computes self-booking count from self-attendee bookings", () => {
+    const now = Date.now();
+    const bookings = Array.from({ length: 6 }, (_, i) =>
+      buildBooking({
+        createdAt: new Date(now - i * 3_600_000),
+        eventType: { userId: 99 },
+        attendees: [{ email: "test@example.com" }],
+      })
+    );
+    const metrics = extractMetrics(buildUser({ id: 1, email: "test@example.com", bookings }));
+    expect(metrics.selfBookingCount).toBe(6);
+  });
+});
+
+// ── evaluateRules ──
+
+describe("evaluateRules", () => {
+  it("returns zero score with no rules", () => {
+    const metrics = extractMetrics(buildUser());
+    const result = evaluateRules(metrics, []);
     expect(result.score).toBe(0);
-    expect(result.signals).toHaveLength(0);
+    expect(result.matchedRules).toHaveLength(0);
+    expect(result.shouldAutoLock).toBe(false);
   });
 
-  it("scores signup flags at 10 per flag, capped at 20", () => {
-    const user = buildUser({ abuseData: buildAbuseData(1) });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
-    expect(result.score).toBe(ABUSE_WEIGHTS.signupFlag);
-    expect(result.signals).toHaveLength(1);
-    expect(result.signals[0].type).toBe("signup_flags");
-    expect(result.signals[0].weight).toBe(10);
+  it("skips rules with no conditions", () => {
+    const metrics = extractMetrics(buildUser());
+    const result = evaluateRules(metrics, [buildRule({ conditions: [] })]);
+    expect(result.matchedRules).toHaveLength(0);
   });
 
-  it("caps signup flags at SIGNUP_FLAG_CAP (20)", () => {
-    const user = buildUser({ abuseData: buildAbuseData(5) });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
-    expect(result.signals[0].weight).toBe(SIGNUP_FLAG_CAP);
+  it("matches CONTAINS on event type title (case-insensitive)", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "Free Bitcoin Airdrop", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 25,
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "Bitcoin" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(1);
+    expect(result.score).toBe(25);
+  });
+
+  it("matches CONTAINS on event type description", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "Meeting", description: "Claim your free crypto tokens", successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_DESCRIPTION", operator: "CONTAINS", value: "crypto" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(1);
+  });
+
+  it("matches EXACT on redirect URL", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "https://phishing.com/hook", forwardParamsSuccessRedirect: false },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 30,
+      conditions: [{ id: uuid(1), field: "REDIRECT_URL", operator: "EXACT", value: "https://phishing.com/hook" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(30);
+  });
+
+  it("matches EXACT on signup email domain (case-insensitive)", () => {
+    const user = buildUser({ email: "bot@TempMail.org" });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 10,
+      conditions: [{ id: uuid(1), field: "SIGNUP_EMAIL_DOMAIN", operator: "EXACT", value: "tempmail.org" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(10);
+  });
+
+  it("matches CONTAINS on signup name", () => {
+    const user = buildUser({ name: "Free Bitcoin Bot" });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "SIGNUP_NAME", operator: "CONTAINS", value: "bitcoin" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(1);
+  });
+
+  it("matches CONTAINS on cancellation reason", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({ createdAt: new Date(now), cancellationReason: "Auto-Debit $499 Norton Antivirus" }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      weight: 30,
+      conditions: [{ id: uuid(1), field: "CANCELLATION_REASON", operator: "CONTAINS", value: "norton" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(30);
+  });
+
+  it("matches CONTAINS on booking location", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({ createdAt: new Date(now), location: "https://telegra.ph/crypto-bonus" }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      weight: 20,
+      conditions: [{ id: uuid(1), field: "BOOKING_LOCATION", operator: "CONTAINS", value: "telegra.ph" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
     expect(result.score).toBe(20);
   });
 
-  it("detects malicious redirect domains", () => {
-    const user = buildUser({
-      eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Meeting",
-          successRedirectUrl: "https://phishing-cal.com/success",
-          forwardParamsSuccessRedirect: false,
-        },
-      ],
+  it("matches CONTAINS on booking responses", () => {
+    const now = Date.now();
+    const bookings = [
+      buildBooking({
+        createdAt: new Date(now),
+        responses: { notes: "Visit resortguest.org for details" },
+      }),
+    ];
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      weight: 25,
+      conditions: [{ id: uuid(1), field: "BOOKING_RESPONSES", operator: "CONTAINS", value: "resortguest.org" }],
     });
-    const domains = new Set(["phishing-cal.com"]);
-    const result = calculateScore(user, domains, emptyKeywords);
-
-    const redirectSignal = result.signals.find((s) => s.type === "redirect_malicious");
-    expect(redirectSignal).toBeDefined();
-    expect(redirectSignal!.weight).toBe(ABUSE_WEIGHTS.redirectMalicious);
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(25);
   });
 
-  it("adds forward_params signal when forwardParams is true with malicious redirect", () => {
-    const user = buildUser({
-      eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Meeting",
-          successRedirectUrl: "https://phishing-cal.com/success",
-          forwardParamsSuccessRedirect: true,
-        },
-      ],
+  it("matches CONTAINS on username", () => {
+    const metrics = extractMetrics(buildUser({ username: "btc-support-helpdesk" }));
+    const rule = buildRule({
+      weight: 15,
+      conditions: [{ id: uuid(1), field: "USERNAME", operator: "CONTAINS", value: "btc-support" }],
     });
-    const domains = new Set(["phishing-cal.com"]);
-    const result = calculateScore(user, domains, emptyKeywords);
-
-    const forwardSignal = result.signals.find((s) => s.type === "forward_params_enabled");
-    expect(forwardSignal).toBeDefined();
-    expect(forwardSignal!.weight).toBe(ABUSE_WEIGHTS.forwardParams);
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(15);
   });
 
-  it("does not flag redirects to non-watchlisted domains", () => {
-    const user = buildUser({
-      eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Meeting",
-          successRedirectUrl: "https://mycompany.com/thanks",
-          forwardParamsSuccessRedirect: false,
-        },
-      ],
-    });
-    const domains = new Set(["phishing-cal.com"]);
-    const result = calculateScore(user, domains, emptyKeywords);
-    expect(result.signals).toHaveLength(0);
-  });
-
-  it("detects spam keywords in EventType titles", () => {
-    const user = buildUser({
-      eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Free Bitcoin Airdrop",
-          successRedirectUrl: null,
-          forwardParamsSuccessRedirect: null,
-        },
-      ],
-    });
-    const keywords = ["bitcoin", "airdrop"];
-    const result = calculateScore(user, emptyDomains, keywords);
-
-    const spamSignal = result.signals.find((s) => s.type === "content_spam");
-    expect(spamSignal).toBeDefined();
-    expect(spamSignal!.weight).toBe(ABUSE_WEIGHTS.contentSpam);
-    expect(spamSignal!.context).toContain("bitcoin");
-    expect(spamSignal!.context).toContain("airdrop");
-  });
-
-  it("detects elevated booking velocity (>20/hr)", () => {
-    // Pin base time to 30 min past an epoch-hour boundary so all bookings stay in same bucket
+  it("matches GREATER_THAN on hourly booking velocity", () => {
     const hourStart = Math.floor(Date.now() / 3600000) * 3600000;
     const base = hourStart + 30 * 60_000;
-    const bookings = Array.from({ length: 25 }, (_, i) => ({
-      createdAt: new Date(base - i * 60_000),
-      eventType: null,
-      attendees: [{ email: "other@example.com" }],
-    }));
-
-    const user = buildUser({ bookings });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
-
-    const velocitySignal = result.signals.find(
-      (s) => s.type === "elevated_booking_velocity" || s.type === "high_booking_velocity"
+    const bookings = Array.from({ length: 25 }, (_, i) =>
+      buildBooking({ createdAt: new Date(base - i * 60_000) })
     );
-    expect(velocitySignal).toBeDefined();
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      weight: 15,
+      conditions: [{ id: uuid(1), field: "BOOKING_VELOCITY", operator: "GREATER_THAN", value: "20/hour" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(15);
   });
 
-  it("detects high booking velocity (>50/hr)", () => {
-    // Pin base time to 50 min past an epoch-hour boundary so all 55 bookings stay in same bucket
+  it("matches GREATER_THAN on per-minute booking velocity", () => {
+    const now = Date.now();
+    const minuteStart = Math.floor(now / 60_000) * 60_000;
+    const bookings = Array.from({ length: 8 }, (_, i) =>
+      buildBooking({ createdAt: new Date(minuteStart + i * 1000) })
+    );
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      weight: 35,
+      conditions: [{ id: uuid(1), field: "BOOKING_VELOCITY", operator: "GREATER_THAN", value: "5/min" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(35);
+  });
+
+  it("does not match GREATER_THAN velocity at boundary", () => {
     const hourStart = Math.floor(Date.now() / 3600000) * 3600000;
-    const base = hourStart + 50 * 60_000;
-    const bookings = Array.from({ length: 55 }, (_, i) => ({
-      createdAt: new Date(base - i * 30_000),
-      eventType: null,
-      attendees: [{ email: "other@example.com" }],
-    }));
-
-    const user = buildUser({ bookings });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
-
-    const highSignal = result.signals.find((s) => s.type === "high_booking_velocity");
-    expect(highSignal).toBeDefined();
-    expect(highSignal!.weight).toBe(ABUSE_WEIGHTS.highBookingVelocity);
+    const base = hourStart + 30 * 60_000;
+    const bookings = Array.from({ length: 20 }, (_, i) =>
+      buildBooking({ createdAt: new Date(base - i * 60_000) })
+    );
+    const metrics = extractMetrics(buildUser({ bookings }));
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "BOOKING_VELOCITY", operator: "GREATER_THAN", value: "20/hour" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
   });
 
-  it("detects self-booking pattern (>5)", () => {
-    const now = Date.now();
-    const bookings = Array.from({ length: 8 }, (_, i) => ({
-      createdAt: new Date(now - i * 3_600_000),
-      eventType: { userId: 1 },
-      attendees: [{ email: "test@example.com" }],
-    }));
-
-    const user = buildUser({ id: 1, email: "test@example.com", bookings });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
-
-    const selfSignal = result.signals.find((s) => s.type === "self_booking_pattern");
-    expect(selfSignal).toBeDefined();
-    expect(selfSignal!.weight).toBe(ABUSE_WEIGHTS.selfBookingPattern);
+  it("returns false for malformed velocity value", () => {
+    const metrics = extractMetrics(buildUser());
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "BOOKING_VELOCITY", operator: "GREATER_THAN", value: "50" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
   });
 
-  it("does not detect self-booking at threshold (<=5)", () => {
+  it("matches GREATER_THAN on self-booking count", () => {
     const now = Date.now();
-    const bookings = Array.from({ length: 5 }, (_, i) => ({
-      createdAt: new Date(now - i * 3_600_000),
-      eventType: { userId: 1 },
-      attendees: [{ email: "test@example.com" }],
-    }));
+    const bookings = Array.from({ length: 8 }, (_, i) =>
+      buildBooking({
+        createdAt: new Date(now - i * 3_600_000),
+        eventType: { userId: 1 },
+        attendees: [{ email: "test@example.com" }],
+      })
+    );
+    const metrics = extractMetrics(buildUser({ id: 1, email: "test@example.com", bookings }));
+    const rule = buildRule({
+      weight: 15,
+      conditions: [{ id: uuid(1), field: "SELF_BOOKING_COUNT", operator: "GREATER_THAN", value: "5" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(15);
+  });
 
-    const user = buildUser({ id: 1, email: "test@example.com", bookings });
-    const result = calculateScore(user, emptyDomains, emptyKeywords);
+  // ── MATCHES_DOMAIN ──
 
-    const selfSignal = result.signals.find((s) => s.type === "self_booking_pattern");
-    expect(selfSignal).toBeUndefined();
+  it("matches MATCHES_DOMAIN exact on signup email domain", () => {
+    const metrics = extractMetrics(buildUser({ email: "user@tempmail.org" }));
+    const rule = buildRule({
+      weight: 10,
+      conditions: [{ id: uuid(1), field: "SIGNUP_EMAIL_DOMAIN", operator: "MATCHES_DOMAIN", value: "tempmail.org" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(10);
+  });
+
+  it("matches MATCHES_DOMAIN wildcard on signup email domain", () => {
+    const metrics = extractMetrics(buildUser({ email: "user@sub.tempmail.org" }));
+    const rule = buildRule({
+      weight: 10,
+      conditions: [{ id: uuid(1), field: "SIGNUP_EMAIL_DOMAIN", operator: "MATCHES_DOMAIN", value: "*.tempmail.org" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(10);
+  });
+
+  it("MATCHES_DOMAIN wildcard does not match base domain", () => {
+    const metrics = extractMetrics(buildUser({ email: "user@tempmail.org" }));
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "SIGNUP_EMAIL_DOMAIN", operator: "MATCHES_DOMAIN", value: "*.tempmail.org" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
+  });
+
+  it("MATCHES_DOMAIN is case-insensitive", () => {
+    const metrics = extractMetrics(buildUser({ email: "user@TempMail.ORG" }));
+    const rule = buildRule({
+      weight: 10,
+      conditions: [{ id: uuid(1), field: "SIGNUP_EMAIL_DOMAIN", operator: "MATCHES_DOMAIN", value: "tempmail.org" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(10);
+  });
+
+  it("MATCHES_DOMAIN extracts hostname from REDIRECT_URL", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "https://t.co/ajZ29kc", forwardParamsSuccessRedirect: false },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 20,
+      conditions: [{ id: uuid(1), field: "REDIRECT_URL", operator: "MATCHES_DOMAIN", value: "t.co" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(20);
+  });
+
+  it("MATCHES_DOMAIN does not match when hostname is only a suffix", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "https://companydomaint.co/path", forwardParamsSuccessRedirect: false },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "REDIRECT_URL", operator: "MATCHES_DOMAIN", value: "t.co" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
+  });
+
+  it("MATCHES_DOMAIN wildcard matches base domain from URL", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "https://bit.ly/abc123", forwardParamsSuccessRedirect: false },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 15,
+      conditions: [{ id: uuid(1), field: "REDIRECT_URL", operator: "MATCHES_DOMAIN", value: "*.bit.ly" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(15);
+  });
+
+  it("MATCHES_DOMAIN returns false for malformed URL", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "A", description: null, successRedirectUrl: "not-a-url", forwardParamsSuccessRedirect: false },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "REDIRECT_URL", operator: "MATCHES_DOMAIN", value: "t.co" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
+  });
+
+  // ── matchAll / OR logic ──
+
+  it("matchAll=true requires ALL conditions to match", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "Free Bitcoin", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      matchAll: true,
+      conditions: [
+        { id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" },
+        { id: uuid(2), field: "SIGNUP_EMAIL_DOMAIN", operator: "EXACT", value: "tempmail.org" },
+      ],
+    });
+    // Title matches, but domain is example.com, not tempmail.org
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
+  });
+
+  it("matchAll=false matches if ANY condition matches", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "Free Bitcoin", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      matchAll: false,
+      conditions: [
+        { id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" },
+        { id: uuid(2), field: "SIGNUP_EMAIL_DOMAIN", operator: "EXACT", value: "tempmail.org" },
+      ],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(1);
+  });
+
+  // ── autoLock ──
+
+  it("sets shouldAutoLock when rule has autoLock=true", () => {
+    const user = buildUser({
+      eventTypes: [
+        { id: 1, userId: 1, title: "btc transaction", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      weight: 0,
+      autoLock: true,
+      description: "Phishing title",
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "btc transaction" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.shouldAutoLock).toBe(true);
+    expect(result.autoLockRule).toEqual({ groupId: uuid(1), description: "Phishing title" });
+  });
+
+  it("does not autoLock when rule is not matched", () => {
+    const metrics = extractMetrics(buildUser());
+    const rule = buildRule({
+      autoLock: true,
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.shouldAutoLock).toBe(false);
+  });
+
+  // ── score accumulation ──
+
+  it("accumulates score from multiple matched rules", () => {
+    const user = buildUser({
+      email: "bot@tempmail.org",
+      eventTypes: [
+        { id: 1, userId: 1, title: "Free Bitcoin", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+      ],
+    });
+    const metrics = extractMetrics(user);
+    const rules = [
+      buildRule({ id: uuid(1), weight: 25, conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" }] }),
+      buildRule({ id: uuid(2), weight: 10, conditions: [{ id: uuid(2), field: "SIGNUP_EMAIL_DOMAIN", operator: "EXACT", value: "tempmail.org" }] }),
+    ];
+    const result = evaluateRules(metrics, rules);
+    expect(result.score).toBe(35);
+    expect(result.matchedRules).toHaveLength(2);
   });
 
   it("caps score at 100", () => {
-    const now = Date.now();
     const user = buildUser({
-      abuseData: buildAbuseData(3),
       eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Free Bitcoin Airdrop",
-          successRedirectUrl: "https://phishing-cal.com/success",
-          forwardParamsSuccessRedirect: true,
-        },
+        { id: 1, userId: 1, title: "Free Bitcoin", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
       ],
-      bookings: Array.from({ length: 55 }, (_, i) => ({
-        createdAt: new Date(now - i * 30_000),
-        eventType: { userId: 1 },
-        attendees: [{ email: "test@example.com" }],
-      })),
     });
-
-    const domains = new Set(["phishing-cal.com"]);
-    const keywords = ["bitcoin", "airdrop"];
-    const result = calculateScore(user, domains, keywords);
+    const metrics = extractMetrics(user);
+    const rules = [
+      buildRule({ id: uuid(1), weight: 60, conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" }] }),
+      buildRule({ id: uuid(2), weight: 60, conditions: [{ id: uuid(2), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "free" }] }),
+    ];
+    const result = evaluateRules(metrics, rules);
     expect(result.score).toBe(100);
   });
 
-  it("applies signal caps correctly", () => {
+  // ── array field matching (ANY element) ──
+
+  it("matches if ANY event type title contains keyword", () => {
     const user = buildUser({
       eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Meeting",
-          successRedirectUrl: "https://phishing-cal.com/a",
-          forwardParamsSuccessRedirect: false,
-        },
+        { id: 1, userId: 1, title: "Normal Meeting", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
+        { id: 2, userId: 1, title: "Claim Bitcoin Now", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
       ],
     });
-    const domains = new Set(["phishing-cal.com"]);
-    const result = calculateScore(user, domains, emptyKeywords);
-
-    const redirectSignal = result.signals.find((s) => s.type === "redirect_malicious");
-    expect(redirectSignal!.weight).toBeLessThanOrEqual(30);
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" }],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(1);
   });
 
-  it("ignores invalid redirect URLs", () => {
+  it("does not match when no event type title contains keyword", () => {
     const user = buildUser({
       eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Meeting",
-          successRedirectUrl: "not-a-valid-url",
-          forwardParamsSuccessRedirect: false,
-        },
+        { id: 1, userId: 1, title: "Normal Meeting", description: null, successRedirectUrl: null, forwardParamsSuccessRedirect: null },
       ],
     });
-    const domains = new Set(["phishing-cal.com"]);
-    const result = calculateScore(user, domains, emptyKeywords);
-    expect(result.signals).toHaveLength(0);
-  });
-
-  it("combines multiple signal types correctly", () => {
-    const user = buildUser({
-      abuseData: buildAbuseData(2),
-      eventTypes: [
-        {
-          id: 1,
-          userId: 1,
-          title: "Free Bitcoin Claim",
-          successRedirectUrl: "https://phishing-cal.com/hook",
-          forwardParamsSuccessRedirect: true,
-        },
-      ],
+    const metrics = extractMetrics(user);
+    const rule = buildRule({
+      conditions: [{ id: uuid(1), field: "EVENT_TYPE_TITLE", operator: "CONTAINS", value: "bitcoin" }],
     });
-    const domains = new Set(["phishing-cal.com"]);
-    const keywords = ["bitcoin"];
-    const result = calculateScore(user, domains, keywords);
-
-    // signup_flags (20) + redirect_malicious (30) + forward_params (15) + content_spam (25) = 90
-    expect(result.score).toBe(90);
-    expect(result.signals).toHaveLength(4);
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.matchedRules).toHaveLength(0);
   });
 });

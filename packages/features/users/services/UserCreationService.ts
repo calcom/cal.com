@@ -37,11 +37,6 @@ export interface CreateUserInput {
   verified?: boolean;
   /** When provided, skips the watchlist check and uses this value directly */
   locked?: boolean;
-  /** Handler runs abuse scoring and passes the result here */
-  abuseScore?: {
-    score: number;
-    abuseData: Prisma.InputJsonValue;
-  };
 }
 
 export interface UpsertUserInput {
@@ -62,12 +57,12 @@ type PrismaTransactionClient = Omit<
 const log = logger.getSubLogger({ prefix: ["[UserCreationService]"] });
 
 /**
- * Strips service-only fields (password, locked, abuseScore) from CreateUserInput
+ * Strips service-only fields (password, locked) from CreateUserInput
  * so the rest can be safely passed to the repository.
  */
 function toRepoData(data: CreateUserInput) {
-  const { password: _password, locked: _locked, abuseScore, ...repoFields } = data;
-  return { repoFields, abuseScore };
+  const { password: _password, locked: _locked, ...repoFields } = data;
+  return { repoFields };
 }
 
 async function buildDefaultSchedule() {
@@ -106,7 +101,7 @@ export class UserCreationService {
       }));
 
     const hashedPassword = password ? await hashPassword(password) : null;
-    const { repoFields, abuseScore } = toRepoData(data);
+    const { repoFields } = toRepoData(data);
 
     const user = await this.deps.userRepository.create({
       ...repoFields,
@@ -114,7 +109,6 @@ export class UserCreationService {
       ...(hashedPassword && { hashedPassword }),
       organizationId: data.organizationId ?? null,
       locked,
-      ...(abuseScore && { abuseScore }),
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
@@ -127,7 +121,7 @@ export class UserCreationService {
   async upsertUser({ email, createData, updateData }: UpsertUserInput) {
     const hashedPassword = createData.password ? await hashPassword(createData.password) : null;
     const { repoFields: createRepoFields } = toRepoData(createData);
-    const { password: _p, locked: _l, abuseScore: _a, ...updateRepoFields } = updateData;
+    const { password: _p, locked: _l, ...updateRepoFields } = updateData;
 
     const defaultSchedule = await buildDefaultSchedule();
     const organizationId = createData.organizationId ?? null;

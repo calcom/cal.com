@@ -159,25 +159,6 @@ describe("UserCreationService", () => {
       );
     });
 
-    test("should pass abuseScore to repository", async () => {
-      mockUserRepository.create.mockResolvedValue({
-        username: "test",
-        locked: false,
-        organizationId: null,
-      });
-
-      const abuseScore = {
-        score: 75,
-        abuseData: { flags: ["suspicious_email"], signals: [] },
-      };
-
-      await service.createUser({
-        data: { ...mockUserData, locked: false, abuseScore },
-      });
-
-      expect(mockUserRepository.create).toHaveBeenCalledWith(expect.objectContaining({ abuseScore }));
-    });
-
     test("should pass metadata to repository", async () => {
       mockUserRepository.create.mockResolvedValue({
         username: "test",
@@ -323,13 +304,11 @@ describe("UserCreationService", () => {
         updateData: {
           username: "test",
           locked: true,
-          abuseScore: { score: 50, abuseData: {} },
         },
       });
 
       const updateArg = mockUserRepository.upsert.mock.calls[0][2];
       expect(updateArg).not.toHaveProperty("locked");
-      expect(updateArg).not.toHaveProperty("abuseScore");
       expect(updateArg).not.toHaveProperty("password");
     });
   });
@@ -433,7 +412,6 @@ describe("UserCreationService", () => {
             ...mockUserData,
             password: "shouldbestripped",
             locked: true,
-            abuseScore: { score: 10, abuseData: {} },
           },
         ],
       });
@@ -441,7 +419,6 @@ describe("UserCreationService", () => {
       const callData = mockUserRepository.createMany.mock.calls[0][0][0];
       expect(callData).not.toHaveProperty("password");
       expect(callData).not.toHaveProperty("locked");
-      expect(callData).not.toHaveProperty("abuseScore");
     });
   });
 });

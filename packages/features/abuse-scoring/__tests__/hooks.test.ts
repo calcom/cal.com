@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockService = {
-  checkSignup: vi.fn().mockResolvedValue({ flagged: false, flags: [], initialScore: 0 }),
+  shouldMonitor: vi.fn().mockResolvedValue(false),
   shouldUsersCheckEventType: vi.fn().mockResolvedValue(false),
   shouldAnalyzeOnBooking: vi.fn().mockResolvedValue(false),
 };
@@ -18,7 +18,7 @@ vi.mock("../di/tasker/AbuseScoringTasker.container", () => ({
   getAbuseScoringTasker: () => mockTasker,
 }));
 
-import { onSignup, onBookingCreated, onEventTypeChange } from "../lib/hooks";
+import { onSignup, onBookingCreated, onBookingCancelled, onEventTypeChange } from "../lib/hooks";
 
 describe("abuse-scoring hooks", () => {
   beforeEach(() => {
@@ -28,43 +28,30 @@ describe("abuse-scoring hooks", () => {
   // ── onSignup (Gate 1) ──
 
   describe("onSignup", () => {
-    it("returns unflagged result when checkSignup finds no matches", async () => {
-      mockService.checkSignup.mockResolvedValue({ flagged: false, flags: [], initialScore: 0 });
+    it("does nothing when shouldMonitor returns false", async () => {
+      mockService.shouldMonitor.mockResolvedValue(false);
 
-      const result = await onSignup("clean@example.com");
+      await onSignup(42);
 
-      expect(mockService.checkSignup).toHaveBeenCalledWith("clean@example.com", undefined);
-      expect(result).toEqual({ flagged: false, flags: [], initialScore: 0 });
+      expect(mockService.shouldMonitor).toHaveBeenCalledWith(42);
+      expect(mockTasker.analyzeUser).not.toHaveBeenCalled();
     });
 
-    it("passes username to checkSignup for spam keyword matching", async () => {
-      mockService.checkSignup.mockResolvedValue({ flagged: false, flags: [], initialScore: 0 });
+    it("dispatches analyzeUser when shouldMonitor returns true", async () => {
+      mockService.shouldMonitor.mockResolvedValue(true);
 
-      await onSignup("user@example.com", "bitcointrader");
+      await onSignup(42);
 
-      expect(mockService.checkSignup).toHaveBeenCalledWith("user@example.com", "bitcointrader");
+      expect(mockService.shouldMonitor).toHaveBeenCalledWith(42);
+      expect(mockTasker.analyzeUser).toHaveBeenCalledWith({
+        payload: { userId: 42, reason: "signup" },
+      });
     });
 
-    it("returns flagged result when checkSignup finds matches", async () => {
-      const flaggedResult = {
-        flagged: true,
-        flags: [{ type: "suspicious_domain", domain: "tempmail.org", at: "2026-02-10T00:00:00Z" }],
-        initialScore: 10,
-      };
-      mockService.checkSignup.mockResolvedValue(flaggedResult);
+    it("swallows errors (fail-open)", async () => {
+      mockService.shouldMonitor.mockRejectedValue(new Error("db down"));
 
-      const result = await onSignup("bad@tempmail.org");
-
-      expect(mockService.checkSignup).toHaveBeenCalledWith("bad@tempmail.org", undefined);
-      expect(result).toEqual(flaggedResult);
-    });
-
-    it("returns unflagged on error (fail-open)", async () => {
-      mockService.checkSignup.mockRejectedValue(new Error("db down"));
-
-      const result = await onSignup("any@example.com");
-
-      expect(result).toEqual({ flagged: false, flags: [], initialScore: 0 });
+      await expect(onSignup(42)).resolves.toBeUndefined();
     });
   });
 
@@ -123,6 +110,35 @@ describe("abuse-scoring hooks", () => {
       mockService.shouldAnalyzeOnBooking.mockRejectedValue(new Error("db down"));
 
       await expect(onBookingCreated(42)).resolves.toBeUndefined();
+    });
+  });
+
+  // ── onBookingCancelled (Gate 4) ──
+
+  describe("onBookingCancelled", () => {
+    it("does nothing when shouldAnalyzeOnBooking returns false", async () => {
+      mockService.shouldAnalyzeOnBooking.mockResolvedValue(false);
+
+      await onBookingCancelled(42);
+
+      expect(mockService.shouldAnalyzeOnBooking).toHaveBeenCalledWith(42);
+      expect(mockTasker.analyzeUser).not.toHaveBeenCalled();
+    });
+
+    it("dispatches analyzeUser with reason booking_cancelled when shouldAnalyzeOnBooking returns true", async () => {
+      mockService.shouldAnalyzeOnBooking.mockResolvedValue(true);
+
+      await onBookingCancelled(42);
+
+      expect(mockTasker.analyzeUser).toHaveBeenCalledWith({
+        payload: { userId: 42, reason: "booking_cancelled" },
+      });
+    });
+
+    it("swallows errors (fail-open)", async () => {
+      mockService.shouldAnalyzeOnBooking.mockRejectedValue(new Error("db down"));
+
+      await expect(onBookingCancelled(42)).resolves.toBeUndefined();
     });
   });
 });

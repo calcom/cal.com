@@ -1,14 +1,34 @@
+import type { Prisma } from "@calcom/prisma/client";
 import type { PrismaClient } from "@calcom/prisma";
-import type { WatchlistType } from "@calcom/prisma/enums";
 
-import type { UserForMonitoringDto, UserForScoringDto, WatchlistPatternDto } from "../dto/scoring.dto";
+import type {
+  AbuseScoringConfigDto,
+  AbuseRuleGroupDto,
+  UserForMonitoringDto,
+  UserForScoringDto,
+} from "../dto/scoring.dto";
 import {
+  abuseScoringConfigDtoSchema,
+  abuseRuleGroupDtoSchema,
   userForMonitoringDtoSchema,
   userForScoringDtoSchema,
-  watchlistPatternDtoSchema,
 } from "../dto/scoring.dto";
-import { SCORING_BOOKINGS_LIMIT } from "../lib/constants";
-import type { AbuseMetadata } from "../types";
+import { ABUSE_MONITORING_WINDOW_DAYS, SCORING_BOOKINGS_LIMIT } from "../lib/constants";
+
+/**
+ * Explicitly forbids selecting `abuseData` — this column is pending removal
+ * in the contract migration. If any query adds it back, this type will
+ * produce a compile error.
+ */
+type UserAbuseScoreSelectWithoutAbuseData = Prisma.UserAbuseScoreSelect & {
+  abuseData?: false;
+};
+
+const DEFAULT_CONFIG: AbuseScoringConfigDto = {
+  alertThreshold: 50,
+  lockThreshold: 80,
+  monitoringWindowDays: ABUSE_MONITORING_WINDOW_DAYS,
+};
 
 export class AbuseScoringRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -19,18 +39,20 @@ export class AbuseScoringRepository {
       select: {
         id: true,
         email: true,
+        name: true,
+        username: true,
         locked: true,
         userAbuseScore: {
           select: {
             score: true,
-            abuseData: true,
-          },
+          } satisfies UserAbuseScoreSelectWithoutAbuseData,
         },
         eventTypes: {
           select: {
             id: true,
             userId: true,
             title: true,
+            description: true,
             successRedirectUrl: true,
             forwardParamsSuccessRedirect: true,
           },
@@ -41,6 +63,9 @@ export class AbuseScoringRepository {
           take: SCORING_BOOKINGS_LIMIT,
           select: {
             createdAt: true,
+            cancellationReason: true,
+            location: true,
+            responses: true,
             eventType: { select: { userId: true } },
             attendees: { select: { email: true } },
           },
@@ -53,7 +78,6 @@ export class AbuseScoringRepository {
     const flat = {
       ...user,
       abuseScore: user.userAbuseScore?.score ?? 0,
-      abuseData: user.userAbuseScore?.abuseData ?? null,
     };
 
     return userForScoringDtoSchema.parse(flat);
@@ -65,78 +89,105 @@ export class AbuseScoringRepository {
       select: {
         createdDate: true,
         locked: true,
-        userAbuseScore: {
-          select: {
-            abuseData: true,
-          },
-        },
       },
     });
 
     if (!user) return null;
 
-    const flat = {
-      ...user,
-      abuseData: user.userAbuseScore?.abuseData ?? null,
-    };
-
-    return userForMonitoringDtoSchema.parse(flat);
+    return userForMonitoringDtoSchema.parse(user);
   }
 
-  async findWatchlistPatterns(types: WatchlistType[]): Promise<WatchlistPatternDto[]> {
-    const rows = await this.prisma.watchlist.findMany({
-      where: { type: { in: types }, isGlobal: true },
-      select: { type: true, value: true },
+  async findEnabledRules(): Promise<AbuseRuleGroupDto[]> {
+    const rules = await this.prisma.abuseRuleGroup.findMany({
+      where: { enabled: true },
+      select: {
+        id: true,
+        matchAll: true,
+        weight: true,
+        autoLock: true,
+        description: true,
+        conditions: {
+          select: {
+            id: true,
+            field: true,
+            operator: true,
+            value: true,
+          },
+        },
+      },
     });
-    return rows.map((r) => watchlistPatternDtoSchema.parse(r));
+
+    return rules.map((r) => abuseRuleGroupDtoSchema.parse(r));
+  }
+
+  async findConfig(): Promise<AbuseScoringConfigDto> {
+    const config = await this.prisma.abuseScoringConfig.findUnique({
+      where: { id: 1 },
+      select: {
+        alertThreshold: true,
+        lockThreshold: true,
+        monitoringWindowDays: true,
+      },
+    });
+
+    if (!config) return DEFAULT_CONFIG;
+    return abuseScoringConfigDtoSchema.parse(config);
   }
 
   async countRecentBookings(userId: number, since: Date): Promise<number> {
     return this.prisma.booking.count({
-      where: {
-        userId,
-        createdAt: { gte: since },
-      },
+      where: { userId, createdAt: { gte: since } },
     });
   }
 
-  async updateAbuseData(
+  async updateAnalysis(
     userId: number,
     data: {
       score: number;
-      abuseData: AbuseMetadata;
+      signals: Array<{ type: string; weight: number; context: string }>;
       lastAnalyzedAt: Date;
       locked?: boolean;
       lockedAt?: Date;
       lockedReason?: string;
     }
   ): Promise<void> {
-    await this.prisma.userAbuseScore.upsert({
-      where: { userId },
-      create: {
-        userId,
-        score: data.score,
-        abuseData: data.abuseData,
-        lastAnalyzedAt: data.lastAnalyzedAt,
-        ...(data.lockedAt && { lockedAt: data.lockedAt }),
-        ...(data.lockedReason && { lockedReason: data.lockedReason }),
-      },
-      update: {
-        score: data.score,
-        abuseData: data.abuseData,
-        lastAnalyzedAt: data.lastAnalyzedAt,
-        ...(data.lockedAt && { lockedAt: data.lockedAt }),
-        ...(data.lockedReason && { lockedReason: data.lockedReason }),
-      },
-      select: { id: true },
-    });
+    const upsertData = {
+      score: data.score,
+      lastAnalyzedAt: data.lastAnalyzedAt,
+      ...(data.lockedAt && { lockedAt: data.lockedAt }),
+      ...(data.lockedReason && { lockedReason: data.lockedReason }),
+    };
 
-    if (data.locked !== undefined) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { locked: data.locked },
-        select: { id: true },
+    await this.prisma.$transaction(async (tx) => {
+      const abuseScore = await tx.userAbuseScore.upsert({
+        where: { userId },
+        create: { userId, ...upsertData },
+        update: upsertData,
+        select: { id: true } satisfies UserAbuseScoreSelectWithoutAbuseData,
       });
-    }
+
+      await tx.userAbuseSignal.deleteMany({
+        where: { abuseScoreId: abuseScore.id },
+      });
+
+      if (data.signals.length > 0) {
+        await tx.userAbuseSignal.createMany({
+          data: data.signals.map((s) => ({
+            abuseScoreId: abuseScore.id,
+            type: s.type,
+            weight: s.weight,
+            context: s.context,
+          })),
+        });
+      }
+
+      if (data.locked !== undefined) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { locked: data.locked },
+          select: { id: true },
+        });
+      }
+    });
   }
 }

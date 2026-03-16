@@ -1,18 +1,10 @@
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
-import { WatchlistType } from "@calcom/prisma/enums";
+
 import type { AbuseAlerter } from "../lib/alerts";
-import {
-  ABUSE_MONITORING_WINDOW_DAYS,
-  ABUSE_THRESHOLDS,
-  ABUSE_WEIGHTS,
-  MS_PER_DAY,
-  SIGNUP_FLAG_CAP,
-  VELOCITY_GATE_THRESHOLD,
-} from "../lib/constants";
-import { calculateScore } from "../lib/scoring";
+import { MS_PER_DAY, VELOCITY_GATE_THRESHOLD } from "../lib/constants";
+import { evaluateRules, extractMetrics } from "../lib/scoring";
 import type { AbuseScoringRepository } from "../repositories/AbuseScoringRepository";
-import type { AbuseFlag, AbuseMetadata, SignupCheckResult } from "../types";
 
 const log = logger.getSubLogger({ prefix: ["abuse-scoring"] });
 
@@ -21,9 +13,10 @@ export type AbuseScoringServiceDeps = {
     AbuseScoringRepository,
     | "findForScoring"
     | "findForMonitoring"
-    | "findWatchlistPatterns"
     | "countRecentBookings"
-    | "updateAbuseData"
+    | "updateAnalysis"
+    | "findEnabledRules"
+    | "findConfig"
   >;
   featuresRepository: Pick<IFeatureRepository, "checkIfFeatureIsEnabledGlobally">;
   alerter: AbuseAlerter;
@@ -40,116 +33,42 @@ export class AbuseScoringService {
     this.alerter = deps.alerter;
   }
 
-  async checkSignup(email: string, name?: string): Promise<SignupCheckResult> {
-    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
-    if (!enabled) return { flagged: false, flags: [], initialScore: 0 };
-
-    const patterns = await this.repository.findWatchlistPatterns([
-      WatchlistType.SPAM_KEYWORD,
-      WatchlistType.SUSPICIOUS_DOMAIN,
-      WatchlistType.EMAIL_PATTERN,
-    ]);
-
-    const flags: AbuseFlag[] = [];
-    const emailDomain = email.split("@")[1]?.toLowerCase();
-    const now = new Date().toISOString();
-
-    for (const pattern of patterns) {
-      switch (pattern.type) {
-        case WatchlistType.SUSPICIOUS_DOMAIN:
-          if (emailDomain === pattern.value.toLowerCase()) {
-            flags.push({
-              type: "suspicious_domain",
-              domain: pattern.value,
-              at: now,
-            });
-          }
-          break;
-        case WatchlistType.EMAIL_PATTERN:
-          try {
-            if (new RegExp(pattern.value).test(email)) {
-              flags.push({
-                type: "email_pattern",
-                pattern: pattern.value,
-                at: now,
-              });
-            }
-          } catch {
-            log.warn("Invalid regex pattern in watchlist", {
-              pattern: pattern.value,
-            });
-          }
-          break;
-        case WatchlistType.SPAM_KEYWORD:
-          if (name?.toLowerCase().includes(pattern.value.toLowerCase())) {
-            flags.push({
-              type: "spam_keyword",
-              keyword: pattern.value,
-              at: now,
-            });
-          }
-          break;
-      }
-    }
-
-    const flagged = flags.length > 0;
-    const initialScore = Math.min(flags.length * ABUSE_WEIGHTS.signupFlag, SIGNUP_FLAG_CAP);
-
-    if (flagged) {
-      log.warn("Signup flagged", {
-        emailDomain,
-        flagCount: flags.length,
-        initialScore,
-      });
-    }
-
-    return { flagged, flags, initialScore };
-  }
-
   async analyzeUser(userId: number, reason: string): Promise<void> {
     try {
-      const cutoff = new Date(Date.now() - ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY);
+      const [config, rules] = await Promise.all([
+        this.repository.findConfig(),
+        this.repository.findEnabledRules(),
+      ]);
+
+      const cutoff = new Date(Date.now() - config.monitoringWindowDays * MS_PER_DAY);
       const user = await this.repository.findForScoring(userId, cutoff);
       if (!user) return;
-
       if (user.locked) return;
 
-      const patterns = await this.repository.findWatchlistPatterns([
-        WatchlistType.SPAM_KEYWORD,
-        WatchlistType.REDIRECT_DOMAIN,
-      ]);
-      const spamKeywords = patterns
-        .filter((p) => p.type === WatchlistType.SPAM_KEYWORD)
-        .map((p) => p.value.toLowerCase());
-      const maliciousDomains = new Set(
-        patterns.filter((p) => p.type === WatchlistType.REDIRECT_DOMAIN).map((p) => p.value.toLowerCase())
-      );
+      const metrics = extractMetrics(user);
+      const result = evaluateRules(metrics, rules);
 
-      const { score, signals } = calculateScore(user, maliciousDomains, spamKeywords);
-
-      const shouldLock = score >= ABUSE_THRESHOLDS.lock;
-
-      const updatedAbuse: AbuseMetadata = {
-        flags: user.abuseData?.flags ?? [],
-        signals,
-      };
-
+      const shouldLock = result.shouldAutoLock || result.score >= config.lockThreshold;
       const now = new Date();
-      // undefined skips the locked field in the update — never unlocks a user locked by another process
-      await this.repository.updateAbuseData(userId, {
-        score,
-        abuseData: updatedAbuse,
+      const lockedReason = result.shouldAutoLock ? "auto_lock_rule" : "score_threshold";
+
+      const signals = result.matchedRules.map((r) => ({
+        type: `rule_${r.groupId}`,
+        weight: r.weight,
+        context: r.description,
+      }));
+
+      await this.repository.updateAnalysis(userId, {
+        score: result.score,
+        signals,
         lastAnalyzedAt: now,
         locked: shouldLock || undefined,
-        ...(shouldLock && {
-          lockedAt: now,
-          lockedReason: "score_threshold" as const,
-        }),
+        ...(shouldLock && { lockedAt: now, lockedReason }),
       });
 
       log.info("User analyzed", {
         userId,
-        score,
+        score: result.score,
         signalCount: signals.length,
         locked: shouldLock,
         reason,
@@ -159,15 +78,15 @@ export class AbuseScoringService {
         await this.alerter.send({
           type: "user_locked",
           userId,
-          score,
+          score: result.score,
           signals,
           reason,
         });
-      } else if (score >= ABUSE_THRESHOLDS.alert) {
+      } else if (result.score >= config.alertThreshold) {
         await this.alerter.send({
           type: "user_suspicious",
           userId,
-          score,
+          score: result.score,
           signals,
           reason,
         });
@@ -177,7 +96,11 @@ export class AbuseScoringService {
     }
   }
 
-  /** Gate 2: check if EventType content should be scanned. Does NOT require flags. */
+  private async getMonitoringWindowMs(): Promise<number> {
+    const config = await this.repository.findConfig();
+    return config.monitoringWindowDays * MS_PER_DAY;
+  }
+
   async shouldUsersCheckEventType(userId: number): Promise<boolean> {
     const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
@@ -185,28 +108,21 @@ export class AbuseScoringService {
     const user = await this.repository.findForMonitoring(userId);
     if (!user || user.locked) return false;
 
-    const ageMs = Date.now() - user.createdDate.getTime();
-    if (ageMs > ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY) return false;
-
-    return true;
+    const windowMs = await this.getMonitoringWindowMs();
+    return Date.now() - user.createdDate.getTime() <= windowMs;
   }
 
-  /** Gate 3: check if a booking should trigger analysis. No flags required. */
   async shouldAnalyzeOnBooking(userId: number): Promise<boolean> {
-    const enabled =
-      await this.featuresRepository.checkIfFeatureIsEnabledGlobally(
-        "abuse-scoring"
-      );
+    const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
 
     const user = await this.repository.findForMonitoring(userId);
     if (!user || user.locked) return false;
 
-    const ageMs = Date.now() - user.createdDate.getTime();
-    return ageMs <= ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY;
+    const windowMs = await this.getMonitoringWindowMs();
+    return Date.now() - user.createdDate.getTime() <= windowMs;
   }
 
-  /** Gate 3 (legacy): velocity check for unflagged accounts < 7 days. */
   async checkBookingVelocity(userId: number): Promise<boolean> {
     const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
@@ -214,15 +130,14 @@ export class AbuseScoringService {
     const user = await this.repository.findForMonitoring(userId);
     if (!user || user.locked) return false;
 
-    const ageMs = Date.now() - user.createdDate.getTime();
-    if (ageMs > ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY) return false;
+    const windowMs = await this.getMonitoringWindowMs();
+    if (Date.now() - user.createdDate.getTime() > windowMs) return false;
 
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const count = await this.repository.countRecentBookings(userId, oneHourAgo);
     return count > VELOCITY_GATE_THRESHOLD;
   }
 
-  /** Monitor check — requires flags (used for already-flagged users). */
   async shouldMonitor(userId: number): Promise<boolean> {
     const enabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("abuse-scoring");
     if (!enabled) return false;
@@ -230,9 +145,7 @@ export class AbuseScoringService {
     const user = await this.repository.findForMonitoring(userId);
     if (!user || user.locked) return false;
 
-    const ageMs = Date.now() - user.createdDate.getTime();
-    if (ageMs > ABUSE_MONITORING_WINDOW_DAYS * MS_PER_DAY) return false;
-
-    return Boolean(user.abuseData?.flags?.length);
+    const windowMs = await this.getMonitoringWindowMs();
+    return Date.now() - user.createdDate.getTime() <= windowMs;
   }
 }

@@ -2,49 +2,46 @@ export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // ── Valid enum values — single source of truth for Zod schemas and TypeScript types ──
 
-export const ABUSE_FLAG_TYPES = ["email_pattern", "suspicious_domain", "spam_keyword"] as const;
-export type AbuseFlagType = (typeof ABUSE_FLAG_TYPES)[number];
-
-export const ABUSE_SIGNAL_TYPES = [
-  "signup_flags",
-  "content_spam",
-  "redirect_malicious",
-  "forward_params_enabled",
-  "high_booking_velocity",
-  "elevated_booking_velocity",
-  "self_booking_pattern",
-] as const;
-export type AbuseSignalType = (typeof ABUSE_SIGNAL_TYPES)[number];
-
-export const ABUSE_LOCKED_REASONS = ["score_threshold", "manual", "velocity"] as const;
+export const ABUSE_LOCKED_REASONS = ["score_threshold", "auto_lock_rule", "manual", "velocity"] as const;
 export type AbuseLockedReason = (typeof ABUSE_LOCKED_REASONS)[number];
 
-// ── Thresholds and weights — hardcoded for phase 1, admin-configurable interface planned ──
+// ── Rule engine field/operator enums ──
 
-export const ABUSE_THRESHOLDS = {
-  alert: 50,
-  lock: 80,
-} as const;
+export const ABUSE_RULE_FIELDS = [
+  "EVENT_TYPE_TITLE",
+  "EVENT_TYPE_DESCRIPTION",
+  "REDIRECT_URL",
+  "CANCELLATION_REASON",
+  "BOOKING_LOCATION",
+  "BOOKING_RESPONSES",
+  "USERNAME",
+  "SIGNUP_EMAIL_DOMAIN",
+  "SIGNUP_NAME",
+  "BOOKING_VELOCITY",
+  "SELF_BOOKING_COUNT",
+] as const;
+export type AbuseRuleField = (typeof ABUSE_RULE_FIELDS)[number];
 
-export const ABUSE_WEIGHTS = {
-  signupFlag: 10,
-  contentSpam: 25,
-  redirectMalicious: 30,
-  forwardParams: 15,
-  highBookingVelocity: 35,
-  elevatedBookingVelocity: 15,
-  selfBookingPattern: 15,
-} as const;
+export const ABUSE_RULE_OPERATORS = ["CONTAINS", "EXACT", "GREATER_THAN", "MATCHES_DOMAIN"] as const;
+export type AbuseRuleOperator = (typeof ABUSE_RULE_OPERATORS)[number];
 
-/** Cap per signal type — prevents stacking from multiple EventTypes */
-export const ABUSE_SIGNAL_CAPS: Partial<Record<AbuseSignalType, number>> = {
-  content_spam: 25,
-  redirect_malicious: 30,
-  forward_params_enabled: 15,
-};
+export const NUMERIC_FIELDS = new Set<AbuseRuleField>(["SELF_BOOKING_COUNT"]);
+export const ARRAY_FIELDS = new Set<AbuseRuleField>([
+  "EVENT_TYPE_TITLE",
+  "EVENT_TYPE_DESCRIPTION",
+  "REDIRECT_URL",
+  "CANCELLATION_REASON",
+  "BOOKING_LOCATION",
+  "BOOKING_RESPONSES",
+]);
+/** Fields that support the MATCHES_DOMAIN operator (exact + wildcard domain matching) */
+export const DOMAIN_FIELDS = new Set<AbuseRuleField>(["SIGNUP_EMAIL_DOMAIN", "REDIRECT_URL"]);
+/** Fields that use compound velocity format (e.g. "50/hour", "5/min") */
+export const VELOCITY_FIELDS = new Set<AbuseRuleField>(["BOOKING_VELOCITY"]);
+export const VELOCITY_UNITS = ["hour", "min"] as const;
+export type VelocityUnit = (typeof VELOCITY_UNITS)[number];
 
-/** Maximum score from signup flags alone */
-export const SIGNUP_FLAG_CAP = 20;
+// ── Thresholds ──
 
 /** Bookings/hour threshold for Gate 3 velocity check (unflagged accounts) */
 export const VELOCITY_GATE_THRESHOLD = 20;
@@ -52,4 +49,5 @@ export const VELOCITY_GATE_THRESHOLD = 20;
 /** Max recent bookings loaded per user during scoring */
 export const SCORING_BOOKINGS_LIMIT = 200;
 
+/** Fallback monitoring window if AbuseScoringConfig row is missing */
 export const ABUSE_MONITORING_WINDOW_DAYS = 7;

@@ -161,10 +161,6 @@ const handler = async (
     username = null;
   }
 
-  // Gate 1: abuse scoring — synchronous pattern matching at signup (fail-open)
-  const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
-  const signupCheck = await onSignup(email, username ?? undefined);
-
   const userCreationService = getUserCreationService();
 
   if (foundToken && foundToken?.teamId) {
@@ -231,6 +227,10 @@ const handler = async (
         throw error;
       }
 
+      // Gate 1: abuse scoring — async analysis after signup (fail-open)
+      const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
+      await onSignup(user.id);
+
       await createOrUpdateMemberships({
         user,
         team,
@@ -254,7 +254,7 @@ const handler = async (
   } else {
     // Create the user
     try {
-      await userCreationService.createUser({
+      const createdUser = await userCreationService.createUser({
         data: {
           username: username ?? "",
           email,
@@ -265,14 +265,12 @@ const handler = async (
             checkoutSessionId,
           },
           creationSource: CreationSource.WEBAPP,
-          ...(signupCheck.flagged && {
-            abuseScore: {
-              score: signupCheck.initialScore,
-              abuseData: { flags: signupCheck.flags, signals: [] },
-            },
-          }),
         },
       });
+
+      // Gate 1: abuse scoring — async analysis after signup (fail-open)
+      const { onSignup } = await import("@calcom/features/abuse-scoring/lib/hooks");
+      await onSignup(createdUser.id);
     } catch (error) {
       // Fallback for race conditions where user was created between our check and create
       if (isPrismaError(error) && error.code === "P2002") {

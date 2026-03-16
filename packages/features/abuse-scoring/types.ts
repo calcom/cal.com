@@ -1,14 +1,22 @@
-import type { z } from "zod";
+import type { VelocityUnit } from "./lib/constants";
 
-import type { abuseMetadataSchema } from "./lib/abuseMetadataSchema";
+export interface UserMetrics {
+  eventTypeTitles: string[];
+  eventTypeDescriptions: string[];
+  redirectUrls: string[];
+  cancellationReasons: string[];
+  bookingLocations: string[];
+  bookingResponses: string[];
+  username: string;
+  signupEmailDomain: string;
+  signupName: string;
+  bookingVelocity: Record<VelocityUnit, number>;
+  selfBookingCount: number;
+}
 
-/** Shape of UserAbuseData.abuseData JSONB column */
-export type AbuseMetadata = z.infer<typeof abuseMetadataSchema>;
-export type AbuseFlag = AbuseMetadata["flags"][number];
-export type AbuseSignal = AbuseMetadata["signals"][number];
-
-export interface SignupCheckResult {
-  flagged: boolean;
-  flags: AbuseFlag[];
-  initialScore: number;
+export interface RuleEvalResult {
+  score: number;
+  matchedRules: Array<{ groupId: string; weight: number; description: string }>;
+  shouldAutoLock: boolean;
+  autoLockRule?: { groupId: string; description: string };
 }
