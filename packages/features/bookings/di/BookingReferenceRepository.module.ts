@@ -1,7 +1,7 @@
 import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 export const bookingReferenceRepositoryModule = createModule();
 const token = DI_TOKENS.BOOKING_REFERENCE_REPOSITORY;
