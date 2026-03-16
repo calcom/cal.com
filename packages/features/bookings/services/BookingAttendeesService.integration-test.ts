@@ -1,8 +1,8 @@
-import { describe, it, vi, expect, beforeAll, afterAll, beforeEach } from "vitest";
-
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockUpdateCalendarAttendees = vi.fn().mockResolvedValue({});
 vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
@@ -20,18 +20,16 @@ vi.mock("@calcom/emails/templates/attendee-cancelled-email", () => ({
 }));
 
 const mockOnAttendeeRemoved = vi.fn().mockResolvedValue(undefined);
-vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
-  getBookingEventHandlerService: () => ({
-    onAttendeeRemoved: mockOnAttendeeRemoved,
-    onAttendeeAdded: vi.fn().mockResolvedValue(undefined),
-  }),
-}));
+const mockOnAttendeeAdded = vi.fn().mockResolvedValue(undefined);
 
-vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
-  getFeaturesRepository: () => ({
-    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  }),
-}));
+const mockBookingEventHandlerService = {
+  onAttendeeRemoved: mockOnAttendeeRemoved,
+  onAttendeeAdded: mockOnAttendeeAdded,
+};
+
+const mockFeaturesRepository = {
+  checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+};
 
 vi.mock("@calcom/trpc/server/routers/viewer/bookings/addGuests.handler", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -42,6 +40,7 @@ vi.mock("@calcom/trpc/server/routers/viewer/bookings/addGuests.handler", async (
   };
 });
 
+import type { BookingAttendeesServiceDeps } from "./BookingAttendeesService";
 import { BookingAttendeesService } from "./BookingAttendeesService";
 
 const createdBookingIds: number[] = [];
@@ -51,7 +50,12 @@ const createdEventTypeIds: number[] = [];
 describe("BookingAttendeesService.removeAttendee (Integration Tests)", () => {
   const timestamp = Date.now();
   const bookingRepo = new BookingRepository(prisma);
-  const service = new BookingAttendeesService();
+  const service = new BookingAttendeesService({
+    bookingEventHandlerService: mockBookingEventHandlerService,
+    featuresRepository: mockFeaturesRepository,
+    bookingAttendeeRepository: new PrismaBookingAttendeeRepository(prisma),
+    bookingRepository: bookingRepo,
+  } as unknown as BookingAttendeesServiceDeps);
 
   let organizerId: number;
   let bookingId: number;
@@ -126,7 +130,12 @@ describe("BookingAttendeesService.removeAttendee (Integration Tests)", () => {
       iCalSequence: 0,
       attendees: [
         { email: "primary@test.com", name: "Primary Attendee", timeZone: "UTC", locale: "en" },
-        { email: "secondary@test.com", name: "Secondary Attendee", timeZone: "America/New_York", locale: "en" },
+        {
+          email: "secondary@test.com",
+          name: "Secondary Attendee",
+          timeZone: "America/New_York",
+          locale: "en",
+        },
       ],
     });
     bookingId = booking.id;

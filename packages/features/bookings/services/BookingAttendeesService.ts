@@ -2,16 +2,16 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getTranslation } from "@calcom/i18n/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
@@ -64,10 +64,18 @@ export type RemovedAttendee = {
   timeZone: string;
 };
 
+export type BookingAttendeesServiceDeps = {
+  bookingEventHandlerService: BookingEventHandlerService;
+  featuresRepository: FeaturesRepository;
+  bookingAttendeeRepository: PrismaBookingAttendeeRepository;
+  bookingRepository: BookingRepository;
+};
+
 export class BookingAttendeesService {
+  constructor(private readonly deps: BookingAttendeesServiceDeps) {}
+
   async getBookingAttendees(bookingUid: string) {
-    const bookingRepository = new BookingRepository(prisma);
-    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
       bookingUid,
     });
 
@@ -79,8 +87,7 @@ export class BookingAttendeesService {
   }
 
   async getBookingAttendee(bookingUid: string, attendeeId: number) {
-    const bookingRepository = new BookingRepository(prisma);
-    const booking = await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
       bookingUid,
     });
 
@@ -143,14 +150,12 @@ export class BookingAttendeesService {
       await this.sendAttendeeNotification(evt, booking, attendeeEmail);
     }
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
-    await bookingEventHandlerService.onAttendeeAdded({
+    await this.deps.bookingEventHandlerService.onAttendeeAdded({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
       organizationId,
@@ -206,14 +211,12 @@ export class BookingAttendeesService {
         .catch((error) => logger.error("Failed to send cancellation email to removed attendee", { error }));
     }
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
-    await bookingEventHandlerService.onAttendeeRemoved({
+    await this.deps.bookingEventHandlerService.onAttendeeRemoved({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
       organizationId,
@@ -285,20 +288,10 @@ export class BookingAttendeesService {
       return extractBaseEmail(guestEmail).toLowerCase() !== baseEmailToRemove;
     });
 
-    await prisma.$transaction([
-      prisma.attendee.delete({
-        where: { id: attendeeId },
-      }),
-      prisma.booking.update({
-        where: { id: bookingId },
-        data: {
-          responses: {
-            ...bookingResponses,
-            guests: updatedGuests,
-          },
-        },
-      }),
-    ]);
+    await this.deps.bookingAttendeeRepository.deleteByIdAndUpdateBookingResponses(attendeeId, bookingId, {
+      ...bookingResponses,
+      guests: updatedGuests,
+    });
   }
 
   private async prepareAttendeePerson(attendee: Booking["attendees"][number]): Promise<Person> {

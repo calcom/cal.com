@@ -1,4 +1,5 @@
-import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
+import type { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
+import { getBookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -18,7 +19,7 @@ export class BookingAttendeesService_2024_08_13 {
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly platformBookingsService: PlatformBookingsService
   ) {
-    this.bookingAttendeesService = new BookingAttendeesService();
+    this.bookingAttendeesService = getBookingAttendeesService();
   }
 
   async getBookingAttendees(bookingUid: string): Promise<BookingAttendeeWithId_2024_08_13[]> {
