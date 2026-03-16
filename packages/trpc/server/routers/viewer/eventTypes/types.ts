@@ -21,6 +21,7 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
+
 export type TUpdateInputSchema = EventTypeUpdateInput;
 
 // ============================================================================
