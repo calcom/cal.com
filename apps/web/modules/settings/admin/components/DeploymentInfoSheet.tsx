@@ -2,20 +2,22 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import { Field, FieldLabel } from "@coss/ui/components/field";
+import { Input } from "@coss/ui/components/input";
 import {
   Sheet,
-  SheetBody,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
+  SheetPanel,
   SheetTitle,
-} from "@calcom/ui/components/sheet";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
+} from "@coss/ui/components/sheet";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { toastManager } from "@coss/ui/components/toast";
 import { useState } from "react";
 
 interface DeploymentInfoSheetProps {
@@ -27,9 +29,9 @@ interface DeploymentInfoSheetProps {
 
 function DetailRow({ label, value }: { label: string; value: string }): JSX.Element {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-subtle text-xs">{label}</span>
-      <span className="text-emphasis text-right text-xs font-medium">{value}</span>
+    <div className="flex justify-between gap-4">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="font-medium">{value}</dd>
     </div>
   );
 }
@@ -55,31 +57,26 @@ export function DeploymentInfoSheet({
 
   const updateMutation = trpc.viewer.admin.updateDeploymentBilling.useMutation({
     onSuccess: (_data, variables) => {
-      showToast(t("admin_deployment_update_success"), "success");
+      toastManager.add({ title: t("admin_deployment_update_success"), type: "success" });
       setIsEditing(false);
       if (variables.newEmail) {
-        // Invalidate all getDeploymentInfo queries so stale entries for
-        // the old email don't linger in the cache.
         utils.viewer.admin.getDeploymentInfo.invalidate();
-        // Switch the parent's query key so the component re-subscribes
-        // to the new email and triggers a fresh fetch.
         onEmailChange?.(variables.newEmail);
       } else {
-        // No email change -- just refetch under the current key.
         utils.viewer.admin.getDeploymentInfo.invalidate({ email });
       }
     },
     onError: (err) => {
-      showToast(err.message || t("admin_deployment_update_error"), "error");
+      toastManager.add({ title: err.message || t("admin_deployment_update_error"), type: "error" });
     },
   });
 
   const resendEmailMutation = trpc.viewer.admin.resendPurchaseCompleteEmail.useMutation({
     onSuccess: () => {
-      showToast(t("admin_license_resend_success"), "success");
+      toastManager.add({ title: t("admin_license_resend_success"), type: "success" });
     },
     onError: (err) => {
-      showToast(err.message || t("admin_license_resend_error"), "error");
+      toastManager.add({ title: err.message || t("admin_license_resend_error"), type: "error" });
     },
   });
 
@@ -128,51 +125,51 @@ export function DeploymentInfoSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="bg-cal-muted">
+      <SheetContent side="right" variant="inset">
         <SheetHeader>
           <SheetTitle>{t("admin_deployment_info_title")}</SheetTitle>
           <SheetDescription>{email}</SheetDescription>
         </SheetHeader>
-        <SheetBody>
+        <SheetPanel className="flex flex-col gap-6">
           {isPending ? (
-            <SkeletonContainer>
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <SkeletonText key={i} className="h-8 w-full" />
-                ))}
-              </div>
-            </SkeletonContainer>
+            <div className="flex flex-col gap-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
           ) : error ? (
-            <p className="text-error text-sm">{error.message}</p>
+            <p className="text-destructive text-sm">{error.message}</p>
           ) : data ? (
-            <div className="space-y-6">
-              {/* Deployment Details */}
-              <section>
-                <h3 className="text-emphasis mb-3 text-sm font-semibold">{t("admin_deployment_details")}</h3>
-                <div className="bg-default border-subtle space-y-3 rounded-lg border p-4">
+            <>
+              <div className="flex flex-col gap-2">
+                <h3 className="font-semibold text-sm">{t("admin_deployment_details")}</h3>
+                <dl className="flex flex-col gap-2 rounded-xl border p-4 text-xs">
                   {isEditing ? (
                     <>
-                      <TextField
-                        label={t("admin_deployment_billing_email")}
-                        name="editEmail"
-                        type="email"
-                        value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
-                      />
-                      <TextField
-                        label={t("admin_deployment_customer_id")}
-                        name="editCustomerId"
-                        value={editCustomerId}
-                        onChange={(e) => setEditCustomerId(e.target.value)}
-                        placeholder="cus_..."
-                      />
-                      <TextField
-                        label={t("admin_deployment_subscription_id")}
-                        name="editSubscriptionId"
-                        value={editSubscriptionId}
-                        onChange={(e) => setEditSubscriptionId(e.target.value)}
-                        placeholder="sub_..."
-                      />
+                      <Field>
+                        <FieldLabel>{t("admin_deployment_billing_email")}</FieldLabel>
+                        <Input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel>{t("admin_deployment_customer_id")}</FieldLabel>
+                        <Input
+                          value={editCustomerId}
+                          onChange={(e) => setEditCustomerId(e.target.value)}
+                          placeholder="cus_..."
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel>{t("admin_deployment_subscription_id")}</FieldLabel>
+                        <Input
+                          value={editSubscriptionId}
+                          onChange={(e) => setEditSubscriptionId(e.target.value)}
+                          placeholder="sub_..."
+                        />
+                      </Field>
                     </>
                   ) : (
                     <>
@@ -191,32 +188,31 @@ export function DeploymentInfoSheet({
                       />
                     </>
                   )}
-                </div>
-              </section>
+                </dl>
+              </div>
 
-              {/* License Keys */}
-              <section>
-                <h3 className="text-emphasis mb-3 text-sm font-semibold">
+              <div className="flex flex-col gap-2">
+                <h3 className="font-semibold text-sm">
                   {t("admin_deployment_license_keys")} ({data.keys.length})
                 </h3>
                 {data.keys.length === 0 ? (
-                  <p className="text-subtle text-sm">{t("admin_deployment_no_keys")}</p>
+                  <p className="text-muted-foreground text-sm">{t("admin_deployment_no_keys")}</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-4">
                     {data.keys.map((key) => (
-                      <div key={key.id} className="bg-default border-subtle rounded-lg border p-4">
-                        <div className="mb-2 flex items-center justify-between">
-                          <span className="text-emphasis font-mono text-xs">
-                            {key.key.substring(0, 8)}...{key.key.substring(key.key.length - 8)}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant={key.active ? "green" : "gray"}>
-                              {key.active ? t("active") : t("inactive")}
-                            </Badge>
-                            <Badge variant="blue">{key.keyVariant}</Badge>
+                      <div key={key.id} className="flex flex-col gap-4 rounded-xl border p-4 text-xs">
+                        <dl className="flex flex-col gap-2">
+                          <div className="flex justify-between gap-4">
+                            <dt className="font-medium font-mono">
+                              {key.key.substring(0, 8)}...{key.key.substring(key.key.length - 8)}
+                            </dt>
+                            <dd className="flex items-center gap-2">
+                              <Badge variant={key.active ? "success" : "secondary"}>
+                                {key.active ? t("active") : t("inactive")}
+                              </Badge>
+                              <Badge variant="info">{key.keyVariant}</Badge>
+                            </dd>
                           </div>
-                        </div>
-                        <div className="space-y-1">
                           <DetailRow
                             label={t("admin_deployment_subscription_id")}
                             value={key.subscriptionId || t("not_set")}
@@ -241,68 +237,59 @@ export function DeploymentInfoSheet({
                               />
                             </>
                           )}
-                        </div>
-
-                        {/* Usage Analytics */}
+                        </dl>
                         {key.usageAnalytics.length > 0 && (
-                          <div className="mt-3">
-                            <h4 className="text-emphasis mb-2 text-xs font-semibold">
+                          <div>
+                            <h4 className="mb-2 font-semibold text-sm">
                               {t("admin_deployment_recent_usage")}
                             </h4>
-                            <div className="bg-cal-muted max-h-32 overflow-y-auto rounded p-2">
+                            <dl className="flex flex-col gap-1">
                               {key.usageAnalytics.map((entry, idx) => (
-                                <div key={idx} className="text-subtle flex justify-between py-0.5 text-xs">
-                                  <span>{new Date(entry.date).toLocaleDateString()}</span>
-                                  <span className="text-emphasis font-medium">{entry.count}</span>
+                                <div key={idx} className="flex justify-between">
+                                  <dt className="text-muted-foreground">
+                                    {new Date(entry.date).toLocaleDateString()}
+                                  </dt>
+                                  <dd>{entry.count}</dd>
                                 </div>
                               ))}
-                            </div>
+                            </dl>
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-              </section>
-            </div>
+              </div>
+            </>
           ) : null}
-        </SheetBody>
-        <SheetFooter>
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
-            <div className="flex gap-2">
-              {data && !isEditing && (
-                <>
-                  <Button color="secondary" onClick={startEditing}>
-                    {t("admin_deployment_edit")}
-                  </Button>
-                  <Button
-                    color="secondary"
-                    onClick={handleResendEmail}
-                    loading={resendEmailMutation.isPending}
-                    disabled={resendEmailMutation.isPending}>
-                    {t("admin_deployment_resend_email")}
-                  </Button>
-                </>
-              )}
-              {isEditing && (
-                <>
-                  <Button
-                    color="primary"
-                    onClick={handleSave}
-                    loading={updateMutation.isPending}
-                    disabled={updateMutation.isPending}>
-                    {t("save")}
-                  </Button>
-                  <Button color="secondary" onClick={() => setIsEditing(false)}>
-                    {t("cancel")}
-                  </Button>
-                </>
-              )}
-            </div>
-            <Button color="minimal" onClick={handleClose}>
-              {t("close")}
-            </Button>
+        </SheetPanel>
+        <SheetFooter className="sm:justify-between">
+          <div className="flex gap-2">
+            {data && !isEditing && (
+              <>
+                <Button variant="outline" onClick={startEditing}>
+                  {t("admin_deployment_edit")}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleResendEmail}
+                  disabled={resendEmailMutation.isPending}>
+                  {resendEmailMutation.isPending ? "..." : t("admin_deployment_resend_email")}
+                </Button>
+              </>
+            )}
+            {isEditing && (
+              <>
+                <Button onClick={handleSave} disabled={updateMutation.isPending}>
+                  {updateMutation.isPending ? "..." : t("save")}
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  {t("cancel")}
+                </Button>
+              </>
+            )}
           </div>
+          <SheetClose render={<Button variant="ghost" />}>{t("close")}</SheetClose>
         </SheetFooter>
       </SheetContent>
     </Sheet>

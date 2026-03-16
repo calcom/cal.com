@@ -1,6 +1,10 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 
 import AdminBillingView from "~/settings/admin/billing-view";
 
@@ -16,9 +20,14 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("admin_billing_title")} description={t("admin_billing_description")}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("admin_billing_title")}>
+          <AppHeaderDescription>{t("admin_billing_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <AdminBillingView />
-    </SettingsHeader>
+    </div>
   );
 };
 

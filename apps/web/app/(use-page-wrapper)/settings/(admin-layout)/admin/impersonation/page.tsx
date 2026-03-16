@@ -1,8 +1,11 @@
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 import ImpersonationView from "~/settings/admin/impersonation-view";
 
 export const generateMetadata = async () =>
@@ -17,9 +20,14 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("admin")} description={t("impersonation")}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("admin")}>
+          <AppHeaderDescription>{t("impersonation")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <ImpersonationView />
-    </SettingsHeader>
+    </div>
   );
 };
 

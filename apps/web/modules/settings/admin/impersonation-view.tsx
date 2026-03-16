@@ -7,9 +7,23 @@ import { useRef, useEffect, useState } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { addRecentImpersonation } from "@calcom/lib/recentImpersonations";
-import { Button } from "@calcom/ui/components/button";
-import { PanelCard } from "@calcom/ui/components/card";
-import { TextField } from "@calcom/ui/components/form";
+
+import { Button } from "@coss/ui/components/button";
+import {
+  Card,
+  CardFrame,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { Field, FieldDescription } from "@coss/ui/components/field";
+import { Group } from "@coss/ui/components/group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@coss/ui/components/input-group";
 
 import RecentImpersonationsList from "../../../components/settings/admin/RecentImpersonationsList";
 
@@ -45,37 +59,54 @@ const ImpersonationView = () => {
     }
   };
 
-  const handleQuickImpersonate = (username: string) => {
+  const handleQuickImpersonate = (impersonateUsername: string) => {
     if (usernameRef.current) {
-      usernameRef.current.value = username;
+      usernameRef.current.value = impersonateUsername;
     }
-    addRecentImpersonation(username);
+    addRecentImpersonation(impersonateUsername);
     setRefreshKey((prev) => prev + 1);
     signIn("impersonation-auth", {
-      username: username.toLowerCase(),
+      username: impersonateUsername.toLowerCase(),
       callbackUrl: `${WEBAPP_URL}/event-types`,
     });
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <PanelCard title={t("user_impersonation_heading")} subtitle={t("impersonate_user_tip")}>
-        <form className="p-4" onSubmit={handleSubmit}>
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            <TextField
-              containerClassName="w-full"
-              name=""
-              addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
-              ref={usernameRef}
-              defaultValue={undefined}
-              data-testid="admin-impersonation-input"
-            />
-            <Button type="submit" data-testid="impersonation-submit">
-              {t("impersonate")}
-            </Button>
-          </div>
-        </form>
-      </PanelCard>
+      <CardFrame>
+        <CardFrameHeader>
+          <CardFrameTitle>{t("user_impersonation_heading")}</CardFrameTitle>
+        </CardFrameHeader>
+        <Card>
+          <CardPanel>
+            <form onSubmit={handleSubmit}>
+              <Field>
+                <Group aria-label={t("user_impersonation_heading")} className="w-full gap-2 max-sm:flex-col">
+                  <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      ref={usernameRef}
+                      aria-label={t("impersonate")}
+                      className="*:[input]:ps-0!"
+                      placeholder={t("username")}
+                      type="text"
+                      data-testid="admin-impersonation-input"
+                    />
+                  </InputGroup>
+                  <div>
+                    <Button type="submit" data-testid="impersonation-submit">
+                      {t("impersonate")}
+                    </Button>
+                  </div>
+                </Group>
+                <FieldDescription>{t("impersonate_user_tip")}</FieldDescription>
+              </Field>
+            </form>
+          </CardPanel>
+        </Card>
+      </CardFrame>
       <RecentImpersonationsList key={refreshKey} onImpersonate={handleQuickImpersonate} />
     </div>
   );
