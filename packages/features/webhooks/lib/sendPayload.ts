@@ -269,6 +269,17 @@ const sendPayload = async (
     }
   }
 
+  const utm =
+    isEventPayload(data) && data.tracking
+      ? {
+          utm_source: data.tracking.utm_source,
+          utm_medium: data.tracking.utm_medium,
+          utm_campaign: data.tracking.utm_campaign,
+          utm_term: data.tracking.utm_term,
+          utm_content: data.tracking.utm_content,
+        }
+      : undefined;
+
   if (body === undefined) {
     if (
       template &&
@@ -277,12 +288,13 @@ const sendPayload = async (
         isNoShowPayload(data) ||
         isDelegationCredentialErrorPayload(data))
     ) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt, ...(utm && { utm }) }, contentType);
     } else {
       body = JSON.stringify({
         triggerEvent: triggerEvent,
         createdAt: createdAt,
         payload: data,
+        ...(utm && { utm }),
       });
     }
   }

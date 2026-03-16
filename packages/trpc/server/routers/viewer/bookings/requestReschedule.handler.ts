@@ -248,36 +248,38 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   });
 
   const webhookFactory = new BookingWebhookFactory();
-  const payload = webhookFactory.createCancelledEventPayload({
-    bookingId: bookingToReschedule.id,
-    title: bookingToReschedule.title,
-    eventSlug: event.slug ?? null,
-    description: bookingToReschedule.description,
-    customInputs: bookingToReschedule.customInputs,
-    responses: calEventResponses.responses,
-    userFieldsResponses: calEventResponses.userFieldsResponses,
-    startTime: bookingToReschedule.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
-    endTime: bookingToReschedule.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
-    organizer,
-    attendees: usersToPeopleType(
-      // username field doesn't exists on attendee but could be in the future
-      bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
-      tAttendees
-    ),
-    uid: bookingToReschedule.uid,
-    location: bookingToReschedule.location,
-    destinationCalendar: bookingToReschedule.destinationCalendar,
-    cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
-    iCalUID: bookingToReschedule.iCalUID,
-    ...(bookingToReschedule.smsReminderNumber && {
-      smsReminderNumber: bookingToReschedule.smsReminderNumber,
+  const payload = {
+    ...webhookFactory.createCancelledEventPayload({
+      bookingId: bookingToReschedule.id,
+      title: bookingToReschedule.title,
+      eventSlug: event.slug ?? null,
+      description: bookingToReschedule.description,
+      customInputs: bookingToReschedule.customInputs,
+      responses: calEventResponses.responses,
+      userFieldsResponses: calEventResponses.userFieldsResponses,
+      startTime: bookingToReschedule.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
+      endTime: bookingToReschedule.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
+      organizer,
+      attendees: usersToPeopleType(
+        // username field doesn't exists on attendee but could be in the future
+        bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
+        tAttendees
+      ),
+      uid: bookingToReschedule.uid,
+      location: bookingToReschedule.location,
+      destinationCalendar: bookingToReschedule.destinationCalendar,
+      cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+      iCalUID: bookingToReschedule.iCalUID,
+      ...(bookingToReschedule.smsReminderNumber && {
+        smsReminderNumber: bookingToReschedule.smsReminderNumber,
+      }),
+      cancelledBy: user.email,
+      eventTypeId: bookingToReschedule.eventTypeId,
+      length: bookingToReschedule.eventType?.length ?? null,
+      iCalSequence: builder.calendarEvent.iCalSequence,
+      eventTitle: bookingToReschedule.eventType?.title ?? null,
+      requestReschedule: true,
     }),
-    cancelledBy: user.email,
-    eventTypeId: bookingToReschedule.eventTypeId,
-    length: bookingToReschedule.eventType?.length ?? null,
-    iCalSequence: builder.calendarEvent.iCalSequence,
-    eventTitle: bookingToReschedule.eventType?.title ?? null,
-    requestReschedule: true,
     ...(bookingToReschedule.tracking && {
       tracking: {
         utm_source: bookingToReschedule.tracking.utm_source,
@@ -287,7 +289,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
         utm_content: bookingToReschedule.tracking.utm_content,
       },
     }),
-  });
+  };
 
   // Send webhook
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";

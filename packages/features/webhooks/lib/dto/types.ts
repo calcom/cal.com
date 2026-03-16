@@ -1,16 +1,11 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
+import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
 
-export type TrackingData = {
-  utm_source?: string | null;
-  utm_medium?: string | null;
-  utm_campaign?: string | null;
-  utm_term?: string | null;
-  utm_content?: string | null;
-};
+export type TrackingData = Tracking;
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
