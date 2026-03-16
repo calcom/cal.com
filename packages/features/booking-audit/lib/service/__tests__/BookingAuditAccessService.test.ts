@@ -5,11 +5,9 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import {
-  BookingAuditAccessService,
-  BookingAuditErrorCode,
-  BookingAuditPermissionError,
-} from "../BookingAuditAccessService";
+import { ErrorWithCode } from "@calcom/lib/errors";
+
+import { BookingAuditAccessService, BookingAuditErrorCode } from "../BookingAuditAccessService";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/bookings/repositories/BookingRepository");
@@ -195,7 +193,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       ).resolves.not.toThrow();
     });
 
-    it("should throw PERMISSION_DENIED error when user lacks booking.readTeamAuditLogs permission and also doesn't even have a membership in the organization for the booking's team", async () => {
+    it("should throw ORG_MEMBER_PERMISSION_DENIED error when user lacks booking.readTeamAuditLogs permission and also doesn't even have a membership in the organization for the booking's team", async () => {
       const bookingUid = "test-booking-uid";
       const userId = 123;
       const teamId = 100;
@@ -215,8 +213,8 @@ describe("BookingAuditAccessService - Permission Checks", () => {
         targetTeamId: organizationId,
       });
       const promise = service.assertPermissions({ bookingUid, userId, organizationId });
-      await expect(promise).rejects.toThrow(BookingAuditPermissionError);
-      await expect(promise).rejects.toThrow(BookingAuditErrorCode.PERMISSION_DENIED);
+      await expect(promise).rejects.toThrow(ErrorWithCode);
+      await expect(promise).rejects.toThrow(BookingAuditErrorCode.ORG_MEMBER_PERMISSION_DENIED);
     });
   });
 
@@ -289,7 +287,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
       });
 
       await expect(service.assertPermissions({ bookingUid, userId, organizationId })).rejects.toThrow(
-        BookingAuditPermissionError
+        ErrorWithCode
       );
     });
   });
@@ -298,7 +296,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
     it("should throw error when organizationId is null", async () => {
       await expect(
         service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })
-      ).rejects.toThrow(BookingAuditPermissionError);
+      ).rejects.toThrow(ErrorWithCode);
       await expect(
         service.assertPermissions({ bookingUid: "test-booking-uid", userId: 123, organizationId: null })
       ).rejects.toThrow(BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
@@ -310,7 +308,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
 
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
-      ).rejects.toThrow(BookingAuditPermissionError);
+      ).rejects.toThrow(ErrorWithCode);
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
       ).rejects.toThrow(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
@@ -337,7 +335,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
 
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
-      ).rejects.toThrow(BookingAuditPermissionError);
+      ).rejects.toThrow(ErrorWithCode);
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
       ).rejects.toThrow(BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
@@ -350,7 +348,7 @@ describe("BookingAuditAccessService - Permission Checks", () => {
 
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
-      ).rejects.toThrow(BookingAuditPermissionError);
+      ).rejects.toThrow(ErrorWithCode);
       await expect(
         service.assertPermissions({ bookingUid, userId: 123, organizationId: 200 })
       ).rejects.toThrow(BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);

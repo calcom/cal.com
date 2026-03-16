@@ -1,6 +1,8 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 export enum BookingAuditErrorCode {
@@ -8,14 +10,7 @@ export enum BookingAuditErrorCode {
   BOOKING_NOT_FOUND_OR_PERMISSION_DENIED = "BOOKING_NOT_FOUND_OR_PERMISSION_DENIED",
   BOOKING_HAS_NO_OWNER = "BOOKING_HAS_NO_OWNER",
   OWNER_NOT_IN_ORGANIZATION = "OWNER_NOT_IN_ORGANIZATION",
-  PERMISSION_DENIED = "PERMISSION_DENIED",
-}
-
-export class BookingAuditPermissionError extends Error {
-  constructor(public readonly code: BookingAuditErrorCode) {
-    super(code);
-    this.name = "BookingAuditPermissionError";
-  }
+  ORG_MEMBER_PERMISSION_DENIED = "ORG_MEMBER_PERMISSION_DENIED",
 }
 
 interface BookingAuditAccessServiceDeps {
@@ -41,7 +36,7 @@ export class BookingAuditAccessService {
 
   /**
    * Check if user has permission to view audit logs for a booking
-   * Throws BookingAuditPermissionError if access is denied
+   * Throws ErrorWithCode if access is denied
    */
   async assertPermissions({
     bookingUid,
@@ -53,12 +48,12 @@ export class BookingAuditAccessService {
     organizationId: number | null;
   }): Promise<void> {
     if (!organizationId) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
+      throw new ErrorWithCode(ErrorCode.Forbidden, BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
     }
 
     const booking = await this.bookingRepository.findByUidIncludeEventType({ bookingUid });
     if (!booking) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
+      throw new ErrorWithCode(ErrorCode.Forbidden, BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
     }
 
     const bookingEventType = booking.eventType;
@@ -79,7 +74,7 @@ export class BookingAuditAccessService {
     const bookingOwnerId = booking.userId;
 
     if (!bookingOwnerId) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
+      throw new ErrorWithCode(ErrorCode.Forbidden, BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
     }
 
     const isBookingOwnerMemberOfOrganization = await this.membershipRepository.hasMembership({
@@ -88,7 +83,7 @@ export class BookingAuditAccessService {
     });
 
     if (!isBookingOwnerMemberOfOrganization) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);
+      throw new ErrorWithCode(ErrorCode.Forbidden, BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);
     }
 
     const hasAccess = await this.permissionCheckService.checkPermission({
@@ -101,6 +96,6 @@ export class BookingAuditAccessService {
     if (hasAccess) {
       return;
     }
-    throw new BookingAuditPermissionError(BookingAuditErrorCode.PERMISSION_DENIED);
+    throw new ErrorWithCode(ErrorCode.Forbidden, BookingAuditErrorCode.ORG_MEMBER_PERMISSION_DENIED);
   }
 }
