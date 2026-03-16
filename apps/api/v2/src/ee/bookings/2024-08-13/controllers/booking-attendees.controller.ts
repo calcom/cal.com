@@ -144,7 +144,7 @@ export class BookingAttendeesController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Remove an attendee from a booking",
-    description: `Remove an attendee from an existing booking by their attendee ID. The primary attendee (first attendee) cannot be removed. The removed attendee will receive a cancellation email notification.
+    description: `Remove an attendee from an existing booking by their attendee ID. The primary attendee (first attendee) cannot be removed — to remove them, cancel the booking instead. The removed attendee will receive a cancellation email notification.
 
     <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
     `,
