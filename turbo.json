@@ -47,6 +47,7 @@
         "$TURBO_ROOT$/node_modules/@prisma/client/**",
         "$TURBO_ROOT$/node_modules/@prisma/admin-client/**",
         "generated/**",
+        "enums/**",
         "zod/**",
         "$TURBO_ROOT$/packages/kysely/types.ts"
       ]
