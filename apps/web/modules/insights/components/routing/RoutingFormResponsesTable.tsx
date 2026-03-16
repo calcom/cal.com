@@ -1,39 +1,46 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { TimezoneBadge } from "@calcom/web/modules/insights/components/booking";
-
-import { useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
-
 import {
   ColumnFilterType,
   convertMapToFacetedValues,
-  ZSingleSelectFilterValue,
   type FilterableColumn,
+  ZSingleSelectFilterValue,
 } from "@calcom/features/data-table";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useFilterValue } from "~/data-table/hooks/useFilterValue";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
+import type { FilterType } from "@calcom/types/data-table";
+import { Button } from "@calcom/ui/components/button";
 import {
-  DataTableWrapper,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { RoutingTraceSheet } from "@calcom/web/components/booking/RoutingTraceSheet";
+import { WrongAssignmentDialog } from "@calcom/web/components/dialog/WrongAssignmentDialog";
+import {
   DataTableFilters,
   DataTableSegment,
   DataTableSkeleton,
+  DataTableWrapper,
   DateRangeFilter,
 } from "@calcom/web/modules/data-table/components";
-import type { FilterType } from "@calcom/types/data-table";
-import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
-import { trpc } from "@calcom/trpc/react";
-
-import { RoutingFormResponsesDownload } from "../filters/Download/RoutingFormResponsesDownload";
-import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
+import { TimezoneBadge } from "@calcom/web/modules/insights/components/booking";
 import { useInsightsColumns } from "@calcom/web/modules/insights/hooks/useInsightsColumns";
 import { useInsightsOrgTeams } from "@calcom/web/modules/insights/hooks/useInsightsOrgTeams";
 import { useInsightsRoutingFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useInsightsRoutingFacetedUniqueValues";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
+import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
+import { RoutingFormResponsesDownload } from "../filters/Download/RoutingFormResponsesDownload";
+import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 import { RoutingKPICards } from "./RoutingKPICards";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
@@ -43,11 +50,15 @@ const createdAtColumn: Extract<FilterableColumn, { type: Extract<FilterType, "dr
   type: ColumnFilterType.DATE_RANGE,
 };
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: Table component with actions column, routing trace sheet, and wrong assignment dialog
 export function RoutingFormResponsesTable() {
   const { isAll, teamId, userId } = useInsightsOrgTeams();
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
 
   const { t } = useLocale();
+
+  const [routingTraceBookingUid, setRoutingTraceBookingUid] = useState<string | null>(null);
+  const [wrongAssignmentBooking, setWrongAssignmentBooking] = useState<RoutingFormTableRow | null>(null);
 
   const { data: headers, isSuccess: isHeadersSuccess } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -78,7 +89,57 @@ export function RoutingFormResponsesTable() {
     return data.data as RoutingFormTableRow[];
   }, [data, isHeadersSuccess]);
 
-  const columns = useInsightsColumns({ headers, isHeadersSuccess });
+  const baseColumns = useInsightsColumns({ headers, isHeadersSuccess });
+
+  const openRoutingTrace = useCallback((bookingUid: string) => {
+    setRoutingTraceBookingUid(bookingUid);
+  }, []);
+
+  const openWrongAssignment = useCallback((row: RoutingFormTableRow) => {
+    setWrongAssignmentBooking(row);
+  }, []);
+
+  const columns = useMemo(() => {
+    const columnHelper = createColumnHelper<RoutingFormTableRow>();
+    return [
+      ...baseColumns,
+      columnHelper.display({
+        id: "actions",
+        header: t("actions"),
+        size: 80,
+        cell: (info) => {
+          const row = info.row.original;
+          if (!row.bookingUid) return null;
+          return (
+            <Dropdown>
+              <DropdownMenuTrigger asChild>
+                <Button color="secondary" size="sm" StartIcon="ellipsis" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    StartIcon="git-merge"
+                    onClick={() => openRoutingTrace(row.bookingUid as string)}>
+                    {t("routing_trace")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    StartIcon="flag"
+                    onClick={() => openWrongAssignment(row)}>
+                    {t("report_wrong_assignment")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </Dropdown>
+          );
+        },
+      }),
+    ];
+  }, [baseColumns, t, openRoutingTrace, openWrongAssignment]);
 
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
@@ -163,6 +224,47 @@ export function RoutingFormResponsesTable() {
           </div>,
           ctaContainerRef.current
         )}
+
+      {routingTraceBookingUid && (
+        <RoutingTraceSheet
+          isOpen={!!routingTraceBookingUid}
+          setIsOpen={(open) => {
+            if (!open) setRoutingTraceBookingUid(null);
+          }}
+          bookingUid={routingTraceBookingUid}
+          onReport={() => {
+            const row = processedData.find((r) => r.bookingUid === routingTraceBookingUid);
+            if (row) {
+              setWrongAssignmentBooking(row);
+            }
+          }}
+        />
+      )}
+
+      {wrongAssignmentBooking?.bookingUid && (
+        <WrongAssignmentDialog
+          isOpenDialog={!!wrongAssignmentBooking}
+          setIsOpenDialog={(open) => {
+            if (!open) setWrongAssignmentBooking(null);
+          }}
+          booking={{
+            uid: wrongAssignmentBooking.bookingUid,
+            eventType: wrongAssignmentBooking.formTeamId
+              ? { team: { id: wrongAssignmentBooking.formTeamId } }
+              : null,
+            user: wrongAssignmentBooking.bookingUserEmail
+              ? {
+                  email: wrongAssignmentBooking.bookingUserEmail,
+                  name: wrongAssignmentBooking.bookingUserName ?? null,
+                }
+              : null,
+            assignmentReasonSortedByCreatedAt: wrongAssignmentBooking.bookingAssignmentReason
+              ? [{ reasonString: wrongAssignmentBooking.bookingAssignmentReason, reasonEnum: null }]
+              : [],
+            attendees: wrongAssignmentBooking.bookingAttendees.map((a) => ({ email: a.email })),
+          }}
+        />
+      )}
     </>
   );
 }
