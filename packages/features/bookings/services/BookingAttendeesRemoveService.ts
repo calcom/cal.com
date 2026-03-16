@@ -79,9 +79,9 @@ export class BookingAttendeesRemoveService {
       ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
-    const auditContext: BookingAuditContext = impersonatedByUserUuid
-      ? { impersonatedBy: impersonatedByUserUuid }
-      : {};
+    const auditContext: BookingAuditContext = {
+      impersonatedBy: impersonatedByUserUuid ?? undefined,
+    };
 
     await this.deps.bookingEventHandlerService.onAttendeeRemoved({
       bookingUid: booking.uid,
