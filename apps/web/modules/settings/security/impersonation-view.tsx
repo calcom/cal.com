@@ -5,19 +5,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
-
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="border-subtle stack-y-6 border border-t-0 px-4 py-8 sm:px-6">
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
-};
+import { toastManager } from "@coss/ui/components/toast";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
 
 const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
   const { t } = useLocale();
@@ -28,7 +17,7 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: () => {
-      showToast(t("profile_updated_successfully"), "success");
+      toastManager.add({ title: t("profile_updated_successfully"), type: "success" });
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
@@ -46,32 +35,36 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
         utils.viewer.me.get.setData(undefined, context.previousValue);
         setDisableImpersonation(context.previousValue?.disableImpersonation);
       }
-      showToast(`${t("error")}, ${error.message}`, "error");
+      toastManager.add({ title: `${t("error")}, ${error.message}`, type: "error" });
     },
   });
 
   return (
-    <>
-      <div>
-        <SettingsToggle
-          toggleSwitchAtTheEnd={true}
-          title={t("user_impersonation_heading")}
-          description={t("user_impersonation_description")}
-          checked={!disableImpersonation}
-          onCheckedChange={(checked) => {
-            mutation.mutate({ disableImpersonation: !checked });
-          }}
-          switchContainerClassName="rounded-t-none border-t-0"
-          disabled={mutation.isPending}
-        />
-      </div>
-    </>
+    <SettingsToggle
+      title={t("user_impersonation_heading")}
+      description={t("user_impersonation_description")}
+      checked={!disableImpersonation}
+      onCheckedChange={(checked) => {
+        mutation.mutate({ disableImpersonation: !checked });
+      }}
+      disabled={mutation.isPending}
+    />
   );
 };
 
 const ProfileImpersonationViewWrapper = () => {
+  const { t } = useLocale();
   const { data: user, isPending } = trpc.viewer.me.get.useQuery();
-  if (isPending || !user) return <SkeletonLoader />;
+
+  if (isPending || !user) {
+    return (
+      <SettingsToggle
+        title={t("user_impersonation_heading")}
+        description={t("user_impersonation_description")}
+        loading
+      />
+    );
+  }
 
   return <ProfileImpersonationView user={user} />;
 };

@@ -33,33 +33,38 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/ui/components/form", () => ({
+vi.mock("@coss/ui/shared/settings-toggle", () => ({
   SettingsToggle: ({
     title,
     checked,
     disabled,
+    loading,
     onCheckedChange,
   }: {
     title: string;
-    checked: boolean;
+    checked?: boolean;
     disabled?: boolean;
-    onCheckedChange: (checked: boolean) => void;
+    loading?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
   }) => (
-    <div data-testid="settings-toggle" data-title={title} data-checked={checked} data-disabled={disabled}>
-      <button data-testid="toggle-btn" onClick={() => onCheckedChange(!checked)}>
-        Toggle
-      </button>
+    <div
+      data-testid="settings-toggle"
+      data-title={title}
+      data-checked={checked}
+      data-disabled={disabled}
+      data-loading={loading}
+    >
+      {!loading && (
+        <button data-testid="toggle-btn" onClick={() => onCheckedChange?.(!checked)}>
+          Toggle
+        </button>
+      )}
     </div>
   ),
 }));
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: () => <div data-testid="skeleton-text" />,
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-vi.mock("@calcom/ui/components/toast", () => ({
-  showToast: vi.fn(),
+vi.mock("@coss/ui/components/toast", () => ({
+  toastManager: { add: vi.fn() },
 }));
 
 describe("ProfileImpersonationViewWrapper", async () => {
@@ -68,7 +73,7 @@ describe("ProfileImpersonationViewWrapper", async () => {
     vi.clearAllMocks();
   });
 
-  it("should render skeleton when data is pending", async () => {
+  it("should render toggle with switch loading state when data is pending", async () => {
     const trpcModule = await import("@calcom/trpc/react");
     vi.mocked(trpcModule.trpc.viewer.me.get.useQuery).mockReturnValue({
       data: undefined,
@@ -76,7 +81,10 @@ describe("ProfileImpersonationViewWrapper", async () => {
     } as ReturnType<typeof trpcModule.trpc.viewer.me.get.useQuery>);
 
     render(<ProfileImpersonationViewWrapper />);
-    expect(screen.getAllByTestId("skeleton-text").length).toBeGreaterThan(0);
+    const toggle = screen.getByTestId("settings-toggle");
+    expect(toggle).toHaveAttribute("data-loading", "true");
+    expect(toggle).toHaveAttribute("data-title", "user_impersonation_heading");
+    expect(screen.queryByTestId("toggle-btn")).not.toBeInTheDocument();
   });
 
   it("should render toggle with impersonation enabled when disableImpersonation is false", async () => {
