@@ -17,7 +17,7 @@ import { useState } from "react";
 
 interface BookingHistoryProps {
   bookingUid: string;
-  isOrgUser?: boolean;
+  isOrgUser: boolean;
 }
 
 type TranslationComponent = {
@@ -463,7 +463,7 @@ function useBookingLogsFilters(auditLogs: AuditLog[], searchTerm: string, actorF
   return { filteredLogs, actorOptions };
 }
 
-export function BookingHistory({ bookingUid, isOrgUser = false }: BookingHistoryProps) {
+export function BookingHistory({ bookingUid, isOrgUser }: BookingHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [actorFilter, setActorFilter] = useState<string | null>(null);
   const { t } = useLocale();
