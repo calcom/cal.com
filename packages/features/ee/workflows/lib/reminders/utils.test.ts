@@ -88,11 +88,13 @@ describe("utils", () => {
 
   describe("getSMSMessageWithVariables", () => {
     describe("URL construction", () => {
+      const MSG_ALL_URLS = "Join: {MEETING_URL} Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}";
+
       it("builds meetingUrl from metadata videoCallUrl", async () => {
         const evt = buildMockBookingInfo({ metadata: { videoCallUrl: "https://meet.google.com/abc" } });
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[0]).toBe("https://meet.google.com/abc");
@@ -102,7 +104,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo({ metadata: {} });
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[0]).toBe("");
@@ -113,7 +115,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[1]).toBe(
@@ -126,7 +128,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_NUMBER);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_NUMBER);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[1]).toBe("https://cal.example.com/booking/booking-uid-123?cancel=true");
@@ -137,7 +139,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[2]).toBe(
@@ -150,7 +152,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_NUMBER);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_NUMBER);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[2]).toBe("https://cal.example.com/reschedule/booking-uid-123");
@@ -161,7 +163,7 @@ describe("utils", () => {
         const attendee = buildMockAttendee();
         mockGetWorkflowRecipientEmail.mockReturnValue(null);
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_NUMBER);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_NUMBER);
 
         const urls = mockShortenMany.mock.calls[0][0];
         expect(urls[1]).toContain("https://app.cal.com/booking/");
@@ -170,11 +172,13 @@ describe("utils", () => {
     });
 
     describe("URL shortening", () => {
-      it("calls shortenMany with all three URLs", async () => {
+      const MSG_ALL_URLS = "Join: {MEETING_URL} Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}";
+
+      it("calls shortenMany with all three URLs when body references all three", async () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         expect(mockShortenMany).toHaveBeenCalledTimes(1);
         expect(mockShortenMany.mock.calls[0][0]).toHaveLength(3);
@@ -184,7 +188,7 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         expect(mockShortenMany.mock.calls[0][1]).toEqual({
           domain: "sms.example.com",
@@ -196,12 +200,157 @@ describe("utils", () => {
         const evt = buildMockBookingInfo();
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(MSG_ALL_URLS, evt, attendee, WorkflowActions.SMS_ATTENDEE);
 
         const variables = mockCustomTemplate.mock.calls[0][1];
         expect(variables.meetingUrl).toBe("https://short.link/meet");
         expect(variables.cancelLink).toBe("https://short.link/cancel");
         expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
+      });
+
+      it("does not call shortenMany when body has no URL placeholders", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+
+        await getSMSMessageWithVariables(
+          "Hello {ATTENDEE_NAME}, reminder for {EVENT_NAME}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).not.toHaveBeenCalled();
+        const variables = mockCustomTemplate.mock.calls[0][1];
+        expect(variables.meetingUrl).toBe("");
+        expect(variables.cancelLink).toBe("");
+        expect(variables.rescheduleLink).toBe("");
+      });
+
+      it("only shortens URLs that are referenced in the body", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/cancel" }]);
+
+        await getSMSMessageWithVariables(
+          "Cancel here: {CANCEL_URL}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(1);
+        expect(urls[0]).toContain("/booking/booking-uid-123?cancel=true");
+        const variables = mockCustomTemplate.mock.calls[0][1];
+        expect(variables.meetingUrl).toBe("");
+        expect(variables.cancelLink).toBe("https://short.link/cancel");
+        expect(variables.rescheduleLink).toBe("");
+      });
+
+      it("matches {MEETING_URL_VARIABLE} style placeholders", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/meet" }]);
+
+        await getSMSMessageWithVariables(
+          "Join: {MEETING_URL_VARIABLE}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(1);
+      });
+
+      it("only shortens MEETING_URL when only it is referenced", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/meet" }]);
+
+        await getSMSMessageWithVariables(
+          "Join here: {MEETING_URL}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(1);
+        expect(urls[0]).toBe("https://meet.google.com/abc");
+        const variables = mockCustomTemplate.mock.calls[0][1];
+        expect(variables.meetingUrl).toBe("https://short.link/meet");
+        expect(variables.cancelLink).toBe("");
+        expect(variables.rescheduleLink).toBe("");
+      });
+
+      it("only shortens RESCHEDULE_URL when only it is referenced", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/reschedule" }]);
+
+        await getSMSMessageWithVariables(
+          "Reschedule: {RESCHEDULE_URL}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(1);
+        expect(urls[0]).toContain("/reschedule/booking-uid-123");
+        const variables = mockCustomTemplate.mock.calls[0][1];
+        expect(variables.meetingUrl).toBe("");
+        expect(variables.cancelLink).toBe("");
+        expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
+      });
+
+      it("shortens two of three URLs when only two are referenced", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([
+          { shortLink: "https://short.link/meet" },
+          { shortLink: "https://short.link/reschedule" },
+        ]);
+
+        await getSMSMessageWithVariables(
+          "Join: {MEETING_URL} Reschedule: {RESCHEDULE_URL}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(2);
+        expect(urls[0]).toBe("https://meet.google.com/abc");
+        expect(urls[1]).toContain("/reschedule/booking-uid-123");
+        const variables = mockCustomTemplate.mock.calls[0][1];
+        expect(variables.meetingUrl).toBe("https://short.link/meet");
+        expect(variables.cancelLink).toBe("");
+        expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
+      });
+
+      it("matches {RESCHEDULE_URL_VARIABLE} style placeholders", async () => {
+        const evt = buildMockBookingInfo();
+        const attendee = buildMockAttendee();
+        mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/reschedule" }]);
+
+        await getSMSMessageWithVariables(
+          "Reschedule: {RESCHEDULE_URL_VARIABLE}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
+
+        expect(mockShortenMany).toHaveBeenCalledTimes(1);
+        const [urls] = mockShortenMany.mock.calls[0];
+        expect(urls).toHaveLength(1);
+        expect(urls[0]).toContain("/reschedule/booking-uid-123");
       });
     });
 
@@ -249,7 +398,12 @@ describe("utils", () => {
         });
         const attendee = buildMockAttendee();
 
-        await getSMSMessageWithVariables("Hello", evt, attendee, WorkflowActions.SMS_ATTENDEE);
+        await getSMSMessageWithVariables(
+          "{MEETING_URL} {CANCEL_URL} {RESCHEDULE_URL}",
+          evt,
+          attendee,
+          WorkflowActions.SMS_ATTENDEE
+        );
 
         const variables = mockCustomTemplate.mock.calls[0][1];
         expect(variables).toMatchObject({

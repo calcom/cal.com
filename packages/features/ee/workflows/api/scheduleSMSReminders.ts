@@ -8,8 +8,8 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { UrlShortenerFactory } from "@calcom/features/url-shortener/UrlShortenerFactory";
-import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
+import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -131,22 +131,58 @@ export async function handler(req: NextRequest) {
           organizerEmail: reminder.booking.user?.email,
         });
 
-        const urls = {
-          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
-            recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
-          }`,
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
-            recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
-          }`,
-        };
+        // Only generate and shorten URLs that are actually referenced in the message.
+        // Using prefix match (without closing brace) to match both {CANCEL_URL} and {CANCEL_URL_VARIABLE}.
+        const reminderBody = reminder.workflowStep.reminderBody || "";
+        const needsMeetingUrl = reminderBody.includes("{MEETING_URL");
+        const needsCancelLink = reminderBody.includes("{CANCEL_URL");
+        const needsRescheduleLink = reminderBody.includes("{RESCHEDULE_URL");
 
-        const shortener = await UrlShortenerFactory.create({ userId, teamId });
-        const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-          await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+        const urlMap = new Map<string, string>();
+
+        if (needsMeetingUrl) {
+          urlMap.set(
+            "meetingUrl",
+            bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || ""
+          );
+        }
+        if (needsCancelLink) {
+          urlMap.set(
+            "cancelLink",
+            `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+              recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+            }`
+          );
+        }
+        if (needsRescheduleLink) {
+          urlMap.set(
+            "rescheduleLink",
+            `${bookerUrl}/reschedule/${reminder.booking.uid}${
+              recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+            }`
+          );
+        }
+
+        const shortenedMap = new Map<string, string>();
+
+        if (urlMap.size > 0) {
+          const keys = Array.from(urlMap.keys());
+          const urls = Array.from(urlMap.values());
+
+          const shortener = await UrlShortenerFactory.create({ userId, teamId });
+          const shortened = await shortener.shortenMany(urls, {
             domain: DUB_SMS_DOMAIN,
             folderId: DUB_SMS_FOLDER_ID,
           });
+
+          for (let idx = 0; idx < keys.length; idx++) {
+            shortenedMap.set(keys[idx], shortened[idx].shortLink);
+          }
+        }
+
+        const meetingUrl = shortenedMap.get("meetingUrl") ?? "";
+        const cancelLink = shortenedMap.get("cancelLink") ?? "";
+        const rescheduleLink = shortenedMap.get("rescheduleLink") ?? "";
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,

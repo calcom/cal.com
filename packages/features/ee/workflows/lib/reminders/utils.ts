@@ -21,22 +21,54 @@ export const getSMSMessageWithVariables = async (
     action,
     attendeeEmail: attendeeToBeUsedInSMS.email,
   });
-  const urls = {
-    meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true${
-      recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
-    }`,
-    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}${
-      recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
-    }`,
-  };
+  // Only generate and shorten URLs that are actually referenced in the message.
+  // Using prefix match (without closing brace) to match both {CANCEL_URL} and {CANCEL_URL_VARIABLE}.
+  const needsMeetingUrl = smsMessage.includes("{MEETING_URL");
+  const needsCancelLink = smsMessage.includes("{CANCEL_URL");
+  const needsRescheduleLink = smsMessage.includes("{RESCHEDULE_URL");
 
-  const shortener = await UrlShortenerFactory.create({ userId, teamId });
-  const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-    await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+  const urlMap = new Map<string, string>();
+
+  if (needsMeetingUrl) {
+    urlMap.set("meetingUrl", bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "");
+  }
+  if (needsCancelLink) {
+    urlMap.set(
+      "cancelLink",
+      `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true${
+        recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+      }`
+    );
+  }
+  if (needsRescheduleLink) {
+    urlMap.set(
+      "rescheduleLink",
+      `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}${
+        recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+      }`
+    );
+  }
+
+  const shortenedMap = new Map<string, string>();
+
+  if (urlMap.size > 0) {
+    const keys = Array.from(urlMap.keys());
+    const urls = Array.from(urlMap.values());
+
+    const shortener = await UrlShortenerFactory.create({ userId, teamId });
+    const shortened = await shortener.shortenMany(urls, {
       domain: DUB_SMS_DOMAIN,
       folderId: DUB_SMS_FOLDER_ID,
     });
+
+    for (let idx = 0; idx < keys.length; idx++) {
+      shortenedMap.set(keys[idx], shortened[idx].shortLink);
+    }
+  }
+
+  const meetingUrl = shortenedMap.get("meetingUrl") ?? "";
+  const cancelLink = shortenedMap.get("cancelLink") ?? "";
+  const rescheduleLink = shortenedMap.get("rescheduleLink") ?? "";
 
   const timeZone =
     action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.WHATSAPP_ATTENDEE

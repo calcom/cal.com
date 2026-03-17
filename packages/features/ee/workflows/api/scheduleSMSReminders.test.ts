@@ -405,9 +405,14 @@ describe("scheduleSMSReminders handler", () => {
   });
 
   describe("custom reminderBody processing", () => {
-    it("shortens meetingUrl, cancelLink, and rescheduleLink", async () => {
+    it("shortens meetingUrl, cancelLink, and rescheduleLink when body references all three", async () => {
       const req = createMockRequest();
-      const reminder = buildMockReminder();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL} Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}",
+        },
+      });
       prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
 
       await handler(req as any);
@@ -418,9 +423,14 @@ describe("scheduleSMSReminders handler", () => {
       expect(urls[2]).toContain("/reschedule/booking-uid-123");
     });
 
-    it("passes shortened URLs to customTemplate variables", async () => {
+    it("passes shortened URLs to customTemplate variables when body references them", async () => {
       const req = createMockRequest();
-      const reminder = buildMockReminder();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL} Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}",
+        },
+      });
       prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
 
       await handler(req as any);
@@ -429,6 +439,184 @@ describe("scheduleSMSReminders handler", () => {
       expect(variables.meetingUrl).toBe("https://short.link/meet");
       expect(variables.cancelLink).toBe("https://short.link/cancel");
       expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
+    });
+
+    it("does not call shortenMany when body has no URL placeholders", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Hello {ATTENDEE_NAME}, your event {EVENT_NAME} is coming up!",
+        },
+      });
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).not.toHaveBeenCalled();
+      const variables = mockCustomTemplate.mock.calls[0][1];
+      expect(variables.meetingUrl).toBe("");
+      expect(variables.cancelLink).toBe("");
+      expect(variables.rescheduleLink).toBe("");
+    });
+
+    it("only shortens the URLs that are referenced in the body", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Cancel here: {CANCEL_URL}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/cancel" }]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(1);
+      expect(urls[0]).toContain("/booking/booking-uid-123?cancel=true");
+      const variables = mockCustomTemplate.mock.calls[0][1];
+      expect(variables.meetingUrl).toBe("");
+      expect(variables.cancelLink).toBe("https://short.link/cancel");
+      expect(variables.rescheduleLink).toBe("");
+    });
+
+    it("matches {CANCEL_URL_VARIABLE} style placeholders", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Cancel here: {CANCEL_URL_VARIABLE}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/cancel" }]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(1);
+      expect(urls[0]).toContain("/booking/booking-uid-123?cancel=true");
+    });
+
+    it("only shortens MEETING_URL when only it is referenced", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/meet" }]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(1);
+      const variables = mockCustomTemplate.mock.calls[0][1];
+      expect(variables.meetingUrl).toBe("https://short.link/meet");
+      expect(variables.cancelLink).toBe("");
+      expect(variables.rescheduleLink).toBe("");
+    });
+
+    it("only shortens RESCHEDULE_URL when only it is referenced", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Reschedule: {RESCHEDULE_URL}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([{ shortLink: "https://short.link/reschedule" }]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(1);
+      expect(urls[0]).toContain("/reschedule/booking-uid-123");
+      const variables = mockCustomTemplate.mock.calls[0][1];
+      expect(variables.meetingUrl).toBe("");
+      expect(variables.cancelLink).toBe("");
+      expect(variables.rescheduleLink).toBe("https://short.link/reschedule");
+    });
+
+    it("shortens two of three URLs when only two are referenced", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL} Cancel: {CANCEL_URL}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([
+        { shortLink: "https://short.link/meet" },
+        { shortLink: "https://short.link/cancel" },
+      ]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(2);
+      const variables = mockCustomTemplate.mock.calls[0][1];
+      expect(variables.meetingUrl).toBe("https://short.link/meet");
+      expect(variables.cancelLink).toBe("https://short.link/cancel");
+      expect(variables.rescheduleLink).toBe("");
+    });
+
+    it("matches {MEETING_URL_VARIABLE} and {RESCHEDULE_URL_VARIABLE} style placeholders", async () => {
+      const req = createMockRequest();
+      const reminder = buildMockReminder({
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL_VARIABLE} Reschedule: {RESCHEDULE_URL_VARIABLE}",
+        },
+      });
+      mockShortenMany.mockResolvedValue([
+        { shortLink: "https://short.link/meet" },
+        { shortLink: "https://short.link/reschedule" },
+      ]);
+      prismaMock.workflowReminder.findMany.mockResolvedValue([reminder as any]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      const [urls] = mockShortenMany.mock.calls[0];
+      expect(urls).toHaveLength(2);
+    });
+
+    it("handles multiple reminders where one has URLs and the other does not", async () => {
+      const req = createMockRequest();
+      const reminderWithUrls = buildMockReminder({
+        id: 1,
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Join: {MEETING_URL} Cancel: {CANCEL_URL} Reschedule: {RESCHEDULE_URL}",
+        },
+      });
+      const reminderWithoutUrls = buildMockReminder({
+        id: 2,
+        workflowStep: {
+          ...buildMockReminder().workflowStep,
+          reminderBody: "Hello {ATTENDEE_NAME}, reminder for {EVENT_NAME}",
+        },
+      });
+      prismaMock.workflowReminder.findMany.mockResolvedValue([
+        reminderWithUrls as any,
+        reminderWithoutUrls as any,
+      ]);
+
+      await handler(req as any);
+
+      expect(mockShortenMany).toHaveBeenCalledTimes(1);
+      expect(mockScheduleSmsOrFallbackEmail).toHaveBeenCalledTimes(2);
     });
 
     it("fetches organizer profile for booker URL", async () => {
