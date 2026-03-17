@@ -1032,6 +1032,85 @@ describe("UserAvailabilityService", () => {
     });
   });
 
+  describe("holiday blocking via DB query", () => {
+    const weekdaySchedule = {
+      id: 1,
+      availability: [
+        {
+          days: [1, 2, 3, 4, 5],
+          startTime: new Date("1970-01-01T09:00:00Z"),
+          endTime: new Date("1970-01-01T17:00:00Z"),
+          date: null,
+        },
+      ],
+      timeZone: "UTC",
+    };
+    const dateRange = {
+      dateFrom: dayjs("2024-12-23T00:00:00Z"), // Monday
+      dateTo: dayjs("2024-12-27T00:00:00Z"), // Friday
+      returnDateOverrides: false as const,
+    };
+
+    it("should query holidayRepo when computing availability", async () => {
+      vi.mocked(deps.holidayRepo.findUserSettingsSelect).mockResolvedValue(null);
+
+      const user = createMockUser({ timeZone: "UTC" });
+      await service._getUserAvailability(dateRange, { user });
+
+      expect(deps.holidayRepo.findUserSettingsSelect).toHaveBeenCalledWith({
+        userId: 1,
+        select: { countryCode: true, disabledIds: true },
+      });
+    });
+
+    it("should return empty when holidayRepo returns no settings", async () => {
+      vi.mocked(deps.holidayRepo.findUserSettingsSelect).mockResolvedValue(null);
+
+      const user = createMockUser({ timeZone: "UTC" });
+      const result = await service._getUserAvailability(dateRange, { user });
+
+      expect(result.datesOutOfOffice).toEqual({});
+    });
+
+    it("should return empty when settings exist but no country code", async () => {
+      vi.mocked(deps.holidayRepo.findUserSettingsSelect).mockResolvedValue({
+        userId: 1,
+        countryCode: null,
+        disabledIds: [],
+      });
+
+      const user = createMockUser({ timeZone: "UTC" });
+      const result = await service._getUserAvailability(dateRange, { user });
+
+      expect(result.datesOutOfOffice).toEqual({});
+    });
+
+    it("should fetch and block holidays when country code is configured", async () => {
+      vi.mocked(deps.holidayRepo.findUserSettingsSelect).mockResolvedValue({
+        userId: 1,
+        countryCode: "US",
+        disabledIds: [],
+      });
+
+      const { getHolidayService } = await import("@calcom/lib/holidays");
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([
+          {
+            date: "2024-12-25",
+            holiday: { id: "xmas_2024", name: "Christmas Day", date: "2024-12-25", year: 2024 },
+          },
+        ]),
+      } as never);
+
+      const user = createMockUser({ timeZone: "UTC", schedules: [weekdaySchedule] });
+      const result = await service._getUserAvailability(dateRange, { user });
+
+      expect(result.datesOutOfOffice["2024-12-25"]).toBeDefined();
+      expect(result.datesOutOfOffice["2024-12-25"].reason).toBe("Christmas Day");
+    });
+
+  });
+
   describe("_getUsersAvailability", () => {
     it("should return availability for multiple users", async () => {
       const user1 = createMockUser({

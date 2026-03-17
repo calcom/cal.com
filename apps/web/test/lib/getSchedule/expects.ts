@@ -67,6 +67,13 @@ declare global {
        * Explicitly checks if the date is disabled and fails if date is marked as OOO
        */
       toHaveDateDisabled(date: { dateString: string }): R;
+      /**
+       * Checks that all slots on a date are marked as holiday OOO.
+       * Verifies: away=true, reason matches, fromUser is null (system-generated, not user-initiated),
+       * and emoji is present. This distinguishes holiday OOO from regular user OOO
+       * (which has fromUser set) and from busy/unavailable (which has no away flag).
+       */
+      toHaveAllSlotsAsHolidayOOO(date: { dateString: string; reason: string }): R;
     }
   }
 }
@@ -145,6 +152,68 @@ expect.extend({
     return {
       pass: false,
       message: () => `has timeslots for ${dateString}`,
+    };
+  },
+
+  toHaveAllSlotsAsHolidayOOO(
+    schedule: {
+      slots: Record<string, Array<{ away?: boolean; reason?: string; fromUser?: unknown; emoji?: string }>>;
+    },
+    { dateString, reason }: { dateString: string; reason: string }
+  ) {
+    const slots = schedule.slots[`${dateString}`];
+    if (!slots) {
+      return {
+        pass: false,
+        message: () => `has no slots for ${dateString}`,
+      };
+    }
+
+    if (slots.length === 0) {
+      return {
+        pass: false,
+        message: () => `has empty slots array for ${dateString}`,
+      };
+    }
+
+    const nonAwaySlot = slots.find((s) => s.away !== true);
+    if (nonAwaySlot) {
+      return {
+        pass: false,
+        message: () => `has slot without away=true on ${dateString}`,
+      };
+    }
+
+    const wrongReasonSlot = slots.find((s) => s.reason !== reason);
+    if (wrongReasonSlot) {
+      return {
+        pass: false,
+        message: () =>
+          `has slot with reason "${wrongReasonSlot.reason}" instead of "${reason}" on ${dateString}`,
+      };
+    }
+
+    // Holiday OOO has fromUser=null (system-generated). Regular user OOO has fromUser={id, displayName}.
+    const userInitiatedSlot = slots.find((s) => s.fromUser !== null && s.fromUser !== undefined);
+    if (userInitiatedSlot) {
+      return {
+        pass: false,
+        message: () =>
+          `has slot with fromUser set on ${dateString} — this looks like regular user OOO, not holiday OOO`,
+      };
+    }
+
+    const noEmojiSlot = slots.find((s) => !s.emoji);
+    if (noEmojiSlot) {
+      return {
+        pass: false,
+        message: () => `has slot without emoji on ${dateString}`,
+      };
+    }
+
+    return {
+      pass: true,
+      message: () => `all slots are holiday OOO with reason "${reason}" on ${dateString}`,
     };
   },
 });
