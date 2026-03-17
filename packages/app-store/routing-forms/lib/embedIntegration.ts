@@ -34,7 +34,7 @@ export type FormSubmissionPayload = {
 export type EmbedCommandHandlers = {
   onSetFieldValue: (fieldIdentifier: string, value: number | string | string[]) => void;
   onSetCalendarEventType: (eventType: string, fieldIdentifier?: string) => void;
-  onAck: (submissionId: string, redirectUrl?: string) => void;
+  onAck: (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => void;
 };
 
 const getAllowedOrigin = (): string | null => {
@@ -81,10 +81,13 @@ export const attachCommandListener = (handlers: EmbedCommandHandlers) => {
           msg.payload.value as number | string | string[]
         );
       },
-      booking_acknowledgement: (msg) => {
+      form_submission_acknowledgement: (msg) => {
         handlers.onAck(
+          msg.payload.success as boolean,
           msg.payload.submissionId as string,
-          msg.payload.redirect_url as string | undefined
+          msg.payload.redirect_url as string | undefined,
+          msg.payload.error as string | undefined,
+          msg.payload.successMsg as string | undefined,
         );
       },
     } satisfies PostMessageHandlers,

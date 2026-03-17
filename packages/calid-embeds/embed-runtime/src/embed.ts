@@ -295,7 +295,7 @@ export class Cal {
       handlers: {
         set_calendar_event_type: (msg) => this.forwardPostMessageToIframe(msg),
         set_field_value: (msg) => this.forwardPostMessageToIframe(msg),
-        booking_acknowledgement: (msg) => this.forwardPostMessageToIframe(msg),
+        form_submission_acknowledgement: (msg) => this.forwardPostMessageToIframe(msg),
       },
     });
     this.postMessageRouter.attach();

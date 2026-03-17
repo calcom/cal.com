@@ -55,6 +55,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const [showErrors, setShowErrors] = useState(false);
+  const [isAwaitingBookingAck, setIsAwaitingBookingAck] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
   const isEmbedAckEnabled =
@@ -107,12 +108,23 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     }
   };
 
-  const handleAck = (submissionId: string, redirectUrl?: string) => {
+  const handleAck = (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => {
     console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
 
     if (!isEmbedAckEnabled) return;
     if (pendingSubmissionIdRef.current !== submissionId) return;
+
     clearPendingTimeout();
+    setIsAwaitingBookingAck(false);
+
+    if(!success) {
+        return void triggerToast(error ?? "Unknown error", "error");
+    }
+
+    if(success && successMsg) {
+        return void triggerToast(successMsg);
+    }
+
     const finalUrl = redirectUrl;
 
     console.log(
@@ -145,7 +157,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         if (targetField?.type === "calendar") return;
         setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, eventType, form.fields));
       },
-      onAck: (submissionId, redirectUrl) => handleAck(submissionId, redirectUrl),
+      onAck: (success, submissionId, redirectUrl, error, successMsg) => handleAck(success, submissionId, redirectUrl, error, successMsg),
     });
   }, [isEmbed, form.fields, isEmbedAckEnabled]);
 
@@ -280,11 +292,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             ? `${decidedAction.value}?${allURLSearchParams}`
             : null;
         pendingSubmissionIdRef.current = submissionId;
+        setIsAwaitingBookingAck(true);
         pendingFallbackRef.current = () => setCustomPageMessage(bookingAckTimeoutMessage);
         clearPendingTimeout();
         pendingTimeoutRef.current = window.setTimeout(() => {
           pendingSubmissionIdRef.current = null;
           pendingFallbackRef.current = null;
+          setIsAwaitingBookingAck(false);
           setCustomPageMessage(bookingAckTimeoutMessage);
         }, 20000);
 
@@ -319,10 +333,12 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
 
       runDecidedAction();
+      setIsAwaitingBookingAck(false);
       // We don't want to show this message as it doesn't look good in Embed.
       // triggerToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
+      setIsAwaitingBookingAck(false);
       if (e?.message) {
         return void triggerToast(e?.message, "error");
       }
@@ -345,8 +361,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     if (hasErrors) {
       return;
     }
+    if (isEmbedAckEnabled) {
+      setIsAwaitingBookingAck(true);
+    }
     onSubmit(response);
   };
+
+  const isSubmitInProgress = responseMutation.isPending || isAwaitingBookingAck;
 
   return (
     <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
@@ -359,8 +380,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               form={form}
               response={response}
               setResponse={setResponse}
-              submitLoading={responseMutation.isPending}
-              submitDisabled={responseMutation.isPending}
+              submitLoading={isSubmitInProgress}
+              submitDisabled={isSubmitInProgress}
               showErrors={showErrors}
               className="w-full"
               calendarEventType={calendarEventType}

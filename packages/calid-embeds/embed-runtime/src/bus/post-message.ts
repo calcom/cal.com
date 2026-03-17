@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type PostMessageType = "set_calendar_event_type" | "set_field_value" | "booking_acknowledgement";
+export type PostMessageType = "set_calendar_event_type" | "set_field_value" | "form_submission_acknowledgement";
 
 export type PostMessageEnvelope<T extends PostMessageType = PostMessageType> = {
   version: 1;
@@ -13,7 +13,7 @@ export type PostMessageEnvelope<T extends PostMessageType = PostMessageType> = {
 export type PostMessageHandlers = Partial<{
   set_calendar_event_type: (msg: PostMessageEnvelope<"set_calendar_event_type">, meta: MessageMeta) => void;
   set_field_value: (msg: PostMessageEnvelope<"set_field_value">, meta: MessageMeta) => void;
-  booking_acknowledgement: (msg: PostMessageEnvelope<"booking_acknowledgement">, meta: MessageMeta) => void;
+  form_submission_acknowledgement: (msg: PostMessageEnvelope<"form_submission_acknowledgement">, meta: MessageMeta) => void;
 }>;
 
 export type MessageMeta = {
@@ -73,7 +73,7 @@ export const parsePostMessage = (data: unknown): PostMessageEnvelope | null => {
   if (!base.success) return null;
   const envelope = base.data as PostMessageEnvelope;
   const type = envelope.type as PostMessageType;
-  if (!["set_calendar_event_type", "set_field_value", "booking_acknowledgement"].includes(type)) {
+  if (!["set_calendar_event_type", "set_field_value", "form_submission_acknowledgement"].includes(type)) {
     return null;
   }
   if (type === "set_calendar_event_type") {
@@ -82,7 +82,7 @@ export const parsePostMessage = (data: unknown): PostMessageEnvelope | null => {
   if (type === "set_field_value") {
     return setFieldValuePayloadSchema.safeParse(envelope.payload).success ? envelope : null;
   }
-  if (type === "booking_acknowledgement") {
+  if (type === "form_submission_acknowledgement") {
     return bookingAcknowledgementPayloadSchema.safeParse(envelope.payload).success ? envelope : null;
   }
   return null;
