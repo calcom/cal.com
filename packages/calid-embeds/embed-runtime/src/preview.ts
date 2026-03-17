@@ -30,6 +30,7 @@ const embedType = params.get("embedType");
 const calLink = params.get("calLink");
 const bookerUrl = params.get("bookerUrl");
 const embedLibUrl = params.get("embedLibUrl");
+const loaderUrl = params.get("loaderUrl");
 
 if (!bookerUrl || !embedLibUrl) throw new Error('Missing "bookerUrl" or "embedLibUrl"');
 if (!isTrusted(embedLibUrl)) throw new Error('Invalid "embedLibUrl"');
@@ -80,13 +81,16 @@ pw.Cal.fingerprint = process.env.EMBED_PUBLIC_EMBED_FINGER_PRINT;
 pw.Cal.version = process.env.EMBED_PUBLIC_EMBED_VERSION;
 pw.Cal("init", { origin: bookerUrl });
 
+const config = loaderUrl ? { loaderUrl } : undefined;
+
 if (embedType === "inline") {
-  pw.Cal("inline", { elementOrSelector: "#my-embed", calLink });
+  pw.Cal("inline", { elementOrSelector: "#my-embed", calLink, config });
 } else if (embedType === "floating-popup") {
-  pw.Cal("floatingButton", { calLink, attributes: { id: "my-floating-button" } });
+  pw.Cal("floatingButton", { calLink, attributes: { id: "my-floating-button" }, config });
 } else if (embedType === "element-click") {
   const btn = document.createElement("button");
   btn.setAttribute("data-cal-link", calLink);
+  if (config) btn.setAttribute("data-cal-config", JSON.stringify(config));
   btn.innerHTML = "I am a button that exists on your website";
   document.body.appendChild(btn);
 }

@@ -29,6 +29,7 @@ export function makeInlineHtml({
     `<div id="skeleton-container" style="${skeletonContainerStyle}">` +
     `<div id="skeleton" style="${skeletonStyle}" class="absolute z-highest">${skeletonContent}</div>` +
     `<div id="wrapper" style="top:50%; left:50%; transform:translate(-50%,-50%)" class="absolute z-highest">` +
+    `<div class="custom-loader-wrapper"><img class="custom-loader-image" alt="Loading" /></div>` +
     `<div class="loader border-brand-default dark:border-darkmodebrand">` +
     `<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span></div>` +
     `<div id="error" style="transform:translate(-50%,-50%)" class="hidden">Something went wrong.</div>` +

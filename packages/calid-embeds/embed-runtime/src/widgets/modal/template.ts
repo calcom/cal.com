@@ -39,6 +39,7 @@ export function makeModalHtml({
 
   const loaderSection =
     `<div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">` +
+    `<div class="custom-loader-wrapper modal-loader"><img class="custom-loader-image" alt="Loading" /></div>` +
     `<div class="loader modal-loader border-brand-default dark:border-darkmodebrand">` +
     `<span class="loader-inner bg-brand dark:bg-darkmodebrand"></span></div></div>`;
 
