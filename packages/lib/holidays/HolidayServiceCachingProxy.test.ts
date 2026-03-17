@@ -6,6 +6,7 @@ vi.mock("@calcom/features/holidays/repositories/HolidayRepository", () => ({
     refreshCache: vi.fn(),
     findManyCachedHolidays: vi.fn(),
     findCachedHolidaysInRange: vi.fn(),
+    findCachedHolidaysInRangeForCountries: vi.fn(),
   },
 }));
 
@@ -24,6 +25,7 @@ vi.mock("./GoogleCalendarClient", () => {
 vi.mock("./constants", () => ({
   GOOGLE_HOLIDAY_CALENDARS: {
     US: { name: "United States", calendarId: "en.usa#holiday@group.v.calendar.google.com" },
+    DE: { name: "Germany", calendarId: "en.german#holiday@group.v.calendar.google.com" },
   },
   HOLIDAY_CACHE_DAYS: 7,
 }));
@@ -180,6 +182,86 @@ describe("HolidayServiceCachingProxy", () => {
       expect(result[0]).toHaveProperty("eventId");
       expect(result[0]).toHaveProperty("date");
       expect(result[0]).toHaveProperty("year");
+    });
+  });
+
+  describe("getHolidaysInRangeForCountries", () => {
+    it("returns holidays grouped by country code from a single query", async () => {
+      vi.mocked(HolidayRepository.findFirstCacheEntry).mockResolvedValue({
+        updatedAt: new Date("2026-01-14T00:00:00Z"),
+      } as never);
+      vi.mocked(HolidayRepository.findCachedHolidaysInRangeForCountries).mockResolvedValueOnce([
+        { id: "1", countryCode: "US", eventId: "ev1", name: "Independence Day", date: new Date("2026-07-04"), year: 2026 },
+        { id: "2", countryCode: "DE", eventId: "ev2", name: "Tag der Deutschen Einheit", date: new Date("2026-10-03"), year: 2026 },
+      ] as never);
+
+      const proxy = new HolidayServiceCachingProxy();
+      const result = await proxy.getHolidaysInRangeForCountries({
+        countryCodes: ["US", "DE"],
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2026-12-31"),
+      });
+
+      expect(result.get("US")).toHaveLength(1);
+      expect(result.get("US")![0].name).toBe("Independence Day");
+      expect(result.get("DE")).toHaveLength(1);
+      expect(result.get("DE")![0].name).toBe("Tag der Deutschen Einheit");
+      expect(HolidayRepository.findCachedHolidaysInRangeForCountries).toHaveBeenCalledWith({
+        countryCodes: ["US", "DE"],
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2026-12-31"),
+      });
+    });
+
+    it("refreshes stale caches before fetching", async () => {
+      // First country (US) is stale, second (DE) is fresh
+      vi.mocked(HolidayRepository.findFirstCacheEntry)
+        .mockResolvedValueOnce(null as never) // US 2026 — no cache entry = stale
+        .mockResolvedValueOnce({ updatedAt: new Date("2026-01-14T00:00:00Z") } as never); // DE 2026 — fresh
+      vi.mocked(HolidayRepository.refreshCache).mockResolvedValue(undefined as never);
+      mockFetchHolidays.mockResolvedValue([]);
+      vi.mocked(HolidayRepository.findCachedHolidaysInRangeForCountries).mockResolvedValueOnce([] as never);
+
+      const proxy = new HolidayServiceCachingProxy();
+      await proxy.getHolidaysInRangeForCountries({ countryCodes: ["US", "DE"], startDate: new Date("2026-01-01"), endDate: new Date("2026-12-31") });
+
+      // US should trigger refresh, DE should not
+      expect(HolidayRepository.refreshCache).toHaveBeenCalledTimes(1);
+      expect(HolidayRepository.refreshCache).toHaveBeenCalledWith(
+        expect.objectContaining({ countryCode: "US", year: 2026 })
+      );
+    });
+
+    it("returns empty map for empty country codes array", async () => {
+      vi.mocked(HolidayRepository.findCachedHolidaysInRangeForCountries).mockResolvedValueOnce([] as never);
+
+      const proxy = new HolidayServiceCachingProxy();
+      const result = await proxy.getHolidaysInRangeForCountries({
+        countryCodes: [],
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2026-12-31"),
+      });
+
+      expect(result.size).toBe(0);
+    });
+
+    it("handles range spanning multiple years and refreshes each year per country", async () => {
+      // Both US and DE are stale for both years
+      vi.mocked(HolidayRepository.findFirstCacheEntry).mockResolvedValue(null as never);
+      vi.mocked(HolidayRepository.refreshCache).mockResolvedValue(undefined as never);
+      mockFetchHolidays.mockResolvedValue([]);
+      vi.mocked(HolidayRepository.findCachedHolidaysInRangeForCountries).mockResolvedValueOnce([] as never);
+
+      const proxy = new HolidayServiceCachingProxy();
+      await proxy.getHolidaysInRangeForCountries({
+        countryCodes: ["US", "DE"],
+        startDate: new Date("2025-12-01"),
+        endDate: new Date("2026-02-01"),
+      });
+
+      // 2 countries × 2 years = 4 staleness checks and 4 refreshes
+      expect(HolidayRepository.findFirstCacheEntry).toHaveBeenCalledTimes(4);
+      expect(HolidayRepository.refreshCache).toHaveBeenCalledTimes(4);
     });
   });
 

@@ -63,6 +63,24 @@ export class HolidayServiceCachingProxy {
     }
   }
 
+  private toCachedHoliday(h: {
+    id: string;
+    countryCode: string;
+    eventId: string;
+    name: string;
+    date: Date;
+    year: number;
+  }): CachedHoliday {
+    return {
+      id: h.id,
+      countryCode: h.countryCode,
+      eventId: h.eventId,
+      name: h.name,
+      date: h.date,
+      year: h.year,
+    };
+  }
+
   async getHolidaysForCountry(countryCode: string, year: number): Promise<CachedHoliday[]> {
     const isStale = await this.isCacheStale(countryCode, year);
 
@@ -72,16 +90,7 @@ export class HolidayServiceCachingProxy {
 
     const cached = await HolidayRepository.findManyCachedHolidays({ countryCode, year });
 
-    return cached.map(
-      (h): CachedHoliday => ({
-        id: h.id,
-        countryCode: h.countryCode,
-        eventId: h.eventId,
-        name: h.name,
-        date: h.date,
-        year: h.year,
-      })
-    );
+    return cached.map((h) => this.toCachedHoliday(h));
   }
 
   async getHolidaysInRange(countryCode: string, startDate: Date, endDate: Date): Promise<CachedHoliday[]> {
@@ -101,16 +110,55 @@ export class HolidayServiceCachingProxy {
       endDate,
     });
 
-    return cached.map(
-      (h): CachedHoliday => ({
-        id: h.id,
-        countryCode: h.countryCode,
-        eventId: h.eventId,
-        name: h.name,
-        date: h.date,
-        year: h.year,
+    return cached.map((h) => this.toCachedHoliday(h));
+  }
+
+  async getHolidaysInRangeForCountries({
+    countryCodes,
+    startDate,
+    endDate,
+  }: {
+    countryCodes: string[];
+    startDate: Date;
+    endDate: Date;
+  }): Promise<Map<string, CachedHoliday[]>> {
+    const startYear = dayjs(startDate).year();
+    const endYear = dayjs(endDate).year();
+
+    // TODO: Move cache refresh to a background job (e.g. Trigger.dev cron) so the critical
+    // path never pays for a Google Calendar API call. Currently, the unlucky request that
+    // hits a stale cache adds ~300ms+ per country per year of external API latency.
+    await Promise.all(
+      countryCodes.flatMap((cc) => {
+        const refreshPromises: Promise<void>[] = [];
+        for (let year = startYear; year <= endYear; year++) {
+          refreshPromises.push(
+            this.isCacheStale(cc, year).then((isStale) => {
+              if (isStale) return this.refreshCache(cc, year);
+            })
+          );
+        }
+        return refreshPromises;
       })
     );
+
+    const cached = await HolidayRepository.findCachedHolidaysInRangeForCountries({
+      countryCodes,
+      startDate,
+      endDate,
+    });
+
+    const byCountry = new Map<string, CachedHoliday[]>();
+    for (const h of cached) {
+      const entry = this.toCachedHoliday(h);
+      const list = byCountry.get(h.countryCode);
+      if (list) {
+        list.push(entry);
+      } else {
+        byCountry.set(h.countryCode, [entry]);
+      }
+    }
+    return byCountry;
   }
 }
 

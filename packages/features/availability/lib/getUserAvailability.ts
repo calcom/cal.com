@@ -225,6 +225,18 @@ export interface IUserAvailabilityService {
   holidayRepo: PrismaHolidayRepository;
 }
 
+/**
+ * Holidays are stored as midnight UTC (e.g., 2025-12-25T00:00:00Z).
+ * Expand the date range to full-day boundaries so holiday lookups
+ * don't miss holidays when checking a narrow time slot like 10:00-11:00.
+ */
+export function getHolidayDateRange({ start, end }: { start: Date; end: Date }): { start: Date; end: Date } {
+  return {
+    start: dayjs(start).utc().startOf("day").toDate(),
+    end: dayjs(end).utc().endOf("day").toDate(),
+  };
+}
+
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 

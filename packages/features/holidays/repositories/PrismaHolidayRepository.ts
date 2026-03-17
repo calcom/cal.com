@@ -16,4 +16,14 @@ export class PrismaHolidayRepository {
       select,
     });
   }
+
+  async findManyUserSettings(params: {
+    userIds: number[];
+    select: { countryCode: boolean; disabledIds: boolean };
+  }) {
+    return this.prismaClient.userHolidaySettings.findMany({
+      where: { userId: { in: params.userIds } },
+      select: { userId: true, ...params.select },
+    });
+  }
 }

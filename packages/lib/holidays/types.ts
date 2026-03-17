@@ -13,3 +13,6 @@ export interface Country {
 export interface HolidayWithStatus extends Holiday {
   enabled: boolean;
 }
+
+/** Map from country code to sorted holiday dates for that country. */
+export type HolidayDatesByCountry = Map<string, Array<{ date: string; holiday: Holiday }>>

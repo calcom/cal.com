@@ -8,7 +8,7 @@ import {
   type HolidayServiceCachingProxy,
 } from "./HolidayServiceCachingProxy";
 import { CONFLICT_CHECK_MONTHS, GOOGLE_HOLIDAY_CALENDARS } from "./constants";
-import type { Country, Holiday, HolidayWithStatus } from "./types";
+import type { Country, Holiday, HolidayDatesByCountry, HolidayWithStatus } from "./types";
 
 export interface ConflictingBooking {
   id: number;
@@ -100,6 +100,15 @@ export class HolidayService {
     };
   }
 
+  private toHolidayDates(holidays: CachedHoliday[]): Array<{ date: string; holiday: Holiday }> {
+    return holidays
+      .map((h) => ({
+        date: dayjs(h.date).utc().format("YYYY-MM-DD"),
+        holiday: this.cachedHolidayToHoliday(h),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
   async getHolidaysForCountry(countryCode: string, year?: number): Promise<Holiday[]> {
     const targetYear = year || dayjs().year();
     const cached = await this.cachingProxy.getHolidaysForCountry(countryCode, targetYear);
@@ -142,14 +151,33 @@ export class HolidayService {
 
     const holidays = await this.cachingProxy.getHolidaysInRange(countryCode, startDate, endDate);
 
-    return holidays
-      .filter((h) => !disabledSet.has(h.eventId))
-      .map((h) => ({
-        // Use UTC for consistent date formatting
-        date: dayjs(h.date).utc().format("YYYY-MM-DD"),
-        holiday: this.cachedHolidayToHoliday(h),
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    return this.toHolidayDates(holidays.filter((h) => !disabledSet.has(h.eventId)));
+  }
+
+  /**
+   * Batch-fetch holiday dates for multiple country codes in a single DB query.
+   * Does not apply disabledIds filtering — callers should filter per-user downstream.
+   */
+  async getHolidayDatesInRangeForCountries({
+    countryCodes,
+    startDate,
+    endDate,
+  }: {
+    countryCodes: string[];
+    startDate: Date;
+    endDate: Date;
+  }): Promise<HolidayDatesByCountry> {
+    const byCountry = await this.cachingProxy.getHolidaysInRangeForCountries({
+      countryCodes,
+      startDate,
+      endDate,
+    });
+
+    const result: HolidayDatesByCountry = new Map();
+    for (const [countryCode, holidays] of Array.from(byCountry)) {
+      result.set(countryCode, this.toHolidayDates(holidays));
+    }
+    return result;
   }
 
   async hasHolidaysInRange(

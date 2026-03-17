@@ -74,6 +74,30 @@ export class HolidayRepository {
     });
   }
 
+  static async findCachedHolidaysInRangeForCountries({
+    countryCodes,
+    startDate,
+    endDate,
+  }: {
+    countryCodes: string[];
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return prisma.holidayCache.findMany({
+      where: {
+        countryCode: { in: countryCodes },
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: {
+        date: "asc",
+      },
+      select: holidayCacheSelect,
+    });
+  }
+
   static async deleteManyCacheEntries({ countryCode, year }: { countryCode: string; year: number }) {
     return prisma.holidayCache.deleteMany({
       where: {

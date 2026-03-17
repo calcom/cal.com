@@ -7,6 +7,7 @@ vi.mock("./HolidayServiceCachingProxy", () => ({
   getHolidayServiceCachingProxy: vi.fn(() => ({
     getHolidaysForCountry: vi.fn(),
     getHolidaysInRange: vi.fn(),
+    getHolidaysInRangeForCountries: vi.fn(),
   })),
   HolidayServiceCachingProxy: vi.fn(),
 }));
@@ -42,6 +43,7 @@ describe("HolidayService", () => {
     mockCachingProxy = {
       getHolidaysForCountry: vi.fn(),
       getHolidaysInRange: vi.fn(),
+      getHolidaysInRangeForCountries: vi.fn(),
     } as unknown as ReturnType<typeof getHolidayServiceCachingProxy>;
     vi.mocked(getHolidayServiceCachingProxy).mockReturnValue(mockCachingProxy);
     holidayService = new HolidayService(mockCachingProxy);
@@ -123,6 +125,114 @@ describe("HolidayService", () => {
       );
 
       expect(holidays).toEqual([]);
+    });
+  });
+
+  describe("getHolidayDatesInRangeForCountries", () => {
+    it("should batch-fetch and transform holidays for multiple countries", async () => {
+      const gbHoliday: CachedHoliday = {
+        id: "3",
+        countryCode: "GB",
+        eventId: "boxing_day_2025",
+        name: "Boxing Day",
+        date: new Date("2025-12-26"),
+        year: 2025,
+      };
+
+      vi.mocked(mockCachingProxy.getHolidaysInRangeForCountries).mockResolvedValue(
+        new Map([
+          [
+            "US",
+            [mockHolidays[1]], // Christmas
+          ],
+          ["GB", [gbHoliday]],
+        ])
+      );
+
+      const result = await holidayService.getHolidayDatesInRangeForCountries({
+        countryCodes: ["US", "GB"],
+        startDate: new Date("2025-12-01"),
+        endDate: new Date("2025-12-31"),
+      });
+
+      expect(result.size).toBe(2);
+
+      const usHolidays = result.get("US");
+      expect(usHolidays).toHaveLength(1);
+      expect(usHolidays![0].holiday.name).toBe("Christmas Day");
+      expect(usHolidays![0].date).toBe("2025-12-25");
+
+      const gbHolidays = result.get("GB");
+      expect(gbHolidays).toHaveLength(1);
+      expect(gbHolidays![0].holiday.name).toBe("Boxing Day");
+      expect(gbHolidays![0].date).toBe("2025-12-26");
+    });
+
+    it("should return empty map when no country codes are provided", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRangeForCountries).mockResolvedValue(new Map());
+
+      const result = await holidayService.getHolidayDatesInRangeForCountries({
+        countryCodes: [],
+        startDate: new Date("2025-12-01"),
+        endDate: new Date("2025-12-31"),
+      });
+
+      expect(result.size).toBe(0);
+    });
+
+    it("should return empty array for country code with no holidays in range", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRangeForCountries).mockResolvedValue(
+        new Map([["US", []]])
+      );
+
+      const result = await holidayService.getHolidayDatesInRangeForCountries({
+        countryCodes: ["US"],
+        startDate: new Date("2025-03-01"),
+        endDate: new Date("2025-03-31"),
+      });
+
+      expect(result.get("US")).toEqual([]);
+    });
+
+    it("should omit country codes not returned by the caching proxy", async () => {
+      // Requested ["US", "DE"] but proxy only returns US (DE has no cached data)
+      vi.mocked(mockCachingProxy.getHolidaysInRangeForCountries).mockResolvedValue(
+        new Map([["US", [mockHolidays[0]]]])
+      );
+
+      const result = await holidayService.getHolidayDatesInRangeForCountries({
+        countryCodes: ["US", "DE"],
+        startDate: new Date("2025-01-01"),
+        endDate: new Date("2025-12-31"),
+      });
+
+      expect(result.size).toBe(1);
+      expect(result.has("US")).toBe(true);
+      expect(result.has("DE")).toBe(false);
+    });
+
+    it("should sort holidays by date within each country", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRangeForCountries).mockResolvedValue(
+        new Map([
+          [
+            "US",
+            [
+              mockHolidays[1], // Christmas (Dec 25)
+              mockHolidays[0], // New Year's (Jan 1)
+            ],
+          ],
+        ])
+      );
+
+      const result = await holidayService.getHolidayDatesInRangeForCountries({
+        countryCodes: ["US"],
+        startDate: new Date("2025-01-01"),
+        endDate: new Date("2025-12-31"),
+      });
+
+      const usHolidays = result.get("US")!;
+      expect(usHolidays[0].date).toBe("2025-01-01");
+      expect(usHolidays[1].date).toBe("2025-12-25");
     });
   });
 });
