@@ -488,6 +488,7 @@ export function BookingHistory({ bookingUid }: BookingHistoryProps) {
 
     if (
       error.message === BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION ||
+      error.message === BookingAuditErrorCode.EVENT_TYPE_NOT_IN_ORGANIZATION ||
       error.message === BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED ||
       error.message === BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED ||
       error.message === BookingAuditErrorCode.BOOKING_HAS_NO_OWNER

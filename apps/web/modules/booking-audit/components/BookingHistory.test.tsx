@@ -119,6 +119,22 @@ describe("BookingHistory - error handling", () => {
     expect(screen.getByTestId("alert-title")).toHaveTextContent("audit_logs_not_available");
   });
 
+  it("should show not available info alert when error message is EVENT_TYPE_NOT_IN_ORGANIZATION", () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: {
+        message: BookingAuditErrorCode.EVENT_TYPE_NOT_IN_ORGANIZATION,
+      },
+    });
+
+    render(<BookingHistory bookingUid="test-uid" />);
+
+    const alert = screen.getByTestId("alert");
+    expect(alert).toHaveAttribute("data-severity", "info");
+    expect(screen.getByTestId("alert-title")).toHaveTextContent("audit_logs_not_available");
+  });
+
   it("should show generic red error message for unknown errors", () => {
     mockUseQuery.mockReturnValue({
       data: undefined,
