@@ -380,5 +380,46 @@ describe("v2021-10-20/BookingPayloadBuilder", () => {
 
       expect(p.assignmentReason).toEqual(legacyArray);
     });
+
+    it("BOOKING_REJECTED: defaults destinationCalendar to [] (legacy parity)", () => {
+      const dto = createMockDTO(WebhookTriggerEvents.BOOKING_REJECTED, {
+        evt: { ...mockCalendarEvent, destinationCalendar: undefined },
+      });
+      const result = builder.build(dto);
+      const p = result.payload as EventPayloadType;
+
+      expect(p.destinationCalendar).toEqual([]);
+    });
+
+    it("BOOKING_REJECTED: preserves destinationCalendar when present", () => {
+      const destCal = [{ id: "cal-1", integration: "google_calendar" }];
+      const dto = createMockDTO(WebhookTriggerEvents.BOOKING_REJECTED, {
+        evt: {
+          ...mockCalendarEvent,
+          destinationCalendar: destCal as CalendarEvent["destinationCalendar"],
+        },
+      });
+      const result = builder.build(dto);
+      const p = result.payload as EventPayloadType;
+
+      expect(p.destinationCalendar).toEqual(destCal);
+    });
+
+    it("BOOKING_REJECTED: passes response labels through without normalization", () => {
+      const dto = createMockDTO(WebhookTriggerEvents.BOOKING_REJECTED, {
+        evt: {
+          ...mockCalendarEvent,
+          responses: {
+            name: { value: "Test Testson", label: "name" },
+            email: { value: "test@example.com", label: "email" },
+          },
+        },
+      });
+      const result = builder.build(dto);
+      const p = result.payload as EventPayloadType;
+
+      expect(p.responses?.name?.label).toBe("name");
+      expect(p.responses?.email?.label).toBe("email");
+    });
   });
 });

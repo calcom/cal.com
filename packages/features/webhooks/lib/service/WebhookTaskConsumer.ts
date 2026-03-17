@@ -3,6 +3,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type {
   BookingCreatedDTO,
+  BookingRejectedDTO,
   BookingRequestedDTO,
   BookingRescheduledDTO,
   WebhookEventDTO,
@@ -248,6 +249,12 @@ export class WebhookTaskConsumer {
             ...(bookingPayload.metadata ?? {}),
           },
         } satisfies BookingRequestedDTO;
+      case WebhookTriggerEvents.BOOKING_REJECTED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          status: "REJECTED",
+        } satisfies BookingRejectedDTO;
       default:
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
         return null;

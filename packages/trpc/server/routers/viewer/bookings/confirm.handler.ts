@@ -9,7 +9,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
-import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
@@ -23,8 +23,6 @@ import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -36,7 +34,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
@@ -543,34 +541,14 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       tracingLogger: log,
     });
 
-    // send BOOKING_REJECTED webhooks
-    const subscriberOptions: GetSubscriberOptions = {
-      userId: booking.userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
+    await getWebhookProducer().queueBookingRejectedWebhook({
+      bookingUid: booking.uid,
+      eventTypeId: booking.eventTypeId ?? undefined,
       teamId,
+      userId: booking.userId ?? undefined,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
-    };
-    const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
-    };
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-    const webhookData: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: booking.eventType?.id,
-      status: BookingStatus.REJECTED,
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-    };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
+    });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);
     try {
@@ -583,7 +561,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           ...evt,
           bookerUrl: bookerUrl,
           eventType: {
-            ...eventTypeInfo,
             slug: booking.eventType?.slug as string,
           },
         },

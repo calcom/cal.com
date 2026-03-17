@@ -103,8 +103,8 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           },
         });
 
-      case WebhookTriggerEvents.BOOKING_REJECTED:
-        return this.buildBookingPayload({
+      case WebhookTriggerEvents.BOOKING_REJECTED: {
+        const result = this.buildBookingPayload({
           booking: dto.booking,
           eventType: dto.eventType,
           evt: dto.evt,
@@ -112,6 +112,14 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
         });
+        // Legacy parity: the old confirm.handler built the CalendarEvent inline
+        // with `destinationCalendar` defaulting to `[]` and response labels
+        // passed through without normalization.
+        const p = result.payload as Record<string, unknown>;
+        p.destinationCalendar = dto.evt.destinationCalendar ?? [];
+        p.responses = dto.evt.responses;
+        return result;
+      }
 
       case WebhookTriggerEvents.BOOKING_RESCHEDULED:
         return this.buildBookingPayload({
