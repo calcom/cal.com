@@ -25,7 +25,7 @@ const textAreaStyles = cva(
         md: "px-3 py-2",
       },
       variant: {
-        default: "bg-default border-default text-default",
+        default: "bg-default border-default hover:border-emphasis text-default",
         underline: [
           "bg-transparent border-0 border-b border-brand-default rounded-none px-0",
           "shadow-none focus:shadow-none focus:ring-0",
