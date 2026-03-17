@@ -140,6 +140,14 @@ const hasRules = (route: EditFormRoute) => {
   );
 };
 
+const hasAttributeRoutingRules = (route: EditFormRoute) => {
+  if (isRouter(route)) return false;
+  return (
+    route.attributesQueryValue?.children1 &&
+    Object.keys(route.attributesQueryValue.children1).length > 0
+  );
+};
+
 function getEmptyQueryValue() {
   return buildEmptyQueryValue();
 }
@@ -945,14 +953,19 @@ const Route = ({
         (option) => option.value === route.fallbackAction?.value
       );
 
-  // Only show fallback section when main action has a valid event type selected
-  // This prevents showing an empty fallback action selector before user selects an event type
+  // Only show fallback section when:
+  // 1. Main action has a valid event type selected
+  // 2. It's a team form in an organization (attribute routing is only for org teams)
+  // 3. Attribute routing rules are configured (fallback only applies when attribute routing is used)
   const hasValidEventTypeSelected =
     route.action?.type === RouteActionType.EventTypeRedirectUrl &&
     (route.action?.eventTypeId || route.action?.value);
 
   const matchingMembersFallbackRoute =
-    hasValidEventTypeSelected && isTeamForm ? (
+    hasValidEventTypeSelected &&
+    isTeamForm &&
+    isOrganization &&
+    hasAttributeRoutingRules(route) ? (
       <div className="p-2 mt-2 rounded-2xl border bg-default border-subtle cal-query-builder-container">
         <div className="ml-2 flex items-center gap-0.5">
           <div className="p-1 rounded-lg border border-subtle">
