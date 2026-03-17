@@ -23,11 +23,8 @@ export { BookingAttendeesService } from "@calcom/features/bookings/services/Book
 export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
-<<<<<<< rajiv/cal-7136-api-v2-remove-an-existing-attendee
-=======
 export {
   type BookingWithUserAndEventDetails,
   bookingWithUserAndEventDetailsSelect,
 } from "@calcom/prisma/selects/booking";
->>>>>>> main
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
