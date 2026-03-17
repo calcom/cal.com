@@ -2,8 +2,7 @@ import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
-import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
@@ -235,6 +234,7 @@ export class CredentialRepository {
     delegationCredentialId: string;
     data: {
       key: Prisma.InputJsonValue;
+      encryptedKey?: string | null;
     };
   }) {
     return prisma.credential.updateMany({
@@ -266,7 +266,13 @@ export class CredentialRepository {
     });
   }
 
-  static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
+  static async updateWhereId({
+    id,
+    data,
+  }: {
+    id: number;
+    data: { key: Prisma.InputJsonValue; encryptedKey?: string | null };
+  }) {
     return prisma.credential.update({ where: { id }, data });
   }
 
