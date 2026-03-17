@@ -174,7 +174,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
             <div className="flex justify-center">
               {
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={dataUri} alt="Two-factor authentication QR code" />
+                <img src={dataUri} alt={t("two_factor_auth_qr_code")} />
               }
             </div>
             <p className="text-center font-mono text-xs">{secret}</p>
