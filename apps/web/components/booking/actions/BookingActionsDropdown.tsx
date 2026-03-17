@@ -478,10 +478,9 @@ export function BookingActionsDropdown({
           paymentCurrency={booking.payment[0].currency}
         />
       )}
-      {isCalVideoLocation && (
+      {isCalVideoLocation && viewRecordingsDialogIsOpen && (
         <ViewRecordingsDialog
           booking={booking}
-          isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
           timeFormat={booking.loggedInUser.userTimeFormat ?? null}
         />

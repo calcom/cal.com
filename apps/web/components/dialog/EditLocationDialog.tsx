@@ -99,7 +99,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       teamId,
       organizerUserId: booking.userId ?? undefined,
     },
-    { enabled: hasOrganizer }
+    { enabled: hasOrganizer && isOpenDialog }
   );
 
   useEffect(() => {

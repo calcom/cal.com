@@ -21,7 +21,6 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 
 interface IViewRecordingsDialog {
   booking?: BookingItem;
-  isOpenDialog: boolean;
   setIsOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
   timeFormat: number | null;
 }
@@ -158,7 +157,7 @@ const ViewRecordingsList = ({ roomName, hasTeamPlan }: { roomName: string; hasTe
 
 export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
+  const { setIsOpenDialog, booking, timeFormat } = props;
 
   const { hasTeamPlan, isPending: isTeamPlanStatusLoading } = useHasTeamPlan();
 
@@ -176,7 +175,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   })} `;
 
   return (
-    <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+    <Dialog open onOpenChange={setIsOpenDialog}>
       <DialogContent enableOverflow>
         <DialogHeader title={t("recordings_title")} subtitle={subtitle} />
         {roomName ? (

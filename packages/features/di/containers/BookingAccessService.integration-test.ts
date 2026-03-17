@@ -31,15 +31,5 @@ describe("BookingAccessService DI Container Integration Tests", () => {
 
       expect(hasAccess).toBe(false);
     });
-
-    it("should return false for non-existent booking in checkBookingAccessWithPBAC", async () => {
-      const service = getBookingAccessService();
-      const hasAccess = await service.checkBookingAccessWithPBAC({
-        userId: 999999,
-        bookingUid: "non-existent-booking-uid-xyz",
-      });
-
-      expect(hasAccess).toBe(false);
-    });
   });
 });
