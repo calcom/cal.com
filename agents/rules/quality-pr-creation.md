@@ -29,6 +29,17 @@ Create pull requests in draft mode by default, so that a human reviewer can mark
 - For most PRs, you only need to run linting and type checking
 - E2E tests will only run if PR has "ready-for-e2e" label
 
+## UI Changes Require Screenshots
+
+When a PR includes **visible UI changes** (not backend-only or logic changes), add screenshots to the PR description:
+
+- **New UI**: Include "after" screenshots showing the new interface
+- **UI fixes/modifications**: Include both "before" and "after" screenshots so reviewers can see what changed
+
+Only include screenshots for the specific components or pages that visually changed. Do not add screenshots for PRs that only modify backend code, API logic, or non-visual functionality.
+
+**Limit**: Even if multiple areas of the product changed, include a maximum of 4 screenshots. Pick the most important or representative changes.
+
 ## Before Pushing
 
 1. Run `yarn type-check:ci --force` to check types

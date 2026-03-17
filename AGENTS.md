@@ -217,6 +217,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - [ ] No secrets or API keys committed
 - [ ] UI strings added to translation files
 - [ ] Created as draft PR
+- [ ] Screenshots added for visible UI changes (max 4; before/after for fixes, after-only for new UI)
 
 ## When Stuck
 
