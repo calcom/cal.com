@@ -185,12 +185,16 @@ export const getEventTypesFromGroup = async ({
     },
   });
 
+  const filteredEventTypesWithHostFlag = membership
+    ? eventTypesWithHostFlag.filter((eventType) => !(eventType.teamId === teamId && eventType.hidden))
+    : eventTypesWithHostFlag;
+
   if (membership && membership.team.isPrivate)
-    eventTypesWithHostFlag.forEach((evType) => {
+    filteredEventTypesWithHostFlag.forEach((evType) => {
       evType.users = [];
       evType.hosts = [];
       evType.children = [];
     });
 
-  return { eventTypes: eventTypesWithHostFlag, nextCursor: nextCursor ?? undefined };
+  return { eventTypes: filteredEventTypesWithHostFlag, nextCursor: nextCursor ?? undefined };
 };

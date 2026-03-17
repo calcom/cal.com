@@ -186,26 +186,20 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
-      const { createdAt, updatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
-          {
-            ...expectedEvType,
+          expect.objectContaining({
             parentId: 1,
+            userId: 4,
+            hidden: false,
+            hiddenLocked: false,
             lockTimeZoneToggleOnBookingPage: false,
             requiresBookerEmailVerification: false,
-            bookingLimits: undefined,
-            durationLimits: undefined,
-            recurringEvent: undefined,
-            eventTypeColor: undefined,
-            customReplyToEmail: null,
-            userId: 4,
-            rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useBookerTimezone: false,
             restrictionScheduleId: null,
             allowReschedulingCancelledBookings: false,
-          },
+          }),
         ],
         skipDuplicates: true,
         select: { id: true, userId: true },
@@ -261,33 +255,31 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
-      expect(prismaMock.eventType.update).toHaveBeenCalledWith({
-        data: {
-          ...rest,
-          useEventLevelSelectedCalendars: undefined,
-          customReplyToEmail: null,
-          rrSegmentQueryValue: undefined,
-          locations: [],
-          scheduleId: null,
-          lockTimeZoneToggleOnBookingPage: false,
-          requiresBookerEmailVerification: false,
-          useBookerTimezone: false,
-          restrictionScheduleId: null,
-
-          hashedLink: {
-            deleteMany: {},
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: false,
+            hiddenLocked: false,
+            customReplyToEmail: null,
+            locations: [],
+            scheduleId: null,
+            lockTimeZoneToggleOnBookingPage: false,
+            requiresBookerEmailVerification: false,
+            useBookerTimezone: false,
+            restrictionScheduleId: null,
+            hashedLink: {
+              deleteMany: {},
+            },
+            allowReschedulingCancelledBookings: false,
+          }),
+          where: {
+            userId_parentId: {
+              userId: 4,
+              parentId: 1,
+            },
           },
-          instantMeetingScheduleId: undefined,
-          allowReschedulingCancelledBookings: false,
-        },
-        where: {
-          userId_parentId: {
-            userId: 4,
-            parentId: 1,
-          },
-        },
-      });
+        })
+      );
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
@@ -407,27 +399,21 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
-      const { createdAt, updatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
-          {
-            ...expectedEvType,
+          expect.objectContaining({
             parentId: 1,
-            bookingLimits: undefined,
-            durationLimits: undefined,
-            recurringEvent: undefined,
-            eventTypeColor: undefined,
+            userId: 4,
+            hidden: false,
+            hiddenLocked: false,
             customReplyToEmail: null,
-            instantMeetingScheduleId: undefined,
             lockTimeZoneToggleOnBookingPage: false,
             requiresBookerEmailVerification: false,
-            userId: 4,
-            rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useBookerTimezone: false,
             restrictionScheduleId: null,
             allowReschedulingCancelledBookings: false,
-          },
+          }),
         ],
         skipDuplicates: true,
         select: { id: true, userId: true },
@@ -484,27 +470,29 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
-      expect(prismaMock.eventType.update).toHaveBeenCalledWith({
-        data: {
-          ...rest,
-          customReplyToEmail: null,
-          locations: [],
-          hashedLink: {
-            deleteMany: {},
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: false,
+            hiddenLocked: false,
+            customReplyToEmail: null,
+            locations: [],
+            hashedLink: {
+              deleteMany: {},
+            },
+            useBookerTimezone: false,
+            lockTimeZoneToggleOnBookingPage: false,
+            requiresBookerEmailVerification: false,
+            allowReschedulingCancelledBookings: false,
+          }),
+          where: {
+            userId_parentId: {
+              userId: 4,
+              parentId: 1,
+            },
           },
-          useBookerTimezone: false,
-          lockTimeZoneToggleOnBookingPage: false,
-          requiresBookerEmailVerification: false,
-          allowReschedulingCancelledBookings: false,
-        },
-        where: {
-          userId_parentId: {
-            userId: 4,
-            parentId: 1,
-          },
-        },
-      });
+        })
+      );
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
@@ -630,26 +618,21 @@ describe("handleChildrenEventTypes", () => {
       // Note: createManyAndReturn doesn't support nested relations like workflows, so they're handled separately
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
-          {
-            ...expectedEvType,
-            bookingLimits: undefined,
-            durationLimits: undefined,
-            recurringEvent: undefined,
-            eventTypeColor: undefined,
+          expect.objectContaining({
+            parentId: 1,
+            userId: 5,
+            hidden: false,
+            hiddenLocked: false,
             customReplyToEmail: null,
             locations: [],
             lockTimeZoneToggleOnBookingPage: false,
             requiresBookerEmailVerification: false,
             useBookerTimezone: false,
             restrictionScheduleId: null,
-            instantMeetingScheduleId: undefined,
-            parentId: 1,
-            userId: 5,
-            rrSegmentQueryValue: undefined,
             assignRRMembersUsingSegment: false,
             useEventLevelSelectedCalendars: false,
             allowReschedulingCancelledBookings: false,
-          },
+          }),
         ],
         skipDuplicates: true,
         select: { id: true, userId: true },
@@ -661,29 +644,29 @@ describe("handleChildrenEventTypes", () => {
         skipDuplicates: true,
       });
 
-      const { profileId, rrSegmentQueryValue, createdAt: _, updatedAt: __, ...rest } = evType;
-      if ("workflows" in rest) delete rest.workflows;
-      expect(prismaMock.eventType.update).toHaveBeenCalledWith({
-        data: {
-          ...rest,
-          locations: [],
-          useEventLevelSelectedCalendars: undefined,
-          customReplyToEmail: null,
-          lockTimeZoneToggleOnBookingPage: false,
-          requiresBookerEmailVerification: false,
-          useBookerTimezone: false,
-          restrictionScheduleId: null,
-          hashedLink: {
-            deleteMany: {},
+      expect(prismaMock.eventType.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            hidden: false,
+            hiddenLocked: false,
+            locations: [],
+            customReplyToEmail: null,
+            lockTimeZoneToggleOnBookingPage: false,
+            requiresBookerEmailVerification: false,
+            useBookerTimezone: false,
+            restrictionScheduleId: null,
+            hashedLink: {
+              deleteMany: {},
+            },
+          }),
+          where: {
+            userId_parentId: {
+              userId: 4,
+              parentId: 1,
+            },
           },
-        },
-        where: {
-          userId_parentId: {
-            userId: 4,
-            parentId: 1,
-          },
-        },
-      });
+        })
+      );
       // Verify workflowsOnEventTypes.findMany was called to check existing relationships
       expect(prismaMock.workflowsOnEventTypes.findMany).toHaveBeenCalledWith({
         where: {

@@ -168,6 +168,7 @@ model EventType {
   length            Int
   offsetStart       Int     @default(0)
   hidden            Boolean @default(false)
+  hiddenLocked      Boolean @default(false)
   hosts             Host[]
 
   users  User[] @relation("user_eventtype")

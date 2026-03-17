@@ -1,18 +1,17 @@
-import type { DeepMockProxy } from "vitest-mock-extended";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import {
   allManagedEventTypeProps,
   allManagedEventTypePropsForZod,
   unlockedManagedEventTypePropsForZod,
 } from "@calcom/prisma/zod-utils";
-import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
+import type { DeepMockProxy } from "vitest-mock-extended";
 
 interface handleChildrenEventTypesProps {
   eventTypeId: number;
@@ -156,7 +155,21 @@ export default async function handleChildrenEventTypes({
       message: "No managed event type",
     };
 
-  // Retrieving the updated event type
+  const parentEvent = await prisma.eventType.findUnique({
+    where: { id: parentId },
+    select: { hidden: true, hiddenLocked: true },
+  });
+
+  if (parentEvent) {
+    await prisma.eventType.updateMany({
+      where: { parentId },
+      data: {
+        hidden: parentEvent.hidden,
+        hiddenLocked: parentEvent.hiddenLocked,
+      },
+    });
+  }
+
   const eventType = await prisma.eventType.findFirst({
     where: { id: parentId },
     select: allManagedEventTypeProps,
@@ -198,7 +211,7 @@ export default async function handleChildrenEventTypes({
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
   // Store result for existent event types deletion process
-  let deletedExistentEventTypes = undefined;
+  let deletedExistentEventTypes;
 
   // New users added
   if (newUserIds?.length) {
@@ -236,6 +249,7 @@ export default async function handleChildrenEventTypes({
         userId,
         parentId,
         hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+        hiddenLocked: parentEvent?.hiddenLocked ?? false,
         /**
          * RR Segment isn't applicable for managed event types.
          */
@@ -356,6 +370,7 @@ export default async function handleChildrenEventTypes({
             ...updatePayloadFiltered,
             rrHostSubsetEnabled: false,
             hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+            hiddenLocked: parentEvent?.hiddenLocked ?? false,
             ...("schedule" in unlockedFieldProps ? {} : { scheduleId: eventType.scheduleId || null }),
             restrictionScheduleId: null,
             useBookerTimezone: false,

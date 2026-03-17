@@ -133,6 +133,7 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     length: z.number().min(1).optional(),
     offsetStart: z.number().int().optional(),
     hidden: z.boolean().optional(),
+    hiddenLocked: z.boolean().optional(),
     userId: z.number().int().nullable().optional(),
     profileId: z.number().int().nullable().optional(),
     teamId: z.number().int().nullable().optional(),

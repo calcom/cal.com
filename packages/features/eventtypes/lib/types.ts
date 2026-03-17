@@ -6,7 +6,12 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/children
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { CancellationReasonRequirement, MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  CancellationReasonRequirement,
+  MembershipRole,
+  PeriodType,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import type {
   BookerLayoutSettings,
   CustomInputSchema,
@@ -119,6 +124,7 @@ export type FormValues = {
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
   hidden: boolean;
+  hiddenLocked: boolean;
   hideCalendarNotes: boolean;
   multiplePrivateLinks: (string | PrivateLinkWithOptions)[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
@@ -357,6 +363,7 @@ export type EventTypeUpdateInput = {
   length?: number;
   offsetStart?: number;
   hidden?: boolean;
+  hiddenLocked?: boolean;
   userId?: number | null;
   profileId?: number | null;
   teamId?: number | null;
@@ -497,7 +504,7 @@ export type SelectClassNames = {
 };
 
 // Re-export schemas from server-safe location
-export { EventTypeDuplicateInput, createEventTypeInput } from "./schemas";
+export { createEventTypeInput, EventTypeDuplicateInput } from "./schemas";
 
 export type FormValidationResult = {
   isValid: boolean;

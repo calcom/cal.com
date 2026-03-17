@@ -4,12 +4,12 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
@@ -20,7 +20,6 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
   DEFAULT_DARK_BRAND_COLOR,
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -48,7 +47,6 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
-import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapper,
@@ -56,12 +54,13 @@ import {
 } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
 import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import type { Dispatch, SetStateAction } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
-
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -135,6 +134,7 @@ export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   showBookerLayoutSelector: boolean;
   localeOptions?: { value: string; label: string }[];
   verifiedEmails?: string[];
+  currentUserMembership?: { role: string } | null;
 };
 
 type CalendarSettingsProps = {
@@ -407,7 +407,7 @@ const calendarComponents = {
   },
 };
 
-export const EventAdvancedTab = ({
+const EventAdvancedTab = ({
   eventType,
   team,
   calendarsQuery,
@@ -419,6 +419,7 @@ export const EventAdvancedTab = ({
   verifiedEmails,
   orgId,
   localeOptions,
+  currentUserMembership,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -625,6 +626,40 @@ export const EventAdvancedTab = ({
         showToast={showToast}
         eventType={eventType}
       />
+
+      {isManagedEventType &&
+        (currentUserMembership?.role === "ADMIN" || currentUserMembership?.role === "OWNER") && (
+          <>
+            <Controller
+              name="hidden"
+              render={({ field: { value, onChange } }) => (
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                  title={t("hidden_event")}
+                  description={t("hidden_event_description")}
+                  checked={value}
+                  onCheckedChange={onChange}
+                />
+              )}
+            />
+            <Controller
+              name="hiddenLocked"
+              render={({ field: { value, onChange } }) => (
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                  title={t("hidden_event_lock")}
+                  description={t("hidden_event_lock_description")}
+                  checked={value}
+                  onCheckedChange={onChange}
+                />
+              )}
+            />
+          </>
+        )}
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
@@ -1628,3 +1663,5 @@ export const EventAdvancedTab = ({
     </div>
   );
 };
+
+export default EventAdvancedTab;
