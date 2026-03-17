@@ -235,6 +235,7 @@ export class CredentialRepository {
     delegationCredentialId: string;
     data: {
       key: Prisma.InputJsonValue;
+      encryptedKey?: string | null;
     };
   }) {
     return prisma.credential.updateMany({
@@ -266,7 +267,13 @@ export class CredentialRepository {
     });
   }
 
-  static async updateWhereId({ id, data }: { id: number; data: { key: Prisma.InputJsonValue } }) {
+  static async updateWhereId({
+    id,
+    data,
+  }: {
+    id: number;
+    data: { key: Prisma.InputJsonValue; encryptedKey?: string | null };
+  }) {
     return prisma.credential.update({ where: { id }, data });
   }
 

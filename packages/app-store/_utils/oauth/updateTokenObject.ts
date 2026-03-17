@@ -1,6 +1,7 @@
 import type z from "zod";
 
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { encryptSecret } from "@calcom/lib/crypto/keyring";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -47,12 +48,15 @@ export const updateTokenObjectInDb = async (
     | {
         authStrategy: "oauth";
         credentialId: number;
+        credentialType: string;
       }
   )
 ) => {
-  const { tokenObject } = args;
+  const { tokenObject, credentialType } = args;
+  const encryptedKey = tryEncryptTokenObject(tokenObject, credentialType);
+
   if (args.authStrategy === "jwt") {
-    const { userId, delegatedToId, credentialType, appId } = args;
+    const { userId, delegatedToId, appId } = args;
     if (!userId) {
       log.error("Cannot update token object in DB for Delegation as userId is not present");
       return;
@@ -67,6 +71,7 @@ export const updateTokenObjectInDb = async (
       delegationCredentialId: delegatedToId,
       data: {
         key: tokenObject as Prisma.InputJsonValue,
+        ...(encryptedKey !== undefined && { encryptedKey }),
       },
     });
 
@@ -79,6 +84,7 @@ export const updateTokenObjectInDb = async (
         type: credentialType,
         key: tokenObject as Prisma.InputJsonValue,
         appId,
+        ...(encryptedKey !== undefined && { encryptedKey }),
       });
     }
   } else {
@@ -87,7 +93,25 @@ export const updateTokenObjectInDb = async (
       id: credentialId,
       data: {
         key: tokenObject as Prisma.InputJsonValue,
+        ...(encryptedKey !== undefined && { encryptedKey }),
       },
     });
   }
 };
+
+function tryEncryptTokenObject(
+  tokenObject: z.infer<typeof OAuth2UniversalSchemaWithCalcomBackwardCompatibility>,
+  credentialType: string
+): string | null | undefined {
+  try {
+    const envelope = encryptSecret({
+      ring: "CREDENTIALS",
+      plaintext: JSON.stringify(tokenObject),
+      aad: { type: credentialType },
+    });
+    return JSON.stringify(envelope);
+  } catch {
+    // Encryption keyring not configured — skip updating encryptedKey
+    return undefined;
+  }
+}

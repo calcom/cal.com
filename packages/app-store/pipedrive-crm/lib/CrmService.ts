@@ -135,6 +135,7 @@ class PipedriveCrmService implements CRM {
         await updateTokenObjectInDb({
           authStrategy: "oauth",
           credentialId: credential.id,
+          credentialType: credential.type,
           tokenObject: newTokenObject,
         });
       },
