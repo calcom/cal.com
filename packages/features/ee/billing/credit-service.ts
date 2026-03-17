@@ -7,7 +7,7 @@ import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { type PrismaTransaction, prisma } from "@calcom/prisma";
-import { CreditType, CreditUsageType } from "@calcom/prisma/enums";
+import { CreditTransferReason, CreditType, CreditUsageType } from "@calcom/prisma/enums";
 import type { TFunction } from "i18next";
 import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
 import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
@@ -798,65 +798,84 @@ export class CreditService {
     };
   }
 
-  async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
-    return await prisma.$transaction(async (tx) => {
-      // Get team's credit balance
-      const teamCreditBalance = await this.creditsRepository.findCreditBalance({ teamId }, tx);
+  async moveCreditsFromTeamToOrg({
+    teamId,
+    orgId,
+    createdById,
+    tx,
+  }: {
+    teamId: number;
+    orgId: number;
+    createdById?: number;
+    tx: PrismaTransaction;
+  }) {
+    // Get team's credit balance
+    const teamCreditBalance = await this.creditsRepository.findCreditBalance({ teamId }, tx);
 
-      if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
-        log.info("No credits to transfer from team to org", { teamId, orgId });
-        return;
-      }
+    if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
+      log.info("No credits to transfer from team to org", { teamId, orgId });
+      return;
+    }
 
-      // Get or create org's credit balance
-      let orgCreditBalance = await this.creditsRepository.findCreditBalance({ teamId: orgId }, tx);
+    // Get or create org's credit balance
+    let orgCreditBalance = await this.creditsRepository.findCreditBalance({ teamId: orgId }, tx);
 
-      if (!orgCreditBalance) {
-        orgCreditBalance = await this.creditsRepository.createCreditBalance(
-          {
-            teamId: orgId,
-          },
-          tx
-        );
-      }
-
-      const creditsToTransfer = teamCreditBalance.additionalCredits;
-
-      // Transfer credits from team to org
-      await this.creditsRepository.updateCreditBalance(
-        {
-          teamId,
-          data: {
-            additionalCredits: 0,
-          },
-        },
-        tx
-      );
-
-      await this.creditsRepository.updateCreditBalance(
+    if (!orgCreditBalance) {
+      orgCreditBalance = await this.creditsRepository.createCreditBalance(
         {
           teamId: orgId,
-          data: {
-            additionalCredits: {
-              increment: creditsToTransfer,
-            },
-          },
         },
         tx
       );
+    }
 
-      log.info("Successfully transferred credits from team to org", {
-        teamId,
-        orgId,
-        creditsTransferred: creditsToTransfer,
-      });
+    const creditsToTransfer = teamCreditBalance.additionalCredits;
 
-      return {
-        creditsTransferred: creditsToTransfer,
+    // Transfer credits from team to org
+    await this.creditsRepository.updateCreditBalance(
+      {
         teamId,
-        orgId,
-      };
+        data: {
+          additionalCredits: 0,
+        },
+      },
+      tx
+    );
+
+    await this.creditsRepository.updateCreditBalance(
+      {
+        teamId: orgId,
+        data: {
+          additionalCredits: {
+            increment: creditsToTransfer,
+          },
+        },
+      },
+      tx
+    );
+
+    await this.creditsRepository.createCreditTransferLog(
+      {
+        fromCreditBalanceId: teamCreditBalance.id,
+        toCreditBalanceId: orgCreditBalance.id,
+        credits: creditsToTransfer,
+        reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+        createdById,
+      },
+      tx
+    );
+
+    log.info("Successfully transferred credits from team to org", {
+      teamId,
+      orgId,
+      creditsTransferred: creditsToTransfer,
     });
+
+    return {
+      creditsTransferred: creditsToTransfer,
+      teamId,
+      orgId,
+    };
   }
 
   private async _getUserIdsWithoutCredits({

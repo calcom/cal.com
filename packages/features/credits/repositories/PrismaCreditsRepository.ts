@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import type { PrismaTransaction } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import type { CreditType } from "@calcom/prisma/enums";
+import type { CreditTransferReason, CreditType } from "@calcom/prisma/enums";
 
 export class PrismaCreditsRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
@@ -264,6 +264,22 @@ export class PrismaCreditsRepository {
         credits,
         creditBalanceId,
       },
+    });
+  }
+
+  async createCreditTransferLog(
+    data: {
+      fromCreditBalanceId: string;
+      toCreditBalanceId: string;
+      credits: number;
+      reason: CreditTransferReason;
+      createdById?: number;
+    },
+    tx?: PrismaTransaction
+  ) {
+    const prismaClient = tx ?? this.prismaClient;
+    return prismaClient.creditTransferLog.create({
+      data,
     });
   }
 }

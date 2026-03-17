@@ -4,7 +4,7 @@ import type { PrismaCreditsRepository } from "@calcom/features/credits/repositor
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { CreditType } from "@calcom/prisma/enums";
+import { CreditTransferReason, CreditType } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreditService } from "./credit-service";
 import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
@@ -83,6 +83,9 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
       MONTHLY: "MONTHLY",
       ADDITIONAL: "ADDITIONAL",
     },
+    CreditTransferReason: {
+      TEAM_UPGRADED_TO_ORG: "TEAM_UPGRADED_TO_ORG",
+    },
   };
 });
 
@@ -116,6 +119,7 @@ function createMockCreditsRepository() {
     createCreditBalance: vi.fn(),
     createCreditExpenseLog: vi.fn(),
     createCreditPurchaseLog: vi.fn(),
+    createCreditTransferLog: vi.fn(),
   } as unknown as PrismaCreditsRepository;
 }
 
@@ -143,7 +147,10 @@ describe("CreditService", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
 
-    mockStripe.prices.retrieve.mockResolvedValue({ id: "price_123", unit_amount: 1000 });
+    mockStripe.prices.retrieve.mockResolvedValue({
+      id: "price_123",
+      unit_amount: 1000,
+    });
     mockStripe.customers.create.mockResolvedValue({ id: "cus_123" });
 
     mockCreditsRepository = createMockCreditsRepository();
@@ -183,7 +190,9 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
-        const noLimitReached = await creditService.hasAvailableCredits({ teamId: 1 });
+        const noLimitReached = await creditService.hasAvailableCredits({
+          teamId: 1,
+        });
         expect(noLimitReached).toBe(true);
 
         vi.mocked(mockCreditsRepository.findCreditBalance).mockResolvedValue({
@@ -193,7 +202,9 @@ describe("CreditService", () => {
           warningSentAt: null,
         });
 
-        const limitReachedLastMonth = await creditService.hasAvailableCredits({ teamId: 1 });
+        const limitReachedLastMonth = await creditService.hasAvailableCredits({
+          teamId: 1,
+        });
         expect(limitReachedLastMonth).toBe(true);
       });
 
@@ -697,7 +708,9 @@ describe("CreditService", () => {
         });
         vi.spyOn(CreditService.prototype, "_getTeamWithAvailableCredits").mockResolvedValue(null);
 
-        const hasAvailableCredits = await creditService.hasAvailableCredits({ userId: 1 });
+        const hasAvailableCredits = await creditService.hasAvailableCredits({
+          userId: 1,
+        });
         expect(hasAvailableCredits).toBe(true);
       });
 
@@ -1219,6 +1232,215 @@ describe("CreditService", () => {
         }),
         MOCK_TX
       );
+    });
+  });
+
+  describe("moveCreditsFromTeamToOrg", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should transfer credits from team to org and create transfer log", async () => {
+      const teamId = 1;
+      const orgId = 100;
+      const creditsToTransfer = 500;
+
+      vi.mocked(mockCreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "team-credit-balance-id",
+          additionalCredits: creditsToTransfer,
+          limitReachedAt: null,
+          warningSentAt: null,
+        })
+        .mockResolvedValueOnce({
+          id: "org-credit-balance-id",
+          additionalCredits: 100,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
+
+      vi.mocked(mockCreditsRepository.updateCreditBalance).mockResolvedValue({
+        id: "team-credit-balance-id",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+        teamId: teamId,
+        userId: null,
+      });
+
+      vi.mocked(mockCreditsRepository.createCreditTransferLog).mockResolvedValue({
+        id: "transfer-log-id",
+        fromCreditBalanceId: "team-credit-balance-id",
+        toCreditBalanceId: "org-credit-balance-id",
+        credits: creditsToTransfer,
+        reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+        createdById: 42,
+        createdAt: new Date(),
+      });
+
+      const result = await creditService.moveCreditsFromTeamToOrg({
+        teamId,
+        orgId,
+        createdById: 42,
+        tx: MOCK_TX,
+      });
+
+      expect(result).toEqual({
+        creditsTransferred: creditsToTransfer,
+        teamId,
+        orgId,
+      });
+
+      expect(mockCreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId }, MOCK_TX);
+      expect(mockCreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: orgId }, MOCK_TX);
+
+      expect(mockCreditsRepository.updateCreditBalance).toHaveBeenCalledWith(
+        {
+          teamId,
+          data: {
+            additionalCredits: 0,
+          },
+        },
+        MOCK_TX
+      );
+
+      expect(mockCreditsRepository.updateCreditBalance).toHaveBeenCalledWith(
+        {
+          teamId: orgId,
+          data: {
+            additionalCredits: {
+              increment: creditsToTransfer,
+            },
+          },
+        },
+        MOCK_TX
+      );
+
+      expect(mockCreditsRepository.createCreditTransferLog).toHaveBeenCalledWith(
+        {
+          fromCreditBalanceId: "team-credit-balance-id",
+          toCreditBalanceId: "org-credit-balance-id",
+          credits: creditsToTransfer,
+          reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+          createdById: 42,
+        },
+        MOCK_TX
+      );
+    });
+
+    it("should create org credit balance if it does not exist", async () => {
+      const teamId = 1;
+      const orgId = 100;
+      const creditsToTransfer = 200;
+
+      vi.mocked(mockCreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "team-credit-balance-id",
+          additionalCredits: creditsToTransfer,
+          limitReachedAt: null,
+          warningSentAt: null,
+        })
+        .mockResolvedValueOnce(null);
+
+      vi.mocked(mockCreditsRepository.createCreditBalance).mockResolvedValue({
+        id: "new-org-credit-balance-id",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+        teamId: orgId,
+        userId: null,
+      });
+
+      vi.mocked(mockCreditsRepository.updateCreditBalance).mockResolvedValue({
+        id: "team-credit-balance-id",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+        teamId: teamId,
+        userId: null,
+      });
+
+      vi.mocked(mockCreditsRepository.createCreditTransferLog).mockResolvedValue({
+        id: "transfer-log-id",
+        fromCreditBalanceId: "team-credit-balance-id",
+        toCreditBalanceId: "new-org-credit-balance-id",
+        credits: creditsToTransfer,
+        reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+        createdById: 42,
+        createdAt: new Date(),
+      });
+
+      const result = await creditService.moveCreditsFromTeamToOrg({
+        teamId,
+        orgId,
+        createdById: 42,
+        tx: MOCK_TX,
+      });
+
+      expect(result).toEqual({
+        creditsTransferred: creditsToTransfer,
+        teamId,
+        orgId,
+      });
+
+      expect(mockCreditsRepository.createCreditBalance).toHaveBeenCalledWith(
+        {
+          teamId: orgId,
+        },
+        MOCK_TX
+      );
+
+      expect(mockCreditsRepository.createCreditTransferLog).toHaveBeenCalledWith(
+        {
+          fromCreditBalanceId: "team-credit-balance-id",
+          toCreditBalanceId: "new-org-credit-balance-id",
+          credits: creditsToTransfer,
+          reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+          createdById: 42,
+        },
+        MOCK_TX
+      );
+    });
+
+    it("should not transfer credits when team has no credit balance", async () => {
+      const teamId = 1;
+      const orgId = 100;
+
+      vi.mocked(mockCreditsRepository.findCreditBalance).mockResolvedValueOnce(null);
+
+      const result = await creditService.moveCreditsFromTeamToOrg({
+        teamId,
+        orgId,
+        tx: MOCK_TX,
+      });
+
+      expect(result).toBeUndefined();
+
+      expect(mockCreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+      expect(mockCreditsRepository.createCreditTransferLog).not.toHaveBeenCalled();
+    });
+
+    it("should not transfer credits when team has zero credits", async () => {
+      const teamId = 1;
+      const orgId = 100;
+
+      vi.mocked(mockCreditsRepository.findCreditBalance).mockResolvedValueOnce({
+        id: "team-credit-balance-id",
+        additionalCredits: 0,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      const result = await creditService.moveCreditsFromTeamToOrg({
+        teamId,
+        orgId,
+        tx: MOCK_TX,
+      });
+
+      expect(result).toBeUndefined();
+
+      expect(mockCreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+      expect(mockCreditsRepository.createCreditTransferLog).not.toHaveBeenCalled();
     });
   });
 });

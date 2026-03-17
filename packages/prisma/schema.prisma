@@ -521,6 +521,7 @@ model User {
   filterSegments                 FilterSegment[]
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
+  creditTransferLogs             CreditTransferLog[]
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
@@ -686,6 +687,8 @@ model CreditBalance {
   warningSentAt     DateTime?
   expenseLogs       CreditExpenseLog[]
   purchaseLogs      CreditPurchaseLog[]
+  outgoingTransfers CreditTransferLog[] @relation("FromCreditBalance")
+  incomingTransfers CreditTransferLog[] @relation("ToCreditBalance")
 }
 
 model CreditPurchaseLog {
@@ -724,6 +727,23 @@ model CreditExpenseLog {
 enum CreditType {
   MONTHLY
   ADDITIONAL
+}
+
+enum CreditTransferReason {
+  TEAM_UPGRADED_TO_ORG
+}
+
+model CreditTransferLog {
+  id                  String               @id @default(uuid())
+  fromCreditBalanceId String
+  fromCreditBalance   CreditBalance        @relation("FromCreditBalance", fields: [fromCreditBalanceId], references: [id], onDelete: Cascade)
+  toCreditBalanceId   String
+  toCreditBalance     CreditBalance        @relation("ToCreditBalance", fields: [toCreditBalanceId], references: [id], onDelete: Cascade)
+  credits             Int
+  reason              CreditTransferReason
+  createdById         Int?
+  createdBy           User?                @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt           DateTime             @default(now())
 }
 
 model OrganizationSettings {
