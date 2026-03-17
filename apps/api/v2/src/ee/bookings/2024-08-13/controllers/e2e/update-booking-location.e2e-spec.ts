@@ -477,6 +477,52 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         await credentialsRepositoryFixture.delete(googleCredential.id);
       });
 
+      it("should fall back to Cal Video when google-meet is requested but no Google Calendar credential exists", async () => {
+        const bookingWithoutGoogleCal = await bookingsRepositoryFixture.create({
+          uid: `no-gcal-booking-${randomString(10)}`,
+          title: "no google cal booking",
+          startTime: "2048-12-14T09:00:00.000Z",
+          endTime: "2048-12-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "google-meet",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingWithoutGoogleCal.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        // No Google Calendar credential → fell back to Cal Video, not Google Meet
+        expect(updatedBooking.location).not.toContain("meet.google.com");
+        expect(
+          updatedBooking.location?.startsWith("http") || updatedBooking.location === "integrations:daily"
+        ).toBe(true);
+
+        await bookingsRepositoryFixture.deleteById(bookingWithoutGoogleCal.id);
+      });
+
       it("can update location to type integration (office365-video)", async () => {
         const office365Credential = await credentialsRepositoryFixture.create(
           "office365_calendar",
