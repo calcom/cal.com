@@ -87,6 +87,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   );
 };
 const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...props }) => {
+  const { t } = useLocale();
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
@@ -98,7 +99,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
     <div className="mt-10">
       <div className="mb-2 flex items-center">
         <Avatar
-          alt={props.slug ? `${props.slug} app icon` : "App icon"}
+          alt={t("app_icon", { app: props.slug })}
           imageSrc={props.image} // if no image, use default avatar
           size="md"
           className="mt-1 inline-flex justify-center"
