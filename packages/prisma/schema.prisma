@@ -537,6 +537,7 @@ model User {
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
+  @@index([locked])
   @@map(name: "users")
 }
 
