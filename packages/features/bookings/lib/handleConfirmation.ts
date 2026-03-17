@@ -6,7 +6,7 @@ import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -414,9 +414,8 @@ export async function handleConfirmation(args: {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const featuresRepository = getFeaturesRepository();
   const isBookingAuditEnabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    ? await getTeamFeatureRepository().checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);

@@ -1,7 +1,7 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { HighWaterMarkRepository } from "@calcom/features/ee/billing/repository/highWaterMark/HighWaterMarkRepository";
 import { MonthlyProrationTeamRepository } from "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
 
@@ -20,7 +20,7 @@ export interface HighWaterMarkServiceDeps {
   repository?: HighWaterMarkRepository;
   teamRepository?: MonthlyProrationTeamRepository;
   billingService?: IBillingProviderService;
-  featuresRepository?: IFeaturesRepository;
+  featuresRepository?: IFeatureRepository;
 }
 
 export class HighWaterMarkService {
@@ -28,14 +28,14 @@ export class HighWaterMarkService {
   private repository: HighWaterMarkRepository;
   private teamRepository: MonthlyProrationTeamRepository;
   private billingService?: IBillingProviderService;
-  private featuresRepository: IFeaturesRepository;
+  private featuresRepository: IFeatureRepository;
 
   constructor(deps?: HighWaterMarkServiceDeps) {
     this.logger = deps?.logger || log;
     this.repository = deps?.repository || new HighWaterMarkRepository();
     this.teamRepository = deps?.teamRepository || new MonthlyProrationTeamRepository();
     this.billingService = deps?.billingService;
-    this.featuresRepository = deps?.featuresRepository || getFeaturesRepository();
+    this.featuresRepository = deps?.featuresRepository || getFeatureRepository();
   }
 
   async shouldApplyHighWaterMark(teamId: number): Promise<boolean> {

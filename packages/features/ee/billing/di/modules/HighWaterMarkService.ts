@@ -1,5 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import { moduleLoader as triggerDevLoggerServiceModule } from "@calcom/features/di/shared/services/triggerDevLogger.service";
 import { HighWaterMarkService } from "@calcom/features/ee/billing/service/highWaterMark/HighWaterMarkService";
 
@@ -22,7 +22,7 @@ const loadModule = bindModuleToClassOnToken({
     repository: highWaterMarkRepositoryModuleLoader,
     teamRepository: monthlyProrationTeamRepositoryModuleLoader,
     billingService: billingProviderServiceModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
+    featuresRepository: featureRepositoryModuleLoader,
   },
 });
 

@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
@@ -17,7 +17,7 @@ const log = logger.getSubLogger({ prefix: ["SeatBillingStrategyFactory"] });
 
 export interface ISeatBillingStrategyFactoryDeps {
   billingPeriodService: BillingPeriodService;
-  featuresRepository: IFeaturesRepository;
+  featuresRepository: IFeatureRepository;
   billingProviderService: IBillingProviderService;
   highWaterMarkRepository: HighWaterMarkRepository;
   highWaterMarkService: HighWaterMarkService;

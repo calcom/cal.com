@@ -1,3 +1,4 @@
+export type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 export type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 export type {
   CreateRoleData,

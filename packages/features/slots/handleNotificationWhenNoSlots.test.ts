@@ -16,13 +16,6 @@ vi.mock("@calcom/features/redis/RedisService", () => {
   };
 });
 
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn(function () {
-    return {
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-    };
-  }),
-}));
 
 vi.mock("@calcom/emails/organization-email-service", () => ({
   OrganizationEmailService: vi.fn().mockImplementation(() => ({

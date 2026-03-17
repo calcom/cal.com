@@ -17,7 +17,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -274,9 +274,8 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
-  const featuresRepository = getFeaturesRepository();
   const isBookingAuditEnabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    ? await getTeamFeatureRepository().checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
   const subscriberOptions: GetSubscriberOptions = {

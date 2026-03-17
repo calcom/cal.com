@@ -17,14 +17,13 @@ export const scheduleMonthlyProration = schedules.task({
     const { MonthlyProrationTeamRepository } = await import(
       "@calcom/features/ee/billing/repository/proration/MonthlyProrationTeamRepository"
     );
-    const { getFeaturesRepository } = await import("@calcom/features/di/containers/FeaturesRepository");
+    const { getFeatureRepository } = await import("@calcom/features/di/containers/FeatureRepository");
     const triggerDevLogger = new TriggerDevLogger();
     const log = triggerDevLogger.getSubLogger({
       name: "MonthlyProrationSchedule",
     });
 
-    const featuresRepository = getFeaturesRepository();
-    const isEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+    const isEnabled = await getFeatureRepository().checkIfFeatureIsEnabledGlobally("monthly-proration");
 
     if (!isEnabled) {
       log.info("Monthly proration feature is disabled");

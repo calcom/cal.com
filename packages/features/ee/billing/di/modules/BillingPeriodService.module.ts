@@ -1,5 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
 import { DI_TOKENS } from "../tokens";
 import { billingPeriodRepositoryModuleLoader } from "./BillingPeriodRepository";
@@ -15,7 +15,7 @@ const loadModule = bindModuleToClassOnToken({
   classs: BillingPeriodService,
   depsMap: {
     repository: billingPeriodRepositoryModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
+    featuresRepository: featureRepositoryModuleLoader,
   },
 });
 

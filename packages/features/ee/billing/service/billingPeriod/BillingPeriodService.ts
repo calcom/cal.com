@@ -1,8 +1,8 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
@@ -25,18 +25,18 @@ export interface BillingPeriodInfo {
 export interface BillingPeriodServiceDeps {
   logger?: Logger<unknown>;
   repository?: BillingPeriodRepository;
-  featuresRepository?: IFeaturesRepository;
+  featuresRepository?: IFeatureRepository;
 }
 
 export class BillingPeriodService {
   private logger: Logger<unknown>;
   private repository: BillingPeriodRepository;
-  private featuresRepository: IFeaturesRepository;
+  private featuresRepository: IFeatureRepository;
 
   constructor(deps?: BillingPeriodServiceDeps) {
     this.logger = deps?.logger || log;
     this.repository = deps?.repository || new BillingPeriodRepository();
-    this.featuresRepository = deps?.featuresRepository || getFeaturesRepository();
+    this.featuresRepository = deps?.featuresRepository || getFeatureRepository();
   }
 
   async isAnnualPlan(teamId: number): Promise<boolean> {

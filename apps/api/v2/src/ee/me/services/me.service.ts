@@ -1,10 +1,10 @@
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import { sendChangeOfEmailVerification } from "@calcom/platform-libraries/emails";
+import { PrismaFeatureRepository } from "@/lib/repositories/prisma-feature.repository";
 import type { Prisma } from "@calcom/prisma/client";
 
 export interface UpdateMeResult {
@@ -16,7 +16,7 @@ export class MeService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly schedulesService: SchedulesService_2024_04_15,
-    private readonly featuresRepository: PrismaFeaturesRepository
+    private readonly featureRepository: PrismaFeatureRepository
   ) {}
 
   async updateMe(params: {
@@ -38,7 +38,7 @@ export class MeService {
 
     const isEmailVerificationEnabled = user.isPlatformManaged
       ? false
-      : await this.featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+      : await this.featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
     const hasEmailBeenChanged = update.email && user.email !== update.email;
     const newEmail = update.email;

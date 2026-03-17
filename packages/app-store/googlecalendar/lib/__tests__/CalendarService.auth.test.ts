@@ -1,5 +1,4 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
   setCredentialsMock,

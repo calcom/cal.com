@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import { describe, expect, it, vi } from "vitest";
 import type { ITeamBillingDataRepository } from "../../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { BillingPeriodInfo } from "../../billingPeriod/BillingPeriodService";
@@ -15,12 +15,12 @@ function createMockBillingPeriodService(info: BillingPeriodInfo) {
 
 function createMockFeaturesRepository(
   enabledFlags: Record<string, boolean>
-): IFeaturesRepository {
+): IFeatureRepository {
   return {
     checkIfFeatureIsEnabledGlobally: vi.fn(
       async (slug: string) => enabledFlags[slug] ?? false
     ),
-  } as unknown as IFeaturesRepository;
+  } as unknown as IFeatureRepository;
 }
 
 function createMockBillingProviderService(): IBillingProviderService {

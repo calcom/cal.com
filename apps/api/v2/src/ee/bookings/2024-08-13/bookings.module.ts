@@ -30,7 +30,7 @@ import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.m
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
+import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -109,7 +109,7 @@ import { UsersModule } from "@/modules/users/users.module";
     CalVideoOutputService,
     BookingPbacGuard,
     BookingLocationService_2024_08_13,
-    PrismaFeaturesRepository,
+    PrismaTeamFeatureRepository,
   ],
   controllers: [
     BookingsController_2024_08_13,

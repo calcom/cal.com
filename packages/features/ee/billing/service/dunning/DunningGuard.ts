@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 
 import type { BlockableAction, DunningPolicy, DunningStatus } from "./DunningState";
@@ -29,7 +29,7 @@ export interface DunningCheckResult {
 
 export interface IDunningGuardDeps {
   dunningServiceFactory: DunningServiceFactory;
-  featuresRepository: IFeaturesRepository;
+  featuresRepository: IFeatureRepository;
   enterpriseSlugs: string[];
   seatBillingStrategyFactory: {
     createByTeamId: (teamId: number) => Promise<{ strategyName: string }>;

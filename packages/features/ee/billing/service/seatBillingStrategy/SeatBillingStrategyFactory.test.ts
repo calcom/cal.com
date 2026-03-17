@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ActiveUserBillingService } from "../../active-user/services/ActiveUserBillingService";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
@@ -35,16 +35,14 @@ function createMockBillingPeriodService() {
 }
 
 function createMockFeaturesRepository(): {
-  [K in keyof IFeaturesRepository]: ReturnType<typeof vi.fn>;
+  [K in keyof IFeatureRepository]: ReturnType<typeof vi.fn>;
 } {
   return {
     checkIfFeatureIsEnabledGlobally: vi.fn(),
-    checkIfUserHasFeature: vi.fn(),
-    checkIfUserHasFeatureNonHierarchical: vi.fn(),
-    checkIfTeamHasFeature: vi.fn(),
-    getTeamsWithFeatureEnabled: vi.fn(),
-    setUserFeatureState: vi.fn(),
-    setTeamFeatureState: vi.fn(),
+    getFeatureFlagMap: vi.fn(),
+    findAll: vi.fn(),
+    findBySlug: vi.fn(),
+    update: vi.fn(),
   };
 }
 
@@ -67,7 +65,7 @@ describe("SeatBillingStrategyFactory", () => {
 
     factory = new SeatBillingStrategyFactory({
       billingPeriodService: mockBillingPeriodService,
-      featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+      featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
       billingProviderService: {} as IBillingProviderService,
       highWaterMarkRepository: {} as HighWaterMarkRepository,
       highWaterMarkService: {} as HighWaterMarkService,

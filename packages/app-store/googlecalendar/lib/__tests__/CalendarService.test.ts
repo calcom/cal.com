@@ -2,7 +2,6 @@ import oAuthManagerMock, {
   defaultMockOAuthManager,
   setFullMockOAuthManagerRequest,
 } from "../../../tests/__mocks__/OAuthManager";
-import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
   adminMock,

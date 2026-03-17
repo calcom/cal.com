@@ -1,4 +1,4 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RawDunningRecord } from "../../repository/dunning/IDunningRepository";
@@ -20,16 +20,14 @@ vi.mock("@calcom/lib/logger", () => ({
 }));
 
 function createMockFeaturesRepository(): {
-  [K in keyof IFeaturesRepository]: ReturnType<typeof vi.fn>;
+  [K in keyof IFeatureRepository]: ReturnType<typeof vi.fn>;
 } {
   return {
     checkIfFeatureIsEnabledGlobally: vi.fn(),
-    checkIfUserHasFeature: vi.fn(),
-    checkIfUserHasFeatureNonHierarchical: vi.fn(),
-    checkIfTeamHasFeature: vi.fn(),
-    getTeamsWithFeatureEnabled: vi.fn(),
-    setUserFeatureState: vi.fn(),
-    setTeamFeatureState: vi.fn(),
+    getFeatureFlagMap: vi.fn(),
+    findAll: vi.fn(),
+    findBySlug: vi.fn(),
+    update: vi.fn(),
   };
 }
 
@@ -130,7 +128,7 @@ describe("DunningGuard", () => {
     };
     guard = new DunningGuard({
       dunningServiceFactory: mockDunningServiceFactory as unknown as DunningServiceFactory,
-      featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+      featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
       enterpriseSlugs,
       seatBillingStrategyFactory: mockStrategyFactory,
       teamRepository: mockTeamRepository,
@@ -391,7 +389,7 @@ describe("DunningGuard", () => {
         mockStrategyFactory.createByTeamId.mockRejectedValue(new Error("factory error"));
         guard = new DunningGuard({
           dunningServiceFactory: mockDunningServiceFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
@@ -498,7 +496,7 @@ describe("DunningGuard", () => {
 
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
@@ -529,7 +527,7 @@ describe("DunningGuard", () => {
 
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
@@ -556,7 +554,7 @@ describe("DunningGuard", () => {
 
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
@@ -586,7 +584,7 @@ describe("DunningGuard", () => {
 
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
@@ -615,7 +613,7 @@ describe("DunningGuard", () => {
 
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
-          featuresRepository: mockFeaturesRepo as unknown as IFeaturesRepository,
+          featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
           enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,

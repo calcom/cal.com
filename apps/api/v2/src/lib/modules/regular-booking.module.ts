@@ -4,6 +4,7 @@ import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.r
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
+import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
 import { BookingEmailSmsService } from "@/lib/services/booking-emails-sms-service";
@@ -21,10 +22,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module, Scope } from "@nestjs/common";
 
 import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
-import { getTeamFeatureRepository } from "@calcom/platform-libraries/repositories";
-
 import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
-import { TEAM_FEATURE_REPOSITORY } from "./team-feature-repository.tokens";
 
 @Module({
   imports: [PrismaModule, BookingAuditTaskerModule],
@@ -45,10 +43,7 @@ import { TEAM_FEATURE_REPOSITORY } from "./team-feature-repository.tokens";
       provide: WEBHOOK_PRODUCER,
       useFactory: () => getWebhookProducer(),
     },
-    {
-      provide: TEAM_FEATURE_REPOSITORY,
-      useFactory: () => getTeamFeatureRepository(),
-    },
+    PrismaTeamFeatureRepository,
     BookingAuditProducerService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
@@ -62,6 +57,6 @@ import { TEAM_FEATURE_REPOSITORY } from "./team-feature-repository.tokens";
     BookingEmailAndSmsTasker,
     RegularBookingService,
   ],
-  exports: [RegularBookingService, WEBHOOK_PRODUCER, TEAM_FEATURE_REPOSITORY],
+  exports: [RegularBookingService, WEBHOOK_PRODUCER, PrismaTeamFeatureRepository],
 })
 export class RegularBookingModule {}

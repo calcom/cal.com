@@ -1,5 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import { AbuseScoringService } from "../services/AbuseScoringService";
 import { moduleLoader as repositoryModuleLoader } from "./AbuseScoringRepository.module";
 import { moduleLoader as alerterModuleLoader } from "./SlackAbuseAlerter.module";
@@ -16,7 +16,7 @@ const loadModule = bindModuleToClassOnToken({
   classs: AbuseScoringService,
   depsMap: {
     repository: repositoryModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
+    featuresRepository: featureRepositoryModuleLoader,
     alerter: alerterModuleLoader,
   },
 });

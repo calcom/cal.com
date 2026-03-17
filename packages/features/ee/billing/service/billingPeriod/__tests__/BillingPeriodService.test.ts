@@ -32,8 +32,8 @@ const mockFeaturesRepository = {
   checkIfFeatureIsEnabledGlobally: vi.fn(),
 };
 
-vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
-  getFeaturesRepository: () => mockFeaturesRepository,
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => mockFeaturesRepository,
 }));
 
 describe("BillingPeriodService", () => {

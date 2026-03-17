@@ -4,7 +4,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -140,10 +140,9 @@ export class BookingAttendeesService {
     }
 
     const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(
+      ? await getTeamFeatureRepository().checkIfTeamHasFeature(
           organizationId,
           "booking-audit"
         )

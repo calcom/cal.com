@@ -211,7 +211,3 @@ export class RoleService {
 export class PermissionCheckService {
   checkPermissions = jest.fn();
 }
-
-export class FeaturesRepository {
-  getFeatures = jest.fn();
-}

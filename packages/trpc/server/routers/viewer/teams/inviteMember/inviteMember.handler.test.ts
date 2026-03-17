@@ -45,9 +45,18 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@calcom/features/ee/billing/di/containers/Billing")>();
+  return {
+    ...actual,
+    getDunningGuard: () => ({
+      canPerformAction: vi.fn().mockResolvedValue({ allowed: true }),
+    }),
+  };
+});
+
 // Mock PBAC dependencies - these need to be mocked before PermissionCheckService
 vi.mock("@calcom/features/pbac/infrastructure/repositories/PermissionRepository");
-vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/pbac/services/permission.service", () => {
   return {

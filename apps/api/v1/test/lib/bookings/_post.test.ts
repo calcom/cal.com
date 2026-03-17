@@ -156,14 +156,6 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
     }),
   },
 }));
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function () {
-    return {
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-      checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-    };
-  }),
-}));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
   default: vi.fn().mockResolvedValue([]),

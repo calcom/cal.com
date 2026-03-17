@@ -1,7 +1,7 @@
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
 import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
@@ -33,7 +33,7 @@ interface ProcessMonthlyProrationsParams {
 
 export interface MonthlyProrationServiceDeps {
   logger: ISimpleLogger;
-  featuresRepository: IFeaturesRepository;
+  featuresRepository: IFeatureRepository;
   billingService?: IBillingProviderService;
 }
 
@@ -42,7 +42,7 @@ export class MonthlyProrationService {
   private teamRepository: MonthlyProrationTeamRepository;
   private prorationRepository: MonthlyProrationRepository;
   private billingService: IBillingProviderService;
-  private featuresRepository: IFeaturesRepository;
+  private featuresRepository: IFeatureRepository;
 
   constructor(deps: MonthlyProrationServiceDeps);
   constructor(customLogger?: Logger<unknown>, billingService?: IBillingProviderService);
@@ -56,7 +56,7 @@ export class MonthlyProrationService {
       this.billingService = depsOrLogger.billingService || new StripeBillingService(stripe);
     } else {
       this.logger = (depsOrLogger as Logger<unknown>) || log;
-      this.featuresRepository = getFeaturesRepository();
+      this.featuresRepository = getFeatureRepository();
       this.billingService = billingService || new StripeBillingService(stripe);
     }
     this.teamRepository = new MonthlyProrationTeamRepository();

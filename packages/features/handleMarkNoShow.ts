@@ -11,7 +11,7 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -240,9 +240,8 @@ async function fireNoShowUpdated({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
   const isBookingAuditEnabled = orgId
-    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    ? await getTeamFeatureRepository().checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
   const isSomethingChanged =

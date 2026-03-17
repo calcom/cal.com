@@ -14,7 +14,13 @@ export class PrismaScheduleRepository extends BaseRepository {}
 export class PrismaSelectedSlotRepository extends BaseRepository {}
 export class PrismaTeamRepository extends BaseRepository {}
 export class PrismaUserRepository extends BaseRepository {}
-export class PrismaFeaturesRepository extends BaseRepository {}
+export class PrismaTeamFeatureRepository extends BaseRepository {}
+export function getFeatureRepository() {
+  return {};
+}
+export function getTeamFeatureRepository() {
+  return {};
+}
 export class PrismaRoutingFormResponseRepository extends BaseRepository {}
 export class PrismaOOORepository extends BaseRepository {}
 export class PrismaAttributeRepository extends BaseRepository {}

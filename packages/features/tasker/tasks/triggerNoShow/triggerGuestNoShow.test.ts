@@ -33,8 +33,8 @@ vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () 
   }),
 }));
 
-vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
-  getFeaturesRepository: vi.fn().mockReturnValue({
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn().mockReturnValue({
     checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
   }),
 }));

@@ -8,7 +8,7 @@ import { getBookingEventHandlerService } from "@calcom/features/bookings/di/Book
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
@@ -92,10 +92,9 @@ export const addGuestsHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
-  const featuresRepository = getFeaturesRepository();
   const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
-    ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+    ? await getTeamFeatureRepository().checkIfTeamHasFeature(organizationId, "booking-audit")
     : false;
 
   const addedAttendeeIds = bookingAttendees.attendees

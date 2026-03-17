@@ -459,7 +459,7 @@ export class FeatureOptInService implements IFeatureOptInService {
 
   /**
    * Set user's feature state.
-   * Delegates to FeaturesRepository.setUserFeatureState.
+   * Delegates to UserFeatureRepository.setUserFeatureState.
    * Throws an error if the feature is not scoped to "user".
    */
   async setUserFeatureState(

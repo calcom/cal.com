@@ -1,6 +1,6 @@
 import { createMemberships } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -69,21 +69,12 @@ const mockBillingService: IBillingProviderService = {
   createSubscriptionUsageRecord: vi.fn().mockResolvedValue(undefined),
 } satisfies IBillingProviderService;
 
-const mockFeaturesRepository: IFeaturesRepository = {
+const mockFeaturesRepository: IFeatureRepository = {
   checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-  checkIfUserHasFeature: vi.fn().mockResolvedValue(false),
-  getUserFeaturesStatus: vi.fn().mockResolvedValue({}),
-  checkIfUserHasFeatureNonHierarchical: vi.fn().mockResolvedValue(false),
-  checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  getTeamsWithFeatureEnabled: vi.fn().mockResolvedValue([]),
-  setUserFeatureState: vi.fn().mockResolvedValue(undefined),
-  setTeamFeatureState: vi.fn().mockResolvedValue(undefined),
-  getUserFeatureStates: vi.fn().mockResolvedValue({}),
-  getTeamsFeatureStates: vi.fn().mockResolvedValue({}),
-  getUserAutoOptIn: vi.fn().mockResolvedValue(false),
-  getTeamsAutoOptIn: vi.fn().mockResolvedValue({}),
-  setUserAutoOptIn: vi.fn().mockResolvedValue(undefined),
-  setTeamAutoOptIn: vi.fn().mockResolvedValue(undefined),
+  getFeatureFlagMap: vi.fn().mockResolvedValue({}),
+  findAll: vi.fn().mockResolvedValue([]),
+  findBySlug: vi.fn().mockResolvedValue(null),
+  update: vi.fn().mockResolvedValue(null),
 };
 
 const mockLogger = {

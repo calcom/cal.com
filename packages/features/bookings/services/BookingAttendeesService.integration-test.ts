@@ -45,8 +45,8 @@ vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () 
 }));
 
 const mockCheckIfTeamHasFeature = vi.fn();
-vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
-  getFeaturesRepository: () => ({
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: () => ({
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
   }),
 }));
