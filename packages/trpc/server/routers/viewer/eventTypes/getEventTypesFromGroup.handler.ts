@@ -45,6 +45,24 @@ export const getEventTypesFromGroup = async ({
   const shouldListUserEvents =
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
 
+  const membership = teamId
+    ? await prisma.membership.findFirst({
+        where: {
+          userId: ctx.user.id,
+          teamId,
+          accepted: true,
+          role: "MEMBER",
+        },
+        include: {
+          team: {
+            select: {
+              isPrivate: true,
+            },
+          },
+        },
+      })
+    : null;
+
   const eventTypes: EventType[] = [];
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
 
@@ -124,6 +142,11 @@ export const getEventTypesFromGroup = async ({
         limit,
         cursor,
         where: {
+          ...(membership
+            ? {
+                hidden: false,
+              }
+            : null),
           ...(isFilterSet && !!filters?.schedulingTypes
             ? {
                 schedulingType: { in: filters.schedulingTypes },
@@ -169,32 +192,12 @@ export const getEventTypesFromGroup = async ({
     isCurrentUserHost: eventTypeIdsWhereUserIsHost.has(eventType.id),
   }));
 
-  const membership = await prisma.membership.findFirst({
-    where: {
-      userId: ctx.user.id,
-      teamId: teamId ?? 0,
-      accepted: true,
-      role: "MEMBER",
-    },
-    include: {
-      team: {
-        select: {
-          isPrivate: true,
-        },
-      },
-    },
-  });
-
-  const filteredEventTypesWithHostFlag = membership
-    ? eventTypesWithHostFlag.filter((eventType) => !(eventType.teamId === teamId && eventType.hidden))
-    : eventTypesWithHostFlag;
-
   if (membership && membership.team.isPrivate)
-    filteredEventTypesWithHostFlag.forEach((evType) => {
+    eventTypesWithHostFlag.forEach((evType) => {
       evType.users = [];
       evType.hosts = [];
       evType.children = [];
     });
 
-  return { eventTypes: filteredEventTypesWithHostFlag, nextCursor: nextCursor ?? undefined };
+  return { eventTypes: eventTypesWithHostFlag, nextCursor: nextCursor ?? undefined };
 };
