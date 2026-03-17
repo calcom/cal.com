@@ -50,23 +50,6 @@ describe("PermissionDiffService", () => {
       expect(result.toRemove).toEqual([]);
     });
 
-    it("should filter out internal _resource permissions", () => {
-      const existingPermissions = [
-        { id: "1", roleId: "role1", resource: "booking", action: "create" },
-      ] as RolePermission[];
-
-      const newPermissions = [
-        "booking.create",
-        "booking._resource",
-        "eventType.create",
-      ] as PermissionString[];
-
-      const result = service.calculateDiff(newPermissions, existingPermissions);
-
-      expect(result.toAdd).toEqual([{ resource: "eventType", action: "create" }]);
-      expect(result.toRemove).toEqual([]);
-    });
-
     it("should handle identical permissions with no changes needed", () => {
       const existingPermissions = [
         { id: "1", roleId: "role1", resource: "booking", action: "create" },

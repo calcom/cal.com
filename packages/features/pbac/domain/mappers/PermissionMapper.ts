@@ -115,6 +115,6 @@ export class PermissionMapper {
     resource: Resource,
     action: CrudAction | CustomAction
   ): boolean {
-    return !!PERMISSION_REGISTRY[resource]?.[action];
+    return !!(PERMISSION_REGISTRY[resource] as Record<string, unknown>)?.[action];
   }
 }

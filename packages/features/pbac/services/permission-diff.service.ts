@@ -9,12 +9,7 @@ import {
 export class PermissionDiffService {
   private filterInternalPermissions(permissions: PermissionString[]): PermissionString[] {
     return permissions.filter((permission) => {
-      // Skip invalid permissions entirely
-      if (!isValidPermissionString(permission)) {
-        return false;
-      }
-      const { action } = parsePermissionString(permission);
-      return action !== "_resource";
+      return isValidPermissionString(permission);
     });
   }
 

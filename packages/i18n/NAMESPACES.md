@@ -1,6 +1,6 @@
 # i18n Namespaces
 
-Translations are split into **namespaces** so that only the keys needed for a given set of pages are loaded. The default namespace is `common`; additional namespaces (e.g. `pbac`) are loaded on demand via `I18nExtend` in a route layout.
+Translations are split into **namespaces** so that only the keys needed for a given set of pages are loaded. The default namespace is `common`; additional namespaces (e.g. `settings_organizations_roles`) are loaded on demand via `I18nExtend` in a route layout.
 
 ## Naming Convention
 
@@ -45,7 +45,7 @@ In **`packages/i18n/englishTranslations.ts`**, add the new namespace:
 ```ts
 const englishTranslations: Record<string, Record<string, string>> = {
   common: require("@calcom/i18n/locales/en/common.json"),
-  pbac: require("@calcom/i18n/locales/en/pbac.json"),
+  settings_organizations_roles: require("@calcom/i18n/locales/en/settings_organizations_roles.json"),
   example: require("@calcom/i18n/locales/en/example.json"), // <-- add this
 };
 ```
@@ -98,7 +98,7 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
   "json": {
     "include": [
       "packages/i18n/locales/[locale]/common.json",
-      "packages/i18n/locales/[locale]/pbac.json",
+      "packages/i18n/locales/[locale]/settings_organizations_roles.json",
       "packages/i18n/locales/[locale]/example.json"
     ]
   }
@@ -119,7 +119,7 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
 | Namespace | File | Route(s) | Keys |
 |-----------|------|----------|------|
 | `common` | `common.json` | All pages (default) | ~2000+ |
-| `pbac` | `pbac.json` | `/settings/organizations/roles` | 124 |
+| `settings_organizations_roles` | `settings_organizations_roles.json` | `/settings/organizations/roles`, `/settings/teams/[id]/roles` | 123 |
 | `settings_platform` | `settings_platform.json` | `/settings/platform/*` | 5 |
 | `settings_developer_oauth` | `settings_developer_oauth.json` | `/settings/developer/oauth` | 9 |
 | `settings_admin_oauth` | `settings_admin_oauth.json` | `/settings/admin/oauth`, `/settings/admin/workspace-platforms` | 18 |
@@ -128,7 +128,7 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
 ## How it works at runtime
 
 1. The root layout loads `common` translations via `I18nProvider` (the default namespace).
-2. A nested route layout (e.g. `PbacNamespaceLayout`) calls `loadTranslations(locale, "pbac")` on the server.
-3. `loadTranslations` dynamically imports the locale's `pbac.json` and merges it with the English `pbac.json` fallback (from `englishTranslations.ts`) so missing keys fall back to English.
+2. A nested route layout (e.g. `SettingsOrganizationsRolesNamespaceLayout`) calls `loadTranslations(locale, "settings_organizations_roles")` on the server.
+3. `loadTranslations` dynamically imports the locale's `settings_organizations_roles.json` and merges it with the English fallback (from `englishTranslations.ts`) so missing keys fall back to English.
 4. The layout passes the merged translations to `I18nExtend`, which merges them on top of the parent context's translations (`{ ...parent, ...namespace }`).
-5. Any component under that layout can use `useLocale()` and access both `common` and `pbac` keys transparently.
+5. Any component under that layout can use `useLocale()` and access both `common` and `settings_organizations_roles` keys transparently.

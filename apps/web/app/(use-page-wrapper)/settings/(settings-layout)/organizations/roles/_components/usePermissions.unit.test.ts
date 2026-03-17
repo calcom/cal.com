@@ -15,20 +15,16 @@ vi.mock("@calcom/features/pbac/domain/types/permission-registry", () => {
   } as const;
 
   const PERMISSION_REGISTRY = {
-    "*": { _resource: { i18nKey: "all" } },
+    "*": {},
     calendar: {
       [CrudAction.Create]: {},
       [CrudAction.Read]: {},
       [CrudAction.Update]: {},
       [CrudAction.Delete]: {},
-      _resource: { i18nKey: "calendar" },
-      _internalMeta: true, // should be ignored
     },
     team: {
       [CrudAction.Read]: {},
       [CrudAction.Update]: {},
-      _resource: { i18nKey: "team" },
-      _secret: "ignore", // should be ignored
     },
   } as const;
 
@@ -86,7 +82,7 @@ describe("usePermissions - permission utilities", () => {
       expect(perms.hasAllPermissions([])).toBe(false);
     });
 
-    it("ignores internal keys and requires all non-internal actions across all resources", () => {
+    it("requires all actions across all resources", () => {
       // Missing team.update
       const some = ["calendar.create", "calendar.read", "calendar.update", "calendar.delete", "team.read"];
       expect(perms.hasAllPermissions(some)).toBe(false);

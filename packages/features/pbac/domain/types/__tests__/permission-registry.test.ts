@@ -64,12 +64,6 @@ describe("Permission Registry Utilities", () => {
       expect(isValidPermissionString("booking.readTeamBookings")).toBe(true);
     });
 
-    it("should validate _resource special case", () => {
-      expect(isValidPermissionString("eventType._resource")).toBe(true);
-      expect(isValidPermissionString("team._resource")).toBe(true);
-      expect(isValidPermissionString("organization._resource")).toBe(true);
-    });
-
     it("should reject invalid resource names", () => {
       expect(isValidPermissionString("invalidResource.create")).toBe(false);
       expect(isValidPermissionString("unknown.read")).toBe(false);

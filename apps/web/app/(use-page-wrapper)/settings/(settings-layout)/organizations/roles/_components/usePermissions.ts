@@ -25,7 +25,6 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
     Object.entries(scopedRegistry).forEach(([resource, config]) => {
       if (resource !== "*") {
         Object.keys(config)
-          .filter((action) => !action.startsWith("_"))
           .forEach((action) => {
             permissions.push(`${resource}.${action}`);
           });
@@ -39,7 +38,6 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
     return Object.entries(scopedRegistry).every(([resource, config]) => {
       if (resource === "*") return true;
       return Object.keys(config)
-        .filter((action) => !action.startsWith("_"))
         .every((action) => permissions.includes(`${resource}.${action}`));
     });
   };
@@ -58,9 +56,7 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
       return "all";
     }
 
-    // Filter out internal keys like _resource when checking permissions
     const allResourcePerms = Object.keys(resourceConfig)
-      .filter((action) => !action.startsWith("_"))
       .map((action) => `${resource}.${action}`);
     const hasAllPerms = allResourcePerms.every((p) => permissions.includes(p));
     const hasReadPerm = permissions.includes(`${resource}.${CrudAction.Read}`);
@@ -105,9 +101,8 @@ export function usePermissions(scope: Scope = Scope.Organization): UsePermission
           newPermissions.push(`${resource}.${CrudAction.Read}`);
           break;
         case "all":
-          // Add all permissions for this resource (excluding internal keys)
+          // Add all permissions for this resource
           allResourcePerms = Object.keys(resourceConfig)
-            .filter((action) => !action.startsWith("_"))
             .map((action) => `${resource}.${action}`);
 
           // Add the resource permissions

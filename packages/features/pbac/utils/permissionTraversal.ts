@@ -81,8 +81,6 @@ export const traversePermissions = (
       // Find what depends on the current permission
       Object.entries(registry).forEach(([resource, config]) => {
         Object.entries(config).forEach(([action, details]) => {
-          if (action.startsWith("_")) return; // Skip internal keys
-
           const permissionDetails = details as any;
           const candidatePermission = `${resource}.${action}`;
 

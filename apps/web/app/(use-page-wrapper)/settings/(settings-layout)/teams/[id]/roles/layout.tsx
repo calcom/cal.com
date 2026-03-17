@@ -1,1 +1,1 @@
-export { default } from "../../../organizations/roles/_components/PbacNamespaceLayout";
+export { default } from "../../../organizations/roles/_components/SettingsOrganizationsRolesNamespaceLayout";

@@ -6,6 +6,7 @@ import type { Resource } from "@calcom/features/pbac/domain/types/permission-reg
 import {
   Scope,
   CrudAction,
+  type CustomAction,
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,6 +15,7 @@ import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ChevronRightIcon, InfoIcon } from "@coss/ui/icons";
 
+import { getResourceLabel, getPermissionLabel } from "./permission-labels";
 import { usePermissions } from "./usePermissions";
 
 interface AdvancedPermissionGroupProps {
@@ -25,7 +27,6 @@ interface AdvancedPermissionGroupProps {
   isPrivate?: boolean;
 }
 
-const INTERNAL_DATAACCESS_KEY = "_resource";
 
 export function AdvancedPermissionGroup({
   resource,
@@ -55,7 +56,6 @@ export function AdvancedPermissionGroup({
     ? ["*.*"]
     : resourceConfig
       ? Object.entries(resourceConfig)
-          .filter(([action]) => action !== INTERNAL_DATAACCESS_KEY)
           .map(([action]) => `${resource}.${action}`)
       : [];
 
@@ -115,7 +115,7 @@ export function AdvancedPermissionGroup({
           <span
             className="text-default cursor-pointer text-sm font-medium leading-none"
             onClick={() => setIsExpanded(!isExpanded)}>
-            {t(resourceConfig?._resource?.i18nKey || "")}
+            {t(getResourceLabel(resource) || "")}
           </span>
           <span
             className="text-muted cursor-pointer text-sm font-medium leading-none"
@@ -133,12 +133,12 @@ export function AdvancedPermissionGroup({
             Object.entries(resourceConfig).map(([action, actionConfig]) => {
               const permission = `${resource}.${action}`;
 
-              if (action === INTERNAL_DATAACCESS_KEY) {
-                return null;
-              }
-
               const isChecked = selectedPermissions.includes(permission);
               const isAutoEnabled = isReadAutoEnabled(action);
+              const label = getPermissionLabel(
+                resource,
+                action as CrudAction | CustomAction
+              );
 
               return (
                 <div key={action} className="flex items-center">
@@ -160,15 +160,11 @@ export function AdvancedPermissionGroup({
                   >
                     <Label htmlFor={permission} className="mb-0">
                       <span className={classNames(isAutoEnabled && "text-muted-foreground")}>
-                        {t(actionConfig?.i18nKey || "")}
+                        {t(label?.i18nKey || "")}
                       </span>
                     </Label>
                     <span className="text-sm text-gray-500">
-                      {t(
-                        actionConfig && "descriptionI18nKey" in actionConfig
-                          ? actionConfig.descriptionI18nKey
-                          : ""
-                      )}
+                      {t(label?.descriptionI18nKey || "")}
                     </span>
                     {isAutoEnabled && (
                       <Tooltip content={t("read_permission_auto_enabled_tooltip")}>

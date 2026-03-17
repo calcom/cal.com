@@ -7,82 +7,15 @@
 import {
   CrudAction,
   CustomAction,
-  filterResourceConfig,
   getPermissionsForScope,
   PERMISSION_REGISTRY,
   type PermissionRegistry,
   parsePermissionString,
   Resource,
-  type ResourceConfig,
   Scope,
 } from "./permission-registry";
 
-describe("permission-registry: filterResourceConfig", () => {
-  it("removes the _resource property and preserves other keys", () => {
-    const cfg: ResourceConfig = {
-      _resource: { i18nKey: "foo" },
-      [CrudAction.Read]: {
-        description: "View",
-        category: "x",
-        i18nKey: "read",
-        descriptionI18nKey: "desc_read",
-      },
-      [CustomAction.Invite]: {
-        description: "Invite",
-        category: "x",
-        i18nKey: "invite",
-        descriptionI18nKey: "desc_invite",
-      },
-    };
-    const copy = JSON.parse(JSON.stringify(cfg));
-
-    const filtered = filterResourceConfig(cfg);
-
-    // does not mutate original
-    expect(cfg).toEqual(copy);
-
-    // _resource removed
-    expect(Object.hasOwn(filtered, "_resource")).toBe(false);
-
-    // remaining keys intact
-    expect(filtered).toHaveProperty(CrudAction.Read);
-    expect(filtered).toHaveProperty(CustomAction.Invite);
-  });
-
-  it("handles configs without _resource gracefully", () => {
-    const cfg: ResourceConfig = {
-      [CrudAction.Create]: {
-        description: "Create",
-        category: "x",
-        i18nKey: "create",
-        descriptionI18nKey: "desc_create",
-      },
-    };
-
-    const filtered = filterResourceConfig(cfg);
-    expect(filtered).toEqual(cfg);
-  });
-
-  it("returns empty object when only _resource is present", () => {
-    const cfg: ResourceConfig = {
-      _resource: { i18nKey: "only" },
-    };
-    const filtered = filterResourceConfig(cfg);
-    expect(filtered).toEqual({});
-  });
-});
-
 describe("permission-registry: PERMISSION_REGISTRY base structure", () => {
-  it("contains a _resource i18nKey for every resource", () => {
-    const registry: PermissionRegistry = PERMISSION_REGISTRY;
-    Object.entries(registry).forEach(([resource, cfg]) => {
-      expect(cfg).toBeDefined();
-      expect(cfg._resource).toBeDefined();
-      expect(typeof cfg._resource?.i18nKey).toBe("string");
-      expect(cfg._resource?.i18nKey.length).toBeGreaterThan(0);
-    });
-  });
-
   it("all dependsOn permission strings point to existing resource.action entries", () => {
     const registry: PermissionRegistry = PERMISSION_REGISTRY;
 
@@ -91,7 +24,7 @@ describe("permission-registry: PERMISSION_REGISTRY base structure", () => {
       const { resource: resKey, action } = parsePermissionString(perm);
 
       // In registry keys, Resource enums are their string values
-      const resourceConfig = registry[resKey as keyof PermissionRegistry] as ResourceConfig | undefined;
+      const resourceConfig = registry[resKey as keyof PermissionRegistry] as Record<string, unknown> | undefined;
 
       if (!resourceConfig) return false;
 
@@ -101,7 +34,6 @@ describe("permission-registry: PERMISSION_REGISTRY base structure", () => {
 
     Object.values(registry).forEach((cfg) => {
       Object.entries(cfg).forEach(([action, details]) => {
-        if (action === "_resource") return;
         const d = details as any;
         if (Array.isArray(d.dependsOn)) {
           d.dependsOn.forEach((dep: string) => {
@@ -183,7 +115,6 @@ describe("permission-registry: sanity for PermissionString format", () => {
 
     Object.values(registry).forEach((cfg) => {
       Object.entries(cfg).forEach(([action, details]) => {
-        if (action === "_resource") return;
         const d = details as any;
         (d.dependsOn ?? []).forEach((dep: string) => {
           // Use parsePermissionString to handle dotted resource names like "organization.attributes.read"

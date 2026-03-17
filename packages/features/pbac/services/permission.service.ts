@@ -7,11 +7,11 @@ import type {
   CustomAction,
   PermissionDetails,
 } from "../domain/types/permission-registry";
-import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
+import { PERMISSION_REGISTRY } from "../domain/types/permission-registry";
 
 // Helper function to check if an object is PermissionDetails
 const isPermissionDetails = (obj: any): obj is PermissionDetails => {
-  return obj && "description" in obj && "category" in obj && "i18nKey" in obj && "descriptionI18nKey" in obj;
+  return obj && "description" in obj && "category" in obj;
 };
 
 export class PermissionService {
@@ -19,7 +19,7 @@ export class PermissionService {
     try {
       const permissionObj = PermissionMapper.fromPermissionString(permission);
       const registryEntry = PERMISSION_REGISTRY[permissionObj.resource];
-      const actionEntry = registryEntry?.[permissionObj.action];
+      const actionEntry = (registryEntry as Record<string, unknown>)?.[permissionObj.action];
       const isValid = !!actionEntry;
 
       return {
@@ -68,8 +68,7 @@ export class PermissionService {
     const permissions: Permission[] = [];
 
     Object.entries(PERMISSION_REGISTRY).forEach(([resource, actions]) => {
-      const filteredActions = filterResourceConfig(actions);
-      Object.entries(filteredActions).forEach(([action, details]) => {
+      Object.entries(actions).forEach(([action, details]) => {
         if (details && isPermissionDetails(details)) {
           permissions.push({
             resource: resource as Resource,
@@ -88,8 +87,7 @@ export class PermissionService {
     const resourcePermissions = PERMISSION_REGISTRY[resource];
     if (!resourcePermissions) return [];
 
-    const filteredPermissions = filterResourceConfig(resourcePermissions);
-    return Object.entries(filteredPermissions)
+    return Object.entries(resourcePermissions)
       .filter(([_, details]) => details !== undefined && isPermissionDetails(details))
       .map(([action, details]) => ({
         resource,

@@ -159,11 +159,6 @@ const parsePermissionString = (permission: string): { resource: string; action: 
 export const isValidPermissionString = (val: unknown): boolean => {
   if (typeof val !== "string") return false;
 
-  if (val.endsWith("._resource")) {
-    const resourcePart = val.slice(0, -10);
-    return Object.values(Resource).includes(resourcePart as Resource);
-  }
-
   const lastDotIndex = val.lastIndexOf(".");
   if (lastDotIndex === -1) return false;
 

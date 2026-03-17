@@ -7,7 +7,7 @@
  */
 const englishTranslations: Record<string, Record<string, string>> = {
   common: require("@calcom/i18n/locales/en/common.json"),
-  pbac: require("@calcom/i18n/locales/en/pbac.json"),
+  settings_organizations_roles: require("@calcom/i18n/locales/en/settings_organizations_roles.json"),
 };
 
 export default englishTranslations;

@@ -45,7 +45,7 @@
     "json": {
       "include": [
         "packages/i18n/locales/[locale]/common.json",
-        "packages/i18n/locales/[locale]/pbac.json"
+        "packages/i18n/locales/[locale]/settings_organizations_roles.json"
       ]
     }
   },

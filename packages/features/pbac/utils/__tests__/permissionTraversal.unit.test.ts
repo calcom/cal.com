@@ -24,7 +24,6 @@ vi.mock("../../domain/types/permission-registry", () => {
   // Build a registry that lets us test a variety of scenarios
   const PERMISSION_REGISTRY: Record<string, Record<string, any>> = {
     post: {
-      _resource: { i18nKey: "post" },
       [CrudAction.Read]: {
         /* no explicit dependsOn */
       },
@@ -34,20 +33,16 @@ vi.mock("../../domain/types/permission-registry", () => {
       [CrudAction.Update]: { dependsOn: ["category.read"] }, // explicit cross-resource dep
       [CrudAction.Delete]: { dependsOn: ["post.update"] }, // forms a chain and back-compat adds read
       publish: { dependsOn: ["post.update", "moderation.read"] } as any,
-      _internal: { note: "should be ignored" },
     },
     category: {
-      _resource: { i18nKey: "category" },
       [CrudAction.Read]: {},
       [CrudAction.Update]: { dependsOn: ["category.read"] },
     },
     moderation: {
-      _resource: { i18nKey: "moderation" },
       [CrudAction.Read]: {},
       archive: { dependsOn: ["post.publish"] }, // cycle across custom actions (publish -> moderation.read via depends; here reverse)
     },
     orphan: {
-      _resource: { i18nKey: "orphan" },
       // Missing read; unusual resource to test unknown actions in traversal
       ghost: { dependsOn: ["unknown.resource"] },
     },
@@ -136,11 +131,6 @@ describe("permission traversal - dependents", () => {
     expect(dependents).not.toContain("moderation.read");
   });
 
-  it("skips internal keys starting with underscore", () => {
-    const dependents = traversePermissions("post.read", "dependents");
-    // Ensure _internal doesn't appear as a dependent
-    expect(dependents.find((p) => p.includes("_internal"))).toBeUndefined();
-  });
 });
 
 describe("wrapper helpers", () => {

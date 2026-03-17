@@ -7,11 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { Resource, PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
-import {
-  CrudAction,
-  Scope,
-  getPermissionsForScope,
-} from "@calcom/features/pbac/domain/types/permission-registry";
+import { Scope, getPermissionsForScope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -21,6 +17,7 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { revalidateTeamRoles } from "../actions";
 import { AdvancedPermissionGroup } from "./AdvancedPermissionGroup";
+import { getResourceLabel } from "./permission-labels";
 import RoleColorPicker from "./RoleColorPicker";
 import { SimplePermissionItem } from "./SimplePermissionItem";
 
@@ -119,10 +116,7 @@ export function RoleSheet({
     // Use privacy-aware filtering if we have privacy information
     const scopedRegistry = getPermissionsForScope(scope, isPrivate);
     const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
-      t(
-        scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
-          ?.i18nKey || ""
-      )
+      t(getResourceLabel(resource as Resource) || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
@@ -259,7 +253,6 @@ export function RoleSheet({
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                         disabled={isSystemRole}
                         scope={scope}
-                        isPrivate={isPrivate}
                       />
                     ))}
                   </div>{" "}
