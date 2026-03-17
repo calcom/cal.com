@@ -1515,4 +1515,25 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  async findByEmails({ emails }: { emails: string[] }): Promise<Array<{ id: number; email: string }>> {
+    if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    const emailListSql = Prisma.join(normalizedEmails.map((e) => Prisma.sql`${e}`));
+    return this.prismaClient.$queryRaw<Array<{ id: number; email: string }>>(Prisma.sql`
+      SELECT u."id", u."email"
+      FROM "public"."users" AS u
+      WHERE u."email" IN (${emailListSql})
+        AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      UNION
+      SELECT u."id", u."email"
+      FROM "public"."users" AS u
+      INNER JOIN "public"."SecondaryEmail" AS t0
+        ON t0."userId" = u."id"
+      WHERE t0."email" IN (${emailListSql})
+        AND t0."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+    `);
+  }
 }

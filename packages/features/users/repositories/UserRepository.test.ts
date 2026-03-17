@@ -3,6 +3,7 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import { describe, test, vi, expect, beforeEach } from "vitest";
 
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { PrismaClient } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/i18n/server", () => {
@@ -106,6 +107,35 @@ describe("UserRepository", () => {
           username,
         })
       );
+    });
+  });
+
+  describe("findByEmails", () => {
+    test("returns empty array for empty emails input", async () => {
+      const result = await new UserRepository(prismock).findByEmails({ emails: [] });
+      expect(result).toEqual([]);
+    });
+
+    test("uses raw UNION query with emailVerified check", async () => {
+      const mockQueryRaw = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
+      const mockPrisma = { $queryRaw: mockQueryRaw } as unknown as PrismaClient;
+      const userRepo = new UserRepository(mockPrisma);
+
+      const result = await userRepo.findByEmails({ emails: ["Test@Example.com"] });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({ id: 1, email: "test@example.com" });
+      expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+    });
+
+    test("does not call $queryRaw for empty emails", async () => {
+      const mockQueryRaw = vi.fn();
+      const mockPrisma = { $queryRaw: mockQueryRaw } as unknown as PrismaClient;
+      const userRepo = new UserRepository(mockPrisma);
+
+      await userRepo.findByEmails({ emails: [] });
+
+      expect(mockQueryRaw).not.toHaveBeenCalled();
     });
   });
 });

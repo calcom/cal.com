@@ -160,6 +160,7 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  guestBusyTimes?: EventBusyDetails[];
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
@@ -627,6 +628,7 @@ export class UserAvailabilityService {
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
+      ...(initialData?.guestBusyTimes || []),
     ];
 
     const detailedBusyTimes: UserAvailabilityBusyDetails[] = withSource
