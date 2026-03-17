@@ -82,7 +82,7 @@ describe("getGuestBusyTimesForReschedule", () => {
       attendees: [{ email: "host@example.com" }, { email: "guest@cal.com" }],
     });
     (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 10, email: "guest@cal.com" },
+      { id: 10, email: "guest@cal.com", matchedEmail: "guest@cal.com" },
     ]);
     (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
       {
@@ -103,12 +103,45 @@ describe("getGuestBusyTimesForReschedule", () => {
     ]);
   });
 
+  it("includes both primary and secondary emails in conflict lookup", async () => {
+    (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
+      attendees: [{ email: "secondary@cal.com" }],
+    });
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 10, email: "primary@cal.com", matchedEmail: "secondary@cal.com" },
+    ]);
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
+
+    expect(deps.bookingRepo.findAcceptedByUserIdsOrEmails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emails: expect.arrayContaining(["primary@cal.com", "secondary@cal.com"]),
+      })
+    );
+  });
+
+  it("deduplicates emails when primary and matched email are the same", async () => {
+    (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
+      attendees: [{ email: "guest@cal.com" }],
+    });
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 10, email: "guest@cal.com", matchedEmail: "guest@cal.com" },
+    ]);
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
+
+    const call = (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(call.emails).toEqual(["guest@cal.com"]);
+  });
+
   it("excludes the reschedule booking uid", async () => {
     (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
       attendees: [{ email: "guest@cal.com" }],
     });
     (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 10, email: "guest@cal.com" },
+      { id: 10, email: "guest@cal.com", matchedEmail: "guest@cal.com" },
     ]);
     (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 

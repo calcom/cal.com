@@ -1516,18 +1516,22 @@ export class UserRepository {
     return { email: user.email, username: user.username };
   }
 
-  async findByEmails({ emails }: { emails: string[] }): Promise<Array<{ id: number; email: string }>> {
+  async findByEmails({
+    emails,
+  }: {
+    emails: string[];
+  }): Promise<Array<{ id: number; email: string; matchedEmail: string }>> {
     if (!emails.length) return [];
     const normalizedEmails = emails.map((e) => e.toLowerCase());
     const emailListSql = Prisma.join(normalizedEmails.map((e) => Prisma.sql`${e}`));
-    return this.prismaClient.$queryRaw<Array<{ id: number; email: string }>>(Prisma.sql`
-      SELECT u."id", u."email"
+    return this.prismaClient.$queryRaw<Array<{ id: number; email: string; matchedEmail: string }>>(Prisma.sql`
+      SELECT u."id", u."email", u."email" AS "matchedEmail"
       FROM "public"."users" AS u
       WHERE u."email" IN (${emailListSql})
         AND u."emailVerified" IS NOT NULL
         AND u."locked" = FALSE
       UNION
-      SELECT u."id", u."email"
+      SELECT u."id", u."email", t0."email" AS "matchedEmail"
       FROM "public"."users" AS u
       INNER JOIN "public"."SecondaryEmail" AS t0
         ON t0."userId" = u."id"

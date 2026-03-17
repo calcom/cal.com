@@ -117,14 +117,16 @@ describe("UserRepository", () => {
     });
 
     test("uses raw UNION query with emailVerified check", async () => {
-      const mockQueryRaw = vi.fn().mockResolvedValue([{ id: 1, email: "test@example.com" }]);
+      const mockQueryRaw = vi
+        .fn()
+        .mockResolvedValue([{ id: 1, email: "test@example.com", matchedEmail: "test@example.com" }]);
       const mockPrisma = { $queryRaw: mockQueryRaw } as unknown as PrismaClient;
       const userRepo = new UserRepository(mockPrisma);
 
       const result = await userRepo.findByEmails({ emails: ["Test@Example.com"] });
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({ id: 1, email: "test@example.com" });
+      expect(result[0]).toEqual({ id: 1, email: "test@example.com", matchedEmail: "test@example.com" });
       expect(mockQueryRaw).toHaveBeenCalledTimes(1);
     });
 

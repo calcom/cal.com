@@ -162,9 +162,13 @@ export async function getGuestBusyTimesForReschedule({
     const calUsers = await userRepo.findByEmails({ emails: guestEmails });
     if (!calUsers.length) return [];
 
+    // Collect both primary and matched (possibly secondary) emails so that
+    // conflict checks find bookings made under either address.
+    const allEmails = [...new Set(calUsers.flatMap((u) => [u.email, u.matchedEmail]))];
+
     const guestBookings = await bookingRepo.findAcceptedByUserIdsOrEmails({
       userIds: calUsers.map((u) => u.id),
-      emails: calUsers.map((u) => u.email),
+      emails: allEmails,
       startDate,
       endDate,
       excludeUid: rescheduleUid,

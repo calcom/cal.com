@@ -96,4 +96,45 @@ describe("BookingRepository.findAcceptedByUserIdsOrEmails", () => {
       })
     );
   });
+
+  it("builds OR with only userId condition when emails is empty", async () => {
+    mockFindMany.mockResolvedValue([]);
+    await repo.findAcceptedByUserIdsOrEmails({
+      userIds: [1, 2],
+      emails: [],
+      startDate: new Date(),
+      endDate: new Date(),
+    });
+    const call = mockFindMany.mock.calls[0][0];
+    expect(call.where.OR).toEqual([{ userId: { in: [1, 2] } }]);
+  });
+
+  it("builds OR with only attendee email condition when userIds is empty", async () => {
+    mockFindMany.mockResolvedValue([]);
+    await repo.findAcceptedByUserIdsOrEmails({
+      userIds: [],
+      emails: ["guest@cal.com"],
+      startDate: new Date(),
+      endDate: new Date(),
+    });
+    const call = mockFindMany.mock.calls[0][0];
+    expect(call.where.OR).toEqual([
+      { attendees: { some: { email: { in: ["guest@cal.com"], mode: "insensitive" } } } },
+    ]);
+  });
+
+  it("builds OR with both userId and attendee email conditions", async () => {
+    mockFindMany.mockResolvedValue([]);
+    await repo.findAcceptedByUserIdsOrEmails({
+      userIds: [5],
+      emails: ["guest@cal.com"],
+      startDate: new Date(),
+      endDate: new Date(),
+    });
+    const call = mockFindMany.mock.calls[0][0];
+    expect(call.where.OR).toEqual([
+      { userId: { in: [5] } },
+      { attendees: { some: { email: { in: ["guest@cal.com"], mode: "insensitive" } } } },
+    ]);
+  });
 });
