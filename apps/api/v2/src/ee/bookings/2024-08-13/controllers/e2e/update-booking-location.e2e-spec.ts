@@ -516,9 +516,9 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         expect(updatedBooking).toHaveProperty("id");
         // No Google Calendar credential → fell back to Cal Video, not Google Meet
         expect(updatedBooking.location).not.toContain("meet.google.com");
-        expect(
-          updatedBooking.location?.startsWith("http") || updatedBooking.location === "integrations:daily"
-        ).toBe(true);
+        expect(["integrations:daily", "https://mock-daily.example.com/mock-meeting"]).toContain(
+          updatedBooking.location
+        );
 
         await bookingsRepositoryFixture.deleteById(bookingWithoutGoogleCal.id);
       });
