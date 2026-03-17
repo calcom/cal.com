@@ -28,9 +28,9 @@ export const WEBAPP_URL =
   RENDER_URL ||
   "http://localhost:3000";
 
-// OAuth needs to have HTTPS(which is not generally setup locally) and a valid tld(*.local isn't a valid tld)
-// So for development purpose, we would stick to localhost only
-export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
+// OAuth needs HTTPS and a valid TLD in production. In dev, *.cal.dev resolves to localhost
+// and has a valid TLD, so we use WEBAPP_URL directly.
+export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://app.cal.dev:3000";
 
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;

@@ -17,6 +17,19 @@ yarn
 cp .env.example .env
 ```
 
+## Development Domain
+
+`*.cal.dev` has wildcard DNS pointing to `127.0.0.1`, so it works out of the box without editing `/etc/hosts`.
+
+| App | URL |
+|-----|-----|
+| Web | `http://app.cal.dev:3000` |
+| API v1 | `http://api.cal.dev:3003` |
+| API v2 | `http://api.cal.dev:5555` |
+| Org subdomain | `http://<slug>.cal.dev:3000` |
+
+Set `ORGANIZATIONS_ENABLED=1` to enable org subdomains (e.g. `acme.cal.dev:3000`).
+
 ## Environment Variables
 
 Generate required secrets:
