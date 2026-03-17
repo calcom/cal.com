@@ -84,14 +84,18 @@ const CheckedHostField = ({
           onChange={(options) => {
             onChange &&
               onChange(
-                options.map((option) => ({
-                  isFixed,
-                  userId: parseInt(option.value, 10),
-                  priority: option.priority ?? 2,
-                  weight: option.weight ?? 100,
-                  scheduleId: option.defaultScheduleId,
-                  groupId: option.groupId,
-                }))
+                options.map((option) => {
+                  const isEmail = isNaN(parseInt(option.value, 10));
+                  return {
+                    isFixed,
+                    userId: isEmail ? 0 : parseInt(option.value, 10),
+                    email: isEmail ? option.value : undefined,
+                    priority: option.priority ?? 2,
+                    weight: option.weight ?? 100,
+                    scheduleId: option.defaultScheduleId,
+                    groupId: option.groupId,
+                  };
+                })
               );
           }}
           value={(value || [])

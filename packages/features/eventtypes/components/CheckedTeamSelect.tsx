@@ -1,8 +1,9 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Options, Props } from "react-select";
+import CreatableSelect from "react-select/creatable";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -67,6 +68,7 @@ export const CheckedTeamSelect = ({
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
@@ -82,10 +84,55 @@ export const CheckedTeamSelect = ({
     props.onChange(newValueAllGroups);
   };
 
+  const handleKeyDown: React.KeyboardEventHandler = (event) => {
+    if (!inputValue) return;
+    switch (event.key) {
+      case "Enter":
+      case "Tab":
+      case ",": {
+        const emails = inputValue.split(/[\s,]+/).filter((e) => e.trim() !== "");
+        if (emails.length > 0) {
+          const newOptions = emails.map((email) => ({
+            label: email,
+            value: email,
+            avatar: "",
+            groupId,
+          }));
+
+          const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
+          const newValueAllGroups = [
+            ...otherGroupsHosts,
+            ...valueFromGroup,
+            ...newOptions.filter((opt) => !value.find((v) => v.value === opt.value)),
+          ];
+          props.onChange(newValueAllGroups);
+          setInputValue("");
+          event.preventDefault();
+        }
+        break;
+      }
+    }
+  };
+
+  const { getReactSelectProps } = require("@calcom/ui/components/form/select/selectTheme");
+  const { inputStyles } = require("@calcom/ui/components/form/inputs/TextField");
+  const cx = require("@calcom/ui/classNames").default;
+
+  const reactSelectProps = useMemo(() => {
+    return getReactSelectProps({
+      components: props.components || {},
+      menuPlacement: props.menuPlacement ?? "auto",
+    });
+  }, [props.components, props.menuPlacement, getReactSelectProps]);
+
   return (
     <>
-      <Select
+      <CreatableSelect
         {...props}
+        {...reactSelectProps}
+        inputValue={inputValue}
+        onInputChange={(val) => setInputValue(val)}
+        onKeyDown={handleKeyDown}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
@@ -94,9 +141,58 @@ export const CheckedTeamSelect = ({
         onChange={handleSelectChange}
         isMulti
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
+        styles={{
+          control: (base) =>
+            Object.assign({}, base, {
+              minHeight: "32px",
+            }),
+        }}
+        classNames={{
+          input: () => cx("text-emphasis", customClassNames?.hostsSelect?.innerClassNames?.input),
+          option: (state: any) =>
+            cx(
+              "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
+              state.isFocused && "bg-subtle",
+              state.isDisabled && "bg-cal-muted",
+              state.isSelected && "bg-emphasis text-default",
+              customClassNames?.hostsSelect?.innerClassNames?.option
+            ),
+          placeholder: (state: any) => cx("text-muted", state.isFocused && "hidden"),
+          dropdownIndicator: () => cx("text-default", "w-4 h-4", "flex items-center justify-center "),
+          control: (state: any) =>
+            cx(
+              inputStyles({ size: "md" }),
+              state.isMulti ? (state.hasValue ? "p-1 h-fit" : "px-3 h-fit") : "h-8 px-3 py-1",
+              state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
+              "rounded-[10px]",
+              "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
+              customClassNames?.hostsSelect?.innerClassNames?.control
+            ),
+          singleValue: () =>
+            cx("text-default placeholder:text-muted", customClassNames?.hostsSelect?.innerClassNames?.singleValue),
+          valueContainer: () =>
+            cx(
+              "text-default placeholder:text-muted flex gap-1",
+              customClassNames?.hostsSelect?.innerClassNames?.valueContainer
+            ),
+          multiValue: () =>
+            cx(
+              "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
+              "py-1 px-1.5 leading-none rounded-lg"
+            ),
+          menu: () =>
+            cx(
+              "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+              customClassNames?.hostsSelect?.innerClassNames?.menu
+            ),
+          groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
+          menuList: () =>
+            cx(
+              "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
+              customClassNames?.hostsSelect?.innerClassNames?.menuList
+            ),
+          indicatorsContainer: () => cx("flex items-start! justify-center mt-1 h-full"),
+          multiValueRemove: () => "text-default py-auto",
         }}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate

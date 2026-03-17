@@ -12,6 +12,7 @@ import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import tasker from "@calcom/features/tasker";
 import { submitUrlForUrlScanning } from "@calcom/features/tasker/tasks/scanWorkflowUrls";
 import { getTranslation } from "@calcom/i18n/server";
@@ -25,6 +26,8 @@ import {
   RRTimestampBasis,
   SchedulingType,
   WorkflowTriggerEvents,
+  CreationSource,
+  MembershipRole,
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
@@ -475,23 +478,84 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
 
   if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
+    const userRepo = new UserRepository(ctx.prisma);
+    const emailsToInvite: string[] = [];
+    const hostsWithEmail = hosts.filter((host) => !!host.email);
+
+    if (hostsWithEmail.length > 0) {
+      for (const host of hostsWithEmail) {
+        if (host.email) {
+          const user = await userRepo.findByEmail(host.email);
+          if (user) {
+            host.userId = user.id;
+          } else {
+            emailsToInvite.push(host.email);
+          }
+        }
+      }
+    }
+
+    if (emailsToInvite.length > 0) {
+      const { inviteMembersWithNoInviterPermissionCheck } = await import(
+        "../../teams/inviteMember/inviteMember.handler"
+      );
+      await inviteMembersWithNoInviterPermissionCheck({
+        teamId,
+        inviterName: ctx.user.username || "",
+        language: ctx.user.locale,
+        orgSlug: eventType.team?.parent?.slug ?? eventType.team?.slug ?? null,
+        creationSource: CreationSource.TEAM_EVENT_TYPE_ASSIGNMENT,
+        invitations: emailsToInvite.map((email) => ({
+          usernameOrEmail: email,
+          role: MembershipRole.MEMBER,
+        })),
+      });
+
+      // After invitation, resolve the userIds for the newly invited users
+      for (const host of hostsWithEmail) {
+        if (!host.userId && host.email) {
+          const user = await userRepo.findByEmail(host.email);
+          if (user) {
+            host.userId = user.id;
+          }
+        }
+      }
+    }
+
+    // Filter out hosts that still don't have a userId (shouldn't happen if invitation worked)
+    const validHosts = hosts.filter((host) => !!host.userId);
+
+    // check if all hosts can be assigned (memberships that have accepted invite or are brand new invites)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    const teamMemberIdSet = new Set(teamMemberIds);
-    if (!hosts.every((host) => teamMemberIdSet.has(host.userId)) && !eventType.team?.parentId) {
+    const invitedMemberIds = await ctx.prisma.membership.findMany({
+      where: {
+        teamId,
+        user: {
+          email: {
+            in: hosts.map((h) => h.email).filter((e): e is string => !!e),
+          },
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+    const teamMemberIdSet = new Set([...teamMemberIds, ...invitedMemberIds.map((m) => m.userId)]);
+
+    if (!validHosts.every((host) => teamMemberIdSet.has(host.userId)) && !eventType.team?.parentId) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
     }
 
     const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(validHosts.map((oldHost) => oldHost.userId));
 
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    const existingHosts = validHosts.filter((newHost) => oldHostsSet.has(newHost.userId));
     hostLocationDeletions = existingHosts
       .filter((host) => host.location === null)
       .map((host) => ({ userId: host.userId, eventTypeId: id }));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const newHosts = validHosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
     data.hosts = {

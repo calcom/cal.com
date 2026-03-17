@@ -230,12 +230,9 @@ export type EventTypeHosts = {
   groupId: string | null;
 }[];
 
-// ============================================================================
 // EVENT TYPE UPDATE INPUT TYPES
-// ============================================================================
 // These types define the shape of event type update operations and should be
 // consumed by both the features package and tRPC routers.
-// ============================================================================
 
 export type HashedLinkInput = {
   link: string;
@@ -276,6 +273,7 @@ export type HostInput = {
   scheduleId?: number | null;
   groupId?: string | null;
   location?: HostLocationInput | null;
+  email?: string;
 };
 
 export type HostGroupInput = {
