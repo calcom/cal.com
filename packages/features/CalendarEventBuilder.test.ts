@@ -24,6 +24,11 @@ vi.mock("@calcom/features/bookings/lib/getCalEventResponses", () => ({
   })),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("CalendarEventBuilder", () => {
   const mockTranslate = vi.fn(() => "foo") as TFunction;
   const mockStartTime = dayjs().add(1, "day").format();

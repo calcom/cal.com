@@ -8,6 +8,22 @@ vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
 
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  getBusyCalendarTimes: vi.fn().mockResolvedValue([]),
+  createEvent: vi.fn().mockResolvedValue({}),
+  updateEvent: vi.fn().mockResolvedValue({}),
+  deleteEvent: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn(),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+}));
+
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
 const tomorrowDate = startOfTomorrow.format("YYYY-MM-DD");
 

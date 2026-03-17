@@ -57,7 +57,6 @@ vi.mock("@calcom/i18n/server", () => {
     },
   };
 });
-
 describe("handleChildrenEventTypes", () => {
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {

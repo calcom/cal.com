@@ -1,14 +1,9 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import slugify from "@calcom/lib/slugify";
-import { MembershipRole, UserPermissionRole, CreationSource, RedirectType } from "@calcom/prisma/enums";
-
+import { CreationSource, MembershipRole, RedirectType, UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTeamsHandler } from "../createTeams.handler";
-
 // Helper functions for creating test data
 async function createTestUser(data: {
   email: string;

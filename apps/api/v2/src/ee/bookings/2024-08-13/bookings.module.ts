@@ -8,7 +8,11 @@ import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
+import { BookingLocationCalendarSyncService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-calendar-sync.service";
+import { BookingLocationCredentialService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-credential.service";
+import { BookingLocationIntegrationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-integration.service";
 import { BookingLocationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location.service";
+import { BookingVideoService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-video.service";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoOutputService } from "@/ee/bookings/2024-08-13/services/cal-video.output.service";
@@ -108,7 +112,11 @@ import { UsersModule } from "@/modules/users/users.module";
     CalVideoService,
     CalVideoOutputService,
     BookingPbacGuard,
+    BookingLocationCalendarSyncService_2024_08_13,
+    BookingLocationCredentialService_2024_08_13,
+    BookingLocationIntegrationService_2024_08_13,
     BookingLocationService_2024_08_13,
+    BookingVideoService_2024_08_13,
     PrismaFeaturesRepository,
   ],
   controllers: [
