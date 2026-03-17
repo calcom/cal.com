@@ -17,10 +17,9 @@ import {
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -480,14 +479,23 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const subscribersBookingCreated = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+    try {
+      await getWebhookProducer().queueBookingWebhook(WebhookTriggerEvents.BOOKING_CREATED, {
+        bookingUid: booking.uid,
+        eventTypeId: booking.eventTypeId ?? undefined,
+        teamId: teamId ?? undefined,
+        userId: userId ?? undefined,
+        orgId: orgId ?? undefined,
+        oAuthClientId: platformClientParams?.platformClientId ?? undefined,
+        platformClientId: platformClientParams?.platformClientId ?? undefined,
+      });
+    } catch (err) {
+      tracingLogger.error(
+        `Error queueing BOOKING_CREATED webhook for bookingUid: ${booking.uid}`,
+        safeStringify(err)
+      );
+    }
+
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -558,44 +566,6 @@ export async function handleConfirmation(args: {
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
     });
-
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType?.title,
-      eventDescription: eventType?.description,
-      requiresConfirmation: eventType?.requiresConfirmation || null,
-      price: eventType?.price,
-      currency: eventType?.currency,
-      length: eventType?.length,
-    };
-
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-    const payload: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
-      ...eventTypeInfo,
-      bookingId,
-      eventTypeId: eventType?.id,
-      status: "ACCEPTED",
-      smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
-      ...(platformClientParams ? platformClientParams : {}),
-    };
-
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        tracingLogger.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
-    await Promise.all(promises);
   } catch (error) {
     // Silently fail
     console.error(error);

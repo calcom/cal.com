@@ -1,11 +1,10 @@
 import dayjs from "@calcom/dayjs";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
-import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -155,12 +154,10 @@ const handleSeats = async (
     invitee,
     bookerEmail,
     smsReminderNumber,
-    eventTypeInfo,
     reqUserUuid,
     uid,
     originalRescheduledBooking,
     reqBodyMetadata,
-    eventTypeId,
     subscriberOptions,
     eventTrigger,
     evt,
@@ -170,7 +167,6 @@ const handleSeats = async (
     isDryRun = false,
     organizationId,
     fullName,
-    traceContext,
     actionSource,
     deps: { bookingEventHandler },
   } = newSeatedBookingObject;
@@ -300,28 +296,24 @@ const handleSeats = async (
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
-    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-    const webhookData: EventPayloadType = {
-      ...evtWithoutAssignmentReason,
-      ...eventTypeInfo,
-      uid: resultBooking?.uid || uid,
-      bookingId: seatedBooking?.id,
-      attendeeSeatId: resultBooking?.seatReferenceUid,
-      rescheduleUid,
-      rescheduleStartTime: originalRescheduledBooking?.startTime
-        ? dayjs(originalRescheduledBooking?.startTime).utc().format()
-        : undefined,
-      rescheduleEndTime: originalRescheduledBooking?.endTime
-        ? dayjs(originalRescheduledBooking?.endTime).utc().format()
-        : undefined,
-      metadata,
-      eventTypeId,
-      status: "ACCEPTED",
-      smsReminderNumber: attendeePhoneNumber || undefined,
-      rescheduledBy,
-    };
-
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun, traceContext });
+    try {
+      await getWebhookProducer().queueBookingWebhook(eventTrigger, {
+        bookingUid: resultBooking?.uid || uid,
+        eventTypeId: subscriberOptions.eventTypeId ?? undefined,
+        teamId: Array.isArray(subscriberOptions.teamId)
+          ? subscriberOptions.teamId[0]
+          : (subscriberOptions.teamId ?? undefined),
+        userId: subscriberOptions.userId ?? undefined,
+        orgId: subscriberOptions.orgId ?? undefined,
+        oAuthClientId: subscriberOptions.oAuthClientId ?? undefined,
+        platformClientId: subscriberOptions.oAuthClientId ?? undefined,
+      });
+    } catch (err) {
+      loggerWithEventDetails.error(
+        `Error queueing ${eventTrigger} webhook for seated booking`,
+        safeStringify(err)
+      );
+    }
   }
 
   return resultBooking;

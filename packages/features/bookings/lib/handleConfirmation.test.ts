@@ -57,16 +57,19 @@ vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
   },
 }));
 
+const mockQueueBookingWebhook = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => ({
+    queueBookingWebhook: mockQueueBookingWebhook,
+  }),
+}));
+
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
   default: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/scheduleTrigger", () => ({
   scheduleTrigger: vi.fn().mockResolvedValue(undefined),
-}));
-
-vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
-  default: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/lib/CalEventParser", () => ({
@@ -104,7 +107,7 @@ vi.mock("./handleNewBooking/scheduleNoShowTriggers", () => ({
   scheduleNoShowTriggers: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { handleConfirmation } from "./handleConfirmation";
 
 const makeArgs = () => ({
@@ -210,6 +213,19 @@ describe("handleConfirmation", () => {
 
     const { sendScheduledEmailsAndSMS } = await import("@calcom/emails/email-manager");
     expect(sendScheduledEmailsAndSMS).toHaveBeenCalled();
+  });
+
+  it("queues BOOKING_CREATED webhook via producer with booking uid", async () => {
+    const args = makeArgs();
+    await handleConfirmation(args as never);
+
+    expect(mockQueueBookingWebhook).toHaveBeenCalledWith(
+      WebhookTriggerEvents.BOOKING_CREATED,
+      expect.objectContaining({
+        bookingUid: "test-uid-123",
+        eventTypeId: 1,
+      })
+    );
   });
 
   it("handles recurring events by updating all pending bookings", async () => {

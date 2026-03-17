@@ -10,8 +10,11 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/features/bookings/lib/handleWebhookTrigger", () => ({
-  handleWebhookTrigger: vi.fn(),
+const mockQueueBookingWebhook = vi.fn();
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => ({
+    queueBookingWebhook: mockQueueBookingWebhook,
+  }),
 }));
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
@@ -415,7 +418,6 @@ describe("handleSeats unit tests", () => {
   describe("post-booking workflows and webhooks", () => {
     it("triggers workflows and webhooks when resultBooking is returned", async () => {
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
-      const { handleWebhookTrigger } = await import("@calcom/features/bookings/lib/handleWebhookTrigger");
 
       const bookingObject = createMinimalBookingObject({
         workflows: [],
@@ -437,12 +439,11 @@ describe("handleSeats unit tests", () => {
       await handleSeats(bookingObject, featuresRepo);
 
       expect(WorkflowService.scheduleWorkflowsForNewBooking).toHaveBeenCalled();
-      expect(handleWebhookTrigger).toHaveBeenCalled();
+      expect(mockQueueBookingWebhook).toHaveBeenCalled();
     });
 
     it("does not trigger workflows or webhooks when resultBooking is null", async () => {
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
-      const { handleWebhookTrigger } = await import("@calcom/features/bookings/lib/handleWebhookTrigger");
 
       const bookingObject = createMinimalBookingObject();
       const featuresRepo = createMockFeaturesRepository();
@@ -454,17 +455,15 @@ describe("handleSeats unit tests", () => {
       await handleSeats(bookingObject, featuresRepo);
 
       expect(WorkflowService.scheduleWorkflowsForNewBooking).not.toHaveBeenCalled();
-      expect(handleWebhookTrigger).not.toHaveBeenCalled();
+      expect(mockQueueBookingWebhook).not.toHaveBeenCalled();
     });
   });
 
-  describe("webhook payload construction", () => {
-    it("includes reschedule times in webhook payload when rescheduling", async () => {
-      const { handleWebhookTrigger } = await import("@calcom/features/bookings/lib/handleWebhookTrigger");
-      const mockHandleWebhookTrigger = vi.mocked(handleWebhookTrigger);
-
+  describe("webhook producer invocation", () => {
+    it("queues BOOKING_RESCHEDULED webhook with correct bookingUid when rescheduling", async () => {
       const bookingObject = createMinimalBookingObject({
         rescheduleUid: "reschedule-uid",
+        eventTrigger: "BOOKING_RESCHEDULED" as unknown as NewSeatedBookingObject["eventTrigger"],
         originalRescheduledBooking: {
           startTime: new Date("2024-01-14T10:00:00Z"),
           endTime: new Date("2024-01-14T10:30:00Z"),
@@ -486,21 +485,12 @@ describe("handleSeats unit tests", () => {
 
       await handleSeats(bookingObject, featuresRepo);
 
-      expect(mockHandleWebhookTrigger).toHaveBeenCalledWith(
-        expect.objectContaining({
-          webhookData: expect.objectContaining({
-            rescheduleUid: "reschedule-uid",
-            rescheduleStartTime: expect.any(String),
-            rescheduleEndTime: expect.any(String),
-          }),
-        })
-      );
+      expect(mockQueueBookingWebhook).toHaveBeenCalledWith("BOOKING_RESCHEDULED", expect.objectContaining({
+        bookingUid: "result-uid",
+      }));
     });
 
-    it("includes seatReferenceUid as attendeeSeatId in webhook payload", async () => {
-      const { handleWebhookTrigger } = await import("@calcom/features/bookings/lib/handleWebhookTrigger");
-      const mockHandleWebhookTrigger = vi.mocked(handleWebhookTrigger);
-
+    it("queues BOOKING_CREATED webhook with correct bookingUid for new seat", async () => {
       const bookingObject = createMinimalBookingObject();
       const featuresRepo = createMockFeaturesRepository();
 
@@ -516,13 +506,9 @@ describe("handleSeats unit tests", () => {
 
       await handleSeats(bookingObject, featuresRepo);
 
-      expect(mockHandleWebhookTrigger).toHaveBeenCalledWith(
-        expect.objectContaining({
-          webhookData: expect.objectContaining({
-            attendeeSeatId: "my-seat-ref",
-          }),
-        })
-      );
+      expect(mockQueueBookingWebhook).toHaveBeenCalledWith("BOOKING_CREATED", expect.objectContaining({
+        bookingUid: "result-uid",
+      }));
     });
   });
 
