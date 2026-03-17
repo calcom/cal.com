@@ -559,6 +559,18 @@ export class InputBookingsService_2024_08_13 {
         case 2: // Weekly
           startTime = startTime.plus({ weeks: repeatsEvery });
           break;
+        case 3: // Daily
+          startTime = startTime.plus({ days: repeatsEvery });
+          break;
+        case 4: // Hourly
+          startTime = startTime.plus({ hours: repeatsEvery });
+          break;
+        case 5: // Minutely
+          startTime = startTime.plus({ minutes: repeatsEvery });
+          break;
+        case 6: // Secondly
+          startTime = startTime.plus({ seconds: repeatsEvery });
+          break;
         default:
           throw new Error("Unsupported timeBetween value");
       }
