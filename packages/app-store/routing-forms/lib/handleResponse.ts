@@ -9,6 +9,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
+import { validatePhoneInput } from "@calcom/features/bookings/lib/handleNewBooking/handleCustomInputs";
 
 import { TRPCError } from "@trpc/server";
 
@@ -74,7 +75,13 @@ const _handleResponse = async ({
         if (field.type === "email") {
           schema = emailSchema;
         } else if (field.type === "phone") {
-          schema = z.any();
+          if (typeof fieldValue !== "string") return true;
+          try {
+            validatePhoneInput(fieldValue, `Missing phone customInput: '${field.label}'`);
+            return false;
+          } catch {
+            return true;
+          }
         } else {
           schema = z.any();
         }

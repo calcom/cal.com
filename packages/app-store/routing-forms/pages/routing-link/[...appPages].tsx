@@ -30,6 +30,7 @@ import {
 } from "../../lib/embedIntegration";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { applyDefaultCountryCodeToPhoneValue } from "../../lib/phoneUtils";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
@@ -189,7 +190,29 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   };
 
   const onSubmit = (response: FormResponse) => {
-    const chosenRoute = findMatchingRoute({ form, response });
+    const normalizedResponse = Object.fromEntries(
+      Object.entries(response).map(([fieldId, fieldResponse]) => {
+        const field = form.fields?.find((item) => item.id === fieldId);
+        if (!field || field.type !== "phone" || typeof fieldResponse?.value !== "string") {
+          return [fieldId, fieldResponse];
+        }
+        const defaultCountryCode =
+          typeof field.uiConfig?.defaultCountryCode === "string"
+            ? field.uiConfig.defaultCountryCode
+            : undefined;
+        return [
+          fieldId,
+          {
+            ...fieldResponse,
+            value: applyDefaultCountryCodeToPhoneValue({
+              value: fieldResponse.value,
+              defaultCountryCode,
+            }),
+          },
+        ];
+      })
+    ) as FormResponse;
+    const chosenRoute = findMatchingRoute({ form, response: normalizedResponse });
 
     if (!chosenRoute) {
       // This error should never happen as we ensure that fallback route is always there that matches always
@@ -199,14 +222,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     responseMutation.mutate({
       formId: form.id,
       formFillerId,
-      response: response,
+      response: normalizedResponse,
       chosenRouteId: chosenRoute.id,
       isPreview: isBookingDryRun,
     });
 
     chosenRouteWithFormResponseRef.current = {
       route: chosenRoute,
-      response,
+      response: normalizedResponse,
     };
   };
 

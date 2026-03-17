@@ -411,6 +411,24 @@ function FieldTab({
             </div>
           )}
 
+          {field.type === "phone" && (
+            <div className="space-y-1">
+              <FieldLabel>Default country code</FieldLabel>
+              <Input
+                value={uiConfig.defaultCountryCode ?? ""}
+                onChange={(e) => {
+                  const next = e.target.value.trim();
+                  onUpdateUIConfig({ defaultCountryCode: next.length ? next : undefined });
+                }}
+                placeholder="+1"
+                className="h-8 text-sm"
+              />
+              <p className="text-muted text-xs">
+                If set, users can enter the phone number without the country code.
+              </p>
+            </div>
+          )}
+
           {(field.type === "date" || field.type === "calendar") && (
             <div className="space-y-1">
               <FieldLabel>{t("form_builder_date_picker_variant")}</FieldLabel>

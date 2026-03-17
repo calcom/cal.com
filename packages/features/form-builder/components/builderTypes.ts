@@ -23,6 +23,7 @@ export interface UIFieldConfig {
   layout?: "full" | "half";
   helpText?: string;
   content?: string;            // for heading / paragraph layout fields
+  defaultCountryCode?: string; // for phone field, e.g. +1
   checkboxDirection?: "row" | "column";
   checkboxVariant?: "default" | "largeSquare";
   radioDirection?: "row" | "column";
