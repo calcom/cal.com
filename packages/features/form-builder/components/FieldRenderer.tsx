@@ -137,6 +137,7 @@ export function FieldRenderer({
           className="w-full"
           buttonClassName={dateButtonClassName}
           buttonStyle={underlineStyle}
+          popoverSide="top"
           placeholder={field.placeholder || t("form_builder_pick_a_date")}
           variant={uiConfig.datePickerVariant ?? "default"}
         />

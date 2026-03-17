@@ -88,6 +88,7 @@ export default function ExtendedDatePicker({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
+          side="top"
           sideOffset={4}
         >
           <Calendar

@@ -344,6 +344,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 className="w-full"
                 buttonClassName={dateButtonClassName}
                 buttonStyle={underlineStyle}
+                popoverSide="top"
                 placeholder={field.placeholder || "Pick a date"}
                 onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                 variant={field.uiConfig?.datePickerVariant ?? "default"}
