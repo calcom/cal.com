@@ -130,7 +130,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       });
 
       // Verify the organization was created successfully in the API response
-      expect(result.organizationId).toBeDefined();
+      expect(result.organizationId).toBeGreaterThan(0);
       expect(result.name).toBe(orgName);
       expect(result.slug).toBe(orgSlug);
     });
@@ -165,7 +165,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       });
 
       // Verify the organization was created successfully
-      expect(result.organizationId).toBeDefined();
+      expect(result.organizationId).toBeGreaterThan(0);
       expect(result.name).toBe(orgName);
       expect(result.slug).toBe(orgSlug);
     });

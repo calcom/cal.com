@@ -232,7 +232,7 @@ async function expectOAuthClientInDb(
 
   if (expected.clientSecret !== undefined) {
     if (typeof expected.clientSecret === "object" && expected.clientSecret?.kind === "truthy") {
-      expect(dbClient.clientSecret).not.toBeNull();
+      expect(dbClient.clientSecret).toBeTruthy();
     } else {
       expect(dbClient.clientSecret).toBe(expected.clientSecret);
     }
@@ -240,7 +240,7 @@ async function expectOAuthClientInDb(
 
   if (expected.logo !== undefined) {
     if (typeof expected.logo === "object" && expected.logo?.kind === "truthy") {
-      expect(dbClient.logo).not.toBeNull();
+      expect(dbClient.logo).toBeTruthy();
     } else {
       expect(dbClient.logo).toBe(expected.logo);
     }
