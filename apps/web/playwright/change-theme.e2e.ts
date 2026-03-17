@@ -11,8 +11,7 @@ test.describe("Change App Theme Test", () => {
     await page.click('[data-testid="appTheme-dark"]');
     await page.click('[data-testid="update-app-theme-btn"]');
 
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     const darkModeClass = await page.getAttribute("html", "class");
     expect(darkModeClass).toContain("dark");
@@ -28,8 +27,7 @@ test.describe("Change App Theme Test", () => {
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
 
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     const darkModeClass = await page.getAttribute("html", "class");
     expect(darkModeClass).toContain("light");
@@ -45,13 +43,11 @@ test.describe("Change App Theme Test", () => {
     await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
-    const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast1).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     await page.click('[data-testid="appTheme-system"]');
     await page.click('[data-testid="update-app-theme-btn"]');
-    const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast2).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
     await page.waitForFunction(() => localStorage.getItem("app-theme") === "light");
 
     const systemTheme = await page.evaluate(() => {
@@ -74,8 +70,7 @@ test.describe("Change Booking Page Theme Test", () => {
     //Click the update button
     await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
     //Go to the profile page and check if the theme is dark
     await page.goto(`/${pro.username}`);
     await page.reload();
@@ -96,8 +91,7 @@ test.describe("Change Booking Page Theme Test", () => {
     //Click the update theme button
     await page.click('[data-testid="update-theme-btn"]');
     //Wait for the toast to appear
-    const toast = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
     //Go to the profile page and check if the theme is light
     await page.goto(`/${pro.username}`);
     const htmlClass = await page.getAttribute("html", "class");
@@ -113,13 +107,11 @@ test.describe("Change Booking Page Theme Test", () => {
 
     await page.click('[data-testid="theme-light"]');
     await page.click('[data-testid="update-theme-btn"]');
-    const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast1).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
 
     await page.click('[data-testid="theme-system"]');
     await page.click('[data-testid="update-theme-btn"]');
-    const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
-    expect(toast2).toBeTruthy();
+    await expect(page.getByTestId("toast-success")).toBeVisible();
     await page.goto(`/${pro.username}`);
 
     const systemTheme = await page.evaluate(() => {

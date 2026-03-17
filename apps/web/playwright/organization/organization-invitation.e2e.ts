@@ -555,8 +555,8 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: bo
     if (teamIdMatch && teamIdMatch[1]) {
       await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     }
+    await expect(page.getByTestId("new-member-button")).toBeVisible();
     await page.getByTestId("new-member-button").click();
   } else {
     await page.getByTestId("new-organization-member-button").click();
@@ -615,7 +615,7 @@ async function expectUserToBeAMemberOfTeam({
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(1000); // Add a small delay to ensure UI is fully loaded
+  await expect(page.locator(`[data-testid="member-${username}"]`)).toBeVisible();
   expect(
     (
       await page
@@ -645,8 +645,8 @@ async function copyInviteLink(page: Page, teamPage?: boolean) {
     if (teamIdMatch && teamIdMatch[1]) {
       await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     }
+    await expect(page.getByTestId("new-member-button")).toBeVisible();
     await page.getByTestId("new-member-button").click();
   } else {
     await page.getByTestId("new-organization-member-button").click();

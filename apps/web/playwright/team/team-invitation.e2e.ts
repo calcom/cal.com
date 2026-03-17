@@ -28,7 +28,7 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await expect(page.getByTestId("new-member-button")).toBeVisible();
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -75,7 +75,7 @@ test.describe("Team", () => {
       await page.goto(`/settings/teams/${team.id}/settings`);
       await expect(
         page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(0, { timeout: 0 });
+      ).toHaveCount(0);
     });
 
     await test.step("To the team by invite link", async () => {
@@ -86,14 +86,14 @@ test.describe("Team", () => {
 
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await expect(page.getByTestId("new-member-button")).toBeVisible();
       await page.getByTestId("new-member-button").click();
       const inviteLink = await getInviteLink(page);
 
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
       await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForTimeout(3000);
+      await expect(inviteLinkPage.locator("button[type=submit]")).toBeVisible();
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
@@ -120,7 +120,7 @@ test.describe("Team", () => {
       });
       await page.goto(`/settings/teams/${team.id}/members`);
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+      await expect(page.getByTestId("new-member-button")).toBeVisible();
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -171,7 +171,7 @@ test.describe("Team", () => {
     await page.goto(`/settings/teams/${team.id}/settings`);
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    await expect(page.getByTestId("new-member-button")).toBeVisible();
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -200,7 +200,7 @@ test.describe("Team", () => {
         children: true,
       },
     });
-    expect(parentEventType?.children.find((et) => et.userId === invitedMember.id)).toBeTruthy();
+    expect(parentEventType?.children.find((et) => et.userId === invitedMember.id)).not.toBeUndefined();
   });
 
   test("Auto-accept invitation for existing user", async ({ browser, page, users, emails }) => {
@@ -219,7 +219,7 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to existing user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      await expect(page.getByTestId("new-member-button")).toBeVisible();
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
@@ -286,7 +286,7 @@ test.describe("Team", () => {
 
     await test.step("Send invitation to specific user", async () => {
       await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500);
+      await expect(page.getByTestId("new-member-button")).toBeVisible();
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");

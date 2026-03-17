@@ -89,7 +89,7 @@ test.describe("Forgot password", async () => {
     });
 
     const updatedPassword = updatedUser.password!.hash;
-    expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
+    expect(await verifyPassword(newPassword, updatedPassword)).toBe(true);
 
     // finally, make sure the same URL cannot be used to reset the password again, as it should be expired.
     await page.goto(`/auth/forgot-password/${id}`);

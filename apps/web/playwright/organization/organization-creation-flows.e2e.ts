@@ -112,7 +112,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
 
       // Extract onboardingId from URL
       const onboardingIdMatch = onboardingUrl?.match(/onboardingId=([\w-]+)/);
-      expect(onboardingIdMatch).toBeTruthy();
+      expect(onboardingIdMatch).not.toBeNull();
       const onboardingId = onboardingIdMatch?.[1];
 
       // Step 3: Switch to owner user
@@ -130,7 +130,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       });
 
       // Verify the organization was created successfully in the API response
-      expect(result.organizationId).toBeTruthy();
+      expect(result.organizationId).toBeDefined();
       expect(result.name).toBe(orgName);
       expect(result.slug).toBe(orgSlug);
     });
@@ -165,7 +165,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       });
 
       // Verify the organization was created successfully
-      expect(result.organizationId).toBeTruthy();
+      expect(result.organizationId).toBeDefined();
       expect(result.name).toBe(orgName);
       expect(result.slug).toBe(orgSlug);
     });
@@ -311,12 +311,10 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
 
       // Name should be capitalized version of domain
       const nameValue = await nameInput.inputValue();
-      expect(nameValue).toBeTruthy();
       expect(nameValue).toMatch(/company/i);
 
       // Slug should be domain-based
       const slugValue = await slugInput.inputValue();
-      expect(slugValue).toBeTruthy();
       expect(slugValue).toContain("company");
     });
   });

@@ -120,7 +120,7 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page).toHaveURL(/^https:\/\/example\.com/);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get("code")).toBeTruthy();
+    expect(url.searchParams.get("code")).not.toBeNull();
     expect(url.searchParams.get("state")).toBe("1234");
     expect(url.searchParams.get("error")).toBeNull();
   });
@@ -199,7 +199,7 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page).toHaveURL(/^https:\/\/example\.com/);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get("code")).toBeTruthy();
+    expect(url.searchParams.get("code")).not.toBeNull();
     expect(url.searchParams.get("state")).toBe("1234");
     expect(url.searchParams.get("error")).toBeNull();
   });

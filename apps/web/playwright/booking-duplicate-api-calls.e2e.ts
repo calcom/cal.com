@@ -27,7 +27,7 @@ async function testDuplicateAPICalls(
   });
 
   await page.goto(url);
-  await page.waitForTimeout(5000);
+  await page.waitForLoadState("networkidle"); // wait for all API calls to complete before counting
 
   return {
     totalCalls: trpcCalls.length + apiV2Calls.length,

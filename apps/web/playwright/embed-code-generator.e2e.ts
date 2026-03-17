@@ -325,7 +325,7 @@ function chooseEmbedType(page: Page, embedType: EmbedType) {
 
 async function goToReactCodeTab(page: Page) {
   // To prevent early timeo
-  await page.waitForTimeout(1000);
+  await expect(page.locator("[data-testid=horizontal-tab-react]")).toBeVisible();
   await page.locator("[data-testid=horizontal-tab-react]").click();
 }
 

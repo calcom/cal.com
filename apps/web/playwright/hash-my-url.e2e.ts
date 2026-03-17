@@ -84,7 +84,7 @@ test.describe("private links creation and usage", () => {
 
     // Wait for the private link URL input to be visible and get its value
     const $url2 = await page.locator('[data-testid="private-link-url"]').inputValue();
-    expect($url2.includes("somethingrandom")).toBeTruthy();
+    expect($url2).toContain("somethingrandom");
   });
 
   test("generate private link with future expiration date and make a booking with it", async ({ page }) => {

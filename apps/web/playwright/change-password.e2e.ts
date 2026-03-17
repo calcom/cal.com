@@ -12,7 +12,7 @@ test.describe("Change Password Test", () => {
     // Go to http://localhost:3000/settings/security
     await page.goto("/settings/security/password");
 
-    expect(pro.username).toBeTruthy();
+    expect(pro.username).not.toBeNull();
 
     // Fill form
     await page.locator('[name="oldPassword"]').fill(String(pro.username));

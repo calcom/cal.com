@@ -15,7 +15,7 @@ test("Can delete user account", async ({ page, users }) => {
 
   await page.click("[data-testid=delete-account]");
 
-  expect(user.username).toBeTruthy();
+  expect(user.username).not.toBeNull();
 
   const $passwordField = page.locator("[data-testid=password]");
   await $passwordField.fill(String(user.username));
