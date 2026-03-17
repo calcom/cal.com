@@ -192,7 +192,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <div className="-mt-3 flex justify-center">
               {
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={dataUri} alt="" />
+                <img src={dataUri} alt="Two-factor authentication QR code" />
               }
             </div>
             <p data-testid="two-factor-secret" className="mb-4 text-center font-mono text-xs">
