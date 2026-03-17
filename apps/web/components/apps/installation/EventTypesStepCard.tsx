@@ -98,7 +98,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
     <div className="mt-10">
       <div className="mb-2 flex items-center">
         <Avatar
-          alt={`${props.slug} app icon`}
+          alt={props.slug ? `${props.slug} app icon` : "App icon"}
           imageSrc={props.image} // if no image, use default avatar
           size="md"
           className="mt-1 inline-flex justify-center"

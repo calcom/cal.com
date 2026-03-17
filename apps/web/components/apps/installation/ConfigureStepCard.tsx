@@ -233,7 +233,7 @@ const ConfigureStepCardContent: FC<ConfigureStepCardProps> = (props) => {
           {eventTypeGroups[groupIndex].eventTypes.some((eventType) => eventType.selected === true) && (
             <div className="mb-2 mt-4 flex items-center">
               <Avatar
-                alt={`${group.slug} app icon`}
+                alt={group.slug ? `${group.slug} app icon` : "App icon"}
                 imageSrc={group.image} // if no image, use default avatar
                 size="md"
                 className="inline-flex justify-center"
