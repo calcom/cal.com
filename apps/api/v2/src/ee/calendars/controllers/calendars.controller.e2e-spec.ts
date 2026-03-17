@@ -35,6 +35,7 @@ jest.mock("@calcom/platform-libraries/app-store", () => {
 
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateIcsFeedOutput, CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
 import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
@@ -84,6 +85,21 @@ describe("Platform Calendars Endpoints", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
+
+    // Ensure google-calendar app exists with valid keys for OAuth tests
+    const prismaWrite = moduleRef.get(PrismaWriteService);
+    await prismaWrite.prisma.app.upsert({
+      where: { slug: "google-calendar" },
+      update: { keys: { client_id: "test-client-id", client_secret: "test-client-secret" }, enabled: true },
+      create: {
+        slug: "google-calendar",
+        dirName: "googlecalendar",
+        categories: ["calendar"],
+        keys: { client_id: "test-client-id", client_secret: "test-client-secret" },
+        enabled: true,
+      },
+    });
+
     organization = await teamRepositoryFixture.create({ name: `calendars-organization-${randomString()}` });
     oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.createOAuthManagedUser(

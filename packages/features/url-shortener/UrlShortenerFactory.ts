@@ -1,6 +1,6 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
-
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import type { IUrlShortenerProvider } from "./IUrlShortenerProvider";
 import { DubShortener } from "./providers/DubShortener";
 import { NoopShortener } from "./providers/NoopShortener";
@@ -11,24 +11,29 @@ export class UrlShortenerFactory {
   static async create({
     userId,
     teamId,
-  }: { userId?: number | null; teamId?: number | null } = {}): Promise<IUrlShortenerProvider> {
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  } = {}): Promise<IUrlShortenerProvider> {
     if (SinkShortener.isConfigured()) {
-      const featuresRepository = new FeaturesRepository(prisma);
+      const featureRepository = getFeatureRepository();
 
-      const globallyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("sink-shortener");
+      const globallyEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally("sink-shortener");
       if (globallyEnabled) {
         return new SinkShortener(new SinkClient());
       }
 
       if (userId) {
-        const useSink = await featuresRepository.checkIfUserHasFeature(userId, "sink-shortener");
+        const userFeatureRepository = getUserFeatureRepository();
+        const useSink = await userFeatureRepository.checkIfUserHasFeature(userId, "sink-shortener");
         if (useSink) {
           return new SinkShortener(new SinkClient());
         }
       }
 
       if (teamId) {
-        const useSink = await featuresRepository.checkIfTeamHasFeature(teamId, "sink-shortener");
+        const teamFeatureRepository = getTeamFeatureRepository();
+        const useSink = await teamFeatureRepository.checkIfTeamHasFeature(teamId, "sink-shortener");
         if (useSink) {
           return new SinkShortener(new SinkClient());
         }

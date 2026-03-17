@@ -10,6 +10,7 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { AppModule } from "@/app.module";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { bootstrap } from "@/bootstrap";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
@@ -54,6 +55,21 @@ describe("Platform Gcal Endpoints", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
+
+    // Ensure google-calendar app exists with valid keys for OAuth tests
+    const prismaWrite = moduleRef.get(PrismaWriteService);
+    await prismaWrite.prisma.app.upsert({
+      where: { slug: "google-calendar" },
+      update: { keys: { client_id: "test-client-id", client_secret: "test-client-secret" }, enabled: true },
+      create: {
+        slug: "google-calendar",
+        dirName: "googlecalendar",
+        categories: ["calendar"],
+        keys: { client_id: "test-client-id", client_secret: "test-client-secret" },
+        enabled: true,
+      },
+    });
+
     organization = await teamRepositoryFixture.create({ name: "organization" });
     oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.createOAuthManagedUser("gcal-connect@gmail.com", oAuthClient.id);

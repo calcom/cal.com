@@ -18,19 +18,25 @@ vi.mock("@calcom/features/auth/lib/dub", () => ({
   },
 }));
 
-const mockCheckIfUserHasFeature = vi.fn();
-const mockCheckIfTeamHasFeature = vi.fn();
 const mockCheckIfFeatureIsEnabledGlobally = vi.fn();
-vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: class {
-    checkIfUserHasFeature = mockCheckIfUserHasFeature;
-    checkIfTeamHasFeature = mockCheckIfTeamHasFeature;
-    checkIfFeatureIsEnabledGlobally = mockCheckIfFeatureIsEnabledGlobally;
-  },
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => ({
+    checkIfFeatureIsEnabledGlobally: mockCheckIfFeatureIsEnabledGlobally,
+  }),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: {},
+const mockCheckIfUserHasFeature = vi.fn();
+vi.mock("@calcom/features/di/containers/UserFeatureRepository", () => ({
+  getUserFeatureRepository: () => ({
+    checkIfUserHasFeature: mockCheckIfUserHasFeature,
+  }),
+}));
+
+const mockCheckIfTeamHasFeature = vi.fn();
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: () => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  }),
 }));
 
 import { DubShortener } from "../providers/DubShortener";
