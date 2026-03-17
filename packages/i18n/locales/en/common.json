@@ -1,8 +1,4 @@
 {
-  "hidden_event": "Hidden event",
-  "hidden_event_description": "If enabled, this event will be hidden from the booking page and only accessible via direct link.",
-  "hidden_event_lock": "Lock hidden setting for members",
-  "hidden_event_lock_description": "When enabled, members cannot change the hidden setting on managed child event types.",
   "apply_to_all": "Apply to all",
   "identity_provider": "Identity provider",
   "trial_days_left": "You have $t(day, {\"count\": {{days}} }) left on your pro trial",
@@ -4755,5 +4751,9 @@
   "dashboard": "dashboard",
   "paypal_webhook_reminder": "Our integration creates a specific webhook on your PayPal account that we use to report back transactions to our system. If you delete this webhook, we will not be able to report back and you should uninstall and install the app again for this to work properly. Uninstalling the app won't delete your current event type price/currency configuration but you will not be able to receive bookings.",
   "discount_25": "-25%",
+  "hidden_event": "Hidden event",
+  "hidden_event_description": "If enabled, this event will be hidden from the booking page and only accessible via direct link.",
+  "hidden_event_lock": "Lock hidden setting for members",
+  "hidden_event_lock_description": "When enabled, members cannot change the hidden setting on managed child event types.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
