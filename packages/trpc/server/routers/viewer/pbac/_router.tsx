@@ -128,6 +128,13 @@ export const permissionsRouter = router({
       }
 
       const roleService = new RoleService();
+
+      // Verify the role belongs to the specified team to prevent IDOR
+      const roleBelongsToTeam = await roleService.roleBelongsToTeam(input.roleId, input.teamId);
+      if (!roleBelongsToTeam) {
+        throw new Error("Role not found in this team");
+      }
+
       return roleService.update({
         roleId: input.roleId,
         permissions: input.permissions,
@@ -164,6 +171,13 @@ export const permissionsRouter = router({
       }
 
       const roleService = new RoleService();
+
+      // Verify the role belongs to the specified team to prevent IDOR
+      const roleBelongsToTeam = await roleService.roleBelongsToTeam(input.roleId, input.teamId);
+      if (!roleBelongsToTeam) {
+        throw new Error("Role not found in this team");
+      }
+
       await roleService.deleteRole(input.roleId);
       return { success: true };
     }),
