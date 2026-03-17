@@ -6,10 +6,10 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
-import { InfoIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { FullscreenUpgradeBannerForTeamsPage } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForTeamsPage";
+import { InfoIcon } from "@coss/ui/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import SkeletonLoaderTeamList from "~/ee/teams/components/SkeletonloaderTeamList";
@@ -98,7 +98,9 @@ export function TeamsListing({
 
       {teams.length === 0 && isPendingTeamPlan && <SkeletonLoaderTeamList />}
 
-      {teams.length === 0 && !isPendingTeamPlan && <FullscreenUpgradeBannerForTeamsPage />}
+      {teams.length === 0 && teamInvites.length === 0 && !isPendingTeamPlan && (
+        <FullscreenUpgradeBannerForTeamsPage isOrgMember={!!orgId} />
+      )}
 
       {/* Only show tip when not showing the upgrade banner */}
       {teams.length > 0 && (

@@ -3,7 +3,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { FullScreenUpgradeBanner } from "@calcom/web/modules/billing/components/FullScreenUpgradeBanner";
 
-export function FullscreenUpgradeBannerForTeamsPage() {
+export function FullscreenUpgradeBannerForTeamsPage({ isOrgMember }: { isOrgMember?: boolean }) {
   const { t } = useLocale();
 
   const features = [
@@ -31,6 +31,7 @@ export function FullscreenUpgradeBannerForTeamsPage() {
         text: t("learn_more"),
         href: "https://cal.com/teams",
       }}
+      isOrgMember={isOrgMember}
     />
   );
 }

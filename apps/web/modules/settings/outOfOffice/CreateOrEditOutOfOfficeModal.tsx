@@ -1,6 +1,3 @@
-import { useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -12,17 +9,24 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input, Checkbox } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import {
+  Checkbox,
+  DateRangePicker,
+  Input,
+  Label,
+  Select,
+  Switch,
+  TextArea,
+} from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
+import { useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 export type { BookingRedirectForm } from "~/settings/outOfOffice/types";
+
 import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 
 type Option = { value: number; label: string };
@@ -111,6 +115,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 
   const { hasTeamPlan } = useHasTeamPlan();
+  const isOrgMember = !!me?.data?.organizationId;
 
   const {
     handleSubmit,
@@ -383,12 +388,15 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   }}
                   label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />
-                {!hasTeamPlan && (
+                {!hasTeamPlan && !isOrgMember && (
                   <div className="mx-2" data-testid="upgrade-team-badge">
                     <UpgradeTeamsBadge />
                   </div>
                 )}
               </div>
+              {!hasTeamPlan && isOrgMember && (
+                <p className="text-subtle mt-2 text-sm">{t("ask_admin_to_invite_you")}</p>
+              )}
 
               {profileRedirect && (
                 <div className="mb-2">

@@ -4716,6 +4716,8 @@
   "upgrade_banner_teams_feature2": "Distribute meetings fairly with round-robin",
   "upgrade_banner_teams_feature3": "See what's getting booked (and what's not)",
   "upgrade_banner_teams_feature4": "Remove Cal.com branding",
+  "not_a_member_of_any_team": "You are not a member of any team yet",
+  "ask_admin_to_invite_you": "Ask your organization admin to invite you to a team.",
   "upgrade_banner_insights_name": "Insights",
   "upgrade_banner_insights_title": "See what's getting booked, and what's not",
   "upgrade_banner_insights_subtitle": "Turn booking data into clarity for you and your team so you can spot gaps, balance workload, and make better scheduling decisions.",

@@ -49,6 +49,7 @@ export type FullScreenUpgradeBannerProps = {
     height: number;
   };
   youtubeId?: string;
+  isOrgMember?: boolean;
 };
 
 function useResponsiveOffset(
@@ -100,7 +101,7 @@ function BannerImage({
       {youtubeId && (
         <button
           type="button"
-          className="absolute inset-0 flex items-center justify-center cursor-pointer"
+          className="absolute inset-0 flex cursor-pointer items-center justify-center"
           onClick={() => {
             posthog.capture("fullscreen_upgrade_banner_video_played", { source: tracking, target });
             onPlayVideo();
@@ -123,12 +124,27 @@ export function FullScreenUpgradeBanner({
   extraOffset,
   image,
   youtubeId,
+  isOrgMember,
 }: FullScreenUpgradeBannerProps): JSX.Element {
   const [videoOpen, setVideoOpen] = useState(false);
   const [showFeatures, setShowFeatures] = useState(false);
   const deviceSpecificOffset = useResponsiveOffset(extraOffset);
   const { t } = useLocale();
   const ref = useFillRemainingHeight(deviceSpecificOffset);
+
+  if (isOrgMember) {
+    return (
+      <div ref={ref} className="flex w-full shrink-0 items-center justify-center rounded-xl bg-subtle p-8">
+        <div className="flex h-full w-full max-w-3xl items-center justify-center rounded-3xl bg-default p-8 shadow-sm md:h-auto">
+          <div className="flex flex-col items-center text-center">
+            <Icon name="users" className="mb-4 h-12 w-12 text-subtle" />
+            <h2 className="font-cal font-semibold text-emphasis text-xl">{t("not_a_member_of_any_team")}</h2>
+            <p className="mt-2 text-sm text-subtle">{t("ask_admin_to_invite_you")}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const bannerImageProps = {
     image,
@@ -141,24 +157,24 @@ export function FullScreenUpgradeBanner({
 
   return (
     <div ref={ref} className="flex w-full shrink-0 items-center justify-center rounded-xl bg-subtle p-8">
-      <div className="flex w-full h-full md:h-auto max-w-3xl gap-2 overflow-hidden rounded-3xl bg-default p-5 md:py-8 md:pl-8 md:pr-0 shadow-sm">
+      <div className="flex h-full w-full max-w-3xl gap-2 overflow-hidden rounded-3xl bg-default p-5 shadow-sm md:h-auto md:py-8 md:pr-0 md:pl-8">
         {/* Left Content */}
         <div className="flex flex-1 flex-col justify-between overflow-hidden">
           <div className={`${showFeatures ? "overflow-y-auto" : ""} md:overflow-visible`}>
             <div>
               <Badge
                 variant="outline"
-                className="text-sm text-default font-medium bg-subtle px-2 py-1 h-fit! border-0">
+                className="h-fit! border-0 bg-subtle px-2 py-1 font-medium text-default text-sm">
                 {name}
               </Badge>
             </div>
             <h2 className="mt-3 font-cal font-semibold text-emphasis text-xl leading-none">{title}</h2>
-            <p className="mt-2 text-subtle text-sm">{subtitle}</p>
+            <p className="mt-2 text-sm text-subtle">{subtitle}</p>
 
             {/* Features List */}
             {features && (
               <>
-                <ul className="mt-4 space-y-2 hidden md:block">
+                <ul className="mt-4 hidden space-y-2 md:block">
                   {features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-subtle">
                       <span className="text-subtle">•</span>
@@ -166,7 +182,7 @@ export function FullScreenUpgradeBanner({
                     </li>
                   ))}
                 </ul>
-                <div className="md:hidden mt-4">
+                <div className="mt-4 md:hidden">
                   {showFeatures ? (
                     <>
                       <ul className="space-y-2">
@@ -179,7 +195,7 @@ export function FullScreenUpgradeBanner({
                       </ul>
                       <button
                         type="button"
-                        className="mt-2 text-sm text-emphasis font-medium cursor-pointer underline"
+                        className="mt-2 cursor-pointer font-medium text-emphasis text-sm underline"
                         onClick={() => setShowFeatures(false)}>
                         {t("hide")}
                       </button>
@@ -187,7 +203,7 @@ export function FullScreenUpgradeBanner({
                   ) : (
                     <button
                       type="button"
-                      className="text-sm text-emphasis font-medium cursor-pointer underline"
+                      className="cursor-pointer font-medium text-emphasis text-sm underline"
                       onClick={() => setShowFeatures(true)}>
                       {t("show_more")}
                     </button>
@@ -198,19 +214,20 @@ export function FullScreenUpgradeBanner({
           </div>
 
           {/* Image - mobile only, hidden when features are expanded */}
-          <div className={`${showFeatures ? "hidden" : ""} md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden relative`}>
+          <div
+            className={`${showFeatures ? "hidden" : ""} relative my-4 flex aspect-[3/4] items-center justify-center overflow-hidden rounded-xl bg-subtle md:hidden`}>
             <BannerImage {...bannerImageProps} />
           </div>
 
           <div>
-            <div className="hidden md:flex items-center gap-2 mt-4">
-              <p className="text-sm font-medium text-subtle">{t("available_on")}</p>
+            <div className="mt-4 hidden items-center gap-2 md:flex">
+              <p className="font-medium text-sm text-subtle">{t("available_on")}</p>
               {target === "team" && <TeamBadge />}
               {(target === "team" || target === "organization") && <OrgBadge />}
             </div>
             <div className="mt-4 h-px w-full border border-t-subtle border-dashed" />
             {/* Buttons */}
-            <div className="mt-6 flex items-center justify-between md:justify-start gap-2">
+            <div className="mt-6 flex items-center justify-between gap-2 md:justify-start">
               <UpgradePlanDialog
                 tracking={tracking}
                 info={{
@@ -259,7 +276,7 @@ export function FullScreenUpgradeBanner({
         </div>
 
         {/* Right Content - Image */}
-        <div className="-my-2 hidden md:flex flex-1 items-center justify-center rounded-l-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted border-r-0 relative">
+        <div className="relative -my-2 hidden aspect-[3/4] flex-1 items-center justify-center overflow-hidden rounded-l-xl border border-muted border-r-0 bg-subtle md:flex">
           <BannerImage {...bannerImageProps} />
         </div>
       </div>

@@ -100,7 +100,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
     <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
       {!team.parentId && (
         <div className="mb-4">
-          <WideUpgradeBannerForMembers />
+          <WideUpgradeBannerForMembers isOrgMember={!!session.user.org?.id} />
         </div>
       )}
       <TeamMembersView

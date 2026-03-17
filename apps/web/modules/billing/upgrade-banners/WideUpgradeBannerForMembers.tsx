@@ -6,7 +6,7 @@ import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/Upgrad
 import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/WideUpgradeBanner";
 import { Button } from "@coss/ui/components/button";
 
-export function WideUpgradeBannerForMembers() {
+export function WideUpgradeBannerForMembers({ isOrgMember }: { isOrgMember?: boolean }) {
   const { t } = useLocale();
 
   return (
@@ -23,7 +23,8 @@ export function WideUpgradeBannerForMembers() {
       learnMoreButton={{
         text: t("learn_more"),
         href: "https://cal.com/help/routing/routing-with-attributes",
-      }}>
+      }}
+      isOrgMember={isOrgMember}>
       <UpgradePlanDialog tracking="members" target="organization">
         <Button variant="outline">
           {t("try_for_free")}
