@@ -134,6 +134,117 @@ export class AbuseScoringRepository {
     return abuseScoringConfigDtoSchema.parse(config);
   }
 
+  async findLockedUsersPaginated(limit: number, offset: number, searchTerm?: string) {
+    const where = {
+      locked: true,
+      userAbuseScore: {
+        lockedAt: { not: null },
+        lockedReason: { in: ["score_threshold", "auto_lock_rule"] },
+      },
+      ...(searchTerm && {
+        OR: [
+          { email: { contains: searchTerm, mode: "insensitive" as const } },
+          { username: { contains: searchTerm, mode: "insensitive" as const } },
+        ],
+      }),
+    };
+
+    const [rows, totalRowCount] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { userAbuseScore: { lockedAt: "desc" } },
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          userAbuseScore: {
+            select: {
+              score: true,
+              lockedAt: true,
+              lockedReason: true,
+            },
+          },
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      rows: rows.map((u) => ({
+        id: u.id,
+        email: u.email,
+        username: u.username,
+        name: u.name,
+        score: u.userAbuseScore?.score ?? 0,
+        lockedAt: u.userAbuseScore?.lockedAt,
+        lockedReason: u.userAbuseScore?.lockedReason,
+      })),
+      meta: { totalRowCount },
+    };
+  }
+
+  async unlockUser(userId: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const abuseScore = await tx.userAbuseScore.findUnique({
+        where: { userId },
+        select: { id: true, lockedReason: true },
+      });
+
+      if (!abuseScore || !["score_threshold", "auto_lock_rule"].includes(abuseScore.lockedReason ?? "")) {
+        throw new Error("User was not locked by the abuse system");
+      }
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { locked: false },
+        select: { id: true },
+      });
+
+      if (abuseScore) {
+        await tx.userAbuseSignal.deleteMany({
+          where: { abuseScoreId: abuseScore.id },
+        });
+        await tx.userAbuseScore.update({
+          where: { userId },
+          data: { score: 0, lockedAt: null, lockedReason: null },
+          select: { id: true },
+        });
+      }
+    });
+  }
+
+  async updateConfig(data: {
+    alertThreshold: number;
+    lockThreshold: number;
+    monitoringWindowDays: number;
+    updatedById: number;
+  }): Promise<AbuseScoringConfigDto> {
+    const config = await this.prisma.abuseScoringConfig.upsert({
+      where: { id: 1 },
+      create: {
+        alertThreshold: data.alertThreshold,
+        lockThreshold: data.lockThreshold,
+        monitoringWindowDays: data.monitoringWindowDays,
+        updatedById: data.updatedById,
+      },
+      update: {
+        alertThreshold: data.alertThreshold,
+        lockThreshold: data.lockThreshold,
+        monitoringWindowDays: data.monitoringWindowDays,
+        updatedById: data.updatedById,
+      },
+      select: {
+        alertThreshold: true,
+        lockThreshold: true,
+        monitoringWindowDays: true,
+      },
+    });
+    return abuseScoringConfigDtoSchema.parse(config);
+  }
+
   async countRecentBookings(userId: number, since: Date): Promise<number> {
     return this.prisma.booking.count({
       where: { userId, createdAt: { gte: since } },

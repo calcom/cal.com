@@ -20,6 +20,7 @@ import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.s
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { abuseRulesRouter } from "./abuseRules/_router";
+import { abuseScoringRouter } from "./abuseScoring/_router";
 import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
@@ -148,5 +149,6 @@ export const adminRouter = router({
     return handler(opts);
   }),
   abuseRules: abuseRulesRouter,
+  abuseScoring: abuseScoringRouter,
   watchlist: watchlistRouter,
 });

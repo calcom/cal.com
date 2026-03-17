@@ -96,16 +96,16 @@ export function useAbuseRulesColumns({
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 24,
-        minSize: 24,
-        maxSize: 24,
+        size: 30,
+        minSize: 30,
+        maxSize: 30,
       },
       {
         id: "description",
         header: t("description"),
         accessorKey: "description",
         enableHiding: false,
-        size: 180,
+        size: 160,
         cell: ({ row }) => (
           <span className="text-emphasis font-medium">
             {row.original.description || `Rule #${row.original.id}`}
@@ -116,11 +116,12 @@ export function useAbuseRulesColumns({
         id: "expression",
         header: t("expression"),
         enableHiding: false,
+        size: 260,
         cell: ({ row }) => {
           const expr = formatExpression(row.original.conditions, row.original.matchAll);
           return (
             <Tooltip content={expr}>
-              <span className="text-subtle max-w-[350px] truncate text-xs">
+              <span className="text-subtle text-xs leading-snug">
                 {expr}
               </span>
             </Tooltip>
@@ -130,7 +131,7 @@ export function useAbuseRulesColumns({
       {
         id: "action",
         header: t("action"),
-        size: 110,
+        size: 100,
         cell: ({ row }) =>
           row.original.autoLock ? (
             <Badge variant="red">{t("auto_lock")}</Badge>
@@ -141,7 +142,7 @@ export function useAbuseRulesColumns({
       {
         id: "enabled",
         header: t("enabled"),
-        size: 80,
+        size: 120,
         cell: ({ row }) => (
           <Switch
             checked={row.original.enabled}
@@ -152,9 +153,9 @@ export function useAbuseRulesColumns({
       {
         id: "actions",
         header: "",
-        size: 60,
-        minSize: 60,
-        maxSize: 60,
+        size: 80,
+        minSize: 80,
+        maxSize: 80,
         enableHiding: false,
         enableSorting: false,
         enableResizing: false,

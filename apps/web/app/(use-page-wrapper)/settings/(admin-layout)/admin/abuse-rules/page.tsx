@@ -8,12 +8,12 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import AbuseRulesView from "~/abuse-rules/components/AbuseRulesView";
+import AbuseControlView from "~/abuse-rules/components/AbuseControlView";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("abuse_rules"),
-    (t) => t("abuse_rules_description"),
+    (t) => t("abuse_control"),
+    (t) => t("abuse_control_description"),
     undefined,
     undefined,
     "/settings/admin/abuse-rules"
@@ -28,8 +28,8 @@ const Page = async () => {
 
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("abuse_rules")} description={t("abuse_rules_description")}>
-      <AbuseRulesView />
+    <SettingsHeader title={t("abuse_control")} description={t("abuse_control_description")}>
+      <AbuseControlView />
     </SettingsHeader>
   );
 };
