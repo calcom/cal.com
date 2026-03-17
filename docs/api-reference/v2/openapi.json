@@ -10541,7 +10541,7 @@
       "patch": {
         "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
         "summary": "Update booking location for an existing booking",
-        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n\n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -33628,6 +33628,52 @@
         },
         "required": ["type", "phone"]
       },
+      "UpdateBookingInputIntegrationLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "example": "cal-video",
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
+          }
+        },
+        "required": ["type", "integration"]
+      },
       "UpdateBookingLocationInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -33651,6 +33697,9 @@
               },
               {
                 "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputIntegrationLocation_2024_08_13"
               }
             ]
           }

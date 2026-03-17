@@ -1,10 +1,9 @@
-import type { TFunction } from "i18next";
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-import { BookingForCalEventBuilder, CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { type BookingForCalEventBuilder, CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
   getBookerBaseUrl: vi.fn(async () => "https://cal.com"),
@@ -22,6 +21,11 @@ vi.mock("@calcom/features/bookings/lib/getCalEventResponses", () => ({
     },
     userFieldsResponses: {},
   })),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 describe("CalendarEventBuilder", () => {
