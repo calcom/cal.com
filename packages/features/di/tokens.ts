@@ -1,3 +1,4 @@
+import { ABUSE_RULES_DI_TOKENS } from "@calcom/features/abuse-rules/di/tokens";
 import { ABUSE_SCORING_TASKER_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tasker/tokens";
 import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tokens";
 import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
@@ -100,6 +101,7 @@ export const DI_TOKENS = {
   ...AVATAR_DI_TOKENS,
   ...TRANSLATION_DI_TOKENS,
   ...WEBHOOK_TOKENS,
+  ...ABUSE_RULES_DI_TOKENS,
   ...ABUSE_SCORING_DI_TOKENS,
   ...ABUSE_SCORING_TASKER_DI_TOKENS,
   ...AUTH_DI_TOKENS,

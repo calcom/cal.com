@@ -19,6 +19,7 @@ import { ZTransferBillingSchema } from "./transferBilling.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
+import { abuseRulesRouter } from "./abuseRules/_router";
 import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
@@ -146,5 +147,6 @@ export const adminRouter = router({
     const { default: handler } = await import("./transferBilling.handler");
     return handler(opts);
   }),
+  abuseRules: abuseRulesRouter,
   watchlist: watchlistRouter,
 });

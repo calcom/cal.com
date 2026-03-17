@@ -90,10 +90,6 @@ export function useBlockedEntriesColumns<T extends BlocklistEntry>({
             EMAIL: t("email"),
             DOMAIN: t("domain"),
             USERNAME: t("username"),
-            SPAM_KEYWORD: t("spam_keyword"),
-            SUSPICIOUS_DOMAIN: t("suspicious_domain"),
-            EMAIL_PATTERN: t("email_pattern"),
-            REDIRECT_DOMAIN: t("redirect_domain"),
           };
           return <Badge variant="blue">{typeLabels[row.original.type] ?? row.original.type}</Badge>;
         },

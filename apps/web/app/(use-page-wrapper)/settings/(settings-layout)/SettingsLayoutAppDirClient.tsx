@@ -285,6 +285,11 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           trackingMetadata: { section: "admin", page: "blocklist" },
         },
         {
+          name: "abuse_rules",
+          href: "/settings/admin/abuse-rules",
+          trackingMetadata: { section: "admin", page: "abuse_rules" },
+        },
+        {
           name: "oAuth",
           href: "/settings/admin/oauth",
           trackingMetadata: { section: "admin", page: "oauth" },
