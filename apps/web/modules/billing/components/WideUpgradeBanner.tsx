@@ -152,7 +152,7 @@ export function WideUpgradeBanner({
 
       {/* Right Content - Image */}
       <div
-        className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? "max-w-64" : "max-w-[520px]"}`}>
+        className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? " max-w-64" : " max-w-[520px]"}`}>
         <Image src={image.src} alt={title} fill className="object-cover object-left" />
       </div>
     </div>

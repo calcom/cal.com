@@ -388,13 +388,9 @@ const AppearanceView = ({
             toggleSwitchAtTheEnd={true}
             title={t("disable_cal_branding", { appName: APP_NAME })}
             disabled={!hasPaidPlan || mutation?.isPending}
-            description={
-              isApartOfOrganization && !hasPaidPlan
-                ? t("ask_admin_to_invite_you")
-                : t("removes_cal_branding", { appName: APP_NAME })
-            }
+            description={t("removes_cal_branding", { appName: APP_NAME })}
             checked={hasPaidPlan ? hideBrandingValue : false}
-            Badge={isApartOfOrganization ? undefined : <UpgradeTeamsBadgeWebWrapper />}
+            Badge={<UpgradeTeamsBadgeWebWrapper />}
             onCheckedChange={(checked) => {
               setHideBrandingValue(checked);
               mutation.mutate({ hideBranding: checked });

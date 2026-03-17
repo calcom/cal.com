@@ -19,7 +19,7 @@ import {
   TextArea,
 } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { useHasTeamMembership, useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "~/billing/components/UpgradeTeamsBadgeWebWrapper";
@@ -115,7 +115,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 
   const { hasTeamPlan } = useHasTeamPlan();
-  const isOrgMember = !!me?.data?.organizationId;
+  const { hasTeamMembership } = useHasTeamMembership();
+  const isOrgMemberWithoutTeams = !!me?.data?.organizationId && !hasTeamMembership;
 
   const {
     handleSubmit,
@@ -388,13 +389,13 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                   }}
                   label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />
-                {!hasTeamPlan && !isOrgMember && (
+                {!hasTeamPlan && !isOrgMemberWithoutTeams && (
                   <div className="mx-2" data-testid="upgrade-team-badge">
                     <UpgradeTeamsBadge />
                   </div>
                 )}
               </div>
-              {!hasTeamPlan && isOrgMember && (
+              {!hasTeamPlan && isOrgMemberWithoutTeams && (
                 <p className="text-subtle mt-2 text-sm">{t("ask_admin_to_invite_you")}</p>
               )}
 
