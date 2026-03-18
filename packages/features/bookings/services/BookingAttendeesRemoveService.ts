@@ -69,9 +69,7 @@ export class BookingAttendeesRemoveService {
     await updateCalendarEvent(booking, evt);
 
     if (emailsEnabled) {
-      void this.prepareAttendeePerson(attendeeToRemove)
-        .then((removedAttendeePerson) => this.sendCancelledEmailToAttendee(evt, removedAttendeePerson))
-        .catch((error) => logger.error("Failed to send cancellation email to removed attendee", { error }));
+      this.sendCancellationEmail(attendeeToRemove, evt);
     }
 
     const organizationId = user.organizationId ?? null;
@@ -155,14 +153,16 @@ export class BookingAttendeesRemoveService {
     };
   }
 
-  private async sendCancelledEmailToAttendee(evt: CalendarEvent, attendee: Person): Promise<void> {
+  private async sendCancellationEmail(
+    attendeeToRemove: Booking["attendees"][number],
+    evt: CalendarEvent
+  ): Promise<void> {
     try {
-      const email = new AttendeeCancelledEmail(evt, attendee);
+      const removedAttendeePerson = await this.prepareAttendeePerson(attendeeToRemove);
+      const email = new AttendeeCancelledEmail(evt, removedAttendeePerson);
       await email.sendEmail();
     } catch (error) {
-      logger.error("Failed to send cancellation email to removed attendee", {
-        error,
-      });
+      logger.error("Failed to send cancellation email to removed attendee", { error });
     }
   }
 }

@@ -19,6 +19,7 @@ export { BookingEmailAndSmsSyncTasker } from "@calcom/features/bookings/lib/task
 export { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 export { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTaskService";
 export { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTriggerTasker";
+export { BookingAttendeesRemoveService } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
 export { BookingAttendeesService } from "@calcom/features/bookings/services/BookingAttendeesService";
 export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";

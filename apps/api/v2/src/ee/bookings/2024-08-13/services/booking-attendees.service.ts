@@ -1,5 +1,3 @@
-import type { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
-import { getBookingAttendeesService } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -9,18 +7,16 @@ import { BookingAttendeeWithId_2024_08_13 } from "@/ee/bookings/2024-08-13/outpu
 import { RemovedAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
+import { BookingAttendeesService } from "@/lib/services/booking-attendees.service";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 
 @Injectable()
 export class BookingAttendeesService_2024_08_13 {
-  private bookingAttendeesService: BookingAttendeesService;
-
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    private readonly platformBookingsService: PlatformBookingsService
-  ) {
-    this.bookingAttendeesService = getBookingAttendeesService();
-  }
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly bookingAttendeesService: BookingAttendeesService
+  ) {}
 
   async getBookingAttendees(bookingUid: string): Promise<BookingAttendeeWithId_2024_08_13[]> {
     const attendees = await this.bookingAttendeesService.getBookingAttendees(bookingUid);
