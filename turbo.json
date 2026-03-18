@@ -46,7 +46,6 @@
     "DAILY_VIDEO_REGION",
     "DATABASE_CHUNK_SIZE",
     "DATABASE_DIRECT_URL",
-    "DATABASE_PORT",
     "DATABASE_URL",
     "DEBUG",
     "DUB_API_KEY",
@@ -335,7 +334,8 @@
       "dependsOn": ["@calcom/prisma#db-deploy"]
     },
     "@calcom/prisma#db-up": {
-      "cache": false
+      "cache": false,
+      "env": ["DATABASE_PORT"]
     },
     "@calcom/prisma#dx": {
       "cache": false,
