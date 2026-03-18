@@ -1,8 +1,7 @@
 // or wherever it's from
-import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildEventForTeamEventType } from "../../service/RegularBookingService";
 
 vi.mock("@calcom/i18n/server", () => ({
@@ -38,6 +37,28 @@ vi.mock("@calcom/features/CalendarEventBuilder", () => {
 
 vi.mock("@calcom/app-store/_utils/calendars/processExternalId", () => ({
   default: vi.fn((dc) => `external-${dc?.externalId ?? "id"}`),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
+
+vi.mock("@calcom/features/abuse-scoring/lib/hooks", () => ({
+  onEventTypeChange: vi.fn(),
+  onSignup: vi.fn(),
+  onBookingCreated: vi.fn(),
+}));
+
+vi.mock("@calcom/features/di/watchlist/containers/SpamCheckService.container", () => ({
+  getSpamCheckService: vi.fn().mockReturnValue({
+    checkForSpam: vi.fn().mockResolvedValue({ isSpam: false }),
+  }),
+}));
+
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
 const baseUser = (overrides: Record<string, unknown> = {}) => ({
