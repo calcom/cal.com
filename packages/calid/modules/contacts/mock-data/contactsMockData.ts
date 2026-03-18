@@ -1,0 +1,58 @@
+import type { ContactMeeting } from "../types";
+
+export const mockMeetings: ContactMeeting[] = [
+  {
+    id: 1,
+    contactId: 1,
+    title: "Quarterly Planning",
+    date: new Date("2026-03-22T15:00:00.000Z"),
+    duration: 45,
+    status: "upcoming",
+    meetingLink: "https://meet.google.com/example-101",
+    notes: "Discuss Q2 campaign timeline",
+  },
+  {
+    id: 2,
+    contactId: 1,
+    title: "Kickoff Sync",
+    date: new Date("2026-02-12T14:00:00.000Z"),
+    duration: 30,
+    status: "completed",
+    notes: "Aligned on goals and owners",
+  },
+  {
+    id: 3,
+    contactId: 1,
+    title: "Demo Follow-up",
+    date: new Date("2026-01-24T17:00:00.000Z"),
+    duration: 30,
+    status: "cancelled",
+    notes: "Rescheduled after budget review",
+  },
+  {
+    id: 4,
+    contactId: 2,
+    title: "Solution Review",
+    date: new Date("2026-03-28T16:30:00.000Z"),
+    duration: 60,
+    status: "upcoming",
+    meetingLink: "https://zoom.us/j/222333444",
+  },
+  {
+    id: 5,
+    contactId: 4,
+    title: "Project Retrospective",
+    date: new Date("2026-03-01T13:30:00.000Z"),
+    duration: 30,
+    status: "completed",
+  },
+  {
+    id: 6,
+    contactId: 5,
+    title: "Product Demo",
+    date: new Date("2026-04-04T10:00:00.000Z"),
+    duration: 60,
+    status: "upcoming",
+    meetingLink: "https://meet.google.com/example-505",
+  },
+];
