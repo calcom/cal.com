@@ -5792,6 +5792,12 @@ checksums:
     purpose_placeholder: 5042cd9e3d06496522887ad7dbd81d7c
     purpose_tooltip: 5ba97db7037700b3e5f114a63234b415
     redirect_uri: 26ef627b7632d6fe44dedc4b4b1a6673
+    redirect_uris: d34a318a64788401e9525c3e074a6a9a
+    add_redirect_uri: e035944c4a29a7d6b7b7d405e16836ad
+    remove_redirect_uri: bb19a39da34a7d09f751eb233f3545c3
+    max_redirect_uris_reached: c768235991f818e9d01f4c1d8c0b55c7
+    at_least_one_redirect_uri_required: 64daf829e19ef0d76cdc33bdf42dd4fe
+    duplicate_redirect_uri: be45c94ebdf3b3047bc200f3e38a7f8c
     website_url: f285dafddcd0d3d355d44f425108ec22
     website_url_tooltip: 5273a63ddb66defb3b1acb01797a71cf
     authentication_mode: 8caf3022c25f5f2b151210a5fc22d345
@@ -7520,6 +7526,10 @@ checksums:
     first_last_name: 8d8bff27f28cfe83f56ee19705407645
     invite_as: 19ad0295dc3c2ee3a2c39fe17b1f4afd
     form_updated_successfully: c8f8edc04769e741105b70db713242c7
+    but_some_routes_unreachable: 6a7eaf1a9c4ecb399d1623da9183bf19
+    shadowed_routes_found: 699d735f266197565efcfd98d08ce42e
+    unreachable: 202b110dab099f1167b13c326349e570
+    move_route_above: 8b4c10dcf45fc1378ec312aeed256597
     disable_attendees_confirmation_emails: da4f54fc83f204c9c64dd9b404ac10c8
     disable_attendees_confirmation_emails_description: 899b107433adb1292419d98fd13fc90c
     disable_host_confirmation_emails: 91eaf59b8d2c356ae32f13df6293bb82
@@ -7829,6 +7839,7 @@ checksums:
     troubleshooter_tooltip: 09454c97ca0c80bd8d0485dd79ba0c86
     need_help: 04e7322f2d3ffb2d73ff2f64b71637c8
     troubleshooter: ac4a51cd3ebfacdd646583bf158235f5
+    bypass_calendar_cache: 2f29c78bd346a8d6763707f567368a6c
     number_to_call: 84189264e7c5495f1745bcafbcba265a
     guest_name: 95c4f289e1ff75271a414da750fac01a
     guest_email: e838ab73f4c62dc409f2a666c4a84351
@@ -9511,5 +9522,69 @@ checksums:
     update_billing: cfeff85af0a4ef657aea6579c3b2588c
     resubscribe: 9095e0490bef5b5a2225bc8c706b0cb4
     discount_25: 77c80a2de4c93c1cac32a8ffbcf8196d
-    ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
+    demote_to_admin: bb4beec9976d9f300d3410c9d1bbd9df
+    demote_to_member: b6b2c0792994df14d27255f9d40e385e
+    new_owner: 7d592c80a90c59c554cb8bd61c6c0056
+    previous_owner: 47e4789888e4c340acb8b17fb57103b5
+    previous_owner_action: c6c63c3a9c0505d711365cb820c13628
+    promoted_to_owner: 54b4d2be846ca338970546aee9b10cf4
+    remove_from_team: d89cbe8c5e18429f09941ca4b39224c0
+    search_users_by_email: e6dcf8e889ded2c58ddc75fefc279877
+    select_action_for_previous_owner: dab3159c35ffbb2895cde581610aba45
+    select_previous_owner: 66e0046867ed55b7d8ad56f0c5307d7d
+    billing_email: a2528daae2e805d1528d1eef1e5ba747
+    stripe_billing_email_update: 0fde0fab667b150c9573cd1860a775bd
+    transfer_ownership: a5bb5125d7b27bd2c445037af42c055b
+    transfer_ownership_description: 84cb98226d891d5202e1e2cb4a86241d
+    transfer_ownership_confirm_description: 8a8adebd58776a72c5742b4f68f63ecf
+    transfer_ownership_success: 87bed8d1a5a2c331b964fe3cf18a52b1
+    user_already_owner: 86b030ccd573535ec6d37e3014c071d1
+    user_not_team_member: 79f97c6ba946e48a674ba05b8a113d95
+    abuse_rules: 954c1f25ac6b6d3253d7620fd9982d07
+    abuse_rules_description: 80472464c46f78d9176775db43e2be8f
+    create_abuse_rule: 8c452d883761b518c476a45969f5e2f5
+    edit_abuse_rule: 054bae6efd495c6521a771c32445a20c
+    delete_abuse_rule: 3d32e72d133b1c79fa78e47355730234
+    delete_abuse_rule_confirmation: 60f148f91d32b9b77a31d02924a2b279
+    abuse_rule_created: 8beb9d34c0cc69028800746f730ca745
+    abuse_rule_updated: 6dc1ad4141c65356509222e970f8d809
+    abuse_rule_deleted: f82778ca44a6e468f2d02f7d45372a5e
+    abuse_rules_deleted: f7747d50a8114c508c19e7f2c4f10eeb
+    abuse_rule_description_placeholder: 8416c8d6d111d8b35d6d8180c00b0c70
+    no_abuse_rules: 7cb35f365f02db99bc25ce8af6951eef
+    no_abuse_rules_description: 3a680b963aca75bcee7ceb483199fd75
+    conditions: fb8f9a17238bdbdf2fe3c426a128ed40
+    add_condition: 4de5e43cd5e98efde6fa3b66ac4bdb71
+    score_contribution: 96bfaf4e2719f375c5f6240a2b3bb491
+    weight_validation: 57296417d1bf46da437aad2e5960f6a7
+    auto_lock: a15e5a34937ad91b167231884992169b
+    auto_lock_description: eda692177d32c66ad340276ddc11e64c
+    rule_enabled_description: 0d2e77955ed6987aff8a4da72d9132f7
+    expression: 49ef1a06571b2f155b0a7f3fa81ace6f
+    abuse_control: 3c17e59982e183ad47a18ea94e3e70df
+    abuse_control_description: 55aa0d61194c2203efd5dfd46857ca1b
+    rules: b5277760b8c90bd34c4550e4be72888c
+    locked_users: e18cd7f6b3525625cb002cc02cf026fe
+    configuration: 923ec0502721489202f6222dd4107163
+    score: b5e6f7445382f67427b5c48cc9ef33bc
+    locked_at: 790f6f98ef9c10f006b4dbe8a3c84ee1
+    unlock: 7641f077222283cbded112429a3e625d
+    unlock_user: 697df7d3010f2bf19a0a3781b4bd0590
+    unlock_user_confirmation: 0c85dcb96ad0ed68a3763efde23c7257
+    user_unlocked: b29ea6bf552e8dd774614c06c4534a9e
+    no_locked_users: 9e38b28e3c37d6c61dd7073665320208
+    no_locked_users_description: 291336992eebab131b5be8750969780e
+    alert_threshold: d77c89eb5456f877d5243dcd733b509c
+    alert_threshold_description: 89fed58466bff1f95ff8f3a5e0aab885
+    lock_threshold: 24935372644eea1926a99f6a4ce544d4
+    lock_threshold_description: 546d11f94f5b8c84472153ba93f8cf22
+    lock_threshold_must_exceed_alert: 969d2460054d3e236af7072f175da0be
+    monitoring_window_days: 17e17e74bebdf10699d7a943423374a7
+    monitoring_window_days_description: 49b04d82716c775bf79436e360f165c1
+    config_updated: 0924a474d0760980a3a2f3743e4fdb0a
+    matching_is_case_insensitive: 1fc18d20701a268e8b72c853382ecbc5
+    match: 5589bf1edc4df14c04c298e9317f5439
+    all_conditions: 3b4cd8b3d6605bf028c3d8eefadbb172
+    any_condition: a91f73aadbd74c9b4b44ad10599649ea
     pbac_resource_blocklist: 17845897553ffa9b8d09b57e295ed5c7
+    ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
