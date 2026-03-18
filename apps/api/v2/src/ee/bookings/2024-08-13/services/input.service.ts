@@ -562,19 +562,8 @@ export class InputBookingsService_2024_08_13 {
         case Frequency.DAILY:
           startTime = startTime.plus({ days: repeatsEvery });
           break;
-        case Frequency.HOURLY:
-          startTime = startTime.plus({ hours: repeatsEvery });
-          break;
-        case Frequency.MINUTELY:
-          startTime = startTime.plus({ minutes: repeatsEvery });
-          break;
-        case Frequency.SECONDLY:
-          startTime = startTime.plus({ seconds: repeatsEvery });
-          break;
-        default: {
-          const _exhaustive: never = timeBetween;
-          throw new BadRequestException(`Unsupported recurring frequency: ${_exhaustive}`);
-        }
+        default:
+          throw new BadRequestException(`Unsupported recurring frequency: ${timeBetween}`);
       }
     }
 
