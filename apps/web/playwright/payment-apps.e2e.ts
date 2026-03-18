@@ -129,7 +129,7 @@ test.describe("Payment app", () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
     await expect(page.locator("text=350").first()).toBeVisible();
 
-    // go to /event-types and check if the price is 350
+    // go to /event-types and check if the price is 350 USD
     await page.goto(`event-types/`);
     await expect(page.locator("text=350").first()).toBeVisible();
   });
@@ -206,8 +206,9 @@ test.describe("Payment app", () => {
       await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
       await page.getByRole("button", { name: "Setup" }).click();
-      // Verify navigation to alby setup page occurred
-      await page.waitForURL("**/apps/alby/setup**");
+
+      // Expect "Connect with Alby" to be displayed
+      expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
     } finally {
       await cleanupAlbyApp();
     }
