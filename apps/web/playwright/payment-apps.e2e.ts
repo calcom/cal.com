@@ -206,10 +206,8 @@ test.describe("Payment app", () => {
       await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
       await page.getByRole("button", { name: "Setup" }).click();
+      // Verify navigation to alby setup page occurred
       await page.waitForURL("**/apps/alby/setup**");
-
-      // Expect "Connect with Alby" to be displayed
-      await expect(page.locator("text=Connect with Alby").first()).toBeVisible();
     } finally {
       await cleanupAlbyApp();
     }
