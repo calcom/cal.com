@@ -1,7 +1,7 @@
-import React from "react";
 import type { TFunction } from "i18next";
+import React from "react";
 
-import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromVideoProvider, guessEventLocationType } from "@calcom/app-store/locations";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -9,9 +9,15 @@ import { Info } from "./Info";
 
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
+  const bookingMetadata = (props.calEvent as CalendarEvent & { metadata?: { videoProvider?: string } | null })
+    .metadata;
+  const resolvedVideoProvider =
+    typeof bookingMetadata?.videoProvider === "string" ? bookingMetadata.videoProvider : undefined;
 
   // We would not be able to determine provider name for DefaultEventLocationTypes
-  const providerName = guessEventLocationType(props.calEvent.location)?.label;
+  const providerName =
+    getEventLocationTypeFromVideoProvider(resolvedVideoProvider)?.label ||
+    guessEventLocationType(props.calEvent.location)?.label;
 
   const location = props.calEvent.location;
   let meetingUrl = location?.search(/^https?:/) !== -1 ? location : undefined;

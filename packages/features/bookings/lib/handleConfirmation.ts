@@ -248,6 +248,7 @@ export async function handleConfirmation(args: {
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
   const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+  const resolvedVideoProvider = evt.videoCallData?.type;
 
   const updatedBooking = await prisma.booking.update({
     where: {
@@ -259,7 +260,8 @@ export async function handleConfirmation(args: {
       },
       metadata: {
         ...(typeof booking.metadata === "object" ? booking.metadata : {}),
-        videoCallUrl: meetingUrl,
+        ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+        ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
       },
     },
     select: {
@@ -331,7 +333,10 @@ export async function handleConfirmation(args: {
       const evtOfBooking = {
         ...evt,
         rescheduleReason: updatedBookings[index].cancellationReason || null,
-        metadata: { videoCallUrl: meetingUrl },
+        metadata: {
+          ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+          ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+        },
         eventType: {
           id: booking.eventTypeId ?? undefined,
           title: eventTypeTitle,
@@ -478,7 +483,13 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata:
+        meetingUrl || resolvedVideoProvider
+          ? {
+              ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+              ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+            }
+          : undefined,
       ...(platformClientParams ? platformClientParams : {}),
     };
 

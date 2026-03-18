@@ -2358,11 +2358,18 @@ async function handler(
     videoCallUrl = booking.location;
   }
 
-  const metadata = videoCallUrl
-    ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
-    : undefined;
+  const resolvedVideoProvider = evt.videoCallData?.type;
+  const metadata =
+    videoCallUrl || resolvedVideoProvider
+      ? {
+          ...(videoCallUrl
+            ? {
+                videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+              }
+            : {}),
+          ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+        }
+      : undefined;
 
   const webhookData: EventPayloadType = {
     ...evt,
