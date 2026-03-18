@@ -843,7 +843,7 @@ describe("CalendarSyncService", () => {
       };
 
       // Google reports the instance at a different time than the DB, but originalStartDate === start
-      // User changed the description only (not the time)
+      // User changed the attendee comment only (not the time)
       const descriptionChangedInstance: CalendarSubscriptionEventItem = {
         ...mockCalComEvent,
         start: new Date("2023-12-08T10:00:00Z"),
@@ -1011,7 +1011,7 @@ describe("CalendarSyncService", () => {
       });
     });
 
-    test("should update description when event description changed", async () => {
+    test("should update description when attendee comment changed", async () => {
       const eventWithNewDescription: CalendarSubscriptionEventItem = {
         ...mockCalComEvent,
         start: mockBooking.startTime,

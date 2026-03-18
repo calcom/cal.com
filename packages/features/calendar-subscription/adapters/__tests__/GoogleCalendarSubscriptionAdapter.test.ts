@@ -303,6 +303,10 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             {
               id: "event-1",
               ...commonEventData,
+              attendees: [
+                { email: "organizer@test.com", organizer: true },
+                { email: "attendee@test.com", organizer: false, comment: "Test Description" },
+              ],
               start: {
                 dateTime: oneWeekFromNow.toISOString(),
                 timeZone: "UTC",
@@ -321,6 +325,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
+        maxAttendees: 10,
         maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,
@@ -377,6 +382,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
+        maxAttendees: 10,
         maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,
@@ -416,6 +422,63 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       expect(result.items[0].isAllDay).toBe(true);
       expect(result.items[0].start).toEqual(new Date(allDayStart.toISOString().split("T")[0]));
       expect(result.items[0].end).toEqual(new Date(allDayEnd.toISOString().split("T")[0]));
+    });
+
+    test("should use attendee comment as description when non-organizer has comment", async () => {
+      const mockEventsResponse = {
+        data: {
+          nextSyncToken: "new-sync-token",
+          items: [
+            {
+              id: "event-1",
+              ...commonEventData,
+              attendees: [
+                { email: "host@test.com", organizer: true },
+                { email: "booker@test.com", organizer: false, comment: "Please bring laptop" },
+              ],
+              start: {
+                dateTime: oneWeekFromNow.toISOString(),
+              },
+              end: {
+                dateTime: eventEndTime.toISOString(),
+              },
+            },
+          ],
+        },
+      };
+
+      mockClient.events.list.mockResolvedValue(mockEventsResponse);
+
+      const result = await adapter.fetchEvents(mockSelectedCalendar, mockCredential);
+
+      expect(result.items[0].description).toBe("Please bring laptop");
+    });
+
+    test("should have null description when no attendee comment", async () => {
+      const mockEventsResponse = {
+        data: {
+          nextSyncToken: "new-sync-token",
+          items: [
+            {
+              id: "event-1",
+              ...commonEventData,
+              attendees: [{ email: "host@test.com", organizer: true }],
+              start: {
+                dateTime: oneWeekFromNow.toISOString(),
+              },
+              end: {
+                dateTime: eventEndTime.toISOString(),
+              },
+            },
+          ],
+        },
+      };
+
+      mockClient.events.list.mockResolvedValue(mockEventsResponse);
+
+      const result = await adapter.fetchEvents(mockSelectedCalendar, mockCredential);
+
+      expect(result.items[0].description).toBeNull();
     });
 
     test("should handle free events (transparent)", async () => {
@@ -516,6 +579,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
       // First call used the stale syncToken
       expect(mockClient.events.list).toHaveBeenNthCalledWith(1, {
         calendarId: "test@example.com",
+        maxAttendees: 10,
         maxResults: 2500,
         pageToken: undefined,
         singleEvents: true,

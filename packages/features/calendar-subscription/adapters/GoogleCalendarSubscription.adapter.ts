@@ -118,6 +118,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
       pageToken,
       singleEvents: true,
       maxResults: 2500,
+      maxAttendees: 10,
     };
 
     if (!syncToken) {
@@ -208,6 +209,8 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
             ? new Date(event.end.date)
             : new Date();
 
+        const attendeeComment = this.getFirstAttendeeComment(event);
+
         return {
           id: event.id as string,
           iCalUID: event.iCalUID ?? null,
@@ -215,7 +218,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           end,
           busy,
           summary: event.summary ?? null,
-          description: event.description ?? null,
+          description: attendeeComment ?? null,
           location: event.location ?? null,
           kind: event.kind ?? null,
           etag: event.etag ?? null,
@@ -232,6 +235,19 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
           updatedAt: event.updated ? new Date(event.updated) : null,
         };
       });
+  }
+
+  /**
+   * Extracts the first non-organizer attendee's RSVP comment ("Add a note" from Google Calendar).
+   * This maps to booking.description (user's additional notes), unlike event.description which
+   * is the full rich text we send when creating the event.
+   */
+  private getFirstAttendeeComment(event: calendar_v3.Schema$Event): string | null {
+    const attendees = event.attendees;
+    if (!attendees?.length) return null;
+
+    const nonOrganizer = attendees.find((a) => !a.organizer);
+    return nonOrganizer?.comment ?? null;
   }
 
   private async getClient(credential: CalendarCredential) {

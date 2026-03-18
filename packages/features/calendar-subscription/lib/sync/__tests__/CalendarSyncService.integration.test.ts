@@ -307,7 +307,7 @@ describe("extractBookingResponses", () => {
 });
 
 describe("mergeBookingResponsesWithEventData", () => {
-  test("overrides title, notes, and location from event", () => {
+  test("overrides title, notes, and location from event (notes from attendee comment)", () => {
     const booking = makeBooking({
       responses: { name: "John", email: "john@test.com", notes: "old notes" },
     });
@@ -322,7 +322,7 @@ describe("mergeBookingResponsesWithEventData", () => {
     expect(result.name).toBe("John"); // preserved from booking
     expect(result.email).toBe("john@test.com"); // preserved from booking
     expect(result.title).toBe("New Title"); // from event
-    expect(result.notes).toBe("New notes"); // overridden by event
+    expect(result.notes).toBe("New notes"); // from event (attendee RSVP comment)
     expect(result.location).toEqual({
       value: "New Location",
       label: "New Location",
@@ -688,7 +688,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
     expect(call.bookingData.responses.name).toBe("John Doe"); // preserved
   });
 
-  test("description from external event overrides notes in responses", async () => {
+  test("attendee comment from external event overrides notes in responses", async () => {
     const booking = makeBooking({
       responses: { name: "John Doe", email: "john@test.com", notes: "Original notes" },
     });
@@ -1688,7 +1688,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
     );
   });
 
-  test("should reschedule with updated summary, description, and location", async () => {
+  test("should reschedule with updated summary, attendee comment, and location", async () => {
     const singleBooking = makeBooking({ recurringEventId: undefined });
     const events: CalendarSubscriptionEventItem[] = [
       makeEvent({
@@ -2231,7 +2231,7 @@ describe("Single booking edge cases", () => {
     expect(mockCreateBooking).not.toHaveBeenCalled();
   });
 
-  test("should update only description when only description changed (no time change)", async () => {
+  test("should update only description when attendee comment changed (no time change)", async () => {
     const booking = makeBooking({
       recurringEventId: undefined,
       startTime: new Date("2024-01-15T10:00:00Z"),
