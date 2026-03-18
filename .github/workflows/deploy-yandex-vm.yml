@@ -32,6 +32,7 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
+          NEXT_PUBLIC_WEBSITE_URL: ${{ secrets.NEXT_PUBLIC_WEBSITE_URL }}
         run: |
           IMAGE_SHA="cr.yandex/${YC_REGISTRY_ID}/calcom:${GITHUB_SHA}"
           IMAGE_LATEST="cr.yandex/${YC_REGISTRY_ID}/calcom:latest"
@@ -41,6 +42,7 @@ jobs:
             --build-arg NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
             --build-arg CALENDSO_ENCRYPTION_KEY="$CALENDSO_ENCRYPTION_KEY" \
             --build-arg NEXT_PUBLIC_WEBAPP_URL="$NEXT_PUBLIC_WEBAPP_URL" \
+            --build-arg NEXT_PUBLIC_WEBSITE_URL="$NEXT_PUBLIC_WEBSITE_URL" \
             --build-arg NEXT_PUBLIC_LICENSE_CONSENT="true" \
             -t "$IMAGE_SHA" \
             -t "$IMAGE_LATEST" \
@@ -59,6 +61,7 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
+          NEXT_PUBLIC_WEBSITE_URL: ${{ secrets.NEXT_PUBLIC_WEBSITE_URL }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
           GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
         with:
@@ -66,7 +69,7 @@ jobs:
           username: ${{ secrets.YC_VM_USER }}
           key: ${{ secrets.YC_VM_SSH_KEY }}
           script_stop: true
-          envs: IMAGE_LATEST,YC_SA_JSON_CREDENTIALS_B64,DATABASE_URL,DATABASE_HOST,NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,GOOGLE_API_CREDENTIALS
+          envs: IMAGE_LATEST,YC_SA_JSON_CREDENTIALS_B64,DATABASE_URL,DATABASE_HOST,NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_WEBAPP_URL,NEXT_PUBLIC_WEBSITE_URL,NEXTAUTH_URL,GOOGLE_API_CREDENTIALS
           script: |
             set -e
 
@@ -88,6 +91,7 @@ jobs:
               -e NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
               -e CALENDSO_ENCRYPTION_KEY="$CALENDSO_ENCRYPTION_KEY" \
               -e NEXT_PUBLIC_WEBAPP_URL="$NEXT_PUBLIC_WEBAPP_URL" \
+              -e NEXT_PUBLIC_WEBSITE_URL="$NEXT_PUBLIC_WEBSITE_URL" \
               -e NEXTAUTH_URL="$NEXTAUTH_URL" \
               -e GOOGLE_API_CREDENTIALS="$GOOGLE_API_CREDENTIALS" \
               "$IMAGE_LATEST"
