@@ -1,20 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+import { BookingReportService } from "@calcom/features/bookingReport/services/BookingReportService";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
-import { BookingStatus, BookingReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
-import { TRPCError } from "@trpc/server";
 
 import { reportBookingHandler } from "./reportBooking.handler";
 
-vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
-vi.mock("@calcom/features/bookings/repositories/BookingRepository");
-vi.mock("@calcom/features/bookings/services/BookingAccessService");
 vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
   checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
@@ -35,6 +30,31 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
+const mockBookingRepo = {
+  findByUidIncludeReport: vi.fn(),
+  findUpcomingByAttendeeEmail: vi.fn(),
+  findUpcomingByAttendeeDomain: vi.fn(),
+};
+
+const mockReportRepo = {
+  createReport: vi.fn(),
+};
+
+const mockBookingAccessService = {
+  doesUserIdHaveAccessToBooking: vi.fn(),
+};
+
+vi.mock("@calcom/features/bookingReport/di/BookingReportService.container", () => ({
+  getBookingReportService: vi.fn().mockImplementation(
+    () =>
+      new BookingReportService({
+        bookingRepo: mockBookingRepo as never,
+        bookingReportRepo: mockReportRepo as never,
+        bookingAccessService: mockBookingAccessService as never,
+      })
+  ),
+}));
+
 describe("reportBookingHandler", () => {
   const mockUser = {
     id: 1,
@@ -53,24 +73,10 @@ describe("reportBookingHandler", () => {
     uid: "test-booking-uid",
     userId: 1,
     startTime: tomorrow,
-    status: BookingStatus.ACCEPTED,
+    status: "ACCEPTED",
     attendees: [{ email: "booker@spammer.com" }],
     seatsReferences: [],
     report: null,
-  };
-
-  const mockBookingRepo = {
-    findByUidIncludeReport: vi.fn(),
-    findUpcomingByAttendeeEmail: vi.fn(),
-    findUpcomingByAttendeeDomain: vi.fn(),
-  };
-
-  const mockReportRepo = {
-    createReport: vi.fn(),
-  };
-
-  const mockBookingAccessService = {
-    doesUserIdHaveAccessToBooking: vi.fn(),
   };
 
   function callHandler(inputOverrides = {}) {
@@ -88,16 +94,6 @@ describe("reportBookingHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(BookingRepository).mockImplementation(function () {
-      return mockBookingRepo as any;
-    });
-    vi.mocked(PrismaBookingReportRepository).mockImplementation(function () {
-      return mockReportRepo as any;
-    });
-    vi.mocked(BookingAccessService).mockImplementation(function () {
-      return mockBookingAccessService as any;
-    });
-
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
     mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
     mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([]);
@@ -108,7 +104,7 @@ describe("reportBookingHandler", () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(false);
 
       await expect(callHandler()).rejects.toMatchObject({
-        code: "FORBIDDEN",
+        code: ErrorCode.Forbidden,
       });
     });
 
@@ -117,7 +113,7 @@ describe("reportBookingHandler", () => {
       mockBookingRepo.findByUidIncludeReport.mockResolvedValue(null);
 
       await expect(callHandler()).rejects.toMatchObject({
-        code: "NOT_FOUND",
+        code: ErrorCode.NotFound,
       });
     });
 
@@ -129,7 +125,7 @@ describe("reportBookingHandler", () => {
       });
 
       await expect(callHandler()).rejects.toMatchObject({
-        code: "BAD_REQUEST",
+        code: ErrorCode.BadRequest,
         message: "This booking has already been reported",
       });
     });
@@ -142,7 +138,7 @@ describe("reportBookingHandler", () => {
       });
 
       await expect(callHandler()).rejects.toMatchObject({
-        code: "BAD_REQUEST",
+        code: ErrorCode.BadRequest,
         message: "Booking has no attendees",
       });
     });
@@ -170,7 +166,7 @@ describe("reportBookingHandler", () => {
       });
 
       await expect(callHandler({ reportType: "DOMAIN" })).rejects.toMatchObject({
-        code: "BAD_REQUEST",
+        code: ErrorCode.BadRequest,
         message: "Domain reporting is not available for seated events",
       });
 
@@ -310,7 +306,7 @@ describe("reportBookingHandler", () => {
       vi.mocked(checkIfFreeEmailDomain).mockResolvedValue(true);
 
       await expect(callHandler({ reportType: "DOMAIN" })).rejects.toMatchObject({
-        code: "BAD_REQUEST",
+        code: ErrorCode.BadRequest,
         message: "Cannot report by domain for free email providers",
       });
 

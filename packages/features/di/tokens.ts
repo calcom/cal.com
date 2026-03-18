@@ -4,6 +4,7 @@ import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/token
 import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
 import { AVATAR_DI_TOKENS } from "@calcom/features/avatars/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { BOOKING_REPORT_DI_TOKENS } from "@calcom/features/bookingReport/di/tokens";
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { CALENDAR_SUBSCRIPTION_DI_TOKENS } from "@calcom/features/calendar-subscription/di/tokens";
 import { CALENDARS_DI_TOKENS } from "@calcom/features/calendars/di/tokens";
@@ -92,6 +93,7 @@ export const DI_TOKENS = {
   ORG_MEMBERSHIP_LOOKUP_MODULE: Symbol("OrgMembershipLookupModule"),
   // Booking service tokens
   ...BOOKING_AUDIT_DI_TOKENS,
+  ...BOOKING_REPORT_DI_TOKENS,
   ...BOOKING_DI_TOKENS,
   ...HASHED_LINK_DI_TOKENS,
   ...OAUTH_DI_TOKENS,
