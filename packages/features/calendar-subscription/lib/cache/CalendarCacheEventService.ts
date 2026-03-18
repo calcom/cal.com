@@ -36,6 +36,7 @@ export class CalendarCacheEventService {
         toUpsert.push({
           externalId: event.id,
           selectedCalendarId: selectedCalendar.id,
+          iCalUID: event.iCalUID,
           start: event.start,
           end: event.end,
           summary: event.summary,

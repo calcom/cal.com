@@ -65,6 +65,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
       ) VALUES ${Prisma.join(values)}
       ON CONFLICT ("selectedCalendarId", "externalId")
       DO UPDATE SET
+        "iCalUID" = EXCLUDED."iCalUID",
         "start" = EXCLUDED."start",
         "end" = EXCLUDED."end",
         "summary" = EXCLUDED."summary",

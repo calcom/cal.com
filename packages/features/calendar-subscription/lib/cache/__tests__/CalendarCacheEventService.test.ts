@@ -87,6 +87,7 @@ describe("CalendarCacheEventService", () => {
         {
           externalId: "event-1",
           selectedCalendarId: "test-calendar-id",
+          iCalUID: "event-1@cal.com",
           start: new Date("2023-12-01T10:00:00Z"),
           end: new Date("2023-12-01T11:00:00Z"),
           summary: "Test Event",
@@ -239,6 +240,7 @@ describe("CalendarCacheEventService", () => {
         {
           externalId: "event-1",
           selectedCalendarId: "test-calendar-id",
+          iCalUID: "event-1@cal.com",
           start: new Date("2023-12-01T10:00:00Z"),
           end: new Date("2023-12-01T11:00:00Z"),
           summary: "Busy Event",
@@ -301,6 +303,7 @@ describe("CalendarCacheEventService", () => {
         {
           externalId: "event-1",
           selectedCalendarId: "test-calendar-id",
+          iCalUID: "event-1@cal.com",
           start: new Date("2023-12-01T10:00:00Z"),
           end: new Date("2023-12-01T11:00:00Z"),
           summary: null,
