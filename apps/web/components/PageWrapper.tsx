@@ -90,7 +90,7 @@ function PageWrapper(props: AppProps) {
 
       <style jsx global>{`
         :root {
-          --font-sans: ${interFont.style.fontFamily};
+          --font-sans: ${interFont.style.fontFamily}, system-ui;
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
