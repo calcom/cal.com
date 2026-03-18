@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -29,6 +30,8 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
 
 export const TroubleshooterSidebar = () => {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const isDebugMode = searchParams?.get("debug") === "true";
   const bypassCalendarCache = useTroubleshooterStore((state) => state.bypassCalendarCache);
   const setBypassCalendarCache = useTroubleshooterStore((state) => state.setBypassCalendarCache);
 
@@ -38,10 +41,12 @@ export const TroubleshooterSidebar = () => {
       <EventTypeSelect />
       <EventScheduleItem />
       <CalendarToggleContainer />
-      <div className="flex items-center justify-between px-3">
-        <span className="text-emphasis text-sm font-medium">{t("bypass_calendar_cache")}</span>
-        <Switch checked={bypassCalendarCache} onCheckedChange={setBypassCalendarCache} />
-      </div>
+      {isDebugMode && (
+        <div className="flex items-center justify-between px-3">
+          <span className="text-emphasis text-sm font-medium">{t("bypass_calendar_cache")}</span>
+          <Switch checked={bypassCalendarCache} onCheckedChange={setBypassCalendarCache} />
+        </div>
+      )}
     </div>
   );
 };
