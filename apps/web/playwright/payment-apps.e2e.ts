@@ -206,6 +206,7 @@ test.describe("Payment app", () => {
       await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
       await page.getByRole("button", { name: "Setup" }).click();
+      await page.waitForURL("**/apps/alby/setup**");
 
       // Expect "Connect with Alby" to be displayed
       await expect(page.locator("text=Connect with Alby").first()).toBeVisible();
@@ -313,6 +314,9 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
+    // Verify paypal is now the active payment app
+    await expect(page.locator("[data-testid='paypal-app-switch']")).toBeChecked();
+    // Stripe switch should be disabled when another payment app is already enabled
     await expect(page.locator("[data-testid='stripe-app-switch']")).toBeDisabled();
   });
 
